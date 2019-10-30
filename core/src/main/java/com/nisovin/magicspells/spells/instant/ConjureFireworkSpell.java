@@ -10,6 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.FireworkEffect;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.FireworkEffect.Type;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -113,8 +114,9 @@ public class ConjureFireworkSpell extends InstantSpell implements TargetedLocati
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			boolean added = false;
 			ItemStack item = firework.clone();
 			if (addToInventory) added = Util.addToInventory(player.getInventory(), item, true, false);
@@ -131,7 +133,7 @@ public class ConjureFireworkSpell extends InstantSpell implements TargetedLocati
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		playSpellEffects(EffectPosition.CASTER, caster);
 		return castAtLocation(target, power);
 	}

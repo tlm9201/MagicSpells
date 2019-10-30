@@ -57,13 +57,14 @@ public abstract class TargetedSpell extends InstantSpell {
 		}
 	}
 	
-	protected void sendMessages(Player caster, LivingEntity target) {
+	protected void sendMessages(LivingEntity caster, LivingEntity target) {
+		if (!(caster instanceof Player)) return;
 		String targetName = getTargetName(target);
 		Player playerTarget = null;
 		if (target instanceof Player) playerTarget = (Player) target;
-		sendMessage(prepareMessage(strCastSelf, caster, targetName, playerTarget), caster, MagicSpells.NULL_ARGS);
-		if (playerTarget != null) sendMessage(prepareMessage(strCastTarget, caster, targetName, playerTarget), playerTarget, MagicSpells.NULL_ARGS);
-		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, caster, targetName, playerTarget), broadcastRange, MagicSpells.NULL_ARGS);
+		sendMessage(prepareMessage(strCastSelf, (Player) caster, targetName, playerTarget), caster, MagicSpells.NULL_ARGS);
+		if (playerTarget != null) sendMessage(prepareMessage(strCastTarget, (Player) caster, targetName, playerTarget), playerTarget, MagicSpells.NULL_ARGS);
+		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, (Player) caster, targetName, playerTarget), broadcastRange, MagicSpells.NULL_ARGS);
 	}
 	
 	private String prepareMessage(String message, Player caster, String targetName, Player playerTarget) {
@@ -115,37 +116,37 @@ public abstract class TargetedSpell extends InstantSpell {
 	/**
 	 * Plays the fizzle sound if it is enabled for this spell.
 	 */
-	protected void fizzle(Player player) {
-		if (playFizzleSound) player.playEffect(player.getLocation(), Effect.EXTINGUISH, null);
+	protected void fizzle(LivingEntity livingEntity) {
+		if (playFizzleSound && livingEntity instanceof Player) ((Player) livingEntity).playEffect(livingEntity.getLocation(), Effect.EXTINGUISH, null);
 	}
 	
 	@Override
-	protected TargetInfo<LivingEntity> getTargetedEntity(Player player, float power, boolean forceTargetPlayers, ValidTargetChecker checker) {
-		if (targetSelf || validTargetList.canTargetSelf()) return new TargetInfo<>(player, power);
-		return super.getTargetedEntity(player, power, forceTargetPlayers, checker);
+	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity livingEntity, float power, boolean forceTargetPlayers, ValidTargetChecker checker) {
+		if (targetSelf || validTargetList.canTargetSelf()) return new TargetInfo<>(livingEntity, power);
+		return super.getTargetedEntity(livingEntity, power, forceTargetPlayers, checker);
 	}
 	
 	/**
 	 * This should be called if a target should not be found. It sends the no target message
 	 * and returns the appropriate return value.
-	 * @param player the casting player
+	 * @param livingEntity the casting living entity
 	 * @return the appropriate PostcastAction value
 	 */
-	protected PostCastAction noTarget(Player player) {
-		return noTarget(player, strNoTarget);
+	protected PostCastAction noTarget(LivingEntity livingEntity) {
+		return noTarget(livingEntity, strNoTarget);
 	}
 	
 	/**
 	 * This should be called if a target should not be found. It sends the provided message
 	 * and returns the appropriate return value.
-	 * @param player the casting player
+	 * @param livingEntity the casting living entity
 	 * @param message the message to send
 	 * @return
 	 */
-	protected PostCastAction noTarget(Player player, String message) {
-		fizzle(player);
-		sendMessage(message, player, MagicSpells.NULL_ARGS);
-		if (spellOnFail != null) spellOnFail.cast(player, 1.0F);
+	protected PostCastAction noTarget(LivingEntity livingEntity, String message) {
+		fizzle(livingEntity);
+		sendMessage(message, livingEntity, MagicSpells.NULL_ARGS);
+		if (spellOnFail != null) spellOnFail.cast(livingEntity, 1.0F);
 		return alwaysActivate ? PostCastAction.NO_MESSAGES : PostCastAction.ALREADY_HANDLED;
 	}
 	

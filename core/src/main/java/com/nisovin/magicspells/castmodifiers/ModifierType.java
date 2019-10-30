@@ -458,11 +458,12 @@ public enum ModifierType {
 		
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
+			if (!(event.getCaster() instanceof Player)) return false;
 			if (check) {
 				CustomData data = (CustomData) customData;
-				if (isDataOk(data, event.getCaster(), null)) {
-					double amount = data.mod.getValue(event.getCaster(), null);
-					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, event.getCaster(), null, data.mod.getOperation(), amount);
+				if (isDataOk(data, (Player) event.getCaster(), null)) {
+					double amount = data.mod.getValue((Player) event.getCaster(), null);
+					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, (Player) event.getCaster(), null, data.mod.getOperation(), amount);
 				}
 			}
 			return true;
@@ -482,12 +483,13 @@ public enum ModifierType {
 
 		@Override
 		public boolean apply(SpellTargetEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
+			if (!(event.getCaster() instanceof Player)) return false;
 			if (check) {
 				CustomData data = (CustomData) customData;
 				Player targetPlayer = event.getTarget() instanceof Player ? (Player) event.getTarget() : null;
-				if (isDataOk(data, event.getCaster(), targetPlayer)) {
-					double amount = data.mod.getValue(event.getCaster(), targetPlayer);
-					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, event.getCaster(), targetPlayer, data.mod.getOperation(), amount);
+				if (isDataOk(data, (Player) event.getCaster(), targetPlayer)) {
+					double amount = data.mod.getValue((Player) event.getCaster(), targetPlayer);
+					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, (Player) event.getCaster(), targetPlayer, data.mod.getOperation(), amount);
 				}
 			}
 			return true;
@@ -495,11 +497,12 @@ public enum ModifierType {
 
 		@Override
 		public boolean apply(SpellTargetLocationEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
+			if (!(event.getCaster() instanceof Player)) return false;
 			if (check) {
 				CustomData data = (CustomData) customData;
-				if (isDataOk(data, event.getCaster(), null)) {
-					double amount = data.mod.getValue(event.getCaster(), null);
-					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, event.getCaster(), null, data.mod.getOperation(), amount);
+				if (isDataOk(data, (Player) event.getCaster(), null)) {
+					double amount = data.mod.getValue((Player) event.getCaster(), null);
+					modifyVariable(data.modifiedVariableName, data.modifiedVariableOwner, (Player) event.getCaster(), null, data.mod.getOperation(), amount);
 				}
 			}
 			return true;
@@ -560,7 +563,8 @@ public enum ModifierType {
 		
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (check) setVariable(event.getCaster(), (CustomData) customData);
+			if (!(event.getCaster() instanceof Player)) return false;
+			if (check) setVariable((Player) event.getCaster(), (CustomData) customData);
 			return true;
 		}
 		
@@ -572,13 +576,15 @@ public enum ModifierType {
 		
 		@Override
 		public boolean apply(SpellTargetEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (check) setVariable(event.getCaster(), (CustomData) customData);
+			if (!(event.getCaster() instanceof Player)) return false;
+			if (check) setVariable((Player) event.getCaster(), (CustomData) customData);
 			return true;
 		}
 		
 		@Override
 		public boolean apply(SpellTargetLocationEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
-			if (check) setVariable(event.getCaster(), (CustomData) customData);
+			if (!(event.getCaster() instanceof Player)) return false;
+			if (check) setVariable((Player) event.getCaster(), (CustomData) customData);
 			return true;
 		}
 		

@@ -7,14 +7,14 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class FireworksEffect extends SpellEffect {
 
-	int type;
-	int flightDuration;
+	private int type;
+	private int flightDuration;
 
-	boolean trail;
-	boolean flicker;
+	private boolean trail;
+	private boolean flicker;
 
-	int[] colors = new int[] { 0xFF0000 };
-	int[] fadeColors = new int[] { 0xFF0000 };
+	private int[] colors = new int[] { 0xFF0000 };
+	private int[] fadeColors = new int[] { 0xFF0000 };
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

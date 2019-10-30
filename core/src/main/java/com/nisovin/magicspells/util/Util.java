@@ -37,6 +37,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -635,6 +636,48 @@ public class Util {
 		}
 		if (amt == 0) {
 			inventory.setContents(items);
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean removeFromInventory(EntityEquipment entityEquipment, ItemStack item) {
+		int amt = item.getAmount();
+		ItemStack[] armorContents = entityEquipment.getArmorContents();
+		ItemStack[] items = new ItemStack[6];
+		for (int i = 0; i < 4; i++) {
+			items[i] = armorContents[i];
+		}
+		items[4] = entityEquipment.getItemInMainHand();
+		items[5] = entityEquipment.getItemInOffHand();
+
+		for (int i = 0; i < items.length; i++) {
+			if (items[i] == null) continue;
+			if (!item.isSimilar(items[i])) continue;
+
+			if (items[i].getAmount() > amt) {
+				items[i].setAmount(items[i].getAmount() - amt);
+				amt = 0;
+				break;
+			} else if (items[i].getAmount() == amt) {
+				items[i] = null;
+				amt = 0;
+				break;
+			} else {
+				amt -= items[i].getAmount();
+				items[i] = null;
+			}
+		}
+
+
+		if (amt == 0) {
+			ItemStack[] updatedArmorContents = new ItemStack[4];
+			for (int i = 0; i < 4; i++) {
+				updatedArmorContents[i] = items[i];
+			}
+			entityEquipment.setArmorContents(updatedArmorContents);
+			entityEquipment.setItemInMainHand(items[4]);
+			entityEquipment.setItemInOffHand(items[5]);
 			return true;
 		}
 		return false;

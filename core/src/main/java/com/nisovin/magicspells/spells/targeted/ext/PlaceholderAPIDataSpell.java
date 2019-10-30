@@ -1,13 +1,14 @@
 package com.nisovin.magicspells.spells.targeted.ext;
 
 import org.bukkit.entity.Player;
-
-import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+
+import me.clip.placeholderapi.PlaceholderAPI;
 
 // NOTE: PLACEHOLDERAPI IS REQUIRED FOR THIS
 public class PlaceholderAPIDataSpell extends TargetedSpell {
@@ -37,16 +38,16 @@ public class PlaceholderAPIDataSpell extends TargetedSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(player, power);
-			if (targetInfo == null) return noTarget(player);
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power);
+			if (targetInfo == null) return noTarget(caster);
 			Player target = targetInfo.getTarget();
-			if (target == null) return noTarget(player);
+			if (target == null) return noTarget(caster);
 			
 			String value = PlaceholderAPI.setPlaceholders(target, placeholderAPITemplate);
-			MagicSpells.getVariableManager().set(variableName, player, value);
-			playSpellEffects(player, target);
+			MagicSpells.getVariableManager().set(variableName, (Player) caster, value);
+			playSpellEffects(caster, target);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

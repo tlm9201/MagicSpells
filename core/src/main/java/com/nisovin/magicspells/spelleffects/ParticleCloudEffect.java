@@ -14,33 +14,33 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ColorUtil;
 
-class ParticleCloudEffect extends SpellEffect {
+public class ParticleCloudEffect extends SpellEffect {
 
-	Particle particle;
-	String particleName;
+	private Particle particle;
+	private String particleName;
 
-	Material material;
-	String materialName;
+	private Material material;
+	private String materialName;
 
-	BlockData blockData;
-	ItemStack itemStack;
+	private BlockData blockData;
+	private ItemStack itemStack;
 
-	float dustSize;
-	String colorHex;
-	Color dustColor;
-	DustOptions dustOptions;
+	private float dustSize;
+	private String colorHex;
+	private Color dustColor;
+	private DustOptions dustOptions;
 
-	boolean none = true;
-	boolean item = false;
-	boolean dust = false;
-	boolean block = false;
+	private boolean none = true;
+	private boolean item = false;
+	private boolean dust = false;
+	private boolean block = false;
 
-	int color;
-	int duration;
+	private int color;
+	private int duration;
 
-	float radius;
-	float yOffset;
-	float radiusPerTick;
+	private float radius;
+	private float yOffset;
+	private float radiusPerTick;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

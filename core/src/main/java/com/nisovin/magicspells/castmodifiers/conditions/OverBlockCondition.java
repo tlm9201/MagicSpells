@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
@@ -18,12 +17,12 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OverBlockCondition extends Condition {
 
-	int depth;
-	String blocks;
+	private int depth;
+	private String blocks;
 
 	//Block Data
-	Set<Material> types;
-	List<Material> mats;
+	private Set<Material> types;
+	private List<Material> mats;
 
 	@Override
 	public boolean setVar(String var) {
@@ -61,18 +60,18 @@ public class OverBlockCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return check(player, player.getLocation());
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity.getLocation());
 	}
 
 	//If target-modifiers are use, lets check based on the target's location.
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return check(player, target.getLocation());
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target, target.getLocation());
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		//The first time around, we look at the block right underneath the player.
 		Block block = location.clone().subtract(0, 1, 0).getBlock();
 

@@ -55,22 +55,24 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Spe
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 
-			boolean done = CompatBasics.exemptAction(() -> causePain(player, target.getTarget(), target.getPower()), player, CompatBasics.activeExemptionAssistant.getPainExemptions());
-			if (!done) return noTarget(player);
+			boolean done;
+			if (livingEntity instanceof Player) done = CompatBasics.exemptAction(() -> causePain(livingEntity, target.getTarget(), target.getPower()), (Player) livingEntity, CompatBasics.activeExemptionAssistant.getPainExemptions());
+			else done = causePain(livingEntity, target.getTarget(), target.getPower());
+			if (!done) return noTarget(livingEntity);
 			
-			sendMessages(player, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		return causePain(caster, target, power);
 	}
@@ -86,20 +88,20 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Spe
 		return spellDamageType;
 	}
 	
-	private boolean causePain(Player player, LivingEntity target, float power) {
+	private boolean causePain(LivingEntity caster, LivingEntity target, float power) {
 		if (target == null) return false;
 		if (target.isDead()) return false;
 		double localDamage = damage * power;
 
 		if (checkPlugins) {
-			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(player, target, damageType, localDamage);
+			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, localDamage);
 			EventUtil.call(event);
 			if (event.isCancelled()) return false;
 			if (!avoidDamageModification) localDamage = event.getDamage();
 			target.setLastDamageCause(event);
 		}
 
-		SpellApplyDamageEvent event = new SpellApplyDamageEvent(this, player, target, localDamage, damageType, spellDamageType);
+		SpellApplyDamageEvent event = new SpellApplyDamageEvent(this, caster, target, localDamage, damageType, spellDamageType);
 		EventUtil.call(event);
 		localDamage = event.getFinalDamage();
 
@@ -109,17 +111,17 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Spe
 			health = health - localDamage;
 			if (health < 0) health = 0;
 			if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
-			if (health == 0) MagicSpells.getVolatileCodeHandler().setKiller(target, player);
+			if (health == 0 && caster instanceof Player) MagicSpells.getVolatileCodeHandler().setKiller(target, (Player) caster);
 
 			target.setHealth(health);
-			playSpellEffects(player, target);
+			playSpellEffects(caster, target);
 			target.playEffect(EntityEffect.HURT);
 			return true;
 		}
 
 		if (tryAvoidingAntiCheatPlugins) target.damage(localDamage);
-		else target.damage(localDamage, player);
-		playSpellEffects(player, target);
+		else target.damage(localDamage, caster);
+		playSpellEffects(caster, target);
 		return true;
 	}
 

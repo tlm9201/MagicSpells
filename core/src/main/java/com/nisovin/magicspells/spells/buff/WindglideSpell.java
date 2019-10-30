@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -98,12 +97,13 @@ public class WindglideSpell extends BuffSpell {
 		}
 
 		for (UUID id : gliders) {
-			Player pl = Bukkit.getPlayer(id);
-			if (pl == null) continue;
-			if (!pl.isValid()) continue;
+			Entity entity = Bukkit.getEntity(id);
+			if (entity == null) continue;
+			if (!(entity instanceof LivingEntity)) continue;
+			if (!entity.isValid()) continue;
 
-			pl.setGliding(false);
-			turnOffBuff(pl);
+			((LivingEntity) entity).setGliding(false);
+			turnOffBuff((LivingEntity) entity);
 		}
 
 		gliders.clear();
@@ -127,14 +127,14 @@ public class WindglideSpell extends BuffSpell {
 
 		if (blockCollisionDmg) e.setCancelled(true);
 		if (cancelOnCollision) turnOff(livingEntity);
-		if (collisionSpell != null && livingEntity instanceof Player) collisionSpell.castAtLocation((Player) livingEntity, livingEntity.getLocation(), 1F);
+		if (collisionSpell != null) collisionSpell.castAtLocation(livingEntity, livingEntity.getLocation(), 1F);
 	}
 
-	class GlideMonitor implements Runnable {
+	private class GlideMonitor implements Runnable {
 
-		int taskId;
+		private int taskId;
 
-		public GlideMonitor() {
+		private GlideMonitor() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, interval, interval);
 		}
 
@@ -149,11 +149,16 @@ public class WindglideSpell extends BuffSpell {
 				Vector v = eLoc.getDirection().normalize().multiply(velocity).add(new Vector(0, height, 0));
 				entity.setVelocity(v);
 
-				if (glideSpell != null && entity instanceof Player) glideSpell.castAtLocation((Player) entity, eLoc, 1F);
+				if (glideSpell != null) glideSpell.castAtLocation((LivingEntity) entity, eLoc, 1F);
 				playSpellEffects(EffectPosition.SPECIAL, eLoc);
 				addUseAndChargeCost((LivingEntity) entity);
 			}
 		}
+
+		public void stop() {
+			MagicSpells.cancelTask(taskId);
+		}
+
 	}
 
 }

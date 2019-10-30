@@ -11,9 +11,9 @@ import com.nisovin.magicspells.util.TimeUtil;
 
 public class ItemCooldownEffect extends SpellEffect {
 
-	ItemStack item;
+	private ItemStack item;
 
-	int duration;
+	private int duration;
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {

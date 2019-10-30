@@ -140,44 +140,44 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			if (capPerPlayer > 0) {
 				int count = 0;
 				for (Totem pulser : totems) {
-					if (!pulser.caster.equals(player)) continue;
+					if (!pulser.caster.equals(caster)) continue;
 
 					count++;
 					if (count >= capPerPlayer) {
-						sendMessage(strAtCap, player, args);
+						sendMessage(strAtCap, caster, args);
 						return PostCastAction.ALREADY_HANDLED;
 					}
 				}
 			}
 
-			List<Block> lastTwo = getLastTwoTargetedBlocks(player, power);
+			List<Block> lastTwo = getLastTwoTargetedBlocks(caster, power);
 			Block target = null;
 
 			if (lastTwo != null && lastTwo.size() == 2) target = lastTwo.get(0);
-			if (target == null) return noTarget(player);
+			if (target == null) return noTarget(caster);
 			if (yOffset > 0) target = target.getRelative(BlockFace.UP, yOffset);
 			else if (yOffset < 0) target = target.getRelative(BlockFace.DOWN, yOffset);
-			if (!BlockUtils.isAir(target.getType()) && target.getType() != Material.SNOW && target.getType() != Material.TALL_GRASS) return noTarget(player);
+			if (!BlockUtils.isAir(target.getType()) && target.getType() != Material.SNOW && target.getType() != Material.TALL_GRASS) return noTarget(caster);
 
 			if (target != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, target.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
 				EventUtil.call(event);
-				if (event.isCancelled()) return noTarget(player);
+				if (event.isCancelled()) return noTarget(caster);
 				target = event.getTargetLocation().getBlock();
 				power = event.getPower();
 			}
-			createTotem(player, target.getLocation(), power);
+			createTotem(caster, target.getLocation(), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		Block block = target.getBlock();
 		if (yOffset > 0) block = block.getRelative(BlockFace.UP, yOffset);
 		else if (yOffset < 0) block = block.getRelative(BlockFace.DOWN, yOffset);
@@ -199,7 +199,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		return castAtLocation(null, target, power);
 	}
 
-	private void createTotem(Player caster, Location loc, float power) {
+	private void createTotem(LivingEntity caster, Location loc, float power) {
 		totems.add(new Totem(caster, loc, power));
 		ticker.start();
 		if (caster != null) playSpellEffects(caster, loc);
@@ -240,7 +240,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	private class Totem {
 
-		private Player caster;
+		private LivingEntity caster;
 		private LivingEntity armorStand;
 		private Location totemLocation;
 		private EntityEquipment totemEquipment;
@@ -248,7 +248,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		private float power;
 		private int pulseCount;
 
-		private Totem(Player caster, Location loc, float power) {
+		private Totem(LivingEntity caster, Location loc, float power) {
 			this.caster = caster;
 			this.power = power;
 
@@ -278,7 +278,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 				if (!armorStand.isDead()) return activate();
 				stop();
 				return true;
-			} else if (caster.isValid() && caster.isOnline() && !armorStand.isDead() && totemLocation.getChunk().isLoaded()) {
+			} else if (caster.isValid() && !armorStand.isDead() && totemLocation.getChunk().isLoaded()) {
 				if (maxDistanceSquared > 0 && (!LocationUtil.isSameWorld(totemLocation, caster) || totemLocation.distanceSquared(caster.getLocation()) > maxDistanceSquared)) {
 					stop();
 					return true;

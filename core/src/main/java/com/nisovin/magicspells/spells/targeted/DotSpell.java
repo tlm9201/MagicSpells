@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -52,17 +51,17 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Spel
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-			if (targetInfo == null) return noTarget(player);
-			applyDot(player, targetInfo.getTarget(), targetInfo.getPower());
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+			if (targetInfo == null) return noTarget(livingEntity);
+			applyDot(livingEntity, targetInfo.getTarget(), targetInfo.getPower());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		applyDot(caster, target, power);
 		return true;
 	}
@@ -88,7 +87,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Spel
 		dot.cancel();
 	}
 	
-	private void applyDot(Player caster, LivingEntity target, float power) {
+	private void applyDot(LivingEntity caster, LivingEntity target, float power) {
 		Dot dot = activeDots.get(target.getUniqueId());
 		if (dot != null) {
 			dot.dur = 0;
@@ -110,14 +109,14 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Spel
 	
 	private class Dot implements Runnable {
 		
-		private Player caster;
+		private LivingEntity caster;
 		private LivingEntity target;
 		private float power;
 
 		private int taskId;
 		private int dur = 0;
 
-		private Dot(Player caster, LivingEntity target, float power) {
+		private Dot(LivingEntity caster, LivingEntity target, float power) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;

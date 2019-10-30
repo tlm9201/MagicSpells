@@ -160,7 +160,7 @@ public class PassiveSpell extends Spell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		return PostCastAction.ALREADY_HANDLED;
 	}
 	
@@ -222,7 +222,7 @@ public class PassiveSpell extends Spell {
 		SpellCastEvent event = new SpellCastEvent(this, caster, SpellCastState.NORMAL, basePower, null, cooldown, reagents.clone(), 0);
 		EventUtil.call(event);
 		if (event.isCancelled() || event.getSpellCastState() != SpellCastState.NORMAL) {
-			MagicSpells.debug(3, "   Passive spell canceled");
+			MagicSpells.debug(3, "   Passive spell cancelled");
 			disabled = false;
 			return false;
 		}

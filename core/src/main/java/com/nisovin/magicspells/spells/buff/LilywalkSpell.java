@@ -89,12 +89,12 @@ public class LilywalkSpell extends BuffSpell {
 		if (Util.containsValueParallel(lilywalkers, lilies -> lilies.contains(block))) event.setCancelled(true);
 	}
 
-	public static class Lilies {
+	private static class Lilies {
 		
 		private Block center = null;
 		private Set<Block> blocks = new HashSet<>();
 		
-		public void move(Block center) {
+		private void move(Block center) {
 			this.center = center;
 			
 			Iterator<Block> iter = blocks.iterator();
@@ -117,24 +117,24 @@ public class LilywalkSpell extends BuffSpell {
 		}
 		
 		private void setToLily(Block block) {
-			if (block.getType() != Material.AIR) return;
+			if (!BlockUtils.isAir(block.getType())) return;
 			
 			BlockState state = block.getRelative(BlockFace.DOWN).getState();
-			if ((state.getType() == Material.WATER || state.getType() == Material.WATER) && BlockUtils.getWaterLevel(state) == 0) {
+			if ((state.getType() == Material.WATER) && BlockUtils.getWaterLevel(state) == 0) {
 				block.setType(Material.LILY_PAD);
 				blocks.add(block);
 			}
 		}
 		
-		public boolean isMoved(Block center) {
+		private boolean isMoved(Block center) {
 			return !Objects.equals(this.center, center);
 		}
 		
-		public boolean contains(Block block) {
+		private boolean contains(Block block) {
 			return blocks.contains(block);
 		}
 		
-		public void remove() {
+		private void remove() {
 			Util.forEachOrdered(blocks, block -> block.setType(Material.AIR));
 			blocks.clear();
 		}

@@ -12,9 +12,9 @@ import com.nisovin.magicspells.util.BlockUtils;
 
 public class CloudEffect extends SpellEffect {
 
-	Random rand = new Random();
+	private Random rand = new Random();
 
-	int radius;
+	private int radius;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

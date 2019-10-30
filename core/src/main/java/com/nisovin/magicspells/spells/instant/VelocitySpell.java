@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.spells.instant;
 
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
@@ -21,12 +21,12 @@ public class VelocitySpell extends InstantSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Vector v = player.getEyeLocation().getDirection().normalize().multiply(speed * power);
-			if (!addVelocityInstead) player.setVelocity(v);
-			else player.setVelocity(player.getVelocity().add(v));
-			playSpellEffects(EffectPosition.CASTER, player);
+			Vector v = livingEntity.getEyeLocation().getDirection().normalize().multiply(speed * power);
+			if (!addVelocityInstead) livingEntity.setVelocity(v);
+			else livingEntity.setVelocity(livingEntity.getVelocity().add(v));
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
 		
 		return PostCastAction.HANDLE_NORMALLY;

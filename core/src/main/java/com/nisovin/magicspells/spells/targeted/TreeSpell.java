@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import org.bukkit.Location;
 import org.bukkit.TreeType;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.BlockChangeDelegate;
 import org.bukkit.block.data.BlockData;
 
@@ -36,23 +36,23 @@ public class TreeSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block target = getTargetedBlock(player, power);
+			Block target = getTargetedBlock(caster, power);
 
 			if (target != null && !BlockUtils.isAir(target.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, target.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) target = null;
 				else target = event.getTargetLocation().getBlock();
 			}
 			
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(player);
+			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster);
 			
 			boolean grown = growTree(target);
-			if (!grown) return noTarget(player);
+			if (!grown) return noTarget(caster);
 
-			playSpellEffects(player, target.getLocation());
+			playSpellEffects(caster, target.getLocation());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -75,7 +75,7 @@ public class TreeSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 	
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		boolean ret = growTree(target.getBlock());
 		if (ret) playSpellEffects(caster, target);
 		return ret;

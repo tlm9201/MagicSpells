@@ -1,8 +1,8 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -20,19 +20,18 @@ public class RicherThanCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return false;
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		if (!(target instanceof Player)) return true;
-		Player playerTarget = (Player)target;
-		return MagicSpells.getMoneyHandler().checkMoney(player) > MagicSpells.getMoneyHandler().checkMoney(playerTarget);
+		return MagicSpells.getMoneyHandler().checkMoney((Player) target) > MagicSpells.getMoneyHandler().checkMoney((Player) target);
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

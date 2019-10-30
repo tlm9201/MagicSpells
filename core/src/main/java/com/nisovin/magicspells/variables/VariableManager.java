@@ -17,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -399,7 +400,9 @@ public class VariableManager implements Listener {
 		if (event.getSpellCastState() != SpellCastState.NORMAL) return;
 		Map<String, VariableMod> varMods = event.getSpell().getVariableModsCast();
 		if (varMods == null || varMods.isEmpty()) return;
-		Player player = event.getCaster();
+		LivingEntity caster = event.getCaster();
+		if (!(caster instanceof Player)) return;
+		Player player = (Player) caster;
 		for (String var : varMods.keySet()) {
 			VariableMod mod = varMods.get(var);
 			double amount = mod.getValue(player, null);
@@ -432,7 +435,9 @@ public class VariableManager implements Listener {
 		if (event.getSpellCastState() != SpellCastState.NORMAL || event.getPostCastAction() == PostCastAction.ALREADY_HANDLED) return;
 		Map<String, VariableMod> varMods = event.getSpell().getVariableModsCasted();
 		if (varMods == null || varMods.isEmpty()) return;
-		Player player = event.getCaster();
+		LivingEntity caster = event.getCaster();
+		if (!(caster instanceof Player)) return;
+		Player player = (Player) caster;
 		for (String var : varMods.keySet()) {
 			VariableMod mod = varMods.get(var);
 			double amount = mod.getValue(player, null);
@@ -464,7 +469,9 @@ public class VariableManager implements Listener {
 	public void variableModsTarget(SpellTargetEvent event) {
 		Map<String, VariableMod> varMods = event.getSpell().getVariableModsTarget();
 		if (varMods == null || varMods.isEmpty()) return;
-		Player player = event.getCaster();
+		LivingEntity caster = event.getCaster();
+		if (!(caster instanceof Player)) return;
+		Player player = (Player) caster;
 		Player target = event.getTarget() instanceof Player ? (Player) event.getTarget() : null;
 		if (player == null) return;
 		for (String var : varMods.keySet()) {

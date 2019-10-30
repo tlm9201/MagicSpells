@@ -4,15 +4,14 @@ import java.util.Random;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class ChanceCondition extends Condition {
 
-	int chance;
-	Random random;
+	private int chance;
+	private Random random;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -28,18 +27,18 @@ public class ChanceCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
 		return random.nextInt(100) < chance;
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return check(player);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target);
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
-		return check(player);
+	public boolean check(LivingEntity livingEntity, Location location) {
+		return check(livingEntity);
 	}
 
 }

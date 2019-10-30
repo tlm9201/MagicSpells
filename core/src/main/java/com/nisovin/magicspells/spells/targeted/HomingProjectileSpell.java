@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -159,19 +158,19 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-			if (targetInfo == null) return noTarget(player);
-			new HomingProjectileMonitor(player, targetInfo.getTarget(), targetInfo.getPower());
-			sendMessages(player, targetInfo.getTarget());
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+			if (targetInfo == null) return noTarget(livingEntity);
+			new HomingProjectileMonitor(livingEntity, targetInfo.getTarget(), targetInfo.getPower());
+			sendMessages(livingEntity, targetInfo.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		new HomingProjectileMonitor(caster, target, power);
 		return true;
@@ -183,7 +182,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(Player caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		new HomingProjectileMonitor(caster, from, target, power);
 		return true;
@@ -240,7 +239,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		private Location currentLocation;
 		private Location previousLocation;
 		private Location startLocation;
-		private Player caster;
+		private LivingEntity caster;
 		private LivingEntity target;
 		private BoundingBox hitBox;
 		private Vector currentVelocity;
@@ -250,7 +249,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		private int taskId;
 		private int counter = 0;
 
-		private HomingProjectileMonitor(Player caster, LivingEntity target, float power) {
+		private HomingProjectileMonitor(LivingEntity caster, LivingEntity target, float power) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
@@ -259,7 +258,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			initialize();
 		}
 
-		private HomingProjectileMonitor(Player caster, Location startLocation, LivingEntity target, float power) {
+		private HomingProjectileMonitor(LivingEntity caster, Location startLocation, LivingEntity target, float power) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;

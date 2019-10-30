@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -99,8 +98,8 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 				if (entity.hasPotionEffect(type)) return true;
 			}
 
-			if (entity instanceof Player) {
-				for (BuffSpell spell : buffSpells) if (spell.isActive(entity)) return true;
+			for (BuffSpell spell : buffSpells) {
+				if (spell.isActive(entity)) return true;
 			}
 
 			for (DotSpell spell : dotSpells) {
@@ -111,8 +110,8 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 				if (spell.isStunned(entity)) return true;
 			}
 
-			if (entity instanceof Player) {
-				for (SilenceSpell spell : silenceSpells) if (spell.isSilenced((Player) entity)) return true;
+			for (SilenceSpell spell : silenceSpells) {
+				if (spell.isSilenced(entity)) return true;
 			}
 
 			for (LevitateSpell spell : levitateSpells) {
@@ -124,20 +123,20 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power, checker);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power, checker);
+			if (target == null) return noTarget(livingEntity);
 			
-			cleanse(player, target.getTarget());
-			sendMessages(player, target.getTarget());
+			cleanse(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		cleanse(caster, target);
 		return true;
@@ -155,7 +154,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		return checker;
 	}
 	
-	private void cleanse(Player caster, LivingEntity target) {
+	private void cleanse(LivingEntity caster, LivingEntity target) {
 		if (fire) target.setFireTicks(0);
 
 		for (PotionEffectType type : potionEffectTypes) {
@@ -163,10 +162,8 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 			target.removePotionEffect(type);
 		}
 
-		if (target instanceof Player) {
-			for (BuffSpell spell : buffSpells) {
-				spell.turnOff(target);
-			}
+		for (BuffSpell spell : buffSpells) {
+			spell.turnOff(target);
 		}
 
 		for (DotSpell spell : dotSpells) {
@@ -177,10 +174,8 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 			spell.removeStun(target);
 		}
 
-		if (target instanceof Player) {
-			for (SilenceSpell spell : silenceSpells) {
-				spell.removeSilence((Player) target);
-			}
+		for (SilenceSpell spell : silenceSpells) {
+			spell.removeSilence(target);
 		}
 
 		for (LevitateSpell spell : levitateSpells) {

@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.events;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.SpellReagents;
@@ -24,7 +24,7 @@ public class SpellCastedEvent extends SpellEvent {
 	private String[] args;
 	private PostCastAction action;
 	
-	public SpellCastedEvent(Spell spell, Player caster, SpellCastState state, float power, String[] args, float cooldown, SpellReagents reagents, PostCastAction action) {
+	public SpellCastedEvent(Spell spell, LivingEntity caster, SpellCastState state, float power, String[] args, float cooldown, SpellReagents reagents, PostCastAction action) {
 		super(spell, caster);
 		this.state = state;
 		this.cooldown = cooldown;

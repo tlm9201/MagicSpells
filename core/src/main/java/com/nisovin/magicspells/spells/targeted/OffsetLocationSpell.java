@@ -2,7 +2,6 @@ package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
@@ -42,24 +41,24 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location baseTargetLocation;
-			TargetInfo<LivingEntity> entityTargetInfo = getTargetedEntity(player, power);
+			TargetInfo<LivingEntity> entityTargetInfo = getTargetedEntity(livingEntity, power);
 			if (entityTargetInfo != null && entityTargetInfo.getTarget() != null) baseTargetLocation = entityTargetInfo.getTarget().getLocation();
-			else baseTargetLocation = getTargetedBlock(player, power).getLocation();
-			if (baseTargetLocation == null) return noTarget(player);
+			else baseTargetLocation = getTargetedBlock(livingEntity, power).getLocation();
+			if (baseTargetLocation == null) return noTarget(livingEntity);
 			Location loc = Util.applyOffsets(baseTargetLocation, relativeOffset, absoluteOffset);
 			if (loc == null) return PostCastAction.ALREADY_HANDLED;
 
-			if (spellToCast != null) spellToCast.castAtLocation(player, loc, power);
-			playSpellEffects(player, loc);
+			if (spellToCast != null) spellToCast.castAtLocation(livingEntity, loc, power);
+			playSpellEffects(livingEntity, loc);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		if (spellToCast != null) spellToCast.castAtLocation(caster, Util.applyOffsets(target, relativeOffset, absoluteOffset), power);
 		return true;
 	}

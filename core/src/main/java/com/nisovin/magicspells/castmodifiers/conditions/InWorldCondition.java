@@ -2,13 +2,12 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class InWorldCondition extends Condition {
 
-	String world = "";
+	private String world = "";
 
 	@Override
 	public boolean setVar(String var) {
@@ -17,17 +16,17 @@ public class InWorldCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(Player player) {
-		return player.getWorld().getName().equalsIgnoreCase(world);
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity.getLocation());
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return target.getWorld().getName().equalsIgnoreCase(world);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target, target.getLocation());
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return location.getWorld().getName().equalsIgnoreCase(world);
 	}
 

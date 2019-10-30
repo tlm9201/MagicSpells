@@ -222,7 +222,7 @@ class VolatileCode1_14_R1: VolatileCodeHandle {
         return entitysmallfireball.bukkitEntity as Fireball
     }
 
-    override fun setTarget(entity: LivingEntity, target: LivingEntity) {
+    override fun setTarget(entity: LivingEntity?, target: LivingEntity?) {
         if (entity is Creature) {
             entity.target = target
         } else {

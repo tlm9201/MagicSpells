@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.castmodifiers;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.events.SpellCastEvent;
@@ -16,7 +15,7 @@ public interface IModifier {
 	boolean apply(SpellTargetEvent event);
 	boolean apply(SpellTargetLocationEvent event);
 	boolean apply(MagicSpellsGenericPlayerEvent event);
-	boolean check(Player player);
-	boolean check(Player player, LivingEntity entity);
+	boolean check(LivingEntity livingEntity);
+	boolean check(LivingEntity livingEntity, LivingEntity entity);
 
 }

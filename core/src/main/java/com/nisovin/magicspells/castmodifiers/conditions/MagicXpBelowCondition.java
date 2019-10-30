@@ -1,20 +1,20 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.MagicXpHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class MagicXpBelowCondition extends Condition {
 
-	static MagicXpHandler handler;
-	
-	String[] school;
-	int[] amount;
+	private static MagicXpHandler handler;
+
+	private String[] school;
+	private int[] amount;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -38,20 +38,21 @@ public class MagicXpBelowCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
+	}
+
+	@Override
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		if (!(target instanceof Player)) return false;
 		for (int i = 0; i < school.length; i++) {
-			if (handler.getXp(player, school[i]) >= amount[i]) return false;
+			if (handler.getXp((Player) target, school[i]) > amount[i]) return false;
 		}
 		return true;
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return target instanceof Player && check((Player)target);
-	}
-
-	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

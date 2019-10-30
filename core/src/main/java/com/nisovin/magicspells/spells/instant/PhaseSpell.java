@@ -6,8 +6,8 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.util.BlockIterator;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -43,16 +43,16 @@ public class PhaseSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			int r = Math.round(range * power);
 			int distance = Math.round(maxDistance * power);
 			
 			BlockIterator iter;
 			try {
-				iter = new BlockIterator(player, distance << 1);
+				iter = new BlockIterator(livingEntity, distance << 1);
 			} catch (IllegalStateException e) {
-				sendMessage(strCantPhase, player, args);
+				sendMessage(strCantPhase, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
@@ -63,7 +63,7 @@ public class PhaseSpell extends InstantSpell {
 			while (start == null && i++ < r << 1 && iter.hasNext()) {
 				Block b = iter.next();
 				if (BlockUtils.isAir(b.getType())) continue;
-				if (player.getLocation().distanceSquared(b.getLocation()) >= r * r) continue;
+				if (livingEntity.getLocation().distanceSquared(b.getLocation()) >= r * r) continue;
 				start = b;
 				break;
 			}
@@ -74,7 +74,7 @@ public class PhaseSpell extends InstantSpell {
 					while (end == null && i++ < distance << 1 && iter.hasNext()) {
 						Block b = iter.next();
 						if (BlockUtils.isAir(b.getType()) && BlockUtils.isAir(b.getRelative(0, 1, 0).getType())
-								&& player.getLocation().distanceSquared(b.getLocation()) < distance * distance) {
+								&& livingEntity.getLocation().distanceSquared(b.getLocation()) < distance * distance) {
 							location = b.getLocation();
 							break;
 						}
@@ -87,17 +87,17 @@ public class PhaseSpell extends InstantSpell {
 			}
 			
 			if (location == null) {
-				sendMessage(strCantPhase, player, args);
+				sendMessage(strCantPhase, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
 			location.setX(location.getX() + 0.5);
 			location.setZ(location.getZ() + 0.5);
-			location.setPitch(player.getLocation().getPitch());
-			location.setYaw(player.getLocation().getYaw());
-			playSpellEffects(EffectPosition.CASTER, player.getLocation());
+			location.setPitch(livingEntity.getLocation().getPitch());
+			location.setYaw(livingEntity.getLocation().getYaw());
+			playSpellEffects(EffectPosition.CASTER, livingEntity.getLocation());
 			playSpellEffects(EffectPosition.TARGET, location);
-			player.teleport(location);
+			livingEntity.teleport(location);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

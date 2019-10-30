@@ -8,10 +8,8 @@ import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.TimeUtil;
@@ -19,39 +17,41 @@ import com.nisovin.magicspells.castmodifiers.ModifierSet;
 
 public abstract class SpellEffect {
 
-	int delay;
-	double chance;
-	double zOffset;
-	double heightOffset;
-	double forwardOffset;
+	private static Map<String, Class<? extends SpellEffect>> effects = new HashMap<>();
+
+	private int delay;
+	private double chance;
+	private double zOffset;
+	private double heightOffset;
+	private double forwardOffset;
 	
 	// for line
-	double maxDistance;
-	double distanceBetween;
+	private double maxDistance;
+	private double distanceBetween;
 
 	// for buff/orbit
-	float orbitRadius;
-	float orbitYOffset;
-	float horizOffset;
-	float horizExpandRadius;
-	float vertExpandRadius;
-	float ticksPerSecond;
-	float distancePerTick;
-	float secondsPerRevolution;
+	private float orbitXAxis;
+	private float orbitYAxis;
+	private float orbitZAxis;
+	private float orbitRadius;
+	private float orbitYOffset;
+	private float horizOffset;
+	private float horizExpandRadius;
+	private float vertExpandRadius;
+	private float ticksPerSecond;
+	private float distancePerTick;
+	private float secondsPerRevolution;
 
-	int tickInterval;
-	int ticksPerRevolution;
-	int horizExpandDelay;
-	int vertExpandDelay;
-	int effectInterval = TimeUtil.TICKS_PER_SECOND;
+	private int ticksPerRevolution;
+	private int horizExpandDelay;
+	private int vertExpandDelay;
+	private int effectInterval = TimeUtil.TICKS_PER_SECOND;
 
-	boolean counterClockwise;
-	
-	ModifierSet modifiers;
-	Random random = new Random();
-	
-	int taskId = -1;
-	
+	private boolean counterClockwise;
+
+	private ModifierSet modifiers;
+	private Random random = new Random();
+
 	public void loadFromString(String string) {
 		MagicSpells.plugin.getLogger().warning("Warning: single line effects are being removed, usage encountered: " + string);
 	}
@@ -66,6 +66,9 @@ public abstract class SpellEffect {
 		maxDistance = config.getDouble("max-distance", 100);
 		distanceBetween = config.getDouble("distance-between", 1);
 
+		orbitXAxis = (float) config.getDouble("orbit-x-axis", 0F);
+		orbitYAxis = (float) config.getDouble("orbit-y-axis", 0F);
+		orbitZAxis = (float) config.getDouble("orbit-z-axis", 0F);
 		orbitRadius = (float) config.getDouble("orbit-radius", 1F);
 		orbitYOffset = (float) config.getDouble("orbit-y-offset", 0F);
 		horizOffset = (float) config.getDouble("orbit-horiz-offset", 0F);
@@ -73,7 +76,6 @@ public abstract class SpellEffect {
 		vertExpandRadius = (float) config.getDouble("orbit-vert-expand-radius", 0);
 		secondsPerRevolution = (float) config.getDouble("orbit-seconds-per-revolution", 3);
 
-		tickInterval = config.getInt("orbit-tick-interval", 2);
 		horizExpandDelay = config.getInt("orbit-horiz-expand-delay", 0);
 		vertExpandDelay = config.getInt("orbit-vert-expand-delay", 0);
 		effectInterval = config.getInt("effect-interval", effectInterval);
@@ -84,7 +86,7 @@ public abstract class SpellEffect {
 		if (list != null) modifiers = new ModifierSet(list);
 
 		maxDistance *= maxDistance;
-		ticksPerSecond = 20F / (float) tickInterval;
+		ticksPerSecond = 20F / (float) effectInterval;
 		ticksPerRevolution = Math.round(ticksPerSecond * secondsPerRevolution);
 		distancePerTick = 6.28F / (ticksPerSecond * secondsPerRevolution);
 		loadFromConfig(config);
@@ -95,7 +97,6 @@ public abstract class SpellEffect {
 	/**
 	 * Plays an effect on the specified entity.
 	 * @param entity the entity to play the effect on
-	 * @param param the parameter specified in the spell config (can be ignored)
 	 */
 	public Runnable playEffect(final Entity entity) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
@@ -111,7 +112,6 @@ public abstract class SpellEffect {
 	/**
 	 * Plays an effect at the specified location.
 	 * @param location location to play the effect at
-	 * @param param the parameter specified in the spell config (can be ignored)
 	 */
 	public final Runnable playEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
@@ -142,7 +142,6 @@ public abstract class SpellEffect {
 	 * Plays an effect between two locations (such as a smoke trail type effect).
 	 * @param location1 the starting location
 	 * @param location2 the ending location
-	 * @param param the parameter specified in the spell config (can be ignored)
 	 */
 	public Runnable playEffect(Location location1, Location location2) {
 		if (location1.distanceSquared(location2) > maxDistance) return null;
@@ -163,12 +162,12 @@ public abstract class SpellEffect {
 		return null;
 	}
 	
-	public void playEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker) {
-		new EffectTracker(entity, checker);
+	public BuffTracker playEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker) {
+		return new BuffTracker(entity, checker, this);
 	}
 	
 	public OrbitTracker playEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new OrbitTracker(entity, checker);
+		return new OrbitTracker(entity, checker, this);
 	}
 	
 	@FunctionalInterface
@@ -176,106 +175,102 @@ public abstract class SpellEffect {
 		boolean isActive(Entity entity);
 	}
 
-	class EffectTracker implements Runnable {
-
-		Entity entity;
-		SpellEffectActiveChecker checker;
-		int effectTrackerTaskId;
-
-		EffectTracker(Entity entity, SpellEffectActiveChecker checker) {
-			this.entity = entity;
-			this.checker = checker;
-			effectTrackerTaskId = MagicSpells.scheduleRepeatingTask(this, 0, effectInterval);
-		}
-
-		@Override
-		public void run() {
-			if (!entity.isValid() || !checker.isActive(entity)) {
-				stop();
-				return;
-			}
-			
-			if (entity instanceof Player && !modifiers.check((Player) entity)) return;
-			
-			playEffect(entity);
-
-		}
-
-		public void stop() {
-			MagicSpells.cancelTask(effectTrackerTaskId);
-			entity = null;
-		}
-
+	public int getDelay() {
+		return delay;
 	}
 
-	class OrbitTracker implements Runnable {
-		
-		Entity entity;
-		SpellEffectActiveChecker checker;
-		Vector currentPosition;
-		int orbitTrackerTaskId;
-		int repeatingHorizTaskId;
-		int repeatingVertTaskId;
-		float orbRadius;
-		float orbHeight;
-		
-		int counter = 0;
-		
-		OrbitTracker(Entity entity, SpellEffectActiveChecker checker) {
-			this.entity = entity;
-			this.checker = checker;
-			currentPosition = entity.getLocation().getDirection().setY(0);
-			Util.rotateVector(currentPosition, horizOffset);
-			orbRadius = orbitRadius;
-			orbHeight = orbitYOffset;
-			orbitTrackerTaskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
-			if (horizExpandDelay > 0 && horizExpandRadius != 0) {
-				repeatingHorizTaskId = MagicSpells.scheduleRepeatingTask(() -> orbRadius += horizExpandRadius, horizExpandDelay, horizExpandDelay);
-			}
-			if (vertExpandDelay > 0 && vertExpandRadius != 0) {
-				repeatingVertTaskId = MagicSpells.scheduleRepeatingTask(() -> orbHeight += vertExpandRadius, vertExpandDelay, vertExpandDelay);
-			}
-		}
-		
-		@Override
-		public void run() {
-			if (!entity.isValid()) {
-				stop();
-				return;
-			}
-
-			if (!checker.isActive(entity)) {
-				stop();
-				return;
-			}
-			
-			Location loc = getLocation();
-			
-			if (entity instanceof Player && !modifiers.check((Player) entity)) return;
-			
-			playEffect(loc);
-		}
-		
-		private Location getLocation() {
-			Vector perp;
-			if (counterClockwise) perp = new Vector(currentPosition.getZ(), 0, -currentPosition.getX());
-			else perp = new Vector(-currentPosition.getZ(), 0, currentPosition.getX());
-			currentPosition.add(perp.multiply(distancePerTick)).normalize();
-			return entity.getLocation().clone().add(0, orbHeight, 0).add(currentPosition.clone().multiply(orbRadius));
-		}
-		
-		public void stop() {
-			MagicSpells.cancelTask(orbitTrackerTaskId);
-			MagicSpells.cancelTask(repeatingHorizTaskId);
-			MagicSpells.cancelTask(repeatingVertTaskId);
-			entity = null;
-			currentPosition = null;
-		}
-		
+	public double getChance() {
+		return chance;
 	}
-	
-	private static Map<String, Class<? extends SpellEffect>> effects = new HashMap<>();
-	
+
+	public double getZOffset() {
+		return zOffset;
+	}
+
+	public double getHeightOffset() {
+		return heightOffset;
+	}
+
+	public double getForwardOffset() {
+		return forwardOffset;
+	}
+
+	public double getMaxDistance() {
+		return maxDistance;
+	}
+
+	public double getDistanceBetween() {
+		return distanceBetween;
+	}
+
+	public float getOrbitXAxis() {
+		return orbitXAxis;
+	}
+
+	public float getOrbitYAxis() {
+		return orbitYAxis;
+	}
+
+	public float getOrbitZAxis() {
+		return orbitZAxis;
+	}
+
+	public float getOrbitRadius() {
+		return orbitRadius;
+	}
+
+	public float getOrbitYOffset() {
+		return orbitYOffset;
+	}
+
+	public float getHorizOffset() {
+		return horizOffset;
+	}
+
+	public float getHorizExpandRadius() {
+		return horizExpandRadius;
+	}
+
+	public float getVertExpandRadius() {
+		return vertExpandRadius;
+	}
+
+	public float getTicksPerSecond() {
+		return ticksPerSecond;
+	}
+
+	public float getDistancePerTick() {
+		return distancePerTick;
+	}
+
+	public float getSecondsPerRevolution() {
+		return secondsPerRevolution;
+	}
+
+	public int getTicksPerRevolution() {
+		return ticksPerRevolution;
+	}
+
+	public int getHorizExpandDelay() {
+		return horizExpandDelay;
+	}
+
+	public int getVertExpandDelay() {
+		return vertExpandDelay;
+	}
+
+	public int getEffectInterval() {
+		return effectInterval;
+	}
+
+	public boolean isCounterClockwise() {
+		return counterClockwise;
+	}
+
+	public ModifierSet getModifiers() {
+		return modifiers;
+	}
+
 	/**
 	 * Gets the GraphicalEffect by the provided name.
 	 * @param name the name of the effect

@@ -2,12 +2,11 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.Claim;
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
 
 public class GriefPreventionIsOwnerCondition extends Condition {
 
@@ -17,25 +16,20 @@ public class GriefPreventionIsOwnerCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		// Does the claim recognize the player as the owner?
-		Claim currentClaim = GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, null);
-		if (currentClaim == null) return false;
-		return (player.getUniqueId().equals(currentClaim.ownerID));
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity.getLocation());
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		// Does the claim recognize the target as the owner?
-		Claim currentClaim = GriefPrevention.instance.dataStore.getClaimAt(target.getLocation(), false, null);
-		if (currentClaim == null) return false;
-		return (target.getUniqueId().equals(currentClaim.ownerID));
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target, target.getLocation());
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
-		// Locations, coming soon.
-		return false;
+	public boolean check(LivingEntity livingEntity, Location location) {
+		Claim currentClaim = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
+		if (currentClaim == null) return false;
+		return (livingEntity.getUniqueId().equals(currentClaim.ownerID));
 	}
 
 }

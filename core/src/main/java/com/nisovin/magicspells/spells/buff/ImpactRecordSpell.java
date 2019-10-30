@@ -40,7 +40,7 @@ public class ImpactRecordSpell extends BuffSpell {
 		super.initialize();
 		
 		if (variableName == null || MagicSpells.getVariableManager().getVariable(variableName) == null) {
-			MagicSpells.error("invalid variable-name on ImpactRecordSpell");
+			MagicSpells.error("ImpactRecordSpell '" + internalName + "' has an invalid variable-name defined!");
 			variableName = null;
 		}
 	}

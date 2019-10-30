@@ -1,22 +1,21 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.events.SpellCastEvent;
+import com.nisovin.magicspells.castmodifiers.Modifier;
+import com.nisovin.magicspells.events.ManaChangeEvent;
+import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.castmodifiers.IModifier;
-import com.nisovin.magicspells.castmodifiers.Modifier;
-import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
-import com.nisovin.magicspells.events.ManaChangeEvent;
-import com.nisovin.magicspells.events.SpellCastEvent;
-import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
 /*
  * Just a heads up that for the modifier actions inside this, I recommend that you use
@@ -76,13 +75,10 @@ public class MultiCondition extends Condition implements IModifier {
 		}
 		
 		modifiers = new ArrayList<>();
-		for (String modString: modifierStrings) {
+		for (String modString : modifierStrings) {
 			Modifier m = Modifier.factory(modString);
-			if (m != null) {
-				modifiers.add(m);
-			} else {
-				MagicSpells.error("Problem in reading predefined modifier: \"" + modString + "\" from \"" + var + '\"');
-			}
+			if (m != null) modifiers.add(m);
+			else MagicSpells.error("Problem in reading predefined modifier: \"" + modString + "\" from \"" + var + '\"');
 		}
 		
 		if (modifiers == null || modifiers.isEmpty()) {
@@ -94,28 +90,25 @@ public class MultiCondition extends Condition implements IModifier {
 	}
 
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
+	}
+
+	@Override
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		int pass = 0;
 		int fail = 0;
-		for (Modifier m: modifiers) {
-			boolean check = m.check(player);
-			if (check) {
-				pass++;
-			} else {
-				fail++;
-			}
+		for (Modifier m : modifiers) {
+			boolean check = m.check(target);
+			if (check) pass++;
+			else fail++;
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
 		return passCondition.hasPassed(pass, fail);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return false;
-	}
-
-	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 
@@ -123,13 +116,11 @@ public class MultiCondition extends Condition implements IModifier {
 	public boolean apply(SpellCastEvent event) {
 		int pass = 0;
 		int fail = 0;
-		for (Modifier m: modifiers) {
+		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
-			if (check) {
-				pass++;
-			} else {
-				fail++;
-			}
+			if (check) pass++;
+			else fail++;
+
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
 		return passCondition.hasPassed(pass, fail);
@@ -139,13 +130,11 @@ public class MultiCondition extends Condition implements IModifier {
 	public boolean apply(ManaChangeEvent event) {
 		int pass = 0;
 		int fail = 0;
-		for (Modifier m: modifiers) {
+		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
-			if (check) {
-				pass++;
-			} else {
-				fail++;
-			}
+			if (check) pass++;
+			else fail++;
+
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
 		return passCondition.hasPassed(pass, fail);
@@ -155,13 +144,11 @@ public class MultiCondition extends Condition implements IModifier {
 	public boolean apply(SpellTargetEvent event) {
 		int pass = 0;
 		int fail = 0;
-		for (Modifier m: modifiers) {
+		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
-			if (check) {
-				pass++;
-			} else {
-				fail++;
-			}
+			if (check) pass++;
+			else fail++;
+
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
 		return passCondition.hasPassed(pass, fail);
@@ -171,13 +158,11 @@ public class MultiCondition extends Condition implements IModifier {
 	public boolean apply(SpellTargetLocationEvent event) {
 		int pass = 0;
 		int fail = 0;
-		for (Modifier m: modifiers) {
+		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
-			if (check) {
-				pass++;
-			} else {
-				fail++;
-			}
+			if (check) pass++;
+			else fail++;
+
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
 		return passCondition.hasPassed(pass, fail);
@@ -187,13 +172,11 @@ public class MultiCondition extends Condition implements IModifier {
 	public boolean apply(MagicSpellsGenericPlayerEvent event) {
 		int pass = 0;
 		int fail = 0;
-		for (Modifier m: modifiers) {
+		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
-			if (check) {
-				pass++;
-			} else {
-				fail++;
-			}
+			if (check) pass++;
+			else fail++;
+
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
 		return passCondition.hasPassed(pass, fail);

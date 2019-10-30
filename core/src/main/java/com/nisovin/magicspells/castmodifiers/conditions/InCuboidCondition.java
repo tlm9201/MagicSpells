@@ -1,23 +1,22 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class InCuboidCondition extends Condition {
 
-	String worldName;
-	int minX;
-	int minY;
-	int minZ;
-	int maxX;
-	int maxY;
-	int maxZ;
+	private String worldName;
+	private int minX;
+	private int minY;
+	private int minZ;
+	private int maxX;
+	private int maxY;
+	private int maxZ;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -59,17 +58,17 @@ public class InCuboidCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return check(player, player.getLocation());
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity.getLocation());
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return check(player, target.getLocation());
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target, target.getLocation());
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		World world = Bukkit.getWorld(worldName);
 		if (world == null) return false;
 		if (!world.equals(location.getWorld())) return false;

@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.util.Set;
 import java.util.Map;
 import java.util.List;
+import java.util.UUID;
 import java.util.Scanner;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.EventExecutor;
@@ -52,8 +54,11 @@ import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.MoneyHandler;
+import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.BossBarManager;
+import com.nisovin.magicspells.commands.ManaCommand;
+import com.nisovin.magicspells.commands.CastCommand;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.prompt.PromptType;
@@ -189,7 +194,7 @@ public class MagicSpells extends JavaPlugin {
 		Metrics metrics = new Metrics(this);
 	}
 
-	void load() {
+	public void load() {
 		plugin = this;
 		PluginManager pm = plugin.getServer().getPluginManager();
 
@@ -465,7 +470,7 @@ public class MagicSpells extends JavaPlugin {
 						long cooldown = Long.parseLong(data[2]);
 						if (cooldown > System.currentTimeMillis()) {
 							Spell spell = getSpellByInternalName(data[0]);
-							if (spell != null) spell.setCooldownManually(data[1], cooldown);
+							if (spell != null) spell.setCooldownManually(UUID.fromString(data[1]), cooldown);
 						}
 					}
 				} catch (Exception e) {
@@ -533,10 +538,12 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		// Register commands
-		CastCommand exec = new CastCommand(this, config.getBoolean(path + "enable-tab-completion", true));
-		getCommand("magicspellcast").setExecutor(exec);
-		getCommand("magicspellmana").setExecutor(exec);
-		getCommand("magicspellxp").setExecutor(exec);
+		CastCommand castCommandExecutor = new CastCommand(this, config.getBoolean(path + "enable-tab-completion", true));
+		ManaCommand manaCommandExecutor = new ManaCommand(this, config.getBoolean(path + "enable-tab-completion", true));
+		XpCommand xpCommandExecutor = new XpCommand(this, config.getBoolean(path + "enable-tab-completion", true));
+		getCommand("magicspellcast").setExecutor(castCommandExecutor);
+		getCommand("magicspellmana").setExecutor(manaCommandExecutor);
+		getCommand("magicspellxp").setExecutor(xpCommandExecutor);
 
 		// Setup profiling
 		if (enableProfiling) {
@@ -759,6 +766,26 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.hidePredefinedItemTooltips;
 	}
 
+	public static boolean enableManaBars() {
+		return plugin.enableManaBars;
+	}
+
+	public static boolean isDebug() {
+		return plugin.debug;
+	}
+
+	public static String getStrCastUsage() {
+		return plugin.strCastUsage;
+	}
+
+	public static String getStrUnknownSpell() {
+		return plugin.strUnknownSpell;
+	}
+
+	public static void setDebug(boolean debug) {
+		plugin.debug = debug;
+	}
+
 	/**
 	 * Gets the handler for no-magic zones.
 	 * @return the no-magic zone handler
@@ -906,18 +933,19 @@ public class MagicSpells extends JavaPlugin {
 
 	/**
 	 * Sends a message to a player. This method also does color replacement and has multi-line functionality.
-	 * @param player the player to send the message to
+	 * @param livingEntity the living entity to send the message to
 	 * @param message the message to send
 	 */
-	public static void sendMessage(String message, Player player, String[] args) {
+	public static void sendMessage(String message, LivingEntity livingEntity, String[] args) {
+		if (!(livingEntity instanceof Player)) return;
 		if (message != null && !message.isEmpty()) {
 			// Do var replacements
-			message = doArgumentAndVariableSubstitution(message, player, args);
+			message = doArgumentAndVariableSubstitution(message, (Player) livingEntity, args);
 			// Send messages
 			String [] msgs = message.replaceAll("&([0-9a-fk-or])", "\u00A7$1").split("\n");
 			for (String msg : msgs) {
 				if (!msg.isEmpty()) {
-					player.sendMessage(plugin.textColor + msg);
+					livingEntity.sendMessage(plugin.textColor + msg);
 				}
 			}
 		}
@@ -1092,7 +1120,7 @@ public class MagicSpells extends JavaPlugin {
 		}
 	}
 
-	static void profilingReport() {
+	public static void profilingReport() {
 		if (plugin.profilingTotalTime != null && plugin.profilingRuns != null) {
 			PrintWriter writer = null;
 			try {
@@ -1197,7 +1225,7 @@ public class MagicSpells extends JavaPlugin {
 		return true;
 	}
 
-	void unload() {
+	public void unload() {
 		// Turn off spells
 		for (Spell spell : spells.values()) {
 			spell.turnOff();
@@ -1211,11 +1239,11 @@ public class MagicSpells extends JavaPlugin {
 			try {
 				FileWriter writer = new FileWriter(file);
 				for (Spell spell : spells.values()) {
-					Map<String, Long> cooldowns = spell.getCooldowns();
-					for (String name : cooldowns.keySet()) {
-						long cooldown = cooldowns.get(name);
+					Map<UUID, Long> cooldowns = spell.getCooldowns();
+					for (UUID id : cooldowns.keySet()) {
+						long cooldown = cooldowns.get(id);
 						if (cooldown <= System.currentTimeMillis()) continue;
-						writer.append(spell.getInternalName()).append(String.valueOf(':')).append(name).append(String.valueOf(':')).append(String.valueOf(cooldown)).append(String.valueOf('\n'));
+						writer.append(spell.getInternalName()).append(String.valueOf(':')).append(id.toString()).append(String.valueOf(':')).append(String.valueOf(cooldown)).append(String.valueOf('\n'));
 					}
 				}
 				writer.close();

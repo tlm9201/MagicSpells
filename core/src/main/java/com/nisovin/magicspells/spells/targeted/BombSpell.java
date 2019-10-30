@@ -7,7 +7,7 @@ import java.util.HashSet;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
@@ -72,21 +72,21 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			List<Block> blocks = getLastTwoTargetedBlocks(player, power);
-			if (blocks.size() != 2) return noTarget(player);
-			if (!blocks.get(1).getType().isSolid()) return noTarget(player);
+			List<Block> blocks = getLastTwoTargetedBlocks(livingEntity, power);
+			if (blocks.size() != 2) return noTarget(livingEntity);
+			if (!blocks.get(1).getType().isSolid()) return noTarget(livingEntity);
 
 			Block target = blocks.get(0);
-			boolean ok = bomb(player, target.getLocation(), power);
-			if (!ok) return noTarget(player);
+			boolean ok = bomb(livingEntity, target.getLocation(), power);
+			if (!ok) return noTarget(livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		return bomb(caster, target, power);
 	}
 
@@ -95,14 +95,14 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 		return bomb(null, target, power);
 	}
 
-	private boolean bomb(Player player, Location loc, float power) {
+	private boolean bomb(LivingEntity livingEntity, Location loc, float power) {
 		if (material == null) return false;
 		Block block = loc.getBlock();
 		if (!BlockUtils.isAir(block.getType())) return false;
 
 		blocks.add(block);
 		block.setType(material);
-		if (player != null) playSpellEffects(player, loc.add(0.5, 0, 0.5));
+		if (livingEntity != null) playSpellEffects(livingEntity, loc.add(0.5, 0, 0.5));
 		else playSpellEffects(EffectPosition.TARGET, loc.add(0.5, 0, 0.5));
 
 		new SpellAnimation(interval, interval, true) {
@@ -118,7 +118,7 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 						blocks.remove(block);
 						block.setType(Material.AIR);
 						playSpellEffects(EffectPosition.DELAYED, l);
-						if (targetSpell != null) targetSpell.castAtLocation(player, l, power);
+						if (targetSpell != null) targetSpell.castAtLocation(livingEntity, l, power);
 					}
 				} else if (!material.equals(block.getType())) stop();
 				else playSpellEffects(EffectPosition.SPECIAL, l);

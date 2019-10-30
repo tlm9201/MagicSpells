@@ -2,7 +2,7 @@ package com.nisovin.magicspells.spells.command;
 
 import java.util.List;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 
 import com.nisovin.magicspells.util.MagicConfig;
@@ -33,7 +33,7 @@ public class ResetSpell extends CommandSpell {
 	// Arg format should be <player[,player[,player...]]>|all
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 		
 		}

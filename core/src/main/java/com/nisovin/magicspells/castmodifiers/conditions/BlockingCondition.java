@@ -1,8 +1,8 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -14,17 +14,18 @@ public class BlockingCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(Player player) {
-		return player.isBlocking();
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return target instanceof Player && check((Player)target);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		if (!(target instanceof Player)) return false;
+		return ((Player) livingEntity).isBlocking();
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 	

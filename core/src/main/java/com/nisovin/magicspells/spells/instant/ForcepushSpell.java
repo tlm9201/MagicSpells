@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.MagicConfig;
@@ -34,25 +33,25 @@ public class ForcepushSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			knockback(player, power);
+			knockback(livingEntity, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
-	private void knockback(Player player, float basePower) {
-		List<Entity> entities = player.getNearbyEntities(radius, radius, radius);
+	private void knockback(LivingEntity livingEntity, float basePower) {
+		List<Entity> entities = livingEntity.getNearbyEntities(radius, radius, radius);
 		Vector e;
 		Vector v;
-		Vector p = player.getLocation().toVector();
+		Vector p = livingEntity.getLocation().toVector();
 		for (Entity entity : entities) {
 			if (!(entity instanceof LivingEntity)) continue;
-			if (!validTargetList.canTarget(player, entity)) continue;
+			if (!validTargetList.canTarget(livingEntity, entity)) continue;
 
 			LivingEntity target = (LivingEntity) entity;
 			float power = basePower;
-			SpellTargetEvent event = new SpellTargetEvent(this, player, target, power);
+			SpellTargetEvent event = new SpellTargetEvent(this, livingEntity, target, power);
 			EventUtil.call(event);
 			if (event.isCancelled()) continue;
 
@@ -70,9 +69,9 @@ public class ForcepushSpell extends InstantSpell {
 			else target.setVelocity(v);
 
 			playSpellEffects(EffectPosition.TARGET, target);
-			playSpellEffectsTrail(player.getLocation(), target.getLocation());
+			playSpellEffectsTrail(livingEntity.getLocation(), target.getLocation());
 		}
-		playSpellEffects(EffectPosition.CASTER, player);
+		playSpellEffects(EffectPosition.CASTER, livingEntity);
 	}
 
 }

@@ -1,18 +1,19 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.InventoryUtil;
-import com.nisovin.magicspells.util.Util;
+import java.util.Arrays;
+
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.EntityEquipment;
 
-import java.util.Arrays;
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.InventoryUtil;
+import com.nisovin.magicspells.castmodifiers.Condition;
 
 // Only accepts predefined items and uses a much stricter match
 public class HasItemPreciseCondition extends Condition {
@@ -29,31 +30,39 @@ public class HasItemPreciseCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return check(player.getInventory());
-	}
-	
-	private boolean check(Inventory inventory) {
-		if (inventory == null) return false;
-		return Arrays.stream(inventory.getContents())
-			.filter(item -> !InventoryUtil.isNothing(item))
-			.anyMatch(item -> this.itemStack.isSimilar(item));
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		if (target == null) return false;
-		return target instanceof InventoryHolder && check(((InventoryHolder)target).getInventory());
+		if (target instanceof InventoryHolder) return check(((InventoryHolder) target).getInventory());
+		else return check(target.getEquipment());
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		Block target = location.getBlock();
 		if (target == null) return false;
 		
 		BlockState targetState = target.getState();
 		if (targetState == null) return false;
 		return targetState instanceof InventoryHolder && check(((InventoryHolder)targetState).getInventory());
+	}
+
+	private boolean check(Inventory inventory) {
+		if (inventory == null) return false;
+		return Arrays.stream(inventory.getContents())
+				.filter(item -> !InventoryUtil.isNothing(item))
+				.anyMatch(item -> itemStack.isSimilar(item));
+	}
+
+	private boolean check(EntityEquipment entityEquipment) {
+		if (entityEquipment == null) return false;
+		return Arrays.stream(InventoryUtil.getEquipmentItems(entityEquipment))
+				.filter(item -> !InventoryUtil.isNothing(item))
+				.anyMatch(item -> itemStack.isSimilar(item));
 	}
 
 }

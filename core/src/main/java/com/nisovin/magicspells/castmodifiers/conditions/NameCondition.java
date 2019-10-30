@@ -1,15 +1,14 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class NameCondition extends Condition {
 
-	String name;
+	private String name;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -19,19 +18,17 @@ public class NameCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return player.getName().equalsIgnoreCase(name) || player.getDisplayName().equalsIgnoreCase(name);
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		if (target instanceof Player) return check((Player)target);
-		String n = target.getCustomName();
-		return n != null && !n.isEmpty() && name.equalsIgnoreCase(n);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return target.getName().equalsIgnoreCase(name);
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

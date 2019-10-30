@@ -2,7 +2,6 @@ package com.nisovin.magicspells.events;
 
 import java.util.Arrays;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.entity.LivingEntity;
@@ -21,7 +20,7 @@ public class SpellPreImpactEvent extends SpellEvent implements Cancellable {
 	private boolean redirect;
 	private boolean cancelled;
 
-	public SpellPreImpactEvent(Spell spellPayload, Spell deliverySpell, Player caster, LivingEntity target, float power) {
+	public SpellPreImpactEvent(Spell spellPayload, Spell deliverySpell, LivingEntity caster, LivingEntity target, float power) {
 		super(spellPayload, caster);
 		this.target = target;
 		this.power = power;

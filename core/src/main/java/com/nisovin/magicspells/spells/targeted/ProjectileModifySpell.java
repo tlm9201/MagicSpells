@@ -6,7 +6,7 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
@@ -204,27 +204,27 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location loc = null;
-			if (pointBlank) loc = player.getLocation();
+			if (pointBlank) loc = livingEntity.getLocation();
 			else {
 				try {
-					Block block = getTargetedBlock(player, power);
+					Block block = getTargetedBlock(livingEntity, power);
 					if (block != null && !BlockUtils.isAir(block.getType())) loc = block.getLocation();
 				} catch (IllegalStateException e) {
 					loc = null;
 				}
 			}
-			if (loc == null) return noTarget(player);
+			if (loc == null) return noTarget(livingEntity);
 
-			modify(player, loc);
+			modify(livingEntity, loc);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		return modify(caster, target);
 	}
 
@@ -233,11 +233,11 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 		return modify(null, target);
 	}
 
-	private boolean modify(Player player, Location location) {
+	private boolean modify(LivingEntity livingEntity, Location location) {
 		int count = 0;
 
-		Vector facing = player != null ? player.getLocation().getDirection() : location.getDirection();
-		Vector vLoc = player != null ? player.getLocation().toVector() : location.toVector();
+		Vector facing = livingEntity != null ? livingEntity.getLocation().getDirection() : location.getDirection();
+		Vector vLoc = livingEntity != null ? livingEntity.getLocation().toVector() : location.toVector();
 
 		BoundingBox box = new BoundingBox(location, hRadius, vRadius);
 
@@ -254,7 +254,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 				if (Math.abs(dir.angle(facing)) > cone) continue;
 			}
 
-			if (claimProjectiles) tracker.setCaster(player);
+			if (claimProjectiles) tracker.setCaster(livingEntity);
 
 			tracker.setAcceleration(acceleration);
 			tracker.setAccelerationDelay(accelerationDelay);
@@ -296,7 +296,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 
 			playSpellEffects(EffectPosition.TARGET, tracker.getCurrentLocation());
 			playSpellEffectsTrail(location, tracker.getCurrentLocation());
-			if (player != null) playSpellEffectsTrail(player.getLocation(), tracker.getCurrentLocation());
+			if (livingEntity != null) playSpellEffectsTrail(livingEntity.getLocation(), tracker.getCurrentLocation());
 
 			count++;
 
@@ -304,7 +304,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 
 		}
 
-		if (player != null) playSpellEffects(EffectPosition.CASTER, player);
+		if (livingEntity != null) playSpellEffects(EffectPosition.CASTER, livingEntity);
 		playSpellEffects(EffectPosition.SPECIAL, location);
 
 		return count > 0;

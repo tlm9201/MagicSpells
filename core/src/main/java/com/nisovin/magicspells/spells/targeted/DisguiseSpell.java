@@ -139,9 +139,10 @@ public class DisguiseSpell extends TargetedSpell implements TargetedEntitySpell 
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (manager == null) return PostCastAction.ALREADY_HANDLED;
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (manager == null || !(livingEntity instanceof Player)) return PostCastAction.ALREADY_HANDLED;
 		if (state == SpellCastState.NORMAL) {
+			Player player = (Player) livingEntity;
 			Disguise oldDisguise = disguised.remove(player.getUniqueId());
 			manager.removeDisguise(player);
 			if (oldDisguise != null && toggle) {
@@ -159,16 +160,16 @@ public class DisguiseSpell extends TargetedSpell implements TargetedEntitySpell 
 	}
 
 	@Override
-	public boolean castAtEntity(Player player, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity player, LivingEntity target, float power) {
 		if (!(target instanceof Player)) return false;
-		disguise((Player)target);
+		disguise((Player) target);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
 		if (!(target instanceof Player)) return false;
-		disguise((Player)target);
+		disguise((Player) target);
 		return true;
 	}
 
@@ -226,8 +227,9 @@ public class DisguiseSpell extends TargetedSpell implements TargetedEntitySpell 
 		@EventHandler
 		void onSpellCast(SpellCastedEvent event) {
 			if (event.getSpell() == thisSpell) return;
+			if (!(event.getCaster() instanceof Player)) return;
 			if (!disguised.containsKey(event.getCaster().getUniqueId())) return;
-			manager.removeDisguise(event.getCaster());
+			manager.removeDisguise((Player) event.getCaster());
 		}
 
 	}

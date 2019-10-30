@@ -2,15 +2,14 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OnCooldownCondition extends Condition {
 
-	Spell spell;
+	private Spell spell;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -19,17 +18,17 @@ public class OnCooldownCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return spell.onCooldown(player);
+	public boolean check(LivingEntity livingEntity) {
+		return spell.onCooldown(livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return target instanceof Player && spell.onCooldown((Player)target);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return spell.onCooldown(target);
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

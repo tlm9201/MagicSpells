@@ -5,8 +5,8 @@ import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
 public class SplashPotionEffect extends SpellEffect {
-	
-	int pot;
+
+	private int pot;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

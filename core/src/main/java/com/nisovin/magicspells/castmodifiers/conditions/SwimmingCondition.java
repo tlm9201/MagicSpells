@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -14,17 +13,17 @@ public class SwimmingCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return player.isSwimming();
+	public boolean check(LivingEntity livingEntity) {
+		return livingEntity.isSwimming();
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return target instanceof Player && check((Player)target);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return target.isSwimming();
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

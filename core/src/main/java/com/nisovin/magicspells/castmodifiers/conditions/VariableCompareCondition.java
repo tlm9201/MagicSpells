@@ -1,8 +1,8 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -10,14 +10,14 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 public class VariableCompareCondition extends Condition {
 
 	public String variable;
-	int op = 0;
-	String firstVariable;
-	String secondVariable;
+	private int op = 0;
+	private String firstVariable;
+	private String secondVariable;
 
 	@Override
 	public boolean setVar(String var) {
-		this.variable = var;
-		if(var.contains(":")) {
+		variable = var;
+		if (var.contains(":")) {
 			// Find out if its comparing dual values
 			String[] split = var.split(":",2);
 			firstVariable = split[0]; //The variable that is being checked
@@ -25,7 +25,7 @@ public class VariableCompareCondition extends Condition {
 			op = 1;
 			return true;
 		}
-		if(var.contains("<")) {
+		if (var.contains("<")) {
 			// Find out if its a more than equation
 			String[] split = var.split("<",2);
 			firstVariable = split[0];
@@ -33,7 +33,7 @@ public class VariableCompareCondition extends Condition {
 			op = 2;
 			return true;
 		}
-		if(var.contains(">")) {
+		if (var.contains(">")) {
 			// Find out if its a less than equation
 			String[] split = var.split(">",2);
 			firstVariable = split[0];
@@ -48,42 +48,38 @@ public class VariableCompareCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
+		if (!(livingEntity instanceof Player)) return false;
 		// Get variable values
-		String value = MagicSpells.getVariableManager().getStringValue(firstVariable, player);
-		String valueSecond = MagicSpells.getVariableManager().getStringValue(secondVariable, player);
+		String value = MagicSpells.getVariableManager().getStringValue(firstVariable, (Player) livingEntity);
+		String valueSecond = MagicSpells.getVariableManager().getStringValue(secondVariable, (Player) livingEntity);
 		double valueDouble = 0;
 		double valueDoubleSecond = 0;
 
 		// Will it require the string to be a double?
-		if(op == 2 || op == 3) {
+		if (op == 2 || op == 3) {
 			// Parse the string into a double so it can be read correctly
 			valueDouble = Double.parseDouble(value);
 			valueDoubleSecond = Double.parseDouble(valueSecond);
-		}else if(op == 1) {
-			return (value.equals(valueSecond));
-		}
+		} else if (op == 1) return (value.equals(valueSecond));
 
 		// Do the actual comparison
-		if(op == 2) {
-			return Double.compare(valueDouble,valueDoubleSecond) < 0;
-		}
-		if(op == 3) {
-			return Double.compare(valueDouble,valueDoubleSecond) > 0;
-		}
+		if (op == 2) return Double.compare(valueDouble,valueDoubleSecond) < 0;
+		if (op == 3) return Double.compare(valueDouble,valueDoubleSecond) > 0;
+
 		throw new IllegalStateException(op + " should never be reached!");
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		// Someone didn't read the GitHub commit x2
 		MagicSpells.error("VariableCompare cannot be used in target-modifiers, use VariableMatches");
 		return false;
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		// Against defaults (only possible comparison here)
-		return check(player);
+		return check(livingEntity);
 	}
 }

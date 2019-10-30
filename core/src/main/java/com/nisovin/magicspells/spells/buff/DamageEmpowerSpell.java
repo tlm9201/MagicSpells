@@ -5,7 +5,6 @@ import java.util.UUID;
 import java.util.List;
 import java.util.HashSet;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
@@ -61,7 +60,7 @@ public class DamageEmpowerSpell extends BuffSpell {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onSpellApplyDamage(SpellApplyDamageEvent event) {
-		Player caster = event.getCaster();
+		LivingEntity caster = event.getCaster();
 		if (!isActive(caster)) return;
 		if (!filter.check(event.getSpell())) return;
 

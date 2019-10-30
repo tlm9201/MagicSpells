@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Animals;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -56,18 +57,18 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Block target;
 			try {
-				target = getTargetedBlock(player, power);
+				target = getTargetedBlock(livingEntity, power);
 			} catch (IllegalStateException e) {
 				DebugHandler.debugIllegalState(e);
 				target = null;
 			}
 
 			if (target != null && !BlockUtils.isAir(target.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, target.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, target.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) target = null;
 				else {
@@ -76,34 +77,37 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 				}
 			}
 
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(player);
-			boolean exploded = explode(player, target.getLocation(), power);
-			if (!exploded && !ignoreCanceled) return noTarget(player);
+			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(livingEntity);
+			boolean exploded = explode(livingEntity, target.getLocation(), power);
+			if (!exploded && !ignoreCanceled) return noTarget(livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
-	private boolean explode(Player player, Location target, float power) {
+	private boolean explode(LivingEntity livingEntity, Location target, float power) {
 		if (simulateTnt) {
-			boolean cancelled = MagicSpells.getVolatileCodeHandler().simulateTnt(target, player, explosionSize * power, addFire);
+			boolean cancelled = MagicSpells.getVolatileCodeHandler().simulateTnt(target, livingEntity, explosionSize * power, addFire);
 			if (cancelled) return false;
 		}
 
 		if (backfireChance > 0) {
 			Random rand = new Random();
-			if (rand.nextInt(10000) < backfireChance) target = player.getLocation();
+			if (rand.nextInt(10000) < backfireChance) target = livingEntity.getLocation();
 		}
 
 		currentTick = Bukkit.getWorlds().get(0).getFullTime();
 		currentPower = power;
 
-		boolean ret = MagicSpells.getVolatileCodeHandler().createExplosionByPlayer(player, target, explosionSize * power, addFire, !preventBlockDamage);
-		if (ret) playSpellEffects(player, target);
+		boolean ret = false;
+		if (livingEntity instanceof Player) {
+			ret = MagicSpells.getVolatileCodeHandler().createExplosionByPlayer((Player) livingEntity, target, explosionSize * power, addFire, !preventBlockDamage);
+		}
+		if (ret) playSpellEffects(livingEntity, target);
 		return ret;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		return explode(caster, target, power);
 	}
 

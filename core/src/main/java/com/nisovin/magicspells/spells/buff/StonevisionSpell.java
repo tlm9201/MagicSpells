@@ -105,14 +105,14 @@ public class StonevisionSpell extends BuffSpell {
 
 	private class TransparentBlockSet {
 
-		Player player;
-		Block center;
-		int radius;
-		Set<Material> types;
-		List<Block> blocks;
-		Set<Chunk> chunks;
+		private Player player;
+		private Block center;
+		private int radius;
+		private Set<Material> types;
+		private List<Block> blocks;
+		private Set<Chunk> chunks;
 
-		public TransparentBlockSet(Player player, int radius, Set<Material> types) {
+		private TransparentBlockSet(Player player, int radius, Set<Material> types) {
 			this.player = player;
 			this.center = player.getLocation().getBlock();
 			this.radius = radius;
@@ -124,7 +124,7 @@ public class StonevisionSpell extends BuffSpell {
 			setTransparency();
 		}
 
-		public void setTransparency() {
+		private void setTransparency() {
 			List<Block> newBlocks = new ArrayList<>();
 
 			// Get blocks to set to transparent
@@ -178,7 +178,7 @@ public class StonevisionSpell extends BuffSpell {
 			blocks = newBlocks;
 		}
 
-		public boolean moveTransparency() {
+		private boolean moveTransparency() {
 			if (player.isDead()) {
 				player = PlayerNameUtils.getPlayer(player.getName());
 			}
@@ -192,7 +192,7 @@ public class StonevisionSpell extends BuffSpell {
 			return false;
 		}
 
-		public void removeTransparency() {
+		private void removeTransparency() {
 			Util.forEachOrdered(blocks, b -> player.sendBlockChange(b.getLocation(), b.getType().createBlockData()));
 			blocks = null;
 		}

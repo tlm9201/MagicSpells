@@ -11,6 +11,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -58,9 +59,9 @@ public class FlightPathSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			ActiveFlight flight = new ActiveFlight(player, this);
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			ActiveFlight flight = new ActiveFlight((Player) livingEntity, this);
 			flightHandler.addFlight(flight);
 		}
 		return PostCastAction.HANDLE_NORMALLY;

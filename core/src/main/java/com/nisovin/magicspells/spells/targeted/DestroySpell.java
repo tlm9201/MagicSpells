@@ -10,7 +10,6 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.FallingBlock;
@@ -112,26 +111,26 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block b = getTargetedBlock(player, power);
+			Block b = getTargetedBlock(livingEntity, power);
 			if (b != null && !BlockUtils.isAir(b.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, b.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, b.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) b = null;
 				else b = event.getTargetLocation().getBlock();
 			}
 			if (b != null && !BlockUtils.isAir(b.getType())) {
 				Location loc = b.getLocation().add(0.5, 0.5, 0.5);
-				doIt(player.getLocation(), loc);
-				playSpellEffects(player, loc);
+				doIt(livingEntity.getLocation(), loc);
+				playSpellEffects(livingEntity, loc);
 			}
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		doIt(caster.getLocation(), target);
 		playSpellEffects(caster, target);
 		return true;
@@ -143,7 +142,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(Player caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		doIt(from, target.getLocation());
 		playSpellEffects(from, target);
 		return true;

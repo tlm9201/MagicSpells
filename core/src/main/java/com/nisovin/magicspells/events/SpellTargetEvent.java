@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.events;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.entity.LivingEntity;
@@ -20,7 +19,7 @@ public class SpellTargetEvent extends SpellEvent implements Cancellable {
 	private float power;
 	private boolean cancelled = false;
 	
-	public SpellTargetEvent(Spell spell, Player caster, LivingEntity target, float power) {
+	public SpellTargetEvent(Spell spell, LivingEntity caster, LivingEntity target, float power) {
 		super(spell, caster);
 		this.target = target;
 		this.power = power;

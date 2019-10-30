@@ -6,7 +6,7 @@ import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.RegexUtil;
@@ -32,16 +32,16 @@ public class GateSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			World effectiveWorld;
-			if (world.equals("CURRENT")) effectiveWorld = player.getWorld();
+			if (world.equals("CURRENT")) effectiveWorld = livingEntity.getWorld();
 			else if (world.equals("DEFAULT")) effectiveWorld = Bukkit.getServer().getWorlds().get(0);
 			else effectiveWorld = Bukkit.getServer().getWorld(world);
 
 			if (effectiveWorld == null) {
 				MagicSpells.error("GateSpell '" + internalName + "' has a non existent world defined!");
-				sendMessage(strGateFailed, player, args);
+				sendMessage(strGateFailed, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
@@ -66,11 +66,11 @@ public class GateSpell extends InstantSpell {
 			} else if (coords.equals("EXACTSPAWN")) {
 				location = effectiveWorld.getSpawnLocation();
 			} else if (coords.equals("CURRENT")) {
-				Location l = player.getLocation();
+				Location l = livingEntity.getLocation();
 				location = new Location(effectiveWorld, l.getBlockX(), l.getBlockY(), l.getBlockZ(), l.getYaw(), l.getPitch());
 			} else {
 				MagicSpells.error("GateSpell '" + internalName + "' has invalid coordinates defined!");
-				sendMessage(strGateFailed, player, args);
+				sendMessage(strGateFailed, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			location.setX(location.getX() + .5);
@@ -80,16 +80,16 @@ public class GateSpell extends InstantSpell {
 			Block b = location.getBlock();
 			if (!BlockUtils.isPathable(b) || !BlockUtils.isPathable(b.getRelative(0, 1, 0))) {
 				MagicSpells.error("GateSpell '" + internalName + "' has landing spot blocked!");
-				sendMessage(strGateFailed, player, args);
+				sendMessage(strGateFailed, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
-			Location from = player.getLocation();
+			Location from = livingEntity.getLocation();
 			Location to = b.getLocation();
-			boolean teleported = player.teleport(location);
+			boolean teleported = livingEntity.teleport(location);
 			if (!teleported) {
 				MagicSpells.error("GateSpell '" + internalName + "': teleport prevented!");
-				sendMessage(strGateFailed, player, args);
+				sendMessage(strGateFailed, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			playSpellEffects(EffectPosition.CASTER, from);

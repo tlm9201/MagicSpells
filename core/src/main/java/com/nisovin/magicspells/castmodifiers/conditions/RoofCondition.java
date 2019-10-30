@@ -1,18 +1,17 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import com.nisovin.magicspells.util.RegexUtil;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
+import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class RoofCondition extends Condition {
 
-	int height = 10;
+	private int height = 10;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -23,20 +22,20 @@ public class RoofCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return check(player, player.getLocation());
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity.getLocation());
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return check(player, target.getLocation());
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target, target.getLocation());
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		Block b = location.clone().add(0, 2, 0).getBlock();
 		for (int i = 0; i < height; i++) {
-			if (b.getType() != Material.AIR) return true;
+			if (!BlockUtils.isAir(b.getType())) return true;
 			b = b.getRelative(BlockFace.UP);
 		}
 		return false;

@@ -9,7 +9,6 @@ import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
@@ -304,7 +303,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	}
 
 	@Override
-	public PostCastAction castSpell(Player caster, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			ProjectileTracker tracker = new ProjectileTracker(caster, power);
 			setupProjectile(tracker);
@@ -315,7 +314,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		ProjectileTracker tracker = new ProjectileTracker(caster, power);
 		setupProjectile(tracker);
 		tracker.start(target);
@@ -334,7 +333,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(Player caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		if (!caster.getLocation().getWorld().equals(target.getLocation().getWorld())) return false;
 		Location targetLoc = from.clone();
 		if (Float.isNaN(targetLoc.getPitch())) targetLoc.setPitch(0);
@@ -358,7 +357,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!caster.getLocation().getWorld().equals(target.getLocation().getWorld())) return false;
 		ProjectileTracker tracker = new ProjectileTracker(caster, power);
 		setupProjectile(tracker);

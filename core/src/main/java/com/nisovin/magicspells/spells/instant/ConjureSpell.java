@@ -164,11 +164,11 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public PostCastAction castSpell(final Player player, SpellCastState state, final float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (itemTypes == null) return PostCastAction.ALREADY_HANDLED;
-		if (state == SpellCastState.NORMAL) {
-			if (delay >= 0) MagicSpells.scheduleDelayedTask(() -> conjureItems(player, power), delay);
-			else conjureItems(player, power);
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			if (delay >= 0) MagicSpells.scheduleDelayedTask(() -> conjureItems((Player) livingEntity, power), delay);
+			else conjureItems((Player) livingEntity, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 		
@@ -270,7 +270,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		return castAtLocation(target, power);
 	}
 	
@@ -299,7 +299,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		return castAtEntity(target, power);
 	}
 

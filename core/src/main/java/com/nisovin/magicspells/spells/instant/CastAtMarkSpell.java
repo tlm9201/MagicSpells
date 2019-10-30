@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.spells.instant;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
@@ -61,15 +61,15 @@ public class CastAtMarkSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (!initialized) return PostCastAction.HANDLE_NORMALLY;
 		if (state == SpellCastState.NORMAL) {
-			Location effectiveMark = markSpell.getEffectiveMark(player);
+			Location effectiveMark = markSpell.getEffectiveMark(livingEntity);
 			if (effectiveMark == null) {
-				sendMessage(player, strNoMark);
+				sendMessage(livingEntity, strNoMark);
 				return PostCastAction.HANDLE_NORMALLY;
 			}
-			spellToCast.castAtLocation(player, effectiveMark, power);
+			spellToCast.castAtLocation(livingEntity, effectiveMark, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

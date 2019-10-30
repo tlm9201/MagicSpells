@@ -10,6 +10,7 @@ import java.util.TreeSet;
 
 import com.nisovin.magicspells.util.compat.EventUtil;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -78,7 +79,7 @@ public class MagicSpellsTeams extends JavaPlugin implements Listener {
 	
 	@EventHandler(ignoreCancelled=true)
 	public void onSpellTarget(SpellTargetEvent event) {
-		Player caster = event.getCaster();
+		LivingEntity caster = event.getCaster();
 		if (caster == null) return;
 		if (!(event.getTarget() instanceof Player)) return;
 		
@@ -110,14 +111,14 @@ public class MagicSpellsTeams extends JavaPlugin implements Listener {
 		}
 	}
 	
-	public Team getTeam(Player player) {
-		String playerName = player.getName();
+	public Team getTeam(LivingEntity livingEntity) {
+		String playerName = livingEntity.getName();
 		if (this.useCache) {
 			Team team = this.playerTeams.get(playerName);
 			if (team != null) return team;
 		}
 		for (Team team : this.teams) {
-			if (team.inTeam(player)) {
+			if (team.inTeam(livingEntity)) {
 				if (this.useCache) this.playerTeams.put(playerName, team);
 				return team;
 			}
@@ -125,7 +126,7 @@ public class MagicSpellsTeams extends JavaPlugin implements Listener {
 		return null;
 	}
 	
-	public boolean canTarget(Player caster, Player target) {
+	public boolean canTarget(LivingEntity caster, Player target) {
 		Team casterTeam = getTeam(caster);
 		Team targetTeam = getTeam(target);
 		

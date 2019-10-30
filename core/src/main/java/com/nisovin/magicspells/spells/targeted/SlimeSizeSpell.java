@@ -34,19 +34,19 @@ public class SlimeSizeSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-			if (targetInfo == null) return noTarget(player);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+			if (targetInfo == null) return noTarget(livingEntity);
 
 			LivingEntity targetEntity = targetInfo.getTarget();
-			setSize(player, targetEntity);
+			setSize(livingEntity, targetEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		setSize(caster, target);
 		return true;
 	}
@@ -62,11 +62,12 @@ public class SlimeSizeSpell extends TargetedSpell implements TargetedEntitySpell
 		return isSlimeChecker;
 	}
 
-	private void setSize(Player caster, LivingEntity target) {
+	private void setSize(LivingEntity caster, LivingEntity target) {
 		if (!(target instanceof Slime)) return;
+		if (!(caster instanceof Player)) return;
 
 		Slime slime = (Slime) target;
-		double rawOutputValue = variableMod.getValue(caster, null, slime.getSize());
+		double rawOutputValue = variableMod.getValue((Player) caster, null, slime.getSize());
 		int finalSize = Util.clampValue(minSize, maxSize, (int) rawOutputValue);
 		slime.setSize(finalSize);
 	}

@@ -10,7 +10,6 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -146,28 +145,28 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location locToSpawn = null;
 			if (canTargetEntities) {
-				TargetInfo<LivingEntity> targetEntityInfo = getTargetedEntity(player, power);
+				TargetInfo<LivingEntity> targetEntityInfo = getTargetedEntity(livingEntity, power);
 				if (targetEntityInfo != null && targetEntityInfo.getTarget() != null) locToSpawn = targetEntityInfo.getTarget().getLocation();
 			}
 			if (canTargetLocation && locToSpawn == null) {
-				Block targetBlock = getTargetedBlock(player, power);
+				Block targetBlock = getTargetedBlock(livingEntity, power);
 				if (targetBlock != null) locToSpawn = targetBlock.getLocation().add(0.5, 1, 0.5);
 			}
 
-			if (locToSpawn == null) return noTarget(player);
+			if (locToSpawn == null) return noTarget(livingEntity);
 
 			AreaEffectCloud cloud = spawnCloud(locToSpawn);
-			cloud.setSource(player);
+			cloud.setSource(livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		if (!canTargetLocation) return false;
 		AreaEffectCloud cloud = spawnCloud(target.getBlock().getLocation().add(0.5, 1, 0.5));
 		cloud.setSource(caster);
@@ -180,7 +179,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!canTargetEntities) return false;
 		AreaEffectCloud cloud = spawnCloud(target.getLocation());
 		cloud.setSource(caster);

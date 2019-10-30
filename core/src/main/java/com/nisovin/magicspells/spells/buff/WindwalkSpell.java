@@ -117,11 +117,11 @@ public class WindwalkSpell extends BuffSpell {
 
 	}
 	
-	public class HeightMonitor implements Runnable {
-		
-		int taskId;
-		
-		public HeightMonitor() {
+	private class HeightMonitor implements Runnable {
+
+		private int taskId;
+
+		private HeightMonitor() {
 			taskId = MagicSpells.scheduleRepeatingTask( this, TimeUtil.TICKS_PER_SECOND, TimeUtil.TICKS_PER_SECOND);
 		}
 		
@@ -131,6 +131,7 @@ public class WindwalkSpell extends BuffSpell {
 				Player pl = Bukkit.getPlayer(id);
 				if (pl == null) continue;
 				if (!pl.isValid()) continue;
+				addUseAndChargeCost(pl);
 				if (maxY > 0) {
 					int ydiff = pl.getLocation().getBlockY() - maxY;
 					if (ydiff > 0) {

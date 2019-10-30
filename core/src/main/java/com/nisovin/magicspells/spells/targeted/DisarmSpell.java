@@ -60,25 +60,25 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 			
 			LivingEntity realTarget = target.getTarget();
 			
 			boolean disarmed = disarm(realTarget);
-			if (!disarmed) return noTarget(player, strInvalidItem);
+			if (!disarmed) return noTarget(livingEntity, strInvalidItem);
 
-			playSpellEffects(player, realTarget);
-			sendMessages(player, realTarget);
+			playSpellEffects(livingEntity, realTarget);
+			sendMessages(livingEntity, realTarget);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		boolean disarmed =  disarm(target);
 		if (disarmed) playSpellEffects(caster, target);
@@ -93,7 +93,7 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 		return disarmed;
 	}
 	
-	private boolean disarm(final LivingEntity target) {
+	private boolean disarm(LivingEntity target) {
 		final ItemStack inHand = getItemInHand(target);
 		if (disarmable != null && !disarmable.contains(inHand.getType())) return false;
 		if (!dontDrop) {

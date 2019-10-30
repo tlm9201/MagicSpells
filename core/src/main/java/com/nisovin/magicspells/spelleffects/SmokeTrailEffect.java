@@ -12,7 +12,7 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class SmokeTrailEffect extends SpellEffect {
 
-	int interval;
+	private int interval;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -38,7 +38,7 @@ public class SmokeTrailEffect extends SpellEffect {
 		private int i;
 		private int id;
 		
-		public SmokeStreamEffect(Location loc1, Location loc2) {
+		SmokeStreamEffect(Location loc1, Location loc2) {
 			this.startLoc = loc1;
 			this.endLoc = loc2;
 			this.world = startLoc.getWorld();
@@ -50,7 +50,7 @@ public class SmokeTrailEffect extends SpellEffect {
 			this.id = MagicSpells.scheduleRepeatingTask(this, interval, interval);
 		}
 
-		public void showNoAnimation() {
+		void showNoAnimation() {
 			while (this.i < locationsForProjection.size()) {
 				run();
 			}
@@ -89,9 +89,9 @@ public class SmokeTrailEffect extends SpellEffect {
 			yVect = y2 - y1;
 			zVect = z2 - z1;
 			double distance = startLoc.distance(endLoc);
-			List<Location> tmp = new ArrayList<>((int)Math.floor(distance));
+			List<Location> tmp = new ArrayList<>((int) Math.floor(distance));
 			
-			for (double t = 0; t <= 1; t += 1/distance) {
+			for (double t = 0; t <= 1; t += 1 / distance) {
 				tmp.add(new Location(world, x2 - (xVect * t), y2 - (yVect * t) + 1, z2 - (zVect * t)));
 			}
 			return tmp;

@@ -53,37 +53,37 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location markLocation = null;
-			if (args != null && args.length == 1 && player.hasPermission("magicspells.advanced." + internalName)) {
+			if (args != null && args.length == 1 && livingEntity.hasPermission("magicspells.advanced." + internalName)) {
 				Player target = PlayerNameUtils.getPlayer(args[0]);				
 				if (useBedLocation && target != null) markLocation = target.getBedSpawnLocation();
 				else if (markSpell != null) {
 					Location loc = markSpell.getEffectiveMark(target != null ? target.getName().toLowerCase() : args[0].toLowerCase());
 					if (loc != null) markLocation = loc;
 				}
-			} else markLocation = getRecallLocation(player);
+			} else markLocation = getRecallLocation(livingEntity);
 
 			if (markLocation == null) {
-				sendMessage(strNoMark, player, args);
+				sendMessage(strNoMark, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
-			if (!allowCrossWorld && !LocationUtil.isSameWorld(markLocation, player.getLocation())) {
-				sendMessage(strOtherWorld, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			if (maxRange > 0 && markLocation.toVector().distanceSquared(player.getLocation().toVector()) > maxRange * maxRange) {
-				sendMessage(strTooFar, player, args);
+			if (!allowCrossWorld && !LocationUtil.isSameWorld(markLocation, livingEntity.getLocation())) {
+				sendMessage(strOtherWorld, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
-			Location from = player.getLocation();
-			boolean teleported = player.teleport(markLocation);
+			if (maxRange > 0 && markLocation.toVector().distanceSquared(livingEntity.getLocation().toVector()) > maxRange * maxRange) {
+				sendMessage(strTooFar, livingEntity, args);
+				return PostCastAction.ALREADY_HANDLED;
+			}
+			
+			Location from = livingEntity.getLocation();
+			boolean teleported = livingEntity.teleport(markLocation);
 			if (!teleported) {
-				MagicSpells.error("Recall teleport blocked for " + player.getName());
-				sendMessage(strRecallFailed, player, args);
+				MagicSpells.error("Recall teleport blocked for " + livingEntity.getName());
+				sendMessage(strRecallFailed, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			playSpellEffects(EffectPosition.CASTER, from);
@@ -93,7 +93,7 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		Location mark = getRecallLocation(caster);
 		if (mark == null) return false;
 		target.teleport(mark);
@@ -105,8 +105,8 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 		return false;
 	}
 	
-	private Location getRecallLocation(Player caster) {
-		if (useBedLocation) return caster.getBedSpawnLocation();
+	private Location getRecallLocation(LivingEntity caster) {
+		if (useBedLocation && caster instanceof Player) return ((Player) caster).getBedSpawnLocation();
 		if (markSpell == null) return null;
 		return markSpell.getEffectiveMark(caster);
 	}

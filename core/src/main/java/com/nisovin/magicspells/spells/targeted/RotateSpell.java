@@ -4,7 +4,6 @@ import java.util.Random;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
@@ -44,34 +43,38 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
-			spin(player, target.getTarget());
-			playSpellEffects(player, target.getTarget());
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
+			spin(livingEntity, target.getTarget());
+			playSpellEffects(livingEntity, target.getTarget());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		playSpellEffects(caster, target);
 		spin(caster, target);
 		return true;
 	}
 
+	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
 		playSpellEffects(EffectPosition.TARGET, target);
 		spin(target);
 		return true;
 	}
 
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		playSpellEffects(EffectPosition.TARGET, target);
 		spin(caster, target);
 		return true;
 	}
 
+	@Override
 	public boolean castAtLocation(Location target, float power) {
 		return false;
 	}

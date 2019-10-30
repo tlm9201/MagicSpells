@@ -97,58 +97,58 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location targetLoc = null;
 			boolean selfTarget = false;
 			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-				if (targetInfo == null) return noTarget(player);
+				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+				if (targetInfo == null) return noTarget(livingEntity);
 				
 				LivingEntity entity = targetInfo.getTarget();
 				power = targetInfo.getPower();
-				if (entity == null) return noTarget(player);
+				if (entity == null) return noTarget(livingEntity);
 				if (checkPlugins) {
 					// Run a pvp damage check
-					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(player, entity, DamageCause.ENTITY_ATTACK, 1D);
+					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(livingEntity, entity, DamageCause.ENTITY_ATTACK, 1D);
 					EventUtil.call(event);
-					if (event.isCancelled()) return noTarget(player);
+					if (event.isCancelled()) return noTarget(livingEntity);
 				}
 				targetLoc = entity.getLocation();
-				if (entity.equals(player)) selfTarget = true;
+				if (entity.equals(livingEntity)) selfTarget = true;
 			}
 			
 			// Create fireball
 			Location loc;
-			Location pLoc = player.getLocation();
+			Location pLoc = livingEntity.getLocation();
 			if (!selfTarget) {
-				loc = player.getEyeLocation().toVector().add(pLoc.getDirection().multiply(2)).toLocation(player.getWorld(), pLoc.getYaw(), pLoc.getPitch());
+				loc = livingEntity.getEyeLocation().toVector().add(pLoc.getDirection().multiply(2)).toLocation(livingEntity.getWorld(), pLoc.getYaw(), pLoc.getPitch());
 				loc = offsetLocation(loc);
 				loc = applyOffsetTargetingCorrection(loc, targetLoc);
 			} else {
-				loc = pLoc.toVector().add(pLoc.getDirection().setY(0).multiply(2)).toLocation(player.getWorld(), pLoc.getYaw() + 180, 0);
+				loc = pLoc.toVector().add(pLoc.getDirection().setY(0).multiply(2)).toLocation(livingEntity.getWorld(), pLoc.getYaw() + 180, 0);
 			}
 			Fireball fireball;
-			if (smallFireball) {
-				fireball = MagicSpells.getVolatileCodeHandler().shootSmallFireball(player);
-				player.getWorld().playEffect(player.getLocation(), Effect.GHAST_SHOOT, 0);
+			if (smallFireball && livingEntity instanceof Player) {
+				fireball = MagicSpells.getVolatileCodeHandler().shootSmallFireball((Player) livingEntity);
+				livingEntity.getWorld().playEffect(livingEntity.getLocation(), Effect.GHAST_SHOOT, 0);
 			} else {
-				fireball = player.getWorld().spawn(loc, Fireball.class);
-				player.getWorld().playEffect(player.getLocation(), Effect.GHAST_SHOOT, 0);
+				fireball = livingEntity.getWorld().spawn(loc, Fireball.class);
+				livingEntity.getWorld().playEffect(livingEntity.getLocation(), Effect.GHAST_SHOOT, 0);
 				fireballs.put(fireball, power);
 			}
 
-			fireball.setShooter(player);
+			fireball.setShooter(livingEntity);
 			fireball.setGravity(fireballGravity);
 
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
 			playSpellEffects(EffectPosition.PROJECTILE, fireball);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
 	@Override
-	public boolean castAtEntityFromLocation(Player caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		from = offsetLocation(from);
 		Vector facing = target.getLocation().toVector().subtract(from.toVector()).normalize();
 		Location loc = from.clone();

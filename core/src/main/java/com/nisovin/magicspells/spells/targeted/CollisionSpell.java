@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.TargetInfo;
@@ -20,12 +19,12 @@ public class CollisionSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-			if (targetInfo == null) return noTarget(player);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+			if (targetInfo == null) return noTarget(livingEntity);
 			LivingEntity target = targetInfo.getTarget();
-			if (target == null) return noTarget(player);
+			if (target == null) return noTarget(livingEntity);
 
 			target.setCollidable(targetBooleanState.getBooleanState(target.isCollidable()));
 		}
@@ -33,7 +32,7 @@ public class CollisionSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 	
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		target.setCollidable(targetBooleanState.getBooleanState(target.isCollidable()));
 		return true;
 	}

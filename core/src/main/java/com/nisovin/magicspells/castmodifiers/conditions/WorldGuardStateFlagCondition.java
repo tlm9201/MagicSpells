@@ -1,19 +1,19 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
 import com.sk89q.worldguard.LocalPlayer;
-//import com.sk89q.worldguard.protection.flags.DefaultFlag;
-//import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+//import com.sk89q.worldguard.protection.flags.DefaultFlag;
+//import com.sk89q.worldguard.protection.flags.Flag;
 
 public class WorldGuardStateFlagCondition extends AbstractWorldGuardFlagCondition {
 
-	StateFlag flag = null;
+	private StateFlag flag = null;
 	
-	static Map<String, StateFlag> nameMap;
+	private static Map<String, StateFlag> nameMap;
 	
 	static {
 		nameMap = new HashMap<>();

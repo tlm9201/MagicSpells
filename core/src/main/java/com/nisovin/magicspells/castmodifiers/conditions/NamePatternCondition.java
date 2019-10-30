@@ -2,16 +2,16 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import java.util.regex.Pattern;
 
-import com.nisovin.magicspells.util.RegexUtil;
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class NamePatternCondition extends Condition {
 
-	String rawPattern;
+	private String rawPattern;
 	private Pattern compiledPattern;
 	
 	@Override
@@ -25,19 +25,18 @@ public class NamePatternCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return RegexUtil.matches(compiledPattern, player.getName()) || RegexUtil.matches(compiledPattern, player.getDisplayName());
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		if (target instanceof Player) return check((Player)target);
-		String n = target.getCustomName();
-		return n != null && !n.isEmpty() && RegexUtil.matches(compiledPattern, n);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		if (!(target instanceof Player)) return false;
+		return RegexUtil.matches(compiledPattern, target.getName()) || RegexUtil.matches(compiledPattern, ((Player) target).getDisplayName());
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 public class ProxyCondition extends Condition {
@@ -56,21 +55,21 @@ public class ProxyCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
 		if (actualCondition == null) return false;
-		return actualCondition.check(player);
+		return actualCondition.check(livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		if (actualCondition == null) return false;
-		return actualCondition.check(player, target);
+		return actualCondition.check(livingEntity, target);
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		if (actualCondition == null) return false;
-		return actualCondition.check(player, location);
+		return actualCondition.check(livingEntity, location);
 	}
 
 }

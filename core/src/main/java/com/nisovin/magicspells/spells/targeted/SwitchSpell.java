@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -21,7 +20,7 @@ public class SwitchSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity player, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
 			if (target == null) return noTarget(player);
@@ -35,7 +34,7 @@ public class SwitchSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		switchPlaces(caster, target);
 		return true;
@@ -46,7 +45,7 @@ public class SwitchSpell extends TargetedSpell implements TargetedEntitySpell {
 		return false;
 	}
 
-	private void switchPlaces(final Player player, final LivingEntity target) {
+	private void switchPlaces(LivingEntity player, final LivingEntity target) {
 		Location targetLoc = target.getLocation();
 		Location casterLoc = player.getLocation();
 		player.teleport(targetLoc);

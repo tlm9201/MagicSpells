@@ -2,14 +2,13 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
-import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.PlayerNameUtils;
+import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class PlayerOnlineCondition extends Condition {
 	
-	String name;
+	private String name;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -18,18 +17,18 @@ public class PlayerOnlineCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
 		return PlayerNameUtils.getPlayerExact(name) != null;
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return check(player);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(livingEntity);
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
-		return check(player);
+	public boolean check(LivingEntity livingEntity, Location location) {
+		return check(livingEntity);
 	}
 
 }

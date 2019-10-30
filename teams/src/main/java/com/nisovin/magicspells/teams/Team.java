@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 
@@ -62,8 +62,8 @@ public class Team {
 		this.cantTargetNames = null;
 	}
 	
-	public boolean inTeam(Player player) {
-		return player.hasPermission(this.permissionNode);
+	public boolean inTeam(LivingEntity livingEntity) {
+		return livingEntity.hasPermission(this.permissionNode);
 	}
 	
 	public boolean allowFriendlyFire() {

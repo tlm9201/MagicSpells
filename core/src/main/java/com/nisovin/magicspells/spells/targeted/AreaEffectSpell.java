@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
@@ -88,22 +87,22 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location loc = null;
-			if (pointBlank) loc = player.getLocation();
+			if (pointBlank) loc = livingEntity.getLocation();
 			else {
 				try {
-					Block block = getTargetedBlock(player, power);
+					Block block = getTargetedBlock(livingEntity, power);
 					if (block != null && !BlockUtils.isAir(block.getType())) loc = block.getLocation().add(0.5, 0, 0.5);
 				} catch (IllegalStateException e) {
 					loc = null;
 				}
 			}
 
-			if (loc == null) return noTarget(player);
+			if (loc == null) return noTarget(livingEntity);
 
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, loc, power);
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, loc, power);
 			EventUtil.call(event);
 			if (event.isCancelled()) loc = null;
 			else {
@@ -111,17 +110,17 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 				power = event.getPower();
 			}
 
-			if (loc == null) return noTarget(player);
+			if (loc == null) return noTarget(livingEntity);
 			
-			boolean done = doAoe(player, loc, power);
+			boolean done = doAoe(livingEntity, loc, power);
 			
-			if (!done && failIfNoTargets) return noTarget(player);
+			if (!done && failIfNoTargets) return noTarget(livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		return doAoe(caster, target, power);
 	}
 
@@ -130,11 +129,11 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		return doAoe(null, target, power);
 	}
 	
-	private boolean doAoe(Player player, Location location, float basePower) {
+	private boolean doAoe(LivingEntity livingEntity, Location location, float basePower) {
 		int count = 0;
 
-		Vector vLoc = player != null ? player.getLocation().toVector() : location.toVector();
-		Vector facing = player != null ? player.getLocation().getDirection() : location.getDirection();
+		Vector vLoc = livingEntity != null ? livingEntity.getLocation().toVector() : location.toVector();
+		Vector facing = livingEntity != null ? livingEntity.getLocation().getDirection() : location.getDirection();
 
 		BoundingBox box = new BoundingBox(location, hRadius, vRadius);
 		List<Entity> entities = new ArrayList<>(location.getWorld().getEntitiesByClasses(LivingEntity.class));
@@ -152,10 +151,10 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			float power = basePower;
 
 			if (target.isDead()) continue;
-			if (player == null && !validTargetList.canTarget(target)) continue;
-			if (player != null && !validTargetList.canTarget(player, target)) continue;
+			if (livingEntity == null && !validTargetList.canTarget(target)) continue;
+			if (livingEntity != null && !validTargetList.canTarget(livingEntity, target)) continue;
 
-			SpellTargetEvent event = new SpellTargetEvent(this, player, target, power);
+			SpellTargetEvent event = new SpellTargetEvent(this, livingEntity, target, power);
 			EventUtil.call(event);
 			if (event.isCancelled()) continue;
 
@@ -163,15 +162,15 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			power = event.getPower();
 
 			for (Subspell spell : spells) {
-				if (spellSourceInCenter && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(player, location, target, power);
-				else if (player != null && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(player, player.getLocation(), target, power);
-				else if (spell.isTargetedEntitySpell()) spell.castAtEntity(player, target, power);
-				else if (spell.isTargetedLocationSpell()) spell.castAtLocation(player, target.getLocation(), power);
+				if (spellSourceInCenter && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(livingEntity, location, target, power);
+				else if (livingEntity != null && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(livingEntity, livingEntity.getLocation(), target, power);
+				else if (spell.isTargetedEntitySpell()) spell.castAtEntity(livingEntity, target, power);
+				else if (spell.isTargetedLocationSpell()) spell.castAtLocation(livingEntity, target.getLocation(), power);
 			}
 
 			playSpellEffects(EffectPosition.TARGET, target);
 			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation());
-			else if (player != null) playSpellEffectsTrail(player.getLocation(), target.getLocation());
+			else if (livingEntity != null) playSpellEffectsTrail(livingEntity.getLocation(), target.getLocation());
 
 			count++;
 
@@ -180,7 +179,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		if (count > 0 || !failIfNoTargets) {
 			playSpellEffects(EffectPosition.SPECIAL, location);
-			if (player != null) playSpellEffects(EffectPosition.CASTER, player);
+			if (livingEntity != null) playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
 		
 		return count > 0;

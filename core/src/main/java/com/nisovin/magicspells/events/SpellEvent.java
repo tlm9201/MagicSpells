@@ -1,16 +1,16 @@
 package com.nisovin.magicspells.events;
 
 import org.bukkit.event.Event;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 
 public abstract class SpellEvent extends Event implements IMagicSpellsCompatEvent {
 
 	protected Spell spell;
-	protected Player caster;
+	protected LivingEntity caster;
 	
-	public SpellEvent(Spell spell, Player caster) {
+	public SpellEvent(Spell spell, LivingEntity caster) {
 		this.spell = spell;
 		this.caster = caster;
 	}
@@ -27,7 +27,7 @@ public abstract class SpellEvent extends Event implements IMagicSpellsCompatEven
 	 * Gets the player casting the spell.
 	 * @return the casting player
 	 */
-	public Player getCaster() {
+	public LivingEntity getCaster() {
 		return caster;
 	}
 	

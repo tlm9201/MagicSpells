@@ -11,12 +11,12 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class BroadcastEffect extends SpellEffect {
 
-	String message;
-	
-	int range;
-	int rangeSq;
+	private String message;
 
-	boolean targeted;
+	private int range;
+	private int rangeSq;
+
+	private boolean targeted;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

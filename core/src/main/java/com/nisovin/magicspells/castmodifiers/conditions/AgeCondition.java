@@ -3,7 +3,6 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -29,13 +28,13 @@ public class AgeCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		// Always false for this since player aren't instance of Ageable
-		return false;
+	public boolean check(LivingEntity livingEntity) {
+		check(livingEntity, livingEntity);
+		return true;
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		if (target instanceof Ageable) {
 			boolean adult = ((Ageable) target).isAdult();
 			return adult ? passAdult : passBaby;
@@ -44,8 +43,7 @@ public class AgeCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
-		// Locations aren't Ageable
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

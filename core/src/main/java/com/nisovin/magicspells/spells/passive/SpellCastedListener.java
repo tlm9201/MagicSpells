@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -40,19 +42,21 @@ public class SpellCastedListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onSpellCast(SpellCastedEvent event) {
+		LivingEntity caster = event.getCaster();
+		if (!(caster instanceof Player)) return;
 		if (event.getSpellCastState() == SpellCastState.NORMAL && event.getPostCastAction() != PostCastAction.ALREADY_HANDLED && event.getCaster() != null) {
-			Spellbook spellbook = MagicSpells.getSpellbook(event.getCaster());
+			Spellbook spellbook = MagicSpells.getSpellbook((Player) caster);
 			for (PassiveSpell spell : anySpell) {
 				if (spell.equals(event.getSpell())) continue;
 				if (!spellbook.hasSpell(spell, false)) continue;
-				spell.activate(event.getCaster());
+				spell.activate((Player) caster);
 			}
 			List<PassiveSpell> list = spells.get(event.getSpell());
 			if (list != null) {
 				for (PassiveSpell spell : list) {
 					if (spell.equals(event.getSpell())) continue;
 					if (!spellbook.hasSpell(spell, false)) continue;
-					spell.activate(event.getCaster());
+					spell.activate((Player) caster);
 				}
 			}
 		}

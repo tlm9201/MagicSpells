@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
@@ -84,8 +85,9 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			Location loc = null;
 			if (targetSelf) loc = player.getLocation();
 			else {
@@ -101,9 +103,10 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
-		if (targetSelf) layCarpet(caster, caster.getLocation(), power);
-		else layCarpet(caster, target, power);
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		if (!(caster instanceof Player)) return false;
+		if (targetSelf) layCarpet((Player) caster, caster.getLocation(), power);
+		else layCarpet((Player) caster, target, power);
 		return true;
 	}
 
@@ -164,7 +167,7 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	
 	private class TouchChecker implements Runnable {
 		
-		int taskId;
+		private int taskId;
 		
 		private TouchChecker() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, touchCheckInterval, touchCheckInterval);

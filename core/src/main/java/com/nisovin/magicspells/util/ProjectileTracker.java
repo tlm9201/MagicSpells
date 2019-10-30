@@ -11,7 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
@@ -29,7 +28,7 @@ public class ProjectileTracker implements Runnable {
 
 	private Random rand = new Random();
 
-	private Player caster;
+	private LivingEntity caster;
 	private float power;
 	private long startTime;
 	private Location startLocation;
@@ -115,7 +114,7 @@ public class ProjectileTracker implements Runnable {
 
 	}
 
-	public ProjectileTracker(Player caster, float power) {
+	public ProjectileTracker(LivingEntity caster, float power) {
 		this.caster = caster;
 		this.power = power;
 	}
@@ -453,11 +452,11 @@ public class ProjectileTracker implements Runnable {
 		stopped = true;
 	}
 
-	public Player getCaster() {
+	public LivingEntity getCaster() {
 		return caster;
 	}
 
-	public void setCaster(Player caster) {
+	public void setCaster(LivingEntity caster) {
 		this.caster = caster;
 	}
 

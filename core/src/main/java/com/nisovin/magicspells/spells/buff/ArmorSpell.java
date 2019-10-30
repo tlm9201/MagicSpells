@@ -126,7 +126,7 @@ public class ArmorSpell extends BuffSpell {
 		EntityEquipment inv = entity.getEquipment();
 		if (!replace && ((helmet != null && inv.getHelmet() != null) || (chestplate != null && inv.getChestplate() != null) || (leggings != null && inv.getLeggings() != null) || (boots != null && inv.getBoots() != null))) {
 			// error
-			if (entity instanceof Player) sendMessage(strHasArmor, (Player) entity, args);
+			if (entity instanceof Player) sendMessage(strHasArmor, entity, args);
 			return false;
 		}
 
@@ -163,7 +163,7 @@ public class ArmorSpell extends BuffSpell {
 		}
 	}
 
-	void setArmor(EntityEquipment inv) {
+	private void setArmor(EntityEquipment inv) {
 		if (helmet != null) {
 			if (replace) inv.setHelmet(null);
 			inv.setHelmet(helmet.clone());
@@ -185,7 +185,7 @@ public class ArmorSpell extends BuffSpell {
 		}
 	}
 
-	void removeArmor(EntityEquipment inv) {
+	private void removeArmor(EntityEquipment inv) {
 		ItemStack invHelmet = inv.getHelmet();
 		if (helmet != null && invHelmet != null && invHelmet.getType() == helmet.getType()) {
 			inv.setHelmet(null);
@@ -207,7 +207,7 @@ public class ArmorSpell extends BuffSpell {
 		}
 	}
 
-	class ArmorListener implements Listener {
+	private class ArmorListener implements Listener {
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onEntityDamage(EntityDamageEvent event) {

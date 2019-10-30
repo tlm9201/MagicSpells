@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -67,35 +68,36 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
 			Block target;
 			try {
-				target = getTargetedBlock(player, power);
+				target = getTargetedBlock(caster, power);
 			} catch (IllegalStateException e) {
 				target = null;
 			}
 			if (target != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, target.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) target = null;
 				else target = event.getTargetLocation().getBlock();
 			}
-			if (target == null) return noTarget(player, strCantZap);
+			if (target == null) return noTarget(caster, strCantZap);
 
-			if (!canZap(target)) return noTarget(player, strCantZap);
-			boolean ok = zap(target, player);
-			if (!ok) return noTarget(player, strCantZap);
+			if (!canZap(target)) return noTarget(caster, strCantZap);
+			boolean ok = zap(target, (Player) caster);
+			if (!ok) return noTarget(caster, strCantZap);
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		if (!(caster instanceof Player)) return false;
 		Block block = target.getBlock();
 		if (canZap(block)) {
-			zap(block, caster);
+			zap(block, (Player) caster);
 			return true;
 		}
 
@@ -103,7 +105,7 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 		block = target.clone().add(v).getBlock();
 
 		if (canZap(block)) {
-			zap(block, caster);
+			zap(block, (Player) caster);
 			return true;
 		}
 		return false;

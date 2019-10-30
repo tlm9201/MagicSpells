@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
@@ -72,9 +73,9 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			ItemStack item = player.getInventory().getItem(slot);
 			if (item == null || !isAllowed(item.getType())) return noTarget(player, strInvalidBlock);
 			
@@ -96,13 +97,14 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
-		ItemStack item = caster.getInventory().getItem(slot);
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		if (!(caster instanceof Player)) return false;
+		ItemStack item = ((Player) caster).getInventory().getItem(slot);
 		if (item == null || !isAllowed(item.getType())) return false;
 
 		Block block = target.getBlock();
 
-		return build(caster, block, block, item);
+		return build((Player) caster, block, block, item);
 	}
 
 	@Override

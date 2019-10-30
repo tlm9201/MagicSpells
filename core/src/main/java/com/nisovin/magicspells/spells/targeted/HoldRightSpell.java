@@ -7,7 +7,6 @@ import java.util.HashMap;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
@@ -62,34 +61,34 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			CastData data = casting.get(player.getUniqueId());
-			if (data != null && data.isValid(player)) {
-				data.cast(player);
+			CastData data = casting.get(livingEntity.getUniqueId());
+			if (data != null && data.isValid(livingEntity)) {
+				data.cast(livingEntity);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
 			if (targetEntity) {
-				TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
+				TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
 				if (target != null) data = new CastData(target.getTarget(), target.getPower());
-				else return noTarget(player);
+				else return noTarget(livingEntity);
 			} else if (targetLocation) {
-				Block block = getTargetedBlock(player, power);
+				Block block = getTargetedBlock(livingEntity, power);
 				if (block != null && block.getType() != Material.AIR) data = new CastData(block.getLocation().add(0.5, 0.5, 0.5), power);
-				else return noTarget(player);
+				else return noTarget(livingEntity);
 			} else data = new CastData(power);
 
 			if (data != null) {
-				data.cast(player);
-				casting.put(player.getUniqueId(), data);
+				data.cast(livingEntity);
+				casting.put(livingEntity.getUniqueId(), data);
 			}
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		if (!targetLocation) return false;
 		CastData data = casting.get(caster.getUniqueId());
 		if (data != null && data.isValid(caster)) {
@@ -108,7 +107,7 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!targetEntity) return false;
 		CastData data = casting.get(caster.getUniqueId());
 		if (data != null && data.isValid(caster)) {
@@ -150,20 +149,20 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 			this.power = power;
 		}
 
-		private boolean isValid(Player player) {
+		private boolean isValid(LivingEntity livingEntity) {
 			if (lastCast < System.currentTimeMillis() - resetTime) return false;
 			if (maxDuration > 0 && System.currentTimeMillis() - start > maxDuration * TimeUtil.MILLISECONDS_PER_SECOND) return false;
 			if (maxDistance > 0) {
 				Location l = targetLocation;
 				if (targetEntity != null) l = targetEntity.getLocation();
 				if (l == null) return false;
-				if (!l.getWorld().equals(player.getWorld())) return false;
-				if (l.distanceSquared(player.getLocation()) > maxDistance * maxDistance) return false;
+				if (!l.getWorld().equals(livingEntity.getWorld())) return false;
+				if (l.distanceSquared(livingEntity.getLocation()) > maxDistance * maxDistance) return false;
 			}
 			return true;
 		}
 
-		private void cast(Player caster) {
+		private void cast(LivingEntity caster) {
 			lastCast = System.currentTimeMillis();
 			if (targetEntity != null) spellToCast.castAtEntity(caster, targetEntity, power);
 			else if (targetLocation != null) spellToCast.castAtLocation(caster, targetLocation, power);

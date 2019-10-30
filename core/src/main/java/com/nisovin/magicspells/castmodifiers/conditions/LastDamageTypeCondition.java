@@ -2,7 +2,6 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.DebugHandler;
@@ -10,7 +9,7 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class LastDamageTypeCondition extends Condition {
 
-	DamageCause cause;
+	private DamageCause cause;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -25,17 +24,17 @@ public class LastDamageTypeCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return check(player, player);
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		return target.getLastDamageCause().getCause() == cause;
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

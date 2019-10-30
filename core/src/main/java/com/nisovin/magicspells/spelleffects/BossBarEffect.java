@@ -13,21 +13,21 @@ import com.nisovin.magicspells.variables.Variable;
 
 public class BossBarEffect extends SpellEffect {
 
-	String title;
-	String color;
-	String style;
+	private String title;
+	private String color;
+	private String style;
 
-	String strVar;
-	Variable variable;
-	double maxValue;
+	private String strVar;
+	private Variable variable;
+	private double maxValue;
 
-	BarColor barColor;
-	BarStyle barStyle;
+	private BarColor barColor;
+	private BarStyle barStyle;
 
-	int duration;
-	double progress;
+	private int duration;
+	private double progress;
 
-	boolean broadcast;
+	private boolean broadcast;
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {

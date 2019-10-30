@@ -59,11 +59,11 @@ public class BuffManager {
 		activeBuffs = null;
 	}
 
-	class Monitor implements Runnable {
+	private class Monitor implements Runnable {
 
 		private int taskId;
 
-		Monitor() {
+		private Monitor() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, interval, interval);
 		}
 
@@ -78,7 +78,7 @@ public class BuffManager {
 					Set<BuffSpell> buffs = new HashSet<>(activeBuffs.get(entity));
 					Set<BuffSpell> removeBuffs = new HashSet<>();
 					for (BuffSpell spell : buffs) {
-						if (zoneManager.willFizzle((Player) entity, spell)) {
+						if (zoneManager.willFizzle(entity, spell)) {
 							removeBuffs.add(spell);
 						}
 					}

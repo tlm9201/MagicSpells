@@ -5,7 +5,6 @@ import java.util.UUID;
 import java.util.List;
 import java.util.HashMap;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
@@ -69,7 +68,7 @@ public class EmpowerSpell extends BuffSpell {
 
 	@EventHandler(priority=EventPriority.HIGHEST)
 	public void onSpellCast(SpellCastEvent event) {
-		Player player = event.getCaster();
+		LivingEntity player = event.getCaster();
 		if (player == null) return;
 		if (!isActive(player)) return;
 		if (!filter.check(event.getSpell())) return;

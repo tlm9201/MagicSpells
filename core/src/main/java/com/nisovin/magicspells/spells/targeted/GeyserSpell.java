@@ -61,22 +61,22 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 
-			boolean ok = geyser(player, target.getTarget(), target.getPower());
-			if (!ok) return noTarget(player);
+			boolean ok = geyser(livingEntity, target.getTarget(), target.getPower());
+			if (!ok) return noTarget(livingEntity);
 
-			playSpellEffects(player, target.getTarget());
-			sendMessages(player, target.getTarget());
+			playSpellEffects(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
-	private boolean geyser(Player caster, LivingEntity target, float power) {
+	private boolean geyser(LivingEntity caster, LivingEntity target, float power) {
 		double dam = damage * power;
 		
 		if (caster != null && checkPlugins && damage > 0) {
@@ -115,7 +115,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		geyser(caster, target, power);
 		playSpellEffects(caster, target);
