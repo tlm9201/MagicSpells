@@ -152,7 +152,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		maxEntitiesHit = getConfigInt("max-entities-hit", 0);
 		hitRadius = getConfigFloat("hit-radius", 1.5F);
 		verticalHitRadius = getConfigFloat("vertical-hit-radius", hitRadius);
-		groundHitRadius = getConfigInt("ground-hit-radius", 1);
+		groundHitRadius = getConfigInt("ground-hit-radius", 0);
 		groundVerticalHitRadius = getConfigInt("ground-vertical-hit-radius", groundHitRadius);
 		groundMaterials = new HashSet<>();
 		List<String> groundMaterialNames = getConfigStringList("ground-materials", null);

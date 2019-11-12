@@ -5,15 +5,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.DebugHandler;
-import com.nisovin.magicspells.castmodifiers.Condition;
 
-public class FoodCondition extends Condition {
+public class FoodCondition extends OperatorCondition {
 
 	private int food = 0;
-
-	private boolean equals;
-	private boolean moreThan;
-	private boolean lessThan;
 
 	@Override
 	public boolean setVar(String var) {
@@ -21,18 +16,7 @@ public class FoodCondition extends Condition {
 			return false;
 		}
 
-		switch (var.charAt(0)) {
-			case '=':
-			case ':':
-				equals = true;
-				break;
-			case '>':
-				moreThan = true;
-				break;
-			case '<':
-				lessThan = true;
-				break;
-		}
+		super.setVar(var);
 
 		try {
 			food = Integer.parseInt(var.substring(1));
@@ -45,12 +29,12 @@ public class FoodCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return food(livingEntity);
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target instanceof Player && ((Player) target).getFoodLevel() > food;
+		return food(target);
 	}
 	
 	@Override

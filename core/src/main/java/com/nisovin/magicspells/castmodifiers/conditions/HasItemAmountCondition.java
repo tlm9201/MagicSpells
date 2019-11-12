@@ -12,35 +12,19 @@ import org.bukkit.inventory.EntityEquipment;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.InventoryUtil;
-import com.nisovin.magicspells.castmodifiers.Condition;
 
-public class HasItemAmountCondition extends Condition {
+public class HasItemAmountCondition extends OperatorCondition {
 
 	private ItemStack item;
 
 	private int amount;
-
-	private boolean equals;
-	private boolean moreThan;
-	private boolean lessThan;
 	
 	@Override
 	public boolean setVar(String var) {
 		String[] args = var.split(";");
 		if (args.length < 2) return false;
 
-		switch (args[0].charAt(0)) {
-			case '=':
-			case ':':
-				equals = true;
-				break;
-			case '>':
-				moreThan = true;
-				break;
-			case '<':
-				lessThan = true;
-				break;
-		}
+		super.setVar(var);
 
 		try {
 			amount = Integer.parseInt(args[0].substring(1));

@@ -4,15 +4,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.castmodifiers.Condition;
-
-public class SaturationCondition extends Condition {
+public class SaturationCondition extends OperatorCondition {
 
 	private float saturation;
-
-	private boolean equals;
-	private boolean moreThan;
-	private boolean lessThan;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -20,18 +14,7 @@ public class SaturationCondition extends Condition {
 			return false;
 		}
 
-		switch (var.charAt(0)) {
-			case '=':
-			case ':':
-				equals = true;
-				break;
-			case '>':
-				moreThan = true;
-				break;
-			case '<':
-				lessThan = true;
-				break;
-		}
+		super.setVar(var);
 
 		try {
 			saturation = Float.parseFloat(var.substring(1));

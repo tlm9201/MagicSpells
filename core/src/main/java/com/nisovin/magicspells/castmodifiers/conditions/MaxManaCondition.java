@@ -7,17 +7,12 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.mana.ManaHandler;
-import com.nisovin.magicspells.castmodifiers.Condition;
 
-public class MaxManaCondition extends Condition {
+public class MaxManaCondition extends OperatorCondition {
 
     private ManaHandler mana;
 
     private int amount = 0;
-
-    private boolean equals;
-    private boolean moreThan;
-    private boolean lessThan;
 
     @Override
     public boolean setVar(String var) {
@@ -25,18 +20,7 @@ public class MaxManaCondition extends Condition {
             return false;
         }
 
-        switch (var.charAt(0)) {
-            case '=':
-            case ':':
-                equals = true;
-                break;
-            case '>':
-                moreThan = true;
-                break;
-            case '<':
-                lessThan = true;
-                break;
-        }
+        super.setVar(var);
 
         mana = MagicSpells.getManaHandler();
         if (mana == null) return false;

@@ -5,19 +5,14 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.ManaChangeEvent;
-import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.castmodifiers.IModifier;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
-public class PowerCondition extends Condition implements IModifier {
+public class PowerCondition extends OperatorCondition implements IModifier {
 
 	private float power;
-
-	private boolean equals;
-	private boolean moreThan;
-	private boolean lessThan;
 
 	@Override
 	public boolean setVar(String var) {
@@ -25,18 +20,7 @@ public class PowerCondition extends Condition implements IModifier {
 			return false;
 		}
 
-		switch (var.charAt(0)) {
-			case '=':
-			case ':':
-				equals = true;
-				break;
-			case '>':
-				moreThan = true;
-				break;
-			case '<':
-				lessThan = true;
-				break;
-		}
+		super.setVar(var);
 
 		try {
 			power = Float.parseFloat(var.substring(1));

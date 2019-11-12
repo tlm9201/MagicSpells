@@ -28,17 +28,20 @@ public class CustomNameCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		if (target instanceof Player) return check(target);
-		if (!(livingEntity instanceof Player)) return false;
-		if (isVar) name = MagicSpells.doArgumentAndVariableSubstitution(name, (Player) livingEntity, null);
-		String n = target.getCustomName();
-		if (!isVar) name = name.replace("__", " ");
-		return n != null && !n.isEmpty() && name.equalsIgnoreCase(n);
+		return checkName(livingEntity, target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean checkName(LivingEntity livingEntity, LivingEntity target) {
+		if (!(livingEntity instanceof Player)) return false;
+		if (isVar) name = MagicSpells.doVariableReplacements((Player) livingEntity, name);
+		String n = target.getCustomName();
+		if (!isVar) name = name.replace("__", " ");
+		return n != null && !n.isEmpty() && name.equalsIgnoreCase(n);
 	}
 
 }

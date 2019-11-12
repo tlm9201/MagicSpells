@@ -5,15 +5,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.castmodifiers.Condition;
 
-public class MoneyCondition extends Condition {
+public class MoneyCondition extends OperatorCondition {
 
 	private float money;
-
-	private boolean equals;
-	private boolean moreThan;
-	private boolean lessThan;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -21,18 +16,7 @@ public class MoneyCondition extends Condition {
 			return false;
 		}
 
-		switch (var.charAt(0)) {
-			case '=':
-			case ':':
-				equals = true;
-				break;
-			case '>':
-				moreThan = true;
-				break;
-			case '<':
-				lessThan = true;
-				break;
-		}
+		super.setVar(var);
 
 		try {
 			money = Float.parseFloat(var.substring(1));

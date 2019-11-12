@@ -117,8 +117,8 @@ public class NoMagicZoneManager {
 	}
 
 	public void turnOff() {
-		zoneTypes.clear();
-		zones.clear();
+		if (zoneTypes != null) zoneTypes.clear();
+		if (zones != null) zones.clear();
 		zoneTypes = null;
 		zones = null;
 	}

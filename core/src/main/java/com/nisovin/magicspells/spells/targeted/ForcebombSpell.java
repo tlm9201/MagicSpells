@@ -8,6 +8,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -77,6 +78,9 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 	}
 	
 	private void knockback(LivingEntity livingEntity, Location location, float basePower) {
+		if (location == null) return;
+		if (location.getWorld() == null) return;
+
 		location = location.clone().add(0D, yOffset, 0D);
 		Collection<Entity> entities = location.getWorld().getEntitiesByClasses(LivingEntity.class);
 
@@ -102,6 +106,8 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 			if (force != 0) v.setY(v.getY() * (yForce * power));
 			else v.setY(yForce * power);
 			if (v.getY() > maxYForce) v.setY(maxYForce);
+
+			v = Util.makeFinite(v);
 
 			if (addVelocityInstead) entity.setVelocity(entity.getVelocity().add(v));
 			else entity.setVelocity(v);

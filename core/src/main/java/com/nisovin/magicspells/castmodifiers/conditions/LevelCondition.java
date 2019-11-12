@@ -5,15 +5,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.DebugHandler;
-import com.nisovin.magicspells.castmodifiers.Condition;
 
-public class LevelCondition extends Condition {
+public class LevelCondition extends OperatorCondition {
 
 	private int level = 0;
-
-	private boolean equals;
-	private boolean moreThan;
-	private boolean lessThan;
 
 	@Override
 	public boolean setVar(String var) {
@@ -21,18 +16,7 @@ public class LevelCondition extends Condition {
 			return false;
 		}
 
-		switch (var.charAt(0)) {
-			case '=':
-			case ':':
-				equals = true;
-				break;
-			case '>':
-				moreThan = true;
-				break;
-			case '<':
-				lessThan = true;
-				break;
-		}
+		super.setVar(var);
 
 		try {
 			level = Integer.parseInt(var.substring(1));

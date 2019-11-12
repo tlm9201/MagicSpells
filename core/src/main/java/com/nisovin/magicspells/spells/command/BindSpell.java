@@ -80,19 +80,19 @@ public class BindSpell extends CommandSpell {
 
 			if (spell == null || spellbook == null) {
 				sendMessage(strNoSpell, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (!spellbook.hasSpell(spell)) {
 				sendMessage(strNoSpell, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (!spell.canCastWithItem()) {
 				sendMessage(strCantBindSpell, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (allowedSpells != null && !allowedSpells.contains(spell)) {
 				sendMessage(strSpellCantBind, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 
 			CastItem castItem = new CastItem(player.getEquipment().getItemInMainHand());
@@ -100,11 +100,11 @@ public class BindSpell extends CommandSpell {
 
 			if (BlockUtils.isAir(castItem.getItemType()) && !allowBindToFist) {
 				sendMessage(strCantBindItem, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (bindableItems != null && !bindableItems.contains(castItem)) {
 				sendMessage(strCantBindItem, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (!spell.canBind(castItem)) {
 				String msg = spell.getCantBindError();

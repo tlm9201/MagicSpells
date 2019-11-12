@@ -24,6 +24,8 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
 import com.nisovin.magicspells.spells.instant.ParticleProjectileSpell;
 
+import org.apache.commons.math3.util.FastMath;
+
 public class ProjectileTracker implements Runnable {
 
 	private Random rand = new Random();
@@ -41,7 +43,6 @@ public class ProjectileTracker implements Runnable {
 	private int counter;
 	private int taskId;
 	private BoundingBox hitBox;
-	private BoundingBox groundHitBox;
 	private List<Block> nearBlocks;
 	private List<LivingEntity> inRange;
 	private Set<LivingEntity> immune;
@@ -186,7 +187,6 @@ public class ProjectileTracker implements Runnable {
 		immune = new HashSet<>();
 		maxHitLimit = 0;
 		hitBox = new BoundingBox(currentLocation, horizontalHitRadius, verticalHitRadius);
-		groundHitBox = new BoundingBox(currentLocation, groundHorizontalHitRadius, groundVerticalHitRadius);
 		currentLocation.setDirection(currentVelocity);
 		tracker = this;
 		if (spell != null) ParticleProjectileSpell.getProjectileTrackers().add(tracker);
@@ -290,10 +290,11 @@ public class ProjectileTracker implements Runnable {
 			tickSpell.castAtLocation(caster, currentLocation.clone(), power);
 		}
 
-		groundHitBox.setCenter(currentLocation);
-		nearBlocks = BlockUtils.getNearbyBlocks(currentLocation, groundHorizontalHitRadius, groundVerticalHitRadius);
+		if (groundHorizontalHitRadius == 0 || groundVerticalHitRadius == 0) {
+			nearBlocks = new ArrayList<>();
+			nearBlocks.add(currentLocation.getBlock());
+		} else nearBlocks = BlockUtils.getNearbyBlocks(currentLocation, groundHorizontalHitRadius, groundVerticalHitRadius);
 		for (Block b : nearBlocks) {
-			if (!groundHitBox.contains(b)) continue;
 			if (!groundMaterials.contains(b.getType())) continue;
 			if (hitGround && groundSpell != null) {
 				Util.setLocationFacingFromVector(previousLocation, currentVelocity);
@@ -316,10 +317,12 @@ public class ProjectileTracker implements Runnable {
 		}
 
 		checkHitbox(currentLocation);
+		if (stopped) return;
 
 		if (spell == null || interactionSpells == null || interactionSpells.isEmpty()) return;
 		Set<ProjectileTracker> toRemove = new HashSet<>();
-		for (ProjectileTracker collisionTracker : ParticleProjectileSpell.getProjectileTrackers()) {
+		Set<ProjectileTracker> trackers = new HashSet<>(ParticleProjectileSpell.getProjectileTrackers());
+		for (ProjectileTracker collisionTracker : trackers) {
 			if (collisionTracker == null) continue;
 			if (tracker == null) continue;
 			if (tracker.caster == null) continue;
@@ -353,6 +356,7 @@ public class ProjectileTracker implements Runnable {
 
 		ParticleProjectileSpell.getProjectileTrackers().removeAll(toRemove);
 		toRemove.clear();
+		trackers.clear();
 	}
 
 	private void playIntermediateEffects(Location old, Vector movement) {
@@ -381,9 +385,23 @@ public class ProjectileTracker implements Runnable {
 
 	private void checkHitbox(Location currentLoc) {
 		if (inRange == null) return;
+		if (currentLoc == null) return;
+		if (currentLoc.getWorld() == null) return;
+
 		hitBox.setCenter(currentLoc);
 		inRange.clear();
-		for (Entity entity : currentLocation.getWorld().getNearbyEntities(currentLocation, horizontalHitRadius / 2D, verticalHitRadius / 2D, horizontalHitRadius / 2D)) {
+
+		double x = horizontalHitRadius / 2D;
+		double y = verticalHitRadius / 2D;
+		double z = horizontalHitRadius / 2D;
+
+		if (x == 0.0D || y == 0.0D || z == 0.0D) return;
+
+		x = FastMath.round(x * 1000.0D) / 1000.0D;
+		y = FastMath.round(y * 1000.0D) / 1000.0D;
+		z = FastMath.round(z * 1000.0D) / 1000.0D;
+
+		for (Entity entity : currentLoc.getWorld().getNearbyEntities(currentLoc, x, y, z)) {
 			if (!(entity instanceof LivingEntity)) continue;
 			if (!targetList.canTarget(caster, entity)) continue;
 			if (immune.contains(entity)) continue;

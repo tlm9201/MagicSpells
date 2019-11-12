@@ -1077,4 +1077,31 @@ public class Util {
 		entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
 	}
 
+	public static Vector makeFinite(Vector vector) {
+		double x = vector.getX();
+		double y = vector.getY();
+		double z = vector.getZ();
+
+		if (Double.isNaN(x)) x = 0.0D;
+		if (Double.isNaN(y)) y = 0.0D;
+		if (Double.isNaN(z)) z = 0.0D;
+
+		if (Double.isInfinite(x)) {
+			boolean negative = (x < 0.0D);
+			x = negative ? -1 : 1;
+		}
+
+		if (Double.isInfinite(y)) {
+			boolean negative = (y < 0.0D);
+			y = negative ? -1 : 1;
+		}
+
+		if (Double.isInfinite(z)) {
+			boolean negative = (z < 0.0D);
+			z = negative ? -1 : 1;
+		}
+
+		return new Vector(x, y, z);
+	}
+
 }

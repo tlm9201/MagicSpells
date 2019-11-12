@@ -5,16 +5,11 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.DebugHandler;
-import com.nisovin.magicspells.castmodifiers.Condition;
 
-public class HealthCondition extends Condition {
+public class HealthCondition extends OperatorCondition {
 
 	private int health = 0;
 	private boolean percent = false;
-
-	private boolean equals;
-	private boolean moreThan;
-	private boolean lessThan;
 
 	@Override
 	public boolean setVar(String var) {
@@ -22,18 +17,7 @@ public class HealthCondition extends Condition {
 			return false;
 		}
 
-		switch (var.charAt(0)) {
-			case '=':
-			case ':':
-				equals = true;
-				break;
-			case '>':
-				moreThan = true;
-				break;
-			case '<':
-				lessThan = true;
-				break;
-		}
+		super.setVar(var);
 
 		String number = var.substring(1);
 
