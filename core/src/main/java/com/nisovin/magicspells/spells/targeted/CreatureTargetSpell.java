@@ -30,7 +30,7 @@ public class CreatureTargetSpell extends TargetedSpell implements TargetedEntity
 		targetSpell = new Subspell(targetSpellName);
 		if (!targetSpell.process()) {
 			targetSpell = null;
-			if (!targetSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell defined!");
+			if (!targetSpellName.isEmpty()) MagicSpells.error("CreatureTargetSpell '" + internalName + "' has an invalid spell defined!");
 		}
 	}
 
