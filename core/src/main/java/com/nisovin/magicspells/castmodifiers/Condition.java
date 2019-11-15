@@ -116,6 +116,7 @@ public abstract class Condition {
 		conditions.put("lookingatblock", LookingAtBlockCondition.class);
 		conditions.put("oncooldown", OnCooldownCondition.class);
 		conditions.put("hasmark", HasMarkCondition.class);
+		conditions.put("hastarget", HasTargetCondition.class);
 		conditions.put("playercount", PlayerCountCondition.class);
 		conditions.put("targetmaxhealth", TargetMaxHealthCondition.class);
 		conditions.put("worldguardmembership", WorldGuardRegionMembershipCondition.class);
