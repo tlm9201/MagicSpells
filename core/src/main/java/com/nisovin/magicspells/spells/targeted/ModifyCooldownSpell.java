@@ -3,7 +3,6 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
@@ -51,43 +50,41 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> target = getTargetedPlayer(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 			modifyCooldowns(target.getTarget(), target.getPower());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		modifyCooldowns((Player)target, power);
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		modifyCooldowns(target, power);
 		playSpellEffects(caster, target);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		modifyCooldowns((Player)target, power);
+		modifyCooldowns(target, power);
 		playSpellEffects(EffectPosition.TARGET, target);
 		return true;
 	}
 
-	private void modifyCooldowns(Player player, float power) {
+	private void modifyCooldowns(LivingEntity target, float power) {
 		float sec = seconds * power;
 		float mult = multiplier * (1F / power);
 
 		for (Spell spell : spells) {
-			float cd = spell.getCooldown(player);
+			float cd = spell.getCooldown(target);
 			if (cd <= 0) continue;
 
 			cd -= sec;
 			if (mult > 0) cd *= mult;
 			if (cd < 0) cd = 0;
-			spell.setCooldown(player, cd, false);
+			spell.setCooldown(target, cd, false);
 		}
 	}
 

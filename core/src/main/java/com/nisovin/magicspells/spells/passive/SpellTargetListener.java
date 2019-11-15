@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -38,11 +40,13 @@ public class SpellTargetListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onSpellTarget(SpellTargetEvent event) {
-		Spellbook spellbook = MagicSpells.getSpellbook(event.getCaster());
+		LivingEntity caster = event.getCaster();
+		if (!(caster instanceof Player)) return;
+		Spellbook spellbook = MagicSpells.getSpellbook((Player) caster);
 		for (PassiveSpell spell : anySpell) {
 			if (!isCancelStateOk(spell, event.isCancelled())) continue;
 			if (!spellbook.hasSpell(spell, false)) continue;
-			boolean casted = spell.activate(event.getCaster(), event.getTarget());
+			boolean casted = spell.activate((Player) caster, event.getTarget());
 			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 		}
 		List<PassiveSpell> list = spells.get(event.getSpell());
@@ -50,7 +54,7 @@ public class SpellTargetListener extends PassiveListener {
 			for (PassiveSpell spell : list) {
 				if (!isCancelStateOk(spell, event.isCancelled())) continue;
 				if (!spellbook.hasSpell(spell, false)) continue;
-				boolean casted = spell.activate(event.getCaster(), event.getTarget());
+				boolean casted = spell.activate((Player) caster, event.getTarget());
 				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 			}
 		}

@@ -43,6 +43,7 @@ public class InvisibilitySpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
+		if (!(entity instanceof Player)) return false;
 		makeInvisible(entity);
 		invisibles.add(entity.getUniqueId());
 		return true;
@@ -50,6 +51,7 @@ public class InvisibilitySpell extends BuffSpell {
 	
 	@Override
 	public boolean recastBuff(LivingEntity entity, float power, String[] args) {
+		if (!(entity instanceof Player)) return false;
 		makeInvisible(entity);
 		if (invisibles.contains(entity.getUniqueId())) invisibles.add(entity.getUniqueId());
 		return true;
@@ -72,7 +74,6 @@ public class InvisibilitySpell extends BuffSpell {
 	}
 
 	private void makeInvisible(LivingEntity entity) {
-		if (!(entity instanceof Player)) return;
 		Util.forEachPlayerOnline(p -> p.hidePlayer(MagicSpells.getInstance(), (Player) entity));
 		
 		Creature creature;

@@ -1,23 +1,22 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import org.bukkit.ChatColor;
+import java.util.Objects;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
-import java.util.Objects;
-
 public class OffhandCondition extends Condition {
 
-	Material[] ids;
-	short[] datas;
-	boolean[] checkData;
-	String[] names;
-	boolean[] checkName;
+	private Material[] ids;
+	private short[] datas;
+	private boolean[] checkData;
+	private String[] names;
+	private boolean[] checkName;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -62,35 +61,33 @@ public class OffhandCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		ItemStack item = player.getEquipment().getItemInOffHand();
+	public boolean check(LivingEntity livingEntity) {
+		ItemStack item = livingEntity.getEquipment().getItemInOffHand();
 		return check(item);
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return target instanceof Player && check((Player)target);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target);
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 	
 	private boolean check(ItemStack item) {
 		if (item == null) return false;
-		Material thisid = item.getType();
-		short thisdata = item.getDurability();
-		String thisname = null;
+		Material type = item.getType();
+		short durability = item.getDurability();
+		String name = null;
 		try {
-			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
-				thisname = item.getItemMeta().getDisplayName();
-			}
+			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) name = item.getItemMeta().getDisplayName();
 		} catch (Exception e) {
 			// no op
 		}
 		for (int i = 0; i < ids.length; i++) {
-			if (ids[i] == thisid && (!checkData[i] || datas[i] == thisdata) && (!checkName[i] || Objects.equals(names[i], thisname))) {
+			if (ids[i] == type && (!checkData[i] || datas[i] == durability) && (!checkName[i] || Objects.equals(names[i], name))) {
 				return true;
 			}
 		}

@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Sign;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -62,16 +61,16 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
 			// Get target name and landing location
 			String targetName = "";
 			Location landLoc = null;
 			if (args != null && args.length > 0) {
 				targetName = args[0];
-				landLoc = player.getLocation().add(0, .25, 0);
+				landLoc = caster.getLocation().add(0, .25, 0);
 			} else {
-				Block block = getTargetedBlock(player, 10);
+				Block block = getTargetedBlock(caster, 10);
 				if (block != null && (block.getType().name().contains("SIGN"))) {
 					Sign sign = (Sign)block.getState();
 					targetName = sign.getLine(0);
@@ -82,13 +81,13 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 			// Check usage
 			if (targetName.isEmpty()) {
 				// Fail -- show usage
-				sendMessage(strUsage, player, args);
+				sendMessage(strUsage, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
 			// Check location
 			if (landLoc == null || !BlockUtils.isSafeToStand(landLoc.clone())) {
-				sendMessage(strUsage, player, args);
+				sendMessage(strUsage, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
@@ -103,19 +102,19 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 					target = players.get(0);
 				}
 			}
-			if (target == null) return noTarget(player);
+			if (target == null) return noTarget(caster);
 
 			// Teleport player
 			if (requireAcceptance) {
 				pendingSummons.put(target, landLoc);
 				pendingTimes.put(target, System.currentTimeMillis());
-				sendMessage(formatMessage(strSummonPending, "%a", player.getDisplayName()), target, args);
+				sendMessage(formatMessage(strSummonPending, "%a", ((Player) caster).getDisplayName()), target, args);
 			} else {
 				target.teleport(landLoc);
-				sendMessage(formatMessage(strSummonAccepted, "%a", player.getDisplayName()), target, args);
+				sendMessage(formatMessage(strSummonAccepted, "%a", ((Player) caster).getDisplayName()), target, args);
 			}
 			
-			sendMessages(player, target);
+			sendMessages(caster, target);
 			return PostCastAction.NO_MESSAGES;
 			
 		}
@@ -123,7 +122,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		return target.teleport(caster);
 	}
 
@@ -133,7 +132,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(Player caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		return target.teleport(from);
 	}
 

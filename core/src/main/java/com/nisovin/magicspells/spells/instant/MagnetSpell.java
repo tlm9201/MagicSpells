@@ -6,9 +6,9 @@ import java.util.Collection;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.InventoryUtil;
@@ -37,17 +37,17 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			List<Item> items = getNearbyItems(player.getLocation(), radius * power);
-			magnet(player.getLocation(), items, power);
+			List<Item> items = getNearbyItems(livingEntity.getLocation(), radius * power);
+			magnet(livingEntity.getLocation(), items, power);
 		}
-		playSpellEffects(EffectPosition.CASTER, player);
+		playSpellEffects(EffectPosition.CASTER, livingEntity);
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		Collection<Item> targetItems = getNearbyItems(target, radius * power);
 		magnet(target, targetItems, power);
 		return true;

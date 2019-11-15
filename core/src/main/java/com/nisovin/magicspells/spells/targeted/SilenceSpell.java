@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -71,50 +70,48 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> target = getTargetedPlayer(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 			
 			silence(target.getTarget(), target.getPower());
-			playSpellEffects(player, target.getTarget());
-			sendMessages(player, target.getTarget());
+			playSpellEffects(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		silence((Player) target, power);
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		silence(target, power);
 		playSpellEffects(caster, target);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		silence((Player) target, power);
+		silence(target, power);
 		playSpellEffects(EffectPosition.TARGET, target);
 		return true;
 	}
 
-	private void silence(Player player, float power) {
-		Unsilencer u = silenced.get(player.getUniqueId());
+	private void silence(LivingEntity target, float power) {
+		Unsilencer u = silenced.get(target.getUniqueId());
 		if (u != null) u.cancel();
-		silenced.put(player.getUniqueId(), new Unsilencer(player, Math.round(duration * power)));
+		silenced.put(target.getUniqueId(), new Unsilencer(target, Math.round(duration * power)));
 	}
 
-	public boolean isSilenced(Player player) {
-		return silenced.containsKey(player.getUniqueId());
+	public boolean isSilenced(LivingEntity target) {
+		return silenced.containsKey(target.getUniqueId());
 	}
 
-	public void removeSilence(Player player) {
-		if (!isSilenced(player)) return;
-		Unsilencer unsilencer = silenced.get(player.getUniqueId());
+	public void removeSilence(LivingEntity target) {
+		if (!isSilenced(target)) return;
+		Unsilencer unsilencer = silenced.get(target.getUniqueId());
 		unsilencer.cancel();
-		silenced.remove(player.getUniqueId());
+		silenced.remove(target.getUniqueId());
 	}
 	
 	public class CastListener implements Listener {
@@ -158,8 +155,8 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		private int taskId;
 		private boolean canceled = false;
 
-		private Unsilencer(Player player, int delay) {
-			id = player.getUniqueId();
+		private Unsilencer(LivingEntity livingEntity, int delay) {
+			id = livingEntity.getUniqueId();
 			taskId = MagicSpells.scheduleDelayedTask(this, delay);
 		}
 		

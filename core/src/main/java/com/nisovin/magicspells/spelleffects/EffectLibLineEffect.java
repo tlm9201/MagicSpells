@@ -6,9 +6,9 @@ import org.bukkit.configuration.ConfigurationSection;
 
 // TODO use non deprecated methods
 public class EffectLibLineEffect extends EffectLibEffect {
-	
-	boolean forceStaticOriginLocation;
-	boolean forceStaticTargetLocation;
+
+	private boolean forceStaticOriginLocation;
+	private boolean forceStaticTargetLocation;
 	
 	@Override
 	public void loadFromConfig(ConfigurationSection section) {

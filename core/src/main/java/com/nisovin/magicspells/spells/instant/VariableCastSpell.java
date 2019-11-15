@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.spells.instant;
 
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
@@ -29,8 +30,9 @@ public class VariableCastSpell extends InstantSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			if (variableName == null) return PostCastAction.HANDLE_NORMALLY;
 			String strValue = MagicSpells.getVariableManager().getVariable(variableName).getStringValue(player);
 			Spell toCast = MagicSpells.getSpellByInternalName(strValue);

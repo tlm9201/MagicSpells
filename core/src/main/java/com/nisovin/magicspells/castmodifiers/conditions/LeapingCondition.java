@@ -1,16 +1,16 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.spells.instant.LeapSpell;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.castmodifiers.Condition;
+import com.nisovin.magicspells.spells.instant.LeapSpell;
 
 public class LeapingCondition extends Condition {
 
-	LeapSpell leapSpell;
+	private LeapSpell leapSpell;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -21,17 +21,17 @@ public class LeapingCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return leapSpell.isJumping(player);
+	public boolean check(LivingEntity livingEntity) {
+		return leapSpell.isJumping(livingEntity);
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return target instanceof Player && check((Player)target);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return leapSpell.isJumping(target);
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

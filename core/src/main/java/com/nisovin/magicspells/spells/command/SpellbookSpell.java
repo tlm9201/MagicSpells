@@ -14,6 +14,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.EquipmentSlot;
@@ -95,8 +96,9 @@ public class SpellbookSpell extends CommandSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			if (args == null || args.length < 1 || args.length > 2 || (args.length == 2 && !RegexUtil.matches(PATTERN_CAST_ARG_USAGE, args[1]))) {
 				sendMessage(strUsage, player, args);
 				return PostCastAction.HANDLE_NORMALLY;
@@ -211,7 +213,7 @@ public class SpellbookSpell extends CommandSpell {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		if (!spellbookBlock.equals(event.getBlock().getType())) return;
+		if (spellbookBlock == null || !spellbookBlock.equals(event.getBlock().getType())) return;
 		MagicLocation loc = new MagicLocation(event.getBlock().getLocation());
 		if (!bookLocations.contains(loc)) return;
 		Player pl = event.getPlayer();

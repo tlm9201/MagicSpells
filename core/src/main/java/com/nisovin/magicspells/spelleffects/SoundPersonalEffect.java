@@ -8,13 +8,13 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 
 public class SoundPersonalEffect extends SpellEffect {
-	
-	String sound;
 
-	float pitch;
-	float volume;
+	private String sound;
 
-	boolean broadcast;
+	private float pitch;
+	private float volume;
+
+	private boolean broadcast;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

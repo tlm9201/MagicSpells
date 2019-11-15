@@ -4,9 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -45,21 +43,21 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
-			boolean combusted = combust(player, target.getTarget(), target.getPower());
-			if (!combusted) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
+			boolean combusted = combust(livingEntity, target.getTarget(), target.getPower());
+			if (!combusted) return noTarget(livingEntity);
 
-			sendMessages(player, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		return combust(caster, target, power);
 	}
@@ -70,9 +68,9 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 		return combust(null, target, power);
 	}
 	
-	private boolean combust(Player player, final LivingEntity target, float power) {
-		if (checkPlugins && player != null) {
-			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(player, target, DamageCause.ENTITY_ATTACK, 1);
+	private boolean combust(LivingEntity livingEntity, final LivingEntity target, float power) {
+		if (checkPlugins && livingEntity != null) {
+			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(livingEntity, target, DamageCause.ENTITY_ATTACK, 1);
 			EventUtil.call(event);
 			if (event.isCancelled()) return false;
 		}
@@ -80,13 +78,13 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 		int duration = Math.round(fireTicks * power);
 		combusting.put(target.getUniqueId(), new CombustData(power));
 
-		EventUtil.call(new SpellApplyDamageEvent(this, player, target, fireTickDamage, DamageCause.FIRE_TICK, ""));
+		EventUtil.call(new SpellApplyDamageEvent(this, livingEntity, target, fireTickDamage, DamageCause.FIRE_TICK, ""));
 		target.setFireTicks(duration);
 
-		if (player != null) playSpellEffects(player, target);
+		if (livingEntity != null) playSpellEffects(livingEntity, target);
 		else playSpellEffects(EffectPosition.TARGET, target);
 
-		Bukkit.getScheduler().scheduleSyncDelayedTask(MagicSpells.plugin, () -> {
+		MagicSpells.scheduleDelayedTask(() -> {
 			CombustData data = combusting.get(target.getUniqueId());
 			if (data != null) combusting.remove(target.getUniqueId());
 		}, duration + 2);
@@ -112,7 +110,7 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 	
 	private class CombustData {
 		
-		float power;
+		private float power;
 		
 		CombustData(float power) {
 			this.power = power;

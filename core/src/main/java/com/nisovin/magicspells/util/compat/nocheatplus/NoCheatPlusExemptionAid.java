@@ -17,7 +17,6 @@ import com.nisovin.magicspells.util.compat.ExemptionAssistant;
 import fr.neatmonster.nocheatplus.checks.CheckType;
 import fr.neatmonster.nocheatplus.hooks.NCPExemptionManager;
 
-
 public class NoCheatPlusExemptionAid implements ExemptionAssistant{
 	
 	private Map<String, CheckType> checkNodes = null;
@@ -42,7 +41,7 @@ public class NoCheatPlusExemptionAid implements ExemptionAssistant{
 		
 		// Unexempt
 		toExempt.forEach(check -> NCPExemptionManager.unexempt(player, check));
-		
+
 		return ret;
 	}
 	

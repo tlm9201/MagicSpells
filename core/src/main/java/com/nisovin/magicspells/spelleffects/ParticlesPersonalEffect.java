@@ -18,31 +18,31 @@ import com.nisovin.magicspells.util.ColorUtil;
 
 public class ParticlesPersonalEffect extends SpellEffect {
 
-	Particle particle;
-	String particleName;
+	private Particle particle;
+	private String particleName;
 
-	Material material;
-	String materialName;
+	private Material material;
+	private String materialName;
 
-	BlockData blockData;
-	ItemStack itemStack;
+	private BlockData blockData;
+	private ItemStack itemStack;
 
-	float dustSize;
-	String colorHex;
-	Color dustColor;
-	DustOptions dustOptions;
+	private float dustSize;
+	private String colorHex;
+	private Color dustColor;
+	private DustOptions dustOptions;
 
-	int count;
-	float speed;
-	float xSpread;
-	float ySpread;
-	float zSpread;
-	float yOffset;
+	private int count;
+	private float speed;
+	private float xSpread;
+	private float ySpread;
+	private float zSpread;
+	private float yOffset;
 
-	boolean none = true;
-	boolean item = false;
-	boolean dust = false;
-	boolean block = false;
+	private boolean none = true;
+	private boolean item = false;
+	private boolean dust = false;
+	private boolean block = false;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -106,13 +106,13 @@ public class ParticlesPersonalEffect extends SpellEffect {
 		if (!(entity instanceof Player)) return null;
 
 		Location loc = entity.getLocation().clone();
-		if (zOffset != 0) {
+		if (getZOffset() != 0) {
 			Vector locDirection = loc.getDirection().normalize();
 			Vector horizOffset = new Vector(-locDirection.getZ(), 0.0, locDirection.getX()).normalize();
-			loc.add(horizOffset.multiply(zOffset)).getBlock().getLocation();
+			loc.add(horizOffset.multiply(getZOffset())).getBlock().getLocation();
 		}
-		if (heightOffset != 0) loc.setY(loc.getY() + heightOffset);
-		if (forwardOffset != 0) loc.add(loc.getDirection().setY(0).normalize().multiply(forwardOffset));
+		if (getHeightOffset() != 0) loc.setY(loc.getY() + getHeightOffset());
+		if (getForwardOffset() != 0) loc.add(loc.getDirection().setY(0).normalize().multiply(getForwardOffset()));
 
 		if (block) ((Player) entity).spawnParticle(particle, loc.add(0, yOffset, 0), count, xSpread, ySpread, zSpread, speed, blockData);
 		else if (item) ((Player) entity).spawnParticle(particle, loc.add(0, yOffset, 0), count, xSpread, ySpread, zSpread, speed, itemStack);

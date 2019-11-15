@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.HashSet;
 
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 
 import com.nisovin.magicspells.Spell;
@@ -66,8 +67,9 @@ public class BindSpell extends CommandSpell {
 	// DEBUG INFO: level 3, performing bind
 	// DEBUG INFO: level 3, bind successful
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			if (args == null || args.length == 0) {
 				sendMessage(strUsage, player, args);
 				return PostCastAction.ALREADY_HANDLED;
@@ -78,19 +80,19 @@ public class BindSpell extends CommandSpell {
 
 			if (spell == null || spellbook == null) {
 				sendMessage(strNoSpell, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (!spellbook.hasSpell(spell)) {
 				sendMessage(strNoSpell, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (!spell.canCastWithItem()) {
 				sendMessage(strCantBindSpell, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (allowedSpells != null && !allowedSpells.contains(spell)) {
 				sendMessage(strSpellCantBind, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 
 			CastItem castItem = new CastItem(player.getEquipment().getItemInMainHand());
@@ -98,11 +100,11 @@ public class BindSpell extends CommandSpell {
 
 			if (BlockUtils.isAir(castItem.getItemType()) && !allowBindToFist) {
 				sendMessage(strCantBindItem, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (bindableItems != null && !bindableItems.contains(castItem)) {
 				sendMessage(strCantBindItem, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+				return PostCastAction.ALREADY_HANDLED;
 			}
 			if (!spell.canBind(castItem)) {
 				String msg = spell.getCantBindError();

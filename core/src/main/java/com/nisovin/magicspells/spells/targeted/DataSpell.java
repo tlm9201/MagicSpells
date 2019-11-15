@@ -36,8 +36,9 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
 			if (targetInfo == null) return noTarget(player);
 			LivingEntity target = targetInfo.getTarget();
@@ -51,10 +52,11 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!(caster instanceof Player)) return false;
 		playSpellEffects(caster, target);
 		String value = dataElement.apply(target);
-		MagicSpells.getVariableManager().set(variableName, caster, value);
+		MagicSpells.getVariableManager().set(variableName, (Player) caster, value);
 		return true;
 	}
 

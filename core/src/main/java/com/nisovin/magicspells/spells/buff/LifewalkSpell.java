@@ -98,7 +98,7 @@ public class LifewalkSpell extends BuffSpell {
 		
 		private int taskId;
 
-		public Grower() {
+		private Grower() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, tickInterval, tickInterval);
 		}
 		

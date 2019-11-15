@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.HashMap;
 
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.enchantments.Enchantment;
 
@@ -43,8 +43,8 @@ public class EnchantSpell extends InstantSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(final Player player, SpellCastState state, final float power, String[] args) {
-		ItemStack targetItem = player.getEquipment().getItemInMainHand();
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		ItemStack targetItem = livingEntity.getEquipment().getItemInMainHand();
 		if (targetItem == null) return PostCastAction.ALREADY_HANDLED;
 		enchant(targetItem);
 		return PostCastAction.HANDLE_NORMALLY;

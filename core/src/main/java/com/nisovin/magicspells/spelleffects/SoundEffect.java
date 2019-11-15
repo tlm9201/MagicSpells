@@ -6,11 +6,11 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.MagicSpells;
 
 public class SoundEffect extends SpellEffect {
-	
-	String sound;
 
-	float pitch;
-	float volume;
+	private String sound;
+
+	private float pitch;
+	private float volume;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

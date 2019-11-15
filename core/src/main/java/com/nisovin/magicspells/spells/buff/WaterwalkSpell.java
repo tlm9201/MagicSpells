@@ -82,13 +82,13 @@ public class WaterwalkSpell extends BuffSpell {
 		ticker = null;
 	}
 	
-	class Ticker implements Runnable {
+	private class Ticker implements Runnable {
 		
 		private int taskId;
 		
 		private int count = 0;
 		
-		public Ticker() {
+		private Ticker() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, 5, 5);
 		}
 		

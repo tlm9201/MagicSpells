@@ -17,18 +17,18 @@ public class Modifier implements IModifier {
 
 	private static final Pattern MODIFIER_STR_FAILED_PATTERN = Pattern.compile("\\$\\$");
 
-	boolean negated = false;
-	Condition condition;
-	ModifierType type;
-	String modifierVar;
-	float modifierVarFloat;
-	int modifierVarInt;
+	private boolean negated = false;
+	private Condition condition;
+	private ModifierType type;
+	private String modifierVar;
+	private float modifierVarFloat;
+	private int modifierVarInt;
+	private Object customActionData = null;
 	String modifierVarString;
 	String strModifierFailed = null;
-	Object customActionData = null;
 
 	// Is this a condition that will want to access the events directly?
-	boolean alertCondition = false;
+	private boolean alertCondition = false;
 
 	public static Modifier factory(String s) {
 		Modifier m = new Modifier();
@@ -84,10 +84,11 @@ public class Modifier implements IModifier {
 
 	@Override
 	public boolean apply(SpellCastEvent event) {
-		Player player = event.getCaster();
+		LivingEntity caster = event.getCaster();
+		//if (!(caster instanceof Player)) return false;
 		boolean check;
 		if (alertCondition) check = ((IModifier) condition).apply(event);
-		else check = condition.check(player);
+		else check = condition.check(caster);
 		if (negated) check = !check;
 		return type.apply(event, check, modifierVar, modifierVarFloat, modifierVarInt, customActionData);
 	}
@@ -104,20 +105,22 @@ public class Modifier implements IModifier {
 
 	@Override
 	public boolean apply(SpellTargetEvent event) {
-		Player player = event.getCaster();
+		LivingEntity caster = event.getCaster();
+		//if (!(caster instanceof Player)) return false;
 		boolean check;
 		if (alertCondition) check = ((IModifier) condition).apply(event);
-		else check = condition.check(player, event.getTarget());
+		else check = condition.check(caster, event.getTarget());
 		if (negated) check = !check;
 		return type.apply(event, check, modifierVar, modifierVarFloat, modifierVarInt, customActionData);
 	}
 
 	@Override
 	public boolean apply(SpellTargetLocationEvent event) {
-		Player player = event.getCaster();
+		LivingEntity caster = event.getCaster();
+		//if (!(caster instanceof Player)) return false;
 		boolean check;
 		if (alertCondition) check = ((IModifier) condition).apply(event);
-		else check = condition.check(player, event.getTargetLocation());
+		else check = condition.check(caster, event.getTargetLocation());
 		if (negated) check = !check;
 		return type.apply(event, check, modifierVar, modifierVarFloat, modifierVarInt, customActionData);
 	}
@@ -132,8 +135,8 @@ public class Modifier implements IModifier {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		boolean check = condition.check(player);
+	public boolean check(LivingEntity livingEntity) {
+		boolean check = condition.check(livingEntity);
 		if (negated) check = !check;
 		if (!check && type == ModifierType.REQUIRED) return false;
 		if (check && type == ModifierType.DENIED) return false;
@@ -141,8 +144,8 @@ public class Modifier implements IModifier {
 	}
 
 	@Override
-	public boolean check(Player pl, LivingEntity entity) {
-		boolean check = condition.check(pl, entity);
+	public boolean check(LivingEntity livingEntity, LivingEntity entity) {
+		boolean check = condition.check(livingEntity, entity);
 		if (negated) check = !check;
 		if (!check && type == ModifierType.REQUIRED) return false;
 		if (check && type == ModifierType.DENIED) return false;

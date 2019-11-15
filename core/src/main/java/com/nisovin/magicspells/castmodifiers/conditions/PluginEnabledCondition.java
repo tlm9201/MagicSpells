@@ -1,11 +1,10 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import com.nisovin.magicspells.util.compat.CompatBasics;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
+import com.nisovin.magicspells.util.compat.CompatBasics;
 
 public class PluginEnabledCondition extends Condition {
 
@@ -21,23 +20,23 @@ public class PluginEnabledCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
 		return check();
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		return check();
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return check();
 	}
 	
 	private boolean check() {
 		if (pluginName == null) return false;
-		return CompatBasics.pluginEnabled(this.pluginName);
+		return CompatBasics.pluginEnabled(pluginName);
 	}
 
 }

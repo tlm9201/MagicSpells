@@ -20,6 +20,7 @@ public enum Perm {
 	ADVANCED_LIST("magicspells.advanced.list"),
 	ADVANCED_FORGET("magicspells.advanced.forget"),
 	ADVANCED_SCROLL("magicspells.advanced.scroll"),
+	SHOW_VARIABLE(null, true),
 	MODIFY_VARIABLE(null, true),
 	MODIFY_MANA(null, true),
 	SET_MAX_MANA(null, true),

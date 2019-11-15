@@ -23,7 +23,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class MagicBondSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private Map<Player, Player> bondTarget;
+	private Map<LivingEntity, LivingEntity> bondTarget;
 
 	private int duration;
 
@@ -48,20 +48,19 @@ public class MagicBondSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> target = getTargetedPlayer(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 
-			bond(player, target.getTarget(), power);
+			bond(livingEntity, target.getTarget(), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		bond(caster, (Player) target, power);
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		bond(caster, target, power);
 		playSpellEffects(caster, target);
 		return true;
 	}
@@ -72,7 +71,7 @@ public class MagicBondSpell extends TargetedSpell implements TargetedEntitySpell
 		return true;
 	}
 
-	private void bond(Player caster, Player target, float power) {
+	private void bond(LivingEntity caster, LivingEntity target, float power) {
 		bondTarget.put(caster, target);
 		playSpellEffects(caster, target);
 		SpellMonitor monitorBond = new SpellMonitor(caster, target, power);
@@ -80,8 +79,8 @@ public class MagicBondSpell extends TargetedSpell implements TargetedEntitySpell
 
 		MagicSpells.scheduleDelayedTask(() -> {
 			if (!strDurationEnd.isEmpty()) {
-				MagicSpells.sendMessage(caster, strDurationEnd);
-				MagicSpells.sendMessage(target, strDurationEnd);
+				if (caster instanceof Player) MagicSpells.sendMessage((Player) caster, strDurationEnd);
+				if (target instanceof Player) MagicSpells.sendMessage((Player) target, strDurationEnd);
 			}
 			bondTarget.remove(caster);
 
@@ -91,11 +90,11 @@ public class MagicBondSpell extends TargetedSpell implements TargetedEntitySpell
 
 	private class SpellMonitor implements Listener {
 
-		private Player caster;
-		private Player target;
+		private LivingEntity caster;
+		private LivingEntity target;
 		private float power;
 
-		private SpellMonitor(Player caster, Player target, float power) {
+		private SpellMonitor(LivingEntity caster, LivingEntity target, float power) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;

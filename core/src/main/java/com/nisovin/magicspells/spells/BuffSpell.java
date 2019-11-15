@@ -1,8 +1,10 @@
 package com.nisovin.magicspells.spells;
 
+import java.util.Set;
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -32,6 +34,7 @@ import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellCastEvent;
+import com.nisovin.magicspells.spelleffects.EffectTracker;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public abstract class BuffSpell extends TargetedSpell implements TargetedEntitySpell {
@@ -126,7 +129,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) useCounter = new HashMap<>();
 		if (duration > 0) durationEndTime = new HashMap<>();
-
 	}
 
 	@Override
@@ -167,23 +169,23 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	@Override
-	public final PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public final PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		LivingEntity target;
 
 		if (targeted) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-			if (targetInfo == null) return noTarget(player);
-			if (!targetList.canTarget(targetInfo.getTarget())) return noTarget(player);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+			if (targetInfo == null) return noTarget(livingEntity);
+			if (!targetList.canTarget(targetInfo.getTarget())) return noTarget(livingEntity);
 
 			target = targetInfo.getTarget();
 			power = targetInfo.getPower();
 		} else {
-			target = player;
+			target = livingEntity;
 		}
 
-		PostCastAction action = activate(player, target, power, args, state == SpellCastState.NORMAL);
+		PostCastAction action = activate(livingEntity, target, power, args, state == SpellCastState.NORMAL);
 		if (targeted && action == PostCastAction.HANDLE_NORMALLY) {
-			sendMessages(player, target);
+			sendMessages(livingEntity, target);
 			return PostCastAction.NO_MESSAGES;
 		}
 
@@ -191,7 +193,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		return activate(caster, target, power, MagicSpells.NULL_ARGS, true) == PostCastAction.HANDLE_NORMALLY;
 	}
 
@@ -200,7 +202,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		return activate(null, target, power, MagicSpells.NULL_ARGS, true) == PostCastAction.HANDLE_NORMALLY;
 	}
 
-	private PostCastAction activate(Player caster, LivingEntity target, float power, String[] args, boolean normal) {
+	private PostCastAction activate(LivingEntity caster, LivingEntity target, float power, String[] args, boolean normal) {
 		if (isActive(target) && toggle) {
 			turnOff(target);
 			return PostCastAction.ALREADY_HANDLED;
@@ -223,6 +225,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public abstract boolean castBuff(LivingEntity entity, float power, String[] args);
 
 	public boolean recastBuff(LivingEntity entity, float power, String[] args) {
+		stopEffects();
 		return true;
 	}
 
@@ -313,7 +316,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 */
 	protected boolean chargeUseCost(LivingEntity entity) {
 		// Run spell on cost first thing to dodge the early returns and allow intervention
-		if (spellOnCost != null && entity instanceof Player) spellOnCost.cast((Player) entity, 1f);
+		if (spellOnCost != null) spellOnCost.cast(entity, 1f);
 
 		if (reagents == null) return true;
 		if (useCostInterval <= 0) return true;
@@ -323,18 +326,17 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		if (uses == null) return true;
 		if (uses % useCostInterval != 0) return true;
 
-		if (entity instanceof Player && hasReagents((Player) entity, reagents)) {
-			removeReagents((Player) entity, reagents);
+		if (hasReagents(entity, reagents)) {
+			removeReagents(entity, reagents);
 			return true;
 		}
 
-		if (entity instanceof Player && !hasReagents((Player) entity, reagents)) {
+		if (!hasReagents(entity, reagents)) {
 			turnOff(entity);
 			return false;
 		}
 
 		return true;
-
 	}
 
 	/**
@@ -365,10 +367,20 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		turnOffBuff(entity);
 		playSpellEffects(EffectPosition.DISABLED, entity);
 		cancelEffects(EffectPosition.CASTER, entity.getUniqueId().toString());
+		stopEffects();
 
 		if (!(entity instanceof Player)) return;
-		sendMessage(strFade, (Player) entity, null);
-		if (spellOnEnd != null) spellOnEnd.cast((Player) entity, 1f);
+		sendMessage(strFade, entity, null);
+		if (spellOnEnd != null) spellOnEnd.cast(entity, 1f);
+	}
+
+	public void stopEffects() {
+		Set<EffectTracker> trackers = new HashSet<>(getEffectTrackers());
+		getEffectTrackers().clear();
+		for (EffectTracker effectTracker : trackers) {
+			effectTracker.stop();
+		}
+		trackers.clear();
 	}
 
 	protected abstract void turnOffBuff(LivingEntity entity);

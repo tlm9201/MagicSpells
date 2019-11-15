@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -101,17 +101,17 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block target = pointBlank ? player.getLocation().getBlock() : getTargetedBlock(player, power);
-			if (target == null) return noTarget(player);
-			replace(player, target.getLocation(), power);
+			Block target = pointBlank ? livingEntity.getLocation().getBlock() : getTargetedBlock(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
+			replace(livingEntity, target.getLocation(), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		return replace(caster, target, power);
 	}
 
@@ -120,7 +120,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 		return replace(null, target, power);
 	}
 
-	private boolean replace(Player caster, Location target, float power) {
+	private boolean replace(LivingEntity caster, Location target, float power) {
 		boolean replaced = false;
 		Block block;
 

@@ -84,23 +84,23 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (isLevitating(player)) {
-			levitating.remove(player.getUniqueId()).stop();
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (isLevitating(livingEntity)) {
+			levitating.remove(livingEntity.getUniqueId()).stop();
 			return PostCastAction.ALREADY_HANDLED;
 		} else if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 			
-			levitate(player, target.getTarget());
-			sendMessages(player, target.getTarget());
+			levitate(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		levitate(caster, target);
 		return true;
 	}
@@ -118,14 +118,14 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 	}
 
 	public void removeLevitate(LivingEntity entity) {
-		List<Player> toRemove = new ArrayList<>();
+		List<LivingEntity> toRemove = new ArrayList<>();
 		for (Levitator levitator : levitating.values()) {
 			if (!levitator.target.equals(entity)) continue;
 			toRemove.add(levitator.caster);
 			levitator.stop();
 		}
-		for (Player pl : toRemove) {
-			levitating.remove(pl.getUniqueId());
+		for (LivingEntity caster : toRemove) {
+			levitating.remove(caster.getUniqueId());
 		}
 		toRemove.clear();
 	}
@@ -134,13 +134,14 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		return levitating.containsKey(entity.getUniqueId());
 	}
 
-	private void levitate(Player player, Entity target) {
-		double distance = player.getLocation().distance(target.getLocation());
-		Levitator lev = new Levitator(player, target, duration / tickRate, distance);
-		levitating.put(player.getUniqueId(), lev);
-		playSpellEffects(player, target);
+	private void levitate(LivingEntity caster, Entity target) {
+		double distance = caster.getLocation().distance(target.getLocation());
+		Levitator lev = new Levitator(caster, target, duration / tickRate, distance);
+		levitating.put(caster.getUniqueId(), lev);
+		playSpellEffects(caster, target);
 	}
-	
+
+	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		Player pl = event.getEntity();
 		if (!isLevitating(pl)) return;
@@ -162,10 +163,10 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onSpellCast(SpellCastEvent event) {
-			Player pl = event.getCaster();
-			if (!isLevitating(pl)) return;
+			LivingEntity caster = event.getCaster();
+			if (!isLevitating(caster)) return;
 			if (!filter.check(event.getSpell())) return;
-			levitating.remove(pl.getUniqueId()).stop();
+			levitating.remove(caster.getUniqueId()).stop();
 		}
 		
 	}
@@ -184,7 +185,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 	
 	private class Levitator implements Runnable {
 		
-		private Player caster;
+		private LivingEntity caster;
 		private Entity target;
 		private double distance;
 		private int duration;
@@ -192,7 +193,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		private int taskId;
 		private boolean stopped;
 		
-		private Levitator(Player caster, Entity target, int duration, double distance) {
+		private Levitator(LivingEntity caster, Entity target, int duration, double distance) {
 			this.caster = caster;
 			this.target = target;
 			this.duration = duration;
@@ -206,7 +207,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		@Override
 		public void run() {
 			if (stopped) return;
-			if (caster.isDead() || !caster.isOnline()) {
+			if (caster.isDead() || !caster.isValid()) {
 				stop();
 				return;
 			}

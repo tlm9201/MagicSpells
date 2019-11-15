@@ -7,9 +7,9 @@ import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
 import com.nisovin.magicspells.Subspell;
@@ -65,19 +65,19 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			List<Block> blocks = getLastTwoTargetedBlocks(player, power);
+			List<Block> blocks = getLastTwoTargetedBlocks(caster, power);
 			if (blocks.size() == 2 && !blocks.get(0).getType().isSolid() && blocks.get(0).getType().isSolid()) {
 				Location loc = blocks.get(0).getLocation().add(0.5, 0.5, 0.5);
-				loc.setDirection(player.getLocation().getDirection());
+				loc.setDirection(caster.getLocation().getDirection());
 			}
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		spawnTnt(caster, power, target.clone().add(0.5, 0.5, 0.5));
 		return true;
 	}
@@ -88,7 +88,7 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 		return true;
 	}
 
-	private void spawnTnt(Player caster, float power, Location loc) {
+	private void spawnTnt(LivingEntity caster, float power, Location loc) {
 		TNTPrimed tnt = loc.getWorld().spawn(loc, TNTPrimed.class);
 
 		if (cancelGravity) tnt.setGravity(false);
@@ -130,10 +130,10 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 	
 	private static class TntInfo {
 		
-		private Player caster;
+		private LivingEntity caster;
 		private float power;
 		
-		private TntInfo(Player caster, float power) {
+		private TntInfo(LivingEntity caster, float power) {
 			this.caster = caster;
 			this.power = power;
 		}

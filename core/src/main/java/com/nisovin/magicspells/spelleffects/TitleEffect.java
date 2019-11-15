@@ -10,14 +10,14 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class TitleEffect extends SpellEffect {
 
-	String title;
-	String subtitle;
+	private String title;
+	private String subtitle;
 
-	int stay;
-	int fadeIn;
-	int fadeOut;
+	private int stay;
+	private int fadeIn;
+	private int fadeOut;
 
-	boolean broadcast;
+	private boolean broadcast;
 	
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {

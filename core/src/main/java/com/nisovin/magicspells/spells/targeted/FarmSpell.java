@@ -3,8 +3,8 @@ package com.nisovin.magicspells.spells.targeted;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
@@ -49,14 +49,14 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Block block;
-			if (targeted) block = getTargetedBlock(player, power);
-			else block = player.getLocation().subtract(0, 1, 0).getBlock();
+			if (targeted) block = getTargetedBlock(livingEntity, power);
+			else block = livingEntity.getLocation().subtract(0, 1, 0).getBlock();
 
 			if (block != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, block.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, block.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) block = null;
 				else {
@@ -67,17 +67,17 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 
 			if (block != null) {
 				boolean farmed = farm(block, Math.round(radius * power));
-				if (!farmed) return noTarget(player);
-				playSpellEffects(EffectPosition.CASTER, player);
+				if (!farmed) return noTarget(livingEntity);
+				playSpellEffects(EffectPosition.CASTER, livingEntity);
 				if (targeted) playSpellEffects(EffectPosition.TARGET, block.getLocation());
-			} else return noTarget(player);
+			} else return noTarget(livingEntity);
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		return farm(target.subtract(0, 1, 0).getBlock(), Math.round(radius * power));
 	}
 

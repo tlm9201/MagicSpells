@@ -121,8 +121,9 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			LivingEntity entityTarget = null;
 			Location locTarget = null;
 			Player opener = player;
@@ -148,15 +149,16 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (requireEntityTarget && !validTargetList.canTarget(caster, target)) return false;
-		Player opener = caster;
+		if (!(caster instanceof Player)) return false;
+		Player opener = (Player) caster;
 		if (targetOpensMenuInstead) {
 			if (!(target instanceof Player)) return false;
 			opener = (Player) target;
 			target = null;
 		}
-		open(caster, opener, target, null, power, MagicSpells.NULL_ARGS);
+		open((Player) caster, opener, target, null, power, MagicSpells.NULL_ARGS);
 		return true;
 	}
 
@@ -170,8 +172,9 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
-		open(caster, caster, null, target, power, MagicSpells.NULL_ARGS);
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		if (!(caster instanceof Player)) return false;
+		open((Player) caster, (Player) caster, null, target, power, MagicSpells.NULL_ARGS);
 		return true;
 	}
 

@@ -23,8 +23,8 @@ public class SpellHasteSpell extends BuffSpell {
 
 	private SpellFilter filter;
 
-	public SpellHasteSpell(MagicConfig config, String spellname) {
-		super(config, spellname);
+	public SpellHasteSpell(MagicConfig config, String spellName) {
+		super(config, spellName);
 	
 		castTimeModAmt = getConfigInt("cast-time-mod-amt", -25) / 100F;
 		cooldownModAmt = getConfigInt("cooldown-mod-amt", -25) / 100F;

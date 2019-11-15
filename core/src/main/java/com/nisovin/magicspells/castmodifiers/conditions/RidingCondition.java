@@ -4,14 +4,13 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
-import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class RidingCondition extends Condition {
 
-	EntityType entityType;
+	private EntityType entityType;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -21,19 +20,19 @@ public class RidingCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return check(player, player);
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		Entity vehicle = target.getVehicle();
-		if (vehicle == null) return false;		
+		if (vehicle == null) return false;
 		return entityType == null || vehicle.getType() == entityType;
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

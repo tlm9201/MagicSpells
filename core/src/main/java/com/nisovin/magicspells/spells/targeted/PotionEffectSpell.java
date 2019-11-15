@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -52,34 +51,34 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			LivingEntity target = null;
 			if (targeted) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
+				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
 				if (targetInfo != null) {
 					target = targetInfo.getTarget();
 					power = targetInfo.getPower();
 				}
-			} else target = player;
+			} else target = livingEntity;
 
-			if (target == null) return noTarget(player);
+			if (target == null) return noTarget(livingEntity);
 
 			int dur = spellPowerAffectsDuration ? Math.round(duration * power) : duration;
 			int str = spellPowerAffectsStrength ? Math.round(strength * power) : strength;
 			
-			applyPotionEffect(player, target, new PotionEffect(type, dur, str, ambient, !hidden));
-			if (targeted) playSpellEffects(player, target);
-			else playSpellEffects(EffectPosition.CASTER, player);
+			applyPotionEffect(livingEntity, target, new PotionEffect(type, dur, str, ambient, !hidden));
+			if (targeted) playSpellEffects(livingEntity, target);
+			else playSpellEffects(EffectPosition.CASTER, livingEntity);
 
-			sendMessages(player, target);
+			sendMessages(livingEntity, target);
 			return PostCastAction.NO_MESSAGES;
 		}		
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		int dur = spellPowerAffectsDuration ? Math.round(duration * power) : duration;
 		int str = spellPowerAffectsStrength ? Math.round(strength * power) : strength;
@@ -105,7 +104,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 		return true;
 	}
 
-	private void applyPotionEffect(Player caster, LivingEntity target, PotionEffect effect) {
+	private void applyPotionEffect(LivingEntity caster, LivingEntity target, PotionEffect effect) {
 		DamageCause cause = null;
 		if (effect.getType() == PotionEffectType.POISON) cause = DamageCause.POISON;
 		else if (effect.getType() == PotionEffectType.WITHER) cause = DamageCause.WITHER;

@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
@@ -135,16 +134,16 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			new ItemProjectile(player, player.getLocation(), power);
+			new ItemProjectile(livingEntity, livingEntity.getLocation(), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
-		new ItemProjectile(caster, target, power);
+	public boolean castAtLocation(LivingEntity livingEntity, Location target, float power) {
+		new ItemProjectile(livingEntity, target, power);
 		return true;
 	}
 
@@ -155,7 +154,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 	private class ItemProjectile implements Runnable {
 
-		private Player caster;
+		private LivingEntity caster;
 		private Item entity;
 		private Vector velocity;
 		private Location startLocation;
@@ -168,7 +167,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		private int taskId;
 		private int count = 0;
 
-		private ItemProjectile(Player caster, Location from, float power) {
+		private ItemProjectile(LivingEntity caster, Location from, float power) {
 			this.caster = caster;
 			this.power = power;
 

@@ -2,7 +2,6 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Material;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.DebugHandler;
@@ -11,8 +10,8 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class TestForBlockCondition extends Condition {
 
-	MagicLocation location;
-	Material blockType;
+	private MagicLocation location;
+	private Material blockType;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -30,7 +29,7 @@ public class TestForBlockCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
 		Location loc = location.getLocation();
 		if (loc == null) return false;
 		if (blockType.equals(loc.getBlock().getType())) return true;
@@ -38,12 +37,12 @@ public class TestForBlockCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		return check(null);
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return check(null);
 	}
 

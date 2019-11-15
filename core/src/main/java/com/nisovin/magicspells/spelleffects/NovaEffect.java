@@ -21,19 +21,19 @@ import com.nisovin.magicspells.util.SpellAnimation;
 
 public class NovaEffect extends SpellEffect {
 
-	Material material;
-	String materialName;
+	private Material material;
+	private String materialName;
 
-	double range;
+	private double range;
 
-	int radius;
-	int startRadius;
-	int heightPerTick;
-	int expandInterval;
-	int expandingRadiusChange;
+	private int radius;
+	private int startRadius;
+	private int heightPerTick;
+	private int expandInterval;
+	private int expandingRadiusChange;
 
-	boolean circleShape;
-	boolean removePreviousBlocks;
+	private boolean circleShape;
+	private boolean removePreviousBlocks;
 
 	@Override
 	public void loadFromString(String string) {

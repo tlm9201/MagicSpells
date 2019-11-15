@@ -167,16 +167,16 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			new ProjectileMonitor(player, player.getLocation(), power);
+			new ProjectileMonitor(livingEntity, livingEntity.getLocation(), power);
 			return PostCastAction.HANDLE_NORMALLY;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		new ProjectileMonitor(caster, target, power);
 		return true;
 	}
@@ -281,7 +281,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		private Projectile projectile;
 		private Location currentLocation;
 		private Location startLocation;
-		private Player caster;
+		private LivingEntity caster;
 		private Vector currentVelocity;
 		private float power;
 		private long startTime;
@@ -289,7 +289,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		private int taskId;
 		private int counter = 0;
 
-		private ProjectileMonitor(Player caster, Location startLocation, float power) {
+		private ProjectileMonitor(LivingEntity caster, Location startLocation, float power) {
 			this.caster = caster;
 			this.power = power;
 			this.startLocation = startLocation;
@@ -345,7 +345,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 				return;
 			}
 
-			if (projectileModifiers != null && !projectileModifiers.check(caster)) {
+			if (projectileModifiers != null && caster instanceof Player && !projectileModifiers.check((Player) caster)) {
 				if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
 				if (stopOnModifierFail) stop();
 				return;

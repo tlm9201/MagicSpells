@@ -1,12 +1,14 @@
 package com.nisovin.magicspells.spells;
 
+import java.util.UUID;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 
 import com.nisovin.magicspells.Spell;
@@ -74,7 +76,7 @@ public final class MultiSpell extends InstantSpell {
 	}
 
 	@Override
-	public Spell.PostCastAction castSpell(Player player, Spell.SpellCastState state, float power, String[] args) {
+	public Spell.PostCastAction castSpell(LivingEntity livingEntity, Spell.SpellCastState state, float power, String[] args) {
 		if (state == Spell.SpellCastState.NORMAL) {
 			if (!castRandomSpellInstead) {
 				int delay = 0;
@@ -84,8 +86,8 @@ public final class MultiSpell extends InstantSpell {
 						delay += action.getDelay();
 					} else if (action.isSpell()) {
 						Subspell spell = action.getSpell();
-						if (delay == 0) spell.cast(player, power);
-						else MagicSpells.scheduleDelayedTask(new DelayedSpell(spell, player, power), delay);
+						if (delay == 0) spell.cast(livingEntity, power);
+						else MagicSpells.scheduleDelayedTask(new DelayedSpell(spell, livingEntity, power), delay);
 					}
 				}
 			} else {
@@ -102,21 +104,21 @@ public final class MultiSpell extends InstantSpell {
 						s = (int) Math.round(s + actions.get(i++).getChance());
 					}
 					Action action = actions.get(Math.max(0, i - 1)).getAction();
-					if (action.isSpell()) action.getSpell().cast(player, power);
+					if (action.isSpell()) action.getSpell().cast(livingEntity, power);
 				} else if (enableIndividualChances) {
 					for (ActionChance actionChance : actions) {
 						double chance = Math.random();
 						if ((actionChance.getChance() / 100.0D > chance) && actionChance.getAction().isSpell()) {
 							Action action = actionChance.getAction();
-							action.getSpell().cast(player, power);
+							action.getSpell().cast(livingEntity, power);
 						}
 					}
 				} else {
 					Action action = actions.get(random.nextInt(actions.size())).getAction();
-					action.getSpell().cast(player, power);
+					action.getSpell().cast(livingEntity, power);
 				}
 			}
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
 		return Spell.PostCastAction.HANDLE_NORMALLY;
 	}
@@ -182,17 +184,17 @@ public final class MultiSpell extends InstantSpell {
 		private boolean isRangedDelay = false;
 		private int maxDelay;
 
-		public Action(Subspell spell) {
+		Action(Subspell spell) {
 			this.spell = spell;
 			delay = 0;
 		}
 
-		public Action(int delay) {
+		Action(int delay) {
 			this.delay = delay;
 			spell = null;
 		}
 		
-		public Action(int minDelay, int maxDelay) {
+		Action(int minDelay, int maxDelay) {
 			this.delay = minDelay;
 			this.maxDelay = maxDelay;
 			spell = null;
@@ -224,34 +226,34 @@ public final class MultiSpell extends InstantSpell {
 	private static class DelayedSpell implements Runnable {
 		
 		private Subspell spell;
-		private String playerName;
+		private UUID casterUUID;
 		private float power;
 
-		public DelayedSpell(Subspell spell, Player player, float power) {
+		DelayedSpell(Subspell spell, LivingEntity livingEntity, float power) {
 			this.spell = spell;
-			this.playerName = player.getName();
+			this.casterUUID = livingEntity.getUniqueId();
 			this.power = power;
 		}
 
 		@Override
 		public void run() {
-			Player player = Bukkit.getPlayerExact(playerName);
-			if (player != null && player.isValid()) spell.cast(player, power);
+			Entity entity = Bukkit.getEntity(casterUUID);
+			if (entity != null && entity.isValid() && entity instanceof LivingEntity) spell.cast((LivingEntity) entity, power);
 		}
 		
 	}
 
-	static class ActionChance {
+	private static class ActionChance {
 		
-		private MultiSpell.Action action;
+		private Action action;
 		private double chance;
 
-		public ActionChance(MultiSpell.Action action, double chance) {
+		ActionChance(Action action, double chance) {
 			this.action = action;
 			this.chance = chance;
 		}
 
-		public MultiSpell.Action getAction() {
+		public Action getAction() {
 			return action;
 		}
 

@@ -7,7 +7,7 @@ import java.util.Iterator;
 import org.bukkit.World;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
@@ -52,22 +52,22 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location loc = null;
-			if (pointBlank) loc = player.getLocation();
+			if (pointBlank) loc = livingEntity.getLocation();
 			else {
-				Block b = getTargetedBlock(player, power);
+				Block b = getTargetedBlock(livingEntity, power);
 				if (b != null && !BlockUtils.isAir(b.getType())) loc = b.getLocation();
 			}
-			if (loc == null) return noTarget(player);
-			removeMarks(player, loc, power);
+			if (loc == null) return noTarget(livingEntity);
+			removeMarks(livingEntity, loc, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		removeMarks(caster, target, power);
 		return true;
 	}
@@ -78,7 +78,7 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 		return true;
 	}
 
-	private void removeMarks(Player caster, Location loc, float power) {
+	private void removeMarks(LivingEntity caster, Location loc, float power) {
 		float rad = radius * power;
 		float radSq = rad * rad;
 

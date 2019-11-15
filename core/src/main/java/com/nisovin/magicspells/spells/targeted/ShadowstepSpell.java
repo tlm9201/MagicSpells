@@ -3,7 +3,6 @@ package com.nisovin.magicspells.spells.targeted;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
@@ -40,21 +39,21 @@ public class ShadowstepSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 
-			boolean done = shadowstep(player, target.getTarget());
-			if (!done) return noTarget(player, strNoLandingSpot);
-			sendMessages(player, target.getTarget());
+			boolean done = shadowstep(livingEntity, target.getTarget());
+			if (!done) return noTarget(livingEntity, strNoLandingSpot);
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		return shadowstep(caster, target);
 	}
@@ -64,7 +63,7 @@ public class ShadowstepSpell extends TargetedSpell implements TargetedEntitySpel
 		return false;
 	}
 
-	private boolean shadowstep(Player player, LivingEntity target) {
+	private boolean shadowstep(LivingEntity caster, LivingEntity target) {
 		Location targetLoc = target.getLocation().clone();
 		targetLoc.setPitch(0);
 
@@ -81,8 +80,8 @@ public class ShadowstepSpell extends TargetedSpell implements TargetedEntitySpel
 		Block b = targetLoc.getBlock();
 		if (!BlockUtils.isPathable(b.getType()) || !BlockUtils.isPathable(b.getRelative(BlockFace.UP))) return false;
 
-		playSpellEffects(player.getLocation(), targetLoc);
-		player.teleport(targetLoc);
+		playSpellEffects(caster.getLocation(), targetLoc);
+		caster.teleport(targetLoc);
 
 		return true;
 	}

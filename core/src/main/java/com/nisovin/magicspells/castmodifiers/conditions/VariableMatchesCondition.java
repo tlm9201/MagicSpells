@@ -1,16 +1,17 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import java.util.Objects;
+
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
-import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-
-import java.util.Objects;
 
 public class VariableMatchesCondition extends Condition {
 
-	String variable;
+	private String variable;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -20,27 +21,30 @@ public class VariableMatchesCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
+	public boolean check(LivingEntity livingEntity) {
+		if (!(livingEntity instanceof Player)) return false;
 		// Check against normal (default)
 		return Objects.equals(
-			MagicSpells.getVariableManager().getStringValue(variable, player),
-			MagicSpells.getVariableManager().getStringValue(variable, (String)null)
+			MagicSpells.getVariableManager().getStringValue(variable, (Player) livingEntity),
+			MagicSpells.getVariableManager().getStringValue(variable, (String) null)
 		);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		if (!(livingEntity instanceof Player)) return false;
+		if (!(target instanceof Player)) return false;
 		// Check against each other
 		return Objects.equals(
-			MagicSpells.getVariableManager().getStringValue(variable, player),
-			MagicSpells.getVariableManager().getStringValue(variable, target instanceof Player ? target.getName() : null)
+			MagicSpells.getVariableManager().getStringValue(variable, (Player) livingEntity),
+			MagicSpells.getVariableManager().getStringValue(variable, target.getName())
 		);
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		// Against defaults (only possible comparison here)
-		return check(player);
+		return check(livingEntity);
 	}
 
 }

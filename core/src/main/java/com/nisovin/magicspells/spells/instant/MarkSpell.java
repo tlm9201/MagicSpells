@@ -10,9 +10,11 @@ import java.io.BufferedWriter;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
@@ -65,18 +67,18 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			marks.put(getPlayerKey(player), new MagicLocation(player.getLocation()));
+			marks.put(getKey(livingEntity), new MagicLocation(livingEntity.getLocation()));
 			if (permanentMarks) saveMarks();
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
-		return PostCastAction.HANDLE_NORMALLY;		
+		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
-		marks.put(getPlayerKey(caster), new MagicLocation(target));
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		marks.put(getKey(caster), new MagicLocation(target));
 		if (caster != null) playSpellEffects(caster, target);
 		return true;
 	}
@@ -88,13 +90,13 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 	
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onPlayerQuit(PlayerQuitEvent event) {
-		if (!permanentMarks) marks.remove(getPlayerKey(event.getPlayer()));
+		if (!permanentMarks) marks.remove(getKey(event.getPlayer()));
 	}
 	
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		if (!useAsRespawnLocation) return;
-		MagicLocation loc = marks.get(getPlayerKey(event.getPlayer()));
+		MagicLocation loc = marks.get(getKey(event.getPlayer()));
 		if (loc != null) event.setRespawnLocation(loc.getLocation());
 		else if (enableDefaultMarks && defaultMark != null) event.setRespawnLocation(defaultMark.getLocation());
 	}
@@ -133,6 +135,8 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(MagicSpells.plugin.getDataFolder(), "marks-" + internalName + ".txt"), false));
 			for (Map.Entry<UUID, MagicLocation> stringMagicLocationEntry : marks.entrySet()) {
+				Entity entity = Bukkit.getEntity(stringMagicLocationEntry.getKey());
+				if (!(entity instanceof Player)) continue;
 				MagicLocation loc = stringMagicLocationEntry.getValue();
 				writer.append(stringMagicLocationEntry.getKey().toString())
 					.append(String.valueOf(':'))
@@ -155,17 +159,17 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 		}		
 	}
 	
-	public UUID getPlayerKey(Player player) {
-		if (player == null) return null;
-		return player.getUniqueId();
+	public UUID getKey(LivingEntity livingEntity) {
+		if (livingEntity == null) return null;
+		return livingEntity.getUniqueId();
 	}
 	
 	public boolean usesDefaultMark() {
 		return enableDefaultMarks;
 	}
 	
-	public Location getEffectiveMark(Player player) {
-		MagicLocation m = marks.get(getPlayerKey(player));
+	public Location getEffectiveMark(LivingEntity livingEntity) {
+		MagicLocation m = marks.get(getKey(livingEntity));
 		if (m == null) {
 			if (enableDefaultMarks) return defaultMark.getLocation();
 			return null;

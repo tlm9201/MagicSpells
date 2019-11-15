@@ -1,16 +1,16 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class VariableStringEqualsCondition extends Condition {
 
-	String variable;
-	String value;
+	private String variable;
+	private String value;
 
 	@Override
 	public boolean setVar(String var) {
@@ -38,19 +38,19 @@ public class VariableStringEqualsCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return MagicSpells.getVariableManager().getStringValue(variable, player).equals(value);
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		if (target instanceof Player) return check((Player)target);
-		return check(player);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		if (!(target instanceof Player)) return false;
+		return MagicSpells.getVariableManager().getStringValue(variable, (Player) target).equals(value);
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
-		return check(player);
+	public boolean check(LivingEntity livingEntity, Location location) {
+		return check(livingEntity, livingEntity);
 	}
 
 }

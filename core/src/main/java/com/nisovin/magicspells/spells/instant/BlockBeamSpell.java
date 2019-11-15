@@ -9,7 +9,6 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
@@ -154,16 +153,16 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			new BlockBeam(player, player.getLocation(), power);
+			new BlockBeam(livingEntity, livingEntity.getLocation(), power);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		new BlockBeam(caster, caster.getLocation(), target, power);
 		return true;
 	}
@@ -174,8 +173,8 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 	}
 
 	@Override
-	public boolean castAtLocation(Player player, Location location, float v) {
-		new BlockBeam(player, location, v);
+	public boolean castAtLocation(LivingEntity livingEntity, Location location, float v) {
+		new BlockBeam(livingEntity, location, v);
 		return true;
 	}
 
@@ -185,7 +184,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(Player caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		new BlockBeam(caster, from, target, power);
 		return true;
 	}
@@ -203,7 +202,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 	private class BlockBeam {
 
-		private Player caster;
+		private LivingEntity caster;
 		private LivingEntity target;
 		private float power;
 		private Location startLoc;
@@ -212,7 +211,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 		private List<LivingEntity> armorStandList;
 		private ItemStack helmet;
 
-		private BlockBeam(Player caster, Location from, float power) {
+		private BlockBeam(LivingEntity caster, Location from, float power) {
 			this.caster = caster;
 			this.power = power;
 			helmet = new ItemStack(material);
@@ -225,7 +224,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 			shootBeam();
 		}
 
-		private BlockBeam(Player caster, Location from, LivingEntity target, float power) {
+		private BlockBeam(LivingEntity caster, Location from, LivingEntity target, float power) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;

@@ -7,7 +7,6 @@ import java.util.HashSet;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
@@ -119,20 +118,20 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-				if (target == null) return noTarget(player);
-				new OrbitTracker(player, target.getTarget(), target.getPower());
-				playSpellEffects(player, target.getTarget());
-				sendMessages(player, target.getTarget());
+				TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+				if (target == null) return noTarget(livingEntity);
+				new OrbitTracker(livingEntity, target.getTarget(), target.getPower());
+				playSpellEffects(livingEntity, target.getTarget());
+				sendMessages(livingEntity, target.getTarget());
 				return PostCastAction.NO_MESSAGES;
 			}
 
-			Block block = getTargetedBlock(player, power);
+			Block block = getTargetedBlock(livingEntity, power);
 			if (block != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, block.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, block.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) block = null;
 				else {
@@ -141,16 +140,16 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 			}
 
-			if (block == null) return noTarget(player);
+			if (block == null) return noTarget(livingEntity);
 
-			new OrbitTracker(player, block.getLocation().add(0.5, 0, 0.5), power);
+			new OrbitTracker(livingEntity, block.getLocation().add(0.5, 0, 0.5), power);
 			return PostCastAction.HANDLE_NORMALLY;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		new OrbitTracker(caster, target, power);
 		playSpellEffects(caster, target);
 		return true;
@@ -162,7 +161,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		new OrbitTracker(caster, target, power);
 		return true;
 	}
@@ -174,7 +173,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 	private class OrbitTracker implements Runnable {
 
-		private Player caster;
+		private LivingEntity caster;
 		private LivingEntity target;
 		private Location targetLoc;
 		private Vector currentPosition;
@@ -191,7 +190,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 		private long startTime;
 
-		private OrbitTracker(Player caster, LivingEntity target, float power) {
+		private OrbitTracker(LivingEntity caster, LivingEntity target, float power) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
@@ -200,7 +199,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			initialize();
 		}
 
-		private OrbitTracker(Player caster, Location targetLoc, float power) {
+		private OrbitTracker(LivingEntity caster, Location targetLoc, float power) {
 			this.caster = caster;
 			this.targetLoc = targetLoc;
 			this.power = power;

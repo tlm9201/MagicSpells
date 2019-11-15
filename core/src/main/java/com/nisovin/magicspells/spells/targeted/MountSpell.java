@@ -32,20 +32,20 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-			if (targetInfo == null) return noTarget(player);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+			if (targetInfo == null) return noTarget(livingEntity);
 			LivingEntity target = targetInfo.getTarget();
-			if (target == null) return noTarget(player);
-			mount(player, target);
+			if (target == null) return noTarget(livingEntity);
+			mount(livingEntity, target);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		mount(caster, target);
 		return true;
 	}
@@ -55,32 +55,32 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 		return false;
 	}
 
-	private void mount(Player pl, LivingEntity target) {
-		if (pl == null || target == null) return;
+	private void mount(LivingEntity caster, LivingEntity target) {
+		if (caster == null || target == null) return;
 
 		if (reverse) {
-			if (!pl.getPassengers().isEmpty()) pl.eject();
-			if (pl.getVehicle() != null) pl.getVehicle().eject();
+			if (!caster.getPassengers().isEmpty()) caster.eject();
+			if (caster.getVehicle() != null) caster.getVehicle().eject();
 			if (target.getVehicle() != null) target.getVehicle().eject();
 
-			pl.addPassenger(target);
+			caster.addPassenger(target);
 			if (duration > 0) {
 				LivingEntity finalTarget = target;
 				MagicSpells.scheduleDelayedTask(() -> {
-					pl.removePassenger(finalTarget);
+					caster.removePassenger(finalTarget);
 				}, duration);
 			}
-			sendMessages(pl, target);
+			sendMessages(caster, target);
 			return;
 		}
 
-		if (pl.getVehicle() != null) {
-			Entity veh = pl.getVehicle();
+		if (caster.getVehicle() != null) {
+			Entity veh = caster.getVehicle();
 			veh.eject();
-			List<Entity> passengers = pl.getPassengers();
+			List<Entity> passengers = caster.getPassengers();
 			if (passengers.isEmpty()) return;
 
-			pl.eject();
+			caster.eject();
 			for (Entity e : passengers) {
 				veh.addPassenger(e);
 				if (duration > 0) {
@@ -98,15 +98,15 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 			break;
 		}
 
-		pl.eject();
-		target.addPassenger(pl);
+		caster.eject();
+		target.addPassenger(caster);
 		if (duration > 0) {
 			LivingEntity finalTarget1 = target;
 			MagicSpells.scheduleDelayedTask(() -> {
-				finalTarget1.removePassenger(pl);
+				finalTarget1.removePassenger(caster);
 			}, duration);
 		}
-		sendMessages(pl, target);
+		sendMessages(caster, target);
 	}
 
 	@EventHandler

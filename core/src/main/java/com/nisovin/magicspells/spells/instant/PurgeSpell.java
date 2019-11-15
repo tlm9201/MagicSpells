@@ -41,17 +41,17 @@ public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			boolean killed = purge(player.getLocation(), power);
-			if (killed) playSpellEffects(EffectPosition.CASTER, player);
+			boolean killed = purge(livingEntity.getLocation(), power);
+			if (killed) playSpellEffects(EffectPosition.CASTER, livingEntity);
 			else return PostCastAction.ALREADY_HANDLED;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		boolean killed = purge(target, power);
 		if (killed) playSpellEffects(EffectPosition.CASTER, caster);
 		return killed;

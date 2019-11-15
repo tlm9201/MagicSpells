@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells.instant;
 
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 
 import com.nisovin.magicspells.util.MagicConfig;
@@ -15,16 +14,15 @@ public class DummySpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
 	@Override
 	public boolean castFromConsole(CommandSender sender, String[] args) {
-		playSpellEffects(EffectPosition.CASTER, (Entity) null);
 		return true;
 	}
 

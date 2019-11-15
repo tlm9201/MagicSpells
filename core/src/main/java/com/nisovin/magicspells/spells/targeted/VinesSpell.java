@@ -6,10 +6,10 @@ import java.util.TreeSet;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.material.Vine;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellAnimation;
@@ -32,19 +32,19 @@ public class VinesSpell extends TargetedSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			List<Block> target = getLastTwoTargetedBlocks(player, power);
-			if (target == null || target.size() != 2) return noTarget(player);
-			if (target.get(0).getType() != Material.AIR || !target.get(1).getType().isSolid()) return noTarget(player);
+			List<Block> target = getLastTwoTargetedBlocks(caster, power);
+			if (target == null || target.size() != 2) return noTarget(caster);
+			if (target.get(0).getType() != Material.AIR || !target.get(1).getType().isSolid()) return noTarget(caster);
 
-			boolean success = growVines(player, target.get(0), target.get(1));
-			if (!success) return noTarget(player);
+			boolean success = growVines(caster, target.get(0), target.get(1));
+			if (!success) return noTarget(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
-	private boolean growVines(Player caster, final Block air, Block solid) {
+	private boolean growVines(LivingEntity caster, final Block air, Block solid) {
 		BlockFace face = air.getFace(solid);
 		int x = 0;
 		int z = 0;
@@ -90,7 +90,7 @@ public class VinesSpell extends TargetedSpell {
 			BlockState state = block.getState();
 			state.setType(Material.VINE);
 			if (state.getData() instanceof Vine) {
-				Vine data = (Vine)state.getData();
+				Vine data = (Vine) state.getData();
 				data.putOnFace(face);
 				state.setData(data);
 			}

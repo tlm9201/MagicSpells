@@ -2,7 +2,6 @@ package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.TargetInfo;
@@ -33,20 +32,20 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
-			if (!teleport(player, target.getTarget())) return noTarget(player, strCantTeleport);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			if (target == null) return noTarget(caster);
+			if (!teleport(caster, target.getTarget())) return noTarget(caster, strCantTeleport);
 
-			sendMessages(player, target.getTarget());
+			sendMessages(caster, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		return teleport(caster, target);
 	}
@@ -56,7 +55,7 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 		return false;
 	}
 
-	private boolean teleport(Player caster, LivingEntity target) {
+	private boolean teleport(LivingEntity caster, LivingEntity target) {
 		Location targetLoc = target.getLocation();
 		Location startLoc = caster.getLocation();
 

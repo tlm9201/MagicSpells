@@ -1,13 +1,13 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.InventoryUtil;
-import com.nisovin.magicspells.util.Util;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EntityEquipment;
+
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.InventoryUtil;
+import com.nisovin.magicspells.castmodifiers.Condition;
 
 // TODO this should be refactored along with the other 'has item' related conditions to reduce redundant code
 public class HoldingPreciseCondition extends Condition {
@@ -19,29 +19,29 @@ public class HoldingPreciseCondition extends Condition {
 		var = var.trim();
 		ItemStack item = Util.predefinedItems.get(var.trim());
 		if (InventoryUtil.isNothing(item)) return false;
-		this.itemStack = item.clone();
+		itemStack = item.clone();
 		return true;
 	}
 
 	@Override
-	public boolean check(Player player) {
-		ItemStack item = player.getEquipment().getItemInMainHand();
+	public boolean check(LivingEntity livingEntity) {
+		ItemStack item = livingEntity.getEquipment().getItemInMainHand();
 		return check(item);
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		EntityEquipment equip = target.getEquipment();
 		return equip != null && check(equip.getItemInMainHand());
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 	
 	private boolean check(ItemStack item) {
-		return this.itemStack.isSimilar(item);
+		return itemStack.isSimilar(item);
 	}
 
 }

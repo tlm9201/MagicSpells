@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.spells;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
@@ -49,13 +49,13 @@ public class LocationSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location loc = location.getLocation();
 			if (loc == null) return PostCastAction.ALREADY_HANDLED;
 
-			if (spellToCast != null) spellToCast.castAtLocation(player, loc, power);
-			playSpellEffects(player, loc);
+			if (spellToCast != null) spellToCast.castAtLocation(livingEntity, loc, power);
+			playSpellEffects(livingEntity, loc);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

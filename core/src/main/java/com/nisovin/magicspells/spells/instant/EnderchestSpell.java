@@ -15,8 +15,9 @@ public class EnderchestSpell extends InstantSpell implements TargetedEntitySpell
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			if (args != null && args.length == 1 && player.hasPermission("magicspells.advanced." + internalName)) {
 				Player target = PlayerNameUtils.getPlayer(args[0]);
 				if (target == null) {
@@ -30,9 +31,10 @@ public class EnderchestSpell extends InstantSpell implements TargetedEntitySpell
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!(target instanceof Player)) return false;
-		caster.openInventory(((Player) target).getEnderChest());
+		if (!(caster instanceof Player)) return false;
+		((Player) caster).openInventory(((Player) target).getEnderChest());
 		return false;
 	}
 

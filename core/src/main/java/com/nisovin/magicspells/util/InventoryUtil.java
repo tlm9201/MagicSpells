@@ -5,8 +5,9 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.inventory.InventoryType;
 
 public class InventoryUtil {
@@ -90,6 +91,55 @@ public class InventoryUtil {
 		if (itemStack == null) return true;
 		if (BlockUtils.isAir(itemStack.getType())) return true;
 		return itemStack.getAmount() == 0;
+	}
+
+	public static boolean inventoryContains(EntityEquipment entityEquipment, ItemStack item) {
+		if (entityEquipment == null) return false;
+		int count = 0;
+		ItemStack[] armorContents = entityEquipment.getArmorContents();
+		ItemStack mainHand = entityEquipment.getItemInMainHand();
+		ItemStack offHand = entityEquipment.getItemInOffHand();
+		ItemStack[] equipment = new ItemStack[6];
+
+		// first 4 slots are filled with armor
+		for (int j = 0; j < 4; j++) {
+			equipment[j] = armorContents[j];
+		}
+		equipment[4] = mainHand;
+		equipment[5] = offHand;
+
+		for (ItemStack itemInside : equipment) {
+			if (itemInside != null && itemInside.isSimilar(item)) count += itemInside.getAmount();
+			if (count >= item.getAmount()) return true;
+		}
+		return false;
+	}
+
+	public static boolean inventoryContains(Inventory inventory, ItemStack item) {
+		if (inventory == null) return false;
+		int count = 0;
+		ItemStack[] items = inventory.getContents();
+		for (int i = 0; i < 36; i++) {
+			if (items[i] != null && item.isSimilar(items[i])) count += items[i].getAmount();
+			if (count >= item.getAmount()) return true;
+		}
+		return false;
+	}
+
+	public static ItemStack[] getEquipmentItems(EntityEquipment entityEquipment) {
+		ItemStack[] armorContents = entityEquipment.getArmorContents();
+		ItemStack mainHand = entityEquipment.getItemInMainHand();
+		ItemStack offHand = entityEquipment.getItemInOffHand();
+		ItemStack[] equipment = new ItemStack[6];
+
+		// first 4 slots are filled with armor
+		for (int j = 0; j < 4; j++) {
+			equipment[j] = armorContents[j];
+		}
+		equipment[4] = mainHand;
+		equipment[5] = offHand;
+
+		return equipment;
 	}
 	
 }

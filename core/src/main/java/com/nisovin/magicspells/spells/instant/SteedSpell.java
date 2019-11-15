@@ -11,8 +11,10 @@ import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.AnimalTamer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.ChestedHorse;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -100,20 +102,20 @@ public class SteedSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			if (player.getVehicle() != null) {
-				sendMessage(strAlreadyMounted, player, args);
+			if (livingEntity.getVehicle() != null) {
+				sendMessage(strAlreadyMounted, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
-			Entity entity = player.getWorld().spawnEntity(player.getLocation(), type);
+			Entity entity = livingEntity.getWorld().spawnEntity(livingEntity.getLocation(), type);
 			entity.setGravity(gravity);
 
 			if (entity instanceof AbstractHorse) {
 				((AbstractHorse) entity).setAdult();
 				((AbstractHorse) entity).setTamed(true);
-				((AbstractHorse) entity).setOwner(player);
+				if (livingEntity instanceof AnimalTamer) ((AbstractHorse) entity).setOwner((AnimalTamer) livingEntity);
 				((AbstractHorse) entity).setJumpStrength(jumpStrength);
 				((AbstractHorse) entity).getInventory().setSaddle(new ItemStack(Material.SADDLE));
 
@@ -128,9 +130,9 @@ public class SteedSpell extends InstantSpell {
 				}
 			}
 
-			entity.addPassenger(player);
-			playSpellEffects(EffectPosition.CASTER, player);
-			mounted.put(player.getUniqueId(), entity.getEntityId());
+			entity.addPassenger(livingEntity);
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			mounted.put(livingEntity.getUniqueId(), entity.getEntityId());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

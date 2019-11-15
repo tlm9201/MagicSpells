@@ -57,7 +57,7 @@ public class MagicLogger implements Listener {
 				"; loc=" + formatLoc(event.getLearner().getLocation()) +
 				"; source=" + event.getSource().name() +
 				"; teacher=" + getTeacherName(event.getTeacher()) +
-				"; canceled=" + event.isCancelled());
+				"; cancelled=" + event.isCancelled());
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -66,7 +66,7 @@ public class MagicLogger implements Listener {
 				"; spell=" + event.getSpell().getInternalName() + 
 				"; player=" + event.getForgetter().getName() + 
 				"; loc=" + formatLoc(event.getForgetter().getLocation()) +
-				"; canceled=" + event.isCancelled());
+				"; cancelled=" + event.isCancelled());
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -77,34 +77,34 @@ public class MagicLogger implements Listener {
 				"; loc=" + formatLoc(event.getCaster().getLocation()) +
 				"; state=" + event.getSpellCastState().name() +
 				"; power=" + event.getPower() +
-				"; canceled=" + event.isCancelled());
+				"; cancelled=" + event.isCancelled());
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onSpellTarget(SpellTargetEvent event) {
-		Player caster = event.getCaster();
-		log("  TARGET ENTITY" + 
+		LivingEntity caster = event.getCaster();
+		log("TARGET ENTITY" +
 				"; spell=" + event.getSpell().getInternalName() + 
 				"; caster=" + (caster != null ? caster.getName() : "null") + 
-				"; casterloc=" + (caster != null ? formatLoc(caster.getLocation()) : "null") +
+				"; casterLoc=" + (caster != null ? formatLoc(caster.getLocation()) : "null") +
 				": target=" + getTargetName(event.getTarget()) + 
-				"; targetloc=" + formatLoc(event.getTarget().getLocation()) +
-				"; canceled=" + event.isCancelled());
+				"; targetLoc=" + formatLoc(event.getTarget().getLocation()) +
+				"; cancelled=" + event.isCancelled());
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onSpellTargetLocation(SpellTargetLocationEvent event) {
-		log("  TARGET LOCATION" + 
+		log("TARGET LOCATION" +
 				"; spell=" + event.getSpell().getInternalName() + 
 				"; caster=" + event.getCaster().getName() + 
-				"; casterloc=" + formatLoc(event.getCaster().getLocation()) +
-				"; targetloc=" + formatLoc(event.getTargetLocation()) +
-				"; canceled=" + event.isCancelled());
+				"; casterLoc=" + formatLoc(event.getCaster().getLocation()) +
+				"; targetLoc=" + formatLoc(event.getTargetLocation()) +
+				"; cancelled=" + event.isCancelled());
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onSpellCasted(SpellCastedEvent event) {
-		log("  END CAST" + 
+		log("END CAST" +
 				"; spell=" + event.getSpell().getInternalName() + 
 				"; caster=" + event.getCaster().getName() + 
 				"; loc=" + formatLoc(event.getCaster().getLocation()) +

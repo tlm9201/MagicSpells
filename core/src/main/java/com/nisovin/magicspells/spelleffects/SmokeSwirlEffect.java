@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spelleffects;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -11,8 +10,12 @@ import com.nisovin.magicspells.util.TimeUtil;
 
 public class SmokeSwirlEffect extends SpellEffect {
 
-	int interval;
-	int duration = TimeUtil.TICKS_PER_SECOND;
+	private int interval;
+	private int duration = TimeUtil.TICKS_PER_SECOND;
+
+	private int[] x = {1, 1, 0, -1, -1, -1, 0, 1};
+	private int[] z = {0, 1, 1, 1, 0, -1, -1, -1};
+	private int[] v = {7, 6, 3, 0, 1, 2, 5, 8};
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -20,10 +23,6 @@ public class SmokeSwirlEffect extends SpellEffect {
 		duration = config.getInt("duration", duration);
 	}
 
-	int[] x = {1, 1, 0, -1, -1, -1, 0, 1};
-	int[] z = {0, 1, 1, 1, 0, -1, -1, -1};
-	int[] v = {7, 6, 3, 0, 1, 2, 5, 8};
-	
 	@Override
 	public Runnable playEffectLocation(Location location) {		
 		new Animator(location, interval, duration);
@@ -45,17 +44,17 @@ public class SmokeSwirlEffect extends SpellEffect {
 		private int iteration;
 		private int animatorTaskId;
 		
-		public Animator(Location location, int interval, int duration) {
+		Animator(Location location, int interval, int duration) {
 			this(interval, duration);
 			this.location = location;
 		}
 		
-		public Animator(Entity entity, int interval, int duration) {
+		Animator(Entity entity, int interval, int duration) {
 			this(interval, duration);
 			this.entity = entity;
 		}
 		
-		public Animator(int interval, int duration) {
+		Animator(int interval, int duration) {
 			this.interval = interval;
 			this.animatorDuration = duration;
 			this.iteration = 0;
@@ -65,18 +64,17 @@ public class SmokeSwirlEffect extends SpellEffect {
 		@Override
 		public void run() {
 			if (iteration * interval > animatorDuration) {
-				Bukkit.getScheduler().cancelTask(animatorTaskId);
-			} else {
-				int i = iteration % 8;
-				Location loc;
-				if (location != null) {
-					loc = location;
-				} else {
-					loc = entity.getLocation();
-				}
-				loc.getWorld().playEffect(loc.clone().add(x[i], 0, z[i]), Effect.SMOKE, v[i]);
-				iteration++;
+				MagicSpells.cancelTask(animatorTaskId);
+				return;
 			}
+
+			int i = iteration % 8;
+			Location loc;
+			if (location != null) loc = location;
+			else loc = entity.getLocation();
+
+			loc.getWorld().playEffect(loc.clone().add(x[i], 0, z[i]), Effect.SMOKE, v[i]);
+			iteration++;
 		}
 		
 	}

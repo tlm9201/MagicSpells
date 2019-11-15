@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.block.Action;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
@@ -51,28 +52,29 @@ public class TelekinesisSpell extends TargetedSpell implements TargetedLocationS
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Block target = getTargetedBlock(player, power);
-			if (target == null) return noTarget(player);
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			Block target = getTargetedBlock(caster, power);
+			if (target == null) return noTarget(caster);
 
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, target.getLocation(), power);
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
 			EventUtil.call(event);
-			if (event.isCancelled()) return noTarget(player);
+			if (event.isCancelled()) return noTarget(caster);
 			
 			target = event.getTargetLocation().getBlock();
 			
-			boolean activated = activate(player, target);
-			if (!activated) return noTarget(player);
+			boolean activated = activate((Player) caster, target);
+			if (!activated) return noTarget(caster);
 			
-			playSpellEffects(player, target.getLocation());
+			playSpellEffects(caster, target.getLocation());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
-		boolean activated = activate(caster, target.getBlock());
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		if (!(caster instanceof Player)) return false;
+		boolean activated = activate((Player) caster, target.getBlock());
 		if (activated) playSpellEffects(caster, target);
 		return activated;
 	}

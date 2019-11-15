@@ -6,7 +6,6 @@ import java.util.HashSet;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
@@ -104,17 +103,17 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			new Beam(player, player.getLocation(), power);
+			new Beam(livingEntity, livingEntity.getLocation(), power);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
-		new Beam(caster, caster.getLocation(), target, power);
+	public boolean castAtEntity(LivingEntity livingEntity, LivingEntity target, float power) {
+		new Beam(livingEntity, livingEntity.getLocation(), target, power);
 		return true;
 	}
 
@@ -124,8 +123,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	}
 
 	@Override
-	public boolean castAtLocation(Player player, Location location, float v) {
-		new Beam(player, location, v);
+	public boolean castAtLocation(LivingEntity livingEntity, Location location, float v) {
+		new Beam(livingEntity, location, v);
 		return true;
 	}
 
@@ -135,7 +134,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(Player caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		new Beam(caster, from, target, power);
 		return true;
 	}
@@ -147,14 +146,14 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 	private class Beam {
 
-		private Player caster;
+		private LivingEntity caster;
 		private LivingEntity target;
 		private float power;
 		private Location startLoc;
 		private Location currentLoc;
 		private Set<Entity> immune;
 
-		private Beam(Player caster, Location from, float power) {
+		private Beam(LivingEntity caster, Location from, float power) {
 			this.caster = caster;
 			this.power = power;
 			startLoc = from.clone();
@@ -164,7 +163,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			shootBeam();
 		}
 
-		private Beam(Player caster, Location from, LivingEntity target, float power) {
+		private Beam(LivingEntity caster, Location from, LivingEntity target, float power) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;

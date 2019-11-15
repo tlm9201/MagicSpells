@@ -1,9 +1,9 @@
 package com.nisovin.magicspells.events;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 
@@ -15,7 +15,7 @@ public class SpellTargetLocationEvent extends SpellEvent implements Cancellable 
 	private float power;
 	private boolean cancelled = false;
 	
-	public SpellTargetLocationEvent(Spell spell, Player caster, Location target, float power) {
+	public SpellTargetLocationEvent(Spell spell, LivingEntity caster, Location target, float power) {
 		super(spell, caster);
 		this.target = target;
 		this.power = power;

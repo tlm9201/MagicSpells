@@ -5,6 +5,7 @@ import java.util.Random;
 import java.util.ArrayList;
 
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
@@ -57,23 +58,23 @@ public class RandomSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			RandomOptionSet set = options;
 			if (checkIndividualCooldowns || checkIndividualModifiers) {
 				set = new RandomOptionSet();
 				for (SpellOption o : options.randomOptionSetOptions) {
-					if (checkIndividualCooldowns && o.spell.getSpell().onCooldown(player)) continue;
+					if (checkIndividualCooldowns && o.spell.getSpell().onCooldown(livingEntity)) continue;
 					if (checkIndividualModifiers) {
 						ModifierSet modifiers = o.spell.getSpell().getModifiers();
-						if (modifiers != null && !modifiers.check(player)) continue;
+						if (modifiers != null && livingEntity instanceof Player && !modifiers.check((Player) livingEntity)) continue;
 					}
 					set.add(o);
 				}
 			}
 			if (!set.randomOptionSetOptions.isEmpty()) {
 				Subspell spell = set.choose();
-				if (spell != null) return spell.cast(player, power);
+				if (spell != null) return spell.cast(livingEntity, power);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			return PostCastAction.ALREADY_HANDLED;

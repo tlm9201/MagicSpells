@@ -86,7 +86,7 @@ public class ArrowSpell extends Spell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		return PostCastAction.ALREADY_HANDLED;
 	}
 

@@ -106,11 +106,11 @@ public class SeeHealthSpell extends BuffSpell {
 		MagicSpells.getVolatileCodeHandler().sendActionBarMessage(player, sb.toString());
 	}
 	
-	class Updater implements Runnable {
-		
-		int taskId;
-		
-		public Updater() {
+	private class Updater implements Runnable {
+
+		private int taskId;
+
+		private Updater() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, 0, interval);
 		}
 		

@@ -1,15 +1,15 @@
 package com.nisovin.magicspells.factions.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.massivecraft.factions.entity.MPlayer;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class PowerGreaterThanCondition extends Condition {
 
-	double power;
+	private double power;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -22,17 +22,17 @@ public class PowerGreaterThanCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return player != null && MPlayer.get(player).getPower() > power;
+	public boolean check(LivingEntity livingEntity) {
+		return livingEntity != null && livingEntity instanceof Player && MPlayer.get(livingEntity).getPower() > power;
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		return target != null && target instanceof Player && MPlayer.get(target).getPower() > power;
 	}
 
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

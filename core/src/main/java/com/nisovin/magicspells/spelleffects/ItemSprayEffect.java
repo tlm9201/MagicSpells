@@ -14,13 +14,13 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class ItemSprayEffect extends SpellEffect {
 
-	Material material;
-	String materialName;
-	ItemStack itemStack;
+	private Material material;
+	private String materialName;
+	private ItemStack itemStack;
 
-	int amount;
-	int duration;
-	float force;
+	private int amount;
+	private int duration;
+	private float force;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

@@ -2,15 +2,14 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class TimeCondition extends Condition {
 
-	int start;
-	int end;
+	private int start;
+	private int end;
 
 	@Override
 	public boolean setVar(String var) {
@@ -26,17 +25,17 @@ public class TimeCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(Player player) {
-		return check(player, player.getLocation());
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity.getLocation());
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		return check(player, target.getLocation());
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target, target.getLocation());
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		long time = location.getWorld().getTime();
 		if (end >= start) return start <= time && time <= end;
 		return time >= start || time <= end;

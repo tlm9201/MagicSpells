@@ -126,18 +126,18 @@ public class ValidTargetList {
 		this.targetNonPlayers = targetNonPlayers;
 	}
 	
-	public boolean canTarget(Player caster, Entity target) {
+	public boolean canTarget(LivingEntity caster, Entity target) {
 		return canTarget(caster, target, targetPlayers);
 	}
 	
-	public boolean canTarget(Player caster, Entity target, boolean targetPlayers) {
+	public boolean canTarget(LivingEntity caster, Entity target, boolean targetPlayers) {
 		if (!(target instanceof LivingEntity) && !targetNonLivingEntities) return false;
 		boolean targetIsPlayer = target instanceof Player;
 		if (targetIsPlayer && ((Player) target).getGameMode() == GameMode.CREATIVE) return false;
 		if (targetIsPlayer && ((Player) target).getGameMode() == GameMode.SPECTATOR) return false;
 		if (targetSelf && target.equals(caster)) return true;
 		if (!targetSelf && target.equals(caster)) return false;
-		if (!targetInvisibles && targetIsPlayer && !caster.canSee((Player) target)) return false;
+		if (!targetInvisibles && targetIsPlayer && caster instanceof Player && !((Player) caster).canSee((Player) target)) return false;
 		if (targetPlayers && targetIsPlayer) return true;
 		if (targetNonPlayers && !targetIsPlayer) return true;
 		if (targetMonsters && target instanceof Monster) return true;
@@ -159,11 +159,11 @@ public class ValidTargetList {
 		return false;
 	}
 	
-	public List<LivingEntity> filterTargetListCastingAsLivingEntities(Player caster, List<Entity> targets) {
+	public List<LivingEntity> filterTargetListCastingAsLivingEntities(LivingEntity caster, List<Entity> targets) {
 		return filterTargetListCastingAsLivingEntities(caster, targets, targetPlayers);
 	}
 	
-	public List<LivingEntity> filterTargetListCastingAsLivingEntities(Player caster, List<Entity> targets, boolean targetPlayers) {
+	public List<LivingEntity> filterTargetListCastingAsLivingEntities(LivingEntity caster, List<Entity> targets, boolean targetPlayers) {
 		List<LivingEntity> realTargets = new ArrayList<>();
 		for (Entity e : targets) {
 			if (canTarget(caster, e, targetPlayers)) {

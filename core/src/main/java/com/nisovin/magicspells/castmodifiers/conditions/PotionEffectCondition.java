@@ -2,17 +2,16 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class PotionEffectCondition extends Condition {
 
-	PotionEffectType effectType;
-	int value;
+	private PotionEffectType effectType;
+	private int value;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -32,26 +31,24 @@ public class PotionEffectCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return check(null, player);
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		boolean has = target.hasPotionEffect(effectType);
 		if (value == -1) return has;
 		if (has) {
 			for (PotionEffect effect : target.getActivePotionEffects()) {
-				if (effect.getType() == effectType) {
-					return effect.getAmplifier() == value;
-				}
+				if (effect.getType() == effectType) return effect.getAmplifier() == value;
 			}
 		}
 		return false;
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}	
 	

@@ -72,9 +72,9 @@ public class FlamewalkSpell extends BuffSpell {
 
 	private class Burner implements Runnable {
 		
-		int taskId;
+		private int taskId;
 
-		public Burner() {
+		private Burner() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, tickInterval, tickInterval);
 		}
 		

@@ -2,7 +2,7 @@ package com.nisovin.magicspells.spells;
 
 import java.util.List;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -22,12 +22,12 @@ public class PermissionSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && duration > 0 && permissionNodes != null) {
 			for (String node : permissionNodes) {
-				player.addAttachment(MagicSpells.plugin, node, true, duration);
+				livingEntity.addAttachment(MagicSpells.plugin, node, true, duration);
 			}
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

@@ -53,22 +53,22 @@ public class StunSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-			if (targetInfo == null) return noTarget(player);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			if (targetInfo == null) return noTarget(caster);
 			LivingEntity target = targetInfo.getTarget();
 			power = targetInfo.getPower();
 			
-			stunLivingEntity(player, target, Math.round(duration * power));
-			sendMessages(player, target);
+			stunLivingEntity(caster, target, Math.round(duration * power));
+			sendMessages(caster, target);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		stunLivingEntity(caster, target, Math.round(duration * power));
 		return true;
@@ -81,7 +81,7 @@ public class StunSpell extends TargetedSpell implements TargetedEntitySpell {
 		return true;
 	}
 	
-	private void stunLivingEntity(Player caster, LivingEntity target, int duration) {
+	private void stunLivingEntity(LivingEntity caster, LivingEntity target, int duration) {
 		StunnedInfo info = new StunnedInfo(caster, target, System.currentTimeMillis() + duration, target.getLocation());
 		stunnedLivingEntities.put(target.getUniqueId(), info);
 		
@@ -106,11 +106,11 @@ public class StunSpell extends TargetedSpell implements TargetedEntitySpell {
 	private static class StunnedInfo {
 		
 		private Long until;
-		private Player caster;
+		private LivingEntity caster;
 		private LivingEntity target;
 		private Location targetLocation;
 		
-		private StunnedInfo(Player caster, LivingEntity target, Long until, Location targetLocation) {
+		private StunnedInfo(LivingEntity caster, LivingEntity target, Long until, Location targetLocation) {
 			this.caster = caster;
 			this.target = target;
 			this.until = until;

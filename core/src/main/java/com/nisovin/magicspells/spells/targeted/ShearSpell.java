@@ -6,7 +6,6 @@ import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Sheep;
 import org.bukkit.material.Wool;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
@@ -61,23 +60,23 @@ public class ShearSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
 			if (target == null) return PostCastAction.ALREADY_HANDLED;
 			if (!(target.getTarget() instanceof Sheep)) return PostCastAction.ALREADY_HANDLED;
 
 			boolean done = shear((Sheep) target.getTarget());
-			if (!done) return noTarget(player);
+			if (!done) return noTarget(livingEntity);
 
-			sendMessages(player, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!(target instanceof Sheep)) return false;
 		return shear((Sheep) target);
 	}

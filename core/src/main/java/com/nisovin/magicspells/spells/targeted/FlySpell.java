@@ -20,12 +20,12 @@ public class FlySpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(player, power);
-			if (targetInfo == null) return noTarget(player);
+			TargetInfo<Player> targetInfo = getTargetedPlayer(livingEntity, power);
+			if (targetInfo == null) return noTarget(livingEntity);
 			Player target = targetInfo.getTarget();
-			if (target == null) return noTarget(player);
+			if (target == null) return noTarget(livingEntity);
 
 			target.setFlying(targetBooleanState.getBooleanState(target.isFlying()));
 		}
@@ -33,7 +33,7 @@ public class FlySpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 	
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!(target instanceof Player)) return false;
 		((Player) target).setFlying(targetBooleanState.getBooleanState(((Player) target).isFlying()));
 		return true;

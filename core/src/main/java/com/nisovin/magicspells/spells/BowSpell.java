@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityShootBowEvent;
 
 import com.nisovin.magicspells.Spell;
@@ -69,7 +70,7 @@ public class BowSpell extends Spell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		return PostCastAction.ALREADY_HANDLED;
 	}
 

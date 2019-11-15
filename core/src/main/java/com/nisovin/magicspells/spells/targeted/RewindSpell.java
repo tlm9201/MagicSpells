@@ -70,22 +70,22 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			if (targetSelf) new Rewinder(player, player, power);
+			if (targetSelf) new Rewinder(livingEntity, livingEntity, power);
 			else {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
-				if (targetInfo == null) return noTarget(player);
-				sendMessages(player, targetInfo.getTarget());
-				new Rewinder(player, targetInfo.getTarget(), power);
+				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+				if (targetInfo == null) return noTarget(livingEntity);
+				sendMessages(livingEntity, targetInfo.getTarget());
+				new Rewinder(livingEntity, targetInfo.getTarget(), power);
 			}
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player player, LivingEntity livingEntity, float v) {
+	public boolean castAtEntity(LivingEntity player, LivingEntity livingEntity, float v) {
 		new Rewinder(player, livingEntity, v);
 		sendMessages(player, livingEntity);
 		playSpellEffects(EffectPosition.CASTER, player);
@@ -104,10 +104,10 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	@EventHandler(ignoreCancelled = true)
 	public void onSpellCast(SpellCastEvent e) {
 		if (!allowForceRewind) return;
-		Player pl = e.getCaster();
-		if (!entities.containsKey(pl)) return;
+		LivingEntity caster = e.getCaster();
+		if (!entities.containsKey(caster)) return;
 		if (!e.getSpell().getInternalName().equals(internalName)) return;
-		entities.get(pl).rewind();
+		entities.get(caster).rewind();
 	}
 
 	@EventHandler
@@ -125,12 +125,12 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 		private int startMana;
 		private double startHealth;
 
-		private Player caster;
+		private LivingEntity caster;
 		private float power;
 		private LivingEntity entity;
 		private List<Location> locations;
 
-		private Rewinder(Player caster, LivingEntity entity, float power) {
+		private Rewinder(LivingEntity caster, LivingEntity entity, float power) {
 			this.locations = new ArrayList<>();
 			this.caster = caster;
 			this.power = power;

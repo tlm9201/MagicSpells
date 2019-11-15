@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffectType;
@@ -32,20 +31,20 @@ public class CrippleSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {		
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 
-			cripple(player, target.getTarget(), power);
-			sendMessages(player, target.getTarget());
+			cripple(livingEntity, target.getTarget(), power);
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		cripple(caster, target, power);
 		return true;
@@ -58,7 +57,7 @@ public class CrippleSpell extends TargetedSpell implements TargetedEntitySpell {
 		return true;
 	}
 	
-	private void cripple(Player caster, LivingEntity target, float power) {
+	private void cripple(LivingEntity caster, LivingEntity target, float power) {
 		if (target == null) return;
 
 		if (caster != null) playSpellEffects(caster, target);

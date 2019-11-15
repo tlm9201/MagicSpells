@@ -15,31 +15,31 @@ import com.nisovin.magicspells.util.ColorUtil;
 
 public class ParticlesEffect extends SpellEffect {
 
-	Particle particle;
-	String particleName;
+	private Particle particle;
+	private String particleName;
 
-	Material material;
-	String materialName;
+	private Material material;
+	private String materialName;
 
-	BlockData blockData;
-	ItemStack itemStack;
+	private BlockData blockData;
+	private ItemStack itemStack;
 
-	float dustSize;
-	String colorHex;
-	Color dustColor;
-	DustOptions dustOptions;
+	private float dustSize;
+	private String colorHex;
+	private Color dustColor;
+	private DustOptions dustOptions;
 
-	int count;
-	float speed;
-	float xSpread;
-	float ySpread;
-	float zSpread;
-	float yOffset;
+	private int count;
+	private float speed;
+	private float xSpread;
+	private float ySpread;
+	private float zSpread;
+	private float yOffset;
 
-	boolean none = true;
-	boolean item = false;
-	boolean dust = false;
-	boolean block = false;
+	private boolean none = true;
+	private boolean item = false;
+	private boolean dust = false;
+	private boolean block = false;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

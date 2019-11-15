@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Collection;
 
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 
@@ -43,8 +44,9 @@ public class SublistSpell extends CommandSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
+			Player player = (Player) livingEntity;
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			String extra = "";
 			if (args != null && args.length > 0 && spellbook.hasAdvancedPerm("list")) {

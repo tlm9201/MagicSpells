@@ -1,8 +1,8 @@
 package com.nisovin.magicspells.events;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.SpellReagents;
@@ -27,7 +27,7 @@ public class SpellCastEvent extends SpellEvent implements Cancellable {
 	private String[] args;
 	private boolean cancelled = false;
 	
-	public SpellCastEvent(Spell spell, Player caster, SpellCastState state, float power, String[] args, float cooldown, SpellReagents reagents, int castTime) {
+	public SpellCastEvent(Spell spell, LivingEntity caster, SpellCastState state, float power, String[] args, float cooldown, SpellReagents reagents, int castTime) {
 		super(spell, caster);
 		this.state = state;
 		this.cooldown = cooldown;

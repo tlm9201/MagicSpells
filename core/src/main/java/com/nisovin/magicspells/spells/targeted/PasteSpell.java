@@ -8,7 +8,7 @@ import java.io.FileInputStream;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -87,20 +87,20 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block target = pasteAtCaster ? player.getLocation().getBlock() : getTargetedBlock(player, power);
-			if (target == null) return noTarget(player);
+			Block target = pasteAtCaster ? livingEntity.getLocation().getBlock() : getTargetedBlock(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 			Location loc = target.getLocation();
 			loc.add(0, yOffset, 0);
 			boolean ok = castAtLocation(loc, power);
-			if (!ok) return noTarget(player);
+			if (!ok) return noTarget(livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		boolean ok = pasteInstant(target);
 		if (!ok) return false;
 		if (caster != null) playSpellEffects(caster, target);

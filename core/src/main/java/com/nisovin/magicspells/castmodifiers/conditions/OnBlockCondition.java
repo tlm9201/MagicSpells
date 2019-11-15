@@ -6,15 +6,14 @@ import java.util.HashSet;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OnBlockCondition extends Condition {
 
-	Set<Material> materials;
-	Material material;
+	private Set<Material> materials;
+	private Material material;
 
 	@Override
 	public boolean setVar(String var) {
@@ -37,25 +36,20 @@ public class OnBlockCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(Player player) {
-		return check(player, player);
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		Block block = target.getLocation().subtract(0, 1, 0).getBlock();
 		if (material != null) return material.equals(block.getType());
-		if (!materials.contains(block.getType())) return false;
 
-		for (Material mat : materials) {
-			if (mat.equals(block.getType())) return true;
-		}
-
-		return false;
+		return materials.contains(block.getType());
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 

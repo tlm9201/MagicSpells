@@ -6,9 +6,9 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -46,11 +46,11 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block block = getTargetedBlock(player, power);
+			Block block = getTargetedBlock(livingEntity, power);
 			if (block != null && !BlockUtils.isAir(block.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, block.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, block.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) block = null;
 				else {
@@ -59,14 +59,14 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 				}
 			}
 
-			if (block == null || BlockUtils.isAir(block.getType())) return noTarget(player);
-			knockback(player, block.getLocation().add(0.5, 0, 0.5), power);
+			if (block == null || BlockUtils.isAir(block.getType())) return noTarget(livingEntity);
+			knockback(livingEntity, block.getLocation().add(0.5, 0, 0.5), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		knockback(caster, target, power);
 		return true;
 	}
@@ -77,7 +77,10 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		return true;
 	}
 	
-	private void knockback(Player player, Location location, float basePower) {
+	private void knockback(LivingEntity livingEntity, Location location, float basePower) {
+		if (location == null) return;
+		if (location.getWorld() == null) return;
+
 		location = location.clone().add(0D, yOffset, 0D);
 		Collection<Entity> entities = location.getWorld().getEntitiesByClasses(LivingEntity.class);
 
@@ -85,13 +88,13 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		Vector v;
 		Vector t = location.toVector();
 		for (Entity entity : entities) {
-			if (player == null && !validTargetList.canTarget(entity)) continue;
-			if (player != null && !validTargetList.canTarget(player, entity)) continue;
+			if (livingEntity == null && !validTargetList.canTarget(entity)) continue;
+			if (livingEntity != null && !validTargetList.canTarget(livingEntity, entity)) continue;
 			if (entity.getLocation().distanceSquared(location) > radiusSquared) continue;
 
 			float power = basePower;
-			if (callTargetEvents && player != null) {
-				SpellTargetEvent event = new SpellTargetEvent(this, player, (LivingEntity) entity, power);
+			if (callTargetEvents && livingEntity != null) {
+				SpellTargetEvent event = new SpellTargetEvent(this, livingEntity, (LivingEntity) entity, power);
 				EventUtil.call(event);
 				if (event.isCancelled()) continue;
 				power = event.getPower();
@@ -104,15 +107,17 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 			else v.setY(yForce * power);
 			if (v.getY() > maxYForce) v.setY(maxYForce);
 
+			v = Util.makeFinite(v);
+
 			if (addVelocityInstead) entity.setVelocity(entity.getVelocity().add(v));
 			else entity.setVelocity(v);
 
-			if (player != null) playSpellEffectsTrail(player.getLocation(), entity.getLocation());
+			if (livingEntity != null) playSpellEffectsTrail(livingEntity.getLocation(), entity.getLocation());
 			playSpellEffects(EffectPosition.TARGET, entity);
 		}
 
 		playSpellEffects(EffectPosition.SPECIAL, location);
-		if (player != null) playSpellEffects(EffectPosition.CASTER, player);
+		if (livingEntity != null) playSpellEffects(EffectPosition.CASTER, livingEntity);
 	}
 
 }

@@ -1,8 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 
@@ -21,20 +19,20 @@ public class DummySpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			if (target == null) return noTarget(livingEntity);
 
-			playSpellEffects(player, target.getTarget());
-			sendMessages(player, target.getTarget());
+			playSpellEffects(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		playSpellEffects(caster, target);
 		return true;
 	}
@@ -46,7 +44,7 @@ public class DummySpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		playSpellEffects(caster, target);
 		return true;
 	}
@@ -58,14 +56,7 @@ public class DummySpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	}
 	
 	@Override
-	public boolean castFromConsole(CommandSender sender, String[] args) {
-		playSpellEffects(EffectPosition.CASTER, (Entity) null);
-		playSpellEffects(EffectPosition.TARGET, (Entity) null);
-		return true;
-	}
-	
-	@Override
-	public boolean castAtEntityFromLocation(Player caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		playSpellEffects(from, target);
 		return true;
 	}
@@ -73,6 +64,11 @@ public class DummySpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
 		playSpellEffects(from, target);
+		return true;
+	}
+
+	@Override
+	public boolean castFromConsole(CommandSender sender, String[] args) {
 		return true;
 	}
 	

@@ -26,21 +26,21 @@ public class UndisguiseSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (manager == null) return PostCastAction.ALREADY_HANDLED;
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> target = getTargetPlayer(player, power);
-			if (target == null) return noTarget(player);
+			TargetInfo<Player> target = getTargetPlayer(caster, power);
+			if (target == null) return noTarget(caster);
 
-			undisguise(player, target.getTarget());
-			sendMessages(player, target.getTarget());
+			undisguise(caster, target.getTarget());
+			sendMessages(caster, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		return target instanceof Player && undisguise(caster, (Player) target);
 	}
 
@@ -49,7 +49,7 @@ public class UndisguiseSpell extends TargetedSpell implements TargetedEntitySpel
 		return target instanceof Player && undisguise(null, (Player) target);
 	}
 
-	private boolean undisguise(Player caster, Player player) {
+	private boolean undisguise(LivingEntity caster, Player player) {
 		if (manager == null) return false;
 		manager.removeDisguise(player);
 		if (caster != null) playSpellEffects(caster, player);

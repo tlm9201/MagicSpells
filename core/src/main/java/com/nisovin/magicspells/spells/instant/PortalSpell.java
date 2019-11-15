@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import com.nisovin.magicspells.Spell;
@@ -100,32 +101,32 @@ public class PortalSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Location loc = firstMark.getEffectiveMark(player);
+			Location loc = firstMark.getEffectiveMark(livingEntity);
 			Location locSecond;
 			if (loc == null) {
-				sendMessage(strNoMark, player, args);
+				sendMessage(strNoMark, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
 			if (usingSecondMarkSpell) {
-				locSecond = secondMark.getEffectiveMark(player);
+				locSecond = secondMark.getEffectiveMark(livingEntity);
 				if (locSecond == null) {
-					sendMessage(strNoMark, player, args);
+					sendMessage(strNoMark, livingEntity, args);
 					return PostCastAction.ALREADY_HANDLED;
 				}
-			} else locSecond = player.getLocation();
+			} else locSecond = livingEntity.getLocation();
 
 			double distanceSq = 0;
 			if (maxDistanceSq > 0) {
 				if (!loc.getWorld().equals(locSecond.getWorld())) {
-					sendMessage(strTooFar, player, args);
+					sendMessage(strTooFar, livingEntity, args);
 					return PostCastAction.ALREADY_HANDLED;
 				} else {
 					distanceSq = locSecond.distanceSquared(loc);
 					if (distanceSq > maxDistanceSq) {
-						sendMessage(strTooFar, player, args);
+						sendMessage(strTooFar, livingEntity, args);
 						return PostCastAction.ALREADY_HANDLED;
 					}
 				}
@@ -134,14 +135,14 @@ public class PortalSpell extends InstantSpell {
 				if (loc.getWorld().equals(locSecond.getWorld())) {
 					if (distanceSq == 0) distanceSq = locSecond.distanceSquared(loc);
 					if (distanceSq < minDistanceSq) {
-						sendMessage(strTooClose, player, args);
+						sendMessage(strTooClose, livingEntity, args);
 						return PostCastAction.ALREADY_HANDLED;
 					}
 				}
 			}
 
-			new PortalLink(this, player, loc, locSecond);
-			playSpellEffects(EffectPosition.CASTER, player);
+			new PortalLink(this, livingEntity, loc, locSecond);
+			playSpellEffects(EffectPosition.CASTER, livingEntity);
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -150,7 +151,7 @@ public class PortalSpell extends InstantSpell {
 	private class PortalLink implements Listener {
 
 		private PortalSpell spell;
-		private Player caster;
+		private LivingEntity caster;
 		private Location loc1;
 		private Location loc2;
 		private BoundingBox box1;
@@ -159,7 +160,7 @@ public class PortalSpell extends InstantSpell {
 		private int taskId2 = -1;
 		private Map<String, Long> cooldownUntil;
 
-		private PortalLink (PortalSpell spell, Player caster, Location loc1, Location loc2) {
+		private PortalLink (PortalSpell spell, LivingEntity caster, Location loc1, Location loc2) {
 			this.spell = spell;
 			this.caster = caster;
 			this.loc1 = loc1;
@@ -214,34 +215,34 @@ public class PortalSpell extends InstantSpell {
 			}
 		}
 
-		private boolean checkTeleport(Player player) {
-			if (cooldownUntil.containsKey(player.getName()) && cooldownUntil.get(player.getName()) > System.currentTimeMillis()) {
-				sendMessage(strTeleportCooldownFail, player, MagicSpells.NULL_ARGS);
+		private boolean checkTeleport(LivingEntity livingEntity) {
+			if (cooldownUntil.containsKey(livingEntity.getName()) && cooldownUntil.get(livingEntity.getName()) > System.currentTimeMillis()) {
+				sendMessage(strTeleportCooldownFail, livingEntity, MagicSpells.NULL_ARGS);
 				return false;
 			}
-			cooldownUntil.put(player.getName(), System.currentTimeMillis() + teleportCooldown);
+			cooldownUntil.put(livingEntity.getName(), System.currentTimeMillis() + teleportCooldown);
 
-			Player payer = null;
+			LivingEntity payer = null;
 			if (spell.teleportCost != null) {
 				if (spell.chargeCostToTeleporter) {
-					if (hasReagents(player, spell.teleportCost)) {
-						payer = player;
+					if (hasReagents(livingEntity, spell.teleportCost)) {
+						payer = livingEntity;
 					} else {
-						sendMessage(spell.strTeleportCostFail, player, MagicSpells.NULL_ARGS);
+						sendMessage(spell.strTeleportCostFail, livingEntity, MagicSpells.NULL_ARGS);
 						return false;
 					}
 				} else {
 					if (hasReagents(caster, spell.teleportCost)) {
 						payer = caster;
 					} else {
-						sendMessage(spell.strTeleportCostFail, player, MagicSpells.NULL_ARGS);
+						sendMessage(spell.strTeleportCostFail, livingEntity, MagicSpells.NULL_ARGS);
 						return false;
 					}
 				}
 				if (payer == null) return false;
 			}
 
-			SpellTargetEvent event = new SpellTargetEvent(spell, caster, player, 1);
+			SpellTargetEvent event = new SpellTargetEvent(spell, caster, livingEntity, 1);
 			Bukkit.getPluginManager().callEvent(event);
 			if (payer != null) removeReagents(payer, spell.teleportCost);
 			return true;

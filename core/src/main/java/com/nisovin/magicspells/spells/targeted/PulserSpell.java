@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -108,43 +109,43 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			if (capPerPlayer > 0) {
 				int count = 0;
 				for (Pulser pulser : pulsers.values()) {
-					if (!pulser.caster.equals(player)) continue;
+					if (!pulser.caster.equals(livingEntity)) continue;
 					
 					count++;
 					if (count >= capPerPlayer) {
-						sendMessage(strAtCap, player, args);
+						sendMessage(strAtCap, livingEntity, args);
 						return PostCastAction.ALREADY_HANDLED;
 					}
 				}
 			}
-			List<Block> lastTwo = getLastTwoTargetedBlocks(player, power);
+			List<Block> lastTwo = getLastTwoTargetedBlocks(livingEntity, power);
 			Block target = null;
 
 			if (lastTwo != null && lastTwo.size() == 2) target = lastTwo.get(0);
-			if (target == null) return noTarget(player);
+			if (target == null) return noTarget(livingEntity);
 			if (yOffset > 0) target = target.getRelative(BlockFace.UP, yOffset);
 			else if (yOffset < 0) target = target.getRelative(BlockFace.DOWN, yOffset);
-			if (!BlockUtils.isAir(target.getType()) && target.getType() != Material.SNOW && target.getType() != Material.TALL_GRASS) return noTarget(player);
+			if (!BlockUtils.isAir(target.getType()) && target.getType() != Material.SNOW && target.getType() != Material.TALL_GRASS) return noTarget(livingEntity);
 
 			if (target != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, target.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, target.getLocation(), power);
 				EventUtil.call(event);
-				if (event.isCancelled()) return noTarget(player);
+				if (event.isCancelled()) return noTarget(livingEntity);
 				target = event.getTargetLocation().getBlock();
 				power = event.getPower();
 			}
-			createPulser(player, target, power);
+			createPulser(livingEntity, target, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(Player caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		Block block = target.getBlock();
 		if (yOffset > 0) block = block.getRelative(BlockFace.UP, yOffset);
 		else if (yOffset < 0) block = block.getRelative(BlockFace.DOWN, yOffset);
@@ -166,7 +167,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		return castAtLocation(null, target, power);
 	}
 
-	private void createPulser(Player caster, Block block, float power) {
+	private void createPulser(LivingEntity caster, Block block, float power) {
 		if (material == null) return;
 		block.setType(material);
 		pulsers.put(block, new Pulser(caster, block, power));
@@ -240,13 +241,13 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	
 	private class Pulser {
 
-		private Player caster;
+		private LivingEntity caster;
 		private Block block;
 		private Location location;
 		private float power;
 		private int pulseCount;
 		
-		private Pulser(Player caster, Block block, float power) {
+		private Pulser(LivingEntity caster, Block block, float power) {
 			this.caster = caster;
 			this.block = block;
 			this.location = block.getLocation().add(0.5, 0.5, 0.5);
@@ -259,7 +260,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 				if (material.equals(block.getType()) && block.getChunk().isLoaded()) return activate();
 				stop();
 				return true;
-			} else if (caster.isValid() && caster.isOnline() && material.equals(block.getType()) && block.getChunk().isLoaded()) {
+			} else if (caster.isValid() && material.equals(block.getType()) && block.getChunk().isLoaded()) {
 				if (maxDistanceSquared > 0 && (!LocationUtil.isSameWorld(location, caster) || location.distanceSquared(caster.getLocation()) > maxDistanceSquared)) {
 					stop();
 					return true;

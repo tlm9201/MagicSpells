@@ -1,26 +1,24 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
+import java.util.Objects;
+
 import org.bukkit.Material;
+import org.bukkit.Location;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.EntityEquipment;
 
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
-import java.util.Objects;
-
 public class WearingCondition extends Condition {
 
-	Material[] ids;
-	short[] datas;
-	boolean[] checkData;
-	String[] names;
-	boolean[] checkName;
+	private Material[] ids;
+	private short[] datas;
+	private String[] names;
+	private boolean[] checkName;
+	private boolean[] checkData;
 
 	@Override
 	public boolean setVar(String var) {
@@ -66,17 +64,12 @@ public class WearingCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(Player player) {
-		PlayerInventory inv = player.getInventory();
-		if (check(inv.getHelmet())) return true;
-		if (check(inv.getChestplate())) return true;
-		if (check(inv.getLeggings())) return true;
-		return check(inv.getBoots());
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity);
 	}
 	
 	@Override
-	public boolean check(Player player, LivingEntity target) {
-		if (target instanceof Player) return check((Player)target);
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		EntityEquipment equip = target.getEquipment();
 		if (equip != null) {
 			if (check(equip.getHelmet())) return true;
@@ -88,24 +81,22 @@ public class WearingCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(Player player, Location location) {
+	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
 	
 	private boolean check(ItemStack item) {
 		if (item == null) return false;
-		Material thisid = item.getType();
-		short thisdata = item.getDurability();
-		String thisname = null;
+		Material type = item.getType();
+		short durability = item.getDurability();
+		String name = null;
 		try {
-			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
-				thisname = item.getItemMeta().getDisplayName();
-			}
+			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) name = item.getItemMeta().getDisplayName();
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 		}
 		for (int i = 0; i < ids.length; i++) {
-			if (ids[i] == thisid && (!checkData[i] || datas[i] == thisdata) && (!checkName[i] || Objects.equals(names[i], thisname))) {
+			if (ids[i] == type && (!checkData[i] || datas[i] == durability) && (!checkName[i] || Objects.equals(names[i], name))) {
 				return true;
 			}
 		}

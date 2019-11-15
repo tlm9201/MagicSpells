@@ -126,7 +126,7 @@ public class WalkwaySpell extends BuffSpell {
 		private int prevDirY;
 		private int prevDirZ;
 		
-		public Platform(LivingEntity entity, Material material, int size) {
+		private Platform(LivingEntity entity, Material material, int size) {
 			this.entity = entity;
 			this.materialPlatform = material;
 			this.sizePlatform = size;
@@ -134,8 +134,8 @@ public class WalkwaySpell extends BuffSpell {
 			
 			move();
 		}
-		
-		public boolean move() {
+
+		private boolean move() {
 			Block origin = entity.getLocation().subtract(0, 1, 0).getBlock();
 
 			int dirX = 0;
@@ -190,16 +190,16 @@ public class WalkwaySpell extends BuffSpell {
 			}
 			return false;
 		}
-		
-		public boolean blockInPlatform(Block block) {
+
+		private boolean blockInPlatform(Block block) {
 			return platform.contains(block);
 		}
 		
 		public void remove() {
 			platform.stream().forEachOrdered(b -> b.setType(Material.AIR));
 		}
-		
-		public void drawCarpet(Block origin, int dirX, int dirY, int dirZ) {
+
+		private void drawCarpet(Block origin, int dirX, int dirY, int dirZ) {
 			// Determine block type and maybe stair direction
 			Material mat = materialPlatform;
 			if ((materialPlatform == Material.OAK_WOOD || materialPlatform == Material.COBBLESTONE) && dirY != 0) {

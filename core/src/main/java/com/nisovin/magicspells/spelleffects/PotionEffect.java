@@ -8,10 +8,10 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 
 public class PotionEffect extends SpellEffect {
-	
-	int color = 0xFF0000;
-	
-	int duration;
+
+	private int color = 0xFF0000;
+
+	private int duration;
 	
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {

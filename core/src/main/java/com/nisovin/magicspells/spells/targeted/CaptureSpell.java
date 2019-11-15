@@ -47,21 +47,21 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(Player player, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(player, power, getValidTargetChecker());
-			if (target == null) return noTarget(player);
-			boolean ok = capture(player, target.getTarget(), target.getPower());
-			if (!ok) return noTarget(player);
+			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power, getValidTargetChecker());
+			if (target == null) return noTarget(livingEntity);
+			boolean ok = capture(livingEntity, target.getTarget(), target.getPower());
+			if (!ok) return noTarget(livingEntity);
 
-			sendMessages(player, target.getTarget());
+			sendMessages(livingEntity, target.getTarget());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(Player caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!target.getType().isSpawnable()) return false;
 		if (!validTargetList.canTarget(caster, target)) return false;
 		return capture(caster, target, power);
@@ -79,7 +79,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		return (LivingEntity entity) -> !(entity instanceof Player) && entity.getType().isSpawnable();
 	}
 	
-	private boolean capture(Player caster, LivingEntity target, float power) {
+	private boolean capture(LivingEntity caster, LivingEntity target, float power) {
 		ItemStack item = Util.getEggItemForEntityType(target.getType());
 		if (item == null) return false;
 
@@ -105,7 +105,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		target.remove();
 		boolean added = false;
 
-		if (addToInventory && caster != null) added = Util.addToInventory(caster.getInventory(), item, true, false);
+		if (addToInventory && caster != null && caster instanceof Player) added = Util.addToInventory(((Player) caster).getInventory(), item, true, false);
 		if (!added) {
 			Item dropped = target.getWorld().dropItem(target.getLocation().add(0, 1, 0), item);
 			dropped.setItemStack(item);
