@@ -36,12 +36,12 @@ public class MoonPhaseCondition extends Condition {
 		if ((phase == 1 || phase == 2 || phase == 3) && phaseName.equals("waning")) return true;
 		if ((phase == 5 || phase == 6 || phase == 7) && phaseName.equals("waxing")) return true;
 		// Specific phases https://minecraft.gamepedia.com/Moon#Phases
-		if ((phase == 1) && phaseName.equals("waning gibbous")) return true;
-		if ((phase == 2) && phaseName.equals("last quarter")) return true;
-		if ((phase == 3) && phaseName.equals("waning crescent")) return true;
-		if ((phase == 5) && phaseName.equals("waxing crescent")) return true;
-		if ((phase == 6) && phaseName.equals("first quarter")) return true;
-		if ((phase == 7) && phaseName.equals("waxing gibbous")) return true;
+		if ((phase == 1) && phaseName.equals("waning_gibbous")) return true;
+		if ((phase == 2) && phaseName.equals("last_quarter")) return true;
+		if ((phase == 3) && phaseName.equals("waning_crescent")) return true;
+		if ((phase == 5) && phaseName.equals("waxing_crescent")) return true;
+		if ((phase == 6) && phaseName.equals("first_quarter")) return true;
+		if ((phase == 7) && phaseName.equals("waxing_gibbous")) return true;
 		return false;
 	}
 
