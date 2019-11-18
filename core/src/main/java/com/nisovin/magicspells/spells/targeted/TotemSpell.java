@@ -49,6 +49,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private boolean gravity;
 	private boolean visibility;
 	private boolean targetable;
+	private boolean marker;
 	private boolean onlyCountOnSuccess;
 
 	private String strAtCap;
@@ -95,6 +96,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		gravity = getConfigBoolean("gravity", false);
 		visibility = getConfigBoolean("visible", true);
 		targetable = getConfigBoolean("targetable", true);
+		marker = getConfigBoolean("marker", false);
 		onlyCountOnSuccess = getConfigBoolean("only-count-on-success", false);
 
 		strAtCap = getConfigString("str-at-cap", "You have too many effects at once.");
@@ -268,6 +270,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			totemEquipment.setLeggings(leggings);
 			totemEquipment.setBoots(boots);
 			((ArmorStand) armorStand).setVisible(visibility);
+			((ArmorStand) armorStand).setMarker(marker);
 			armorStand.setInvulnerable(true);
 			totemLocation = armorStand.getLocation();
 		}
