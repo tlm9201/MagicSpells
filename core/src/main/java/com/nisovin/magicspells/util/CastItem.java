@@ -1,67 +1,58 @@
 package com.nisovin.magicspells.util;
 
+import java.util.Map;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Map;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
+import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.enchantments.Enchantment;
 
 import com.nisovin.magicspells.MagicSpells;
 
 public class CastItem {
 
-	public static final Material MATERIAL_CAST_ITEM_NOTHING = null;
+	private static final Material MATERIAL_CAST_ITEM_NOTHING = null;
 
-	private Material materialType = Material.AIR;
-	private short data = 0;
+	private Material material = Material.AIR;
+	private int durability = 0;
 	private String name = "";
 	private int[][] enchants = null;
 
 	public CastItem() {
-		// No op
+
 	}
 
-	public CastItem(Material type) {
-		this.materialType = type;
+	public CastItem(Material material) {
+		this.material = material;
 	}
 
-	public CastItem(Material type, short data) {
-		this.materialType = type;
-		if (MagicSpells.ignoreCastItemDurability(this.materialType)) {
-			this.data = 0;
-		} else {
-			this.data = data;
-		}
+	public CastItem(Material material, int durability) {
+		this.material = material;
+		if (MagicSpells.ignoreCastItemDurability(material)) this.durability = 0;
+		else this.durability = durability;
 	}
 
 	public CastItem(ItemStack item) {
 		if (item == null) {
-			this.materialType = Material.AIR;
-			this.data = 0;
+			material = Material.AIR;
+			durability = 0;
 		} else {
-			this.materialType = item.getType();
-			if (isCastItemMaterialAirOrNothing(this.materialType) || MagicSpells.ignoreCastItemDurability(this.materialType)) {
-				this.data = 0;
-			} else {
-				this.data = item.getDurability();
-			}
-			if (!isCastItemMaterialAirOrNothing(this.materialType) && !MagicSpells.ignoreCastItemNames() && item.hasItemMeta()) {
+			material = item.getType();
+			if (isCastItemMaterialAirOrNothing(material) || MagicSpells.ignoreCastItemDurability(material)) durability = 0;
+			else durability = Util.getItemDurability(item);
+
+			if (!isCastItemMaterialAirOrNothing(material) && !MagicSpells.ignoreCastItemNames() && item.hasItemMeta()) {
 				ItemMeta meta = item.getItemMeta();
-				if (meta.hasDisplayName()) {
-					if (MagicSpells.ignoreCastItemNameColors()) {
-						this.name = ChatColor.stripColor(meta.getDisplayName());
-					} else {
-						this.name = meta.getDisplayName();
-					}
+				if (meta != null && meta.hasDisplayName()) {
+					if (MagicSpells.ignoreCastItemNameColors()) name = ChatColor.stripColor(meta.getDisplayName());
+					else name = meta.getDisplayName();
 				}
 			}
-			if (!isCastItemMaterialAirOrNothing(this.materialType) && !MagicSpells.ignoreCastItemEnchants()) {
-				this.enchants = getEnchants(item);
-			}
+
+			if (!isCastItemMaterialAirOrNothing(material) && !MagicSpells.ignoreCastItemEnchants()) enchants = getEnchants(item);
 		}
 	}
 
@@ -71,11 +62,8 @@ public class CastItem {
 			String[] temp = s.split("\\|");
 			s = temp[0];
 			if (!MagicSpells.ignoreCastItemNames() && temp.length > 1) {
-				if (MagicSpells.ignoreCastItemNameColors()) {
-					this.name = ChatColor.stripColor(temp[1]);
-				} else {
-					this.name = temp[1];
-				}
+				if (MagicSpells.ignoreCastItemNameColors()) name = ChatColor.stripColor(temp[1]);
+				else name = temp[1];
 			}
 		}
 		if (s.contains(";")) {
@@ -83,45 +71,42 @@ public class CastItem {
 			s = temp[0];
 			if (!MagicSpells.ignoreCastItemEnchants()) {
 				String[] split = temp[1].split("\\+");
-				this.enchants = new int[split.length][];
-				for (int i = 0; i < this.enchants.length; i++) {
+				enchants = new int[split.length][];
+				for (int i = 0; i < enchants.length; i++) {
 					String[] enchantData = split[i].split("-");
-					this.enchants[i] = new int[] { Integer.parseInt(enchantData[0]), Integer.parseInt(enchantData[1]) };
+					enchants[i] = new int[] { Integer.parseInt(enchantData[0]), Integer.parseInt(enchantData[1]) };
 				}
-				sortEnchants(this.enchants);
+				sortEnchants(enchants);
 			}
 		}
 		if (s.contains(":")) {
 			String[] split = s.split(":");
-			this.materialType = Material.getMaterial(split[0].toUpperCase());
-			if (MagicSpells.ignoreCastItemDurability(this.materialType)) {
-				this.data = 0;
-			} else {
-				this.data = Short.parseShort(split[1]);
-			}
+			material = Material.getMaterial(split[0].toUpperCase());
+			if (MagicSpells.ignoreCastItemDurability(material)) durability = 0;
+			else durability = Integer.parseInt(split[1]);
 		} else {
-			this.materialType = Material.getMaterial(s.toUpperCase());
-			this.data = 0;
+			material = Material.getMaterial(s.toUpperCase());
+			durability = 0;
 		}
 	}
 
 	public Material getItemType() {
-		return this.materialType;
+		return material;
 	}
 
 	public boolean equals(CastItem i) {
 		if (i == null) return false;
-		if (i.materialType != this.materialType) return false;
-		if (i.data != this.data) return false;
-		if (!(MagicSpells.ignoreCastItemNames() || i.name.equals(this.name))) return false;
-		return MagicSpells.ignoreCastItemEnchants() || compareEnchants(this.enchants, i.enchants);
+		if (i.material != material) return false;
+		if (i.durability != durability) return false;
+		if (!(MagicSpells.ignoreCastItemNames() || i.name.equals(name))) return false;
+		return MagicSpells.ignoreCastItemEnchants() || compareEnchants(enchants, i.enchants);
 	}
 
 	public boolean equals(ItemStack i) {
-		if (i.getType() != this.materialType) return false;
-		if (i.getDurability() != this.data) return false;
+		if (i.getType() != material) return false;
+		if (Util.getItemDurability(i) != durability) return false;
 		if (!(MagicSpells.ignoreCastItemNames() || namesEqual(i))) return false;
-		return MagicSpells.ignoreCastItemEnchants() || compareEnchants(this.enchants, getEnchants(i));
+		return MagicSpells.ignoreCastItemEnchants() || compareEnchants(enchants, getEnchants(i));
 	}
 
 	private boolean namesEqual(ItemStack i) {
@@ -129,22 +114,19 @@ public class CastItem {
 		if (i.hasItemMeta()) {
 			ItemMeta meta = i.getItemMeta();
 			if (meta.hasDisplayName()) {
-				if (MagicSpells.ignoreCastItemNameColors()) {
-					n = ChatColor.stripColor(meta.getDisplayName());
-				} else {
-					n = meta.getDisplayName();
-				}
+				if (MagicSpells.ignoreCastItemNameColors()) n = ChatColor.stripColor(meta.getDisplayName());
+				else n = meta.getDisplayName();
 			}
 		}
-		if (n == null && (this.name == null || this.name.isEmpty())) return true;
-		if (n == null || this.name == null) return false;
-		return n.equals(this.name);
+		if (n == null && (name == null || name.isEmpty())) return true;
+		if (n == null || name == null) return false;
+		return n.equals(name);
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof CastItem) return equals((CastItem)o);
-		if (o instanceof ItemStack) return equals((ItemStack)o);
+		if (o instanceof CastItem) return equals((CastItem) o);
+		if (o instanceof ItemStack) return equals((ItemStack) o);
 		return false;
 	}
 
@@ -156,24 +138,23 @@ public class CastItem {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		if (this.data == 0) {
-			builder.append(this.materialType);
-		} else {
-			builder.append(this.materialType);
+		if (durability == 0) builder.append(material);
+		else {
+			builder.append(material);
 			builder.append(':');
-			builder.append(this.data);
+			builder.append(durability);
 		}
-		if (this.enchants != null) {
+		if (enchants != null) {
 			builder.append(';');
-			for (int i = 0; i < this.enchants.length; i++) {
-				builder.append(this.enchants[i][0]);
+			for (int i = 0; i < enchants.length; i++) {
+				builder.append(enchants[i][0]);
 				builder.append('-');
-				builder.append(this.enchants[i][1]);
-				if (i < this.enchants.length - 1) builder.append('+');
+				builder.append(enchants[i][1]);
+				if (i < enchants.length - 1) builder.append('+');
 			}
 		}
 		String s = builder.toString();
-		if (this.name != null && !this.name.isEmpty()) s += '|' + this.name;
+		if (name != null && !name.isEmpty()) s += '|' + name;
 		return s;
 	}
 
@@ -210,7 +191,7 @@ public class CastItem {
 	}
 
 	private static boolean isCastItemMaterialAirOrNothing(Material material) {
-		return material == Material.AIR || material == MATERIAL_CAST_ITEM_NOTHING;
+		return BlockUtils.isAir(material) || material == MATERIAL_CAST_ITEM_NOTHING;
 	}
 
 }

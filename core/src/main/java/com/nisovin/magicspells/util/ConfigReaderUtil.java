@@ -1,8 +1,8 @@
 package com.nisovin.magicspells.util;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.conversations.Prompt;
+import org.bukkit.conversations.ConversationFactory;
+import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.prompt.PromptType;

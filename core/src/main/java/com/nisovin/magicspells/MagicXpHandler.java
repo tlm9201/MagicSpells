@@ -36,10 +36,10 @@ public class MagicXpHandler implements Listener {
 
 	private Map<String, String> schools = new HashMap<>();
 	private Map<String, IntMap<String>> xp = new HashMap<>();
-	private Set<String> dirty = new HashSet<>();
 	private Map<String, String> currentWorld = new HashMap<>();
-
 	private Map<String, List<Spell>> spellSchoolRequirements = new HashMap<>();
+
+	private Set<String> dirty = new HashSet<>();
 
 	private boolean autoLearn;
 	private String strXpHeader;
@@ -115,6 +115,7 @@ public class MagicXpHandler implements Listener {
 		if (!autoLearn) return;
 		final LivingEntity caster = event.getCaster();
 		if (!(caster instanceof Player)) return;
+
 		Player player = (Player) caster;
 		final Spell castedSpell = event.getSpell();
 		MagicSpells.scheduleDelayedTask(() -> {

@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.util;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
 public enum TargetBooleanState {
 	

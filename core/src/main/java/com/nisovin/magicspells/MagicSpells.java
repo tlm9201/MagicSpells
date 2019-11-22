@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.LinkedHashMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
@@ -56,7 +55,6 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.MoneyHandler;
 import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
-import com.nisovin.magicspells.util.BossBarManager;
 import com.nisovin.magicspells.commands.ManaCommand;
 import com.nisovin.magicspells.commands.CastCommand;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -67,16 +65,18 @@ import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.variables.VariableManager;
-import com.nisovin.magicspells.util.ExperienceBarManager;
 import com.nisovin.magicspells.materials.ItemNameResolver;
+import com.nisovin.magicspells.util.managers.BossBarManager;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
 import com.nisovin.magicspells.spells.passive.PassiveManager;
+import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.events.MagicSpellsLoadingEvent;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.materials.MagicItemNameResolver;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
+import com.nisovin.magicspells.util.managers.ExperienceBarManager;
 
 import de.slikey.effectlib.EffectManager;
 
@@ -102,8 +102,6 @@ public class MagicSpells extends JavaPlugin {
 	private Map<String, Spell> spellNames; // Map configured names to spells
 	private Map<String, Spell> incantations; // Map incantation strings to spells
 	private Map<String, Spellbook> spellbooks; // Player spellbooks
-	private Map<ItemStack, Integer> manaPotions; // Mana potions
-	private Map<Player, Long> manaPotionCooldowns; // Mana potion cooldowns
 
 	private List<Spell> spellsOrdered; // Spells ordered
 
@@ -117,6 +115,7 @@ public class MagicSpells extends JavaPlugin {
 	private EffectManager effectManager;
 	private BossBarManager bossBarManager;
 	private VariableManager variableManager;
+	private AttributeManager attributeManager;
 	private NoMagicZoneManager noMagicZones;
 	private ExperienceBarManager expBarManager;
 
@@ -164,7 +163,6 @@ public class MagicSpells extends JavaPlugin {
 	int spellIconSlot;
 	int globalCooldown;
 	int broadcastRange;
-	int manaPotionCooldown;
 
 	long lastReloadTime = 0;
 
@@ -182,7 +180,6 @@ public class MagicSpells extends JavaPlugin {
 	String strXpAutoLearned;
 	String strMissingReagents;
 	String strSpellChangeEmpty;
-	String strManaPotionOnCooldown;
 
 	String soundFailOnCooldown;
 	String soundFailMissingReagents;
@@ -311,8 +308,6 @@ public class MagicSpells extends JavaPlugin {
 		allowAnticheatIntegrations = config.getBoolean(path + "allow-anticheat-integrations", false);
 
 		enableManaBars = config.getBoolean(manaPath + "enable-mana-system", false);
-		manaPotionCooldown = config.getInt(manaPath + "mana-potion-cooldown", 30);
-		strManaPotionOnCooldown = config.getString(manaPath + "str-mana-potion-on-cooldown", "You cannot use another mana potion yet.");
 
 		// Create handling objects
 		if (enableManaBars) manaHandler = new ManaSystem(config);
@@ -320,6 +315,7 @@ public class MagicSpells extends JavaPlugin {
 		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 0));
 		expBarManager = new ExperienceBarManager();
 		bossBarManager = new BossBarManager();
+		attributeManager = new AttributeManager();
 		itemNameResolver = new MagicItemNameResolver();
 		if (CompatBasics.pluginEnabled("Vault")) moneyHandler = new MoneyHandler();
 		lifeLengthTracker = new LifeLengthTracker();
@@ -492,22 +488,6 @@ public class MagicSpells extends JavaPlugin {
 			// Setup online player mana bars
 			Util.forEachPlayerOnline(p -> manaHandler.createManaBar(p));
 
-			// Load mana potions
-			List<String> manaPots = config.getStringList(manaPath + "mana-potions", null);
-			if (manaPots != null && !manaPots.isEmpty()) {
-				manaPotions = new LinkedHashMap<>();
-				for (int i = 0; i < manaPots.size(); i++) {
-					String[] data = manaPots.get(i).split(" ");
-					if (data.length == 2 && RegexUtil.matches(RegexUtil.SIMPLE_INT_PATTERN, data[1])) {
-						ItemStack item = Util.getItemStackFromString(data[0]);
-						if (item != null) manaPotions.put(item, Integer.parseInt(data[1]));
-						else error("Invalid mana potion: " + manaPots.get(i));
-					} else {
-						error("Invalid mana potion: " + manaPots.get(i));
-					}
-				}
-				manaPotionCooldowns = new HashMap<>();
-			}
 			log("...done");
 		}
 
@@ -822,6 +802,10 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.bossBarManager;
 	}
 
+	public static AttributeManager getAttributeManager() {
+		return plugin.attributeManager;
+	}
+
 	public static ItemNameResolver getItemNameResolver() {
 		return plugin.itemNameResolver;
 	}
@@ -840,14 +824,6 @@ public class MagicSpells extends JavaPlugin {
 
 	public static LifeLengthTracker getLifeLengthTracker() {
 		return plugin.lifeLengthTracker;
-	}
-
-	public static Map<ItemStack, Integer> getManaPotions() {
-		return plugin.manaPotions;
-	}
-
-	public static Map<Player, Long> getManaPotionCooldowns() {
-		return plugin.manaPotionCooldowns;
 	}
 
 	public static Map<String, Spellbook> getSpellbooks() {
@@ -1293,14 +1269,6 @@ public class MagicSpells extends JavaPlugin {
 			manaHandler.turnOff();
 			manaHandler = null;
 		}
-		if (manaPotionCooldowns != null) {
-			manaPotionCooldowns.clear();
-			manaPotionCooldowns = null;
-		}
-		if (manaPotions != null) {
-			manaPotions.clear();
-			manaPotions = null;
-		}
 		if (noMagicZones != null) {
 			noMagicZones.turnOff();
 			noMagicZones = null;
@@ -1339,7 +1307,6 @@ public class MagicSpells extends JavaPlugin {
 		strMissingReagents = null;
 		strSpellChangeEmpty = null;
 		soundFailOnCooldown = null;
-		strManaPotionOnCooldown = null;
 		soundFailMissingReagents = null;
 
 		// Remove star permissions (to allow new spells to be added to them)

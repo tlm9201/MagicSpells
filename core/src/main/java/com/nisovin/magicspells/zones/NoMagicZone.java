@@ -7,35 +7,35 @@ import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.SpellFilter;
 
 public abstract class NoMagicZone implements Comparable<NoMagicZone> {
 
 	private String id;
-	
-	private int priority;
-	
 	private String message;
-	
-	private List<String> allowedSpells;
-	
-	private List<String> disallowedSpells;
-	
+
+	private int priority;
+
 	private boolean allowAll;
-	
 	private boolean disallowAll;
+
+	private SpellFilter spellFilter;
 	
 	public final void create(String id, ConfigurationSection config) {
 		this.id = id;
-		priority = config.getInt("priority", 0);
 		message = config.getString("message", "You are in a no-magic zone.");
-		allowedSpells = config.getStringList("allowed-spells");
-		disallowedSpells = config.getStringList("disallowed-spells");
+
+		priority = config.getInt("priority", 0);
+
 		allowAll = config.getBoolean("allow-all", false);
 		disallowAll = config.getBoolean("disallow-all", true);
-		if (allowedSpells != null && allowedSpells.isEmpty()) allowedSpells = null;
-		if (disallowedSpells != null && disallowedSpells.isEmpty()) disallowedSpells = null;
-		if (disallowedSpells != null) disallowAll = false;
-		if (allowedSpells != null) allowAll = false;
+
+		List<String> allowedSpells = config.getStringList("allowed-spells");
+		List<String> disallowedSpells = config.getStringList("disallowed-spells");
+		List<String> allowedSpellTags = config.getStringList("allowed-spell-tags");
+		List<String> disallowedSpellTags = config.getStringList("disallowed-spell-tags");
+		spellFilter = new SpellFilter(allowedSpells, disallowedSpells, allowedSpellTags, disallowedSpellTags);
+
 		initialize(config);
 	}
 	
@@ -47,10 +47,10 @@ public abstract class NoMagicZone implements Comparable<NoMagicZone> {
 	
 	public final ZoneCheckResult check(Location location, Spell spell) {
 		if (!inZone(location)) return ZoneCheckResult.IGNORED;
-		if (disallowedSpells != null && disallowedSpells.contains(spell.getInternalName())) return ZoneCheckResult.DENY;
-		if (allowedSpells != null && allowedSpells.contains(spell.getInternalName())) return ZoneCheckResult.ALLOW;
 		if (disallowAll) return ZoneCheckResult.DENY;
 		if (allowAll) return ZoneCheckResult.ALLOW;
+		if (!spellFilter.check(spell)) return ZoneCheckResult.DENY;
+		if (spellFilter.check(spell)) return ZoneCheckResult.ALLOW;
 		return ZoneCheckResult.IGNORED;
 	}
 	

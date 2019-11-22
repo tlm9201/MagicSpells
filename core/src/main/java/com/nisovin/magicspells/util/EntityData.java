@@ -1,14 +1,14 @@
 package com.nisovin.magicspells.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import org.bukkit.DyeColor;
-import org.bukkit.Location;
 // this should probably be kept as a star import for version safety
 import org.bukkit.entity.*;
+import org.bukkit.DyeColor;
+import org.bukkit.Location;
 
 import com.nisovin.magicspells.MagicSpells;
 

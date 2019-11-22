@@ -1,16 +1,16 @@
 package com.nisovin.magicspells.util;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.HashMap;
 
 public class IntMap<T> {
 
 	private Map<T, Integer> map = new HashMap<>();
 	
 	public int put(T key, int value) {
-		Integer prev = this.map.put(key, Integer.valueOf(value));
+		Integer prev = map.put(key, Integer.valueOf(value));
 		if (prev != null) return prev.intValue();
 		return 0;
 	}
@@ -20,31 +20,31 @@ public class IntMap<T> {
 	}
 	
 	public int get(T key) {
-		Integer value = this.map.get(key);
+		Integer value = map.get(key);
 		if (value != null) return value.intValue();
 		return 0;
 	}
 	
 	public int remove(T key) {
-		Integer value = this.map.remove(key);
+		Integer value = map.remove(key);
 		if (value != null) return value.intValue();
 		return 0;
 	}
 	
 	public int size() {
-		return this.map.size();
+		return map.size();
 	}
 	
 	public boolean contains(T key) {
-		return this.map.containsKey(key);
+		return map.containsKey(key);
 	}
 	
 	public boolean containsKey(T key) {
-		return this.map.containsKey(key);
+		return map.containsKey(key);
 	}
 	
 	public boolean containsValue(int value) {
-		return this.map.containsValue(Integer.valueOf(value));
+		return map.containsValue(Integer.valueOf(value));
 	}
 	
 	public int increment(T key) {
@@ -74,41 +74,41 @@ public class IntMap<T> {
 	}
 	
 	public Set<T> keySet() {
-		return this.map.keySet();
+		return map.keySet();
 	}
 	
 	public void clear() {
-		this.map.clear();
+		map.clear();
 	}
 	
 	public boolean isEmpty() {
-		return this.map.isEmpty();
+		return map.isEmpty();
 	}
 	
 	public void putAll(IntMap<? extends T> otherMap) {
-		this.map.putAll(otherMap.map);
+		map.putAll(otherMap.map);
 	}
 	
 	public void putAll(Map<? extends T, Integer> otherMap) {
-		this.map.putAll(otherMap);
+		map.putAll(otherMap);
 	}
 	
 	public Map<T, Integer> getIntegerMap() {
-		return this.map;
+		return map;
 	}
 	
 	@Override
 	public IntMap<T> clone() {
 		IntMap<T> newMap = new IntMap<>();
-		newMap.putAll(this.map);
+		newMap.putAll(map);
 		return newMap;
 	}
 	
 	public void useTreeMap() {
 		Map<T, Integer> newMap = new TreeMap<>();
-		newMap.putAll(this.map);
-		this.map.clear();
-		this.map = newMap;
+		newMap.putAll(map);
+		map.clear();
+		map = newMap;
 	}
 	
 }

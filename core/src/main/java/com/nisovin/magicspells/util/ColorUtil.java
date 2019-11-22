@@ -8,11 +8,10 @@ public class ColorUtil {
 	
 	public static Color getColorFromHexString(String hex) {
 		if (hex == null) return null;
-		String working = hex;
-		working = working.replace("#", "");
+		String working = hex.replace("#", "");
 		try {
-		int value = Integer.parseInt(working, 16);
-		return Color.fromRGB(value);
+			int value = Integer.parseInt(working, 16);
+			return Color.fromRGB(value);
 		} catch (IllegalArgumentException e) {
 			DebugHandler.debugIllegalArgumentException(e);
 			return null;

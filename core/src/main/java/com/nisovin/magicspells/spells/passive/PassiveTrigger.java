@@ -1,9 +1,9 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.bukkit.event.EventPriority;
 
@@ -75,6 +75,7 @@ public class PassiveTrigger {
 	
 	public static Set<PassiveTrigger> START_GLIDE = addTriggers("startglide", GlideListener.class);
 	public static Set<PassiveTrigger> STOP_GLIDE = addTriggers("stopglide", GlideListener.class);
+	public static Set<PassiveTrigger> SIGN_BOOK = addTriggers("signbook", SignBookListener.class);
 	
 	
 	public static Set<PassiveTrigger> addTriggers(String baseName, Class<? extends PassiveListener> listener) {

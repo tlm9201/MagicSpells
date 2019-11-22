@@ -9,15 +9,17 @@ import com.nisovin.magicspells.events.ManaChangeEvent;
 
 public class ManaBar {
 
-	private String playerName;
-	private ManaRank rank;
-	private int maxMana;
-	private int regenAmount;
 	private String prefix;
+	private String playerName;
+
+	private ManaRank rank;
+
 	private ChatColor colorFull;
 	private ChatColor colorEmpty;
-	
+
 	private int mana;
+	private int maxMana;
+	private int regenAmount;
 	
 	public ManaBar(Player player, ManaRank rank) {
 		playerName = player.getName().toLowerCase();
@@ -26,10 +28,10 @@ public class ManaBar {
 	
 	public void setRank(ManaRank rank) {
 		this.rank = rank;
-		maxMana = rank.maxMana;
-		regenAmount = rank.regenAmount;
-		mana = rank.startingMana;
-		setDisplayData(rank.prefix, rank.colorFull, rank.colorEmpty);
+		mana = rank.getStartingMana();
+		maxMana = rank.getMaxMana();
+		regenAmount = rank.getRegenAmount();
+		setDisplayData(rank.getPrefix(), rank.getColorFull(), rank.getColorEmpty());
 	}
 	
 	public Player getPlayer() {
@@ -62,7 +64,7 @@ public class ManaBar {
 	}
 	
 	private void setDisplayData(String prefix, ChatColor colorFull, ChatColor colorEmpty) {
-		this.prefix = prefix;
+		this.prefix = ChatColor.translateAlternateColorCodes('&', prefix);
 		this.colorFull = colorFull;
 		this.colorEmpty = colorEmpty;
 	}
@@ -107,11 +109,8 @@ public class ManaBar {
 	
 	public boolean setMana(int amount, ManaChangeReason reason) {
 		int newAmt = amount;
-		if (newAmt > maxMana) {
-			newAmt = maxMana;
-		} else if (newAmt < 0) {
-			newAmt = 0;
-		}
+		if (newAmt > maxMana) newAmt = maxMana;
+		else if (newAmt < 0) newAmt = 0;
 		
 		newAmt = callManaChangeEvent(newAmt, reason);
 		if (newAmt == mana) return false;
@@ -126,12 +125,10 @@ public class ManaBar {
 	
 	private int callManaChangeEvent(int newAmt, ManaChangeReason reason) {
 		Player player = getPlayer();
-		if (player != null && player.isOnline()) {
-			ManaChangeEvent event = new ManaChangeEvent(player, mana, newAmt, maxMana, reason);
-			EventUtil.call(event);
-			return event.getNewAmount();
-		}
-		return newAmt;
+		if (player == null || !player.isOnline()) return newAmt;
+		ManaChangeEvent event = new ManaChangeEvent(player, mana, newAmt, maxMana, reason);
+		EventUtil.call(event);
+		return event.getNewAmount();
 	}
 	
 }

@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.util;
+package com.nisovin.magicspells.util.managers;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public class ExperienceBarManager {
 	}
 	
 	public void update(Player player, int level, float percent, Object object) {
-		Object lock = this.locks.get(player);
+		Object lock = locks.get(player);
 		if (lock == null || Objects.equals(object, lock)) {
 			if (player.getOpenInventory().getType() != InventoryType.ENCHANTING) {
 				MagicSpells.getVolatileCodeHandler().setExperienceBar(player, level, percent);
@@ -27,16 +27,16 @@ public class ExperienceBarManager {
 	}
 	
 	public void lock(Player player, Object object) {
-		Object lock = this.locks.get(player);
+		Object lock = locks.get(player);
 		if (lock == null || lock.equals(object)) {
-			this.locks.put(player, object);
+			locks.put(player, object);
 		}
 	}
 	
 	public void unlock(Player player, Object object) {
-		Object lock = this.locks.get(player);
+		Object lock = locks.get(player);
 		if (lock == null) return;
-		if (lock.equals(object)) this.locks.remove(player);
+		if (lock.equals(object)) locks.remove(player);
 	}
 	
 }

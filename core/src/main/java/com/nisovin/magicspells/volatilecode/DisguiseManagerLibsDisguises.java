@@ -46,7 +46,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.nisovin.magicspells.spells.targeted.DisguiseSpell;
 import com.nisovin.magicspells.spells.targeted.DisguiseSpell.Disguise;
-import com.nisovin.magicspells.util.IDisguiseManager;
+import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager;
 import com.nisovin.magicspells.util.MagicConfig;
 
 public class DisguiseManagerLibsDisguises implements Listener, IDisguiseManager {

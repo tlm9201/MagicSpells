@@ -6,12 +6,12 @@ import org.bukkit.configuration.ConfigurationSection;
 public class NoMagicZoneCuboid extends NoMagicZone {
 	
 	private String worldName;
-	private int minx;
-	private int miny;
-	private int minz;
-	private int maxx;
-	private int maxy;
-	private int maxz;
+	private int minX;
+	private int minY;
+	private int minZ;
+	private int maxX;
+	private int maxY;
+	private int maxZ;
 	
 	@Override
 	public void initialize(ConfigurationSection config) {
@@ -27,25 +27,27 @@ public class NoMagicZoneCuboid extends NoMagicZone {
 		int z2 = Integer.parseInt(p2[2]);
 		
 		if (x1 < x2) {
-			minx = x1;
-			maxx = x2;
+			minX = x1;
+			maxX = x2;
 		} else {
-			minx = x2;
-			maxx = x1;
+			minX = x2;
+			maxX = x1;
 		}
+
 		if (y1 < y2) {
-			miny = y1;
-			maxy = y2;
+			minY = y1;
+			maxY = y2;
 		} else {
-			miny = y2;
-			maxy = y1;
+			minY = y2;
+			maxY = y1;
 		}
+
 		if (z1 < z2) {
-			minz = z1;
-			maxz = z2;
+			minZ = z1;
+			maxZ = z2;
 		} else {
-			minz = z2;
-			maxz = z1;
+			minZ = z2;
+			maxZ = z1;
 		}
 	}
 
@@ -55,7 +57,7 @@ public class NoMagicZoneCuboid extends NoMagicZone {
 		int x = location.getBlockX();
 		int y = location.getBlockY();
 		int z = location.getBlockZ();
-		return minx <= x && x <= maxx && miny <= y && y <= maxy && minz <= z && z <= maxz;
+		return minX <= x && x <= maxX && minY <= y && y <= maxY && minZ <= z && z <= maxZ;
 	}
 	
 }

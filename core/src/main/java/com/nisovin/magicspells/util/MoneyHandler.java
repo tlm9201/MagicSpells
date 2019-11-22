@@ -12,26 +12,26 @@ public class MoneyHandler {
 
 	public MoneyHandler() {
 		RegisteredServiceProvider<Economy> provider = CompatBasics.getServiceProvider(Economy.class);
-		if (provider != null) this.economy = provider.getProvider();
+		if (provider != null) economy = provider.getProvider();
 	}
 
 	public boolean hasMoney(Player player, float money) {
-		if (this.economy == null) return false;
+		if (economy == null) return false;
 		return economy.has(player, money);
 	}
 
 	public void removeMoney(Player player, float money) {
-		if (this.economy == null) return;
+		if (economy == null) return;
 		economy.withdrawPlayer(player, money);
 	}
 
 	public void addMoney(Player player, float money) {
-		if (this.economy == null) return;
+		if (economy == null) return;
 		economy.depositPlayer(player, money);
 	}
 
 	public double checkMoney(Player player) {
-		if (this.economy == null) return 0;
+		if (economy == null) return 0;
 		return economy.getBalance(player);
 	}
 

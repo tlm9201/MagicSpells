@@ -26,6 +26,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.ChatColor;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -613,6 +614,11 @@ public class Util {
 
 	public static String[] splitParams(String[] split) {
 		return splitParams(arrayJoin(split, ' '), 0);
+	}
+
+	public static int getItemDurability(ItemStack item) {
+		ItemMeta meta = item.getItemMeta();
+		return meta == null ? 0 : ((Damageable) meta).getDamage();
 	}
 
 	public static boolean removeFromInventory(Inventory inventory, ItemStack item) {

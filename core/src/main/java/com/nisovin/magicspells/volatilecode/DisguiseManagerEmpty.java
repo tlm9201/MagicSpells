@@ -3,7 +3,7 @@ package com.nisovin.magicspells.volatilecode;
 import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.spells.targeted.DisguiseSpell.Disguise;
-import com.nisovin.magicspells.util.DisguiseManager;
+import com.nisovin.magicspells.util.managers.DisguiseManager;
 import com.nisovin.magicspells.util.MagicConfig;
 
 public class DisguiseManagerEmpty extends DisguiseManager {

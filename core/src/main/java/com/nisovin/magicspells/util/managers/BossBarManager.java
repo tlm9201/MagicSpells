@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.util;
+package com.nisovin.magicspells.util.managers;
 
 import java.util.Map;
 import java.util.UUID;
@@ -11,6 +11,8 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
+
+import com.nisovin.magicspells.util.managers.interfaces.IBossBarManager;
 
 public class BossBarManager implements IBossBarManager {
 

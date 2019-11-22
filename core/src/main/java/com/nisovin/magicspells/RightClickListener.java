@@ -55,7 +55,7 @@ public class RightClickListener implements Listener {
 			lastCast.put(player.getName(), System.currentTimeMillis());
 		}
 			
-		MagicSpells.scheduleDelayedTask(() -> spell.cast(event.getPlayer()), 0);
+		MagicSpells.scheduleDelayedTask(() -> spell.cast(player), 0);
 		event.setCancelled(true);
 	}
 	

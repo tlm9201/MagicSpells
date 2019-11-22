@@ -85,6 +85,7 @@ public abstract class Condition {
 		conditions.put("mana", ManaCondition.class);
 		conditions.put("maxmana", MaxManaCondition.class);
 		conditions.put("food", FoodCondition.class);
+		conditions.put("gamemode", GameModeCondition.class);
 		conditions.put("level", LevelCondition.class);
 		conditions.put("magicxpabove", MagicXpAboveCondition.class);
 		conditions.put("magicxpbelow", MagicXpBelowCondition.class);

@@ -25,7 +25,7 @@ import org.bukkit.attribute.AttributeModifier.Operation;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.DisguiseManager;
+import com.nisovin.magicspells.util.managers.DisguiseManager;
 
 public class VolatileCodeDisabled implements VolatileCodeHandle {
 
@@ -186,45 +186,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	@Override
 	public void removeAI(LivingEntity entity) {
 		// Need the volatile code for this
-	}
-
-	@Override
-	public void addEntityAttribute(LivingEntity entity, String attribute, double amount, int operation) {
-		Attribute attr = null;
-		switch (attribute) {
-			case "generic.maxHealth":
-				attr = Attribute.GENERIC_MAX_HEALTH;
-				break;
-			case "generic.followRange":
-				attr = Attribute.GENERIC_FOLLOW_RANGE;
-				break;
-			case "generic.knockbackResistance":
-				attr = Attribute.GENERIC_KNOCKBACK_RESISTANCE;
-				break;
-			case "generic.movementSpeed":
-				attr = Attribute.GENERIC_MOVEMENT_SPEED;
-				break;
-			case "generic.attackDamage":
-				attr = Attribute.GENERIC_ATTACK_DAMAGE;
-				break;
-			case "generic.attackSpeed":
-				attr = Attribute.GENERIC_ATTACK_SPEED;
-				break;
-			case "generic.armor":
-				attr = Attribute.GENERIC_ARMOR;
-				break;
-			case "generic.luck":
-				attr = Attribute.GENERIC_LUCK;
-				break;
-		}
-
-		Operation oper = null;
-		if (operation == 0) oper = Operation.ADD_NUMBER;
-		else if (operation == 1) oper = Operation.MULTIPLY_SCALAR_1;
-		else if (operation == 2) oper = Operation.ADD_SCALAR;
-
-		if (attr == null || oper == null) return;
-		entity.getAttribute(attr).addModifier(new AttributeModifier("MagicSpells " + attribute, amount, oper));
 	}
 
 	@Override
