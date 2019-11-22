@@ -46,10 +46,11 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	private double maxDistanceSquared;
 
+	private boolean marker;
 	private boolean gravity;
 	private boolean visibility;
 	private boolean targetable;
-	private boolean marker;
+	private boolean totemNameVisible;
 	private boolean onlyCountOnSuccess;
 
 	private String strAtCap;
@@ -93,10 +94,11 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		maxDistanceSquared = getConfigDouble("max-distance", 30);
 		maxDistanceSquared *= maxDistanceSquared;
 
+		marker = getConfigBoolean("marker", false);
 		gravity = getConfigBoolean("gravity", false);
 		visibility = getConfigBoolean("visible", true);
 		targetable = getConfigBoolean("targetable", true);
-		marker = getConfigBoolean("marker", false);
+		totemNameVisible = getConfigBoolean("totem-name-visible", true);
 		onlyCountOnSuccess = getConfigBoolean("only-count-on-success", false);
 
 		strAtCap = getConfigString("str-at-cap", "You have too many effects at once.");
@@ -259,7 +261,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			armorStand = (LivingEntity) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
 			if (!totemName.isEmpty()) {
 				armorStand.setCustomName(ChatColor.translateAlternateColorCodes('&', totemName));
-				armorStand.setCustomNameVisible(true);
+				armorStand.setCustomNameVisible(totemNameVisible);
 			}
 			totemEquipment = armorStand.getEquipment();
 			armorStand.setGravity(gravity);
