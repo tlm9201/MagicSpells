@@ -6,6 +6,7 @@ import com.nisovin.magicspells.MagicSpells
 import com.nisovin.magicspells.util.*
 import com.nisovin.magicspells.util.compat.CompatBasics
 import com.nisovin.magicspells.util.compat.EventUtil
+import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager
 import com.nisovin.magicspells.volatilecode.DisguiseManagerEmpty
 import com.nisovin.magicspells.volatilecode.DisguiseManagerLibsDisguises
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled
@@ -465,30 +466,6 @@ class VolatileCode1_12_R1: VolatileCodeHandle {
         meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS)
         item.itemMeta = meta
         return item
-    }
-
-    override fun addEntityAttribute(entity: LivingEntity, attribute: String, amount: Double, operation: Int) {
-        var attr: Attribute? = null
-        when (attribute) {
-            "generic.maxHealth" -> attr = Attribute.GENERIC_MAX_HEALTH
-            "generic.followRange" -> attr = Attribute.GENERIC_FOLLOW_RANGE
-            "generic.knockbackResistance" -> attr = Attribute.GENERIC_KNOCKBACK_RESISTANCE
-            "generic.movementSpeed" -> attr = Attribute.GENERIC_MOVEMENT_SPEED
-            "generic.attackDamage" -> attr = Attribute.GENERIC_ATTACK_DAMAGE
-            "generic.attackSpeed" -> attr = Attribute.GENERIC_ATTACK_SPEED
-            "generic.armor" -> attr = Attribute.GENERIC_ARMOR
-            "generic.luck" -> attr = Attribute.GENERIC_LUCK
-        }
-
-        var oper: AttributeModifier.Operation? = null
-        when (operation) {
-            0 -> oper = AttributeModifier.Operation.ADD_NUMBER
-            1 -> oper = AttributeModifier.Operation.MULTIPLY_SCALAR_1
-            2 -> oper = AttributeModifier.Operation.ADD_SCALAR
-        }
-        if (attr != null && oper != null) {
-            entity.getAttribute(attr)!!.addModifier(AttributeModifier("MagicSpells $attribute", amount, oper))
-        }
     }
 
     override fun removeAI(entity: LivingEntity) {

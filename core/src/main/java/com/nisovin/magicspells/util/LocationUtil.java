@@ -2,12 +2,12 @@ package com.nisovin.magicspells.util;
 
 import java.util.Objects;
 
+import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.command.BlockCommandSender;
 import org.bukkit.entity.Entity;
+import org.bukkit.command.BlockCommandSender;
 
 public class LocationUtil {
 	

@@ -1,7 +1,7 @@
-package com.nisovin.magicspells.util;
+package com.nisovin.magicspells.util.managers.interfaces;
 
-import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
+import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 

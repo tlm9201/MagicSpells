@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.util.itemreader.alternative;
 
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.configuration.ConfigurationSection;
 
 public interface ItemConfigTransformer {
 

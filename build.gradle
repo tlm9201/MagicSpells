@@ -184,10 +184,10 @@ subprojects {
       url = "https://jitpack.io"
     }
   }
-  it.version = "4.0-Beta-4"
+  it.version = "4.0-Beta-5"
   
   processResources {
-    expand(["version": "4.0-Beta-4"])
+    expand(["version": "4.0-Beta-5"])
   }
   shadowJar {
     configurations = [project.configurations.shadow]

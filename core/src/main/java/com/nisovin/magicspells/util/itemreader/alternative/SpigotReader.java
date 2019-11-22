@@ -1,8 +1,8 @@
 package com.nisovin.magicspells.util.itemreader.alternative;
 
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.inventory.ItemStack;
 
 public class SpigotReader implements ItemConfigTransformer {
 	

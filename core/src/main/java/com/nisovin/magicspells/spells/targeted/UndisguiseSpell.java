@@ -6,7 +6,7 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.IDisguiseManager;
+import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 

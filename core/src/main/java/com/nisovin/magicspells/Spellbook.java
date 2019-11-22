@@ -106,9 +106,7 @@ public class Spellbook {
 			MagicSpells.debug(2, "  Op, granting all spells...");
 			for (Spell spell : MagicSpells.getSpellsOrdered()) {
 				if (spell.isHelperSpell()) continue;
-				if (!allSpells.contains(spell)) {
-					addSpell(spell);
-				}
+				if (!allSpells.contains(spell)) addSpell(spell);
 			}
 		}
 
@@ -415,7 +413,7 @@ public class Spellbook {
 	}
 
 	public void addSpell(Spell spell) {
-		addSpell(spell, (CastItem[])null);
+		addSpell(spell, (CastItem[]) null);
 	}
 
 	public void addSpell(Spell spell, CastItem castItem) {
@@ -618,9 +616,9 @@ public class Spellbook {
 		return "Spellbook:[playerName=" + playerName
 				+ ",uniqueId=" + uniqueId
 				+ ",allSpells=" + allSpells
-				+ ",ItemSpells=" + itemSpells
-				+ ",ActiveSpells=" + activeSpells
-				+ ",CustomBindings=" + customBindings
+				+ ",itemSpells=" + itemSpells
+				+ ",activeSpells=" + activeSpells
+				+ ",customBindings=" + customBindings
 				+ ",temporarySpells=" + temporarySpells
 				+ ",cantLearn=" + cantLearn
 				+ ']';

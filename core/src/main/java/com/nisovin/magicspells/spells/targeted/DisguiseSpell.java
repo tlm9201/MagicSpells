@@ -29,10 +29,10 @@ import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.IDisguiseManager;
 import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager;
 
 public class DisguiseSpell extends TargetedSpell implements TargetedEntitySpell {
 

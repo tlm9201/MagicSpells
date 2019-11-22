@@ -17,7 +17,10 @@ public enum EffectPosition {
 	REVERSE_LINE(9, "reverse_line", "reverseline", "rline"),
 	PROJECTILE(10, "projectile"),
 	DYNAMIC_CASTER_PROJECTILE_LINE(11, "casterprojectile", "casterprojectileline"),
-	BLOCK_DESTRUCTION(12, "blockdestroy", "blockdestruction")
+	BLOCK_DESTRUCTION(12, "blockdestroy", "blockdestruction"),
+	COOLDOWN(13, "cooldown"),
+	MISSING_REAGENTS(14, "missingreagents"),
+	CHARGE_USE(15, "chargeuse")
 
 	;
 

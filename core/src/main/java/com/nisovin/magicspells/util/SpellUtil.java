@@ -1,12 +1,12 @@
 package com.nisovin.magicspells.util;
 
-import com.nisovin.magicspells.Spell;
-
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.function.Predicate;
+
+import com.nisovin.magicspells.Spell;
 
 public class SpellUtil {
 	

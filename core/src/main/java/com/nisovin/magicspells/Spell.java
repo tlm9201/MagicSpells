@@ -515,38 +515,47 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					data = costVal.split(" ");
 					int amt = 1;
 					float money = 1;
-					if (data[0].equalsIgnoreCase("health")) {
-						if (data.length > 1) amt = Integer.parseInt(data[1]);
-						reagents.setHealth(amt);
-					} else if (data[0].equalsIgnoreCase("mana")) {
-						if (data.length > 1) amt = Integer.parseInt(data[1]);
-						reagents.setMana(amt);
-					} else if (data[0].equalsIgnoreCase("hunger")) {
-						if (data.length > 1) amt = Integer.parseInt(data[1]);
-						reagents.setHunger(amt);
-					} else if (data[0].equalsIgnoreCase("experience")) {
-						if (data.length > 1) amt = Integer.parseInt(data[1]);
-						reagents.setExperience(amt);
-					} else if (data[0].equalsIgnoreCase("levels")) {
-						if (data.length > 1) amt = Integer.parseInt(data[1]);
-						reagents.setLevels(amt);
-					} else if (data[0].equalsIgnoreCase("durability")) {
-						if (data.length > 1) amt = Integer.parseInt(data[1]);
-						reagents.setDurability(amt);
-					} else if (data[0].equalsIgnoreCase("money")) {
-						if (data.length > 1) money = Float.parseFloat(data[1]);
-						reagents.setMoney(money);
-					} else if (data[0].equalsIgnoreCase("variable")) {
-						reagents.addVariable(data[1], Double.parseDouble(data[2]));
-					} else {
-						if (data.length > 1) amt = Integer.parseInt(data[1]);
-						ItemStack is = Util.getItemStackFromString(data[0]);
-						if (is != null) {
-							is.setAmount(amt);
-							reagents.addItem(is);
-						} else {
-							MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
-						}
+
+					switch (data[0].toLowerCase()) {
+						case "health":
+							if (data.length > 1) amt = Integer.parseInt(data[1]);
+							reagents.setHealth(amt);
+							break;
+						case "mana":
+							if (data.length > 1) amt = Integer.parseInt(data[1]);
+							reagents.setMana(amt);
+							break;
+						case "hunger":
+							if (data.length > 1) amt = Integer.parseInt(data[1]);
+							reagents.setHunger(amt);
+							break;
+						case "experience":
+							if (data.length > 1) amt = Integer.parseInt(data[1]);
+							reagents.setExperience(amt);
+							break;
+						case "levels":
+							if (data.length > 1) amt = Integer.parseInt(data[1]);
+							reagents.setLevels(amt);
+							break;
+						case "durability":
+							if (data.length > 1) amt = Integer.parseInt(data[1]);
+							reagents.setDurability(amt);
+							break;
+						case "money":
+							if (data.length > 1) money = Float.parseFloat(data[1]);
+							reagents.setMoney(money);
+							break;
+						case "variable":
+							reagents.addVariable(data[1], Double.parseDouble(data[2]));
+							break;
+						default:
+							if (data.length > 1) amt = Integer.parseInt(data[1]);
+							ItemStack is = Util.getItemStackFromString(data[0]);
+							if (is != null) {
+								is.setAmount(amt);
+								reagents.addItem(is);
+							} else MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
+							break;
 					}
 				} catch (Exception e) {
 					// FIXME this should not be a means of breaking
@@ -822,10 +831,14 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (action.sendMessages()) sendMessages(livingEntity, spellCast.getSpellArgs());
 				if (experience > 0 && livingEntity instanceof Player) ((Player) livingEntity).giveExp(experience);
 			} else if (state == SpellCastState.ON_COOLDOWN) {
-				MagicSpells.sendMessage(formatMessage(strOnCooldown, "%c", Math.round(getCooldown(livingEntity)) + ""), livingEntity, spellCast.getSpellArgs());
+				String message = formatMessage(strOnCooldown, "%c", Math.round(getCooldown(livingEntity)) + "");
+				message = formatMessage(message, "%s", spellCast.getSpell().getName());
+				MagicSpells.sendMessage(message, livingEntity, spellCast.getSpellArgs());
+				playSpellEffects(EffectPosition.COOLDOWN, livingEntity);
 				if (soundOnCooldown != null && livingEntity instanceof Player) MagicSpells.getVolatileCodeHandler().playSound((Player) livingEntity, soundOnCooldown, 1F, 1F);
 			} else if (state == SpellCastState.MISSING_REAGENTS) {
 				MagicSpells.sendMessage(strMissingReagents, livingEntity, spellCast.getSpellArgs());
+				playSpellEffects(EffectPosition.MISSING_REAGENTS, livingEntity);
 				if (MagicSpells.plugin.showStrCostOnMissingReagents && strCost != null && !strCost.isEmpty()) MagicSpells.sendMessage("    (" + strCost + ')', livingEntity, spellCast.getSpellArgs());
 				if (soundMissingReagents != null && livingEntity instanceof Player) MagicSpells.getVolatileCodeHandler().playSound((Player) livingEntity, soundMissingReagents, 1F, 1F);
 			} else if (state == SpellCastState.CANT_CAST) {
@@ -998,6 +1011,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				chargesConsumed.increment(uuid);
 				MagicSpells.scheduleDelayedTask(() -> {
 					chargesConsumed.decrement(uuid);
+					playSpellEffects(EffectPosition.CHARGE_USE, livingEntity);
 					if (rechargeSound == null) return;
 					if (rechargeSound.isEmpty()) return;
 					if (livingEntity instanceof Player) MagicSpells.getVolatileCodeHandler().playSound((Player) livingEntity, rechargeSound, 1.0F, 1.0F);
@@ -1215,26 +1229,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		}
 	}
-
-	/*private void removeFromInventory(Inventory inventory, ItemStack item) {
-		int amt = item.getAmount();
-		ItemStack[] items = inventory.getContents();
-		for (int i = 0; i < items.length; i++) {
-			if (items[i] != null && item.isSimilar(items[i])) {
-				if (items[i].getAmount() > amt) {
-					items[i].setAmount(items[i].getAmount() - amt);
-					break;
-				} else if (items[i].getAmount() == amt) {
-					items[i] = null;
-					break;
-				} else {
-					amt -= items[i].getAmount();
-					items[i] = null;
-				}
-			}
-		}
-		inventory.setContents(items);
-	}*/
 
 	protected int getRange(float power) {
 		return spellPowerAffectsRange ? Math.round(range * power) : range;

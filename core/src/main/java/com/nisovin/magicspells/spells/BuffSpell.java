@@ -257,6 +257,12 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		if (manager != null) manager.addBuff(livingEntity, this);
 	}
 
+	public float getDuration(LivingEntity livingEntity) {
+		if (durationEndTime == null) return 0;
+		if (!durationEndTime.containsKey(livingEntity)) return 0;
+		return (durationEndTime.get(livingEntity) - System.currentTimeMillis()) / 1000F;
+	}
+
 	/**
 	 * Checks whether the spell's duration has expired for a player
 	 * @param entity the player to check

@@ -4,19 +4,20 @@ import org.bukkit.World;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+
 import com.nisovin.magicspells.util.bounds.Space;
 
 public class BoundingBox implements Space {
 
-	World world;
-	double lowX;
-	double lowY;
-	double lowZ;
-	double highX;
-	double highY;
-	double highZ;
-	double horizRadius;
-	double vertRadius;
+	private World world;
+	private double lowX;
+	private double lowY;
+	private double lowZ;
+	private double highX;
+	private double highY;
+	private double highZ;
+	private double horizRadius;
+	private double vertRadius;
 	
 	public BoundingBox(Block center, double radius) {
 		this(center.getLocation().add(0.5, 0, 0.5), radius, radius);
@@ -37,41 +38,41 @@ public class BoundingBox implements Space {
 	}
 	
 	public BoundingBox(Location corner1, Location corner2) {
-		this.world = corner1.getWorld();
-		this.lowX = min(corner1.getX(), corner2.getX());
-		this.highX = max(corner1.getX(), corner2.getX());
-		this.lowY = min(corner1.getY(), corner2.getY());
-		this.highY = max(corner1.getY(), corner2.getY());
-		this.lowZ = min(corner1.getZ(), corner2.getZ());
-		this.highZ = max(corner1.getZ(), corner2.getZ());
+		world = corner1.getWorld();
+		lowX = min(corner1.getX(), corner2.getX());
+		highX = max(corner1.getX(), corner2.getX());
+		lowY = min(corner1.getY(), corner2.getY());
+		highY = max(corner1.getY(), corner2.getY());
+		lowZ = min(corner1.getZ(), corner2.getZ());
+		highZ = max(corner1.getZ(), corner2.getZ());
 	}
 	
 	public void setCenter(Location center) {
-		this.world = center.getWorld();
-		this.lowX = center.getX() - this.horizRadius;
-		this.lowY = center.getY() - this.vertRadius;
-		this.lowZ = center.getZ() - this.horizRadius;
-		this.highX = center.getX() + this.horizRadius;
-		this.highY = center.getY() + this.vertRadius;
-		this.highZ = center.getZ() + this.horizRadius;
+		world = center.getWorld();
+		lowX = center.getX() - horizRadius;
+		lowY = center.getY() - vertRadius;
+		lowZ = center.getZ() - horizRadius;
+		highX = center.getX() + horizRadius;
+		highY = center.getY() + vertRadius;
+		highZ = center.getZ() + horizRadius;
 	}
 	
 	public void expand(double amount) {
-		this.lowX -= amount;
-		this.lowY -= amount;
-		this.lowZ -= amount;
-		this.highX += amount;
-		this.highY += amount;
-		this.highZ += amount;
+		lowX -= amount;
+		lowY -= amount;
+		lowZ -= amount;
+		highX += amount;
+		highY += amount;
+		highZ += amount;
 	}
 	
 	@Override
 	public boolean contains(Location location) {
-		if (!location.getWorld().equals(this.world)) return false;
+		if (!location.getWorld().equals(world)) return false;
 		double x = location.getX();
 		double y = location.getY();
 		double z = location.getZ();
-		return this.lowX <= x && x <= this.highX && this.lowY <= y && y <= this.highY && this.lowZ <= z && z <= this.highZ;
+		return lowX <= x && x <= highX && lowY <= y && y <= highY && lowZ <= z && z <= highZ;
 	}
 	
 	@Override

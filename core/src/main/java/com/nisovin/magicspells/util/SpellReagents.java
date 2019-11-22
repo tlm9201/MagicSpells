@@ -1,16 +1,17 @@
 package com.nisovin.magicspells.util;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.Collection;
 
 import org.bukkit.inventory.ItemStack;
 
 public class SpellReagents {
 	
-	private HashSet<ItemStack> items;
+	private Set<ItemStack> items;
 	private int mana;
 	private int health;
 	private int hunger;
@@ -18,162 +19,155 @@ public class SpellReagents {
 	private int levels;
 	private int durability;
 	private float money;
-	private HashMap<String, Double> variables;
+	private Map<String, Double> variables;
 	
 	public SpellReagents() {
-		this.items = null;
-		this.mana = 0;
-		this.health = 0;
-		this.hunger = 0;
-		this.experience = 0;
-		this.levels = 0;
-		this.money = 0;
-		this.variables = null;
+		items = null;
+		mana = 0;
+		health = 0;
+		hunger = 0;
+		experience = 0;
+		levels = 0;
+		money = 0;
+		variables = null;
 	}
 	
 	public SpellReagents(SpellReagents other) {
 		if (other.items != null) {
-			this.items = new HashSet<>();
-			other.items.forEach(item -> this.items.add(item.clone()));
+			items = new HashSet<>();
+			other.items.forEach(item -> items.add(item.clone()));
 		}
-		this.mana = other.mana;
-		this.health = other.health;
-		this.hunger = other.hunger;
-		this.experience = other.experience;
-		this.levels = other.levels;
-		this.money = other.money;
+		mana = other.mana;
+		health = other.health;
+		hunger = other.hunger;
+		experience = other.experience;
+		levels = other.levels;
+		money = other.money;
 		if (other.variables != null) {
-			this.variables = new HashMap<>();
-			this.variables.putAll(other.variables);
+			variables = new HashMap<>();
+			variables.putAll(other.variables);
 		}
 	}
 	
-	public HashSet<ItemStack> getItems() {
-		return this.items;
+	public Set<ItemStack> getItems() {
+		return items;
 	}
 	
 	public ItemStack[] getItemsAsArray() {
-		if (this.items == null || this.items.isEmpty()) return null;
-		ItemStack[] arr = new ItemStack[this.items.size()];
-		arr = this.items.toArray(arr);
+		if (items == null || items.isEmpty()) return null;
+		ItemStack[] arr = new ItemStack[items.size()];
+		arr = items.toArray(arr);
 		return arr;
 	}
 	
 	public void setItems(Collection<ItemStack> newItems) {
-		if (newItems == null || newItems.isEmpty()) {
-			this.items = null;
-		} else {
-			this.items = new HashSet<>(newItems);
-		}
+		if (newItems == null || newItems.isEmpty()) items = null;
+		else items = new HashSet<>(newItems);
 	}
 	
 	// TODO can this safely be varargs?
 	public void setItems(ItemStack[] newItems) {
-		if (newItems == null || newItems.length == 0) {
-			this.items = null;
-		} else {
-			this.items = new HashSet<>(Arrays.asList(newItems));
-		}
+		if (newItems == null || newItems.length == 0) items = null;
+		else items = new HashSet<>(Arrays.asList(newItems));
 	}
 	
 	public void addItem(ItemStack item) {
-		if (this.items == null) this.items = new HashSet<>();
-		this.items.add(item);
+		if (items == null) items = new HashSet<>();
+		items.add(item);
 	}
 	
 	public int getMana() {
-		return this.mana;
+		return mana;
 	}
 	
 	public void setMana(int newMana) {
-		this.mana = newMana;
+		mana = newMana;
 	}
 	
 	public int getHealth() {
-		return this.health;
+		return health;
 	}
 	
 	public void setHealth(int newHealth) {
-		this.health = newHealth;
+		health = newHealth;
 	}
 	
 	public int getHunger() {
-		return this.hunger;
+		return hunger;
 	}
 	
 	public void setHunger(int newHunger) {
-		this.hunger = newHunger;
+		hunger = newHunger;
 	}
 	
 	public int getExperience() {
-		return this.experience;
+		return experience;
 	}
 	
 	public void setExperience(int newExperience) {
-		this.experience = newExperience;
+		experience = newExperience;
 	}
 	
 	public int getLevels() {
-		return this.levels;
+		return levels;
 	}
 	
 	public void setLevels(int newLevels) {
-		this.levels = newLevels;
+		levels = newLevels;
 	}
 	
 	public int getDurability() {
-		return this.durability;
+		return durability;
 	}
 	
 	public void setDurability(int newDurability) {
-		this.durability = newDurability;
+		durability = newDurability;
 	}
 	
 	public float getMoney() {
-		return this.money;
+		return money;
 	}
 	
 	public void setMoney(float newMoney) {
-		this.money = newMoney;
+		money = newMoney;
 	}
 	
-	public HashMap<String, Double> getVariables() {
-		return this.variables;
+	public Map<String, Double> getVariables() {
+		return variables;
 	}
 	
 	public void addVariable(String var, double val) {
-		if (this.variables == null) this.variables = new HashMap<>();
-		this.variables.put(var, val);
+		if (variables == null) variables = new HashMap<>();
+		variables.put(var, val);
 	}
 	
 	public void setVariables(Map<String, Double> newVariables) {
-		if (newVariables == null || newVariables.isEmpty()) {
-			this.variables = null;
-		} else {
-			this.variables = new HashMap<>();
-			this.variables.putAll(newVariables);
+		if (newVariables == null || newVariables.isEmpty()) variables = null;
+		else {
+			variables = new HashMap<>();
+			variables.putAll(newVariables);
 		}
 	}
 	
 	@Override
 	public SpellReagents clone() {
 		SpellReagents other = new SpellReagents();
-		if (this.items != null) {
+		if (items != null) {
 			other.items = new HashSet<>();
-			for (ItemStack item : this.items) {
+			for (ItemStack item : items) {
 				other.items.add(item.clone());
 			}
 		}
-		other.mana = this.mana;
-		other.health = this.health;
-		other.hunger = this.hunger;
-		other.experience = this.experience;
-		other.levels = this.levels;
-		other.durability = this.durability;
-		other.money = this.money;
-		if (this.variables != null) {
+		other.mana = mana;
+		other.health = health;
+		other.hunger = hunger;
+		other.experience = experience;
+		other.levels = levels;
+		other.durability = durability;
+		other.money = money;
+		if (variables != null) {
 			other.variables = new HashMap<>();
-			for (Map.Entry<String, Double> entry : this.variables.entrySet()) {
+			for (Map.Entry<String, Double> entry : variables.entrySet()) {
 				other.variables.put(entry.getKey(), entry.getValue());
 			}
 		}
@@ -182,24 +176,24 @@ public class SpellReagents {
 	
 	public SpellReagents multiply(float x) {
 		SpellReagents other = new SpellReagents();
-		if (this.items != null) {
+		if (items != null) {
 			other.items = new HashSet<>();
-			for (ItemStack item : this.items) {
+			for (ItemStack item : items) {
 				ItemStack i = item.clone();
 				i.setAmount(Math.round(i.getAmount() * x));
 				other.items.add(i);
 			}
 		}
-		other.mana = Math.round(this.mana * x);
-		other.health = Math.round(this.health * x);
-		other.hunger = Math.round(this.hunger * x);
-		other.experience = Math.round(this.experience * x);
-		other.levels = Math.round(this.levels * x);
-		other.durability = Math.round(this.durability * x);
-		other.money = this.money * x;
-		if (this.variables != null) {
+		other.mana = Math.round(mana * x);
+		other.health = Math.round(health * x);
+		other.hunger = Math.round(hunger * x);
+		other.experience = Math.round(experience * x);
+		other.levels = Math.round(levels * x);
+		other.durability = Math.round(durability * x);
+		other.money = money * x;
+		if (variables != null) {
 			other.variables = new HashMap<>();
-			for (Map.Entry<String, Double> entry : this.variables.entrySet()) {
+			for (Map.Entry<String, Double> entry : variables.entrySet()) {
 				other.variables.put(entry.getKey(), entry.getValue() * x);
 			}
 		}
@@ -209,15 +203,15 @@ public class SpellReagents {
 	@Override
 	public String toString() {
 		return "SpellReagents:["
-			+ "items=" + this.items
-			+ ",mana=" + this.mana
-			+ ",health=" + this.health
-			+ ",hunger=" + this.hunger
-			+ ",experience=" + this.experience
-			+ ",levels=" + this.levels
-			+ ",durability=" + this.durability
-			+ ",money=" + this.money
-			+ ",variables=" + this.variables
+			+ "items=" + items
+			+ ",mana=" + mana
+			+ ",health=" + health
+			+ ",hunger=" + hunger
+			+ ",experience=" + experience
+			+ ",levels=" + levels
+			+ ",durability=" + durability
+			+ ",money=" + money
+			+ ",variables=" + variables
 			+ ']';
 	}
 	

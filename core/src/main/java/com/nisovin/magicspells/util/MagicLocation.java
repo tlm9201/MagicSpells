@@ -2,8 +2,8 @@ package com.nisovin.magicspells.util;
 
 import java.util.Objects;
 
-import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.Location;
 
 import com.nisovin.magicspells.MagicSpells;
 
@@ -52,27 +52,27 @@ public class MagicLocation {
 	}
 	
 	public String getWorld() {
-		return this.world;
+		return world;
 	}
 	
 	public double getX() {
-		return this.x;
+		return x;
 	}
 	
 	public double getY() {
-		return this.y;
+		return y;
 	}
 	
 	public double getZ() {
-		return this.z;
+		return z;
 	}
 	
 	public float getYaw() {
-		return this.yaw;
+		return yaw;
 	}
 	
 	public float getPitch() {
-		return this.pitch;
+		return pitch;
 	}
 	
 	// -------------------------------------------- //
@@ -82,12 +82,12 @@ public class MagicLocation {
 	@Override
 	public int hashCode() {
 		return Objects.hash(
-			this.world,
-			this.x,
-			this.y,
-			this.z,
-			this.pitch,
-			this.yaw
+			world,
+			x,
+			y,
+			z,
+			pitch,
+			yaw
 		);
 	}
 	
@@ -98,16 +98,16 @@ public class MagicLocation {
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof MagicLocation) {
-			MagicLocation loc = (MagicLocation)o;
-			return loc.world.equals(this.world) && loc.x == this.x && loc.y == this.y && loc.z == this.z && loc.yaw == this.yaw && loc.pitch == this.pitch;
+			MagicLocation loc = (MagicLocation) o;
+			return loc.world.equals(world) && loc.x == x && loc.y == y && loc.z == z && loc.yaw == yaw && loc.pitch == pitch;
 		} else if (o instanceof Location) {
-			Location loc = (Location)o;
-			if (!LocationUtil.isSameWorld(loc, this.world)) return false;
-			if (loc.getX() != this.x) return false;
-			if (loc.getY() != this.y) return false;
-			if (loc.getZ() != this.z) return false;
-			if (loc.getYaw() != this.yaw) return false;
-			if (loc.getPitch() != this.pitch) return false;
+			Location loc = (Location) o;
+			if (!LocationUtil.isSameWorld(loc, world)) return false;
+			if (loc.getX() != x) return false;
+			if (loc.getY() != y) return false;
+			if (loc.getZ() != z) return false;
+			if (loc.getYaw() != yaw) return false;
+			if (loc.getPitch() != pitch) return false;
 			return true;
 		}
 		return false;

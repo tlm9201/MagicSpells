@@ -12,11 +12,11 @@ import org.bukkit.event.inventory.InventoryType;
 
 public class InventoryUtil {
 
-	public static final String SERIALIZATION_KEY_SIZE = "size";
-	public static final String SERIALIZATION_KEY_TYPE = "type";
-	public static final String SERIALIZATION_KEY_CONTENTS = "contents";
-	public static final String SERIALIZATION_KEY_TITLE = "title";
-	
+	private static final String SERIALIZATION_KEY_SIZE = "size";
+	private static final String SERIALIZATION_KEY_TYPE = "type";
+	private static final String SERIALIZATION_KEY_TITLE = "title";
+	private static final String SERIALIZATION_KEY_CONTENTS = "contents";
+
 	/*
 	 * type: INVENTORY_TYPE/string
 	 * size: integer
@@ -37,9 +37,9 @@ public class InventoryUtil {
 		
 		ret.put(SERIALIZATION_KEY_SIZE, size);
 		ret.put(SERIALIZATION_KEY_TYPE, inventoryType);
-		ret.put(SERIALIZATION_KEY_CONTENTS, serializedContents);
 		ret.put(SERIALIZATION_KEY_TITLE, title);
-		
+		ret.put(SERIALIZATION_KEY_CONTENTS, serializedContents);
+
 		return ret;
 	}
 	
@@ -59,12 +59,9 @@ public class InventoryUtil {
 		int inventorySize = (Integer) serialized.get(SERIALIZATION_KEY_SIZE);
 		String title = (String) serialized.get(SERIALIZATION_KEY_TITLE);
 		Inventory ret;
-		if (strInventoryType.equals(InventoryType.CHEST.name())) {
-			ret = Bukkit.createInventory(null, inventorySize, title);
-		} else {
-			ret = Bukkit.createInventory(null, InventoryType.valueOf(strInventoryType), title);
-		}
-		
+		if (strInventoryType.equals(InventoryType.CHEST.name())) ret = Bukkit.createInventory(null, inventorySize, title);
+		else ret = Bukkit.createInventory(null, InventoryType.valueOf(strInventoryType), title);
+
 		// Handle the item contents
 		Map<Object, Object> serializedItems = (Map<Object, Object>) serialized.get(SERIALIZATION_KEY_CONTENTS);
 		ret.setContents(deserializeContentsMap(serializedItems, inventorySize));

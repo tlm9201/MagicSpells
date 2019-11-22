@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.util;
+package com.nisovin.magicspells.util.managers;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -7,6 +7,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;

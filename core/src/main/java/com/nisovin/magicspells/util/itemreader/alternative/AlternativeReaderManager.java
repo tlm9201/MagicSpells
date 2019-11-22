@@ -1,15 +1,15 @@
 package com.nisovin.magicspells.util.itemreader.alternative;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemStack;
-
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
+
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.configuration.ConfigurationSection;
 
 public class AlternativeReaderManager {
 	
-	public static Map<String, ItemConfigTransformer> readers = new HashMap<>();
-	public static final String KEY_PROCESSOR = "type";
+	private static Map<String, ItemConfigTransformer> readers = new HashMap<>();
+	private static final String KEY_PROCESSOR = "type";
 	
 	private static void register(ItemConfigTransformer transformer) {
 		String key = transformer.getReaderKey();

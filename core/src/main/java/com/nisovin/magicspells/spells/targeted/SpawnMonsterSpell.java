@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
+import java.util.Set;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntityFromLocationSpell {
@@ -85,10 +87,8 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 	private Subspell attackSpell;
 	private String attackSpellName;
 
-	private String[] attributeTypes;
-	private double[] attributeValues;
-	private int[] attributeOperations;
 	private List<PotionEffect> potionEffects;
+	private Set<AttributeManager.AttributeInfo> attributes;
 
 	private Random random = new Random();
 	
@@ -147,33 +147,10 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 
 		attackSpellName = getConfigString("attack-spell", "");
 
-		List<String> attributes = getConfigStringList("attributes", null);
-		if (attributes != null && !attributes.isEmpty()) {
-			attributeTypes = new String[attributes.size()];
-			attributeValues = new double[attributes.size()];
-			attributeOperations = new int[attributes.size()];
-			for (int i = 0; i < attributes.size(); i++) {
-				String s = attributes.get(i);
-				try {
-					String[] data = s.split(" ");
-					String type = data[0];
-					double val = Double.parseDouble(data[1]);
-					int op = 0;
-					if (data.length > 2) {
-						if (data[2].equalsIgnoreCase("mult")) {
-							op = 1;
-						} else if (data[2].toLowerCase().contains("add") && data[2].toLowerCase().contains("perc")) {
-							op = 2;
-						}
-					}
-					attributeTypes[i] = type;
-					attributeValues[i] = val;
-					attributeOperations[i] = op;
-				} catch (Exception e) {
-					MagicSpells.error("SpawnMonsterSpell '" + spellName + "' has an invalid attribute defined: " + s);
-				}
-			}
-		}
+		// Attributes
+		// - [AttributeName] [Number] [Operation]
+		List<String> attributeList = getConfigStringList("attributes", null);
+		if (attributeList != null && !attributeList.isEmpty()) attributes = MagicSpells.getAttributeManager().getAttributes(attributeList);
 
 		List<String> list = getConfigStringList("potion-effects", null);
 		if (list != null && !list.isEmpty()) {
@@ -341,12 +318,8 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 		if (fireTicks > 0) entity.setFireTicks(fireTicks);
 		if (potionEffects != null) entity.addPotionEffects(potionEffects);
 
-		if (attributeTypes != null && attributeTypes.length > 0) {
-			for (int i = 0; i < attributeTypes.length; i++) {
-				if (attributeTypes[i] == null) continue;
-				MagicSpells.getVolatileCodeHandler().addEntityAttribute(entity, attributeTypes[i], attributeValues[i], attributeOperations[i]);
-			}
-		}
+		// Apply attributes
+		if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(entity, attributes);
 
 		if (removeAI) {
 			MagicSpells.getVolatileCodeHandler().removeAI(entity);

@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.util;
 
-import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.ConversationPrefix;
+import org.bukkit.conversations.ConversationContext;
 
 public class MagicConversationPrefix implements ConversationPrefix {
 
@@ -13,7 +13,7 @@ public class MagicConversationPrefix implements ConversationPrefix {
 	
 	@Override
 	public String getPrefix(ConversationContext paramConversationContext) {
-		return this.prefix;
+		return prefix;
 	}
 
 }

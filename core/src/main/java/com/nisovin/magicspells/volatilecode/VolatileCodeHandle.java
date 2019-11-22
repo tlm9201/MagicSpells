@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.Vector;
 
-import com.nisovin.magicspells.util.IDisguiseManager;
+import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager;
 import com.nisovin.magicspells.util.MagicConfig;
 
 public interface VolatileCodeHandle {
@@ -63,9 +63,7 @@ public interface VolatileCodeHandle {
 	// TODO this should be moved to it's own handler
 	ItemStack addAttributes(ItemStack item, String[] names, String[] types, double[] amounts, int[] operations, String[] slots);
 	ItemStack hideTooltipCrap(ItemStack item);
-	
-	void addEntityAttribute(LivingEntity entity, String attribute, double amount, int operation);
-	
+
 	void removeAI(LivingEntity entity);
 	
 	void addAILookAtPlayer(LivingEntity entity, int range);
