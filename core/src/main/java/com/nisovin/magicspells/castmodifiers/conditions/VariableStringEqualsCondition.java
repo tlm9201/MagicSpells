@@ -27,11 +27,8 @@ public class VariableStringEqualsCondition extends Condition {
 			MagicSpells.error("No variable stated for comparison within this modifier!");
 			return false;
 		}
-		//Value cannot be null or empty.
-		if (value.isEmpty()) {
-			MagicSpells.error("This variable is being compared to nothing!");
-			return false;
-		}
+		//Translates "null" string to "".
+		if(value.equals("null")) value = "";
 
 		//If everything checks out, will continue.
 		return true;
