@@ -17,7 +17,7 @@ public class CustomNameCondition extends Condition {
 	public boolean setVar(String var) {
 		if (var == null || var.isEmpty()) return false;
 		name = ChatColor.translateAlternateColorCodes('&', var);
-		if (name.contains("%var:")) isVar = true;
+		if (name.contains("%var:") || name.contains("%playervar")) isVar = true;
 		return true;
 	}
 
@@ -38,10 +38,12 @@ public class CustomNameCondition extends Condition {
 
 	private boolean checkName(LivingEntity livingEntity, LivingEntity target) {
 		if (!(livingEntity instanceof Player)) return false;
-		if (isVar) name = MagicSpells.doVariableReplacements((Player) livingEntity, name);
-		String n = target.getCustomName();
-		if (!isVar) name = name.replace("__", " ");
-		return n != null && !n.isEmpty() && name.equalsIgnoreCase(n);
+		String checkedName = name;
+		if (isVar) checkedName = MagicSpells.doVariableReplacements((Player) livingEntity, checkedName);
+
+		String targetName = target.getCustomName();
+		if (!isVar) checkedName = checkedName.replace("__", " ");
+		return targetName != null && !targetName.isEmpty() && checkedName.equalsIgnoreCase(targetName);
 	}
 
 }

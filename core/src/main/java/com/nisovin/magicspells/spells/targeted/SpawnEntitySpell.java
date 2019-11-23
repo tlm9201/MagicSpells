@@ -15,7 +15,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.Listener;
-import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Enderman;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Skeleton;
@@ -30,6 +29,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.Subspell;
@@ -44,7 +44,7 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
-public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntityFromLocationSpell {
+public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntityFromLocationSpell {
 
 	private List<LivingEntity> entities;
 
@@ -73,9 +73,7 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 	private String location;
 	private String nameplateText;
 
-	private boolean baby;
 	private boolean noAI;
-	private boolean tamed;
 	private boolean gravity;
 	private boolean removeAI;
 	private boolean removeMob;
@@ -93,16 +91,13 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 	private Random random = new Random();
 	
 	// DEBUG INFO: level 2, invalid potion effect on internalname spell data
-	public SpawnMonsterSpell(MagicConfig config, String spellName) {
+	public SpawnEntitySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		entities = new ArrayList<>();
 
-		entityData = new EntityData(getConfigString("entity-type", "wolf"));
-		if (entityData.getType() == null || !entityData.getType().isAlive()) {
-			MagicSpells.error("SpawnMonsterSpell '" + spellName + "' has an invalid entity-type defined!");
-			entityData = null;
-		}
+		ConfigurationSection entitySection = getConfigSection("entity");
+		if (entitySection != null) entityData = new EntityData(entitySection);
 
 		holding = Util.getItemStackFromString(getConfigString("holding", "AIR"));
 		helmet = Util.getItemStackFromString(getConfigString("helmet", "AIR"));
@@ -133,9 +128,7 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 		location = getConfigString("location", "target");
 		nameplateText = getConfigString("nameplate-text", "");
 
-		baby = getConfigBoolean("baby", false);
 		noAI = getConfigBoolean("no-ai", false);
-		tamed = getConfigBoolean("tamed", false);
 		gravity = getConfigBoolean("gravity", true);
 		removeAI = getConfigBoolean("remove-ai", false);
 		removeMob = getConfigBoolean("remove-mob", true);
@@ -178,9 +171,14 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 	public void initialize() {
 		super.initialize();
 
+		if (entityData == null || entityData.getEntityType() == null) {
+			MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid entity defined!");
+			entityData = null;
+		}
+
 		attackSpell = new Subspell(attackSpellName);
-		if (!attackSpell.process()) {
-			MagicSpells.error("SpawnMonsterSpell '" + internalName + "' has invalid attack-spell defined!");
+		if (!attackSpellName.isEmpty() && !attackSpell.process()) {
+			MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid attack-spell defined!");
 			attackSpell = null;
 		}
 	}
@@ -308,7 +306,8 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 	}
 
 	private void spawnMob(LivingEntity caster, Location source, Location loc, LivingEntity target, float power) {
-		if (entityData == null || entityData.getType() == null) return;
+		if (entityData == null || entityData.getEntityType() == null) return;
+		if (entityData.isPlayer()) return;
 
 		loc.setYaw((float) (Math.random() * 360));
 		LivingEntity entity = (LivingEntity) entityData.spawn(loc.add(0.5, yOffset, 0.5));
@@ -351,13 +350,9 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 	private void prepMob(LivingEntity caster, Entity entity) {
 		entity.setGravity(gravity);
 
-		if (tamed && entity instanceof Tameable && caster != null && caster instanceof Player) {
-			((Tameable) entity).setTamed(true);
+		if (entityData.isTamed() && entity instanceof Tameable && caster != null && caster instanceof Player) {
 			((Tameable) entity).setOwner((Player) caster);
 		}
-
-		if (baby && entity instanceof Ageable) ((Ageable) entity).setBaby();
-		if (entity instanceof Zombie) ((Zombie) entity).setBaby(baby);
 
 		if (holding != null && holding.getType() != Material.AIR) {
 			if (entity instanceof Enderman) ((Enderman) entity).setCarriedMaterial(holding.getData());
@@ -412,7 +407,7 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 		
 		@EventHandler(ignoreCancelled = true)
 		private void onDamage(EntityDamageByEntityEvent event) {
-			if (attackSpell.getSpell().onCooldown(caster)) return;
+			if (attackSpell == null || attackSpell.getSpell() == null || attackSpell.getSpell().onCooldown(caster)) return;
 
 			Entity damager = event.getDamager();
 			if (damager instanceof Projectile) {
