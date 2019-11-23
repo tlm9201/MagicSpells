@@ -89,9 +89,19 @@ public class ParticleUtil {
 			initialized = true;
 		}
 
-		public static Particle getParticle(String particle) {
+		public static Particle getParticle(String particleName) {
 			initialize();
-			return namesToType.get(particle.toLowerCase());
+
+			Particle particle = namesToType.get(particleName.toLowerCase());
+			if (particle != null)
+				return particle;
+
+			try {
+				particle = Particle.valueOf(particleName.toUpperCase());
+			} catch (IllegalArgumentException ex) {
+				particle = null;
+			}
+			return particle;
 		}
 
 	}
