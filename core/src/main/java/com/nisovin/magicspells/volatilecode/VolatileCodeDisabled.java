@@ -13,19 +13,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Fireball;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.SmallFireball;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.attribute.AttributeModifier.Operation;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.managers.DisguiseManager;
 
 public class VolatileCodeDisabled implements VolatileCodeHandle {
 
@@ -170,11 +165,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	@Override
 	public void setKiller(LivingEntity entity, Player killer) {
 		// Need the volatile code for this
-	}
-
-	@Override
-	public DisguiseManager getDisguiseManager(MagicConfig config) {
-		return null;
 	}
 
 	@Override

@@ -162,25 +162,15 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 			target.removePotionEffect(type);
 		}
 
-		for (BuffSpell spell : buffSpells) {
-			spell.turnOff(target);
-		}
+		buffSpells.forEach(spell -> spell.turnOff(target));
 
-		for (DotSpell spell : dotSpells) {
-			spell.cancelDot(target);
-		}
+		dotSpells.forEach(spell -> spell.cancelDot(target));
 
-		for (StunSpell spell : stunSpells) {
-			spell.removeStun(target);
-		}
+		stunSpells.forEach(spell -> spell.removeStun(target));
 
-		for (SilenceSpell spell : silenceSpells) {
-			spell.removeSilence(target);
-		}
+		silenceSpells.forEach(spell -> spell.removeSilence(target));
 
-		for (LevitateSpell spell : levitateSpells) {
-			spell.removeLevitate(target);
-		}
+		levitateSpells.forEach(spell -> spell.removeLevitate(target));
 
 		if (caster != null) playSpellEffects(caster, target);
 		else playSpellEffects(EffectPosition.TARGET, target);

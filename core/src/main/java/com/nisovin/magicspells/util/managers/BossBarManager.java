@@ -48,8 +48,8 @@ public class BossBarManager implements IBossBarManager {
 
 	@Override
 	public void turnOff() {
-		this.bars.values().forEach(BossBar::removeAll);
-		this.bars.clear();
+		bars.values().forEach(BossBar::removeAll);
+		bars.clear();
 	}
 
 	private void createBar(Player player, String title, double progress, BarStyle style, BarColor color) {

@@ -4,11 +4,7 @@ import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import com.nisovin.magicspells.MagicSpells
 import com.nisovin.magicspells.util.*
-import com.nisovin.magicspells.util.compat.CompatBasics
 import com.nisovin.magicspells.util.compat.EventUtil
-import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager
-import com.nisovin.magicspells.volatilecode.DisguiseManagerEmpty
-import com.nisovin.magicspells.volatilecode.DisguiseManagerLibsDisguises
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 import net.minecraft.server.v1_12_R1.*
@@ -16,8 +12,6 @@ import net.minecraft.server.v1_12_R1.Item
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.attribute.Attribute
-import org.bukkit.attribute.AttributeModifier
 import org.bukkit.block.Block
 import org.bukkit.craftbukkit.v1_12_R1.CraftServer
 import org.bukkit.craftbukkit.v1_12_R1.CraftWorld
@@ -409,18 +403,6 @@ class VolatileCode1_12_R1: VolatileCodeHandle {
 
     override fun setKiller(entity: LivingEntity, killer: Player) {
         (entity as CraftLivingEntity).handle.killer = (killer as CraftPlayer).handle
-    }
-
-    override fun getDisguiseManager(config: MagicConfig): IDisguiseManager {
-        if (CompatBasics.pluginEnabled("LibsDisguises")) {
-            return try {
-                DisguiseManagerLibsDisguises(config)
-            } catch (e: Exception) {
-                DisguiseManagerEmpty(config)
-            }
-
-        }
-        return DisguiseManagerEmpty(config)
     }
 
     override fun addAttributes(item: ItemStack, names: Array<String>, types: Array<String>, amounts: DoubleArray, operations: IntArray, slots: Array<String>): ItemStack {
