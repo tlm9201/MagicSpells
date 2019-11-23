@@ -5,6 +5,8 @@ import java.util.UUID;
 import java.util.Random;
 import java.util.HashSet;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -103,7 +105,7 @@ public class SeeHealthSpell extends BuffSpell {
 			for (int i = 0; i < barSize - remain; i++) sb.append(symbol);
 		}
 
-		MagicSpells.getVolatileCodeHandler().sendActionBarMessage(player, sb.toString());
+		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(sb.toString()));
 	}
 	
 	private class Updater implements Runnable {

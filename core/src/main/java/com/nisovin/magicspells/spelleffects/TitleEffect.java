@@ -40,7 +40,7 @@ public class TitleEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		MagicSpells.getVolatileCodeHandler().sendTitleToPlayer(player, MagicSpells.doVariableReplacements(player, title), MagicSpells.doVariableReplacements(player, subtitle), fadeIn, stay, fadeOut);
+		player.sendTitle(MagicSpells.doVariableReplacements(player, title), MagicSpells.doVariableReplacements(player, subtitle), fadeIn, stay, fadeOut);
 	}
 
 }

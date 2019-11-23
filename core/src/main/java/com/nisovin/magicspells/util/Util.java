@@ -7,15 +7,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Objects;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.Predicate;
@@ -26,19 +18,18 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.ChatColor;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -50,6 +41,7 @@ import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.materials.MagicMaterial;
 import com.nisovin.magicspells.materials.ItemNameResolver.ItemTypeAndData;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
+import com.nisovin.magicspells.util.managers.AttributeManager;
 
 import org.apache.commons.math3.util.FastMath;
 
@@ -147,7 +139,7 @@ public class Util {
 				if (!enchants.isEmpty()) {
 					item.addUnsafeEnchantments(enchants);
 				} else {
-					item = MagicSpells.getVolatileCodeHandler().addFakeEnchantment(item);
+					item = ItemUtil.addFakeEnchantment(item);
 				}
 			}
 			return item;
@@ -320,34 +312,28 @@ public class Util {
 			// Banner
 			meta = BannerHandler.process(config, meta);
 
-			// Set meta
-			item.setItemMeta(meta);
+			// Unbreakable
+			if (config.getBoolean("unbreakable", false)) {
+				meta.setUnbreakable(true);
+			}
 
 			// Hide tooltip
 			if (config.getBoolean("hide-tooltip", MagicSpells.hidePredefinedItemTooltips())) {
-				item = MagicSpells.getVolatileCodeHandler().hideTooltipCrap(item);
-			}
-
-			// Unbreakable
-			if (config.getBoolean("unbreakable", false)) {
-				item = MagicSpells.getVolatileCodeHandler().setUnbreakable(item);
+				meta.addItemFlags(ItemFlag.values());
 			}
 
 			// Empty enchant
 			if (emptyEnchants) {
-				item = MagicSpells.getVolatileCodeHandler().addFakeEnchantment(item);
+				item = ItemUtil.addFakeEnchantment(item);
 			}
 
+			// Set meta
+			item.setItemMeta(meta);
+
 			// Attributes
+			AttributeManager attributeManager = MagicSpells.getAttributeManager();
 			if (config.contains("attributes")) {
 				Set<String> attrs = config.getConfigurationSection("attributes").getKeys(false);
-				int attrsSize = attrs.size();
-				String[] attrNames = new String[attrsSize];
-				String[] attrTypes = new String[attrsSize];
-				double[] attrAmounts = new double[attrsSize];
-				int[] attrOperations = new int[attrsSize];
-				String[] slots = new String[attrsSize];
-				int i = 0;
 				for (String attrName : attrs) {
 					String[] attrData = config.getString("attributes." + attrName).split(" ");
 					String attrType = attrData[0];
@@ -357,29 +343,28 @@ public class Util {
 					} catch (NumberFormatException e) {
 						DebugHandler.debugNumberFormat(e);
 					}
-					int attrOp = 0; // Add number
+					AttributeUtil.AttributeOperation operation = AttributeUtil.AttributeOperation.ADD_NUMBER;
 					if (attrData.length > 2) {
 						String attrDataLowercase = attrData[2].toLowerCase();
 						if (attrDataLowercase.startsWith("mult")) {
-							attrOp = 1; // Multiply percent
-						} else if (attrDataLowercase.contains("add") && attrDataLowercase.contains("perc")) {
-							attrOp = 2; // Add percent
+							operation = AttributeUtil.AttributeOperation.MULTIPLY_SCALAR_1; // Multiply percent
+						} else if (attrDataLowercase.contains("add") && (attrDataLowercase.contains("perc") || attrDataLowercase.contains("scal"))) {
+							operation = AttributeUtil.AttributeOperation.ADD_SCALAR; // Add percent
 						}
 					}
-					String slot = null;
+					EquipmentSlot slot = null; // Can be null for all slots
 					if (attrData.length > 3) {
-						slot = attrData[3];
+						try {
+							slot = EquipmentSlot.valueOf(attrData[3].toUpperCase());
+						} catch (Exception ex) {
+							/* do nothing */
+						}
 					}
-					if (attrType != null) {
-						attrNames[i] = attrName;
-						attrTypes[i] = attrType;
-						attrAmounts[i] = attrAmt;
-						attrOperations[i] = attrOp;
-						slots[i] = slot;
-					}
-					i++;
+
+					Attribute attribute = AttributeUtil.AttributeType.getAttribute(attrType);
+					AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), attrType, attrAmt, operation.toBukkitOperation(), slot);
+					attributeManager.addItemAttribute(item, attribute, modifier);
 				}
-				item = MagicSpells.getVolatileCodeHandler().addAttributes(item, attrNames, attrTypes, attrAmounts, attrOperations, slots);
 			}
 
 			return item;

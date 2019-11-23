@@ -35,6 +35,10 @@ public class AttributeUtil {
 			}
 		}
 
+		public AttributeModifier.Operation toBukkitOperation() {
+			return nameMap.get(names[0]);
+		}
+
 		public static AttributeModifier.Operation getOperation(String operation) {
 			return nameMap.get(operation.toLowerCase());
 		}
@@ -75,6 +79,10 @@ public class AttributeUtil {
 				}
 
 			}
+		}
+
+		public Attribute toBukkitAttribute() {
+			return nameMap.get(names[0]);
 		}
 
 		public static Attribute getAttribute(String attribute) {

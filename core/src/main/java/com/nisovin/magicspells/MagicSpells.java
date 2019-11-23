@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import java.lang.reflect.Field;
 import java.util.Set;
 import java.util.Map;
 import java.util.List;
@@ -29,6 +30,8 @@ import java.net.MalformedURLException;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.Event;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -45,19 +48,12 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.Metrics;
-import com.nisovin.magicspells.util.TxtUtil;
-import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.MoneyHandler;
 import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.commands.ManaCommand;
 import com.nisovin.magicspells.commands.CastCommand;
-import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.events.SpellLearnEvent;
@@ -77,6 +73,14 @@ import com.nisovin.magicspells.materials.MagicItemNameResolver;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 import com.nisovin.magicspells.util.managers.ExperienceBarManager;
+import com.nisovin.magicspells.util.ItemUtil;
+import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.Metrics;
+import com.nisovin.magicspells.util.MoneyHandler;
+import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.OverridePriority;
+import com.nisovin.magicspells.util.TxtUtil;
+import com.nisovin.magicspells.util.Util;
 
 import de.slikey.effectlib.EffectManager;
 
@@ -322,6 +326,17 @@ public class MagicSpells extends JavaPlugin {
 
 		// Call loading event
 		pm.callEvent(new MagicSpellsLoadingEvent(this));
+
+		try {
+			// Register custom "fake" enchant
+			Field acceptingNew = Enchantment.class.getDeclaredField("acceptingNew");
+			acceptingNew.setAccessible(true);
+			acceptingNew.set(null, true);
+			Enchantment.registerEnchantment(new ItemUtil.FakeEnchantment(ItemUtil.FAKE_ENCHANTMENT_KEY));
+			acceptingNew.set(null, false);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 
 		// Init permissions
 		log("Initializing permissions");
@@ -1286,7 +1301,6 @@ public class MagicSpells extends JavaPlugin {
 			bossBarManager = null;
 		}
 		if (volatileCodeHandle != null) {
-			volatileCodeHandle.turnOff();
 			volatileCodeHandle = null;
 		}
 
@@ -1324,6 +1338,21 @@ public class MagicSpells extends JavaPlugin {
 		ModifierSet.unload();
 		PromptType.unloadDestructPromptData();
 		CompatBasics.destructExemptionAssistant();
+
+		try {
+			Field byKeyField = Enchantment.class.getDeclaredField("byKey");
+			Field byNameField = Enchantment.class.getDeclaredField("byName");
+			byKeyField.setAccessible(true);
+			byNameField.setAccessible(true);
+			Map<NamespacedKey, Enchantment> byKey = (Map<NamespacedKey, Enchantment>) byKeyField.get(null);
+			Map<String, Enchantment> byName = (Map<String, Enchantment>) byNameField.get(null);
+
+			Enchantment fakeEnchant = Enchantment.getByKey(ItemUtil.FAKE_ENCHANTMENT_KEY);
+			byKey.remove(ItemUtil.FAKE_ENCHANTMENT_KEY);
+			byName.remove(fakeEnchant.getName());
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 
 		effectManager.dispose();
 		effectManager = null;

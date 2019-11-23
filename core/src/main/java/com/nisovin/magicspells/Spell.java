@@ -835,12 +835,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				message = formatMessage(message, "%s", spellCast.getSpell().getName());
 				MagicSpells.sendMessage(message, livingEntity, spellCast.getSpellArgs());
 				playSpellEffects(EffectPosition.COOLDOWN, livingEntity);
-				if (soundOnCooldown != null && livingEntity instanceof Player) MagicSpells.getVolatileCodeHandler().playSound((Player) livingEntity, soundOnCooldown, 1F, 1F);
+				if (soundOnCooldown != null && livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), soundOnCooldown, 1F, 1F);
 			} else if (state == SpellCastState.MISSING_REAGENTS) {
 				MagicSpells.sendMessage(strMissingReagents, livingEntity, spellCast.getSpellArgs());
 				playSpellEffects(EffectPosition.MISSING_REAGENTS, livingEntity);
 				if (MagicSpells.plugin.showStrCostOnMissingReagents && strCost != null && !strCost.isEmpty()) MagicSpells.sendMessage("    (" + strCost + ')', livingEntity, spellCast.getSpellArgs());
-				if (soundMissingReagents != null && livingEntity instanceof Player) MagicSpells.getVolatileCodeHandler().playSound((Player) livingEntity, soundMissingReagents, 1F, 1F);
+				if (soundMissingReagents != null && livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), soundMissingReagents, 1F, 1F);
 			} else if (state == SpellCastState.CANT_CAST) {
 				MagicSpells.sendMessage(strCantCast, livingEntity, spellCast.getSpellArgs());
 			} else if (state == SpellCastState.NO_MAGIC_ZONE) {
@@ -1014,7 +1014,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					playSpellEffects(EffectPosition.CHARGE_USE, livingEntity);
 					if (rechargeSound == null) return;
 					if (rechargeSound.isEmpty()) return;
-					if (livingEntity instanceof Player) MagicSpells.getVolatileCodeHandler().playSound((Player) livingEntity, rechargeSound, 1.0F, 1.0F);
+					if (livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), rechargeSound, 1.0F, 1.0F);
 				}, Math.round(TimeUtil.TICKS_PER_SECOND * cooldown));
 			}
 		} else {

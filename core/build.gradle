@@ -7,7 +7,6 @@ dependencies {
     shadow "com.github.Chronoken:EffectLib:59ded337a2"
     compile ":spigot-1.14.4"
     compile ":spigot-1.13.2"
-    compile ":spigot-1.12"
     compile "com.github.MilkBowl:VaultAPI:68f14eca20"
     compile ":ProtocolLib"
     compile ":NoCheatPlus"

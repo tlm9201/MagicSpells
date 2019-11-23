@@ -12,41 +12,33 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 
-import com.nisovin.magicspells.util.managers.interfaces.IBossBarManager;
-
-public class BossBarManager implements IBossBarManager {
+public class BossBarManager {
 
 	private Map<UUID, BossBar> bars = new HashMap<>();
 
-	@Override
 	public void setPlayerBar(Player player, String title, double progress, BarStyle style, BarColor color) {
 		createBar(player, title, progress, style, color);
 	}
 
-	@Override
 	public void setPlayerBar(Player player, String title, double progress, BarStyle style) {
 		createBar(player, title, progress, style, BarColor.PURPLE);
 	}
 
-	@Override
 	public void setPlayerBar(Player player, String title, double progress) {
 		createBar(player, title, progress, BarStyle.SOLID, BarColor.PURPLE);
 	}
 
-	@Override
 	public void addPlayerBarFlag(Player player, BarFlag flag) {
 		BossBar bar = bars.get(player.getUniqueId());
 		if (bar == null) return;
 		bar.addFlag(flag);
 	}
 
-	@Override
 	public void removePlayerBar(Player player) {
 		BossBar bar = bars.remove(player.getUniqueId());
 		if (bar != null) bar.removeAll();
 	}
 
-	@Override
 	public void turnOff() {
 		this.bars.values().forEach(BossBar::removeAll);
 		this.bars.clear();

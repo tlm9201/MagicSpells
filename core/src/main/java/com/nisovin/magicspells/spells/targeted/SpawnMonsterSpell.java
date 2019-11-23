@@ -322,7 +322,7 @@ public class SpawnMonsterSpell extends TargetedSpell implements TargetedLocation
 		if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(entity, attributes);
 
 		if (removeAI) {
-			MagicSpells.getVolatileCodeHandler().removeAI(entity);
+			entity.setAI(false);
 			if (addLookAtPlayerAI) MagicSpells.getVolatileCodeHandler().addAILookAtPlayer(entity, 10);
 		}
 		if (noAI) entity.setAI(false);
