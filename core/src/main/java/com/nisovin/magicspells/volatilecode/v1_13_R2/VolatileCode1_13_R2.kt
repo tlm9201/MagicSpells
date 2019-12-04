@@ -4,11 +4,7 @@ import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import com.nisovin.magicspells.MagicSpells
 import com.nisovin.magicspells.util.*
-import com.nisovin.magicspells.util.compat.CompatBasics
 import com.nisovin.magicspells.util.compat.EventUtil
-import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager
-import com.nisovin.magicspells.volatilecode.DisguiseManagerEmpty
-import com.nisovin.magicspells.volatilecode.DisguiseManagerLibsDisguises
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 import net.minecraft.server.v1_13_R2.*
@@ -159,18 +155,6 @@ class VolatileCode1_13_R2: VolatileCodeHandle {
 
     override fun setKiller(entity: LivingEntity, killer: Player) {
         (entity as CraftLivingEntity).handle.killer = (killer as CraftPlayer).handle
-    }
-
-    override fun getDisguiseManager(config: MagicConfig): IDisguiseManager {
-        if (CompatBasics.pluginEnabled("LibsDisguises")) {
-            return try {
-                DisguiseManagerLibsDisguises(config)
-            } catch (e: Exception) {
-                DisguiseManagerEmpty(config)
-            }
-
-        }
-        return DisguiseManagerEmpty(config)
     }
 
     override fun addAILookAtPlayer(entity: LivingEntity, range: Int) {

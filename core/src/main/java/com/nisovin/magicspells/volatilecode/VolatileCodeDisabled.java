@@ -6,9 +6,6 @@ import org.bukkit.util.Vector;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.managers.DisguiseManager;
-
 public class VolatileCodeDisabled implements VolatileCodeHandle {
 
 	public VolatileCodeDisabled() {
@@ -66,11 +63,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	@Override
 	public void setKiller(LivingEntity entity, Player killer) {
 		// Need the volatile code for this
-	}
-
-	@Override
-	public DisguiseManager getDisguiseManager(MagicConfig config) {
-		return null;
 	}
 
 	@Override

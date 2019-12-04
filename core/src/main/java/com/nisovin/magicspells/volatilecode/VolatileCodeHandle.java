@@ -6,9 +6,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.Vector;
 
-import com.nisovin.magicspells.util.managers.interfaces.IDisguiseManager;
-import com.nisovin.magicspells.util.MagicConfig;
-
 public interface VolatileCodeHandle {
 	
 	void addPotionGraphicalEffect(LivingEntity entity, int color, int duration);
@@ -28,9 +25,7 @@ public interface VolatileCodeHandle {
 	void setFallingBlockHurtEntities(FallingBlock block, float damage, int max);
 
 	void setKiller(LivingEntity entity, Player killer);
-	
-	IDisguiseManager getDisguiseManager(MagicConfig config);
-	
+
 	void playDragonDeathEffect(Location location);
 
 	void addAILookAtPlayer(LivingEntity entity, int range);

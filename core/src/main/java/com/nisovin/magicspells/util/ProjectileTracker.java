@@ -362,6 +362,7 @@ public class ProjectileTracker implements Runnable {
 	private void playIntermediateEffects(Location old, Vector movement) {
 		int divideFactor = intermediateEffects + 1;
 		Vector v = movement.clone();
+		v = Util.makeFinite(v);
 		v.setX(v.getX() / divideFactor);
 		v.setY(v.getY() / divideFactor);
 		v.setZ(v.getZ() / divideFactor);
@@ -374,6 +375,7 @@ public class ProjectileTracker implements Runnable {
 	private void checkIntermediateHitboxes(Location old, Vector movement) {
 		int divideFactor = intermediateHitboxes + 1;
 		Vector v = movement.clone();
+		v = Util.makeFinite(v);
 		v.setX(v.getX() / divideFactor);
 		v.setY(v.getY() / divideFactor);
 		v.setZ(v.getZ() / divideFactor);

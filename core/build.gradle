@@ -14,7 +14,7 @@ dependencies {
     compile "com.github.EngineHub.WorldEdit:worldedit-bukkit:d186cce393"
     //compile ":WorldGuard"
     compile "com.github.EngineHub.WorldGuard:worldguard-legacy:ea47e93323"
-    compile ":LibsDisguises-9.0.9"
+    compile ":LibsDisguises-9.8.2"
     compile "com.github.PlaceholderAPI:PlaceholderAPI:e53cad219e"
     compile "com.github.TechFortress:GriefPrevention:832ec7ed86"
     shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
