@@ -43,6 +43,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	private double maxDistanceSquared;
 
+	private boolean checkFace;
 	private boolean unbreakable;
 	private boolean onlyCountOnSuccess;
 
@@ -74,6 +75,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		maxDistanceSquared = getConfigDouble("max-distance", 30);
 		maxDistanceSquared *= maxDistanceSquared;
 
+		checkFace = getConfigBoolean("check-face", true);
 		unbreakable = getConfigBoolean("unbreakable", false);
 		onlyCountOnSuccess = getConfigBoolean("only-count-on-success", false);
 
@@ -130,7 +132,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			if (target == null) return noTarget(livingEntity);
 			if (yOffset > 0) target = target.getRelative(BlockFace.UP, yOffset);
 			else if (yOffset < 0) target = target.getRelative(BlockFace.DOWN, yOffset);
-			if (!BlockUtils.isAir(target.getType()) && target.getType() != Material.SNOW && target.getType() != Material.TALL_GRASS) return noTarget(livingEntity);
+			if (!BlockUtils.isPathable(target)) return noTarget(livingEntity);
 
 			if (target != null) {
 				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, target.getLocation(), power);
@@ -150,14 +152,17 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		if (yOffset > 0) block = block.getRelative(BlockFace.UP, yOffset);
 		else if (yOffset < 0) block = block.getRelative(BlockFace.DOWN, yOffset);
 
-		if (BlockUtils.isAir(block.getType()) || block.getType() == Material.SNOW || block.getType() == Material.TALL_GRASS) {
+		if (BlockUtils.isPathable(block)) {
 			createPulser(caster, block, power);
 			return true;
 		}
-		block = block.getRelative(BlockFace.UP);
-		if (BlockUtils.isAir(block.getType()) || block.getType() == Material.SNOW || block.getType() == Material.TALL_GRASS) {
-			createPulser(caster, block, power);
-			return true;
+
+		if (checkFace) {
+			block = block.getRelative(BlockFace.UP);
+			if (BlockUtils.isPathable(block)) {
+				createPulser(caster, block, power);
+				return true;
+			}
 		}
 		return false;
 	}

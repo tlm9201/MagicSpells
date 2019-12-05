@@ -24,8 +24,6 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
 import com.nisovin.magicspells.spells.instant.ParticleProjectileSpell;
 
-import org.apache.commons.math3.util.FastMath;
-
 public class ProjectileTracker implements Runnable {
 
 	private Random rand = new Random();
@@ -95,6 +93,7 @@ public class ProjectileTracker implements Runnable {
 
 	private int tickInterval;
 	private int spellInterval;
+	private int tickSpellLimit;
 	private int maxEntitiesHit;
 	private int accelerationDelay;
 	private int intermediateEffects;
@@ -110,6 +109,8 @@ public class ProjectileTracker implements Runnable {
 	private Subspell groundSpell;
 	private Subspell durationSpell;
 	private Subspell modifierSpell;
+
+	private int ticks = 0;
 
 	public ProjectileTracker() {
 
@@ -195,6 +196,10 @@ public class ProjectileTracker implements Runnable {
 
 	@Override
 	public void run() {
+		currentVelocity = Util.makeFinite(currentVelocity);
+		currentLocation = Util.makeFinite(currentLocation);
+		previousLocation = Util.makeFinite(previousLocation);
+
 		if (caster != null && !caster.isValid()) {
 			stop(true);
 			return;
@@ -222,9 +227,14 @@ public class ProjectileTracker implements Runnable {
 			currentLocation.setDirection(currentVelocity);
 		}
 
+		currentVelocity = Util.makeFinite(currentVelocity);
+
 		// Move projectile and apply gravity
 		previousLocation = currentLocation.clone();
 		currentLocation.add(currentVelocity);
+
+		currentLocation = Util.makeFinite(currentLocation);
+		previousLocation = Util.makeFinite(previousLocation);
 
 		if (hugSurface && (currentLocation.getBlockX() != currentX || currentLocation.getBlockZ() != currentZ)) {
 			Block b = currentLocation.subtract(0, heightFromSurface, 0).getBlock();
@@ -287,13 +297,17 @@ public class ProjectileTracker implements Runnable {
 
 		// Cast spell mid air
 		if (hitAirDuring && counter % spellInterval == 0 && tickSpell != null) {
-			tickSpell.castAtLocation(caster, currentLocation.clone(), power);
+			if (tickSpellLimit <= 0 || ticks < tickSpellLimit) {
+				tickSpell.castAtLocation(caster, currentLocation.clone(), power);
+				ticks++;
+			}
 		}
 
 		if (groundHorizontalHitRadius == 0 || groundVerticalHitRadius == 0) {
 			nearBlocks = new ArrayList<>();
 			nearBlocks.add(currentLocation.getBlock());
 		} else nearBlocks = BlockUtils.getNearbyBlocks(currentLocation, groundHorizontalHitRadius, groundVerticalHitRadius);
+
 		for (Block b : nearBlocks) {
 			if (!groundMaterials.contains(b.getType())) continue;
 			if (hitGround && groundSpell != null) {
@@ -362,10 +376,11 @@ public class ProjectileTracker implements Runnable {
 	private void playIntermediateEffects(Location old, Vector movement) {
 		int divideFactor = intermediateEffects + 1;
 		Vector v = movement.clone();
-		v = Util.makeFinite(v);
+
 		v.setX(v.getX() / divideFactor);
 		v.setY(v.getY() / divideFactor);
 		v.setZ(v.getZ() / divideFactor);
+
 		for (int i = 0; i < intermediateEffects; i++) {
 			old = old.add(v).setDirection(v);
 			if (spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, old);
@@ -375,10 +390,11 @@ public class ProjectileTracker implements Runnable {
 	private void checkIntermediateHitboxes(Location old, Vector movement) {
 		int divideFactor = intermediateHitboxes + 1;
 		Vector v = movement.clone();
-		v = Util.makeFinite(v);
+
 		v.setX(v.getX() / divideFactor);
 		v.setY(v.getY() / divideFactor);
 		v.setZ(v.getZ() / divideFactor);
+
 		for (int i = 0; i < intermediateHitboxes; i++) {
 			old = old.add(v).setDirection(v);
 			checkHitbox(old);
@@ -396,12 +412,6 @@ public class ProjectileTracker implements Runnable {
 		double x = horizontalHitRadius / 2D;
 		double y = verticalHitRadius / 2D;
 		double z = horizontalHitRadius / 2D;
-
-		if (x == 0.0D || y == 0.0D || z == 0.0D) return;
-
-		x = FastMath.round(x * 1000.0D) / 1000.0D;
-		y = FastMath.round(y * 1000.0D) / 1000.0D;
-		z = FastMath.round(z * 1000.0D) / 1000.0D;
 
 		for (Entity entity : currentLoc.getWorld().getNearbyEntities(currentLoc, x, y, z)) {
 			if (!(entity instanceof LivingEntity)) continue;
@@ -846,6 +856,14 @@ public class ProjectileTracker implements Runnable {
 
 	public void setSpellInterval(int spellInterval) {
 		this.spellInterval = spellInterval;
+	}
+
+	public int getTickSpellLimit() {
+		return tickSpellLimit;
+	}
+
+	public void setTickSpellLimit(int tickSpellLimit) {
+		this.tickSpellLimit = tickSpellLimit;
 	}
 
 	public int getMaxEntitiesHit() {
