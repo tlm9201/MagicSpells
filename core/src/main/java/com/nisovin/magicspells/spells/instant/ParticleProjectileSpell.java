@@ -53,6 +53,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private int intermediateEffects;
 	private int specialEffectInterval;
 
+	private int tickSpellLimit;
 	private int intermediateHitboxes;
 	private int maxEntitiesHit;
 	private float hitRadius;
@@ -148,6 +149,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		maxDistanceSquared *= maxDistanceSquared;
 		maxDuration = getConfigDouble("max-duration", 0) * TimeUtil.MILLISECONDS_PER_SECOND;
 
+		tickSpellLimit = getConfigInt("tick-spell-limit", 0);
 		intermediateHitboxes = getConfigInt("intermediate-hitboxes", 0);
 		maxEntitiesHit = getConfigInt("max-entities-hit", 0);
 		hitRadius = getConfigFloat("hit-radius", 1.5F);
@@ -412,6 +414,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		tracker.setMaxDistanceSquared(maxDistanceSquared);
 		tracker.setMaxDuration(maxDuration);
 
+		tracker.setTickSpellLimit(tickSpellLimit);
 		tracker.setMaxEntitiesHit(maxEntitiesHit);
 		tracker.setHorizontalHitRadius(hitRadius);
 		tracker.setVerticalHitRadius(verticalHitRadius);

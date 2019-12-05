@@ -45,6 +45,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 
 	private int tickInterval;
 	private int spellInterval;
+	private int tickSpellLimit;
 	private int maxEntitiesHit;
 	private int intermediateEffects;
 	private int intermediateHitboxes;
@@ -123,6 +124,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 		maxDuration = getConfigDouble("max-duration", 0) * TimeUtil.MILLISECONDS_PER_SECOND;
 
 		intermediateHitboxes = getConfigInt("intermediate-hitboxes", 0);
+		tickSpellLimit = getConfigInt("tick-spell-limit", 0);
 		maxEntitiesHit = getConfigInt("max-entities-hit", 0);
 		hitRadius = getConfigFloat("hit-radius", 1.5F);
 		verticalHitRadius = getConfigFloat("vertical-hit-radius", hitRadius);
@@ -284,6 +286,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 			tracker.setStopOnHitGround(stopOnHitGround);
 			tracker.setStopOnModifierFail(stopOnModifierFail);
 			tracker.setProjectileModifiers(projModifiers);
+			tracker.setTickSpellLimit(tickSpellLimit);
 			if (airSpell != null) tracker.setAirSpell(airSpell);
 			if (tickSpell != null) tracker.setTickSpell(tickSpell);
 			if (selfSpell != null) tracker.setCasterSpell(selfSpell);
