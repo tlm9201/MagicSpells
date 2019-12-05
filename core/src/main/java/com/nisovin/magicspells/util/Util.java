@@ -7,15 +7,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Objects;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.Predicate;
@@ -26,19 +18,17 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.ChatColor;
+import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.util.Vector;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -50,6 +40,7 @@ import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.materials.MagicMaterial;
 import com.nisovin.magicspells.materials.ItemNameResolver.ItemTypeAndData;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
+import com.nisovin.magicspells.util.managers.AttributeManager;
 
 import org.apache.commons.math3.util.FastMath;
 
@@ -147,7 +138,7 @@ public class Util {
 				if (!enchants.isEmpty()) {
 					item.addUnsafeEnchantments(enchants);
 				} else {
-					item = MagicSpells.getVolatileCodeHandler().addFakeEnchantment(item);
+					item = ItemUtil.addFakeEnchantment(item);
 				}
 			}
 			return item;
@@ -320,34 +311,28 @@ public class Util {
 			// Banner
 			meta = BannerHandler.process(config, meta);
 
-			// Set meta
-			item.setItemMeta(meta);
+			// Unbreakable
+			if (config.getBoolean("unbreakable", false)) {
+				meta.setUnbreakable(true);
+			}
 
 			// Hide tooltip
 			if (config.getBoolean("hide-tooltip", MagicSpells.hidePredefinedItemTooltips())) {
-				item = MagicSpells.getVolatileCodeHandler().hideTooltipCrap(item);
-			}
-
-			// Unbreakable
-			if (config.getBoolean("unbreakable", false)) {
-				item = MagicSpells.getVolatileCodeHandler().setUnbreakable(item);
+				meta.addItemFlags(ItemFlag.values());
 			}
 
 			// Empty enchant
 			if (emptyEnchants) {
-				item = MagicSpells.getVolatileCodeHandler().addFakeEnchantment(item);
+				item = ItemUtil.addFakeEnchantment(item);
 			}
 
+			// Set meta
+			item.setItemMeta(meta);
+
 			// Attributes
+			AttributeManager attributeManager = MagicSpells.getAttributeManager();
 			if (config.contains("attributes")) {
 				Set<String> attrs = config.getConfigurationSection("attributes").getKeys(false);
-				int attrsSize = attrs.size();
-				String[] attrNames = new String[attrsSize];
-				String[] attrTypes = new String[attrsSize];
-				double[] attrAmounts = new double[attrsSize];
-				int[] attrOperations = new int[attrsSize];
-				String[] slots = new String[attrsSize];
-				int i = 0;
 				for (String attrName : attrs) {
 					String[] attrData = config.getString("attributes." + attrName).split(" ");
 					String attrType = attrData[0];
@@ -357,29 +342,28 @@ public class Util {
 					} catch (NumberFormatException e) {
 						DebugHandler.debugNumberFormat(e);
 					}
-					int attrOp = 0; // Add number
+					AttributeUtil.AttributeOperation operation = AttributeUtil.AttributeOperation.ADD_NUMBER;
 					if (attrData.length > 2) {
 						String attrDataLowercase = attrData[2].toLowerCase();
 						if (attrDataLowercase.startsWith("mult")) {
-							attrOp = 1; // Multiply percent
-						} else if (attrDataLowercase.contains("add") && attrDataLowercase.contains("perc")) {
-							attrOp = 2; // Add percent
+							operation = AttributeUtil.AttributeOperation.MULTIPLY_SCALAR_1; // Multiply percent
+						} else if (attrDataLowercase.contains("add") && (attrDataLowercase.contains("perc") || attrDataLowercase.contains("scal"))) {
+							operation = AttributeUtil.AttributeOperation.ADD_SCALAR; // Add percent
 						}
 					}
-					String slot = null;
+					EquipmentSlot slot = null; // Can be null for all slots
 					if (attrData.length > 3) {
-						slot = attrData[3];
+						try {
+							slot = EquipmentSlot.valueOf(attrData[3].toUpperCase());
+						} catch (Exception ex) {
+							/* do nothing */
+						}
 					}
-					if (attrType != null) {
-						attrNames[i] = attrName;
-						attrTypes[i] = attrType;
-						attrAmounts[i] = attrAmt;
-						attrOperations[i] = attrOp;
-						slots[i] = slot;
-					}
-					i++;
+
+					Attribute attribute = AttributeUtil.AttributeType.getAttribute(attrType);
+					AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), attrType, attrAmt, operation.toBukkitOperation(), slot);
+					attributeManager.addItemAttribute(item, attribute, modifier);
 				}
-				item = MagicSpells.getVolatileCodeHandler().addAttributes(item, attrNames, attrTypes, attrAmounts, attrOperations, slots);
 			}
 
 			return item;
@@ -796,218 +780,8 @@ public class Util {
 		}
 	}
 
-	public static void createFire(Block block, byte d) {
-		block.setType(Material.FIRE);
-	}
-
 	public static ItemStack getEggItemForEntityType(EntityType type) {
-		Material eggMaterial = null;
-		switch (type) {
-			case BAT: {
-				eggMaterial = Material.BAT_SPAWN_EGG;
-				break;
-			}
-			case BLAZE: {
-				eggMaterial = Material.BLAZE_SPAWN_EGG;
-				break;
-			}
-			case CAVE_SPIDER: {
-				eggMaterial = Material.CAVE_SPIDER_SPAWN_EGG;
-				break;
-			}
-			case CHICKEN: {
-				eggMaterial = Material.CHICKEN_SPAWN_EGG;
-				break;
-			}
-			case COD: {
-				eggMaterial = Material.COD_SPAWN_EGG;
-				break;
-			}
-			case COW: {
-				eggMaterial = Material.COW_SPAWN_EGG;
-				break;
-			}
-			case CREEPER: {
-				eggMaterial = Material.CREEPER_SPAWN_EGG;
-				break;
-			}
-			case DOLPHIN: {
-				eggMaterial = Material.DOLPHIN_SPAWN_EGG;
-				break;
-			}
-			case DONKEY: {
-				eggMaterial = Material.DONKEY_SPAWN_EGG;
-				break;
-			}
-			case DROWNED: {
-				eggMaterial = Material.DROWNED_SPAWN_EGG;
-				break;
-			}
-			case ELDER_GUARDIAN: {
-				eggMaterial = Material.ELDER_GUARDIAN_SPAWN_EGG;
-				break;
-			}
-			case ENDERMAN: {
-				eggMaterial = Material.ENDERMAN_SPAWN_EGG;
-				break;
-			}
-			case ENDERMITE: {
-				eggMaterial = Material.ENDERMITE_SPAWN_EGG;
-				break;
-			}
-			case EVOKER: {
-				eggMaterial = Material.EVOKER_SPAWN_EGG;
-				break;
-			}
-			case GHAST: {
-				eggMaterial = Material.GHAST_SPAWN_EGG;
-				break;
-			}
-			case GUARDIAN: {
-				eggMaterial = Material.GUARDIAN_SPAWN_EGG;
-				break;
-			}
-			case HORSE: {
-				eggMaterial = Material.HORSE_SPAWN_EGG;
-				break;
-			}
-			case HUSK: {
-				eggMaterial = Material.HUSK_SPAWN_EGG;
-				break;
-			}
-			case LLAMA: {
-				eggMaterial = Material.LLAMA_SPAWN_EGG;
-				break;
-			}
-			case MAGMA_CUBE: {
-				eggMaterial = Material.MAGMA_CUBE_SPAWN_EGG;
-				break;
-			}
-			case MUSHROOM_COW: {
-				eggMaterial = Material.MOOSHROOM_SPAWN_EGG;
-				break;
-			}
-			case MULE: {
-				eggMaterial = Material.MULE_SPAWN_EGG;
-				break;
-			}
-			case OCELOT: {
-				eggMaterial = Material.OCELOT_SPAWN_EGG;
-				break;
-			}
-			case PARROT: {
-				eggMaterial = Material.PARROT_SPAWN_EGG;
-				break;
-			}
-			case PHANTOM: {
-				eggMaterial = Material.PHANTOM_SPAWN_EGG;
-				break;
-			}
-			case PIG: {
-				eggMaterial = Material.PIG_SPAWN_EGG;
-				break;
-			}
-			case POLAR_BEAR: {
-				eggMaterial = Material.POLAR_BEAR_SPAWN_EGG;
-				break;
-			}
-			case PUFFERFISH: {
-				eggMaterial = Material.PUFFERFISH_SPAWN_EGG;
-				break;
-			}
-			case RABBIT: {
-				eggMaterial = Material.RABBIT_SPAWN_EGG;
-				break;
-			}
-			case SALMON: {
-				eggMaterial = Material.SALMON_SPAWN_EGG;
-				break;
-			}
-			case SHEEP: {
-				eggMaterial = Material.SHEEP_SPAWN_EGG;
-				break;
-			}
-			case SHULKER: {
-				eggMaterial = Material.SHULKER_SPAWN_EGG;
-				break;
-			}
-			case SILVERFISH: {
-				eggMaterial = Material.SILVERFISH_SPAWN_EGG;
-				break;
-			}
-			case SKELETON: {
-				eggMaterial = Material.SKELETON_SPAWN_EGG;
-				break;
-			}
-			case SKELETON_HORSE: {
-				eggMaterial = Material.SKELETON_HORSE_SPAWN_EGG;
-				break;
-			}
-			case SLIME: {
-				eggMaterial = Material.SLIME_SPAWN_EGG;
-				break;
-			}
-			case SPIDER: {
-				eggMaterial = Material.SPIDER_SPAWN_EGG;
-				break;
-			}
-			case SQUID: {
-				eggMaterial = Material.SQUID_SPAWN_EGG;
-				break;
-			}
-			case STRAY: {
-				eggMaterial = Material.STRAY_SPAWN_EGG;
-				break;
-			}
-			case TROPICAL_FISH: {
-				eggMaterial = Material.TROPICAL_FISH_SPAWN_EGG;
-				break;
-			}
-			case TURTLE: {
-				eggMaterial = Material.TURTLE_SPAWN_EGG;
-				break;
-			}
-			case VEX: {
-				eggMaterial = Material.VEX_SPAWN_EGG;
-				break;
-			}
-			case VILLAGER: {
-				eggMaterial = Material.VILLAGER_SPAWN_EGG;
-				break;
-			}
-			case VINDICATOR: {
-				eggMaterial = Material.VINDICATOR_SPAWN_EGG;
-				break;
-			}
-			case WITCH: {
-				eggMaterial = Material.WITCH_SPAWN_EGG;
-				break;
-			}
-			case WITHER_SKELETON: {
-				eggMaterial = Material.WITHER_SKELETON_SPAWN_EGG;
-				break;
-			}
-			case WOLF: {
-				eggMaterial = Material.WOLF_SPAWN_EGG;
-				break;
-			}
-			case ZOMBIE: {
-				eggMaterial = Material.ZOMBIE_SPAWN_EGG;
-				break;
-			}
-			case ZOMBIE_HORSE: {
-				eggMaterial = Material.ZOMBIE_HORSE_SPAWN_EGG;
-				break;
-			}
-			case PIG_ZOMBIE: {
-				eggMaterial = Material.ZOMBIE_PIGMAN_SPAWN_EGG;
-				break;
-			}
-			case ZOMBIE_VILLAGER: {
-				eggMaterial = Material.ZOMBIE_VILLAGER_SPAWN_EGG;
-				break;
-			}
-		}
+		Material eggMaterial = Material.getMaterial(type.name() + "_SPAWN_EGG");
 
 		if (eggMaterial == null) return null;
 

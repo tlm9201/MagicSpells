@@ -45,19 +45,12 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.Metrics;
-import com.nisovin.magicspells.util.TxtUtil;
-import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.MoneyHandler;
 import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.commands.ManaCommand;
 import com.nisovin.magicspells.commands.CastCommand;
-import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.events.SpellLearnEvent;
@@ -77,6 +70,13 @@ import com.nisovin.magicspells.materials.MagicItemNameResolver;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 import com.nisovin.magicspells.util.managers.ExperienceBarManager;
+import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.Metrics;
+import com.nisovin.magicspells.util.MoneyHandler;
+import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.OverridePriority;
+import com.nisovin.magicspells.util.TxtUtil;
+import com.nisovin.magicspells.util.Util;
 
 import de.slikey.effectlib.EffectManager;
 
@@ -1286,7 +1286,6 @@ public class MagicSpells extends JavaPlugin {
 			bossBarManager = null;
 		}
 		if (volatileCodeHandle != null) {
-			volatileCodeHandle.turnOff();
 			volatileCodeHandle = null;
 		}
 

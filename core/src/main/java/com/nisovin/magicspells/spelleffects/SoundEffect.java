@@ -3,8 +3,6 @@ package com.nisovin.magicspells.spelleffects;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.MagicSpells;
-
 public class SoundEffect extends SpellEffect {
 
 	private String sound;
@@ -21,7 +19,7 @@ public class SoundEffect extends SpellEffect {
 	
 	@Override
 	public Runnable playEffectLocation(Location location) {
-		MagicSpells.getVolatileCodeHandler().playSound(location, sound, volume, pitch);
+		location.getWorld().playSound(location, sound, volume, pitch);
 		return null;
 	}
 	

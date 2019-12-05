@@ -1,9 +1,13 @@
 package com.nisovin.magicspells.spelleffects;
 
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
+import org.bukkit.entity.Firework;
+import org.bukkit.inventory.meta.FireworkMeta;
 
 public class FireworksEffect extends SpellEffect {
 
@@ -51,7 +55,39 @@ public class FireworksEffect extends SpellEffect {
 
 	@Override
 	public Runnable playEffectLocation(Location location) {
-		MagicSpells.getVolatileCodeHandler().createFireworksExplosion(location, flicker, trail, type, colors, fadeColors, flightDuration);
+		FireworkEffect.Type t = FireworkEffect.Type.BALL;
+		if (type == 1) t = FireworkEffect.Type.BALL_LARGE;
+		else if (type == 2) t = FireworkEffect.Type.STAR;
+		else if (type == 3) t = FireworkEffect.Type.CREEPER;
+		else if (type == 4) t = FireworkEffect.Type.BURST;
+
+		Color[] c1 = new Color[colors.length];
+		for (int i = 0; i < colors.length; i++) {
+			c1[i] = Color.fromRGB(colors[i]);
+		}
+		Color[] c2 = new Color[fadeColors.length];
+		for (int i = 0; i < fadeColors.length; i++) {
+			c2[i] = Color.fromRGB(fadeColors[i]);
+		}
+		FireworkEffect effect = FireworkEffect.builder()
+				.flicker(flicker)
+				.trail(trail)
+				.with(t)
+				.withColor(c1)
+				.withFade(c2)
+				.build();
+		Firework firework = location.getWorld().spawn(location, Firework.class);
+		FireworkMeta meta = firework.getFireworkMeta();
+		meta.addEffect(effect);
+		meta.setPower(0);
+		firework.setFireworkMeta(meta);
+		firework.setSilent(true);
+
+		MagicSpells.scheduleDelayedTask(() -> {
+			if (!firework.isValid()) return;
+			if (firework.isDead()) return;
+			firework.detonate();
+		}, flightDuration);
 		return null;
 	}
 

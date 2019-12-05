@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ArrayList;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -272,7 +274,7 @@ public class ManaSystem extends ManaHandler {
 	}
 
 	private void showManaOnActionBar(Player player, ManaBar bar) {
-		MagicSpells.getVolatileCodeHandler().sendActionBarMessage(player, getManaMessage(bar));
+		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(getManaMessage(bar)));
 	}
 	
 	private void showManaOnExperienceBar(Player player, ManaBar bar) {

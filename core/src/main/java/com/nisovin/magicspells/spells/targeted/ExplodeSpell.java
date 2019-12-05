@@ -99,9 +99,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 		currentPower = power;
 
 		boolean ret = false;
-		if (livingEntity instanceof Player) {
-			ret = MagicSpells.getVolatileCodeHandler().createExplosionByPlayer((Player) livingEntity, target, explosionSize * power, addFire, !preventBlockDamage);
-		}
+		ret = MagicSpells.getVolatileCodeHandler().createExplosionByEntity(livingEntity, target, explosionSize * power, addFire, !preventBlockDamage);
 		if (ret) playSpellEffects(livingEntity, target);
 		return ret;
 	}

@@ -7,11 +7,13 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.AnaloguePowerable;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.Powerable;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.block.data.BlockData;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
@@ -297,4 +299,17 @@ public class BlockUtils {
 		return !isPathable(location.subtract(0, 2, 0).getBlock()) || !isPathable(location.subtract(0, 1, 0).getBlock());
 	}
 
+	public static void activatePowerable(Block block) {
+		if (block.getBlockData() instanceof Powerable) {
+			Powerable powerable = (Powerable) block.getBlockData();
+			powerable.setPowered(true);
+			block.setBlockData(powerable, true);
+		}
+
+		if (block.getBlockData() instanceof AnaloguePowerable) {
+			AnaloguePowerable analoguePowerable = (AnaloguePowerable) block.getBlockData();
+			analoguePowerable.setPower(analoguePowerable.getMaximumPower());
+			block.setBlockData(analoguePowerable, true);
+		}
+	}
 }

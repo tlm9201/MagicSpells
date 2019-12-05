@@ -130,7 +130,7 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 			}
 			Fireball fireball;
 			if (smallFireball && livingEntity instanceof Player) {
-				fireball = MagicSpells.getVolatileCodeHandler().shootSmallFireball((Player) livingEntity);
+				fireball = livingEntity.launchProjectile(SmallFireball.class);
 				livingEntity.getWorld().playEffect(livingEntity.getLocation(), Effect.GHAST_SHOOT, 0);
 			} else {
 				fireball = livingEntity.getWorld().spawn(loc, Fireball.class);

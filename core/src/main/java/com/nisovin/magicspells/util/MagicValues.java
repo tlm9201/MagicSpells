@@ -3,6 +3,7 @@ package com.nisovin.magicspells.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 
@@ -28,10 +29,10 @@ public class MagicValues {
 		NIGHT_VISION(16, "nightvision"),
 		HUNGER(17, "starve", "starving"),
 		WEAKNESS(18, "weak"),
-		POISON(19, new String[]{}),
-		WITHER(20, new String[]{}),
+		POISON(19),
+		WITHER(20),
 		HEALTH_BOOST(21, "healthboost"),
-		ABSORPTION(22, new String[]{}),
+		ABSORPTION(22),
 		SATURATION(23, "food"),
 		GLOWING(24, "glow"),
 		LEVITATION(25),
@@ -40,8 +41,6 @@ public class MagicValues {
 		SLOW_FALLING(28, "slowfalling", "slowfall"),
 		CONDUIT_POWER(29, "conduit", "conduitpower"),
 		DOLPHINS_GRACE(30, "dolphingrace", "dolphinsgrace", "dolphin");
-
-		;
 
 		private int id;
 		private String[] names;
@@ -82,7 +81,13 @@ public class MagicValues {
 
 		public static PotionEffectType getPotionEffectType(String identification) {
 			initialize();
-			return namesToType.get(identification.toLowerCase().replace("_", ""));
+			PotionEffectType potion = namesToType.get(identification.toLowerCase().replace("_", ""));
+			if (potion != null)
+				return potion;
+
+			// Also check normal potion effect by name so this class doesn't need to be updated
+			// every time a new effect is added
+			return PotionEffectType.getByName(identification);
 		}
 
 		public static int getId(PotionEffectType type) {
@@ -103,15 +108,15 @@ public class MagicValues {
 		PROTECTION_PROJECTILE(4, "projectileprotection", "projectileprot"),
 		OXYGEN(5, "respiration"),
 		WATER_WORKER(6, "aquaaffinity"),
-		THORNS(7, new String[]{}),
-		DEPTH_STRIDER(8, new String[]{}),
-		FROST_WALKER(9, new String[]{}),
+		THORNS(7),
+		DEPTH_STRIDER(8),
+		FROST_WALKER(9),
 		BINDING_CURSE(10, "binding"),
 		DAMAGE_ALL(16, "sharp", "sharpness"),
 		DAMAGE_UNDEAD(17, "smite"),
 		DAMAGE_ARTHROPODS(18, "bane", "baneofarthropods", "ardmg"),
-		KNOCKBACK(19, new String[]{}),
-		FIRE_ASPECT(20, new String[]{}),
+		KNOCKBACK(19),
+		FIRE_ASPECT(20),
 		LOOT_BONUS_MOBS(21, "looting"),
 		SWEEPING_EDGE(22, "sweeping"),
 		DIG_SPEED(32, "efficiency"),
@@ -123,10 +128,9 @@ public class MagicValues {
 		ARROW_FIRE(50, "flame"),
 		ARROW_INFINITE(51, "infinity"),
 		LUCK(61, "luckofthesea"),
-		LURE(62, new String[]{}),
-		MENDING(70, new String[]{}),
-		VANISHING_CURSE(71, "vanishing"),
-		;
+		LURE(62),
+		MENDING(70),
+		VANISHING_CURSE(71, "vanishing");
 
 		private String[] names;
 		private int id;
@@ -142,8 +146,8 @@ public class MagicValues {
 		private static void initialize() {
 			if (initialized) return;
 
-			namesToType = new HashMap<String, Enchantment>();
-			enchantToId = new HashMap<Enchantment, Integer>();
+			namesToType = new HashMap<>();
+			enchantToId = new HashMap<>();
 
 			for (Enchantments pe: Enchantments.values()) {
 				Enchantment type = Enchantment.getByName(pe.name());
@@ -165,7 +169,13 @@ public class MagicValues {
 
 		public static Enchantment getEnchantmentType(String identification) {
 			initialize();
-			return namesToType.get(identification.toLowerCase().replace("_", ""));
+			Enchantment enchant = namesToType.get(identification.toLowerCase().replace("_", ""));
+			if (enchant != null)
+				return enchant;
+
+			// Also check normal enchant class by identifier so this class doesn't need to be updated
+			// every time a new enchant is added
+			return Enchantment.getByKey(NamespacedKey.minecraft(identification.toLowerCase()));
 		}
 
 		public static int getId(Enchantment enchant) {

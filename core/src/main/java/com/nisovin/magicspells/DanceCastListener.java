@@ -135,7 +135,7 @@ public class DanceCastListener implements Listener {
 					player.setFlying(false);
 				}
 				MagicSpells.sendMessage(strDanceStart, player, MagicSpells.NULL_ARGS);
-				if (startSound != null) MagicSpells.getVolatileCodeHandler().playSound(player, startSound, startSoundVolume, startSoundPitch);
+				if (startSound != null) player.playSound(player.getLocation(), startSound, startSoundVolume, startSoundPitch);
 				if (duration > 0) playerTasks.put(playerName, MagicSpells.scheduleDelayedTask(new DanceCastDuration(playerName), duration));
 			}
 

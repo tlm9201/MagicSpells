@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
 
 public class SoundPersonalEffect extends SpellEffect {
 
@@ -32,7 +31,7 @@ public class SoundPersonalEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		MagicSpells.getVolatileCodeHandler().playSound(player, sound, volume, pitch);
+		player.playSound(player.getLocation(), sound, volume, pitch);
 	}
 	
 }

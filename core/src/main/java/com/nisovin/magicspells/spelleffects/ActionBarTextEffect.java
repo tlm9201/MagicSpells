@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.spelleffects;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -28,7 +30,7 @@ public class ActionBarTextEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		MagicSpells.getVolatileCodeHandler().sendActionBarMessage(player, MagicSpells.doVariableReplacements(player, message));
+		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(MagicSpells.doVariableReplacements(player, message)));
 	}
 	
 }

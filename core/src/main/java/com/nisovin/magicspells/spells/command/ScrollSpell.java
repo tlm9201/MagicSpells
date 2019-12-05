@@ -20,14 +20,15 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.spells.CommandSpell;
 import com.nisovin.magicspells.materials.MagicMaterial;
+import com.nisovin.magicspells.util.ItemUtil;
+import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.SpellReagents;
+import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.Util;
 
 public class ScrollSpell extends CommandSpell {
 
@@ -183,7 +184,7 @@ public class ScrollSpell extends CommandSpell {
 		}
 		item.setItemMeta(meta);
 		Util.setLoreData(item, internalName + ':' + spell.getInternalName() + (uses > 0 ? "," + uses : ""));
-		item = MagicSpells.getVolatileCodeHandler().addFakeEnchantment(item);
+		item = ItemUtil.addFakeEnchantment(item);
 		return item;
 	}
 	
