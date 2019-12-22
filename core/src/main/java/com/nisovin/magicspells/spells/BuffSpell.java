@@ -83,8 +83,11 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		thisSpell = this;
 
-		targetList = new ValidTargetList(this, getConfigStringList("can-target", null));
-		targetList.enforce(ValidTargetList.TargetingElement.TARGET_PLAYERS, true);
+		if (config.isList("spells." + internalName + '.' + "can-target")) {
+			List<String> defaultTargets = getConfigStringList("can-target", null);
+			if (defaultTargets.isEmpty()) defaultTargets.add("players");
+			targetList = new ValidTargetList(this, defaultTargets);
+		} else targetList = new ValidTargetList(this, getConfigString("can-target", "players"));
 
 		duration = getConfigFloat("duration", 0);
 

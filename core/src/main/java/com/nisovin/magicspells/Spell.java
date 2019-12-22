@@ -50,7 +50,6 @@ import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.MoneyHandler;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.util.SpellReagents;
@@ -66,11 +65,15 @@ import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.util.handlers.MoneyHandler;
 import com.nisovin.magicspells.spelleffects.EffectTracker;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 import de.slikey.effectlib.Effect;
+
+import com.google.common.collect.Multimap;
+import com.google.common.collect.ArrayListMultimap;
 
 public abstract class Spell implements Comparable<Spell>, Listener {
 
@@ -80,9 +83,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected Map<String, Integer> xpGranted;
 	protected Map<String, Integer> xpRequired;
 	protected Map<Spell, Float> sharedCooldowns;
-	protected Map<String, VariableMod> variableModsCast;
-	protected Map<String, VariableMod> variableModsCasted;
-	protected Map<String, VariableMod> variableModsTarget;
+	protected Multimap<String, VariableMod> variableModsCast;
+	protected Multimap<String, VariableMod> variableModsCasted;
+	protected Multimap<String, VariableMod> variableModsTarget;
 	protected Map<String, Map<EffectPosition, List<Runnable>>> callbacks;
 
 	protected IntMap<UUID> chargesConsumed;
@@ -424,7 +427,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		// Variable options
 		List<String> varModsCast = config.getStringList(path + "variable-mods-cast", null);
 		if (varModsCast != null && !varModsCast.isEmpty()) {
-			variableModsCast = new HashMap<>();
+			variableModsCast = ArrayListMultimap.create();
 			for (String s : varModsCast) {
 				try {
 					String[] data = s.split(" ");
@@ -438,7 +441,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 		List<String> varModsCasted = config.getStringList(path + "variable-mods-casted", null);
 		if (varModsCasted != null && !varModsCasted.isEmpty()) {
-			variableModsCasted = new HashMap<>();
+			variableModsCasted = ArrayListMultimap.create();
 			for (String s : varModsCasted) {
 				try {
 					String[] data = s.split(" ");
@@ -452,7 +455,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 		List<String> varModsTarget = config.getStringList(path + "variable-mods-target", null);
 		if (varModsTarget != null && !varModsTarget.isEmpty()) {
-			variableModsTarget = new HashMap<>();
+			variableModsTarget = ArrayListMultimap.create();
 			for (String s : varModsTarget) {
 				try {
 					String[] data = s.split(" ");
@@ -1748,15 +1751,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return nextCast;
 	}
 
-	public Map<String, VariableMod> getVariableModsCast() {
+	public Multimap<String, VariableMod> getVariableModsCast() {
 		return variableModsCast;
 	}
 
-	public Map<String, VariableMod> getVariableModsCasted() {
+	public Multimap<String, VariableMod> getVariableModsCasted() {
 		return variableModsCasted;
 	}
 
-	public Map<String, VariableMod> getVariableModsTarget() {
+	public Multimap<String, VariableMod> getVariableModsTarget() {
 		return variableModsTarget;
 	}
 
