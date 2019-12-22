@@ -5,6 +5,8 @@ import org.bukkit.entity.*;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
+import org.bukkit.util.EulerAngle;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -26,13 +28,25 @@ public class EntityData {
 	private Villager.Profession profession;
 	private TropicalFish.Pattern fishPattern;
 
+	private EulerAngle headAngle;
+	private EulerAngle bodyAngle;
+	private EulerAngle leftArmAngle;
+	private EulerAngle rightArmAngle;
+	private EulerAngle leftLegAngle;
+	private EulerAngle rightLegAngle;
+
 	private boolean baby;
 	private boolean tamed;
 	private boolean angry;
+	private boolean small;
+	private boolean marker;
+	private boolean visible;
+	private boolean hasArms;
 	private boolean powered;
 	private boolean chested;
 	private boolean saddled;
 	private boolean sheared;
+	private boolean hasBasePlate;
 
 	private int size;
 
@@ -48,10 +62,29 @@ public class EntityData {
 		baby = section.getBoolean("baby", false);
 		tamed = section.getBoolean("tamed", false);
 		angry = section.getBoolean("angry", false);
+		small = section.getBoolean("small", false);
+		marker = section.getBoolean("marker", false);
+		visible = section.getBoolean("visible", true);
+		hasArms = section.getBoolean("has-arms", true);
 		chested = section.getBoolean("chested", false);
 		powered = section.getBoolean("powered", false);
 		saddled = section.getBoolean("saddled", false);
 		sheared = section.getBoolean("sheared", false);
+		hasBasePlate = section.getBoolean("has-base-plate", true);
+
+		Vector head = Util.getVector(section.getString("head-angle", "0,0,0"));
+		Vector body = Util.getVector(section.getString("body-angle", "0,0,0"));
+		Vector leftArm = Util.getVector(section.getString("left-arm-angle", "0,0,0"));
+		Vector rightArm = Util.getVector(section.getString("right-arm-angle", "0,0,0"));
+		Vector leftLeg = Util.getVector(section.getString("left-leg-angle", "0,0,0"));
+		Vector rightLeg = Util.getVector(section.getString("right-leg-angle", "0,0,0"));
+
+		headAngle = new EulerAngle(head.getX(), head.getY(), head.getZ());
+		bodyAngle = new EulerAngle(body.getX(), body.getY(), body.getZ());
+		leftArmAngle = new EulerAngle(leftArm.getX(), leftArm.getY(), leftArm.getZ());
+		rightArmAngle = new EulerAngle(rightArm.getX(), rightArm.getY(), rightArm.getZ());
+		leftLegAngle = new EulerAngle(leftLeg.getX(), leftLeg.getY(), leftLeg.getZ());
+		rightLegAngle = new EulerAngle(rightLeg.getX(), rightLeg.getY(), rightLeg.getZ());
 
 		String mat = section.getString("material", "");
 		String type = section.getString("type", "");
@@ -484,6 +517,19 @@ public class EntityData {
 		if (entity instanceof Phantom) ((Phantom) entity).setSize(getSize());
 
 		switch (entityType) {
+			case ARMOR_STAND:
+				((ArmorStand) entity).setSmall(small);
+				((ArmorStand) entity).setArms(hasArms);
+				((ArmorStand) entity).setMarker(marker);
+				((ArmorStand) entity).setVisible(visible);
+				((ArmorStand) entity).setBasePlate(hasBasePlate);
+				((ArmorStand) entity).setHeadPose(headAngle);
+				((ArmorStand) entity).setBodyPose(bodyAngle);
+				((ArmorStand) entity).setLeftArmPose(leftArmAngle);
+				((ArmorStand) entity).setRightArmPose(rightArmAngle);
+				((ArmorStand) entity).setLeftLegPose(leftLegAngle);
+				((ArmorStand) entity).setRightLegPose(rightLegAngle);
+				break;
 			case ZOMBIE:
 				((Zombie) entity).setBaby(isBaby());
 				break;

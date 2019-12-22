@@ -3,16 +3,16 @@ package com.nisovin.magicspells.util.itemreader;
 import java.util.List;
 
 import org.bukkit.Color;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.BooleanUtils;
-import com.nisovin.magicspells.util.MagicValues;
+import com.nisovin.magicspells.util.handlers.PotionEffectHandler;
 
 public class PotionHandler {
 
@@ -23,7 +23,7 @@ public class PotionHandler {
 	public static ItemMeta process(ConfigurationSection config, ItemMeta meta) {
 		if (!(meta instanceof PotionMeta)) return meta;
 		
-		PotionMeta pmeta = (PotionMeta)meta;
+		PotionMeta pmeta = (PotionMeta) meta;
 		
 		if (config.contains(POTION_EFFECT_CONFIG_NAME) && config.isList(POTION_EFFECT_CONFIG_NAME)) {
 			pmeta.clearCustomEffects();
@@ -46,7 +46,7 @@ public class PotionHandler {
 	
 	private static PotionEffect buildPotionEffect(String effectString) {
 		String[] data = effectString.split(" ");
-		PotionEffectType t = MagicValues.PotionEffect.getPotionEffectType(data[0]);
+		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 		
 		if (t == null) MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
 		if (t != null) {

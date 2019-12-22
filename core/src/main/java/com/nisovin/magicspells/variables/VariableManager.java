@@ -1,15 +1,11 @@
 package com.nisovin.magicspells.variables;
 
+import java.util.*;
 import java.io.File;
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
-import java.util.HashSet;
-import java.util.HashMap;
-import java.util.Scanner;
 import java.io.FileWriter;
-import java.util.ArrayList;
 import java.io.BufferedWriter;
+
+import com.google.common.collect.Multimap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -398,34 +394,42 @@ public class VariableManager implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void variableModsCast(SpellCastEvent event) {
 		if (event.getSpellCastState() != SpellCastState.NORMAL) return;
-		Map<String, VariableMod> varMods = event.getSpell().getVariableModsCast();
+		Multimap<String, VariableMod> varMods = event.getSpell().getVariableModsCast();
 		if (varMods == null || varMods.isEmpty()) return;
 		LivingEntity caster = event.getCaster();
 		if (!(caster instanceof Player)) return;
 		Player player = (Player) caster;
 		for (String var : varMods.keySet()) {
-			VariableMod mod = varMods.get(var);
-			double amount = mod.getValue(player, null);
-			if (amount == 0 && mod.isConstantValue()) {
-				reset(var, player);
-				continue;
+			Collection<VariableMod> mods = varMods.get(var);
+			if (mods == null) continue;
+			for (VariableMod mod : mods) {
+				Variable variable = MagicSpells.getVariableManager().getVariable(var);
+				String str = null;
+				if (variable instanceof PlayerStringVariable) str = mod.getValue();
+				double amount = mod.getValue(player, null);
+
+				if (amount == 0 && mod.isConstantValue()) {
+					reset(var, player);
+					continue;
+				}
+				VariableMod.Operation op = mod.getOperation();
+				switch (op) {
+					case ADD:
+						modify(var, player, amount);
+						break;
+					case DIVIDE:
+						divideBy(var, player, amount);
+						break;
+					case MULTIPLY:
+						multiplyBy(var, player, amount);
+						break;
+					case SET:
+						if (variable instanceof PlayerStringVariable) set(var, player, str);
+						else set(var, player, amount);
+						break;
+				}
+				MagicSpells.debug(3, "Variable '" + var + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell cast '" + event.getSpell().getName() + '\'');
 			}
-			VariableMod.Operation op = mod.getOperation();
-			switch (op) {
-				case ADD:
-					modify(var, player, amount);
-					break;
-				case DIVIDE:
-					divideBy(var, player, amount);
-					break;
-				case MULTIPLY:
-					multiplyBy(var, player, amount);
-					break;
-				case SET:
-					set(var, player, amount);
-					break;
-			}
-			MagicSpells.debug(3, "Variable '" + var + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell cast '" + event.getSpell().getName() + '\'');
 		}
 	}
 	
@@ -433,70 +437,86 @@ public class VariableManager implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void variableModsCasted(SpellCastedEvent event) {
 		if (event.getSpellCastState() != SpellCastState.NORMAL || event.getPostCastAction() == PostCastAction.ALREADY_HANDLED) return;
-		Map<String, VariableMod> varMods = event.getSpell().getVariableModsCasted();
+		Multimap<String, VariableMod> varMods = event.getSpell().getVariableModsCasted();
 		if (varMods == null || varMods.isEmpty()) return;
 		LivingEntity caster = event.getCaster();
 		if (!(caster instanceof Player)) return;
 		Player player = (Player) caster;
 		for (String var : varMods.keySet()) {
-			VariableMod mod = varMods.get(var);
-			double amount = mod.getValue(player, null);
-			if (amount == 0 && mod.isConstantValue()) {
-				reset(var, player);
-				continue;
+			Collection<VariableMod> mods = varMods.get(var);
+			if (mods == null) continue;
+			for (VariableMod mod : mods) {
+				Variable variable = MagicSpells.getVariableManager().getVariable(var);
+				String str = null;
+				if (variable instanceof PlayerStringVariable) str = mod.getValue();
+				double amount = mod.getValue(player, null);
+
+				if (amount == 0 && mod.isConstantValue()) {
+					reset(var, player);
+					continue;
+				}
+				VariableMod.Operation op = mod.getOperation();
+				switch (op) {
+					case ADD:
+						modify(var, player, amount);
+						break;
+					case DIVIDE:
+						divideBy(var, player, amount);
+						break;
+					case MULTIPLY:
+						multiplyBy(var, player, amount);
+						break;
+					case SET:
+						if (variable instanceof PlayerStringVariable) set(var, player, str);
+						else set(var, player, amount);
+						break;
+				}
+				MagicSpells.debug(3, "Variable '" + var + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell casted '" + event.getSpell().getName() + '\'');
 			}
-			VariableMod.Operation op = mod.getOperation();
-			switch (op) {
-				case ADD:
-					modify(var, player, amount);
-					break;
-				case DIVIDE:
-					divideBy(var, player, amount);
-					break;
-				case MULTIPLY:
-					multiplyBy(var, player, amount);
-					break;
-				case SET:
-					set(var, player, amount);
-					break;
-			}
-			MagicSpells.debug(3, "Variable '" + var + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell casted '" + event.getSpell().getName() + '\'');
 		}
 	}
 	
 	// DEBUG INFO: Debug log level 3, variable was modified for player by amount because of spell target
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void variableModsTarget(SpellTargetEvent event) {
-		Map<String, VariableMod> varMods = event.getSpell().getVariableModsTarget();
+		Multimap<String, VariableMod> varMods = event.getSpell().getVariableModsTarget();
 		if (varMods == null || varMods.isEmpty()) return;
 		LivingEntity caster = event.getCaster();
 		if (!(caster instanceof Player)) return;
 		Player player = (Player) caster;
 		Player target = event.getTarget() instanceof Player ? (Player) event.getTarget() : null;
-		if (player == null) return;
+		if (target == null) return;
 		for (String var : varMods.keySet()) {
-			VariableMod mod = varMods.get(var);
-			double amount = mod.getValue(player, target);
-			if (amount == 0 && mod.isConstantValue()) {
-				reset(var, target);
-				continue;
-			}
-			VariableMod.Operation op = mod.getOperation();
-			switch (op) {
-				case ADD:
-					modify(var, target, amount);
-					break;
-				case DIVIDE:
-					divideBy(var, target, amount);
-					break;
-				case MULTIPLY:
-					multiplyBy(var, target, amount);
-					break;
-				case SET:
-					set(var, target, amount);
-					break;
+			Collection<VariableMod> mods = varMods.get(var);
+			if (mods == null) continue;
+			for (VariableMod mod : mods) {
+				Variable variable = MagicSpells.getVariableManager().getVariable(var);
+				String str = null;
+				if (variable instanceof PlayerStringVariable) str = mod.getValue();
+				double amount = mod.getValue(player, target);
+
+				if (amount == 0 && mod.isConstantValue()) {
+					reset(var, target);
+					continue;
 				}
-			MagicSpells.debug(3, "Variable '" + var + "' for player '" + target.getName() + "' modified by " + amount + " as a result of spell target from '" + event.getSpell().getName() + '\'');
+				VariableMod.Operation op = mod.getOperation();
+				switch (op) {
+					case ADD:
+						modify(var, target, amount);
+						break;
+					case DIVIDE:
+						divideBy(var, target, amount);
+						break;
+					case MULTIPLY:
+						multiplyBy(var, target, amount);
+						break;
+					case SET:
+						if (variable instanceof PlayerStringVariable) set(var, target, str);
+						else set(var, target, amount);
+						break;
+				}
+				MagicSpells.debug(3, "Variable '" + var + "' for player '" + target.getName() + "' modified by " + amount + " as a result of spell target from '" + event.getSpell().getName() + '\'');
+			}
 		}
 	}
 

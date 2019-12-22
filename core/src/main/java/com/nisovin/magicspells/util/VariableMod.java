@@ -1,12 +1,13 @@
 package com.nisovin.magicspells.util;
 
-import java.util.function.BinaryOperator;
 import java.util.regex.Pattern;
+import java.util.function.BinaryOperator;
 
-import org.apache.commons.math3.util.FastMath;
 import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.MagicSpells;
+
+import org.apache.commons.math3.util.FastMath;
 
 public class VariableMod {
 	
@@ -22,11 +23,9 @@ public class VariableMod {
 		SET((a, b) -> b),
 		ADD((a, b) -> a + b),
 		MULTIPLY((a, b) -> a * b),
-		DIVIDE((a, b) -> a/b),
-		POWER((a, b) -> FastMath.pow(a, b))
-		
-		;
-		
+		DIVIDE((a, b) -> a / b),
+		POWER((a, b) -> FastMath.pow(a, b));
+
 		private final BinaryOperator<Double> operator;
 		
 		Operation(BinaryOperator<Double> operator) {
@@ -34,24 +33,24 @@ public class VariableMod {
 		}
 		
 		public double applyTo(double arg1, double arg2) {
-			return this.operator.apply(arg1, arg2);
+			return operator.apply(arg1, arg2);
 		}
 		
 		static Operation fromPrefix(String s) {
 			char c = s.charAt(0);
 			switch (c) {
-			case '=':
-				return SET;
-			case '+':
-				return ADD;
-			case '*':
-				return MULTIPLY;
-			case '/':
-				return DIVIDE;
-			case '^':
-				return POWER;
-			default:
-				return ADD;
+				case '=':
+					return SET;
+				case '+':
+					return ADD;
+				case '*':
+					return MULTIPLY;
+				case '/':
+					return DIVIDE;
+				case '^':
+					return POWER;
+				default:
+					return ADD;
 			}
 		}
 		
@@ -59,67 +58,69 @@ public class VariableMod {
 	
 	private VariableOwner variableOwner = VariableOwner.CASTER;
 	private String modifyingVariableName = null;
-	private Operation op = null;
+	private String value;
+	private Operation op;
 	private double constantModifier;
 	private static final Pattern operationMatcher = Pattern.compile("^(=|\\+|\\*|\\/|^)");
 	
 	private boolean negate = false;
 	
 	public VariableMod(String data) {
-		this.op = Operation.fromPrefix(data);
+		op = Operation.fromPrefix(data);
 		data = operationMatcher.matcher(data).replaceFirst("");
 		if (data.startsWith("-")) {
 			data = data.substring(1);
-			this.negate = true;
+			negate = true;
 		}
-		if (!RegexUtil.matches(RegexUtil.DOUBLE_PATTERN, data)) {
+
+		value = data;
+
+		if (RegexUtil.matches(RegexUtil.DOUBLE_PATTERN, data)) constantModifier = Double.parseDouble(data);
+		else {
 			// If it isn't a double, then let's match it as a variable
 			String varName = data;
 			if (data.contains(":")) {
 				// Then there is an explicit statement of who's variable it is
 				String[] dataSplits = data.split(":");
-				if (dataSplits[0].toLowerCase().equals("target")) {
-					this.variableOwner = VariableOwner.TARGET;
-				} else {
-					this.variableOwner = VariableOwner.CASTER;
-				}
+				if (dataSplits[0].toLowerCase().equals("target")) variableOwner = VariableOwner.TARGET;
 				varName = dataSplits[1];
 			}
-			this.modifyingVariableName = varName;
-		} else {
-			this.constantModifier = Double.parseDouble(data);
+			modifyingVariableName = varName;
 		}
-		
 	}
 	
 	public double getValue(Player caster, Player target) {
-		int negationFactor = this.getNegationFactor();
-		if (this.modifyingVariableName != null) {
-			Player variableHolder = this.variableOwner == VariableOwner.CASTER ? caster : target;
-			return MagicSpells.getVariableManager().getValue(this.modifyingVariableName, variableHolder) * negationFactor;
+		int negationFactor = getNegationFactor();
+		if (modifyingVariableName != null) {
+			Player variableHolder = variableOwner == VariableOwner.CASTER ? caster : target;
+			return MagicSpells.getVariableManager().getValue(modifyingVariableName, variableHolder) * negationFactor;
 		}
-		return this.constantModifier * negationFactor;
+		return constantModifier * negationFactor;
 	}
 	
 	public double getValue(Player caster, Player target, double baseValue) {
-		double secondValue = this.getValue(caster, target);
-		return this.getOperation().applyTo(baseValue, secondValue);
+		double secondValue = getValue(caster, target);
+		return getOperation().applyTo(baseValue, secondValue);
+	}
+
+	public String getValue() {
+		return value;
 	}
 	
 	public boolean isConstantValue() {
-		return this.modifyingVariableName == null;
+		return modifyingVariableName == null;
 	}
 	
 	public Operation getOperation() {
-		return this.op;
+		return op;
 	}
 	
 	public VariableOwner getVariableOwner() {
-		return this.variableOwner;
+		return variableOwner;
 	}
 	
 	private int getNegationFactor() {
-		return this.negate ? -1 : 1;
+		return negate ? -1 : 1;
 	}
 	
 }

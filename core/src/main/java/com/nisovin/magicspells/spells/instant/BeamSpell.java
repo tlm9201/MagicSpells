@@ -30,7 +30,6 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	private double maxDistance;
 	private double verticalHitRadius;
 
-	private float yOffset;
 	private float gravity;
 	private float interval;
 	private float rotation;
@@ -43,10 +42,12 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 	private Subspell hitSpell;
 	private Subspell endSpell;
+	private Subspell travelSpell;
 	private Subspell groundSpell;
 
 	private String hitSpellName;
 	private String endSpellName;
+	private String travelSpellName;
 	private String groundSpellName;
 
 	public BeamSpell(MagicConfig config, String spellName) {
@@ -59,7 +60,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		maxDistance = getConfigDouble("max-distance", 30);
 		verticalHitRadius = getConfigDouble("vertical-hit-radius", 2);
 
-		yOffset = getConfigFloat("y-offset", 0F);
+		float yOffset = getConfigFloat("y-offset", 0F);
 		gravity = getConfigFloat("gravity", 0F);
 		interval = getConfigFloat("interval", 1F);
 		rotation = getConfigFloat("rotation", 0F);
@@ -72,6 +73,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 		hitSpellName = getConfigString("spell", "");
 		endSpellName = getConfigString("spell-on-end", "");
+		travelSpellName = getConfigString("spell-on-travel", "");
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 
 		gravity *= -1;
@@ -95,6 +97,12 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			endSpell = null;
 		}
 
+		travelSpell = new Subspell(travelSpellName);
+		if (!travelSpell.process() || !travelSpell.isTargetedLocationSpell()) {
+			if (!travelSpellName.isEmpty()) MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-travel defined!");
+			travelSpell = null;
+		}
+
 		groundSpell = new Subspell(groundSpellName);
 		if (!groundSpell.process() || !groundSpell.isTargetedLocationSpell()) {
 			if (!groundSpellName.isEmpty()) MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
@@ -107,7 +115,6 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		if (state == SpellCastState.NORMAL) {
 			new Beam(livingEntity, livingEntity.getLocation(), power);
 		}
-
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
@@ -146,12 +153,15 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 	private class Beam {
 
+		private Set<Entity> immune;
+
 		private LivingEntity caster;
 		private LivingEntity target;
-		private float power;
+
 		private Location startLoc;
 		private Location currentLoc;
-		private Set<Entity> immune;
+
+		private float power;
 
 		private Beam(LivingEntity caster, Location from, float power) {
 			this.caster = caster;
@@ -228,6 +238,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 				}
 
 				playSpellEffects(EffectPosition.SPECIAL, currentLoc);
+
+				if (travelSpell != null) travelSpell.castAtLocation(caster, currentLoc, power);
 
 				box.setCenter(currentLoc);
 

@@ -37,7 +37,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 	public CleanseSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		toCleanse = getConfigStringList("remove", Arrays.asList("fire", "17", "19", "20"));
+		toCleanse = getConfigStringList("remove", Arrays.asList("fire", "hunger", "poison", "wither"));
 		dotSpells = new ArrayList<>();
 		stunSpells = new ArrayList<>();
 		buffSpells = new ArrayList<>();

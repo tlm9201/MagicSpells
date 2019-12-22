@@ -33,6 +33,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
 
 public class ArmorSpell extends BuffSpell {
 
@@ -106,7 +107,7 @@ public class ArmorSpell extends BuffSpell {
 			if (info.length > 1) {
 				for (int i = 1; i < info.length; i++) {
 					String[] enchinfo = info[i].split(":");
-					Enchantment ench = Util.getEnchantmentType(enchinfo[0]);
+					Enchantment ench = EnchantmentHandler.getEnchantment(enchinfo[0]);
 					int lvl = 1;
 					if (enchinfo.length > 1) lvl = Integer.parseInt(enchinfo[1].toUpperCase().replace(" ", "_"));
 					if (ench != null) item.addUnsafeEnchantment(ench, lvl);

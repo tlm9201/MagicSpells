@@ -12,15 +12,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.Predicate;
 
-import org.bukkit.Color;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.ChatColor;
-import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.*;
 import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.EntityType;
@@ -29,6 +22,8 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -38,9 +33,11 @@ import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.itemreader.*;
 import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.materials.MagicMaterial;
+import com.nisovin.magicspells.util.managers.AttributeManager;
+import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
+import com.nisovin.magicspells.util.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.materials.ItemNameResolver.ItemTypeAndData;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
-import com.nisovin.magicspells.util.managers.AttributeManager;
 
 import org.apache.commons.math3.util.FastMath;
 
@@ -256,7 +253,7 @@ public class Util {
 				List<String> enchants = config.getStringList("enchants");
 				for (String enchant : enchants) {
 					String[] data = enchant.split(" ");
-					Enchantment e = MagicValues.Enchantments.getEnchantmentType(data[0]);
+					Enchantment e = EnchantmentHandler.getEnchantment(data[0]);
 					if (e == null) MagicSpells.error('\'' + data[0] + "' could not be connected to an enchantment");
 					if (e != null) {
 						int level = 0;
@@ -471,11 +468,7 @@ public class Util {
 	}
 
 	public static PotionEffectType getPotionEffectType(String type) {
-		return MagicValues.PotionEffect.getPotionEffectType(type.trim());
-	}
-
-	public static Enchantment getEnchantmentType(String type) {
-		return MagicValues.Enchantments.getEnchantmentType(type);
+		return PotionEffectHandler.getPotionEffectType(type.trim());
 	}
 
 	public static Particle getParticle(String type) {
@@ -908,7 +901,12 @@ public class Util {
 			z = negative ? -1 : 1;
 		}
 
-		return new Location(location.getWorld(), x, y, z);
+		return new Location(location.getWorld(), x, y, z, location.getYaw(), location.getPitch());
+	}
+
+	public static Vector getVector(String str) {
+		String[] vecStrings = str.split(",");
+		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
 	}
 
 }

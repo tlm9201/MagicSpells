@@ -90,6 +90,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		for (Entity entity : entities) {
 			if (livingEntity == null && !validTargetList.canTarget(entity)) continue;
 			if (livingEntity != null && !validTargetList.canTarget(livingEntity, entity)) continue;
+			if (!entity.getLocation().getWorld().equals(location.getWorld())) continue;
 			if (entity.getLocation().distanceSquared(location) > radiusSquared) continue;
 
 			float power = basePower;

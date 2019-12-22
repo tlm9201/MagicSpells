@@ -1,15 +1,20 @@
 package com.nisovin.magicspells.spelleffects;
 
 import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.event.Listener;
+import org.bukkit.FireworkEffect;
+import org.bukkit.entity.Firework;
+import org.bukkit.event.EventHandler;
+import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.MagicSpells;
-import org.bukkit.entity.Firework;
-import org.bukkit.inventory.meta.FireworkMeta;
 
-public class FireworksEffect extends SpellEffect {
+public class FireworksEffect extends SpellEffect implements Listener {
 
 	private int type;
 	private int flightDuration;
@@ -51,6 +56,8 @@ public class FireworksEffect extends SpellEffect {
 				}
 			}
 		}
+
+		MagicSpells.registerEvents(this);
 	}
 
 	@Override
@@ -69,6 +76,7 @@ public class FireworksEffect extends SpellEffect {
 		for (int i = 0; i < fadeColors.length; i++) {
 			c2[i] = Color.fromRGB(fadeColors[i]);
 		}
+
 		FireworkEffect effect = FireworkEffect.builder()
 				.flicker(flicker)
 				.trail(trail)
@@ -78,17 +86,28 @@ public class FireworksEffect extends SpellEffect {
 				.build();
 		Firework firework = location.getWorld().spawn(location, Firework.class);
 		FireworkMeta meta = firework.getFireworkMeta();
+
 		meta.addEffect(effect);
 		meta.setPower(0);
+
 		firework.setFireworkMeta(meta);
 		firework.setSilent(true);
+		firework.setMetadata("MSFirework", new FixedMetadataValue(MagicSpells.getInstance(), "MSFirework"));
 
 		MagicSpells.scheduleDelayedTask(() -> {
 			if (!firework.isValid()) return;
 			if (firework.isDead()) return;
 			firework.detonate();
 		}, flightDuration);
+
 		return null;
+	}
+
+	@EventHandler
+	public void onFireworkDamage(EntityDamageByEntityEvent e) {
+		Entity damager = e.getDamager();
+		if (!damager.hasMetadata("MSFirework")) return;
+		e.setCancelled(true);
 	}
 
 }

@@ -1,104 +1,13 @@
 package com.nisovin.magicspells.util;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.potion.PotionEffectType;
 
 @Deprecated
 public class MagicValues {
-
-	public enum PotionEffect {
-		SPEED(1, "swiftness"),
-		SLOW(2, "slowness"),
-		FAST_DIGGING(3, "haste"),
-		SLOW_DIGGING(4, "miningfatigue"),
-		INCREASE_DAMAGE(5, "strength"),
-		HEAL(6, "health", "instanthealth"),
-		HARM(7, "damage"),
-		JUMP(8, "jumpboost"),
-		CONFUSION(9, "nausea"),
-		REGENERATION(10, "regen"),
-		DAMAGE_RESISTANCE(11, "resistance"),
-		FIRE_RESISTANCE(12, "fireresistance"),
-		WATER_BREATHING(13, "waterbreathing"),
-		INVISIBILITY(14, "vanish"),
-		BLINDNESS(15, "blind"),
-		NIGHT_VISION(16, "nightvision"),
-		HUNGER(17, "starve", "starving"),
-		WEAKNESS(18, "weak"),
-		POISON(19),
-		WITHER(20),
-		HEALTH_BOOST(21, "healthboost"),
-		ABSORPTION(22),
-		SATURATION(23, "food"),
-		GLOWING(24, "glow"),
-		LEVITATION(25),
-		LUCK(26, "lucky"),
-		UNLUCK(27, "badluck", "unlucky"),
-		SLOW_FALLING(28, "slowfalling", "slowfall"),
-		CONDUIT_POWER(29, "conduit", "conduitpower"),
-		DOLPHINS_GRACE(30, "dolphingrace", "dolphinsgrace", "dolphin");
-
-		private int id;
-		private String[] names;
-
-		PotionEffect(int id, String... names) {
-			this.id = id;
-			this.names = names;
-		}
-
-
-		private static Map<String, PotionEffectType> namesToType = null;
-		private static Map<PotionEffectType, Integer> potionEffectToId = null;
-		private static boolean initialized = false;
-
-		private static void initialize() {
-			if (initialized) return;
-
-			namesToType = new HashMap<>();
-			potionEffectToId = new HashMap<>();
-
-			for (PotionEffect pe: PotionEffect.values()) {
-				PotionEffectType type = PotionEffectType.getByName(pe.name());
-				if (type == null) continue;
-
-				// handle the names
-				namesToType.put(pe.name().toLowerCase().replace("_", ""), type);
-				namesToType.put(pe.id + "", type);
-				for (String s: pe.names) {
-					namesToType.put(s.toLowerCase().replace("_", ""), type);
-				}
-
-				// handle the type to id mappings
-				potionEffectToId.put(type, pe.id);
-			}
-
-			initialized = true;
-		}
-
-		public static PotionEffectType getPotionEffectType(String identification) {
-			initialize();
-			PotionEffectType potion = namesToType.get(identification.toLowerCase().replace("_", ""));
-			if (potion != null)
-				return potion;
-
-			// Also check normal potion effect by name so this class doesn't need to be updated
-			// every time a new effect is added
-			return PotionEffectType.getByName(identification);
-		}
-
-		public static int getId(PotionEffectType type) {
-			initialize();
-			return potionEffectToId.get(type);
-		}
-	}
-
-	public enum Villager {
-		// Profession
-	}
 
 	public enum Enchantments {
 		PROTECTION_ENVIRONMENTAL(0, "prot", "protection"),
@@ -170,31 +79,15 @@ public class MagicValues {
 		public static Enchantment getEnchantmentType(String identification) {
 			initialize();
 			Enchantment enchant = namesToType.get(identification.toLowerCase().replace("_", ""));
-			if (enchant != null)
-				return enchant;
+			if (enchant != null) return enchant;
 
-			// Also check normal enchant class by identifier so this class doesn't need to be updated
-			// every time a new enchant is added
+			// Also check normal enchant class by identifier so this class doesn't need to be updated every time a new enchant is added
 			return Enchantment.getByKey(NamespacedKey.minecraft(identification.toLowerCase()));
 		}
 
 		public static int getId(Enchantment enchant) {
 			initialize();
 			return enchantToId.get(enchant);
-		}
-	}
-
-	public enum Materials {
-		//TODO map the materials to ids and such
-	}
-
-	public enum Projectile {
-		;
-
-
-
-		private Projectile() {
-
 		}
 	}
 

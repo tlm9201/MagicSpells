@@ -11,18 +11,11 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Zombie;
+import org.bukkit.entity.*;
 import org.bukkit.event.Listener;
-import org.bukkit.entity.Enderman;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Skeleton;
-import org.bukkit.entity.Tameable;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -368,10 +361,12 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		equip.setChestplate(chestplate);
 		equip.setLeggings(leggings);
 		equip.setBoots(boots);
-		equip.setHelmetDropChance(helmetDropChance);
-		equip.setChestplateDropChance(chestplateDropChance);
-		equip.setLeggingsDropChance(leggingsDropChance);
-		equip.setBootsDropChance(bootsDropChance);
+		if (!(entity instanceof ArmorStand)) {
+			equip.setHelmetDropChance(helmetDropChance);
+			equip.setChestplateDropChance(chestplateDropChance);
+			equip.setLeggingsDropChance(leggingsDropChance);
+			equip.setBootsDropChance(bootsDropChance);
+		}
 
 		if (useCasterName && caster != null) {
 			if (caster instanceof Player) entity.setCustomName(((Player) caster).getDisplayName());

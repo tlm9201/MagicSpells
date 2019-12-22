@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.util;
+package com.nisovin.magicspells.util.handlers;
 
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
