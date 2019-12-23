@@ -47,7 +47,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private Vector relativeOffset;
 
 	private int tickInterval;
-	private int airSpellInterval;
+	private int tickSpellInterval;
 	private int specialEffectInterval;
 
 	private float rotation;
@@ -64,14 +64,14 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private double maxDuration;
 
 	private String hitSpellName;
-	private String airSpellName;
+	private String tickSpellName;
 	private String projectileName;
 	private String groundSpellName;
 	private String modifierSpellName;
 	private String durationSpellName;
 
 	private Subspell hitSpell;
-	private Subspell airSpell;
+	private Subspell tickSpell;
 	private Subspell groundSpell;
 	private Subspell modifierSpell;
 	private Subspell durationSpell;
@@ -91,7 +91,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		relativeOffset = getConfigVector("relative-offset", "0,1.5,0");
 
 		tickInterval = getConfigInt("tick-interval", 1);
-		airSpellInterval = getConfigInt("spell-interval", 20);
+		tickSpellInterval = getConfigInt("spell-interval", 20);
 		specialEffectInterval = getConfigInt("special-effect-interval", 0);
 
 		rotation = getConfigFloat("rotation", 0F);
@@ -108,7 +108,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		maxDuration = getConfigDouble("max-duration", 10) * (double) TimeUtil.MILLISECONDS_PER_SECOND;
 
 		hitSpellName = getConfigString("spell", "");
-		airSpellName = getConfigString("spell-on-hit-air", "");
+		tickSpellName = getConfigString("spell-on-tick", "");
 		projectileName = ChatColor.translateAlternateColorCodes('&', getConfigString("projectile-name", ""));
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
@@ -138,10 +138,10 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 			if (!groundSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
 		}
 
-		airSpell = new Subspell(airSpellName);
-		if (!airSpell.process() || !airSpell.isTargetedLocationSpell()) {
-			airSpell = null;
-			if (!airSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-hit-air defined!");
+		tickSpell = new Subspell(tickSpellName);
+		if (!tickSpell.process() || !tickSpell.isTargetedLocationSpell()) {
+			tickSpell = null;
+			if (!tickSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-tick defined!");
 		}
 
 		durationSpell = new Subspell(durationSpellName);
@@ -345,7 +345,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 				return;
 			}
 
-			if (projectileModifiers != null && caster instanceof Player && !projectileModifiers.check((Player) caster)) {
+			if (projectileModifiers != null && caster instanceof Player && !projectileModifiers.check(caster)) {
 				if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
 				if (stopOnModifierFail) stop();
 				return;
@@ -360,7 +360,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 			currentLocation = projectile.getLocation();
 			currentLocation.setDirection(projectile.getVelocity());
 
-			if (counter % airSpellInterval == 0 && airSpell != null) airSpell.castAtLocation(caster, currentLocation, power);
+			if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.castAtLocation(caster, currentLocation, power);
 
 			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation);
 

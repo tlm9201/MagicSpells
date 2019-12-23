@@ -109,6 +109,7 @@ public class ProjectileTracker implements Runnable {
 	private Subspell groundSpell;
 	private Subspell durationSpell;
 	private Subspell modifierSpell;
+	private Subspell entityLocationSpell;
 
 	private int ticks = 0;
 
@@ -452,6 +453,8 @@ public class ProjectileTracker implements Runnable {
 				entitySpell.castAtLocation(caster, currentLoc.clone(), power);
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLoc);
 			}
+
+			if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, currentLoc, power);
 
 			inRange.remove(i);
 			immune.add(e);
@@ -1040,6 +1043,14 @@ public class ProjectileTracker implements Runnable {
 
 	public void setModifierSpell(Subspell modifierSpell) {
 		this.modifierSpell = modifierSpell;
+	}
+
+	public Subspell getEntityLocationSpell() {
+		return entityLocationSpell;
+	}
+
+	public void setEntityLocationSpell(Subspell entityLocationSpell) {
+		this.entityLocationSpell = entityLocationSpell;
 	}
 
 }

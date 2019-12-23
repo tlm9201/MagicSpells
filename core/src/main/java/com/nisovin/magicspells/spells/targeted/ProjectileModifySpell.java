@@ -77,6 +77,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 	private Subspell groundSpell;
 	private Subspell durationSpell;
 	private Subspell modifierSpell;
+	private Subspell entityLocationSpell;
 	private String airSpellName;
 	private String selfSpellName;
 	private String tickSpellName;
@@ -84,6 +85,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 	private String groundSpellName;
 	private String durationSpellName;
 	private String modifierSpellName;
+	private String entityLocationSpellName;
 
 	private ModifierSet projModifiers;
 	private List<String> projModifiersStrings;
@@ -149,6 +151,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 		entitySpellName = getConfigString("spell-on-hit-entity", "");
 		durationSpellName = getConfigString("spell-on-duration-end", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
+		entityLocationSpellName = getConfigString("spell-on-entity-location", "");
 
 		projModifiersStrings = getConfigStringList("projectile-modifiers", null);
 	}
@@ -197,6 +200,12 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 		if (!modifierSpell.process()) {
 			if (!modifierSpellName.isEmpty()) MagicSpells.error("ProjectileModifySpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
 			modifierSpell = null;
+		}
+
+		entityLocationSpell = new Subspell(entityLocationSpellName);
+		if (!entityLocationSpell.process() || !entityLocationSpell.isTargetedLocationSpell()) {
+			if (!entityLocationSpellName.isEmpty()) MagicSpells.error("ProjectileModifySpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
+			entityLocationSpell = null;
 		}
 
 		if (projModifiersStrings != null && !projModifiersStrings.isEmpty()) {
@@ -294,6 +303,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 			if (entitySpell != null) tracker.setEntitySpell(entitySpell);
 			if (durationSpell != null) tracker.setDurationSpell(durationSpell);
 			if (modifierSpell != null) tracker.setModifierSpell(modifierSpell);
+			if (entityLocationSpell != null) tracker.setEntityLocationSpell(entityLocationSpell);
 
 			tracker.getCurrentVelocity().multiply(velocity);
 
