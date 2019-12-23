@@ -82,34 +82,14 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         super.initialize();
         spellPower = new HashMap<>();
 
-        if(spellOfflineName != null) {
-            spellOffline = new Subspell(spellOfflineName);
-            if(!spellOffline.process()) MagicSpells.error("PlayerMenuSpell '" + internalName + "' has an invalid spell-offline defined!");
-        }
-        if(spellRangeName != null) {
-            spellRange = new Subspell(spellRangeName);
-            if(!spellRange.process()) MagicSpells.error("PlayerMenuSpell '" + internalName + "' has an invalid spell-range defined!");
-        }
-        if(spellOnLeftName != null) {
-            spellOnLeft = new Subspell(spellOnLeftName);
-            if(!spellOnLeft.process()) MagicSpells.error("PlayerMenuSpell '" + internalName + "' has an invalid spell-on-left defined!");
-        }
-        if(spellOnRightName != null) {
-            spellOnRight = new Subspell(spellOnRightName);
-            if(!spellOnRight.process()) MagicSpells.error("PlayerMenuSpell '" + internalName + "' has an invalid spell-on-right defined!");
-        }
-        if(spellOnMiddleName != null) {
-            spellOnMiddle = new Subspell(spellOnMiddleName);
-            if(!spellOnMiddle.process()) MagicSpells.error("PlayerMenuSpell '" + internalName + "' has an invalid spell-on-middle defined!");
-        }
-        if(spellOnSneakLeftName != null) {
-            spellOnSneakLeft = new Subspell(spellOnSneakLeftName);
-            if(!spellOnSneakLeft.process()) MagicSpells.error("PlayerMenuSpell '" + internalName + "' has an invalid spell-on-sneak-left defined!");
-        }
-        if(spellOnSneakRightName != null) {
-            spellOnSneakRight = new Subspell(spellOnSneakRightName);
-            if(!spellOnSneakRight.process()) MagicSpells.error("PlayerMenuSpell '" + internalName + "' has an invalid spell-on-sneak-right defined!");
-        }
+        spellOffline = initSubspell(spellOfflineName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-offline defined!");
+        spellRange = initSubspell(spellRangeName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-range defined!");
+        spellOnLeft = initSubspell(spellOnLeftName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-left defined!");
+        spellOnRight = initSubspell(spellOnRightName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-right defined!");
+        spellOnMiddle = initSubspell(spellOnMiddleName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-middle defined!");
+        spellOnSneakLeft = initSubspell(spellOnSneakLeftName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-sneak-left defined!");
+        spellOnSneakRight = initSubspell(spellOnSneakRightName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-sneak-right defined!");
+
         if(playerModifiersStrings != null && !playerModifiersStrings.isEmpty()) playerModifiers = new ModifierSet(playerModifiersStrings);
     }
 
@@ -210,7 +190,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         float power = spellPower.containsKey(player.getUniqueId()) ?  spellPower.get(player.getUniqueId()) : 1;
         if(target == null || !target.isOnline()) {
             itemMeta.setDisplayName(translate(player, null, skullNameOffline));
-            if(spellOffline != null && spellOffline.process()) spellOffline.cast(player, power);
+            if(spellOffline != null) spellOffline.cast(player, power);
             if(stayOpen) item.setItemMeta(itemMeta);
             else {
                 player.closeInventory();
@@ -225,7 +205,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         Player targetPlayer = (Player) target;
         if(radius > 0  && targetPlayer.getLocation().distance(player.getLocation()) > radius) {
             itemMeta.setDisplayName(translate(player, targetPlayer, skullNameRadius));
-            if(spellRange != null && spellRange.process()) spellRange.cast(player, power);
+            if(spellRange != null) spellRange.cast(player, power);
             if(stayOpen) item.setItemMeta(itemMeta);
             else {
                 player.closeInventory();
@@ -235,19 +215,19 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         }
         switch(event.getClick()) {
             case LEFT:
-                if(spellOnLeft != null && spellOnLeft.process()) spellOnLeft.castAtEntity(player, targetPlayer, power);
+                if(spellOnLeft != null) spellOnLeft.castAtEntity(player, targetPlayer, power);
                 break;
             case RIGHT:
-                if(spellOnRight != null && spellOnRight.process()) spellOnRight.castAtEntity(player, targetPlayer, power);
+                if(spellOnRight != null) spellOnRight.castAtEntity(player, targetPlayer, power);
                 break;
             case MIDDLE:
-                if(spellOnMiddle != null && spellOnMiddle.process()) spellOnMiddle.castAtEntity(player, targetPlayer, power);
+                if(spellOnMiddle != null) spellOnMiddle.castAtEntity(player, targetPlayer, power);
                 break;
             case SHIFT_LEFT:
-                if(spellOnSneakLeft != null && spellOnSneakLeft.process()) spellOnSneakLeft.castAtEntity(player, targetPlayer, power);
+                if(spellOnSneakLeft != null) spellOnSneakLeft.castAtEntity(player, targetPlayer, power);
                 break;
             case SHIFT_RIGHT:
-                if(spellOnSneakRight != null && spellOnSneakRight.process()) spellOnSneakRight.castAtEntity(player, targetPlayer, power);
+                if(spellOnSneakRight != null) spellOnSneakRight.castAtEntity(player, targetPlayer, power);
                 break;
         }
         if(variableTarget != null && !variableTarget.isEmpty() && MagicSpells.getVariableManager().getVariable(variableTarget) != null) {
