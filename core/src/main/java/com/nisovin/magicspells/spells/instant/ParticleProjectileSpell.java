@@ -95,6 +95,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private Subspell groundSpell;
 	private Subspell durationSpell;
 	private Subspell modifierSpell;
+	private Subspell entityLocationSpell;
 	private String airSpellName;
 	private String selfSpellName;
 	private String tickSpellName;
@@ -102,6 +103,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private String groundSpellName;
 	private String durationSpellName;
 	private String modifierSpellName;
+	private String entityLocationSpellName;
 
 	private Subspell defaultSpell;
 	private String defaultSpellName;
@@ -208,6 +210,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		entitySpellName = getConfigString("spell-on-hit-entity", defaultSpellName);
 		durationSpellName = getConfigString("spell-on-duration-end", defaultSpellName);
 		modifierSpellName = getConfigString("spell-on-modifier-fail", defaultSpellName);
+		entityLocationSpellName = getConfigString("spell-on-entity-location", "");
 	}
 
 	@Override
@@ -260,6 +263,12 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		if (!modifierSpell.process()) {
 			if (!modifierSpellName.equals(defaultSpellName)) MagicSpells.error("ParticleProjectileSpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
 			modifierSpell = null;
+		}
+
+		entityLocationSpell = new Subspell(entityLocationSpellName);
+		if (!entityLocationSpell.process() || !entityLocationSpell.isTargetedLocationSpell()) {
+			if (!entityLocationSpellName.isEmpty()) MagicSpells.error("ParticleProjectileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
+			entityLocationSpell = null;
 		}
 
 		if (projModifiersStrings != null && !projModifiersStrings.isEmpty()) {
@@ -447,6 +456,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		tracker.setEntitySpell(entitySpell);
 		tracker.setDurationSpell(durationSpell);
 		tracker.setModifierSpell(modifierSpell);
+		tracker.setEntityLocationSpell(entityLocationSpell);
 	}
 
 }
