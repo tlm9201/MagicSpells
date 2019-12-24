@@ -4,9 +4,7 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
-import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -141,6 +139,13 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         return ChatColor.translateAlternateColorCodes('&', string);
     }
 
+    private void processClickSpell(Subspell subspell, Player caster, Player target, float power) {
+        if(subspell != null) {
+            if(subspell.isTargetedEntitySpell()) spellOnLeft.castAtEntity(caster, target, power);
+            else subspell.cast(caster, power);
+        }
+    }
+
     private void open(Player opener) {
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
         players.remove(opener);
@@ -214,21 +219,11 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
             return;
         }
         switch(event.getClick()) {
-            case LEFT:
-                if(spellOnLeft != null) spellOnLeft.castAtEntity(player, targetPlayer, power);
-                break;
-            case RIGHT:
-                if(spellOnRight != null) spellOnRight.castAtEntity(player, targetPlayer, power);
-                break;
-            case MIDDLE:
-                if(spellOnMiddle != null) spellOnMiddle.castAtEntity(player, targetPlayer, power);
-                break;
-            case SHIFT_LEFT:
-                if(spellOnSneakLeft != null) spellOnSneakLeft.castAtEntity(player, targetPlayer, power);
-                break;
-            case SHIFT_RIGHT:
-                if(spellOnSneakRight != null) spellOnSneakRight.castAtEntity(player, targetPlayer, power);
-                break;
+            case LEFT: processClickSpell(spellOnLeft, player, targetPlayer, power); break;
+            case RIGHT: processClickSpell(spellOnRight, player, targetPlayer, power); break;
+            case MIDDLE: processClickSpell(spellOnMiddle, player, targetPlayer, power); break;
+            case SHIFT_LEFT: processClickSpell(spellOnSneakLeft, player, targetPlayer, power); break;
+            case SHIFT_RIGHT: processClickSpell(spellOnSneakRight, player, targetPlayer, power); break;
         }
         if(variableTarget != null && !variableTarget.isEmpty() && MagicSpells.getVariableManager().getVariable(variableTarget) != null) {
             MagicSpells.getVariableManager().set(variableTarget, player, target.getName());
