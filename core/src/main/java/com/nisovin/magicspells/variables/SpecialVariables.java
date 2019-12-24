@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Collections;
 
 import com.nisovin.magicspells.variables.meta.*;
-import com.nisovin.magicspells.util.compat.CompatBasics;
 
 // TODO look into GENERIC_FLYING_SPEED attribute
 // TODO look into GENERIC_MOVEMENT_SPEED attribute
@@ -48,15 +47,14 @@ public class SpecialVariables {
 		specialVariables.put("meta_bed_location_y", new BedCoordYVariable());
 		specialVariables.put("meta_bed_location_z", new BedCoordZVariable());
 		specialVariables.put("meta_altitude", new AltitudeVariable());
-		if (CompatBasics.doesClassExist("org.bukkit.attribute.Attribute")) {
-			specialVariables.put("meta_attribute_generic_armor_base", new AttributeBaseValueVariable("GENERIC_ARMOR"));
-			specialVariables.put("meta_attribute_generic_armor_toughness_base", new AttributeBaseValueVariable("GENERIC_ARMOR_TOUGHNESS"));
-			specialVariables.put("meta_attribute_generic_attack_damage_base", new AttributeBaseValueVariable("GENERIC_ATTACK_DAMAGE"));
-			specialVariables.put("meta_attribute_generic_attack_speed_base", new AttributeBaseValueVariable("GENERIC_ATTACK_SPEED"));
-			specialVariables.put("meta_attribute_generic_knockback_resistance_base", new AttributeBaseValueVariable("GENERIC_KNOCKBACK_RESISTANCE"));
-			specialVariables.put("meta_attribute_generic_luck_base", new AttributeBaseValueVariable("GENERIC_LUCK"));
-			specialVariables.put("meta_attribute_generic_max_health_base", new AttributeBaseValueVariable("GENERIC_MAX_HEALTH"));
-		}
+
+		specialVariables.put("meta_attribute_generic_armor_base", new AttributeBaseValueVariable("GENERIC_ARMOR"));
+		specialVariables.put("meta_attribute_generic_armor_toughness_base", new AttributeBaseValueVariable("GENERIC_ARMOR_TOUGHNESS"));
+		specialVariables.put("meta_attribute_generic_attack_damage_base", new AttributeBaseValueVariable("GENERIC_ATTACK_DAMAGE"));
+		specialVariables.put("meta_attribute_generic_attack_speed_base", new AttributeBaseValueVariable("GENERIC_ATTACK_SPEED"));
+		specialVariables.put("meta_attribute_generic_knockback_resistance_base", new AttributeBaseValueVariable("GENERIC_KNOCKBACK_RESISTANCE"));
+		specialVariables.put("meta_attribute_generic_luck_base", new AttributeBaseValueVariable("GENERIC_LUCK"));
+		specialVariables.put("meta_attribute_generic_max_health_base", new AttributeBaseValueVariable("GENERIC_MAX_HEALTH"));
 	}
 	
 	public static Map<String, Variable> getSpecialVariables() {
