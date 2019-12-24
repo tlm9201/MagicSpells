@@ -47,6 +47,7 @@ public class SpecialVariables {
 		specialVariables.put("meta_bed_location_x", new BedCoordXVariable());
 		specialVariables.put("meta_bed_location_y", new BedCoordYVariable());
 		specialVariables.put("meta_bed_location_z", new BedCoordZVariable());
+                specialVariables.put("meta_altitude", new AltitudeVariable());
 		if (CompatBasics.doesClassExist("org.bukkit.attribute.Attribute")) {
 			specialVariables.put("meta_attribute_generic_armor_base", new AttributeBaseValueVariable("GENERIC_ARMOR"));
 			specialVariables.put("meta_attribute_generic_armor_toughness_base", new AttributeBaseValueVariable("GENERIC_ARMOR_TOUGHNESS"));
