@@ -83,10 +83,11 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected Map<String, Integer> xpGranted;
 	protected Map<String, Integer> xpRequired;
 	protected Map<Spell, Float> sharedCooldowns;
+	protected Map<String, Map<EffectPosition, List<Runnable>>> callbacks;
+
 	protected Multimap<String, VariableMod> variableModsCast;
 	protected Multimap<String, VariableMod> variableModsCasted;
 	protected Multimap<String, VariableMod> variableModsTarget;
-	protected Map<String, Map<EffectPosition, List<Runnable>>> callbacks;
 
 	protected IntMap<UUID> chargesConsumed;
 
@@ -1574,6 +1575,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected int scheduleRepeatingTask(Runnable task, int delay, int interval) {
 		return MagicSpells.scheduleRepeatingTask(task, delay, interval);
+	}
+
+	protected Subspell initSubspell(String subspellName, String errorMessage) {
+		Subspell subspell = new Subspell(subspellName);
+		if (!subspell.process()) {
+			if (!subspellName.isEmpty()) MagicSpells.error(errorMessage);
+			subspell = null;
+		}
+		return subspell;
 	}
 
 	/**
