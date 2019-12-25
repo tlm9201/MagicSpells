@@ -61,16 +61,16 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         radius = getConfigDouble("radius", 0);
         stayOpen = getConfigBoolean("stay-open", false);
         skullName = getConfigString("skull-name", "&6%t");
-        skullNameOffline = getConfigString("skull-name-invalid", "&4%t");
+        skullNameOffline = getConfigString("skull-name-offline", "&4%t");
         skullNameRadius = getConfigString("skull-name-radius", "&4%t &3out of radius.");
         skullLore = getConfigStringList("skull-lore", null);
-        spellOfflineName = getConfigString("spell-invalid", null);
-        spellRangeName = getConfigString("spell-range", null);
-        spellOnLeftName = getConfigString("spell-on-left", null);
-        spellOnRightName = getConfigString("spell-on-right", null);
-        spellOnMiddleName = getConfigString("spell-on-middle", null);
-        spellOnSneakLeftName = getConfigString("spell-on-sneak-left", null);
-        spellOnSneakRightName = getConfigString("spell-on-sneak-right", null);
+        spellOfflineName = getConfigString("spell-offline", "");
+        spellRangeName = getConfigString("spell-range", "");
+        spellOnLeftName = getConfigString("spell-on-left", "");
+        spellOnRightName = getConfigString("spell-on-right", "");
+        spellOnMiddleName = getConfigString("spell-on-middle", "");
+        spellOnSneakLeftName = getConfigString("spell-on-sneak-left", "");
+        spellOnSneakRightName = getConfigString("spell-on-sneak-right", "");
         playerModifiersStrings = getConfigStringList("player-modifiers", null);
         variableTarget = getConfigString("variable-target", null);
     }
