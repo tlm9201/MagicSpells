@@ -37,5 +37,14 @@ public class GlobalVariable extends Variable {
 	public void reset(String player) {
 		value = defaultValue;
 	}
-	
+
+	@Override
+	public double getMaxValue() {
+		return maxValue;
+	}
+
+	@Override
+	public double getMinValue() {
+		return minValue;
+	}
 }
