@@ -7,7 +7,6 @@ import java.util.HashSet;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -125,14 +124,14 @@ public class DodgeSpell extends BuffSpell {
 		targetLoc.add(v);
 		targetLoc.setDirection(entity.getLocation().getDirection());
 
-		if (entity instanceof Player && spellBeforeDodge != null) spellBeforeDodge.castAtLocation((Player) entity, entityLoc, 1F);
+		if (spellBeforeDodge != null) spellBeforeDodge.castAtLocation(entity, entityLoc, 1F);
 
 		if (!BlockUtils.isPathable(targetLoc.getBlock().getType()) || !BlockUtils.isPathable(targetLoc.getBlock().getRelative(BlockFace.UP))) return;
 		entity.teleport(targetLoc);
 		addUseAndChargeCost(entity);
 		playSpellEffectsTrail(entityLoc, targetLoc);
 		playSpellEffects(EffectPosition.DELAYED, targetLoc);
-		if (entity instanceof Player && spellAfterDodge != null) spellAfterDodge.castAtLocation((Player) entity, targetLoc, 1F);
+		if (spellAfterDodge != null) spellAfterDodge.castAtLocation(entity, targetLoc, 1F);
 	}
 
 }

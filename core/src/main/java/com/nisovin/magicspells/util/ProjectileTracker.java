@@ -142,12 +142,16 @@ public class ProjectileTracker implements Runnable {
 	}
 
 	public void startTarget(Location from, LivingEntity target) {
+		startTarget(from, target.getLocation());
+	}
+
+	public void startTarget(Location from, Location target) {
 		startTime = System.currentTimeMillis();
 		if (!changePitch) from.setPitch(0F);
 		startLocation = from.clone();
 
 		// Changing the target location
-		Location targetLoc = target.getLocation().clone();
+		Location targetLoc = target.clone();
 		targetLoc.add(0, targetYOffset,0);
 		Vector dir = targetLoc.clone().subtract(from.clone()).toVector();
 

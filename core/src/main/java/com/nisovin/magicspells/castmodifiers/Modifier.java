@@ -2,6 +2,7 @@ package com.nisovin.magicspells.castmodifiers;
 
 import java.util.regex.Pattern;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
@@ -85,7 +86,6 @@ public class Modifier implements IModifier {
 	@Override
 	public boolean apply(SpellCastEvent event) {
 		LivingEntity caster = event.getCaster();
-		//if (!(caster instanceof Player)) return false;
 		boolean check;
 		if (alertCondition) check = ((IModifier) condition).apply(event);
 		else check = condition.check(caster);
@@ -106,7 +106,6 @@ public class Modifier implements IModifier {
 	@Override
 	public boolean apply(SpellTargetEvent event) {
 		LivingEntity caster = event.getCaster();
-		//if (!(caster instanceof Player)) return false;
 		boolean check;
 		if (alertCondition) check = ((IModifier) condition).apply(event);
 		else check = condition.check(caster, event.getTarget());
@@ -117,7 +116,6 @@ public class Modifier implements IModifier {
 	@Override
 	public boolean apply(SpellTargetLocationEvent event) {
 		LivingEntity caster = event.getCaster();
-		//if (!(caster instanceof Player)) return false;
 		boolean check;
 		if (alertCondition) check = ((IModifier) condition).apply(event);
 		else check = condition.check(caster, event.getTargetLocation());
@@ -146,6 +144,15 @@ public class Modifier implements IModifier {
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity entity) {
 		boolean check = condition.check(livingEntity, entity);
+		if (negated) check = !check;
+		if (!check && type == ModifierType.REQUIRED) return false;
+		if (check && type == ModifierType.DENIED) return false;
+		return true;
+	}
+
+	@Override
+	public boolean check(LivingEntity livingEntity, Location location) {
+		boolean check = condition.check(livingEntity, location);
 		if (negated) check = !check;
 		if (!check && type == ModifierType.REQUIRED) return false;
 		if (check && type == ModifierType.DENIED) return false;
