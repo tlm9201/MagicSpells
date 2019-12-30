@@ -8,8 +8,8 @@ public abstract class Variable {
 
 	protected double defaultValue = 0;
 	protected String defaultStringValue = 0D + "";
-	protected double maxValue = Double.MAX_VALUE;
-	protected double minValue = 0;
+	public double maxValue = Double.MAX_VALUE;
+	public double minValue = 0;
 	protected boolean permanent;
 	protected Objective objective;
 	protected String bossBar;
