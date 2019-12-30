@@ -58,30 +58,60 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 			}
 
 			if (s.startsWith("buff:")) {
+				if (s.replace("buff:", "").equalsIgnoreCase("*")) {
+					for (Spell spell : MagicSpells.getSpellsOrdered()) {
+						if (spell instanceof BuffSpell) buffSpells.add((BuffSpell) spell);
+					}
+					continue;
+				}
 				Spell spell = MagicSpells.getSpellByInternalName(s.replace("buff:", ""));
 				if (spell instanceof BuffSpell) buffSpells.add((BuffSpell) spell);
 				continue;
 			}
 
 			if (s.startsWith("dot:")) {
+				if (s.replace("dot:", "").equalsIgnoreCase("*")) {
+					for (Spell spell : MagicSpells.getSpellsOrdered()) {
+						if (spell instanceof DotSpell) dotSpells.add((DotSpell) spell);
+					}
+					continue;
+				}
 				Spell spell = MagicSpells.getSpellByInternalName(s.replace("dot:", ""));
 				if (spell instanceof DotSpell) dotSpells.add((DotSpell) spell);
 				continue;
 			}
 
 			if (s.startsWith("stun:")) {
+				if (s.replace("stun:", "").equalsIgnoreCase("*")) {
+					for (Spell spell : MagicSpells.getSpellsOrdered()) {
+						if (spell instanceof StunSpell) stunSpells.add((StunSpell) spell);
+					}
+					continue;
+				}
 				Spell spell = MagicSpells.getSpellByInternalName(s.replace("stun:", ""));
 				if (spell instanceof StunSpell) stunSpells.add((StunSpell) spell);
 				continue;
 			}
 
 			if (s.startsWith("silence:")) {
+				if (s.replace("silence:", "").equalsIgnoreCase("*")) {
+					for (Spell spell : MagicSpells.getSpellsOrdered()) {
+						if (spell instanceof SilenceSpell) silenceSpells.add((SilenceSpell) spell);
+					}
+					continue;
+				}
 				Spell spell = MagicSpells.getSpellByInternalName(s.replace("silence:", ""));
 				if (spell instanceof SilenceSpell) silenceSpells.add((SilenceSpell) spell);
 				continue;
 			}
 
 			if (s.startsWith("levitate:")) {
+				if (s.replace("levitate:", "").equalsIgnoreCase("*")) {
+					for (Spell spell : MagicSpells.getSpellsOrdered()) {
+						if (spell instanceof LevitateSpell) levitateSpells.add((LevitateSpell) spell);
+					}
+					continue;
+				}
 				Spell spell = MagicSpells.getSpellByInternalName(s.replace("levitate:", ""));
 				if (spell instanceof LevitateSpell) levitateSpells.add((LevitateSpell) spell);
 				continue;
@@ -163,13 +193,9 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		}
 
 		buffSpells.forEach(spell -> spell.turnOff(target));
-
 		dotSpells.forEach(spell -> spell.cancelDot(target));
-
 		stunSpells.forEach(spell -> spell.removeStun(target));
-
 		silenceSpells.forEach(spell -> spell.removeSilence(target));
-
 		levitateSpells.forEach(spell -> spell.removeLevitate(target));
 
 		if (caster != null) playSpellEffects(caster, target);
