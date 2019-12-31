@@ -8,8 +8,8 @@ public abstract class Variable {
 
 	protected double defaultValue = 0;
 	protected String defaultStringValue = 0D + "";
-	public double maxValue = Double.MAX_VALUE;
-	public double minValue = 0;
+	protected double maxValue = Double.MAX_VALUE;
+	protected double minValue = 0;
 	protected boolean permanent;
 	protected Objective objective;
 	protected String bossBar;
@@ -79,5 +79,12 @@ public abstract class Variable {
 	public String getStringValue(String player) {
 		return getValue(player) + "";
 	}
-	
+
+	public double getMaxValue() {
+		return maxValue;
+	}
+
+	public double getMinValue() {
+		return minValue;
+	}
 }

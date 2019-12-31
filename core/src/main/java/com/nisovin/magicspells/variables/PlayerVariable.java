@@ -44,4 +44,5 @@ public class PlayerVariable extends Variable {
 		map.remove(player);
 		if (objective != null) objective.getScore(Bukkit.getOfflinePlayer(player)).setScore((int) defaultValue);
 	}
+
 }
