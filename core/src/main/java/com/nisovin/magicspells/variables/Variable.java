@@ -79,5 +79,12 @@ public abstract class Variable {
 	public String getStringValue(String player) {
 		return getValue(player) + "";
 	}
-	
+
+	public double getMaxValue() {
+		return maxValue;
+	}
+
+	public double getMinValue() {
+		return minValue;
+	}
 }

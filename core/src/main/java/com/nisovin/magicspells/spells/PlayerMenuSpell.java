@@ -163,11 +163,11 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
             if(skullMeta == null) continue;
             skullMeta.setOwningPlayer(players.get(i));
             itemMeta.setDisplayName(translate(opener, players.get(i), skullName));
-
-            List<String> lore = new ArrayList<>();
-            for(String loreLine : skullLore) lore.add(translate(opener, players.get(i), loreLine));
-            itemMeta.setLore(lore);
-
+            if(skullLore != null) {
+                List<String> lore = new ArrayList<>();
+                for(String loreLine : skullLore) lore.add(translate(opener, players.get(i), loreLine));
+                itemMeta.setLore(lore);
+            }
             head.setItemMeta(skullMeta);
             inv.setItem(i, head);
         }

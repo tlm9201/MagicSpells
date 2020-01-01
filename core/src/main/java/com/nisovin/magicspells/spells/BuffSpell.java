@@ -266,6 +266,10 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		return (durationEndTime.get(livingEntity) - System.currentTimeMillis()) / 1000F;
 	}
 
+	public float getDuration() {
+		return duration;
+	}
+
 	/**
 	 * Checks whether the spell's duration has expired for a player
 	 * @param entity the player to check

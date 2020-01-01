@@ -37,5 +37,5 @@ public class GlobalVariable extends Variable {
 	public void reset(String player) {
 		value = defaultValue;
 	}
-	
+
 }

@@ -1578,9 +1578,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected Subspell initSubspell(String subspellName, String errorMessage) {
+		if (subspellName.isEmpty()) return null;
 		Subspell subspell = new Subspell(subspellName);
 		if (!subspell.process()) {
-			if (!subspellName.isEmpty()) MagicSpells.error(errorMessage);
+			MagicSpells.error(errorMessage);
 			subspell = null;
 		}
 		return subspell;
