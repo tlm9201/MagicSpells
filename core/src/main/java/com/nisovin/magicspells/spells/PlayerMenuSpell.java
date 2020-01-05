@@ -31,12 +31,14 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
     private final String title;
     private final double radius;
     private final boolean stayOpen;
+    private final boolean addOpener;
     private final String skullName;
     private final String skullNameOffline;
     private final String skullNameRadius;
     private final List<String> skullLore;
     private final String spellRangeName;
     private final String spellOfflineName;
+    private final boolean castSpellsOnTarget;
     private final String spellOnLeftName;
     private final String spellOnRightName;
     private final String spellOnMiddleName;
@@ -60,12 +62,14 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         title = getConfigString("title", "PlayerMenuSpell '" + internalName + "'");
         radius = getConfigDouble("radius", 0);
         stayOpen = getConfigBoolean("stay-open", false);
+        addOpener = getConfigBoolean("add-opener", false);
         skullName = getConfigString("skull-name", "&6%t");
         skullNameOffline = getConfigString("skull-name-offline", "&4%t");
         skullNameRadius = getConfigString("skull-name-radius", "&4%t &3out of radius.");
         skullLore = getConfigStringList("skull-lore", null);
         spellOfflineName = getConfigString("spell-offline", "");
         spellRangeName = getConfigString("spell-range", "");
+        castSpellsOnTarget = getConfigBoolean("cast-spells-on-target", true);
         spellOnLeftName = getConfigString("spell-on-left", "");
         spellOnRightName = getConfigString("spell-on-right", "");
         spellOnMiddleName = getConfigString("spell-on-middle", "");
@@ -140,15 +144,17 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
     }
 
     private void processClickSpell(Subspell subspell, Player caster, Player target, float power) {
-        if(subspell != null) {
-            if(subspell.isTargetedEntitySpell()) spellOnLeft.castAtEntity(caster, target, power);
-            else subspell.cast(caster, power);
+        if(subspell == null) return;
+        if(castSpellsOnTarget && subspell.isTargetedEntitySpell()) {
+            subspell.castAtEntity(caster, target, power);
+            return;
         }
+        subspell.cast(caster, power);
     }
 
     private void open(Player opener) {
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-        players.remove(opener);
+        if(!addOpener) players.remove(opener);
         if(playerModifiers != null) players.removeIf(player -> !playerModifiers.check(player));
         if(radius > 0) players.removeIf(player -> opener.getLocation().distance(player.getLocation()) > radius);
 
