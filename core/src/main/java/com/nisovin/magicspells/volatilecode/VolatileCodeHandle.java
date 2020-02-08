@@ -1,10 +1,11 @@
 package com.nisovin.magicspells.volatilecode;
 
-import org.bukkit.Location;
 import org.bukkit.entity.*;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.Location;
 import org.bukkit.util.Vector;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 public interface VolatileCodeHandle {
 	
@@ -41,5 +42,9 @@ public interface VolatileCodeHandle {
 	void setTexture(SkullMeta meta, String texture, String signature, String uuid, String name);
 	
 	void setSkin(Player player, String skin, String signature);
-		
+
+	int getCustomModelData(ItemMeta meta);
+
+	void setCustomModelData(ItemMeta meta, int data);
+
 }
