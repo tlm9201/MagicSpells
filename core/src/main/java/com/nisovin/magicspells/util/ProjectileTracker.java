@@ -428,6 +428,14 @@ public class ProjectileTracker implements Runnable {
 		for (int i = 0; i < inRange.size(); i++) {
 			LivingEntity e = inRange.get(i);
 			if (e.isDead()) continue;
+
+			ParticleProjectileHitEvent projectileEvent = new ParticleProjectileHitEvent(caster, e, tracker, spell, power);
+			EventUtil.call(projectileEvent);
+			if (projectileEvent.isCancelled()) {
+				inRange.remove(i);
+				break;
+			}
+
 			if (entitySpell != null && entitySpell.isTargetedEntitySpell()) {
 				entitySpellChecker = entitySpell.getSpell().getValidTargetChecker();
 				if (entitySpellChecker != null && !entitySpellChecker.isValidTarget(e)) {
@@ -442,13 +450,6 @@ public class ProjectileTracker implements Runnable {
 				} else {
 					e = event.getTarget();
 					power = event.getPower();
-				}
-
-				ParticleProjectileHitEvent projectileEvent = new ParticleProjectileHitEvent(caster, e, tracker, spell, power);
-				EventUtil.call(projectileEvent);
-				if (projectileEvent.isCancelled()) {
-					inRange.remove(i);
-					break;
 				}
 
 				entitySpell.castAtEntity(caster, e, power);

@@ -1,31 +1,37 @@
 package com.nisovin.magicspells.volatilecode.v1_13_R2
 
-import com.mojang.authlib.GameProfile
-import com.mojang.authlib.properties.Property
-import com.nisovin.magicspells.MagicSpells
-import com.nisovin.magicspells.util.*
-import com.nisovin.magicspells.util.compat.EventUtil
-import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled
-import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
-import net.minecraft.server.v1_13_R2.*
-import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.craftbukkit.v1_13_R2.CraftServer
-import org.bukkit.craftbukkit.v1_13_R2.CraftWorld
-import org.bukkit.craftbukkit.v1_13_R2.entity.*
-import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftItemStack
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftEntity
-import org.bukkit.entity.*
-import org.bukkit.entity.Entity
-import org.bukkit.event.entity.EntityTargetEvent
-import org.bukkit.event.entity.ExplosionPrimeEvent
-import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.SkullMeta
-import org.bukkit.util.Vector
+import java.util.UUID
+
 import java.io.File
 import java.io.FileWriter
 import java.lang.reflect.Field
-import java.util.*
+
+import org.bukkit.Bukkit
+import org.bukkit.Location
+import org.bukkit.entity.*
+import org.bukkit.util.Vector
+import org.bukkit.entity.Entity
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.ItemMeta
+import org.bukkit.inventory.meta.SkullMeta
+import org.bukkit.craftbukkit.v1_13_R2.entity.*
+import org.bukkit.event.entity.EntityTargetEvent
+import org.bukkit.craftbukkit.v1_13_R2.CraftWorld
+import org.bukkit.event.entity.ExplosionPrimeEvent
+import org.bukkit.craftbukkit.v1_13_R2.CraftServer
+import org.bukkit.craftbukkit.v1_13_R2.entity.CraftEntity
+import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftItemStack
+
+import com.nisovin.magicspells.util.*
+import com.nisovin.magicspells.MagicSpells
+import com.nisovin.magicspells.util.compat.EventUtil
+import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled
+import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
+
+import com.mojang.authlib.GameProfile
+import com.mojang.authlib.properties.Property
+
+import net.minecraft.server.v1_13_R2.*
 
 private typealias nmsItemStack = net.minecraft.server.v1_13_R2.ItemStack
 
@@ -258,4 +264,13 @@ class VolatileCode1_13_R2: VolatileCodeHandle {
         }
 
     }
+
+    override fun getCustomModelData(meta: ItemMeta?): Int {
+        return 0
+    }
+
+    override fun setCustomModelData(meta: ItemMeta?, data: Int) {
+
+    }
+
 }
