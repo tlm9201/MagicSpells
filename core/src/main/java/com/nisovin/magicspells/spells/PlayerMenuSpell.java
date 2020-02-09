@@ -241,3 +241,4 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         }
     }
 }
+
