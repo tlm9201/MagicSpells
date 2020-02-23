@@ -10,6 +10,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Explosive;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.EventHandler;
@@ -59,6 +60,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	private boolean gravity;
 	private boolean charged;
+	private boolean incendiary;
 	private boolean stopOnModifierFail;
 
 	private double maxDuration;
@@ -103,6 +105,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 		gravity = getConfigBoolean("gravity", true);
 		charged = getConfigBoolean("charged", false);
+		incendiary = getConfigBoolean("incendiary", false);
 		stopOnModifierFail = getConfigBoolean("stop-on-modifier-fail", true);
 
 		maxDuration = getConfigDouble("max-duration", 10) * (double) TimeUtil.MILLISECONDS_PER_SECOND;
@@ -327,6 +330,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 				projectile.setCustomNameVisible(true);
 			}
 			if (projectile instanceof WitherSkull) ((WitherSkull) projectile).setCharged(charged);
+			if (projectile instanceof Explosive) ((Explosive) projectile).setIsIncendiary(incendiary);
 
 			playSpellEffects(EffectPosition.PROJECTILE, projectile);
 			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
