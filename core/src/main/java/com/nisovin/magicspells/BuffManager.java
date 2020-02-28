@@ -1,11 +1,10 @@
 package com.nisovin.magicspells;
 
-import java.util.Set;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Set;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.spells.BuffSpell;
@@ -14,15 +13,13 @@ import com.nisovin.magicspells.zones.NoMagicZoneManager;
 public class BuffManager {
 
 	private Map<LivingEntity, Set<BuffSpell>> activeBuffs;
-	private Map<LivingEntity, Set<BuffSpell>> toRemove;
 
 	private int interval;
 	private Monitor monitor;
 
 	public BuffManager(int interval) {
 		this.interval = interval;
-		activeBuffs = new HashMap<>();
-		toRemove = new HashMap<>();
+		activeBuffs = new ConcurrentHashMap<>();
 		monitor = new Monitor();
 	}
 
@@ -54,8 +51,6 @@ public class BuffManager {
 		MagicSpells.cancelTask(monitor.taskId);
 		monitor = null;
 		activeBuffs.clear();
-		toRemove.clear();
-		toRemove = null;
 		activeBuffs = null;
 	}
 
@@ -74,34 +69,15 @@ public class BuffManager {
 
 			for (LivingEntity entity : activeBuffs.keySet()) {
 				if (entity == null) continue;
-				if (entity instanceof Player) {
-					Set<BuffSpell> buffs = new HashSet<>(activeBuffs.get(entity));
-					Set<BuffSpell> removeBuffs = new HashSet<>();
-					for (BuffSpell spell : buffs) {
-						if (zoneManager.willFizzle(entity, spell)) {
-							removeBuffs.add(spell);
-						}
-					}
-					toRemove.put(entity, removeBuffs);
-					continue;
-				}
+				if (!entity.isValid()) continue;
 
-				if (entity.isValid()) continue;
-				if (!entity.isDead()) continue;
 				Set<BuffSpell> buffs = new HashSet<>(activeBuffs.get(entity));
-				Set<BuffSpell> removeBuffs = new HashSet<>(buffs);
-				toRemove.put(entity, removeBuffs);
-			}
 
-			for (LivingEntity entity : toRemove.keySet()) {
-				Set<BuffSpell> removeBuffs = toRemove.get(entity);
-				for (BuffSpell spell : removeBuffs) {
-					spell.turnOff(entity);
+				for (BuffSpell spell : buffs) {
+					if (spell.isExpired(entity)) spell.turnOff(entity);
+					if (zoneManager.willFizzle(entity, spell)) spell.turnOff(entity);
 				}
 			}
-
-			toRemove.clear();
-
 		}
 
 		public void stop() {

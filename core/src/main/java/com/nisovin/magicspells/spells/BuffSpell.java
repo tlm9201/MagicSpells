@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells;
 import java.util.Set;
 import java.util.Map;
 import java.util.List;
+import java.util.UUID;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -41,8 +42,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	protected BuffSpell thisSpell;
 
-	protected Map<LivingEntity, Integer> useCounter;
-	protected Map<LivingEntity, Long> durationEndTime;
+	protected Map<UUID, Integer> useCounter;
+	protected Map<UUID, Long> durationEndTime;
 
 	protected ValidTargetList targetList;
 
@@ -239,15 +240,15 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	/**
-	 * Begins counting the spell duration for a player
-	 * @param livingEntity the player to begin counting duration
+	 * Begins counting the spell duration for a livingEntity
+	 * @param livingEntity the livingEntity to begin counting duration
 	 */
 	private void startSpellDuration(final LivingEntity livingEntity, float power) {
 		if (duration > 0 && durationEndTime != null) {
 
 			float dur = duration;
 			if (powerAffectsDuration) dur *= power;
-			durationEndTime.put(livingEntity, System.currentTimeMillis() + Math.round(dur * TimeUtil.MILLISECONDS_PER_SECOND));
+			durationEndTime.put(livingEntity.getUniqueId(), System.currentTimeMillis() + Math.round(dur * TimeUtil.MILLISECONDS_PER_SECOND));
 
 			MagicSpells.scheduleDelayedTask(() -> {
 				if (isExpired(livingEntity)) turnOff(livingEntity);
@@ -262,8 +263,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public float getDuration(LivingEntity livingEntity) {
 		if (durationEndTime == null) return 0;
-		if (!durationEndTime.containsKey(livingEntity)) return 0;
-		return (durationEndTime.get(livingEntity) - System.currentTimeMillis()) / 1000F;
+		if (!durationEndTime.containsKey(livingEntity.getUniqueId())) return 0;
+		return (durationEndTime.get(livingEntity.getUniqueId()) - System.currentTimeMillis()) / 1000F;
 	}
 
 	public float getDuration() {
@@ -271,14 +272,14 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	/**
-	 * Checks whether the spell's duration has expired for a player
-	 * @param entity the player to check
+	 * Checks whether the spell's duration has expired for a livingEntity
+	 * @param entity the livingEntity to check
 	 * @return true if the spell has expired, false otherwise
 	 */
-	protected boolean isExpired(LivingEntity entity) {
+	public boolean isExpired(LivingEntity entity) {
 		if (duration <= 0 || durationEndTime == null) return false;
 		if (entity == null) return false;
-		Long endTime = durationEndTime.get(entity);
+		Long endTime = durationEndTime.get(entity.getUniqueId());
 		if (endTime == null) return false;
 		return endTime <= System.currentTimeMillis();
 	}
@@ -289,31 +290,31 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	/**
-	 * Checks if this buff spell is active for the specified player
-	 * @param entity the player to check
+	 * Checks if this buff spell is active for the specified livingEntity
+	 * @param entity the livingEntity to check
 	 * @return true if the spell is active, false otherwise
 	 */
 	public abstract boolean isActive(LivingEntity entity);
 
 	/**
-	 * Adds a use to the spell for the player. If the number of uses exceeds the amount allowed, the spell will immediately expire.
+	 * Adds a use to the spell for the livingEntity. If the number of uses exceeds the amount allowed, the spell will immediately expire.
 	 * This does not automatically charge the use cost.
-	 * @param entity the player to add the use for
-	 * @return the player's current number of uses (returns 0 if the use counting feature is disabled)
+	 * @param entity the livingEntity to add the use for
+	 * @return the livingEntity's current number of uses (returns 0 if the use counting feature is disabled)
 	 */
 	protected int addUse(LivingEntity entity) {
 		// Run spell on use increment first thing in case we want to intervene
-		if (spellOnUseIncrement != null && entity instanceof Player) spellOnUseIncrement.cast((Player) entity, 1f);
+		if (spellOnUseIncrement != null) spellOnUseIncrement.cast(entity, 1f);
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) {
 
-			Integer uses = useCounter.get(entity);
+			Integer uses = useCounter.get(entity.getUniqueId());
 
 			if (uses == null) uses = 1;
 			else uses++;
 
 			if (numUses > 0 && uses >= numUses) turnOff(entity);
-			else useCounter.put(entity, uses);
+			else useCounter.put(entity.getUniqueId(), uses);
 
 			return uses;
 		}
@@ -323,8 +324,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	/**
-	 * Removes this spell's use cost from the player's inventory. If the reagents aren't available, the spell will expire.
-	 * @param entity the player to remove the cost from
+	 * Removes this spell's use cost from the livingEntity's inventory. If the reagents aren't available, the spell will expire.
+	 * @param entity the livingEntity to remove the cost from
 	 * @return true if the reagents were removed, or if the use cost is disabled, false otherwise
 	 */
 	protected boolean chargeUseCost(LivingEntity entity) {
@@ -335,7 +336,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		if (useCostInterval <= 0) return true;
 		if (useCounter == null) return true;
 
-		Integer uses = useCounter.get(entity);
+		Integer uses = useCounter.get(entity.getUniqueId());
 		if (uses == null) return true;
 		if (uses % useCostInterval != 0) return true;
 
@@ -353,10 +354,10 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	/**
-	 * Adds a use to the spell for the player. If the number of uses exceeds the amount allowed, the spell will immediately expire.
-	 * Removes this spell's use cost from the player's inventory. This does not return anything, to get useful return values, use
+	 * Adds a use to the spell for the livingEntity. If the number of uses exceeds the amount allowed, the spell will immediately expire.
+	 * Removes this spell's use cost from the livingEntity's inventory. This does not return anything, to get useful return values, use
 	 * addUse() and chargeUseCost().
-	 * @param entity the player to add a use and charge cost to
+	 * @param entity the livingEntity to add a use and charge cost to
 	 */
 	protected void addUseAndChargeCost(LivingEntity entity) {
 		addUse(entity);
@@ -364,15 +365,15 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	/**
-	 * Turns off this spell for the specified player. This can be called from many situations, including when the spell expires or the uses run out.
-	 * When overriding this function, you should always be sure to call super.turnOff(player).
+	 * Turns off this spell for the specified livingEntity. This can be called from many situations, including when the spell expires or the uses run out.
+	 * When overriding this function, you should always be sure to call super.turnOff(livingEntity).
 	 * @param entity
 	 */
 	public final void turnOff(LivingEntity entity) {
 		if (!isActive(entity)) return;
 
-		if (useCounter != null) useCounter.remove(entity);
-		if (durationEndTime != null) durationEndTime.remove(entity);
+		if (useCounter != null) useCounter.remove(entity.getUniqueId());
+		if (durationEndTime != null) durationEndTime.remove(entity.getUniqueId());
 
 		BuffManager manager = MagicSpells.getBuffManager();
 		if (manager != null) manager.removeBuff(entity, this);
@@ -382,9 +383,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		cancelEffects(EffectPosition.CASTER, entity.getUniqueId().toString());
 		stopEffects();
 
-		if (!(entity instanceof Player)) return;
-		sendMessage(strFade, entity, null);
 		if (spellOnEnd != null) spellOnEnd.cast(entity, 1f);
+		sendMessage(strFade, entity, null);
 	}
 
 	public void stopEffects() {
@@ -413,7 +413,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public class DamageListener implements Listener {
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
-		public void onPlayerDamage(EntityDamageEvent e) {
+		public void onEntityDamage(EntityDamageEvent e) {
 			Entity entity = e.getEntity();
 			if (cancelOnTakeDamage && entity instanceof LivingEntity && isActiveAndNotExpired((LivingEntity) entity)) {
 				turnOff((LivingEntity) entity);
@@ -456,7 +456,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public class TeleportListener implements Listener {
 
-		@EventHandler(priority=EventPriority.LOWEST)
+		@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
 		public void onTeleport(EntityTeleportEvent e) {
 			if (!(e.getEntity() instanceof LivingEntity)) return;
 			LivingEntity entity = (LivingEntity) e.getEntity();
@@ -498,7 +498,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public class QuitListener implements Listener {
 
 		@EventHandler(priority=EventPriority.MONITOR)
-		public void onPlayerQuit(PlayerQuitEvent e) {
+		public void onQuit(PlayerQuitEvent e) {
 			Player pl = e.getPlayer();
 			if (pl == null) return;
 			if (isActiveAndNotExpired(pl)) turnOff(pl);

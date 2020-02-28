@@ -7,6 +7,8 @@ import org.bukkit.Material;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.EntityEquipment;
 
 import com.nisovin.magicspells.DebugHandler;
@@ -83,7 +85,8 @@ public class HoldingCondition extends Condition {
 	private boolean check(ItemStack item) {
 		if (item == null) return false;
 		Material type = item.getType();
-		short durability = item.getDurability();
+		ItemMeta meta = item.getItemMeta();
+		int durability = meta instanceof Damageable ? ((Damageable) meta).getDamage() : 0;
 		String name = null;
 		try {
 			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) name = item.getItemMeta().getDisplayName();
