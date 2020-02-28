@@ -64,7 +64,7 @@ public class VariableManager implements Listener {
 						objective.unregister();
 						objective = null;
 					}
-					objective = Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective(objName, objName);
+					objective = Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective(objName, objName, objName);
 					objective.setDisplayName(ChatColor.translateAlternateColorCodes('&', scoreName));
 					if (scorePos.equalsIgnoreCase("nameplate")) objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 					else if (scorePos.equalsIgnoreCase("playerlist")) objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);

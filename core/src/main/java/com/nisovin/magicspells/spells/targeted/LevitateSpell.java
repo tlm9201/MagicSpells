@@ -37,6 +37,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 	private float yOffset;
 	private float minDistance;
 	private float distanceChange;
+	private float maxDistanceSquared;
 
 	private boolean cancelOnSpellCast;
 	private boolean cancelOnItemSwitch;
@@ -54,6 +55,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		yOffset = getConfigFloat("y-offset", 0F);
 		minDistance = getConfigFloat("min-distance", 1F);
 		distanceChange = getConfigFloat("distance-change", 0F);
+		maxDistanceSquared = getConfigFloat("max-distance", 200);
 
 		cancelOnSpellCast = getConfigBoolean("cancel-on-spell-cast", false);
 		cancelOnItemSwitch = getConfigBoolean("cancel-on-item-switch", true);
@@ -64,6 +66,8 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		List<String> tagList = getConfigStringList("spell-tags", null);
 		List<String> deniedTagList = getConfigStringList("denied-spell-tags", null);
 		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
+
+		maxDistanceSquared *= maxDistanceSquared;
 		
 		levitating = new HashMap<>();
 	}
@@ -207,6 +211,8 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		@Override
 		public void run() {
 			if (stopped) return;
+			if (!caster.getWorld().equals(target.getWorld())) return;
+			if (caster.getLocation().distanceSquared(target.getLocation()) > maxDistanceSquared) return;
 			if (caster.isDead() || !caster.isValid()) {
 				stop();
 				return;

@@ -157,11 +157,14 @@ public class ArmorSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		for (LivingEntity entity : MagicSpells.getBuffManager().getActiveBuffs().keySet()) {
-			if (!isActive(entity)) continue;
+		for (UUID id : armored) {
+			Entity entity = Bukkit.getEntity(id);
+			if (entity == null) continue;
 			if (!entity.isValid()) continue;
-			turnOff(entity);
+			EntityEquipment inv = ((LivingEntity) entity).getEquipment();
+			removeArmor(inv);
 		}
+		armored.clear();
 	}
 
 	private void setArmor(EntityEquipment inv) {

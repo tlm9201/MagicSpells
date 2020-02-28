@@ -26,7 +26,7 @@ public class OnTeamCondition extends Condition {
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		if (target instanceof Player) {
-			Team team = Bukkit.getScoreboardManager().getMainScoreboard().getPlayerTeam((Player) target);
+			Team team = Bukkit.getScoreboardManager().getMainScoreboard().getEntryTeam(target.getName());
 			return team != null && team.getName().equals(teamName);
 		}
 		return false;
