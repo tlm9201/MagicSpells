@@ -335,10 +335,9 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		}
 
 		private void redirect() {
-			LivingEntity c = caster;
-			LivingEntity t =  target;
-			caster = t;
-			target = c;
+			LivingEntity temp = target;
+			target = caster;
+			caster = temp;
 			currentVelocity.multiply(-1F);
 		}
 

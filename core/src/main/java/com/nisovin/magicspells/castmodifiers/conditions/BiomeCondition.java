@@ -18,14 +18,12 @@ public class BiomeCondition extends Condition {
 	public boolean setVar(String var) {
 		String[] s = var.split(",");
 
-		for (int i = 0; i < s.length; i++) {
-			Biome biome = Util.enumValueSafe(Biome.class, s[i].toUpperCase());
-
+		for (String value : s) {
+			Biome biome = Util.enumValueSafe(Biome.class, value.toUpperCase());
 			if (biome == null) {
-				DebugHandler.debugBadEnumValue(Biome.class, s[i].toUpperCase());
+				DebugHandler.debugBadEnumValue(Biome.class, value.toUpperCase());
 				continue;
 			}
-
 			biomes.add(biome);
 		}
 		return true;

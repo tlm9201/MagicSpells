@@ -64,6 +64,9 @@ public class PassiveTrigger {
 	public static Set<PassiveTrigger> TELEPORT = addTriggers("teleport", TeleportListener.class);
 	public static Set<PassiveTrigger> BUFF = addTriggers("buff", BuffListener.class);
 	public static Set<PassiveTrigger> TICKS = addTriggers("ticks", TicksListener.class);
+	public static Set<PassiveTrigger> WORLD_CHANGE = addTriggers("worldchange", WorldChangeListener.class);
+	public static Set<PassiveTrigger> GAMEMODE_CHANGE = addTriggers("gamemodechange", GameModeChangeListener.class);
+	public static Set<PassiveTrigger> MAGICSPELLS_LOADED = addTriggers("magicspellsloaded", MagicSpellsLoadedListener.class);
 	
 	// can't do priorities here
 	public static PassiveTrigger RESOURCE_PACK = addTrigger("resourcepack", ResourcePackListener.class);

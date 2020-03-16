@@ -70,10 +70,7 @@ public class MagicEnumSetPrompt extends FixedSetPrompt {
 		MagicEnumSetPrompt ret = new MagicEnumSetPrompt(parsedValues);
 		
 		ret.responder = new MagicPromptResponder(section);
-		
-		String promptText = section.getString("prompt-text", "");
-		ret.promptText = promptText;
-		
+		ret.promptText = section.getString("prompt-text", "");
 		return ret;
 	}
 	

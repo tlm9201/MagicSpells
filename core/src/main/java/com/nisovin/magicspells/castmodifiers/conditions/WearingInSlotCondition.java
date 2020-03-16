@@ -29,7 +29,7 @@ public class WearingInSlotCondition extends Condition {
 				mat = null;
 			} else {
 				mat = MagicSpells.getItemNameResolver().resolveItem(data[1]);
-				if (mat == null) return false;
+				return mat != null;
 			}
 			return true;
 		} catch (Exception e) {

@@ -40,10 +40,7 @@ public class MagicFixedSetPrompt extends FixedSetPrompt {
 		MagicFixedSetPrompt ret = new MagicFixedSetPrompt(options);
 		
 		ret.responder = new MagicPromptResponder(section);
-		
-		String promptText = section.getString("prompt-text", "");
-		ret.promptText = promptText;
-		
+		ret.promptText = section.getString("prompt-text", "");
 		return ret;
 	}
 	

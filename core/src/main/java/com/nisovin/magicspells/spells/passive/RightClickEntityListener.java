@@ -8,7 +8,7 @@ import java.util.Map;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spellbook;
@@ -58,7 +58,7 @@ public class RightClickEntityListener extends PassiveListener {
 	
 	@OverridePriority
 	@EventHandler
-	public void onRightClickEntity(PlayerInteractEntityEvent event) {
+	public void onRightClickEntity(PlayerInteractAtEntityEvent event) {
 		if (!(event.getRightClicked() instanceof LivingEntity)) return;
 		
 		Map<EntityType, List<PassiveSpell>> typeMapLocal;
@@ -94,7 +94,7 @@ public class RightClickEntityListener extends PassiveListener {
 			}
 		}
 	}
-	
+
 	public boolean isMainHand(PassiveTrigger trigger) {
 		return PassiveTrigger.RIGHT_CLICK_ENTITY.contains(trigger);
 	}

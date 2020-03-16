@@ -962,8 +962,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (serverCooldown > 0 && nextCastServer > System.currentTimeMillis()) return true;
 
 		Long next = nextCast.get(livingEntity.getUniqueId());
-		if (next != null && next > System.currentTimeMillis()) return true;
-		return false;
+		return next != null && next > System.currentTimeMillis();
 	}
 
 	public float getCooldown() {

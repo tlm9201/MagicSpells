@@ -128,8 +128,7 @@ public class Modifier implements IModifier {
 	@Override
 	public boolean apply(MagicSpellsGenericPlayerEvent event) {
 		boolean check;
-		if (alertCondition) check = condition.check(event.getPlayer());
-		else check = condition.check(event.getPlayer());
+		check = condition.check(event.getPlayer());
 		if (negated) check = !check;
 		return type.apply(event, check, modifierVar, modifierVarFloat, modifierVarInt, customActionData);
 	}
@@ -139,8 +138,7 @@ public class Modifier implements IModifier {
 		boolean check = condition.check(livingEntity);
 		if (negated) check = !check;
 		if (!check && type == ModifierType.REQUIRED) return false;
-		if (check && type == ModifierType.DENIED) return false;
-		return true;
+		return !check || type != ModifierType.DENIED;
 	}
 
 	@Override
@@ -148,8 +146,7 @@ public class Modifier implements IModifier {
 		boolean check = condition.check(livingEntity, entity);
 		if (negated) check = !check;
 		if (!check && type == ModifierType.REQUIRED) return false;
-		if (check && type == ModifierType.DENIED) return false;
-		return true;
+		return !check || type != ModifierType.DENIED;
 	}
 
 	private static ModifierType getTypeByName(String name) {

@@ -25,7 +25,7 @@ public class OnSameTeamCondition extends Condition {
 		if (target instanceof Player && livingEntity instanceof Player) {
 			Team team1 = Bukkit.getScoreboardManager().getMainScoreboard().getPlayerTeam((Player) livingEntity);
 			Team team2 = Bukkit.getScoreboardManager().getMainScoreboard().getPlayerTeam((Player) target);
-			return team1 != null && team2 != null && team1.equals(team2);
+			return team1 != null && team1.equals(team2);
 		}
 		return false;
 	}

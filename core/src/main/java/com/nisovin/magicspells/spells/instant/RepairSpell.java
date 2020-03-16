@@ -186,8 +186,7 @@ public class RepairSpell extends InstantSpell {
 		ItemMeta meta = item.getItemMeta();
 		if (!(meta instanceof Damageable)) return false;
 		if (ignoreItems != null && ignoreItems.contains(item.getType())) return false;
-		if (allowedItems != null && !allowedItems.contains(item.getType())) return false;
-		return true;
+		return allowedItems == null || allowedItems.contains(item.getType());
 	}
 
 	private int newDurability(ItemStack item) {

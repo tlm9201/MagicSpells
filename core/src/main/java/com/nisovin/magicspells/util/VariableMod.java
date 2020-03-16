@@ -61,7 +61,7 @@ public class VariableMod {
 	private String value;
 	private Operation op;
 	private double constantModifier;
-	private static final Pattern operationMatcher = Pattern.compile("^(=|\\+|\\*|\\/|^)");
+	private static final Pattern operationMatcher = Pattern.compile("^(=|\\+|\\*|/|^)");
 	
 	private boolean negate = false;
 	

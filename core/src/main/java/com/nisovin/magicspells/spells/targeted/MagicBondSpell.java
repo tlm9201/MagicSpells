@@ -127,8 +127,7 @@ public class MagicBondSpell extends TargetedSpell implements TargetedEntitySpell
 			SpellMonitor otherMonitor = (SpellMonitor)other;
 			if (otherMonitor.caster != caster) return false;
 			if (otherMonitor.target != target) return false;
-			if (otherMonitor.power != power) return false;
-			return true;
+			return otherMonitor.power == power;
 		}
 
 	}

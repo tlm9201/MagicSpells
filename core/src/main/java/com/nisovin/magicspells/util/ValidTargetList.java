@@ -142,8 +142,7 @@ public class ValidTargetList {
 		if (targetNonPlayers && !targetIsPlayer) return true;
 		if (targetMonsters && target instanceof Monster) return true;
 		if (targetAnimals && target instanceof Animals) return true;
-		if (types.contains(target.getType())) return true;
-		return false;
+		return types.contains(target.getType());
 	}
 	
 	public boolean canTarget(Entity target) {
@@ -155,8 +154,7 @@ public class ValidTargetList {
 		if (targetNonPlayers && !targetIsPlayer) return true;
 		if (targetMonsters && target instanceof Monster) return true;
 		if (targetAnimals && target instanceof Animals) return true;
-		if (types.contains(target.getType())) return true;
-		return false;
+		return types.contains(target.getType());
 	}
 	
 	public List<LivingEntity> filterTargetListCastingAsLivingEntities(LivingEntity caster, List<Entity> targets) {
