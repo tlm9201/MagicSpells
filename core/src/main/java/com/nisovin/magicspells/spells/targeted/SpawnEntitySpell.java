@@ -460,6 +460,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				}
 			}
 			target = t;
+			if (t == null) return;
 			MagicSpells.getVolatileCodeHandler().setTarget(monster, t);
 		}
 		

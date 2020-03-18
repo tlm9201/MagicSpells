@@ -43,6 +43,7 @@ use-exp-bar-as-cast-time-bar: true
 cooldowns-persist-through-reload: true
 allow-anticheat-integrations: false
 ignore-grant-perms-fake-value: true
+buff-check-interval: 100
 
 entity-names:
     zombie: an ugly zombie

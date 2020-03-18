@@ -142,12 +142,16 @@ public class ProjectileTracker implements Runnable {
 	}
 
 	public void startTarget(Location from, LivingEntity target) {
+		startTarget(from, target.getLocation());
+	}
+
+	public void startTarget(Location from, Location target) {
 		startTime = System.currentTimeMillis();
 		if (!changePitch) from.setPitch(0F);
 		startLocation = from.clone();
 
 		// Changing the target location
-		Location targetLoc = target.getLocation().clone();
+		Location targetLoc = target.clone();
 		targetLoc.add(0, targetYOffset,0);
 		Vector dir = targetLoc.clone().subtract(from.clone()).toVector();
 
@@ -424,6 +428,14 @@ public class ProjectileTracker implements Runnable {
 		for (int i = 0; i < inRange.size(); i++) {
 			LivingEntity e = inRange.get(i);
 			if (e.isDead()) continue;
+
+			ParticleProjectileHitEvent projectileEvent = new ParticleProjectileHitEvent(caster, e, tracker, spell, power);
+			EventUtil.call(projectileEvent);
+			if (projectileEvent.isCancelled()) {
+				inRange.remove(i);
+				break;
+			}
+
 			if (entitySpell != null && entitySpell.isTargetedEntitySpell()) {
 				entitySpellChecker = entitySpell.getSpell().getValidTargetChecker();
 				if (entitySpellChecker != null && !entitySpellChecker.isValidTarget(e)) {
@@ -438,13 +450,6 @@ public class ProjectileTracker implements Runnable {
 				} else {
 					e = event.getTarget();
 					power = event.getPower();
-				}
-
-				ParticleProjectileHitEvent projectileEvent = new ParticleProjectileHitEvent(caster, e, tracker, spell, power);
-				EventUtil.call(projectileEvent);
-				if (projectileEvent.isCancelled()) {
-					inRange.remove(i);
-					break;
 				}
 
 				entitySpell.castAtEntity(caster, e, power);

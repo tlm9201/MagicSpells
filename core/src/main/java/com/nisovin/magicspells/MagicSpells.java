@@ -312,7 +312,7 @@ public class MagicSpells extends JavaPlugin {
 		// Create handling objects
 		if (enableManaBars) manaHandler = new ManaSystem(config);
 		noMagicZones = new NoMagicZoneManager();
-		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 0));
+		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 100));
 		expBarManager = new ExperienceBarManager();
 		bossBarManager = new BossBarManager();
 		attributeManager = new AttributeManager();

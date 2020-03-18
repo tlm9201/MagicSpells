@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 public class VolatileCodeDisabled implements VolatileCodeHandle {
@@ -100,4 +101,15 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	public void setTexture(SkullMeta meta, String texture, String signature, String uuid, String name) {
 		// Need volatile code for this
 	}
+
+	@Override
+	public int getCustomModelData(ItemMeta meta) {
+		return 0;
+	}
+
+	@Override
+	public void setCustomModelData(ItemMeta meta, int data) {
+
+	}
+
 }

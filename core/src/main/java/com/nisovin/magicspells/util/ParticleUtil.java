@@ -2,6 +2,7 @@ package com.nisovin.magicspells.util;
 
 import java.util.Map;
 import java.util.HashMap;
+
 import org.bukkit.Particle;
 
 public class ParticleUtil {
@@ -60,7 +61,21 @@ public class ParticleUtil {
 		CURRENT_DOWN( "current_down"),
 		BUBBLE_COLUMN_UP( "bubble_column_up"),
 		NAUTILUS( "nautilus"),
-		DOLPHIN( "dolphin");
+		DOLPHIN( "dolphin"),
+		/*SNEEZE( "sneeze"),
+		CAMPFIRE_COSY_SMOKE( "campfire_cosy_smoke"),
+		CAMPFIRE_SIGNAL_SMOKE( "campfire_signal_smoke"),
+		COMPOSTER( "composter"),
+		FLASH( "flash"),
+		FALLING_LAVA( "falling_lava"),
+		LANDING_LAVA( "landing_lava"),
+		FALLING_WATER( "falling_water"),
+		DRIPPING_HONEY( "dripping_honey"),
+		FALLING_HONEY( "falling_honey"),
+		LANDING_HONEY( "landing_honey"),
+		FALLING_NECTAR( "falling_nectar"), */
+
+		;
 
 		private final String[] names;
 
@@ -93,14 +108,14 @@ public class ParticleUtil {
 			initialize();
 
 			Particle particle = namesToType.get(particleName.toLowerCase());
-			if (particle != null)
-				return particle;
+			if (particle != null) return particle;
 
 			try {
 				particle = Particle.valueOf(particleName.toUpperCase());
 			} catch (IllegalArgumentException ex) {
 				particle = null;
 			}
+
 			return particle;
 		}
 

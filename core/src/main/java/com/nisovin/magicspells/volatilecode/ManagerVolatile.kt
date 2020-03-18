@@ -1,7 +1,8 @@
 package com.nisovin.magicspells.volatilecode
 
-import com.nisovin.magicspells.MagicSpells
 import org.bukkit.Bukkit
+
+import com.nisovin.magicspells.MagicSpells
 
 object ManagerVolatile {
 
@@ -18,4 +19,5 @@ object ManagerVolatile {
 
         return VolatileCodeDisabled()
     }
+
 }

@@ -1345,8 +1345,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (target instanceof Player && MagicSpells.plugin.checkScoreboardTeams) {
 					Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 					Team playerTeam = null;
-					if (livingEntity instanceof Player) scoreboard.getPlayerTeam((Player) livingEntity);
-					Team targetTeam = scoreboard.getPlayerTeam((Player) target);
+					if (livingEntity instanceof Player) scoreboard.getEntryTeam(livingEntity.getName());
+					Team targetTeam = scoreboard.getEntryTeam(target.getName());
 					if (playerTeam != null && targetTeam != null) {
 						if (playerTeam.equals(targetTeam)) {
 							if (!playerTeam.allowFriendlyFire() && !isBeneficial()) {

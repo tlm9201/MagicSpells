@@ -6,6 +6,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -64,6 +65,8 @@ public class ForcepushSpell extends InstantSpell {
 			if (force != 0) v.setY(v.getY() + (yForce * power));
 			else v.setY(yForce * power);
 			if (v.getY() > (maxYForce)) v.setY(maxYForce);
+
+			v = Util.makeFinite(v);
 
 			if (addVelocityInstead) target.setVelocity(target.getVelocity().add(v));
 			else target.setVelocity(v);

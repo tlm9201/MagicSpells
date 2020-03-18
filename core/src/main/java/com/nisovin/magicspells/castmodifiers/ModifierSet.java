@@ -3,6 +3,7 @@ package com.nisovin.magicspells.castmodifiers;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
@@ -123,6 +124,14 @@ public class ModifierSet {
 	public boolean check(LivingEntity livingEntity, LivingEntity entity) {
 		for (Modifier modifier : modifiers) {
 			boolean pass = modifier.check(livingEntity, entity);
+			if (!pass) return false;
+		}
+		return true;
+	}
+
+	public boolean check(LivingEntity livingEntity, Location location) {
+		for (Modifier modifier : modifiers) {
+			boolean pass = modifier.check(livingEntity, location);
 			if (!pass) return false;
 		}
 		return true;
