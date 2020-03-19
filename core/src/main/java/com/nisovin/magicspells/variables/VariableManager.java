@@ -99,6 +99,16 @@ public class VariableManager implements Listener {
 			if (!dirtyPlayerVars.isEmpty()) saveAllPlayerVars();
 		}, TimeUtil.TICKS_PER_MINUTE, TimeUtil.TICKS_PER_MINUTE);
 	}
+
+	/**
+	 * Adds a variable with the provided name to the list of variables.
+	 * This will replace existing variables if the same name is used.
+	 * @param name the name of the variable
+	 * @param variable the variable to add
+	 */
+	public void addVariable(String name, Variable variable) {
+		variables.put(name, variable);
+	}
 	
 	public int count() {
 		return variables.size();
