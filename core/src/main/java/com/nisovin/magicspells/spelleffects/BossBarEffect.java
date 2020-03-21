@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spelleffects;
 
-import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Entity;
@@ -31,7 +30,7 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
-		title = ChatColor.translateAlternateColorCodes('&', config.getString("title", ""));
+		title = Util.colorize(config.getString("title", ""));
 		color = config.getString("color", "red").toUpperCase();
 		style = config.getString("style", "solid").toUpperCase();
 		strVar = config.getString("variable", "");

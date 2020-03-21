@@ -9,7 +9,6 @@ import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.Listener;
@@ -129,7 +128,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		addLookAtPlayerAI = getConfigBoolean("add-look-at-player-ai", false);
 		allowSpawnInMidair = getConfigBoolean("allow-spawn-in-midair", false);
 		nameplateFormatting = getConfigBoolean("nameplate-formatting", false);
-		if (nameplateFormatting) nameplateText = ChatColor.translateAlternateColorCodes('&', nameplateText);
+		if (nameplateFormatting) nameplateText = Util.colorize(nameplateText);
 
 		attackSpellName = getConfigString("attack-spell", "");
 

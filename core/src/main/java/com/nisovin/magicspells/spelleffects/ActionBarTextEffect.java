@@ -31,7 +31,7 @@ public class ActionBarTextEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		String msg = ChatColor.translateAlternateColorCodes('&', MagicSpells.doVariableReplacements(player, message));
+		String msg = Util.doVarReplacementAndColorize(player, message);
 		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(msg));
 	}
 	

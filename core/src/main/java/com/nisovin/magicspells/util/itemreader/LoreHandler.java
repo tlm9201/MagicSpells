@@ -3,9 +3,9 @@ package com.nisovin.magicspells.util.itemreader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.ChatColor;
-import org.bukkit.configuration.ConfigurationSection;
+import com.nisovin.magicspells.util.Util;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.configuration.ConfigurationSection;
 
 public class LoreHandler {
 
@@ -14,12 +14,12 @@ public class LoreHandler {
 		if (config.isList("lore")) {
 			List<String> lore = config.getStringList("lore");
 			for (int i = 0; i < lore.size(); i++) {
-				lore.set(i, ChatColor.translateAlternateColorCodes('&', lore.get(i)));
+				lore.set(i, Util.colorize(lore.get(i)));
 			}
 			meta.setLore(lore);
 		} else if (config.isString("lore")) {
 			List<String> lore = new ArrayList<>();
-			lore.add(ChatColor.translateAlternateColorCodes('&', config.getString("lore")));
+			lore.add(Util.colorize(config.getString("lore")));
 			meta.setLore(lore);
 		}
 		return meta;

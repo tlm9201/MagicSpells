@@ -4,23 +4,19 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import com.nisovin.magicspells.util.*;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.BoundingBox;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -98,7 +94,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 		hitSpellName = getConfigString("spell", "");
 		airSpellName = getConfigString("spell-on-hit-air", "");
-		projectileName = ChatColor.translateAlternateColorCodes('&', getConfigString("projectile-name", ""));
+		projectileName = Util.colorize(getConfigString("projectile-name", ""));
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
 		durationSpellName = getConfigString("spell-after-duration", "");

@@ -58,7 +58,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	public MenuSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 		
-		title = ChatColor.translateAlternateColorCodes('&', getConfigString("title", "Window Title " + spellName));
+		title = Util.colorize(getConfigString("title", "Window Title " + spellName));
 
 		delay = getConfigInt("delay", 0);
 

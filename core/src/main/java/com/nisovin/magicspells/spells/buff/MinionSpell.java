@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
@@ -246,7 +245,7 @@ public class MinionSpell extends BuffSpell {
 
 		if (minion instanceof Zombie) ((Zombie)minion).setBaby(baby);
 		minion.setGravity(gravity);
-		minion.setCustomName(ChatColor.translateAlternateColorCodes('&', minionName.replace("%c", player.getName())));
+		minion.setCustomName(Util.colorize(minionName.replace("%c", player.getName())));
 		minion.setCustomNameVisible(true);
 		if (powerAffectsHealth) {
 			Util.setMaxHealth(minion, maxHealth * power * powerHealthFactor);

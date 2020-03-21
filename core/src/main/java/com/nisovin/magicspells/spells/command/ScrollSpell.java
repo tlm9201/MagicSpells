@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -20,15 +19,15 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.spells.CommandSpell;
-import com.nisovin.magicspells.materials.MagicMaterial;
 import com.nisovin.magicspells.util.ItemUtil;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.spells.CommandSpell;
+import com.nisovin.magicspells.util.SpellReagents;
+import com.nisovin.magicspells.materials.MagicMaterial;
 
 public class ScrollSpell extends CommandSpell {
 
@@ -176,10 +175,10 @@ public class ScrollSpell extends CommandSpell {
 		if (item == null) item = itemType.toItemStack(1);
 		item.setDurability((short) 0);
 		ItemMeta meta = item.getItemMeta();
-		meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', strScrollName.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"))));
+		meta.setDisplayName(Util.colorize(strScrollName.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"))));
 		if (strScrollSubtext != null && !strScrollSubtext.isEmpty()) {
 			List<String> lore = new ArrayList<>();
-			lore.add(ChatColor.translateAlternateColorCodes('&', strScrollSubtext.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"))));
+			lore.add(Util.colorize(strScrollSubtext.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"))));
 			meta.setLore(lore);
 		}
 		item.setItemMeta(meta);

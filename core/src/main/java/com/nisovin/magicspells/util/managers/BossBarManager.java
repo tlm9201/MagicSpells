@@ -5,12 +5,12 @@ import java.util.UUID;
 import java.util.HashMap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
+import com.nisovin.magicspells.util.Util;
 
 public class BossBarManager {
 
@@ -47,10 +47,10 @@ public class BossBarManager {
 	private void createBar(Player player, String title, double progress, BarStyle style, BarColor color) {
 		BossBar bar = bars.get(player.getUniqueId());
 		if (bar == null) {
-			bar = Bukkit.createBossBar(ChatColor.translateAlternateColorCodes('&', title), color, style);
+			bar = Bukkit.createBossBar(Util.colorize(title), color, style);
 			bars.put(player.getUniqueId(), bar);
 		}
-		bar.setTitle(ChatColor.translateAlternateColorCodes('&', title));
+		bar.setTitle(Util.colorize(title));
 		bar.setStyle(style);
 		bar.setColor(color);
 		bar.setProgress(progress);

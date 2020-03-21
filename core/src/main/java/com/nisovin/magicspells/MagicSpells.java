@@ -423,7 +423,7 @@ public class MagicSpells extends JavaPlugin {
 		// Load in-game spell names, incantations, and initialize spells
 		log("Initializing spells...");
 		for (Spell spell : spells.values()) {
-			spellNames.put(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', spell.getName().toLowerCase())), spell);
+			spellNames.put(ChatColor.stripColor(Util.colorize(spell.getName().toLowerCase())), spell);
 			String[] aliases = spell.getAliases();
 			if (aliases != null && aliases.length > 0) {
 				for (String alias : aliases) {

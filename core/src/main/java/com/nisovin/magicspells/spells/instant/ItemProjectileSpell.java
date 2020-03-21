@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
@@ -88,7 +87,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		relativeOffset = getConfigVector("relative-offset", "0,0,0");
 		if (yOffset != 0) relativeOffset.setY(yOffset);
 
-		itemName = ChatColor.translateAlternateColorCodes('&', getConfigString("item-name", ""));
+		itemName = Util.colorize(getConfigString("item-name", ""));
 		spellOnTickName = getConfigString("spell-on-tick", "");
 		spellOnDelayName = getConfigString("spell-on-delay", "");
 		spellOnHitEntityName = getConfigString("spell-on-hit-entity", "");

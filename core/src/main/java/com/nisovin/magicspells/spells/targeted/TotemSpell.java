@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 import org.bukkit.Material;
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
@@ -260,7 +259,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			loc.setYaw(caster.getLocation().getYaw());
 			armorStand = (LivingEntity) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
 			if (!totemName.isEmpty()) {
-				armorStand.setCustomName(ChatColor.translateAlternateColorCodes('&', totemName));
+				armorStand.setCustomName(Util.colorize(totemName));
 				armorStand.setCustomNameVisible(totemNameVisible);
 			}
 			totemEquipment = armorStand.getEquipment();

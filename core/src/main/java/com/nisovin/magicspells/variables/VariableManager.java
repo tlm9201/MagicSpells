@@ -8,7 +8,6 @@ import java.io.BufferedWriter;
 import com.google.common.collect.Multimap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -65,7 +64,7 @@ public class VariableManager implements Listener {
 						objective = null;
 					}
 					objective = Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective(objName, objName, objName);
-					objective.setDisplayName(ChatColor.translateAlternateColorCodes('&', scoreName));
+					objective.setDisplayName(Util.colorize(scoreName));
 					if (scorePos.equalsIgnoreCase("nameplate")) objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 					else if (scorePos.equalsIgnoreCase("playerlist")) objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 					else objective.setDisplaySlot(DisplaySlot.SIDEBAR);

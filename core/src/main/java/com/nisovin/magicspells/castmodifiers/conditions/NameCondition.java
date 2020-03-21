@@ -1,8 +1,8 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
+import com.nisovin.magicspells.util.Util;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -13,7 +13,7 @@ public class NameCondition extends Condition {
 	@Override
 	public boolean setVar(String var) {
 		if (var == null || var.isEmpty()) return false;
-		name = ChatColor.translateAlternateColorCodes('&', var);
+		name = Util.colorize(var);
 		return true;
 	}
 

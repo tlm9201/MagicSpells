@@ -4,12 +4,12 @@ import java.util.Objects;
 
 import org.bukkit.Material;
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import com.nisovin.magicspells.util.Util;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.InventoryHolder;
 
@@ -31,7 +31,7 @@ public class HasItemCondition extends Condition {
 			if (var.contains("|")) {
 				String[] subvardata = var.split("\\|");
 				var = subvardata[0];
-				name = ChatColor.translateAlternateColorCodes('&', subvardata[1]).replace("__", " ");
+				name = Util.colorize(subvardata[1]).replace("__", " ");
 				if (name.isEmpty()) name = null;
 				checkName = true;
 			} else {

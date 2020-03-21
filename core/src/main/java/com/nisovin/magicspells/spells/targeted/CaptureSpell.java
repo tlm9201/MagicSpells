@@ -3,7 +3,6 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -38,10 +37,10 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		addToInventory = getConfigBoolean("add-to-inventory", false);
 		powerAffectsQuantity = getConfigBoolean("power-affects-quantity", true);
 
-		if (itemName != null) itemName = ChatColor.translateAlternateColorCodes('&', itemName);
+		if (itemName != null) itemName = Util.colorize(itemName);
 		if (itemLore != null) {
 			for (int i = 0; i < itemLore.size(); i++) {
-				itemLore.set(i, ChatColor.translateAlternateColorCodes('&', itemLore.get(i)));
+				itemLore.set(i, Util.colorize(itemLore.get(i)));
 			}
 		}
 	}

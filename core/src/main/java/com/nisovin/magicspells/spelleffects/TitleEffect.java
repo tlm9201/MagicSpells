@@ -37,8 +37,8 @@ public class TitleEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		String titleMsg = title.isEmpty() ? "" : ChatColor.translateAlternateColorCodes('&', MagicSpells.doVariableReplacements(player, title));
-		String subtitleMsg = subtitle.isEmpty() ? "" : ChatColor.translateAlternateColorCodes('&', MagicSpells.doVariableReplacements(player, subtitle));
+		String titleMsg = title.isEmpty() ? "" : Util.doVarReplacementAndColorize(player, title);
+		String subtitleMsg = subtitle.isEmpty() ? "" : Util.doVarReplacementAndColorize(player, title);
 		player.sendTitle(titleMsg, subtitleMsg, fadeIn, stay, fadeOut);
 	}
 

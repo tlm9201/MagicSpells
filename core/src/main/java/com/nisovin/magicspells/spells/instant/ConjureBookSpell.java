@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import org.bukkit.Material;
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
@@ -49,17 +48,17 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 
 		book = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) book.getItemMeta();
-		meta.setTitle(ChatColor.translateAlternateColorCodes('&', title));
-		meta.setAuthor(ChatColor.translateAlternateColorCodes('&', author));
+		meta.setTitle(Util.colorize(title));
+		meta.setAuthor(Util.colorize(author));
 		if (pages != null) {
 			for (int i = 0; i < pages.size(); i++) {
-				pages.set(i, ChatColor.translateAlternateColorCodes('&', pages.get(i)));
+				pages.set(i, Util.colorize(pages.get(i)));
 			}
 			meta.setPages(pages);
 		}
 		if (lore != null) {
 			for (int i = 0; i < lore.size(); i++) {
-				lore.set(i, ChatColor.translateAlternateColorCodes('&', lore.get(i)));
+				lore.set(i, Util.colorize(lore.get(i)));
 			}
 			meta.setLore(lore);
 		}

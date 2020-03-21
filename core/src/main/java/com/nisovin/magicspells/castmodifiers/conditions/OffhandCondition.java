@@ -4,9 +4,9 @@ import java.util.Objects;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import com.nisovin.magicspells.util.Util;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 
@@ -33,7 +33,7 @@ public class OffhandCondition extends Condition {
 				if (vardata[i].contains("|")) {
 					String[] subvardata = vardata[i].split("\\|");
 					vardata[i] = subvardata[0];
-					names[i] = ChatColor.translateAlternateColorCodes('&', subvardata[1]).replace("__", " ");
+					names[i] = Util.colorize(subvardata[1]).replace("__", " ");
 					if (names[i].isEmpty()) names[i] = null;
 					checkName[i] = true;
 				} else {

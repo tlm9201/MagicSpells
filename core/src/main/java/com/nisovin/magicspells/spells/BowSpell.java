@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.bukkit.Material;
-import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -13,6 +12,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
+import com.nisovin.magicspells.util.Util;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -61,13 +61,13 @@ public class BowSpell extends Spell {
 		List<String> names = getConfigStringList("bow-names", null);
 		if (names != null) {
 			bowNames = new ArrayList<>();
-			names.forEach(str -> bowNames.add(ChatColor.translateAlternateColorCodes('&', str)));
-		} else bowName = ChatColor.translateAlternateColorCodes('&', getConfigString("bow-name", ""));
+			names.forEach(str -> bowNames.add(Util.colorize(str)));
+		} else bowName = Util.colorize(getConfigString("bow-name", ""));
 
 		List<String> disallowedNames = getConfigStringList("disallowed-bow-names", null);
 		if (disallowedNames != null) {
 			disallowedBowNames = new ArrayList<>();
-			disallowedNames.forEach(str -> disallowedBowNames.add(ChatColor.translateAlternateColorCodes('&', str)));
+			disallowedNames.forEach(str -> disallowedBowNames.add(Util.colorize(str)));
 		}
 
 		spellOnShootName = getConfigString("spell", "");
