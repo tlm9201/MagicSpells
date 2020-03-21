@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spelleffects;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.SoundCategory;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
@@ -9,9 +10,9 @@ import com.nisovin.magicspells.util.Util;
 public class SoundPersonalEffect extends SpellEffect {
 
 	private String sound;
-
 	private float pitch;
 	private float volume;
+	private SoundCategory category;
 
 	private boolean broadcast;
 
@@ -21,6 +22,12 @@ public class SoundPersonalEffect extends SpellEffect {
 		pitch = (float) config.getDouble("pitch", 1.0F);
 		volume = (float) config.getDouble("volume", 1.0F);
 		broadcast = config.getBoolean("broadcast", false);
+		try {
+			category = SoundCategory.valueOf(config.getString("category", "master").toUpperCase());
+		}
+		catch (IllegalArgumentException ignored) {
+			category = SoundCategory.MASTER;
+		}
 	}
 
 	@Override
@@ -31,7 +38,7 @@ public class SoundPersonalEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		player.playSound(player.getLocation(), sound, volume, pitch);
+		player.playSound(player.getLocation(), sound, category, volume, pitch);
 	}
 	
 }
