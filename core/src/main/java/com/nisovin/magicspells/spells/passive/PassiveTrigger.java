@@ -8,6 +8,7 @@ import java.util.HashSet;
 import org.bukkit.event.EventPriority;
 
 import com.nisovin.magicspells.MagicSpells;
+import org.bukkit.inventory.Inventory;
 
 public class PassiveTrigger {
 	
@@ -67,6 +68,7 @@ public class PassiveTrigger {
 	public static Set<PassiveTrigger> WORLD_CHANGE = addTriggers("worldchange", WorldChangeListener.class);
 	public static Set<PassiveTrigger> GAMEMODE_CHANGE = addTriggers("gamemodechange", GameModeChangeListener.class);
 	public static Set<PassiveTrigger> MAGICSPELLS_LOADED = addTriggers("magicspellsloaded", MagicSpellsLoadedListener.class);
+	public static Set<PassiveTrigger> INVENTORY_CLICK = addTriggers("inventoryclick", InventoryClickListener.class);
 	
 	// can't do priorities here
 	public static PassiveTrigger RESOURCE_PACK = addTrigger("resourcepack", ResourcePackListener.class);
