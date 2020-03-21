@@ -23,9 +23,6 @@ public class TitleEffect extends SpellEffect {
 	protected void loadFromConfig(ConfigurationSection config) {
 		title = config.getString("title", "");
 		subtitle = config.getString("subtitle", "");
-		if (!title.isEmpty()) title = ChatColor.translateAlternateColorCodes('&', title);
-		if (!subtitle.isEmpty()) subtitle = ChatColor.translateAlternateColorCodes('&', subtitle);
-
 		stay = config.getInt("stay", 40);
 		fadeIn = config.getInt("fade-in", 10);
 		fadeOut = config.getInt("fade-out", 10);
@@ -40,7 +37,9 @@ public class TitleEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		player.sendTitle(MagicSpells.doVariableReplacements(player, title), MagicSpells.doVariableReplacements(player, subtitle), fadeIn, stay, fadeOut);
+		String titleMsg = title.isEmpty() ? "" : ChatColor.translateAlternateColorCodes('&', MagicSpells.doVariableReplacements(player, title));
+		String subtitleMsg = subtitle.isEmpty() ? "" : ChatColor.translateAlternateColorCodes('&', MagicSpells.doVariableReplacements(player, subtitle));
+		player.sendTitle(titleMsg, subtitleMsg, fadeIn, stay, fadeOut);
 	}
 
 }
