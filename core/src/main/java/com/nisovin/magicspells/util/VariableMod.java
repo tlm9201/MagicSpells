@@ -12,19 +12,19 @@ import org.apache.commons.math3.util.FastMath;
 public class VariableMod {
 	
 	public enum VariableOwner {
-		
 		CASTER,
 		TARGET
-		
 	}
 	
 	public enum Operation {
 		
 		SET((a, b) -> b),
-		ADD((a, b) -> a + b),
+		ADD(Double::sum),
 		MULTIPLY((a, b) -> a * b),
 		DIVIDE((a, b) -> a / b),
-		POWER((a, b) -> FastMath.pow(a, b));
+		MODULO((a, b) -> a % b),
+		POWER(FastMath::pow),
+		RANDOM((a, b) -> Double.valueOf(Util.getRandomInt(b.intValue())));
 
 		private final BinaryOperator<Double> operator;
 		
@@ -41,14 +41,16 @@ public class VariableMod {
 			switch (c) {
 				case '=':
 					return SET;
-				case '+':
-					return ADD;
 				case '*':
 					return MULTIPLY;
 				case '/':
 					return DIVIDE;
 				case '^':
 					return POWER;
+				case '%':
+					return MODULO;
+				case '?':
+					return RANDOM;
 				default:
 					return ADD;
 			}
@@ -61,13 +63,13 @@ public class VariableMod {
 	private String value;
 	private Operation op;
 	private double constantModifier;
-	private static final Pattern operationMatcher = Pattern.compile("^(=|\\+|\\*|/|^)");
+	private static final Pattern OPERATION_MATCHER = Pattern.compile("^[=+*/^%?]");
 	
 	private boolean negate = false;
 	
 	public VariableMod(String data) {
 		op = Operation.fromPrefix(data);
-		data = operationMatcher.matcher(data).replaceFirst("");
+		data = OPERATION_MATCHER.matcher(data).replaceFirst("");
 		if (data.startsWith("-")) {
 			data = data.substring(1);
 			negate = true;
@@ -90,7 +92,7 @@ public class VariableMod {
 	}
 	
 	public double getValue(Player caster, Player target) {
-		int negationFactor = getNegationFactor();
+		int negationFactor = negate ? -1 : 1;
 		if (modifyingVariableName != null) {
 			Player variableHolder = variableOwner == VariableOwner.CASTER ? caster : target;
 			return MagicSpells.getVariableManager().getValue(modifyingVariableName, variableHolder) * negationFactor;
@@ -117,10 +119,6 @@ public class VariableMod {
 	
 	public VariableOwner getVariableOwner() {
 		return variableOwner;
-	}
-	
-	private int getNegationFactor() {
-		return negate ? -1 : 1;
 	}
 	
 }

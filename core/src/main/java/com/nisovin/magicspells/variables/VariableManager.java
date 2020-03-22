@@ -8,6 +8,7 @@ import java.io.BufferedWriter;
 import com.google.common.collect.Multimap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -32,12 +33,12 @@ import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 
 public class VariableManager implements Listener {
-	
+
 	private Map<String, Variable> variables = new HashMap<>();
 	private Set<String> dirtyPlayerVars = new HashSet<>();
 	private boolean dirtyGlobalVars = false;
 	private File folder;
-	
+
 	// DEBUG INFO: level 2, loaded variable (name)
 	// DEBUG INFO: level 1, # variables loaded
 	public VariableManager(MagicSpells plugin, ConfigurationSection section) {
@@ -49,9 +50,9 @@ public class VariableManager implements Listener {
 				double min = section.getDouble(var + ".min", 0);
 				double max = section.getDouble(var + ".max", Double.MAX_VALUE);
 				boolean perm = section.getBoolean(var + ".permanent", true);
-				
+
 				Variable variable = VariableType.getType(type).newInstance();
-				
+
 				String scoreName = section.getString(var + ".scoreboard-title", null);
 				String scorePos = section.getString(var + ".scoreboard-position", null);
 				Objective objective = null;
@@ -61,10 +62,9 @@ public class VariableManager implements Listener {
 					objective = Bukkit.getScoreboardManager().getMainScoreboard().getObjective(objName);
 					if (objective != null) {
 						objective.unregister();
-						objective = null;
 					}
 					objective = Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective(objName, objName, objName);
-					objective.setDisplayName(Util.colorize(scoreName));
+					objective.setDisplayName(ChatColor.translateAlternateColorCodes('&', scoreName));
 					if (scorePos.equalsIgnoreCase("nameplate")) objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 					else if (scorePos.equalsIgnoreCase("playerlist")) objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 					else objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -79,9 +79,9 @@ public class VariableManager implements Listener {
 			MagicSpells.debug(1, variables.size() + " variables loaded!");
 		}
 		variables.putAll(SpecialVariables.getSpecialVariables());
-		
+
 		if (!variables.isEmpty()) MagicSpells.registerEvents(this);
-		
+
 		// Load vars
 		folder = new File(plugin.getDataFolder(), "vars");
 		if (!folder.exists()) folder.mkdir();
@@ -91,7 +91,7 @@ public class VariableManager implements Listener {
 			loadBossBar(player);
 			loadExpBar(player);
 		}
-		
+
 		// Start save task
 		MagicSpells.scheduleRepeatingTask(() -> {
 			if (dirtyGlobalVars) saveGlobalVars();
@@ -99,24 +99,14 @@ public class VariableManager implements Listener {
 		}, TimeUtil.TICKS_PER_MINUTE, TimeUtil.TICKS_PER_MINUTE);
 	}
 
-	/**
-	 * Adds a variable with the provided name to the list of variables.
-	 * This will replace existing variables if the same name is used.
-	 * @param name the name of the variable
-	 * @param variable the variable to add
-	 */
-	public void addVariable(String name, Variable variable) {
-		variables.put(name, variable);
-	}
-	
 	public int count() {
 		return variables.size();
 	}
-	
+
 	public void modify(String variable, Player player, double amount) {
 		modify(variable, player.getName(), amount);
 	}
-	
+
 	public void modify(String variable, String player, double amount) {
 		Variable var = variables.get(variable);
 		if (var == null) return;
@@ -128,19 +118,11 @@ public class VariableManager implements Listener {
 		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player);
 		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
 	}
-	
-	public void multiplyBy(String variable, Player player, double amount) {
-		set(variable, player, getValue(variable, player) * amount);
-	}
-	
-	public void divideBy(String variable, Player player, double val) {
-		set(variable, player, getValue(variable, player) / val);
-	}
-	
+
 	public void set(String variable, Player player, double amount) {
 		set(variable, player.getName(), amount);
 	}
-	
+
 	public void set(String variable, String player, double amount) {
 		Variable var = variables.get(variable);
 		if (var == null) return;
@@ -151,11 +133,11 @@ public class VariableManager implements Listener {
 		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player);
 		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
 	}
-	
+
 	public void set(String variable, Player player, String amount) {
 		set(variable, player.getName(), amount);
 	}
-	
+
 	public void set(String variable, String player, String amount) {
 		Variable var = variables.get(variable);
 		if (var == null) return;
@@ -166,46 +148,46 @@ public class VariableManager implements Listener {
 		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player);
 		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
 	}
-	
+
 	public double getValue(String variable, Player player) {
 		Variable var = variables.get(variable);
 		if (var != null) return var.getValue(player);
 		return 0D;
 	}
-	
+
 	public String getStringValue(String variable, Player player) {
 		Variable var = variables.get(variable);
 		if (var != null) return var.getStringValue(player);
 		return 0D + "";
 	}
-	
+
 	public double getValue(String variable, String player) {
 		Variable var = variables.get(variable);
 		if (var != null) return var.getValue(player);
 		return 0;
 	}
-	
+
 	public String getStringValue(String variable, String player) {
 		Variable var = variables.get(variable);
 		if (var != null) return var.getStringValue(player);
 		return 0D + "";
 	}
-	
+
 	public Variable getVariable(String name) {
 		return variables.get(name);
 	}
-	
+
 	public void reset(String variable, Player player) {
 		Variable var = variables.get(variable);
 		if (var == null) return;
 		var.reset(player);
-		updateBossBar(var, player != null ? player.getName() : "");
-		updateExpBar(var, player != null ? player.getName() : "");
+		updateBossBar(var, player.getName());
+		updateExpBar(var, player.getName());
 		if (!var.permanent) return;
-		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player != null ? player.getName() : "");
+		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player.getName());
 		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
 	}
-	
+
 	private void updateBossBar(Variable var, String player) {
 		if (var.bossBar == null) return;
 		if (var instanceof GlobalVariable) {
@@ -216,7 +198,7 @@ public class VariableManager implements Listener {
 			if (p != null) MagicSpells.getBossBarManager().setPlayerBar(p, var.bossBar, var.getValue(p) / var.maxValue);
 		}
 	}
-	
+
 	private void updateExpBar(Variable var, String player) {
 		if (!var.expBar) return;
 		if (var instanceof GlobalVariable) {
@@ -227,7 +209,7 @@ public class VariableManager implements Listener {
 			if (p != null) MagicSpells.getVolatileCodeHandler().setExperienceBar(p, (int) var.getValue(p), (float) (var.getValue(p) / var.maxValue));
 		}
 	}
-	
+
 	private void loadGlobalVars() {
 		File file = new File(folder, "GLOBAL.txt");
 		if (file.exists()) {
@@ -247,14 +229,14 @@ public class VariableManager implements Listener {
 				MagicSpells.handleException(e);
 			}
 		}
-		
+
 		dirtyGlobalVars = false;
 	}
-	
+
 	private void saveGlobalVars() {
 		File file = new File(folder, "GLOBAL.txt");
 		if (file.exists()) file.delete();
-		
+
 		List<String> lines = new ArrayList<>();
 		for (String variableName : variables.keySet()) {
 			Variable variable = variables.get(variableName);
@@ -263,11 +245,9 @@ public class VariableManager implements Listener {
 				if (!val.equals(variable.defaultStringValue)) lines.add(variableName + '=' + Util.flattenLineBreaks(val));
 			}
 		}
-		
+
 		if (!lines.isEmpty()) {
-			BufferedWriter writer = null;
-			try {
-				writer = new BufferedWriter(new FileWriter(file, false));
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) {
 				for (String line : lines) {
 					writer.write(line);
 					writer.newLine();
@@ -276,19 +256,11 @@ public class VariableManager implements Listener {
 			} catch (Exception e) {
 				MagicSpells.error("ERROR SAVING GLOBAL VARIABLES");
 				MagicSpells.handleException(e);
-			} finally {
-				if (writer != null) {
-					try {
-						writer.close();
-					} catch (Exception e) {
-						// No op
-					}
-				}
 			}
 		}
 		dirtyGlobalVars = false;
 	}
-	
+
 	private void loadPlayerVars(String player, String uniqueId) {
 		File file = new File(folder, "PLAYER_" + uniqueId + ".txt");
 		if (!file.exists()) {
@@ -312,16 +284,16 @@ public class VariableManager implements Listener {
 				MagicSpells.handleException(e);
 			}
 		}
-		
+
 		dirtyPlayerVars.remove(player);
 	}
-	
+
 	private void savePlayerVars(String player, String uniqueId) {
 		File file = new File(folder, "PLAYER_" + player + ".txt");
 		if (file.exists()) file.delete();
 		file = new File(folder, "PLAYER_" + uniqueId + ".txt");
 		if (file.exists()) file.delete();
-		
+
 		List<String> lines = new ArrayList<>();
 		for (String variableName : variables.keySet()) {
 			Variable variable = variables.get(variableName);
@@ -330,7 +302,7 @@ public class VariableManager implements Listener {
 				if (!val.equals(variable.defaultStringValue)) lines.add(variableName + '=' + Util.flattenLineBreaks(val));
 			}
 		}
-		
+
 		if (!lines.isEmpty()) {
 			BufferedWriter writer = null;
 			try {
@@ -339,7 +311,7 @@ public class VariableManager implements Listener {
 					writer.write(line);
 					writer.newLine();
 				}
-				writer.flush();				
+				writer.flush();
 			} catch (Exception e) {
 				MagicSpells.error("ERROR SAVING PLAYER VARIABLES FOR " + player);
 				MagicSpells.handleException(e);
@@ -353,17 +325,17 @@ public class VariableManager implements Listener {
 				}
 			}
 		}
-		
+
 		dirtyPlayerVars.remove(player);
 	}
-	
+
 	private void saveAllPlayerVars() {
 		for (String playerName : new HashSet<>(dirtyPlayerVars)) {
 			String uid = Util.getUniqueId(playerName);
 			if (uid != null) savePlayerVars(playerName, uid);
 		}
 	}
-	
+
 	private void loadBossBar(Player player) {
 		for (Variable var : variables.values()) {
 			if (var.bossBar == null) continue;
@@ -371,7 +343,7 @@ public class VariableManager implements Listener {
 			break;
 		}
 	}
-	
+
 	private void loadExpBar(Player player) {
 		for (Variable var : variables.values()) {
 			if (!var.expBar) continue;
@@ -379,13 +351,13 @@ public class VariableManager implements Listener {
 			break;
 		}
 	}
-	
+
 	public void disable() {
 		if (dirtyGlobalVars) saveGlobalVars();
 		if (!dirtyPlayerVars.isEmpty()) saveAllPlayerVars();
 		variables.clear();
 	}
-	
+
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		final Player player = event.getPlayer();
@@ -393,12 +365,12 @@ public class VariableManager implements Listener {
 		loadBossBar(player);
 		MagicSpells.scheduleDelayedTask(() -> loadExpBar(player), 10);
 	}
-	
+
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
 		if (dirtyPlayerVars.contains(event.getPlayer().getName())) savePlayerVars(event.getPlayer().getName(), Util.getUniqueId(event.getPlayer()));
 	}
-	
+
 	// DEBUG INFO: Debug log level 3, variable was modified for player by amount because of spell cast
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void variableModsCast(SpellCastEvent event) {
@@ -412,36 +384,12 @@ public class VariableManager implements Listener {
 			Collection<VariableMod> mods = varMods.get(var);
 			if (mods == null) continue;
 			for (VariableMod mod : mods) {
-				Variable variable = MagicSpells.getVariableManager().getVariable(var);
-				String str = null;
-				if (variable instanceof PlayerStringVariable) str = mod.getValue();
-				double amount = mod.getValue(player, null);
-
-				if (amount == 0 && mod.isConstantValue()) {
-					reset(var, player);
-					continue;
-				}
-				VariableMod.Operation op = mod.getOperation();
-				switch (op) {
-					case ADD:
-						modify(var, player, amount);
-						break;
-					case DIVIDE:
-						divideBy(var, player, amount);
-						break;
-					case MULTIPLY:
-						multiplyBy(var, player, amount);
-						break;
-					case SET:
-						if (variable instanceof PlayerStringVariable) set(var, player, str);
-						else set(var, player, amount);
-						break;
-				}
+				String amount = processVariableMods(var, mod, player, player, null);
 				MagicSpells.debug(3, "Variable '" + var + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell cast '" + event.getSpell().getName() + '\'');
 			}
 		}
 	}
-	
+
 	// DEBUG INFO: Debug log level 3, variable was modified for player by amount because of spell casted
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void variableModsCasted(SpellCastedEvent event) {
@@ -455,36 +403,12 @@ public class VariableManager implements Listener {
 			Collection<VariableMod> mods = varMods.get(var);
 			if (mods == null) continue;
 			for (VariableMod mod : mods) {
-				Variable variable = MagicSpells.getVariableManager().getVariable(var);
-				String str = null;
-				if (variable instanceof PlayerStringVariable) str = mod.getValue();
-				double amount = mod.getValue(player, null);
-
-				if (amount == 0 && mod.isConstantValue()) {
-					reset(var, player);
-					continue;
-				}
-				VariableMod.Operation op = mod.getOperation();
-				switch (op) {
-					case ADD:
-						modify(var, player, amount);
-						break;
-					case DIVIDE:
-						divideBy(var, player, amount);
-						break;
-					case MULTIPLY:
-						multiplyBy(var, player, amount);
-						break;
-					case SET:
-						if (variable instanceof PlayerStringVariable) set(var, player, str);
-						else set(var, player, amount);
-						break;
-				}
+				String amount = processVariableMods(var, mod, player, player, null);
 				MagicSpells.debug(3, "Variable '" + var + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell casted '" + event.getSpell().getName() + '\'');
 			}
 		}
 	}
-	
+
 	// DEBUG INFO: Debug log level 3, variable was modified for player by amount because of spell target
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void variableModsTarget(SpellTargetEvent event) {
@@ -492,41 +416,33 @@ public class VariableManager implements Listener {
 		if (varMods == null || varMods.isEmpty()) return;
 		LivingEntity caster = event.getCaster();
 		if (!(caster instanceof Player)) return;
-		Player player = (Player) caster;
 		Player target = event.getTarget() instanceof Player ? (Player) event.getTarget() : null;
 		if (target == null) return;
 		for (String var : varMods.keySet()) {
 			Collection<VariableMod> mods = varMods.get(var);
 			if (mods == null) continue;
 			for (VariableMod mod : mods) {
-				Variable variable = MagicSpells.getVariableManager().getVariable(var);
-				String str = null;
-				if (variable instanceof PlayerStringVariable) str = mod.getValue();
-				double amount = mod.getValue(player, target);
-
-				if (amount == 0 && mod.isConstantValue()) {
-					reset(var, target);
-					continue;
-				}
-				VariableMod.Operation op = mod.getOperation();
-				switch (op) {
-					case ADD:
-						modify(var, target, amount);
-						break;
-					case DIVIDE:
-						divideBy(var, target, amount);
-						break;
-					case MULTIPLY:
-						multiplyBy(var, target, amount);
-						break;
-					case SET:
-						if (variable instanceof PlayerStringVariable) set(var, target, str);
-						else set(var, target, amount);
-						break;
-				}
+				String amount = processVariableMods(var, mod, target, (Player) caster, target);
 				MagicSpells.debug(3, "Variable '" + var + "' for player '" + target.getName() + "' modified by " + amount + " as a result of spell target from '" + event.getSpell().getName() + '\'');
 			}
 		}
 	}
 
+	private String processVariableMods(String var, VariableMod mod, Player playerToMod, Player caster, Player target) {
+		Variable variable = MagicSpells.getVariableManager().getVariable(var);
+		double amount = mod.getValue(caster, target);
+		if (amount == 0 && mod.isConstantValue()) {
+			reset(var, playerToMod);
+			return amount + "";
+		}
+
+		VariableMod.Operation op = mod.getOperation();
+		if (op.equals(VariableMod.Operation.SET) && variable instanceof PlayerStringVariable) {
+			set(var, playerToMod, mod.getValue());
+			return mod.getValue();
+		}
+
+		set(var, playerToMod.getName(), op.applyTo(variable.getValue(playerToMod), amount));
+		return amount + "";
+	}
 }
