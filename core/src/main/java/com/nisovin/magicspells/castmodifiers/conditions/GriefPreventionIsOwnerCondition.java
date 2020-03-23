@@ -27,6 +27,7 @@ public class GriefPreventionIsOwnerCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		if (livingEntity == null) return false;
 		Claim currentClaim = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
 		if (currentClaim == null) return false;
 		return (livingEntity.getUniqueId().equals(currentClaim.ownerID));

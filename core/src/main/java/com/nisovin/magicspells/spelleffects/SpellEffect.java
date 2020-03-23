@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.HashMap;
 
 import org.bukkit.Location;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.configuration.ConfigurationSection;
@@ -50,6 +51,7 @@ public abstract class SpellEffect {
 	private boolean counterClockwise;
 
 	private ModifierSet modifiers;
+	private ModifierSet locationModifiers;
 	private Random random = new Random();
 
 	public void loadFromString(String string) {
@@ -82,8 +84,11 @@ public abstract class SpellEffect {
 
 		counterClockwise = config.getBoolean("orbit-counter-clockwise", false);
 		
-		List<String> list = config.getStringList("modifiers");
-		if (list != null) modifiers = new ModifierSet(list);
+		List<String> modifiersList = config.getStringList("modifiers");
+		List<String> targetModifiersList = config.getStringList("target-modifiers");
+		List<String> locationModifiersList = config.getStringList("location-modifiers");
+		if (modifiersList != null) modifiers = new ModifierSet(modifiersList);
+		if (locationModifiersList != null) locationModifiers = new ModifierSet(locationModifiersList);
 
 		maxDistance *= maxDistance;
 		ticksPerSecond = 20F / (float) effectInterval;
@@ -100,6 +105,7 @@ public abstract class SpellEffect {
 	 */
 	public Runnable playEffect(final Entity entity) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+		if (entity instanceof LivingEntity && !modifiers.check((LivingEntity) entity)) return null;
 		if (delay <= 0) return playEffectEntity(entity);
 		MagicSpells.scheduleDelayedTask(() -> playEffectEntity(entity), delay);
 		return null;
@@ -115,6 +121,7 @@ public abstract class SpellEffect {
 	 */
 	public final Runnable playEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+		if (!locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playEffectLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLocationReal(location), delay);
 		return null;
