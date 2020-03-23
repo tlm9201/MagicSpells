@@ -6,9 +6,9 @@ import java.util.Random;
 import java.util.HashMap;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -85,7 +85,6 @@ public abstract class SpellEffect {
 		counterClockwise = config.getBoolean("orbit-counter-clockwise", false);
 		
 		List<String> modifiersList = config.getStringList("modifiers");
-		List<String> targetModifiersList = config.getStringList("target-modifiers");
 		List<String> locationModifiersList = config.getStringList("location-modifiers");
 		if (modifiersList != null) modifiers = new ModifierSet(modifiersList);
 		if (locationModifiersList != null) locationModifiers = new ModifierSet(locationModifiersList);
