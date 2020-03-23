@@ -5,18 +5,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
-import java.util.UUID;
-import java.util.Scanner;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import java.text.SimpleDateFormat;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
@@ -995,8 +989,7 @@ public class MagicSpells extends JavaPlugin {
 			DebugHandler.debugNoClassDefFoundError(e);
 			return;
 		}
-		for (int i = 0; i < methods.length; i++) {
-			final Method method = methods[i];
+		for (final Method method : methods) {
 			final EventHandler eh = method.getAnnotation(EventHandler.class);
 			if (eh == null) continue;
 			EventPriority priority = eh.priority();
@@ -1011,7 +1004,7 @@ public class MagicSpells extends JavaPlugin {
 			final Class<? extends Event> eventClass = checkClass.asSubclass(Event.class);
 			method.setAccessible(true);
 			EventExecutor executor = new EventExecutor() {
-				final String eventKey = plugin.enableProfiling ? "Event:" + listener.getClass().getName().replace("com.nisovin.magicspells.","") + '.' + method.getName() + '(' + eventClass.getSimpleName() + ')' : null;
+				final String eventKey = plugin.enableProfiling ? "Event:" + listener.getClass().getName().replace("com.nisovin.magicspells.", "") + '.' + method.getName() + '(' + eventClass.getSimpleName() + ')' : null;
 
 				@Override
 				public void execute(Listener listener, Event event) {
@@ -1073,7 +1066,8 @@ public class MagicSpells extends JavaPlugin {
 			try {
 				File folder = new File(plugin.getDataFolder(), "errors");
 				if (!folder.exists()) folder.mkdir();
-				writer = new PrintWriter(new File(folder, System.currentTimeMillis() + ".txt"));
+				String date = new SimpleDateFormat("d/MM/yyyy HH:mm:ss").format(new Date());
+				writer = new PrintWriter(new File(folder, date + ".txt"));
 				Throwable t = ex;
 				while (t != null) {
 					plugin.getLogger().severe("    " + t.getMessage() + " (" + t.getClass().getName() + ')');
@@ -1084,6 +1078,7 @@ public class MagicSpells extends JavaPlugin {
 				plugin.getLogger().severe("This error has been saved in the errors folder");
 				writer.println("Server version: " + Bukkit.getServer().getVersion());
 				writer.println("MagicSpells version: " + plugin.getDescription().getVersion());
+				writer.println("Error log date: " + date);
 			} catch (Exception x) {
 				plugin.getLogger().severe("ERROR HANDLING EXCEPTION");
 				x.printStackTrace();
