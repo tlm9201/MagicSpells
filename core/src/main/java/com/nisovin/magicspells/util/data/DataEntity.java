@@ -1,9 +1,11 @@
 package com.nisovin.magicspells.util.data;
 
+import org.bukkit.Nameable;
 import org.bukkit.entity.Entity;
+import org.bukkit.command.CommandSender;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.function.Function;
 
 public class DataEntity {
@@ -12,22 +14,16 @@ public class DataEntity {
 	
 	static {
 		try {
-			dataElements.put("name", entity -> entity.getName());
-		} catch (Throwable exception) {
-			// Ignored
-		}
+			dataElements.put("name", CommandSender::getName);
+		} catch (Throwable ignored) {}
 		
 		try {
-			dataElements.put("customname", entity -> entity.getCustomName());
-		} catch (Throwable exception) {
-			// Ignored
-		}
+			dataElements.put("customname", Nameable::getCustomName);
+		} catch (Throwable ignored) {}
 		
 		try {
 			dataElements.put("portalcooldown", entity -> entity.getPortalCooldown() + "");
-		} catch (Throwable exception) {
-			// Ignored
-		}
+		} catch (Throwable ignored) {}
 		
 		dataElements.put("uuid", entity -> entity.getUniqueId().toString());
 		dataElements.put("entitytype", entity -> entity.getType().name());

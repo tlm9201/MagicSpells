@@ -2,8 +2,8 @@ package com.nisovin.magicspells.util.data;
 
 import org.bukkit.entity.LivingEntity;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.function.Function;
 
 public class DataLivingEntity {
@@ -24,13 +24,13 @@ public class DataLivingEntity {
 		dataElements.put("nodamageticks", livingEntity -> livingEntity.getNoDamageTicks() + "");
 		dataElements.put("health", livingEntity -> livingEntity.getHealth() + "");
 	}
-	
+
 	public static Function<? super LivingEntity, String> getDataFunction(String elementId) {
-		// See if we have it ourselves
+		// See if it's here.
 		Function<? super LivingEntity, String> ret = dataElements.get(elementId);
 		if (ret != null) return ret;
-		
-		// See if Entity has it
+
+		// See if DataEntity has it.
 		ret = DataEntity.getDataFunction(elementId);
 		return ret;
 	}
