@@ -10,8 +10,6 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import java.text.SimpleDateFormat;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.annotation.Annotation;
@@ -1066,8 +1064,7 @@ public class MagicSpells extends JavaPlugin {
 			try {
 				File folder = new File(plugin.getDataFolder(), "errors");
 				if (!folder.exists()) folder.mkdir();
-				String date = new SimpleDateFormat("d/MM/yyyy HH:mm:ss").format(new Date());
-				writer = new PrintWriter(new File(folder, date + ".txt"));
+				writer = new PrintWriter(new File(folder, System.currentTimeMillis() + ".txt"));
 				Throwable t = ex;
 				while (t != null) {
 					plugin.getLogger().severe("    " + t.getMessage() + " (" + t.getClass().getName() + ')');
@@ -1078,7 +1075,7 @@ public class MagicSpells extends JavaPlugin {
 				plugin.getLogger().severe("This error has been saved in the errors folder");
 				writer.println("Server version: " + Bukkit.getServer().getVersion());
 				writer.println("MagicSpells version: " + plugin.getDescription().getVersion());
-				writer.println("Error log date: " + date);
+				writer.println("Error log date: " + new Date());
 			} catch (Exception x) {
 				plugin.getLogger().severe("ERROR HANDLING EXCEPTION");
 				x.printStackTrace();
