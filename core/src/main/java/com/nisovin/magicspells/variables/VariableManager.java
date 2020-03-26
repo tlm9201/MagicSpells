@@ -104,11 +104,12 @@ public class VariableManager implements Listener {
 	 * This will replace existing variables if the same name is used.
 	 * @param name the name of the variable
 	 * @param variable the variable to add
+	 * @return Returns true if an existing variable was overwritten
 	 */
-	public void addVariable(String name, Variable variable) {
-		variables.put(name, variable);
+	public boolean addVariable(String name, Variable variable) {
+		return variables.put(name, variable) != null;
 	}
-	
+
 	public int count() {
 		return variables.size();
 	}

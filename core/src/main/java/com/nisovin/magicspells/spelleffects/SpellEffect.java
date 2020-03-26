@@ -302,9 +302,10 @@ public abstract class SpellEffect {
 	 * This will replace an existing effect if the same name is used.
 	 * @param name the name of the effect
 	 * @param effect the effect to add
+	 * @return Returns true if an existing effect was overwritten
 	 */
-	public static void addEffect(String name, Class<? extends SpellEffect> effect) {
-		effects.put(name.toLowerCase(), effect);
+	public static boolean addEffect(String name, Class<? extends SpellEffect> effect) {
+		return effects.put(name.toLowerCase(), effect) != null;
 	}
 	
 	static {
