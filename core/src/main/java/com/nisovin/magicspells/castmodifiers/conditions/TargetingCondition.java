@@ -49,7 +49,7 @@ public class TargetingCondition extends Condition {
 		if (creatureTarget != null) {
 			if (anyType) return true;
 			if (targetingCaster && creatureTarget.equals(livingEntity)) return true;
-			return allowedTypes.contains(creatureTarget.getType());
+			if (allowedTypes.contains(creatureTarget.getType())) return true;
 		}
 		return false;
 	}

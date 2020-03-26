@@ -107,7 +107,8 @@ public class MagicLocation {
 			if (loc.getY() != y) return false;
 			if (loc.getZ() != z) return false;
 			if (loc.getYaw() != yaw) return false;
-			return loc.getPitch() == pitch;
+			if (loc.getPitch() != pitch) return false;
+			return true;
 		}
 		return false;
 	}

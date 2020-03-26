@@ -992,7 +992,7 @@ public class MagicSpells extends JavaPlugin {
 			if (eh == null) continue;
 			EventPriority priority = eh.priority();
 
-			if (hasAnnotation(method)) priority = customPriority;
+			if (hasAnnotation(method, OverridePriority.class)) priority = customPriority;
 
 			final Class<?> checkClass = method.getParameterTypes()[0];
 			if (!Event.class.isAssignableFrom(checkClass) || method.getParameterTypes().length != 1) {
@@ -1029,8 +1029,8 @@ public class MagicSpells extends JavaPlugin {
 		}
 	}
 
-	private static boolean hasAnnotation(Method m) {
-		return m.getAnnotation((Class<? extends Annotation>) OverridePriority.class) != null;
+	private static boolean hasAnnotation(Method m, Class<? extends Annotation> clazz) {
+		return m.getAnnotation(clazz) != null;
 	}
 
 	public static int scheduleDelayedTask(final Runnable task, int delay) {

@@ -41,7 +41,8 @@ public class MoonPhaseCondition extends Condition {
 		if ((phase == 3) && phaseName.equals("waning_crescent")) return true;
 		if ((phase == 5) && phaseName.equals("waxing_crescent")) return true;
 		if ((phase == 6) && phaseName.equals("first_quarter")) return true;
-		return (phase == 7) && phaseName.equals("waxing_gibbous");
+		if ((phase == 7) && phaseName.equals("waxing_gibbous")) return true;
+		return false;
 	}
 
 }

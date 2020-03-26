@@ -30,8 +30,7 @@ public class OnBlockCondition extends Condition {
 		}
 
 		material = Material.getMaterial(var.toUpperCase());
-		if (material == null) return false;
-		return material.isBlock();
+		return material != null && material.isBlock();
 	}
 
 	@Override

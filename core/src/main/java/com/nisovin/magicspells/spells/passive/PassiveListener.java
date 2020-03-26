@@ -15,12 +15,14 @@ public abstract class PassiveListener implements Listener {
 		
 	public static boolean cancelDefaultAction(PassiveSpell spell, boolean casted) {
 		if (casted && spell.cancelDefaultAction()) return true;
-		return !casted && spell.cancelDefaultActionWhenCastFails();
+		if (!casted && spell.cancelDefaultActionWhenCastFails()) return true;
+		return false;
 	}
 	
 	public static boolean isCancelStateOk(PassiveSpell spell, boolean cancelled) {
 		if (spell.ignoreCancelled() && cancelled) return false;
-		return !spell.requireCancelledEvent() || cancelled;
+		if (spell.requireCancelledEvent() && !cancelled) return false;
+		return true;
 	}
 	
 	public abstract void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var);

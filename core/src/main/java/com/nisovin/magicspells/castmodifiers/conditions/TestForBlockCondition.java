@@ -20,7 +20,8 @@ public class TestForBlockCondition extends Condition {
 			String[] locsplit = varsplit[0].split(",");
 			location = new MagicLocation(locsplit[0], Integer.parseInt(locsplit[1]), Integer.parseInt(locsplit[2]), Integer.parseInt(locsplit[3]));
 			blockType = Material.getMaterial(varsplit[1].toUpperCase());
-			return blockType != null && blockType.isBlock();
+			if (blockType == null || !blockType.isBlock()) return false;
+			return true;
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 			return false;
@@ -30,8 +31,7 @@ public class TestForBlockCondition extends Condition {
 	@Override
 	public boolean check(LivingEntity livingEntity) {
 		Location loc = location.getLocation();
-		if (loc == null) return false;
-		return blockType.equals(loc.getBlock().getType());
+		return loc != null && blockType.equals(loc.getBlock().getType());
 	}
 
 	@Override

@@ -31,7 +31,8 @@ public class LocationUtil {
 		if (!Objects.equals(location1.getWorld(), location2.getWorld())) return false;
 		if (location1.getBlockX() != location2.getBlockX()) return false;
 		if (location1.getBlockY() != location2.getBlockY()) return false;
-		return location1.getBlockZ() == location2.getBlockZ();
+		if (location1.getBlockZ() != location2.getBlockZ()) return false;
+		return true;
 	}
 	
 	public static boolean isSameChunk(Object one, Object two) {

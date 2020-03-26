@@ -136,7 +136,8 @@ public class Modifier implements IModifier {
 		boolean check = condition.check(livingEntity);
 		if (negated) check = !check;
 		if (!check && type == ModifierType.REQUIRED) return false;
-		return !check || type != ModifierType.DENIED;
+		if (check && type == ModifierType.DENIED) return false;
+		return true;
 	}
 
 	@Override
@@ -144,7 +145,8 @@ public class Modifier implements IModifier {
 		boolean check = condition.check(livingEntity, entity);
 		if (negated) check = !check;
 		if (!check && type == ModifierType.REQUIRED) return false;
-		return !check || type != ModifierType.DENIED;
+		if (check && type == ModifierType.DENIED) return false;
+		return true;
 	}
 
 	@Override
