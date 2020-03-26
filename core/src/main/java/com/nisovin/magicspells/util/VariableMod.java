@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.util;
 
+import java.util.Random;
 import java.util.regex.Pattern;
 import java.util.function.BinaryOperator;
 
@@ -24,7 +25,7 @@ public class VariableMod {
 		DIVIDE((a, b) -> a / b),
 		MODULO((a, b) -> a % b),
 		POWER(FastMath::pow),
-		RANDOM((a, b) -> Double.valueOf(Util.getRandomInt(b.intValue())));
+		RANDOM((a, b) -> new Random().nextDouble() * b);
 
 		private final BinaryOperator<Double> operator;
 		
