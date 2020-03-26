@@ -26,8 +26,8 @@ public class WorldChangeListener extends PassiveListener {
             spellsAll.add(spell);
         } else {
             List<PassiveSpell> spells;
-            for (String world : var.replace(" ", "").split(",")) {
-                spells = spellsSpecific.getOrDefault(world, new ArrayList<>());
+            for (String world : var.split(",")) {
+                spells = spellsSpecific.getOrDefault(world.trim(), new ArrayList<>());
                 spells.add(spell);
                 spellsSpecific.put(var, spells);
             }
