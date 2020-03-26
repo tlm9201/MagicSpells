@@ -120,5 +120,4 @@ public class VariableMod {
 	public VariableOwner getVariableOwner() {
 		return variableOwner;
 	}
-	
 }

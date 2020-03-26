@@ -8,7 +8,6 @@ import java.io.BufferedWriter;
 import com.google.common.collect.Multimap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -62,9 +61,10 @@ public class VariableManager implements Listener {
 					objective = Bukkit.getScoreboardManager().getMainScoreboard().getObjective(objName);
 					if (objective != null) {
 						objective.unregister();
+						objective = null;
 					}
 					objective = Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective(objName, objName, objName);
-					objective.setDisplayName(ChatColor.translateAlternateColorCodes('&', scoreName));
+					objective.setDisplayName(Util.colorize(scoreName));
 					if (scorePos.equalsIgnoreCase("nameplate")) objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 					else if (scorePos.equalsIgnoreCase("playerlist")) objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 					else objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -99,6 +99,16 @@ public class VariableManager implements Listener {
 		}, TimeUtil.TICKS_PER_MINUTE, TimeUtil.TICKS_PER_MINUTE);
 	}
 
+	/**
+	 * Adds a variable with the provided name to the list of variables.
+	 * This will replace existing variables if the same name is used.
+	 * @param name the name of the variable
+	 * @param variable the variable to add
+	 */
+	public void addVariable(String name, Variable variable) {
+		variables.put(name, variable);
+	}
+	
 	public int count() {
 		return variables.size();
 	}
@@ -181,10 +191,10 @@ public class VariableManager implements Listener {
 		Variable var = variables.get(variable);
 		if (var == null) return;
 		var.reset(player);
-		updateBossBar(var, player.getName());
-		updateExpBar(var, player.getName());
+		updateBossBar(var, player != null ? player.getName() : "");
+		updateExpBar(var, player != null ? player.getName() : "");
 		if (!var.permanent) return;
-		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player.getName());
+		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player != null ? player.getName() : "");
 		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
 	}
 
@@ -247,7 +257,9 @@ public class VariableManager implements Listener {
 		}
 
 		if (!lines.isEmpty()) {
-			try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, false))) {
+			BufferedWriter writer = null;
+			try {
+				writer = new BufferedWriter(new FileWriter(file, false));
 				for (String line : lines) {
 					writer.write(line);
 					writer.newLine();
@@ -256,6 +268,14 @@ public class VariableManager implements Listener {
 			} catch (Exception e) {
 				MagicSpells.error("ERROR SAVING GLOBAL VARIABLES");
 				MagicSpells.handleException(e);
+			} finally {
+				if (writer != null) {
+					try {
+						writer.close();
+					} catch (Exception e) {
+						// No op
+					}
+				}
 			}
 		}
 		dirtyGlobalVars = false;
