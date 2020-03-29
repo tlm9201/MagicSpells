@@ -38,7 +38,7 @@ public class TitleEffect extends SpellEffect {
 	
 	private void send(Player player) {
 		String titleMsg = title.isEmpty() ? "" : Util.doVarReplacementAndColorize(player, title);
-		String subtitleMsg = subtitle.isEmpty() ? "" : Util.doVarReplacementAndColorize(player, title);
+		String subtitleMsg = subtitle.isEmpty() ? "" : Util.doVarReplacementAndColorize(player, subtitle);
 		player.sendTitle(titleMsg, subtitleMsg, fadeIn, stay, fadeOut);
 	}
 
