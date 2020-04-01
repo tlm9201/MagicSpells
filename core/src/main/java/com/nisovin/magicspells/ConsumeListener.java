@@ -17,7 +17,7 @@ public class ConsumeListener implements Listener {
 	private MagicSpells plugin;
 
 	private Map<CastItem, Spell> consumeCastItems = new HashMap<>();
-	private HashMap<String, Long> lastCast = new HashMap<>();
+	private Map<String, Long> lastCast = new HashMap<>();
 	
 	ConsumeListener(MagicSpells plugin) {
 		this.plugin = plugin;

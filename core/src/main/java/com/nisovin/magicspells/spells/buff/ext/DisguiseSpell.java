@@ -77,8 +77,6 @@ public class DisguiseSpell extends BuffSpell {
 		watcher.setBurning(burning);
 		watcher.setGlowing(glowing);
 
-		watcher.setItemInMainHand(new ItemStack(entityData.getMaterial()));
-
 		if (watcher instanceof AbstractHorseWatcher) {
 			((AbstractHorseWatcher) watcher).setCarryingChest(entityData.isChested());
 			((AbstractHorseWatcher) watcher).setSaddled(entityData.isSaddled());
