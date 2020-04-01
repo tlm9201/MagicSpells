@@ -24,7 +24,7 @@ public class ManaCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String [] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
             if (!command.getName().equalsIgnoreCase("magicspellmana")) return false;
             if (!MagicSpells.enableManaBars() || !(sender instanceof Player)) return true;
