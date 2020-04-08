@@ -16,6 +16,8 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ColorUtil;
 
+import de.slikey.effectlib.util.VectorUtils;
+
 public class ParticlesPersonalEffect extends SpellEffect {
 
 	private Particle particle;
@@ -37,7 +39,6 @@ public class ParticlesPersonalEffect extends SpellEffect {
 	private float xSpread;
 	private float ySpread;
 	private float zSpread;
-	private float yOffset;
 
 	private boolean none = true;
 	private boolean item = false;
@@ -61,7 +62,6 @@ public class ParticlesPersonalEffect extends SpellEffect {
 		xSpread = (float) config.getDouble("x-spread", xSpread);
 		ySpread = (float) config.getDouble("y-spread", ySpread);
 		zSpread = (float) config.getDouble("z-spread", zSpread);
-		yOffset = (float) config.getDouble("y-offset", 0F);
 
 		dustSize = (float) config.getDouble("size", 1);
 		colorHex = config.getString("color", "FF0000");
@@ -106,6 +106,8 @@ public class ParticlesPersonalEffect extends SpellEffect {
 		if (!(entity instanceof Player)) return null;
 
 		Location loc = entity.getLocation().clone();
+		if (getOffset().getX() != 0 || getOffset().getY() != 0 || getOffset().getZ() != 0) loc.add(getOffset());
+		if (getRelativeOffset().getX() != 0 || getRelativeOffset().getY() != 0 || getRelativeOffset().getZ() != 0) loc.add(VectorUtils.rotateVector(getRelativeOffset(), loc));
 		if (getZOffset() != 0) {
 			Vector locDirection = loc.getDirection().normalize();
 			Vector horizOffset = new Vector(-locDirection.getZ(), 0.0, locDirection.getX()).normalize();
@@ -114,10 +116,10 @@ public class ParticlesPersonalEffect extends SpellEffect {
 		if (getHeightOffset() != 0) loc.setY(loc.getY() + getHeightOffset());
 		if (getForwardOffset() != 0) loc.add(loc.getDirection().setY(0).normalize().multiply(getForwardOffset()));
 
-		if (block) ((Player) entity).spawnParticle(particle, loc.add(0, yOffset, 0), count, xSpread, ySpread, zSpread, speed, blockData);
-		else if (item) ((Player) entity).spawnParticle(particle, loc.add(0, yOffset, 0), count, xSpread, ySpread, zSpread, speed, itemStack);
-		else if (dust) ((Player) entity).spawnParticle(particle, loc.add(0, yOffset, 0), count, xSpread, ySpread, zSpread, speed, dustOptions);
-		else if (none) ((Player) entity).spawnParticle(particle, loc.add(0, yOffset, 0), count, xSpread, ySpread, zSpread, speed);
+		if (block) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, blockData);
+		else if (item) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, itemStack);
+		else if (dust) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, dustOptions);
+		else if (none) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed);
 
 		return null;
 	}

@@ -553,7 +553,7 @@ public class CastCommand implements CommandExecutor, TabCompleter {
             if (casted) return true;
 
             boolean ok = spell.castFromConsole(sender, spellArgs);
-            if (!ok) return true;
+            if (ok) return true;
 
             if ((spell instanceof TargetedEntitySpell || spell instanceof TargetedLocationSpell) && spellArgs != null && spellArgs.length == 1 && RegexUtil.matches(LOOSE_PLAYER_NAME_PATTERN, spellArgs[0])) {
                 Player target = PlayerNameUtils.getPlayer(spellArgs[0]);
