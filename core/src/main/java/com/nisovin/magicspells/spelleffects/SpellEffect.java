@@ -15,6 +15,8 @@ import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 
+import de.slikey.effectlib.util.VectorUtils;
+
 public abstract class SpellEffect {
 
 	private static Map<String, Class<? extends SpellEffect>> effects = new HashMap<>();
@@ -24,6 +26,9 @@ public abstract class SpellEffect {
 	private double zOffset;
 	private double heightOffset;
 	private double forwardOffset;
+
+	private Vector offset;
+	private Vector relativeOffset;
 	
 	// for line
 	private double maxDistance;
@@ -45,7 +50,7 @@ public abstract class SpellEffect {
 	private int ticksPerRevolution;
 	private int horizExpandDelay;
 	private int vertExpandDelay;
-	private int effectInterval = TimeUtil.TICKS_PER_SECOND;
+	private int effectInterval;
 
 	private boolean counterClockwise;
 
@@ -63,6 +68,11 @@ public abstract class SpellEffect {
 		heightOffset = config.getDouble("height-offset", 0);
 		forwardOffset = config.getDouble("forward-offset", 0);
 
+		String[] offsetStr = config.getString("offset", "0,0,0").split(",");
+		String[] relativeStr = config.getString("relative-offset", "0,0,0").split(",");
+		offset = new Vector(Double.parseDouble(offsetStr[0]), Double.parseDouble(offsetStr[1]), Double.parseDouble(offsetStr[2]));
+		relativeOffset = new Vector(Double.parseDouble(relativeStr[0]), Double.parseDouble(relativeStr[1]), Double.parseDouble(relativeStr[2]));
+
 		maxDistance = config.getDouble("max-distance", 100);
 		distanceBetween = config.getDouble("distance-between", 1);
 
@@ -78,7 +88,7 @@ public abstract class SpellEffect {
 
 		horizExpandDelay = config.getInt("orbit-horiz-expand-delay", 0);
 		vertExpandDelay = config.getInt("orbit-vert-expand-delay", 0);
-		effectInterval = config.getInt("effect-interval", effectInterval);
+		effectInterval = config.getInt("effect-interval", TimeUtil.TICKS_PER_SECOND);
 
 		counterClockwise = config.getBoolean("orbit-counter-clockwise", false);
 		
@@ -123,6 +133,8 @@ public abstract class SpellEffect {
 	private Runnable playEffectLocationReal(Location location) {
 		if (location == null) return playEffectLocation(null);
 		Location loc = location.clone();
+		if (offset.getX() != 0 || offset.getY() != 0 || offset.getZ() != 0) loc.add(offset);
+		if (relativeOffset.getX() != 0 || relativeOffset.getY() != 0 || relativeOffset.getZ() != 0) loc.add(VectorUtils.rotateVector(relativeOffset, loc));
 		if (zOffset != 0) {
 			Vector locDirection = loc.getDirection().normalize();
 			Vector horizOffset = new Vector(-locDirection.getZ(), 0.0, locDirection.getX()).normalize();
@@ -193,6 +205,14 @@ public abstract class SpellEffect {
 
 	public double getForwardOffset() {
 		return forwardOffset;
+	}
+
+	public Vector getOffset() {
+		return offset;
+	}
+
+	public Vector getRelativeOffset() {
+		return relativeOffset;
 	}
 
 	public double getMaxDistance() {
