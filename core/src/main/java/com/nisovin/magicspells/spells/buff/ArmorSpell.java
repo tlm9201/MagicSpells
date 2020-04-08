@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -62,7 +61,7 @@ public class ArmorSpell extends BuffSpell {
 		boots = getItem(getConfigString("boots", ""));
 
 		strHasArmor = getConfigString("str-has-armor", "You cannot cast this spell if you are wearing armor.");
-		strLoreText = ChatColor.translateAlternateColorCodes('&', getConfigString("str-lore-text", "Conjured"));
+		strLoreText = Util.colorize(getConfigString("str-lore-text", "Conjured"));
 
 		armored = new HashSet<>();
 	}

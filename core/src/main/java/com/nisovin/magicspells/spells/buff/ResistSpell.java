@@ -1,14 +1,11 @@
 package com.nisovin.magicspells.spells.buff;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import com.nisovin.magicspells.MagicSpells;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
@@ -23,28 +20,31 @@ public class ResistSpell extends BuffSpell {
 
 	private float multiplier;
 
-	private List<String> spellDamageTypes;
-	private List<DamageCause> normalDamageTypes;
+	private Set<String> spellDamageTypes;
+	private Set<DamageCause> normalDamageTypes;
 
 	public ResistSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		multiplier = getConfigFloat("multiplier", 0.5F);
 
-		spellDamageTypes = getConfigStringList("spell-damage-types", null);
-		List<String> list = getConfigStringList("normal-damage-types", null);
-
-		if (list != null) {
-			normalDamageTypes = new ArrayList<>();
-			for (String s : list) {
-				for (DamageCause cause : DamageCause.values()) {
-					if (!cause.name().equalsIgnoreCase(s)) continue;
-					normalDamageTypes.add(cause);
-					break;
+		normalDamageTypes = new HashSet<>();
+		List<String> causes = getConfigStringList("normal-damage-types", null);
+		if (causes != null) {
+			for (String cause : causes) {
+				try {
+					DamageCause damageCause = DamageCause.valueOf(cause.replace(" ","_").replace("-","_").toUpperCase());
+					normalDamageTypes.add(damageCause);
+				}
+				catch (IllegalArgumentException e) {
+					MagicSpells.error("ResistSpell '" + internalName + "' has an invalid damage cause defined '" + cause + "'!");
 				}
 			}
-			if (normalDamageTypes.isEmpty()) normalDamageTypes = null;
 		}
+
+		spellDamageTypes = new HashSet<>();
+		causes = getConfigStringList("spell-damage-types", null);
+		if (causes != null) spellDamageTypes.addAll(causes);
 
 		buffed = new HashMap<>();
 	}
@@ -72,7 +72,7 @@ public class ResistSpell extends BuffSpell {
 	
 	@EventHandler
 	public void onSpellDamage(SpellApplyDamageEvent event) {
-		if (spellDamageTypes == null) return;
+		if (spellDamageTypes.isEmpty()) return;
 		if (!(event.getSpell() instanceof SpellDamageSpell)) return;
 		if (!isActive(event.getTarget())) return;
 
@@ -93,7 +93,7 @@ public class ResistSpell extends BuffSpell {
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageEvent event) {
-		if (normalDamageTypes == null) return;
+		if (normalDamageTypes.isEmpty()) return;
 		if (!normalDamageTypes.contains(event.getCause())) return;
 
 		Entity entity = event.getEntity();

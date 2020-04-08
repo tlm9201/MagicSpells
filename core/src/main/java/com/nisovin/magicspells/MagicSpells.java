@@ -5,15 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
-import java.util.UUID;
-import java.util.Scanner;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -423,7 +415,7 @@ public class MagicSpells extends JavaPlugin {
 		// Load in-game spell names, incantations, and initialize spells
 		log("Initializing spells...");
 		for (Spell spell : spells.values()) {
-			spellNames.put(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', spell.getName().toLowerCase())), spell);
+			spellNames.put(ChatColor.stripColor(Util.colorize(spell.getName().toLowerCase())), spell);
 			String[] aliases = spell.getAliases();
 			if (aliases != null && aliases.length > 0) {
 				for (String alias : aliases) {
@@ -995,8 +987,7 @@ public class MagicSpells extends JavaPlugin {
 			DebugHandler.debugNoClassDefFoundError(e);
 			return;
 		}
-		for (int i = 0; i < methods.length; i++) {
-			final Method method = methods[i];
+		for (final Method method : methods) {
 			final EventHandler eh = method.getAnnotation(EventHandler.class);
 			if (eh == null) continue;
 			EventPriority priority = eh.priority();
@@ -1011,7 +1002,7 @@ public class MagicSpells extends JavaPlugin {
 			final Class<? extends Event> eventClass = checkClass.asSubclass(Event.class);
 			method.setAccessible(true);
 			EventExecutor executor = new EventExecutor() {
-				final String eventKey = plugin.enableProfiling ? "Event:" + listener.getClass().getName().replace("com.nisovin.magicspells.","") + '.' + method.getName() + '(' + eventClass.getSimpleName() + ')' : null;
+				final String eventKey = plugin.enableProfiling ? "Event:" + listener.getClass().getName().replace("com.nisovin.magicspells.", "") + '.' + method.getName() + '(' + eventClass.getSimpleName() + ')' : null;
 
 				@Override
 				public void execute(Listener listener, Event event) {
@@ -1084,6 +1075,7 @@ public class MagicSpells extends JavaPlugin {
 				plugin.getLogger().severe("This error has been saved in the errors folder");
 				writer.println("Server version: " + Bukkit.getServer().getVersion());
 				writer.println("MagicSpells version: " + plugin.getDescription().getVersion());
+				writer.println("Error log date: " + new Date());
 			} catch (Exception x) {
 				plugin.getLogger().severe("ERROR HANDLING EXCEPTION");
 				x.printStackTrace();

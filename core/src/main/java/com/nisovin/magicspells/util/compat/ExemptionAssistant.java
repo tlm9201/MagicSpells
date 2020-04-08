@@ -14,6 +14,6 @@ public interface ExemptionAssistant {
 	Collection<Object> optimizeNodes(Object[] nodes);
 	
 	// There should be access to various sets of exemption nodes for common actions through implementations of this interface
-	default Collection<?> getPainExemptions() { return Collections.emptySet(); };
+	default Collection<?> getPainExemptions() { return Collections.emptySet(); }
 	
 }

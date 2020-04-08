@@ -39,10 +39,10 @@ public class MagicRegexPrompt extends RegexPrompt {
 		MagicRegexPrompt ret = new MagicRegexPrompt(regexp);
 		
 		ret.responder = new MagicPromptResponder(section);
-		
+
 		String promptText = section.getString("prompt-text", "");
 		ret.promptText = promptText;
-		
+
 		return ret;
 	}
 

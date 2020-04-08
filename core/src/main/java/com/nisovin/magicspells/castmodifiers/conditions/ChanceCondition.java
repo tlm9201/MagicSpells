@@ -18,8 +18,7 @@ public class ChanceCondition extends Condition {
 		random = new Random();
 		try {
 			chance = Integer.parseInt(var);
-			if (chance < 1 || chance > 100) return false;
-			return true;
+			return chance >= 1 && chance <= 100;
 		} catch (NumberFormatException e) {
 			DebugHandler.debugNumberFormat(e);
 			return false;

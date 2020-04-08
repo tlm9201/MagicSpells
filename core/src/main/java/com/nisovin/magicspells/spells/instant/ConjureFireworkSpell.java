@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.FireworkEffect;
@@ -53,7 +52,7 @@ public class ConjureFireworkSpell extends InstantSpell implements TargetedLocati
 		FireworkMeta meta = (FireworkMeta) firework.getItemMeta();
 		
 		meta.setPower(flight);
-		if (!fireworkName.isEmpty()) meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', fireworkName));
+		if (!fireworkName.isEmpty()) meta.setDisplayName(Util.colorize(fireworkName));
 		
 		List<String> fireworkEffects = getConfigStringList("firework-effects", null);
 		if (fireworkEffects != null && !fireworkEffects.isEmpty()) {

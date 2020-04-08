@@ -2,6 +2,7 @@ package com.nisovin.magicspells.mana;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import com.nisovin.magicspells.util.Util;
 
 import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -64,7 +65,7 @@ public class ManaBar {
 	}
 	
 	private void setDisplayData(String prefix, ChatColor colorFull, ChatColor colorEmpty) {
-		this.prefix = ChatColor.translateAlternateColorCodes('&', prefix);
+		this.prefix = Util.colorize(prefix);
 		this.colorFull = colorFull;
 		this.colorEmpty = colorEmpty;
 	}

@@ -1,7 +1,5 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Random;
-
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
@@ -16,30 +14,23 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
-	private Random random;
-
+	private boolean random;
 	private int rotationYaw;
-	private int rotationPitch;
-
-	private boolean faceTarget;
-	private boolean faceCaster;
 	private boolean affectPitch;
-	private boolean randomAngle;
+	private int rotationPitch;
 	private boolean mimicDirection;
+	private String face;
 
 	public RotateSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
+		random = getConfigBoolean("random", false);
+		rotationYaw = getConfigInt("rotation-yaw", 10);
 
-		random = new Random();
-
-		rotationYaw = getConfigInt("rotation", 10);
+		affectPitch = getConfigBoolean("affect-pitch", false);
 		rotationPitch = getConfigInt("rotation-pitch", 0);
 
-		faceTarget = getConfigBoolean("face-target", false);
-		faceCaster = getConfigBoolean("face-caster", false);
-		affectPitch = getConfigBoolean("affect-pitch", false);
-		randomAngle = getConfigBoolean("random", false);
 		mimicDirection = getConfigBoolean("mimic-direction", false);
+		face = getConfigString("face", "");
 	}
 
 	@Override
@@ -81,10 +72,11 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	private void spin(LivingEntity target) {
 		Location loc = target.getLocation();
-		if (randomAngle) {
+		if (random) {
 			loc.setYaw(Util.getRandomInt(360));
-			if (affectPitch) loc.setPitch(random.nextInt(181) - 90);
-		} else {
+			if (affectPitch) loc.setPitch(Util.getRandomInt(181) - 90);
+		}
+		else {
 			loc.setYaw(loc.getYaw() + rotationYaw);
 			if (affectPitch) loc.setPitch(loc.getPitch() + rotationPitch);
 		}
@@ -95,29 +87,44 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 		Location targetLoc = target.getLocation();
 		Location casterLoc = caster.getLocation();
 
-		if (faceTarget) caster.teleport(changeDirection(casterLoc, targetLoc));
-		else if (faceCaster) target.teleport(changeDirection(targetLoc, casterLoc));
-		else spin(target);
+		if(face.isEmpty()) spin(target);
+		else {
+			Location loc;
+			switch (face) {
+				case "target":
+					caster.teleport(changeDirection(casterLoc, targetLoc));
+					break;
+				case "caster":
+					target.teleport(changeDirection(targetLoc, casterLoc));
+					break;
+				case "away-from-caster":
+					loc = changeDirection(targetLoc, casterLoc);
+					loc.setYaw(loc.getYaw() + 180);
+					target.teleport(loc);
+					break;
+				case "away-from-target":
+					loc = changeDirection(casterLoc, targetLoc);
+					loc.setYaw(loc.getYaw() + 180);
+					caster.teleport(loc);
+					break;
+			}
+		}
 	}
 
 	private void spin(LivingEntity entity, Location target) {
 		entity.teleport(changeDirection(entity.getLocation(), target));
 	}
 
-	private Location changeDirection(Location caster, Location target) {
-		Location loc = caster.clone();
+	private Location changeDirection(Location pos1, Location pos2) {
+		Location loc = pos1.clone();
 		if (mimicDirection) {
-			if (affectPitch) loc.setPitch(target.getPitch());
-			loc.setYaw(target.getYaw());
-		} else {
-			loc.setDirection(getVectorDir(caster, target));
-			if (!affectPitch) loc.setPitch(caster.getPitch());
-		}
+			if (affectPitch) loc.setPitch(pos2.getPitch());
+			loc.setYaw(pos2.getYaw());
+		} else loc.setDirection(getVectorDir(pos1, pos2));
 		return loc;
 	}
 
 	private Vector getVectorDir(Location caster, Location target) {
 		return target.clone().subtract(caster.toVector()).toVector();
 	}
-
 }

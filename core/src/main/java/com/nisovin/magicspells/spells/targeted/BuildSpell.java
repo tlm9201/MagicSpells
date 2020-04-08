@@ -113,9 +113,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	private boolean isAllowed(Material mat) {
-		if (!mat.isBlock()) return false;
-		if (allowedTypes == null) return false;
-		return allowedTypes.contains(mat);
+		return mat.isBlock() && allowedTypes != null && allowedTypes.contains(mat);
 	}
 
 	private boolean build(Player player, Block block, Block against, ItemStack item) {

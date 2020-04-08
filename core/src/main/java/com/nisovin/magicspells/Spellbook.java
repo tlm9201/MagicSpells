@@ -158,9 +158,9 @@ public class Spellbook {
 
 					List<CastItem> items = new ArrayList<>();
 					String[] s = data[1].split(",");
-					for (int i = 0; i < s.length; i++) {
+					for (String value : s) {
 						try {
-							CastItem castItem = new CastItem(s[i]);
+							CastItem castItem = new CastItem(value);
 							items.add(castItem);
 						} catch (Exception e) {
 							e.printStackTrace();

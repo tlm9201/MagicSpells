@@ -1,11 +1,10 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
+import com.nisovin.magicspells.util.Util;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class CustomNameCondition extends Condition {
@@ -16,7 +15,6 @@ public class CustomNameCondition extends Condition {
 	@Override
 	public boolean setVar(String var) {
 		if (var == null || var.isEmpty()) return false;
-		name = ChatColor.translateAlternateColorCodes('&', var);
 		if (name.contains("%var:") || name.contains("%playervar")) isVar = true;
 		return true;
 	}
@@ -39,10 +37,10 @@ public class CustomNameCondition extends Condition {
 	private boolean checkName(LivingEntity livingEntity, LivingEntity target) {
 		if (!(livingEntity instanceof Player)) return false;
 		String checkedName = name;
-		if (isVar) checkedName = MagicSpells.doVariableReplacements((Player) livingEntity, checkedName);
+		if (isVar) checkedName = Util.doVarReplacementAndColorize((Player) livingEntity, checkedName);
+		else checkedName = checkedName.replace("__", " ");
 
 		String targetName = target.getCustomName();
-		if (!isVar) checkedName = checkedName.replace("__", " ");
 		return targetName != null && !targetName.isEmpty() && checkedName.equalsIgnoreCase(targetName);
 	}
 

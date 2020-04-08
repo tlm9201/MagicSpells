@@ -88,6 +88,11 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
+	public void setAbsorptionHearts(LivingEntity entity, double amount) {
+		// Need the volatile code for this
+	}
+
+	@Override
 	public void setTexture(SkullMeta meta, String texture, String signature) {
 		// Need volatile code for this
 	}

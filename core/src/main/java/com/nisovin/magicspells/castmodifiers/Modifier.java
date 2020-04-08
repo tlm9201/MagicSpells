@@ -25,7 +25,6 @@ public class Modifier implements IModifier {
 	private float modifierVarFloat;
 	private int modifierVarInt;
 	private Object customActionData = null;
-	String modifierVarString;
 	String strModifierFailed = null;
 
 	// Is this a condition that will want to access the events directly?
@@ -125,9 +124,7 @@ public class Modifier implements IModifier {
 
 	@Override
 	public boolean apply(MagicSpellsGenericPlayerEvent event) {
-		boolean check;
-		if (alertCondition) check = condition.check(event.getPlayer());
-		else check = condition.check(event.getPlayer());
+		boolean check = condition.check(event.getPlayer());
 		if (negated) check = !check;
 		return type.apply(event, check, modifierVar, modifierVarFloat, modifierVarInt, customActionData);
 	}

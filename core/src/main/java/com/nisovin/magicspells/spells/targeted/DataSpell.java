@@ -8,9 +8,9 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.data.DataEntity;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.util.data.DataLivingEntity;
 
 public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -21,7 +21,8 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 		super(config, spellName);
 		
 		variableName = getConfigString("variable-name", "");
-		dataElement = DataEntity.getDataFunction(getConfigString("data-element", "uuid"));
+
+		dataElement = DataLivingEntity.getDataFunction(getConfigString("data-element", "uuid"));
 	}
 	
 	@Override
@@ -32,7 +33,6 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 		}
 
 		if (dataElement == null) MagicSpells.error("DataSpell '" + internalName + "' has an invalid option defined for data-element!");
-
 	}
 	
 	@Override
@@ -45,7 +45,7 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (target == null) return noTarget(player);
 
 			playSpellEffects(player, target);
-			String value = dataElement.apply(target);
+			String value = dataElement.apply(livingEntity);
 			MagicSpells.getVariableManager().set(variableName, player, value);
 		}
 		return PostCastAction.HANDLE_NORMALLY;

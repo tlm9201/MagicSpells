@@ -13,6 +13,7 @@ import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.ManaChangeEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.VariableMod.VariableOwner;
@@ -434,21 +435,9 @@ public enum ModifierType {
 		}
 		
 		private void modifyVariable(String variableName, VariableOwner modifiedVariableOwner, Player caster, Player targetPlayer, VariableMod.Operation op, double amount) {
-			Player varToModifiyOwnerPlayer = modifiedVariableOwner == VariableOwner.CASTER ? caster : targetPlayer;
-			switch (op) {
-			case SET:
-				MagicSpells.getVariableManager().set(variableName, varToModifiyOwnerPlayer, amount);
-				break;
-			case ADD:
-				MagicSpells.getVariableManager().modify(variableName, varToModifiyOwnerPlayer, amount);
-				break;
-			case MULTIPLY:
-				MagicSpells.getVariableManager().multiplyBy(variableName, varToModifiyOwnerPlayer, amount);
-				break;
-			case DIVIDE:
-				MagicSpells.getVariableManager().divideBy(variableName, varToModifiyOwnerPlayer, amount);
-				break;
-			}
+			Player owner = modifiedVariableOwner == VariableOwner.CASTER ? caster : targetPlayer;
+			VariableManager variableManager = MagicSpells.getVariableManager();
+			variableManager.set(variableName, owner, op.applyTo(variableManager.getValue(variableName, owner), amount));
 		}
 		
 		boolean isDataOk(CustomData data, Player caster, Player target) {
@@ -615,10 +604,10 @@ public enum ModifierType {
 	private String[] keys;
 	private static boolean initialized = false;
 	
-	private boolean usesCustomData = false;
-	private boolean usesModifierVar = false;
-	private boolean usesModifierVarFloat = false;
-	private boolean usesModifierVarInt = false;
+	private boolean usesCustomData;
+	private boolean usesModifierVar;
+	private boolean usesModifierVarFloat;
+	private boolean usesModifierVarInt;
 	
 	ModifierType(boolean usesModVarString, boolean usesModVarFloat, boolean usesModVarInt, boolean usesCustomData, String... keys) {
 		this.keys = keys;

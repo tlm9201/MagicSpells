@@ -37,6 +37,8 @@ public interface VolatileCodeHandle {
 	
 	double getAbsorptionHearts(LivingEntity entity);
 
+	void setAbsorptionHearts(LivingEntity entity, double Double);
+
 	void setTexture(SkullMeta meta, String texture, String signature);
 	
 	void setTexture(SkullMeta meta, String texture, String signature, String uuid, String name);

@@ -28,9 +28,11 @@ import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.mana.ManaChangeReason;
+import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.variables.PlayerStringVariable;
@@ -271,56 +273,25 @@ public class CastCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
 
+                VariableManager variableManager = MagicSpells.getVariableManager();
+
                 String var = args[1];
-                String player = args[2];
-                boolean set = false;
-                boolean multiply = false;
-                boolean divide = false;
-                double num = 0;
-                String numString = args[3];
-                String valueString = args[3];
-                Variable variable = MagicSpells.getVariableManager().getVariable(var);
+                String playerName = args[2];
+                String varData = args[3];
 
-                // Possible operations + - = * /
+                Player player = Bukkit.getPlayer(playerName);
 
-                if (numString.startsWith("*")) {
-                    multiply = true;
-                    numString = numString.substring(1);
-                } else if (numString.startsWith("/")) {
-                    divide = true;
-                    numString = numString.substring(1);
-                } else if (numString.startsWith("=")) {
-                    set = true;
-                    numString = numString.substring(1);
-                    valueString = valueString.substring(1);
-                } else if (numString.startsWith("+")) {
-                    numString = numString.substring(1);
+                Variable variable = variableManager.getVariable(var);
+                VariableMod variableMod = new VariableMod(varData);
+                VariableMod.Operation op = variableMod.getOperation();
+
+                if (op.equals(VariableMod.Operation.SET) && variable instanceof PlayerStringVariable) {
+                    variableManager.set(var, playerName, variableMod.getValue());
                 }
-
-                if (!RegexUtil.matches(RegexUtil.DOUBLE_PATTERN, numString)) {
-                    boolean negate = false;
-                    if (numString.startsWith("-")) {
-                        negate = true;
-                        numString = numString.substring(1);
-                    }
-                    String targetPlayerName = player;
-                    if (numString.contains(":")) {
-                        String[] targetVarData = numString.split(":");
-                        targetPlayerName = targetVarData[0];
-                        numString = targetVarData[1];
-                    }
-                    num = MagicSpells.getVariableManager().getValue(numString, PlayerNameUtils.getPlayer(targetPlayerName));
-                    if (negate) num *= -1;
-                } else num = Double.parseDouble(numString);
-
-                if (multiply) MagicSpells.getVariableManager().multiplyBy(var, PlayerNameUtils.getPlayer(player), num);
-                else if (divide) MagicSpells.getVariableManager().divideBy(var, PlayerNameUtils.getPlayer(player), num);
-                else if (set) {
-                    if (variable instanceof PlayerStringVariable) MagicSpells.getVariableManager().set(var, player, valueString);
-                    else MagicSpells.getVariableManager().set(var, player, num);
+                else {
+                    double value = variableMod.getValue(player, null);
+                    variableManager.set(var, playerName, op.applyTo(variable.getValue(player), value));
                 }
-                else MagicSpells.getVariableManager().modify(var, player, num);
-
                 return true;
             }
 

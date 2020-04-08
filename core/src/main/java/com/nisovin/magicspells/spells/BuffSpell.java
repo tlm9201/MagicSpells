@@ -478,7 +478,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		@EventHandler(priority=EventPriority.LOWEST)
 		public void onChangeWorld(PlayerChangedWorldEvent e) {
 			Player pl = e.getPlayer();
-			if (pl == null) return;
 			if (isActiveAndNotExpired(pl)) turnOff(pl);
 		}
 
@@ -500,7 +499,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		@EventHandler(priority=EventPriority.MONITOR)
 		public void onQuit(PlayerQuitEvent e) {
 			Player pl = e.getPlayer();
-			if (pl == null) return;
 			if (isActiveAndNotExpired(pl)) turnOff(pl);
 		}
 
@@ -511,7 +509,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		@EventHandler
 		public void onJoin(PlayerJoinEvent e) {
 			Player pl = e.getPlayer();
-			if (pl == null) return;
 			if (isActiveAndNotExpired(pl)) turnOff(pl);
 		}
 

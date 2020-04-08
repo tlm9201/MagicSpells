@@ -16,6 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
+import com.nisovin.magicspells.util.Util;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -139,8 +140,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
     private String translate(Player player, Player target, String string) {
         if(target != null) string = string.replaceAll("%t", target.getName());
         string = string.replaceAll("%a", player.getName());
-        string = MagicSpells.doVariableReplacements(player, string);
-        return ChatColor.translateAlternateColorCodes('&', string);
+        return Util.doVarReplacementAndColorize(player, string);
     }
 
     private void processClickSpell(Subspell subspell, Player caster, Player target, float power) {

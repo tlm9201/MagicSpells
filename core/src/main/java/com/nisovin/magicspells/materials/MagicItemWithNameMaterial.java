@@ -1,10 +1,10 @@
 package com.nisovin.magicspells.materials;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
+import com.nisovin.magicspells.util.Util;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class MagicItemWithNameMaterial extends MagicMaterial {
 
@@ -13,7 +13,7 @@ public class MagicItemWithNameMaterial extends MagicMaterial {
 	
 	public MagicItemWithNameMaterial(MagicMaterial material, String name) {
 		this.material = material;
-		this.name = ChatColor.translateAlternateColorCodes('&', name);
+		this.name = Util.colorize(name);
 	}
 	
 	@Override

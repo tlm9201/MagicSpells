@@ -5,7 +5,6 @@ import java.util.Random;
 import java.util.ArrayList;
 
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -112,7 +111,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 		hitSpellName = getConfigString("spell", "");
 		tickSpellName = getConfigString("spell-on-tick", "");
-		projectileName = ChatColor.translateAlternateColorCodes('&', getConfigString("projectile-name", ""));
+		projectileName = Util.colorize(getConfigString("projectile-name", ""));
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
 		durationSpellName = getConfigString("spell-after-duration", "");

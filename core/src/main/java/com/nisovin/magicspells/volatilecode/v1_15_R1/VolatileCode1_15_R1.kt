@@ -217,6 +217,10 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
         return (entity as CraftLivingEntity).handle.absorptionHearts.toDouble()
     }
 
+    override fun setAbsorptionHearts(entity: LivingEntity, amount: Double) {
+        (entity as CraftLivingEntity).handle.absorptionHearts = amount.toFloat()
+    }
+
     override fun setTexture(meta: SkullMeta, texture: String, signature: String) {
         // Don't spam the user with errors, just stop
         if (SafetyCheckUtils.areAnyNull(this.craftMetaSkullProfileField)) return

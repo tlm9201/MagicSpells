@@ -19,8 +19,8 @@ public abstract class AbstractWorldGuardCondition extends Condition {
 	protected WorldGuardPlugin worldGuard;
 
 	protected boolean worldGuardEnabled() {
-		worldGuard = (WorldGuardPlugin)Bukkit.getPluginManager().getPlugin("WorldGuard");
-		return !(worldGuard == null || !worldGuard.isEnabled());
+		worldGuard = (WorldGuardPlugin) Bukkit.getPluginManager().getPlugin("WorldGuard");
+		return worldGuard != null && worldGuard.isEnabled();
 	}
 
 	protected RegionManager getRegionManager(World world) {

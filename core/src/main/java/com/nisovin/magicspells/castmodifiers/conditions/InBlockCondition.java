@@ -31,8 +31,7 @@ public class InBlockCondition extends Condition {
 
 		material = Material.getMaterial(var.toUpperCase());
 		if (material == null) return false;
-		if (!material.isBlock()) return false;
-		return true;
+		return material.isBlock();
 	}
 	
 	@Override

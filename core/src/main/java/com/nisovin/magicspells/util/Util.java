@@ -79,11 +79,11 @@ public class Util {
 				if (temp.length == 1) {
 					name = "";
 				} else {
-					name = ChatColor.translateAlternateColorCodes('&', temp[1].replace("__", " "));
+					name = Util.colorize(temp[1].replace("__", " "));
 					if (temp.length > 2) {
 						lore = Arrays.copyOfRange(temp, 2, temp.length);
 						for (int i = 0; i < lore.length; i++) {
-							lore[i] = ChatColor.translateAlternateColorCodes('&', lore[i].replace("__", " "));
+							lore[i] = Util.colorize(lore[i].replace("__", " "));
 						}
 					}
 				}
@@ -909,4 +909,11 @@ public class Util {
 		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
 	}
 
+	public static String colorize(String string) {
+		return ChatColor.translateAlternateColorCodes('&', string);
+	}
+
+	public static String doVarReplacementAndColorize(Player player, String string) {
+		return colorize(MagicSpells.doVariableReplacements(player, string));
+	}
 }

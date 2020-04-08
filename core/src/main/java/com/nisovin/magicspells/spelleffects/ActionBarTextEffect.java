@@ -19,7 +19,7 @@ public class ActionBarTextEffect extends SpellEffect {
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
-		message = ChatColor.translateAlternateColorCodes('&', config.getString("message", ""));
+		message = config.getString("message", "");
 		broadcast = config.getBoolean("broadcast", false);
 	}
 	
@@ -31,7 +31,8 @@ public class ActionBarTextEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(MagicSpells.doVariableReplacements(player, message)));
+		String msg = Util.doVarReplacementAndColorize(player, message);
+		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(msg));
 	}
 	
 }

@@ -31,9 +31,7 @@ public class TestForBlockCondition extends Condition {
 	@Override
 	public boolean check(LivingEntity livingEntity) {
 		Location loc = location.getLocation();
-		if (loc == null) return false;
-		if (blockType.equals(loc.getBlock().getType())) return true;
-		return false;
+		return loc != null && blockType.equals(loc.getBlock().getType());
 	}
 
 	@Override

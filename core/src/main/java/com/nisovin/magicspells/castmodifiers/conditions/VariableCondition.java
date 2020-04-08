@@ -12,34 +12,25 @@ import com.nisovin.magicspells.DebugHandler;
 
 public class VariableCondition extends OperatorCondition {
 
-	private static Pattern variableNamePattern = Pattern.compile("[0-9a-zA-Z_]+");
+	private static Pattern VARIABLE_NAME_PATTERN = Pattern.compile("[0-9a-zA-Z_]+");
 
 	private String variable;
 	private double value = 0;
 
 	@Override
 	public boolean setVar(String var) {
-		Matcher matcher = variableNamePattern.matcher(var);
-		String variableName = null;
-		String number;
+		Matcher matcher = VARIABLE_NAME_PATTERN.matcher(var);
+		String variableName;
 
-		while (matcher.find()) {
-			String argText = matcher.group();
-			variableName = argText;
-			break;
-		}
+		if (matcher.find()) variableName = matcher.group();
+		else return false;
 
-		if (variableName == null) return false;
-
-		number = var.substring(variableName.length()).substring(1);
-
-		if (number == null) return false;
-
-		super.setVar(var.substring(variableName.length()));
+		String number = var.substring(variableName.length());
+		super.setVar(number);
 
 		try {
 			variable = variableName;
-			value = Double.parseDouble(number);
+			value = Double.parseDouble(number.substring(1));
 			return true;
 		} catch (NumberFormatException e) {
 			DebugHandler.debugNumberFormat(e);
