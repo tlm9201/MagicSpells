@@ -29,6 +29,8 @@ public class PlayerVariable extends Variable {
 
 	@Override
 	public void set(String player, double amount) {
+		if (amount > maxValue) amount = maxValue;
+		else if (amount < minValue) amount = minValue;
 		map.put(player, amount);
 		if (objective != null) objective.getScore(PlayerNameUtils.getOfflinePlayer(player)).setScore((int) amount);
 	}

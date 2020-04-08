@@ -25,6 +25,8 @@ public class GlobalVariable extends Variable {
 
 	@Override
 	public void set(String player, double amount) {
+		if (amount > maxValue) amount = maxValue;
+		else if (amount < minValue) amount = minValue;
 		value = amount;
 	}
 
