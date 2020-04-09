@@ -6,16 +6,11 @@ import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 // NOTE: PLACEHOLDERAPI IS REQUIRED FOR THIS
 public class PlaceholderAPIDataSpell extends TargetedSpell {
-
-	private static Pattern MS_PLACEHOLDER_PATTERN = Pattern.compile("[<|%][a-zA-Z0-9_]*[>|%]");
 
 	private String variableName;
 	private String placeholderAPITemplate;
@@ -55,20 +50,10 @@ public class PlaceholderAPIDataSpell extends TargetedSpell {
 			Player target = targetInfo.getTarget();
 			if (target == null) return noTarget(player);
 
-			String template = MagicSpells.doArgumentAndVariableSubstitution(placeholderAPITemplate, target, args);
-
-			// Do replacements for internal placeholders.
-			Matcher matcher = MS_PLACEHOLDER_PATTERN.matcher(template);
-			while (matcher.find()) {
-				// Mask internal placeholders as normal ones.
-				String realPlaceholder = PlaceholderAPI.setPlaceholders(target, matcher.group().replaceAll("[<>]","%"));
-				template = template.replace(matcher.group(), realPlaceholder);
-				matcher = MS_PLACEHOLDER_PATTERN.matcher(template);
-			}
-
-			// Parse and save results.
-			template = PlaceholderAPI.setPlaceholders(target, template);
-			MagicSpells.getVariableManager().set(variableName, player, template);
+			String value = MagicSpells.doArgumentAndVariableSubstitution(placeholderAPITemplate, target, args);
+			value = PlaceholderAPI.setBracketPlaceholders(target, value);
+			value = PlaceholderAPI.setPlaceholders(target, value);
+			MagicSpells.getVariableManager().set(variableName, player, value);
 			playSpellEffects(player, target);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
