@@ -25,6 +25,7 @@ public class HasteSpell extends BuffSpell {
 
 	private Map<UUID, HasteData> hasted;
 
+	private boolean hidden;
 	private int strength;
 	private int boostDuration;
 	private int accelerationDelay;
@@ -37,6 +38,7 @@ public class HasteSpell extends BuffSpell {
 	public HasteSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
+		hidden = getConfigBoolean("hidden", false);
 		strength = getConfigInt("effect-strength", 3);
 		boostDuration = getConfigInt("boost-duration", 300);
 		accelerationDelay = getConfigInt("acceleration-delay", 0);
@@ -101,7 +103,7 @@ public class HasteSpell extends BuffSpell {
 			event.setCancelled(true);
 			addUseAndChargeCost(pl);
 			playSpellEffects(EffectPosition.CASTER, pl);
-			pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, boostDuration, amplifier), true);
+			pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, boostDuration, amplifier, false, !hidden), true);
 			if (acceleration) {
 				data.task = MagicSpells.scheduleRepeatingTask(() -> {
 					if (data.count >= accelerationAmount) {
@@ -109,11 +111,11 @@ public class HasteSpell extends BuffSpell {
 						return;
 					}
 					data.count++;
-					pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, boostDuration, amplifier + (data.count * accelerationIncrease), true), true);
+					pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, boostDuration, amplifier + (data.count * accelerationIncrease), false, !hidden), true);
 				}, accelerationDelay, accelerationInterval);
 			}
 		} else {
-			pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0), true);
+			pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0, false, !hidden), true);
 			pl.removePotionEffect(PotionEffectType.SPEED);
 			playSpellEffects(EffectPosition.DISABLED, pl);
 			MagicSpells.cancelTask(data.task);
