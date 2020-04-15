@@ -1,15 +1,12 @@
 package com.nisovin.magicspells.events;
 
 import org.bukkit.event.Cancellable;
-import org.bukkit.event.HandlerList;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.ProjectileTracker;
 
 public class ParticleProjectileHitEvent extends SpellEvent implements Cancellable {
-
-	private static final HandlerList handlers = new HandlerList();
 
 	private LivingEntity target;
 	private ProjectileTracker tracker;
@@ -56,15 +53,6 @@ public class ParticleProjectileHitEvent extends SpellEvent implements Cancellabl
 	@Override
 	public void setCancelled(boolean cancel) {
 		cancelled = cancel;
-	}
-
-	@Override
-	public HandlerList getHandlers() {
-		return handlers;
-	}
-
-	public static HandlerList getHandlerList() {
-		return handlers;
 	}
 
 }

@@ -1,14 +1,11 @@
 package com.nisovin.magicspells.events;
 
-import org.bukkit.event.HandlerList;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.Spell;
 
 public class SpellApplyDamageEvent extends SpellEvent {
-
-    private static final HandlerList handlers = new HandlerList();
 
     private LivingEntity target;
 	private double damage;
@@ -53,15 +50,6 @@ public class SpellApplyDamageEvent extends SpellEvent {
     
     public double getFinalDamage() {
     	return damage * modifier;
-    }
-    
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    public static HandlerList getHandlerList() {
-        return handlers;
     }
     
 }

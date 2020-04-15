@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.events;
 
-import org.bukkit.event.HandlerList;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
@@ -14,8 +13,6 @@ import com.nisovin.magicspells.Spell.PostCastAction;
  *
  */
 public class SpellCastedEvent extends SpellEvent {
-	
-    private static final HandlerList handlers = new HandlerList();
 
     private SpellCastState state;
 	private float cooldown;
@@ -81,14 +78,5 @@ public class SpellCastedEvent extends SpellEvent {
 	public PostCastAction getPostCastAction() {
 		return action;
 	}
-
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
-
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
 
 }

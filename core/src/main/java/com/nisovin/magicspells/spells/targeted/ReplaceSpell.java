@@ -138,7 +138,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 						blocks.put(block, block.getType());
 						Block finalBlock = block;
 						if (replaceDuration > 0) MagicSpells.scheduleDelayedTask(() -> {
-							finalBlock.setType(blocks.get(finalBlock));
+							if (blocks.get(finalBlock) != null) finalBlock.setType(blocks.get(finalBlock));
 							blocks.remove(finalBlock);
 						}, replaceDuration);
 
