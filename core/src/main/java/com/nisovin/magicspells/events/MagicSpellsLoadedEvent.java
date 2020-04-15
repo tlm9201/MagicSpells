@@ -12,29 +12,29 @@ import com.nisovin.magicspells.MagicSpells;
  */
 public class MagicSpellsLoadedEvent extends Event {
 
-    private static final HandlerList handlers = new HandlerList();
+	private static final HandlerList handlers = new HandlerList();
 
-    private MagicSpells plugin;
-    
-    public MagicSpellsLoadedEvent(MagicSpells plugin) {
-    	this.plugin = plugin;
-    }
-    
-    /**
-     * Gets the instance of the MagicSpells plugin
-     * @return plugin instance
-     */
-    public MagicSpells getPlugin() {
-    	return plugin;
-    }
-    
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
+	private MagicSpells plugin;
 
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
+	public MagicSpellsLoadedEvent(MagicSpells plugin) {
+		this.plugin = plugin;
+	}
+
+	/**
+	 * Gets the instance of the MagicSpells plugin
+	 * @return plugin instance
+	 */
+	public MagicSpells getPlugin() {
+		return plugin;
+	}
+
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
+
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
 
 }

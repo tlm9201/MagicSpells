@@ -14,7 +14,7 @@ import com.nisovin.magicspells.Spell.PostCastAction;
  */
 public class SpellCastedEvent extends SpellEvent {
 
-    private SpellCastState state;
+	private SpellCastState state;
 	private float cooldown;
 	private SpellReagents reagents;
 	private float power;

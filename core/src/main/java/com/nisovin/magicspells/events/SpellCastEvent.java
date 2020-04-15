@@ -14,8 +14,8 @@ import com.nisovin.magicspells.Spell.SpellCastState;
  */
 public class SpellCastEvent extends SpellEvent implements Cancellable {
 
-    private SpellCastState state;
-    private boolean stateChanged;
+	private SpellCastState state;
+	private boolean stateChanged;
 	private float cooldown;
 	private SpellReagents reagents;
 	private boolean reagentsChanged;

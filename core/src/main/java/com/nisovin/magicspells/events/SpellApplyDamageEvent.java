@@ -7,49 +7,49 @@ import com.nisovin.magicspells.Spell;
 
 public class SpellApplyDamageEvent extends SpellEvent {
 
-    private LivingEntity target;
+	private LivingEntity target;
 	private double damage;
 	private DamageCause cause;
 	private String spellDamageType;
 	private long timestamp;
 	private float modifier;
-    
-    public SpellApplyDamageEvent(Spell spell, LivingEntity caster, LivingEntity target, double damage, DamageCause cause, String spellDamageType) {
+
+	public SpellApplyDamageEvent(Spell spell, LivingEntity caster, LivingEntity target, double damage, DamageCause cause, String spellDamageType) {
 		super(spell, caster);
-    	this.target = target;
+		this.target = target;
 		this.damage = damage;
 		this.cause = cause;
 		this.spellDamageType = spellDamageType;
 		timestamp = System.currentTimeMillis();
 		modifier = 1.0f;
 	}
-    
-    public void applyDamageModifier(float modifier) {
-    	this.modifier *= modifier;
-    }
-    
-    public LivingEntity getTarget() {
-    	return target;
-    }
-    
-    public double getDamage() {
-    	return damage;
-    }
-    
-    public DamageCause getCause() {
-    	return cause;
-    }
-    
-    public long getTimestamp() {
-    	return timestamp;
-    }
-    
-    public float getDamageModifier() {
-    	return modifier;
-    }
-    
-    public double getFinalDamage() {
-    	return damage * modifier;
-    }
-    
+
+	public void applyDamageModifier(float modifier) {
+		this.modifier *= modifier;
+	}
+
+	public LivingEntity getTarget() {
+		return target;
+	}
+
+	public double getDamage() {
+		return damage;
+	}
+
+	public DamageCause getCause() {
+		return cause;
+	}
+
+	public long getTimestamp() {
+		return timestamp;
+	}
+
+	public float getDamageModifier() {
+		return modifier;
+	}
+
+	public double getFinalDamage() {
+		return damage * modifier;
+	}
+
 }

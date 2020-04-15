@@ -7,10 +7,10 @@ import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.util.CastItem;
 
 public class SpellSelectionChangedEvent extends SpellEvent {
-    
-    private CastItem castItem;
-    private Spellbook spellbook;
-    
+
+	private CastItem castItem;
+	private Spellbook spellbook;
+
 	public SpellSelectionChangedEvent(Spell spell, Player caster, CastItem castItem, Spellbook spellbook) {
 		super(spell, caster);
 		this.castItem = castItem;
