@@ -9,8 +9,8 @@ import com.nisovin.magicspells.Spell;
 
 public class SpellForgetEvent extends Event implements Cancellable {
 
-    private static final HandlerList handlers = new HandlerList();
-    
+	private static final HandlerList handlers = new HandlerList();
+
 	private Spell spell;
 	private Player forgetter;
 	private boolean cancelled;
@@ -38,13 +38,13 @@ public class SpellForgetEvent extends Event implements Cancellable {
 		this.cancelled = cancelled;
 	}
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
 
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
 
 }
