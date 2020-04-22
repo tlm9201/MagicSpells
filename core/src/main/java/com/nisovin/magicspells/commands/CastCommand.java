@@ -290,7 +290,7 @@ public class CastCommand implements CommandExecutor, TabCompleter {
                 }
                 else {
                     double value = variableMod.getValue(player, null);
-                    variableManager.set(var, playerName, op.applyTo(variable.getValue(player), value));
+                    variableManager.set(var, playerName, op.applyTo(variable.getValue(playerName), value));
                 }
                 return true;
             }
