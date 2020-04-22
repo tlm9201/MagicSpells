@@ -213,7 +213,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			castItems = new CastItem[sItems.length];
 			for (int i = 0; i < sItems.length; i++) {
 				ItemStack is = Util.getItemStackFromString(sItems[i]);
-				if (is == null) continue;
+				if (is == null) {
+					MagicSpells.error("Spell '" + internalName + "' has an invalid cast item specified: " + sItems[i]);
+					continue;
+				}
 				castItems[i] = new CastItem(is);
 			}
 		} else if (config.contains(path + "cast-items")) {
@@ -222,7 +225,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			castItems = new CastItem[sItems.size()];
 			for (int i = 0; i < castItems.length; i++) {
 				ItemStack is = Util.getItemStackFromString(sItems.get(i));
-				if (is == null) continue;
+				if (is == null) {
+					MagicSpells.error("Spell '" + internalName + "' has an invalid cast item listed: " + sItems.get(i));
+					continue;
+				}
 				castItems[i] = new CastItem(is);
 			}
 		} else {
@@ -233,7 +239,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			rightClickCastItems = new CastItem[sItems.length];
 			for (int i = 0; i < sItems.length; i++) {
 				ItemStack is = Util.getItemStackFromString(sItems[i]);
-				if (is == null) continue;
+				if (is == null) {
+					MagicSpells.error("Spell '" + internalName + "' has an invalid right click cast item specified: " + sItems[i]);
+					continue;
+				}
 				rightClickCastItems[i] = new CastItem(is);
 			}
 		} else if (config.contains(path + "right-click-cast-items")) {
@@ -242,7 +251,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			rightClickCastItems = new CastItem[sItems.size()];
 			for (int i = 0; i < rightClickCastItems.length; i++) {
 				ItemStack is = Util.getItemStackFromString(sItems.get(i));
-				if (is == null) continue;
+				if (is == null) {
+					MagicSpells.error("Spell '" + internalName + "' has an invalid right click cast item listed: " + sItems.get(i));
+					continue;
+				}
 				rightClickCastItems[i] = new CastItem(is);
 			}
 		} else {
@@ -253,7 +265,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			consumeCastItems = new CastItem[sItems.length];
 			for (int i = 0; i < sItems.length; i++) {
 				ItemStack is = Util.getItemStackFromString(sItems[i]);
-				if (is == null) continue;
+				if (is == null) {
+					MagicSpells.error("Spell '" + internalName + "' has an invalid consume cast item specified: " + sItems[i]);
+					continue;
+				}
 				consumeCastItems[i] = new CastItem(is);
 			}
 		} else if (config.contains(path + "consume-cast-items")) {
@@ -262,7 +277,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			consumeCastItems = new CastItem[sItems.size()];
 			for (int i = 0; i < consumeCastItems.length; i++) {
 				ItemStack is = Util.getItemStackFromString(sItems.get(i));
-				if (is == null) continue;
+				if (is == null) {
+					MagicSpells.error("Spell '" + internalName + "' has an invalid consume cast item listed: " + sItems.get(i));
+					continue;
+				}
 				consumeCastItems[i] = new CastItem(is);
 			}
 		} else {
