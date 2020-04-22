@@ -23,17 +23,4 @@ public class BedCoordZVariable extends MetaVariable {
 			p.setBedSpawnLocation(to, true);
 		}
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			Location to = p.getBedSpawnLocation();
-			to.setZ(to.getZ() + amount);
-			p.setBedSpawnLocation(to, true);
-			return true;
-		}
-		return false;
-	}
-
 }

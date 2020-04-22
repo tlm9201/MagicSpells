@@ -18,15 +18,4 @@ public class MaximumAirVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setMaximumAir((int) amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setMaximumAir(p.getMaximumAir() + (int) amount);
-			return true;
-		}
-		return false;
-	}
-
 }

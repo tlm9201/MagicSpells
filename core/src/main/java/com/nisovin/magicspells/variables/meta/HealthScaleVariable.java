@@ -19,15 +19,4 @@ public class HealthScaleVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setHealthScale(amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setHealthScale(p.getHealthScale() + amount);
-			return true;
-		}
-		return false;
-	}
-	
 }

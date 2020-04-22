@@ -19,15 +19,4 @@ public class FallDistanceVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setFallDistance((float) amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setFallDistance(p.getFallDistance() + (float) amount);
-			return true;
-		}
-		return false;
-	}
-
 }

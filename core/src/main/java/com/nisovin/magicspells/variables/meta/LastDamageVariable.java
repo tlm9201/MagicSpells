@@ -18,15 +18,4 @@ public class LastDamageVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setLastDamage(amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setLastDamage(p.getLastDamage() + amount);
-			return true;
-		}
-		return false;
-	}
-
 }

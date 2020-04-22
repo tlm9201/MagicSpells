@@ -1223,7 +1223,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				VariableManager varMan = MagicSpells.getVariableManager();
 				if (varMan != null) {
 					for (Map.Entry<String, Double> var : variables.entrySet()) {
-						varMan.modify(var.getKey(), (Player) livingEntity, -var.getValue());
+						varMan.set(var.getKey(), (Player) livingEntity, varMan.getValue(var.getKey(), (Player) livingEntity) - var.getValue());
 					}
 				}
 			}

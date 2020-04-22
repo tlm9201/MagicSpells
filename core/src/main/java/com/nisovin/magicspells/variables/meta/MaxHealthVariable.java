@@ -20,15 +20,4 @@ public class MaxHealthVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) Util.setMaxHealth(p, amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			Util.setMaxHealth(p, Util.getMaxHealth(p) + amount);
-			return true;
-		}
-		return false;
-	}
-
 }

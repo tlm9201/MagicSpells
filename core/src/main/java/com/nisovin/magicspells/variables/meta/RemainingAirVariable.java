@@ -19,15 +19,4 @@ public class RemainingAirVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setRemainingAir((int) amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setRemainingAir(p.getRemainingAir() + (int) amount);
-			return true;
-		}
-		return false;
-	}
-
 }

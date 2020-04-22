@@ -19,15 +19,4 @@ public class FoodLevelVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setFoodLevel((int) amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setFoodLevel(p.getFoodLevel() + (int) amount);
-			return true;
-		}
-		return false;
-	}
-
 }

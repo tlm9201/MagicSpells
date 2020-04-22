@@ -25,17 +25,4 @@ public class CoordXVariable extends MetaVariable {
 			p.teleport(to, TeleportCause.PLUGIN);
 		}
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			Location to = p.getLocation();
-			to.setX(to.getX() + amount);
-			p.teleport(to, TeleportCause.PLUGIN);
-			return true;
-		}
-		return false;
-	}
-
 }
