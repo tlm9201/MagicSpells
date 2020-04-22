@@ -24,6 +24,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 	private boolean replaceAll;
 	private List<Material> replace;
 	private List<Material> replaceWith;
+	private List<Material> replaceBlacklist;
 
 	private Random random;
 
@@ -43,6 +44,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 		blocks = new HashMap<>();
 		replace = new ArrayList<>();
 		replaceWith = new ArrayList<>();
+		replaceBlacklist = new ArrayList<>();
 
 		random = new Random();
 
@@ -88,6 +90,19 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 				}
 
 				replaceWith.add(material);
+			}
+		}
+
+		list = getConfigStringList("replace-blacklist", null);
+		if (list != null) {
+			for (String s : list) {
+				Material material = Material.getMaterial(s.toUpperCase());
+				if (material == null) {
+					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blacklist item: " + s);
+					continue;
+				}
+
+				replaceBlacklist.add(material);
 			}
 		}
 
@@ -146,6 +161,8 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 						if (!replaceAll && !replace.get(i).equals(block.getType())) continue;
 						// If all blocks are being replaced, skip if the block is already replaced.
 						if (replaceAll && replaceWith.get(i).equals(block.getType())) continue;
+
+						if (replaceBlacklist.contains(block.getType())) continue;
 
 						blocks.put(block, block.getType());
 						Block finalBlock = block;
