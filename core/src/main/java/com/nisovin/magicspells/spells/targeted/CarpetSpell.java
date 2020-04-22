@@ -80,6 +80,9 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	public void turnOff() {
 		super.turnOff();
 
+		for (Block block : blocks.keySet()) {
+			block.setType(Material.AIR);
+		}
 		blocks.clear();
 		if (checker != null) checker.stop();
 	}

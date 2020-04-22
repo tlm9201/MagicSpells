@@ -21,8 +21,10 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 
 	private Map<Block, Material> blocks;
 
+	private boolean replaceAll;
 	private List<Material> replace;
 	private List<Material> replaceWith;
+	private List<Material> replaceBlacklist;
 
 	private Random random;
 
@@ -35,16 +37,17 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 	private boolean pointBlank;
 	private boolean replaceRandom;
 	private boolean powerAffectsRadius;
-	
+
 	public ReplaceSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		blocks = new HashMap<>();
 		replace = new ArrayList<>();
 		replaceWith = new ArrayList<>();
+		replaceBlacklist = new ArrayList<>();
 
 		random = new Random();
-				
+
 		yOffset = getConfigInt("y-offset", 0);
 		radiusUp = getConfigInt("radius-up", 1);
 		radiusDown = getConfigInt("radius-down", 1);
@@ -58,10 +61,18 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 
 		List<String> list = getConfigStringList("replace-blocks", null);
 		if (list != null) {
-			for (String s : list) {
-				Material material = Material.getMaterial(s.toUpperCase());
+			replaceAll = false;
+			for (String block : list) {
+				if (block.equals("all")) {
+					replaceAll = true;
+					// Just a filler.
+					replace.add(Material.AIR);
+					break;
+				}
+
+				Material material = Material.getMaterial(block.toUpperCase());
 				if (material == null) {
-					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blocks item: " + s);
+					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blocks item: " + block);
 					continue;
 				}
 
@@ -81,12 +92,25 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 				replaceWith.add(material);
 			}
 		}
-		
+
+		list = getConfigStringList("replace-blacklist", null);
+		if (list != null) {
+			for (String s : list) {
+				Material material = Material.getMaterial(s.toUpperCase());
+				if (material == null) {
+					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blacklist item: " + s);
+					continue;
+				}
+
+				replaceBlacklist.add(material);
+			}
+		}
+
 		if (!replaceRandom && replace.size() != replaceWith.size()) {
 			replaceRandom = true;
 			MagicSpells.error("ReplaceSpell " + internalName + " replace-random false, but replace-blocks and replace-with have different sizes!");
 		}
-		
+
 		if (replace.isEmpty()) MagicSpells.error("ReplaceSpell " + internalName + " has empty replace-blocks list!");
 		if (replaceWith.isEmpty()) MagicSpells.error("ReplaceSpell " + internalName + " has empty replace-with list!");
 	}
@@ -133,7 +157,12 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 				for (int z = target.getBlockZ() - h; z <= target.getBlockZ() + h; z++) {
 					block = target.getWorld().getBlockAt(x, y, z);
 					for (int i = 0; i < replace.size(); i++) {
-						if (!replace.get(i).equals(block.getType())) continue;
+						// If specific blocks are being replaced, skip if the block isn't replaceable.
+						if (!replaceAll && !replace.get(i).equals(block.getType())) continue;
+						// If all blocks are being replaced, skip if the block is already replaced.
+						if (replaceAll && replaceWith.get(i).equals(block.getType())) continue;
+
+						if (replaceBlacklist.contains(block.getType())) continue;
 
 						blocks.put(block, block.getType());
 						Block finalBlock = block;

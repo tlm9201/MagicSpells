@@ -23,6 +23,7 @@ public class RightClickListener implements Listener {
 		for (Spell spell : MagicSpells.getSpells().values()) {
 			CastItem[] items = spell.getRightClickCastItems();
 			if (items.length <= 0) continue;
+			if (items.length == 1 && items[0] == null) continue;
 			for (CastItem item : items) {
 				Spell old = rightClickCastItems.put(item, spell);
 				if (old == null) continue;
