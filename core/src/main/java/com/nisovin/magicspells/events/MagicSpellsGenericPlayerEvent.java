@@ -7,19 +7,19 @@ import org.bukkit.event.HandlerList;
 
 public class MagicSpellsGenericPlayerEvent extends Event implements Cancellable {
 
-    private static final HandlerList handlers = new HandlerList();
-    
+	private static final HandlerList handlers = new HandlerList();
+
 	private boolean cancelled = false;
 	private Player player;
-	
+
 	public MagicSpellsGenericPlayerEvent(Player player) {
 		this.player = player;
 	}
-	
+
 	public Player getPlayer() {
 		return player;
 	}
-	
+
 	@Override
 	public boolean isCancelled() {
 		return cancelled;
@@ -27,16 +27,16 @@ public class MagicSpellsGenericPlayerEvent extends Event implements Cancellable 
 
 	@Override
 	public void setCancelled(boolean cancelled) {
-		this.cancelled = cancelled;		
+		this.cancelled = cancelled;
 	}
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
 
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
-    
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
+
 }

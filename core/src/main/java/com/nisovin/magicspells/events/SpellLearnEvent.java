@@ -15,7 +15,7 @@ import com.nisovin.magicspells.Spell;
  */
 public class SpellLearnEvent extends Event implements Cancellable {
 
-    private static final HandlerList handlers = new HandlerList();
+	private static final HandlerList handlers = new HandlerList();
 
 	private Spell spell;
 	private Player learner;
@@ -73,14 +73,14 @@ public class SpellLearnEvent extends Event implements Cancellable {
 		this.cancelled = cancelled;
 	}
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
 
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
 	
 	public enum LearnSource {
 		

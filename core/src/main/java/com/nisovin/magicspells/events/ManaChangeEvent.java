@@ -12,8 +12,8 @@ import com.nisovin.magicspells.mana.ManaChangeReason;
  */
 public class ManaChangeEvent extends Event {
 
-    private static final HandlerList handlers = new HandlerList();
-    
+	private static final HandlerList handlers = new HandlerList();
+
 	private Player player;
 	private int oldAmt;
 	private int newAmt;
@@ -76,13 +76,13 @@ public class ManaChangeEvent extends Event {
 		return reason;
 	}
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
 
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
 
 }
