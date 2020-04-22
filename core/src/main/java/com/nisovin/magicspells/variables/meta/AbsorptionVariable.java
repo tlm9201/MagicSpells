@@ -19,12 +19,4 @@ public class AbsorptionVariable extends MetaVariable {
         Player player = PlayerNameUtils.getPlayerExact(p);
         if (player != null) MagicSpells.getVolatileCodeHandler().setAbsorptionHearts(player, amount);
     }
-
-    @Override
-    public boolean modify(String p, double amount) {
-        Player player = PlayerNameUtils.getPlayerExact(p);
-        if (player == null) return false;
-        player.setHealth(MagicSpells.getVolatileCodeHandler().getAbsorptionHearts(player) + amount);
-        return true;
-    }
 }

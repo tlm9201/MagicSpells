@@ -18,15 +18,4 @@ public class MaximumNoDamageTicksVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setMaximumNoDamageTicks((int) amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setMaximumNoDamageTicks(p.getMaximumNoDamageTicks() + (int) amount);
-			return true;
-		}
-		return false;
-	}
-
 }

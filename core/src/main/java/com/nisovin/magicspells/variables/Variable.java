@@ -35,12 +35,6 @@ public abstract class Variable {
 		// No op
 	}
 	
-	public final boolean modify(Player player, double amount) {
-		return modify(player.getName(), amount);
-	}
-	
-	public abstract boolean modify(String player, double amount);
-	
 	public final void set(Player player, double amount) {
 		set(player.getName(), amount);
 	}

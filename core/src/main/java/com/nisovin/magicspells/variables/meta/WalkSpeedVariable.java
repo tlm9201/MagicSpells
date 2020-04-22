@@ -19,15 +19,4 @@ public class WalkSpeedVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setWalkSpeed((float) amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setWalkSpeed(p.getWalkSpeed() + (float) amount);
-			return true;
-		}
-		return false;
-	}
-
 }

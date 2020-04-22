@@ -19,15 +19,4 @@ public class FlySpeedVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setFlySpeed((float) amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setFlySpeed(p.getFlySpeed() + (float) amount);
-			return true;
-		}
-		return false;
-	}
-
 }

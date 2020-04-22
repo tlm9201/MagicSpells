@@ -23,17 +23,4 @@ public class VelocityZVariable extends MetaVariable {
 			p.setVelocity(velocity);
 		}
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			Vector velocity = p.getVelocity();
-			velocity.setZ(velocity.getZ() + amount);
-			p.setVelocity(velocity);
-			return true;
-		}
-		return false;
-	}
-	
 }

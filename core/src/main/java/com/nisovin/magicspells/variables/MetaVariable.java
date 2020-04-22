@@ -14,12 +14,6 @@ public abstract class MetaVariable extends Variable {
 	protected void init() {
 		permanent = false;
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		// No op
-		return false;
-	}
 
 	@Override
 	public void set(String player, double amount) {

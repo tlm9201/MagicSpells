@@ -282,6 +282,9 @@ public class CastCommand implements CommandExecutor, TabCompleter {
                 Player player = Bukkit.getPlayer(playerName);
 
                 Variable variable = variableManager.getVariable(var);
+                // Could do with a few improvements (more debug overall for commands), but this is how it was handled before.
+                if (variable == null) return true;
+
                 VariableMod variableMod = new VariableMod(varData);
                 VariableMod.Operation op = variableMod.getOperation();
 
@@ -290,7 +293,7 @@ public class CastCommand implements CommandExecutor, TabCompleter {
                 }
                 else {
                     double value = variableMod.getValue(player, null);
-                    variableManager.set(var, playerName, op.applyTo(variable.getValue(player), value));
+                    variableManager.set(var, playerName, op.applyTo(variable.getValue(playerName), value));
                 }
                 return true;
             }

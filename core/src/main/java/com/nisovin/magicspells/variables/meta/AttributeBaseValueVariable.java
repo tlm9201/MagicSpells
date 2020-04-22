@@ -51,24 +51,6 @@ public class AttributeBaseValueVariable extends MetaVariable {
 		
 		p.getAttribute(targetAttribute).setBaseValue(amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		if (!safetyChecked) {
-			safeHere = calculateIsSafeHere();
-			safetyChecked = true;
-		}
-		
-		// Not usable here
-		if (!safeHere) return false;
-		
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p == null) return false;
-		
-		AttributeInstance attributeInstance = p.getAttribute(targetAttribute);
-		attributeInstance.setBaseValue(attributeInstance.getBaseValue() + amount);
-		return true;
-	}
 
 	private boolean calculateIsSafeHere() {
 		boolean safe = CompatBasics.runsWithoutError(() -> targetAttribute = Attribute.valueOf(attributeName));

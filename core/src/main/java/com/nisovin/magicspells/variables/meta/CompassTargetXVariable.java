@@ -24,17 +24,4 @@ public class CompassTargetXVariable extends MetaVariable {
 			p.setCompassTarget(to);
 		}
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			Location to = p.getCompassTarget();
-			to.setX((float) (to.getX() + amount));
-			p.setCompassTarget(to);
-			return true;
-		}
-		return false;
-	}
-	
 }

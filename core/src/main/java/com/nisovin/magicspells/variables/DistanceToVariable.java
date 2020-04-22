@@ -48,12 +48,6 @@ public class DistanceToVariable extends Variable {
 	}
 
 	@Override
-	public boolean modify(String player, double amount) {
-		// No op
-		return false;
-	}
-
-	@Override
 	public void set(String player, double amount) {
 		// No op
 	}

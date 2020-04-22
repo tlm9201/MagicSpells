@@ -19,15 +19,4 @@ public class ExperienceVariable extends MetaVariable {
 		Player p = PlayerNameUtils.getPlayerExact(player);
 		if (p != null) p.setExp((int) amount);
 	}
-	
-	@Override
-	public boolean modify(String player, double amount) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) {
-			p.setExp(p.getExp() + (float) amount);
-			return true;
-		}
-		return false;
-	}
-
 }
