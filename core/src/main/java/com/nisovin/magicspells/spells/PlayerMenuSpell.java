@@ -158,9 +158,8 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         if(playerModifiers != null) players.removeIf(player -> !playerModifiers.check(player));
         if(radius > 0) players.removeIf(player -> opener.getLocation().distance(player.getLocation()) > radius);
 
-        double rows = players.size()/9;
-        if(Math.round(rows*10%10) < 5) rows += .5;
-        Inventory inv = Bukkit.createInventory(opener, Math.toIntExact(Math.round(rows) * 9), translate(opener, null, title));
+        int size = (int) Math.ceil((players.size()+1) / 9.0) * 9;
+        Inventory inv = Bukkit.createInventory(opener, size, translate(opener, null, title));
 
         for(int i = 0; i < players.size(); i++) {
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
