@@ -6,6 +6,7 @@ import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -14,6 +15,8 @@ import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+
+import io.papermc.lib.PaperLib;
 
 public class GateSpell extends InstantSpell {
 
@@ -86,12 +89,14 @@ public class GateSpell extends InstantSpell {
 			
 			Location from = livingEntity.getLocation();
 			Location to = b.getLocation();
-			boolean teleported = livingEntity.teleport(location);
-			if (!teleported) {
+			boolean canTeleport = (!(livingEntity instanceof Vehicle)) && !livingEntity.isDead();
+			if (!canTeleport) {
 				MagicSpells.error("GateSpell '" + internalName + "': teleport prevented!");
 				sendMessage(strGateFailed, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+			PaperLib.teleportAsync(livingEntity, location);
+
 			playSpellEffects(EffectPosition.CASTER, from);
 			playSpellEffects(EffectPosition.TARGET, to);
 		}

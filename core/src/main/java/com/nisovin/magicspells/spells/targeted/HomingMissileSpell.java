@@ -43,12 +43,14 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 	private String groundSpellName;
 	private String modifierSpellName;
 	private String durationSpellName;
+	private String entityLocationSpellName;
 
 	private Subspell hitSpell;
 	private Subspell airSpell;
 	private Subspell groundSpell;
 	private Subspell modifierSpell;
 	private Subspell durationSpell;
+	private Subspell entityLocationSpell;
 
 	private double maxDuration;
 
@@ -86,6 +88,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
 		durationSpellName = getConfigString("spell-after-duration", "");
+		entityLocationSpellName = getConfigString("spell-on-entity-location", "");
 
 		maxDuration = getConfigDouble("max-duration", 20) * (double) TimeUtil.MILLISECONDS_PER_SECOND;
 
@@ -145,6 +148,12 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		if (!modifierSpell.process() || !modifierSpell.isTargetedLocationSpell()) {
 			if (!modifierSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
 			modifierSpell = null;
+		}
+
+		entityLocationSpell = new Subspell(entityLocationSpellName);
+		if (!entityLocationSpell.process() || !entityLocationSpell.isTargetedLocationSpell()) {
+			if (!entityLocationSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
+			entityLocationSpell = null;
 		}
 	}
 
@@ -296,27 +305,27 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 			counter++;
 
-			// Check for hit
-			if (hitSpell != null) {
-				hitBox.setCenter(currentLocation);
-				if (hitBox.contains(targetLoc)) {
-					SpellPreImpactEvent preImpact = new SpellPreImpactEvent(hitSpell.getSpell(), thisSpell, caster, target, power);
-					EventUtil.call(preImpact);
-					// Should we bounce the missile back?
-					if (!preImpact.getRedirected()) {
+			if (hitSpell == null) return;
 
-						// Apparently didn't get redirected, carry out the plans
-						if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(caster, target, power);
-						else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(caster, target.getLocation(), power);
+			hitBox.setCenter(currentLocation);
+			if (hitBox.contains(targetLoc)) {
+				SpellPreImpactEvent preImpact = new SpellPreImpactEvent(hitSpell.getSpell(), thisSpell, caster, target, power);
+				EventUtil.call(preImpact);
+				// Should we bounce the missile back?
+				if (!preImpact.getRedirected()) {
 
-						playSpellEffects(EffectPosition.TARGET, target);
-						stop();
-					} else {
-						redirect();
-						power = preImpact.getPower();
-					}
+					// Apparently didn't get redirected, carry out the plans
+					if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(caster, target, power);
+					else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(caster, target.getLocation(), power);
+					if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, currentLocation, power);
+					playSpellEffects(EffectPosition.TARGET, target);
+					stop();
+				} else {
+					redirect();
+					power = preImpact.getPower();
 				}
 			}
+
 		}
 
 		private void playIntermediateEffectLocations(Location old, Vector movement) {
