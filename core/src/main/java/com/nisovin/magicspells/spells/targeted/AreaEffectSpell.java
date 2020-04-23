@@ -2,7 +2,7 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -14,7 +14,6 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.BoundingBox;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -135,13 +134,10 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		Vector vLoc = livingEntity != null ? livingEntity.getLocation().toVector() : location.toVector();
 		Vector facing = livingEntity != null ? livingEntity.getLocation().getDirection() : location.getDirection();
 
-		BoundingBox box = new BoundingBox(location, hRadius, vRadius);
-		List<Entity> entities = new ArrayList<>(location.getWorld().getEntitiesByClasses(LivingEntity.class));
-		Collections.shuffle(entities);
+		Collection<Entity> entities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
 
 		for (Entity e : entities) {
-			if (e == null) continue;
-			if (!box.contains(e)) continue;
+			if (!(e instanceof LivingEntity)) continue;
 			if (pointBlank && cone > 0) {
 				Vector dir = e.getLocation().toVector().subtract(vLoc);
 				if (FastMath.toDegrees(FastMath.abs(dir.angle(facing))) > cone) continue;

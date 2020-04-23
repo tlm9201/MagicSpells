@@ -262,10 +262,10 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		private boolean pulse() {
 			if (caster == null) {
-				if (material.equals(block.getType()) && block.getChunk().isLoaded()) return activate();
+				if (material.equals(block.getType()) && block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) return activate();
 				stop();
 				return true;
-			} else if (caster.isValid() && material.equals(block.getType()) && block.getChunk().isLoaded()) {
+			} else if (caster.isValid() && material.equals(block.getType()) && block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) {
 				if (maxDistanceSquared > 0 && (!LocationUtil.isSameWorld(location, caster) || location.distanceSquared(caster.getLocation()) > maxDistanceSquared)) {
 					stop();
 					return true;
@@ -294,7 +294,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		}
 
 		private void stop() {
-			if (!block.getChunk().isLoaded()) block.getChunk().load();
+			if (!block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) block.getChunk().load();
 			block.setType(Material.AIR);
 			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation());
 			if (spellOnBreak == null) return;
