@@ -332,12 +332,9 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		if (castPower.containsKey(id)) power *= castPower.get(id);
 		if (spell.isTargetedEntitySpell() && castEntityTarget.containsKey(id)) spell.castAtEntity(player, castEntityTarget.get(id), power);
 		else if (spell.isTargetedLocationSpell() && castLocTarget.containsKey(id)) spell.castAtLocation(player, castLocTarget.get(id), power);
-		else {
-			if (bypassNormalCast) spell.cast(player, power);
-			else spell.getSpell().cast(player, power, MagicSpells.NULL_ARGS);
-			return option.stayOpen ? (spell.getSpell() instanceof MenuSpell ? "reopen" : "ignore") : "close";
-		}
-		return option.stayOpen ? "ignore" : "close";
+		else if (bypassNormalCast) spell.cast(player, power);
+		else spell.getSpell().cast(player, power, MagicSpells.NULL_ARGS);
+		return option.stayOpen ? "reopen" : "close";
 	}
 
 	@EventHandler
