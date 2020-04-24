@@ -49,4 +49,7 @@ public interface VolatileCodeHandle {
 
 	void setCustomModelData(ItemMeta meta, int data);
 
+	ItemStack setNBTString(ItemStack item, String key, String value);
+
+	String getNBTString(ItemStack item, String key);
 }

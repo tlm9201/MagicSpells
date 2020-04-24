@@ -30,6 +30,7 @@ import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
+import net.minecraft.server.v1_14_R1.NBTTagCompound
 
 import net.minecraft.server.v1_14_R1.*
 
@@ -281,4 +282,20 @@ class VolatileCode1_14_R1: VolatileCodeHandle {
         meta?.setCustomModelData(data)
     }
 
+    private fun getNBTTag(item: ItemStack): NBTTagCompound {
+        val itemNms: nmsItemStack = CraftItemStack.asNMSCopy(item)
+        return (if (itemNms.hasTag()) itemNms.tag else NBTTagCompound()) as NBTTagCompound
+    }
+
+    override fun setNBTString(item: ItemStack, key: String, value: String): ItemStack {
+        val tag = getNBTTag(item)
+        tag.setString(key, value)
+        val itemNms: nmsItemStack = CraftItemStack.asNMSCopy(item)
+        itemNms.tag = tag
+        return CraftItemStack.asBukkitCopy(itemNms)
+    }
+
+    override fun getNBTString(item: ItemStack, key: String): String {
+        return getNBTTag(item).getString(key)
+    }
 }
