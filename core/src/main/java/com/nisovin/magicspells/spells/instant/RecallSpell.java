@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spells.instant;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
@@ -12,6 +13,8 @@ import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+
+import io.papermc.lib.PaperLib;
 
 public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
@@ -80,12 +83,14 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 			}
 			
 			Location from = livingEntity.getLocation();
-			boolean teleported = livingEntity.teleport(markLocation);
-			if (!teleported) {
+			boolean canTeleport = (!(livingEntity instanceof Vehicle)) && !livingEntity.isDead();
+			if (!canTeleport) {
 				MagicSpells.error("Recall teleport blocked for " + livingEntity.getName());
 				sendMessage(strRecallFailed, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+			PaperLib.teleportAsync(livingEntity, markLocation);
+
 			playSpellEffects(EffectPosition.CASTER, from);
 			playSpellEffects(EffectPosition.TARGET, markLocation);
 		}
@@ -96,7 +101,7 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		Location mark = getRecallLocation(caster);
 		if (mark == null) return false;
-		target.teleport(mark);
+		PaperLib.teleportAsync(target, mark);
 		return true;
 	}
 
