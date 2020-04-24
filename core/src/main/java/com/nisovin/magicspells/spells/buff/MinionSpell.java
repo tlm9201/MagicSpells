@@ -381,7 +381,7 @@ public class MinionSpell extends BuffSpell {
 
 			// If distance between previous target and the player is less than between the new target, the minion will keep focusing the previous target
 			LivingEntity previousTarget = targets.get(pl.getUniqueId());
-			if (previousTarget != null && pl.getLocation().distanceSquared(previousTarget.getLocation()) < pl.getLocation().distanceSquared(damager.getLocation())) return;
+			if (previousTarget != null && previousTarget.getWorld().equals(pl.getWorld()) && pl.getLocation().distanceSquared(previousTarget.getLocation()) < pl.getLocation().distanceSquared(damager.getLocation())) return;
 
 			targets.put(pl.getUniqueId(), (LivingEntity) damager);
 			MagicSpells.getVolatileCodeHandler().setTarget(minions.get(pl.getUniqueId()), (LivingEntity) damager);
