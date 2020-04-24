@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.volatilecode.v1_13_R2
 
-import java.util.UUID
-
+import java.util.*
 import java.io.File
 import java.io.FileWriter
 import java.lang.reflect.Field
@@ -19,19 +18,21 @@ import org.bukkit.event.entity.EntityTargetEvent
 import org.bukkit.craftbukkit.v1_13_R2.CraftWorld
 import org.bukkit.event.entity.ExplosionPrimeEvent
 import org.bukkit.craftbukkit.v1_13_R2.CraftServer
-import org.bukkit.craftbukkit.v1_13_R2.entity.CraftEntity
 import org.bukkit.craftbukkit.v1_13_R2.inventory.CraftItemStack
 
-import com.nisovin.magicspells.util.*
 import com.nisovin.magicspells.MagicSpells
+import com.nisovin.magicspells.util.BoundingBox
 import com.nisovin.magicspells.util.compat.EventUtil
-import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled
+import com.nisovin.magicspells.util.SafetyCheckUtils
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
+import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled
 
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 
 import net.minecraft.server.v1_13_R2.*
+
+import kotlin.collections.ArrayList
 
 private typealias nmsItemStack = net.minecraft.server.v1_13_R2.ItemStack
 
@@ -275,5 +276,22 @@ class VolatileCode1_13_R2: VolatileCodeHandle {
 
     override fun setCustomModelData(meta: ItemMeta?, data: Int) {
 
+    }
+
+    private fun getNBTTag(item: ItemStack): NBTTagCompound {
+        val itemNms: nmsItemStack = CraftItemStack.asNMSCopy(item)
+        return (if (itemNms.hasTag()) itemNms.tag else NBTTagCompound()) as NBTTagCompound
+    }
+
+    override fun setNBTString(item: ItemStack, key: String, value: String): ItemStack {
+        val tag = getNBTTag(item)
+        tag.setString(key, value)
+        val itemNms: nmsItemStack = CraftItemStack.asNMSCopy(item)
+        itemNms.tag = tag
+        return CraftItemStack.asBukkitCopy(itemNms)
+    }
+
+    override fun getNBTString(item: ItemStack, key: String): String {
+        return getNBTTag(item).getString(key)
     }
 }

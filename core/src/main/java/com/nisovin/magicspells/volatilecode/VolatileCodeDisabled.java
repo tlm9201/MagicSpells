@@ -117,4 +117,15 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 
 	}
 
+	@Override
+	public ItemStack setNBTString(ItemStack item, String key, String value) {
+		// Need volatile code for this
+		return null;
+	}
+
+	@Override
+	public String getNBTString(ItemStack item, String key) {
+		// Need volatile code for this
+		return null;
+	}
 }
