@@ -236,14 +236,14 @@ public class MinionSpell extends BuffSpell {
 		loc.setY(loc.getY() + spawnOffset.getY());
 
 		// Spawn creature
-		LivingEntity minion = (LivingEntity)player.getWorld().spawnEntity(loc, creatureType);
+		LivingEntity minion = (LivingEntity) player.getWorld().spawnEntity(loc, creatureType);
 		if (!(minion instanceof Creature)) {
 			minion.remove();
 			MagicSpells.error("MinionSpell '" + internalName + "' Can only summon creatures!");
 			return false;
 		}
 
-		if (minion instanceof Zombie) ((Zombie)minion).setBaby(baby);
+		if (minion instanceof Zombie) ((Zombie) minion).setBaby(baby);
 		minion.setGravity(gravity);
 		minion.setCustomName(Util.colorize(minionName.replace("%c", player.getName())));
 		minion.setCustomNameVisible(true);
@@ -410,7 +410,7 @@ public class MinionSpell extends BuffSpell {
 			}
 
 			// If the minion is far away from the owner, forget about attacking
-			if (owner.getLocation().distanceSquared(minion.getLocation()) > maxDistance * maxDistance) return;
+			if (owner.getWorld().equals(minion.getWorld()) && owner.getLocation().distanceSquared(minion.getLocation()) > maxDistance * maxDistance) return;
 
 			// If the owner has no targets and someone will attack the minion, he will strike back
 			if (targets.get(owner.getUniqueId()) == null || targets.get(owner.getUniqueId()).isDead() || !targets.get(owner.getUniqueId()).isValid()) {
@@ -532,7 +532,7 @@ public class MinionSpell extends BuffSpell {
 		if (!isActive(pl)) return;
 		LivingEntity minion = minions.get(pl.getUniqueId());
 
-		if (pl.getLocation().distanceSquared(minion.getLocation()) > maxDistance * maxDistance || targets.get(pl.getUniqueId()) == null || !targets.containsKey(pl.getUniqueId())) {
+		if ((pl.getWorld().equals(minion.getWorld()) && pl.getLocation().distanceSquared(minion.getLocation()) > maxDistance * maxDistance) || targets.get(pl.getUniqueId()) == null || !targets.containsKey(pl.getUniqueId())) {
 
 			// The minion has a target but he is far away from his owner, remove his current target
 			if (targets.get(pl.getUniqueId()) != null) {

@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
+import java.util.Set;
 import java.util.List;
 
 import org.bukkit.Location;
@@ -21,6 +22,8 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.events.SpellPreImpactEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
+
+import de.slikey.effectlib.Effect;
 
 public class HomingMissileSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
@@ -200,6 +203,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 	private class MissileTracker implements Runnable {
 
+		Set<Effect> effectSet;
+
 		LivingEntity caster;
 		LivingEntity target;
 		Location currentLocation;
@@ -244,6 +249,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			currentLocation.setY(currentLocation.getY() + relativeOffset.getY());
 
 			hitBox = new BoundingBox(currentLocation, hitRadius, verticalHitRadius);
+
+			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, currentLocation);
 		}
 
 		@Override
@@ -300,6 +307,11 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			// Update the location direction and play the effect
 			currentLocation.setDirection(currentVelocity);
 			playMissileEffect(currentLocation);
+			if (effectSet != null) {
+				for (Effect effect : effectSet) {
+					effect.setLocation(currentLocation);
+				}
+			}
 
 			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation);
 
@@ -353,6 +365,11 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		private void stop() {
 			playSpellEffects(EffectPosition.DELAYED, currentLocation);
 			MagicSpells.cancelTask(taskId);
+			if (effectSet != null) {
+				for (Effect effect : effectSet) {
+					effect.cancel();
+				}
+			}
 			caster = null;
 			target = null;
 			currentLocation = null;
