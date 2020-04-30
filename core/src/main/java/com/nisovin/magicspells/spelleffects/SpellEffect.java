@@ -16,6 +16,7 @@ import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 
+import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.util.VectorUtils;
 
 public abstract class SpellEffect {
@@ -107,7 +108,19 @@ public abstract class SpellEffect {
 	}
 	
 	protected abstract void loadFromConfig(ConfigurationSection config);
-	
+
+	private void applyOffsets(Location loc) {
+		if (offset.getX() != 0 || offset.getY() != 0 || offset.getZ() != 0) loc.add(offset);
+		if (relativeOffset.getX() != 0 || relativeOffset.getY() != 0 || relativeOffset.getZ() != 0) loc.add(VectorUtils.rotateVector(relativeOffset, loc));
+		if (zOffset != 0) {
+			Vector locDirection = loc.getDirection().normalize();
+			Vector horizOffset = new Vector(-locDirection.getZ(), 0.0, locDirection.getX()).normalize();
+			loc.add(horizOffset.multiply(zOffset)).getBlock().getLocation();
+		}
+		if (heightOffset != 0) loc.setY(loc.getY() + heightOffset);
+		if (forwardOffset != 0) loc.add(loc.getDirection().setY(0).normalize().multiply(forwardOffset));
+	}
+
 	/**
 	 * Plays an effect on the specified entity.
 	 * @param entity the entity to play the effect on
@@ -135,23 +148,35 @@ public abstract class SpellEffect {
 		MagicSpells.scheduleDelayedTask(() -> playEffectLocationReal(location), delay);
 		return null;
 	}
+
+	public final Effect playEffectLib(final Location location) {
+		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+		if (!locationModifiers.check(null, location)) return null;
+		if (delay <= 0) return playEffectLibLocationReal(location);
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
+		return null;
+	}
 	
 	private Runnable playEffectLocationReal(Location location) {
 		if (location == null) return playEffectLocation(null);
 		Location loc = location.clone();
-		if (offset.getX() != 0 || offset.getY() != 0 || offset.getZ() != 0) loc.add(offset);
-		if (relativeOffset.getX() != 0 || relativeOffset.getY() != 0 || relativeOffset.getZ() != 0) loc.add(VectorUtils.rotateVector(relativeOffset, loc));
-		if (zOffset != 0) {
-			Vector locDirection = loc.getDirection().normalize();
-			Vector horizOffset = new Vector(-locDirection.getZ(), 0.0, locDirection.getX()).normalize();
-			loc.add(horizOffset.multiply(zOffset)).getBlock().getLocation();
-		}
-		if (heightOffset != 0) loc.setY(loc.getY() + heightOffset);
-		if (forwardOffset != 0) loc.add(loc.getDirection().setY(0).normalize().multiply(forwardOffset));
+		applyOffsets(loc);
 		return playEffectLocation(loc);
+	}
+
+	private Effect playEffectLibLocationReal(Location location) {
+		if (location == null) return playEffectLibLocation(null);
+		Location loc = location.clone();
+		applyOffsets(loc);
+		return playEffectLibLocation(loc);
 	}
 	
 	protected Runnable playEffectLocation(Location location) {
+		//expect to be overridden
+		return null;
+	}
+
+	protected Effect playEffectLibLocation(Location location) {
 		//expect to be overridden
 		return null;
 	}

@@ -24,9 +24,13 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
 import com.nisovin.magicspells.spells.instant.ParticleProjectileSpell;
 
+import de.slikey.effectlib.Effect;
+
 public class ProjectileTracker implements Runnable {
 
 	private Random rand = new Random();
+
+	private Set<Effect> effectSet;
 
 	private LivingEntity caster;
 	private float power;
@@ -195,7 +199,10 @@ public class ProjectileTracker implements Runnable {
 		hitBox = new BoundingBox(currentLocation, horizontalHitRadius, verticalHitRadius);
 		currentLocation.setDirection(currentVelocity);
 		tracker = this;
-		if (spell != null) ParticleProjectileSpell.getProjectileTrackers().add(tracker);
+		if (spell != null) {
+			effectSet = spell.playEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
+			ParticleProjectileSpell.getProjectileTrackers().add(tracker);
+		}
 		taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
 	}
 
@@ -283,6 +290,12 @@ public class ProjectileTracker implements Runnable {
 
 		// Rotate effects properly
 		currentLocation.setDirection(currentVelocity);
+
+		if (effectSet != null) {
+			for (Effect effect : effectSet) {
+				effect.setLocation(currentLocation);
+			}
+		}
 
 		// Play effects
 		if (spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation);
@@ -474,6 +487,11 @@ public class ProjectileTracker implements Runnable {
 		if (removeTracker && spell != null) ParticleProjectileSpell.getProjectileTrackers().remove(tracker);
 		if (spell != null) spell.playEffects(EffectPosition.DELAYED, currentLocation);
 		MagicSpells.cancelTask(taskId);
+		if (effectSet != null) {
+			for (Effect effect : effectSet) {
+				effect.cancel();
+			}
+		}
 		caster = null;
 		startLocation = null;
 		previousLocation = null;

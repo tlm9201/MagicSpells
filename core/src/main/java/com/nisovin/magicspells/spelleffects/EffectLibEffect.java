@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
 
+import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.EffectManager;
 
 public class EffectLibEffect extends SpellEffect {
@@ -23,6 +24,11 @@ public class EffectLibEffect extends SpellEffect {
 	protected Runnable playEffectLocation(Location location) {
 		manager.start(className, effectLibSection, location);
 		return null;
+	}
+
+	@Override
+	protected Effect playEffectLibLocation(Location location) {
+		return manager.start(className, effectLibSection, location);
 	}
 	
 }

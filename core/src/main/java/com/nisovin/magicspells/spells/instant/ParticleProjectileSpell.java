@@ -26,6 +26,8 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
+import de.slikey.effectlib.Effect;
+
 public class ParticleProjectileSpell extends InstantSpell implements TargetedLocationSpell, TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
 	private static Set<ProjectileTracker> trackerSet;
@@ -392,6 +394,10 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 	public void playEffects(EffectPosition position, Entity entity) {
 		playSpellEffects(position, entity);
+	}
+
+	public Set<Effect> playEffectsProjectile(EffectPosition position, Location location) {
+		return playSpellEffectLibEffects(position, location);
 	}
 
 	private void setupProjectile(ProjectileTracker tracker) {

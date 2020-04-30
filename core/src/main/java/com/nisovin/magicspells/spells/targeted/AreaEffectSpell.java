@@ -11,6 +11,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -134,6 +135,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		Vector vLoc = livingEntity != null ? livingEntity.getLocation().toVector() : location.toVector();
 		Vector facing = livingEntity != null ? livingEntity.getLocation().getDirection() : location.getDirection();
 
+		location = Util.makeFinite(location);
 		Collection<Entity> entities = location.getWorld().getNearbyEntities(location, hRadius, vRadius, hRadius);
 
 		for (Entity e : entities) {
