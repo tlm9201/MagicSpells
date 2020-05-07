@@ -150,6 +150,7 @@ public abstract class Condition {
 		conditions.put("onleash", OnLeashCondition.class);
 		conditions.put("griefpreventionisowner", GriefPreventionIsOwnerCondition.class);
 		conditions.put("slotselected", SlotSelectedCondition.class);
+		conditions.put("hasscoreboardtag", HasScoreboardTagCondition.class);
 	}
 
 }
