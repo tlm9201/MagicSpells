@@ -51,6 +51,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private boolean targetable;
 	private boolean totemNameVisible;
 	private boolean onlyCountOnSuccess;
+	private boolean centerStand;
 
 	private String strAtCap;
 	private String totemName;
@@ -99,6 +100,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		targetable = getConfigBoolean("targetable", true);
 		totemNameVisible = getConfigBoolean("totem-name-visible", true);
 		onlyCountOnSuccess = getConfigBoolean("only-count-on-success", false);
+		centerStand = getConfigBoolean("center-stand", true);
 
 		strAtCap = getConfigString("str-at-cap", "You have too many effects at once.");
 		totemName = getConfigString("totem-name", "");
@@ -186,12 +188,18 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		else if (yOffset < 0) block = block.getRelative(BlockFace.DOWN, yOffset);
 
 		if (BlockUtils.isAir(block.getType()) || block.getType() == Material.SNOW || block.getType() == Material.TALL_GRASS) {
-			createTotem(caster, block.getLocation(), power);
+			if (centerStand == false) {
+				Location loc = target.clone();
+				createTotem(caster, loc, power);
+			} else createTotem(caster, block.getLocation(), power);
 			return true;
 		}
 		block = block.getRelative(BlockFace.UP);
 		if (BlockUtils.isAir(block.getType()) || block.getType() == Material.SNOW || block.getType() == Material.TALL_GRASS) {
-			createTotem(caster, block.getLocation(), power);
+			if (centerStand == false) {
+				Location loc = target.clone();
+				createTotem(caster, loc, power);
+			} else createTotem(caster, block.getLocation(), power);
 			return true;
 		}
 		return false;
@@ -203,10 +211,12 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	private void createTotem(LivingEntity caster, Location loc, float power) {
-		totems.add(new Totem(caster, loc, power));
+		Location loc2 = loc.clone();
+		if (centerStand == true) loc2 = loc.clone().add(0.5, 0, 0.5);
+		totems.add(new Totem(caster, loc2, power));
 		ticker.start();
-		if (caster != null) playSpellEffects(caster, loc);
-		else playSpellEffects(EffectPosition.TARGET, loc);
+		if (caster != null) playSpellEffects(caster, loc2);
+		else playSpellEffects(EffectPosition.TARGET, loc2);
 	}
 
 	@EventHandler
@@ -264,6 +274,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			}
 			totemEquipment = armorStand.getEquipment();
 			armorStand.setGravity(gravity);
+			armorStand.addScoreboardTag("MS_Totem");
 			totemEquipment.setItemInMainHand(mainHand);
 			totemEquipment.setItemInOffHand(hand);
 			totemEquipment.setHelmet(helmet);
