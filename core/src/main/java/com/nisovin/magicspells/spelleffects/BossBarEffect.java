@@ -31,8 +31,8 @@ public class BossBarEffect extends SpellEffect {
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		title = Util.colorize(config.getString("title", ""));
-		color = config.getString("color", "red").toUpperCase();
-		style = config.getString("style", "solid").toUpperCase();
+		color = config.getString("color", "red");
+		style = config.getString("style", "solid");
 		strVar = config.getString("variable", "");
 		maxValue = config.getDouble("max-value", 100);
 
@@ -41,13 +41,19 @@ public class BossBarEffect extends SpellEffect {
 			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
 		}
 
-		barColor = BarColor.valueOf(color);
-		if (barColor == null) {
+		try {
+			barColor = BarColor.valueOf(color.toUpperCase());
+		}
+		catch (IllegalArgumentException ignored) {
+			barColor = BarColor.WHITE;
 			MagicSpells.error("Wrong bar color defined! '" + color + "'");
 		}
 
-		barStyle = BarStyle.valueOf(style);
-		if (barStyle == null) {
+		try {
+			barStyle = BarStyle.valueOf(style.toUpperCase());
+		}
+		catch (IllegalArgumentException ignored) {
+			barStyle = BarStyle.SOLID;
 			MagicSpells.error("Wrong bar style defined! '" + style + "'");
 		}
 
