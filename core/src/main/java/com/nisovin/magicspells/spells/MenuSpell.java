@@ -272,8 +272,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		if (meta == null) return newItem;
 		meta.setDisplayName(Util.colorize(MagicSpells.doArgumentAndVariableSubstitution(meta.getDisplayName(), opener, args)));
 		List<String> lore = meta.getLore();
-		if (lore != null && lore.size() > 1) {
-			for (int i = 0; i < lore.size() - 1; i++) {
+		if (lore != null) {
+			for (int i = 0; i < lore.size(); i++) {
 				lore.set(i, Util.colorize(MagicSpells.doArgumentAndVariableSubstitution(lore.get(i), opener, args)));
 			}
 			meta.setLore(lore);
