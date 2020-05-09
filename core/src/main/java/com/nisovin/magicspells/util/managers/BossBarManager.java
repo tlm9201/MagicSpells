@@ -1,8 +1,6 @@
 package com.nisovin.magicspells.util.managers;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.HashMap;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarFlag;
@@ -10,51 +8,97 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
+import org.bukkit.NamespacedKey;
+
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 
 public class BossBarManager {
 
-	private Map<UUID, BossBar> bars = new HashMap<>();
+	private final String NAMESPACE_DEFAULT = "ms_default";
+	private final String NAMESPACE_VARIABLE = "ms_variable";
 
-	public void setPlayerBar(Player player, String title, double progress, BarStyle style, BarColor color) {
-		createBar(player, title, progress, style, color);
+	private final Set<Bar> bars = new HashSet<>();
+
+	public String getNamespaceVariable() {
+		return NAMESPACE_VARIABLE;
 	}
 
-	public void setPlayerBar(Player player, String title, double progress, BarStyle style) {
-		createBar(player, title, progress, style, BarColor.PURPLE);
+	private Bar findBar(Player player, String namespace) {
+		Bar finalBar = null;
+		if (namespace == null || namespace.isEmpty()) namespace = NAMESPACE_DEFAULT;
+		for (Bar bar : bars) {
+			if (bar.player.equals(player) && bar.namespace.equals(namespace)) {
+				finalBar = bar;
+				break;
+			}
+		}
+		return finalBar;
 	}
 
-	public void setPlayerBar(Player player, String title, double progress) {
-		createBar(player, title, progress, BarStyle.SOLID, BarColor.PURPLE);
+	public void setPlayerBar(Player player, String namespace, String title, double progress, BarStyle style, BarColor color) {
+		createBar(player, namespace, title, progress, style, color);
 	}
 
-	public void addPlayerBarFlag(Player player, BarFlag flag) {
-		BossBar bar = bars.get(player.getUniqueId());
+	public void setPlayerBar(Player player, String namespace, String title, double progress, BarStyle style) {
+		createBar(player, namespace, title, progress, style, BarColor.PURPLE);
+	}
+
+	public void setPlayerBar(Player player, String namespace, String title, double progress) {
+		createBar(player, namespace, title, progress, BarStyle.SOLID, BarColor.PURPLE);
+	}
+
+	public void addPlayerBarFlag(Player player, String namespace, BarFlag flag) {
+		Bar bar = findBar(player, namespace);
 		if (bar == null) return;
-		bar.addFlag(flag);
+		bar.bossbar.addFlag(flag);
 	}
 
-	public void removePlayerBar(Player player) {
-		BossBar bar = bars.remove(player.getUniqueId());
-		if (bar != null) bar.removeAll();
+	public void removePlayerBar(Player player, String namespace) {
+		Bar bar = findBar(player, namespace);
+		if (bar == null) return;
+		bar.bossbar.removeAll();
+		Bukkit.removeBossBar(createNamespace(namespace));
+		bars.remove(bar);
 	}
 
 	public void turnOff() {
-		bars.values().forEach(BossBar::removeAll);
+		bars.forEach(bar -> {
+			bar.bossbar.removeAll();
+			Bukkit.removeBossBar(createNamespace(bar.namespace));
+		});
 		bars.clear();
 	}
 
-	private void createBar(Player player, String title, double progress, BarStyle style, BarColor color) {
-		BossBar bar = bars.get(player.getUniqueId());
+	private void createBar(Player player, String namespace, String title, double progress, BarStyle style, BarColor color) {
+		if (namespace == null || namespace.isEmpty()) namespace = NAMESPACE_DEFAULT;
+		Bar bar = findBar(player, namespace);
 		if (bar == null) {
-			bar = Bukkit.createBossBar(Util.colorize(title), color, style);
-			bars.put(player.getUniqueId(), bar);
+			BossBar bossBar = Bukkit.createBossBar(createNamespace(namespace), Util.colorize(title), color, style);
+			bar = new Bar(bossBar, player, namespace);
+			bars.add(bar);
 		}
-		bar.setTitle(Util.colorize(title));
-		bar.setStyle(style);
-		bar.setColor(color);
-		bar.setProgress(progress);
-		bar.addPlayer(player);
+		BossBar bossBar = bar.bossbar;
+		bossBar.setTitle(Util.colorize(title));
+		bossBar.setStyle(style);
+		bossBar.setColor(color);
+		bossBar.setProgress(progress);
+		bossBar.addPlayer(player);
 	}
 
+	private NamespacedKey createNamespace(String namespace) {
+		return new NamespacedKey(MagicSpells.plugin, namespace);
+	}
+
+	private static class Bar {
+		final BossBar bossbar;
+		final Player player;
+		final String namespace;
+
+		Bar(BossBar bossbar, Player player, String namespace) {
+			this.bossbar = bossbar;
+			this.player = player;
+			this.namespace = namespace;
+		}
+	}
 }

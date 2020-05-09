@@ -187,10 +187,10 @@ public class VariableManager implements Listener {
 		if (var.bossBar == null) return;
 		if (var instanceof GlobalVariable) {
 			double pct = var.getValue("") / var.maxValue;
-			Util.forEachPlayerOnline(p -> MagicSpells.getBossBarManager().setPlayerBar(p, var.bossBar, pct));
+			Util.forEachPlayerOnline(p -> MagicSpells.getBossBarManager().setPlayerBar(p, MagicSpells.getBossBarManager().getNamespaceVariable(), var.bossBar, pct));
 		} else if (var instanceof PlayerVariable) {
 			Player p = PlayerNameUtils.getPlayerExact(player);
-			if (p != null) MagicSpells.getBossBarManager().setPlayerBar(p, var.bossBar, var.getValue(p) / var.maxValue);
+			if (p != null) MagicSpells.getBossBarManager().setPlayerBar(p, MagicSpells.getBossBarManager().getNamespaceVariable(), var.bossBar, var.getValue(p) / var.maxValue);
 		}
 	}
 
@@ -344,7 +344,7 @@ public class VariableManager implements Listener {
 	private void loadBossBar(Player player) {
 		for (Variable var : variables.values()) {
 			if (var.bossBar == null) continue;
-			MagicSpells.getBossBarManager().setPlayerBar(player, var.bossBar, var.getValue(player) / var.maxValue);
+			MagicSpells.getBossBarManager().setPlayerBar(player, MagicSpells.getBossBarManager().getNamespaceVariable(), var.bossBar, var.getValue(player) / var.maxValue);
 			break;
 		}
 	}

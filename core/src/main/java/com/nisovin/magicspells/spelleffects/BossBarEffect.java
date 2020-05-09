@@ -75,14 +75,14 @@ public class BossBarEffect extends SpellEffect {
 
 	private void createBar(Player player) {
 		if (variable != null) createVariableBar(player);
-		else MagicSpells.getBossBarManager().setPlayerBar(player, title, progress, barStyle, barColor);
-		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> MagicSpells.getBossBarManager().removePlayerBar(player), duration);
+		else MagicSpells.getBossBarManager().setPlayerBar(player, "", title, progress, barStyle, barColor);
+		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> MagicSpells.getBossBarManager().removePlayerBar(player, ""), duration);
 	}
 
 	private void createVariableBar(Player player) {
 		double diff = variable.getValue(player) / maxValue;
 		if (diff > 1 || diff < 0) return;
-		MagicSpells.getBossBarManager().setPlayerBar(player, title, diff, barStyle, barColor);
+		MagicSpells.getBossBarManager().setPlayerBar(player, "", title, diff, barStyle, barColor);
 	}
 
 }
