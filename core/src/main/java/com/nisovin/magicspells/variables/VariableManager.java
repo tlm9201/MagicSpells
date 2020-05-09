@@ -8,6 +8,8 @@ import java.io.BufferedWriter;
 import com.google.common.collect.Multimap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -69,9 +71,45 @@ public class VariableManager implements Listener {
 					else if (scorePos.equalsIgnoreCase("playerlist")) objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 					else objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 				}
-				String bossBar = section.getString(var + ".boss-bar", null);
+
 				boolean expBar = section.getBoolean(var + ".exp-bar", false);
-				variable.init(def, min, max, perm, objective, bossBar, expBar);
+
+				String bossbarTitle = null;
+				BarStyle bossbarStyle = null;
+				BarColor bossbarColor = null;
+				String bossBarNamespace = null;
+				// Reserve preceded handling.
+				if (section.isString(var + ".boss-bar")) bossbarTitle = section.getString(var + ".boss-bar");
+				else {
+					ConfigurationSection bossBar = section.getConfigurationSection(var + ".boss-bar");
+					if (bossBar != null) {
+						bossbarTitle = bossBar.getString("title");
+						String style = bossBar.getString("style");
+						String color = bossBar.getString("color");
+						if (style != null) {
+							try {
+								bossbarStyle = BarStyle.valueOf(style.toUpperCase());
+							}
+							catch (IllegalArgumentException ignored) {
+								MagicSpells.error("Variable '" + var + "' has an invalid bossbar style defined: '" + style + "'");
+							}
+						}
+						if (color != null) {
+							try {
+								bossbarColor = BarColor.valueOf(color.toUpperCase());
+							}
+							catch (IllegalArgumentException ignored) {
+								MagicSpells.error("Variable '" + var + "' has an invalid bossbar color defined: '" + color + "'");
+							}
+						}
+						bossBarNamespace = bossBar.getString("namespace");
+					}
+				}
+				if (bossbarStyle == null) bossbarStyle = BarStyle.SOLID;
+				if (bossbarColor == null) bossbarColor = BarColor.PURPLE;
+				if (bossBarNamespace == null || bossBarNamespace.isEmpty()) bossBarNamespace = MagicSpells.getBossBarManager().getNamespaceVariable();
+
+				variable.init(def, min, max, perm, objective, expBar, bossbarTitle, bossbarStyle, bossbarColor, bossBarNamespace);
 				variable.loadExtraData(varSection);
 				variables.put(var, variable);
 				MagicSpells.debug(2, "Loaded variable " + var);
@@ -88,7 +126,7 @@ public class VariableManager implements Listener {
 		loadGlobalVars();
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			loadPlayerVars(player.getName(), Util.getUniqueId(player));
-			loadBossBar(player);
+			loadBossBars(player);
 			loadExpBar(player);
 		}
 
@@ -184,13 +222,13 @@ public class VariableManager implements Listener {
 	}
 
 	private void updateBossBar(Variable var, String player) {
-		if (var.bossBar == null) return;
+		if (var.bossbarTitle == null) return;
 		if (var instanceof GlobalVariable) {
 			double pct = var.getValue("") / var.maxValue;
-			Util.forEachPlayerOnline(p -> MagicSpells.getBossBarManager().setPlayerBar(p, MagicSpells.getBossBarManager().getNamespaceVariable(), var.bossBar, pct));
+			Util.forEachPlayerOnline(p -> MagicSpells.getBossBarManager().setPlayerBar(p, var.bossbarNamespace, var.bossbarTitle, pct, var.bossbarStyle, var.bossbarColor));
 		} else if (var instanceof PlayerVariable) {
 			Player p = PlayerNameUtils.getPlayerExact(player);
-			if (p != null) MagicSpells.getBossBarManager().setPlayerBar(p, MagicSpells.getBossBarManager().getNamespaceVariable(), var.bossBar, var.getValue(p) / var.maxValue);
+			if (p != null) MagicSpells.getBossBarManager().setPlayerBar(p, var.bossbarNamespace, var.bossbarTitle, var.getValue(p) / var.maxValue, var.bossbarStyle, var.bossbarColor);
 		}
 	}
 
@@ -341,11 +379,10 @@ public class VariableManager implements Listener {
 		}
 	}
 
-	private void loadBossBar(Player player) {
+	private void loadBossBars(Player player) {
 		for (Variable var : variables.values()) {
-			if (var.bossBar == null) continue;
-			MagicSpells.getBossBarManager().setPlayerBar(player, MagicSpells.getBossBarManager().getNamespaceVariable(), var.bossBar, var.getValue(player) / var.maxValue);
-			break;
+			if (var.bossbarTitle == null) continue;
+			MagicSpells.getBossBarManager().setPlayerBar(player, var.bossbarNamespace, var.bossbarTitle, var.getValue(player) / var.maxValue, var.bossbarStyle, var.bossbarColor);
 		}
 	}
 
@@ -367,7 +404,7 @@ public class VariableManager implements Listener {
 	public void onJoin(PlayerJoinEvent event) {
 		final Player player = event.getPlayer();
 		loadPlayerVars(player.getName(), Util.getUniqueId(player));
-		loadBossBar(player);
+		loadBossBars(player);
 		MagicSpells.scheduleDelayedTask(() -> loadExpBar(player), 10);
 	}
 

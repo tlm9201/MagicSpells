@@ -4,8 +4,8 @@ public abstract class MetaVariable extends Variable {
 
 	public MetaVariable() {
 		permanent = false;
-		bossBar = null;
 		expBar = false;
+		bossbarTitle = null;
 		objective = null;
 		minValue = Double.MIN_VALUE;
 	}

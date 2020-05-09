@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.variables;
 
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.configuration.ConfigurationSection;
@@ -12,22 +14,28 @@ public abstract class Variable {
 	protected double minValue = 0;
 	protected boolean permanent;
 	protected Objective objective;
-	protected String bossBar;
 	protected boolean expBar;
-	
+	protected String bossbarTitle;
+	protected BarStyle bossbarStyle;
+	protected BarColor bossbarColor;
+	protected String bossbarNamespace;
+
 	public Variable() {
 		// No op
 	}
 	
-	public final void init(double defaultValue, double minValue, double maxValue, boolean permanent, Objective objective, String bossBar, boolean expBar) {
+	public final void init(double defaultValue, double minValue, double maxValue, boolean permanent, Objective objective, boolean expBar, String bossbarTitle, BarStyle bossbarStyle, BarColor bossbarColor, String bossbarNamespace) {
 		this.defaultValue = defaultValue;
 		this.defaultStringValue = defaultValue + "";
 		this.minValue = minValue;
 		this.maxValue = maxValue;
 		this.permanent = permanent;
 		this.objective = objective;
-		this.bossBar = bossBar;
 		this.expBar = expBar;
+		this.bossbarTitle = bossbarTitle;
+		this.bossbarStyle = bossbarStyle;
+		this.bossbarColor = bossbarColor;
+		this.bossbarNamespace = bossbarNamespace;
 		init();
 	}
 	

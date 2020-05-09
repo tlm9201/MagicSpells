@@ -36,18 +36,6 @@ public class BossBarManager {
 		return finalBar;
 	}
 
-	public void setPlayerBar(Player player, String namespace, String title, double progress, BarStyle style, BarColor color) {
-		createBar(player, namespace, title, progress, style, color);
-	}
-
-	public void setPlayerBar(Player player, String namespace, String title, double progress, BarStyle style) {
-		createBar(player, namespace, title, progress, style, BarColor.PURPLE);
-	}
-
-	public void setPlayerBar(Player player, String namespace, String title, double progress) {
-		createBar(player, namespace, title, progress, BarStyle.SOLID, BarColor.PURPLE);
-	}
-
 	public void addPlayerBarFlag(Player player, String namespace, BarFlag flag) {
 		Bar bar = findBar(player, namespace);
 		if (bar == null) return;
@@ -70,7 +58,7 @@ public class BossBarManager {
 		bars.clear();
 	}
 
-	private void createBar(Player player, String namespace, String title, double progress, BarStyle style, BarColor color) {
+	public void setPlayerBar(Player player, String namespace, String title, double progress, BarStyle style, BarColor color) {
 		if (namespace == null || namespace.isEmpty()) namespace = NAMESPACE_DEFAULT;
 		Bar bar = findBar(player, namespace);
 		if (bar == null) {
