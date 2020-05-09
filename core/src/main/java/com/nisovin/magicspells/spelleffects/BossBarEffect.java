@@ -12,6 +12,7 @@ import com.nisovin.magicspells.variables.Variable;
 
 public class BossBarEffect extends SpellEffect {
 
+	private String namespace;
 	private String title;
 	private String color;
 	private String style;
@@ -30,6 +31,7 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
+		namespace = config.getString("namespace");
 		title = Util.colorize(config.getString("title", ""));
 		color = config.getString("color", "red");
 		style = config.getString("style", "solid");
@@ -75,14 +77,14 @@ public class BossBarEffect extends SpellEffect {
 
 	private void createBar(Player player) {
 		if (variable != null) createVariableBar(player);
-		else MagicSpells.getBossBarManager().setPlayerBar(player, "", title, progress, barStyle, barColor);
-		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> MagicSpells.getBossBarManager().removePlayerBar(player, ""), duration);
+		else MagicSpells.getBossBarManager().setPlayerBar(player, namespace, title, progress, barStyle, barColor);
+		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> MagicSpells.getBossBarManager().removePlayerBar(player, namespace), duration);
 	}
 
 	private void createVariableBar(Player player) {
 		double diff = variable.getValue(player) / maxValue;
 		if (diff > 1 || diff < 0) return;
-		MagicSpells.getBossBarManager().setPlayerBar(player, "", title, diff, barStyle, barColor);
+		MagicSpells.getBossBarManager().setPlayerBar(player, namespace, title, diff, barStyle, barColor);
 	}
 
 }
