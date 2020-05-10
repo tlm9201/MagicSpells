@@ -9,6 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
 
@@ -76,15 +77,14 @@ public class BossBarEffect extends SpellEffect {
 	}
 
 	private void createBar(Player player) {
-		if (variable != null) createVariableBar(player);
-		else MagicSpells.getBossBarManager().setPlayerBar(player, namespace, title, progress, barStyle, barColor);
-		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> MagicSpells.getBossBarManager().removePlayerBar(player, namespace), duration);
+		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespace);
+		if (variable == null) {
+			bar.set(title, progress, barStyle, barColor);
+		}
+		else {
+			double diff = variable.getValue(player) / maxValue;
+			if (diff > 0 && diff < 1) bar.set(title, diff, barStyle, barColor);
+		}
+		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}
-
-	private void createVariableBar(Player player) {
-		double diff = variable.getValue(player) / maxValue;
-		if (diff > 1 || diff < 0) return;
-		MagicSpells.getBossBarManager().setPlayerBar(player, namespace, title, diff, barStyle, barColor);
-	}
-
 }
