@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.util.managers;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarFlag;
@@ -15,6 +16,8 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class BossBarManager {
 
+	private final Pattern VALID_NAMESPACE = Pattern.compile("[a-z0-9._-]+");
+
 	private final String NAMESPACE_DEFAULT = "ms_default";
 	private final String NAMESPACE_VARIABLE = "ms_variable";
 
@@ -22,6 +25,10 @@ public class BossBarManager {
 
 	public String getNamespaceVariable() {
 		return NAMESPACE_VARIABLE;
+	}
+
+	public boolean isNameSpace(String namespace) {
+		return VALID_NAMESPACE.matcher(namespace).matches();
 	}
 
 	private NamespacedKey createNamespace(String namespace) {

@@ -103,6 +103,9 @@ public class VariableManager implements Listener {
 							}
 						}
 						bossBarNamespace = bossBar.getString("namespace");
+						if (!MagicSpells.getBossBarManager().isNameSpace(bossBarNamespace)) {
+							MagicSpells.error("Variable '" + var + "' has an invalid bossbar namespace defined: '" + bossBarNamespace + "'");
+						}
 					}
 				}
 				if (bossbarStyle == null) bossbarStyle = BarStyle.SOLID;
