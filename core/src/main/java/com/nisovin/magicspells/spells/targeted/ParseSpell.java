@@ -1,3 +1,4 @@
+
 package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.entity.Player;
@@ -16,6 +17,7 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private String parseTo;
 	private String operation;
+	private String oper;
 	private String firstVariable;
 	private String expectedValue;
 	private String secondVariable;
@@ -34,37 +36,61 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 		variableToParse = getConfigString("variable-to-parse", "");
 	}
 
+
 	@Override
 	public void initialize() {
 		super.initialize();
-
 		op = 0;
-		if (operation.contains("translate") || operation.contains("normal")) {
-			if (expectedValue.isEmpty()) {
-				MagicSpells.error("ParseSpell '" + internalName + "' has an invalid expected-value defined!");
+		// Let's make sure no one has issues with capitalization
+		oper = operation.toLowerCase();
+		// Switch is better than multiple if ladders
+		// This will load much faster and reads better now!
+		switch (oper) {
+			case "translate":
+			case "normal":
+				if (expectedValue.isEmpty()) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid expected-value defined!");
+					return;
+				}
+				if (parseToVariable.isEmpty()) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid parse-to-variable defined!");
+					return;
+				}
+				if (variableToParse.isEmpty() || MagicSpells.getVariableManager().getVariable(variableToParse) == null) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid variable-to-parse defined!");
+					return;
+				}
+				op = 1;
+				break;
+			case "difference":
+				if (firstVariable.isEmpty() || MagicSpells.getVariableManager().getVariable(firstVariable) == null) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid first-variable defined!");
+					return;
+				}
+				if (secondVariable.isEmpty() || MagicSpells.getVariableManager().getVariable(secondVariable) == null) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid second-variable defined!");
+					return;
+				}
+				op = 2;
+				break;
+			case "append":
+				if (expectedValue.isEmpty()) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid expected-value defined!");
+					return;
+				}
+				if (parseToVariable.isEmpty()) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid parse-to-variable defined!");
+					return;
+				}
+				if (variableToParse.isEmpty() || MagicSpells.getVariableManager().getVariable(variableToParse) == null) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid variable-to-parse defined!");
+					return;
+				}
+				op = 3;
+				break;
+			default:
+				MagicSpells.error("ParseSpell '" + internalName + "' has invalid operation defined! Please choose APPEND / DIFFERENCE / TRANSLATE");
 				return;
-			}
-			if (parseToVariable.isEmpty()) {
-				MagicSpells.error("ParseSpell '" + internalName + "' has an invalid parse-to-variable defined!");
-				return;
-			}
-			if (variableToParse.isEmpty() || MagicSpells.getVariableManager().getVariable(variableToParse) == null) {
-				MagicSpells.error("ParseSpell '" + internalName + "' has an invalid variable-to-parse defined!");
-				return;
-			}
-			op = 1;
-		}
-
-		if (operation.contains("difference")) {
-			if (firstVariable.isEmpty() || MagicSpells.getVariableManager().getVariable(firstVariable) == null) {
-				MagicSpells.error("ParseSpell '" + internalName + "' has an invalid first-variable defined!");
-				return;
-			}
-			if (secondVariable.isEmpty() || MagicSpells.getVariableManager().getVariable(secondVariable) == null) {
-				MagicSpells.error("ParseSpell '" + internalName + "' has an invalid second-variable defined!");
-				return;
-			}
-			op = 2;
 		}
 	}
 
@@ -109,6 +135,12 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 			double secondary = MagicSpells.getVariableManager().getValue(secondVariable, (Player) target);
 			double diff = Math.abs(primary - secondary);
 			MagicSpells.getVariableManager().set(parseToVariable, (Player) target, diff);
+		} else if (op == 3) {
+			String receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse, (Player) target);
+			if (!receivedValue.equalsIgnoreCase(expectedValue) && !expectedValue.contains("any")) return;
+			String var = MagicSpells.getVariableManager().getStringValue(variableToParse, (Player) target);
+			var += parseTo;
+			MagicSpells.getVariableManager().set(parseToVariable, (Player) target, var);
 		}
 	}
 
