@@ -82,13 +82,13 @@ public class BossBarManager {
 			bossbar.addFlag(flag);
 		}
 
-        public void deleteBossbar() {
-            bossbar.removeAll();
-            Bukkit.removeBossBar(createNamespace(namespace));
-        }
+		public void deleteBossbar() {
+			bossbar.removeAll();
+			Bukkit.removeBossBar(createNamespace(namespace));
+		}
 
 		public void remove() {
-            deleteBossbar();
+			deleteBossbar();
 			bars.remove(this);
 		}
 	}
