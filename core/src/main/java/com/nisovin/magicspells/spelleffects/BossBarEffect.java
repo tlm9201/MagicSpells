@@ -9,9 +9,11 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
 
+	private String namespace;
 	private String title;
 	private String color;
 	private String style;
@@ -30,9 +32,10 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
+		namespace = config.getString("namespace");
 		title = Util.colorize(config.getString("title", ""));
-		color = config.getString("color", "red").toUpperCase();
-		style = config.getString("style", "solid").toUpperCase();
+		color = config.getString("color", "red");
+		style = config.getString("style", "solid");
 		strVar = config.getString("variable", "");
 		maxValue = config.getDouble("max-value", 100);
 
@@ -41,13 +44,23 @@ public class BossBarEffect extends SpellEffect {
 			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
 		}
 
-		barColor = BarColor.valueOf(color);
-		if (barColor == null) {
+		if (!MagicSpells.getBossBarManager().isNameSpace(namespace)) {
+			MagicSpells.error("Wrong namespace defined! '" + namespace + "'");
+		}
+
+		try {
+			barColor = BarColor.valueOf(color.toUpperCase());
+		}
+		catch (IllegalArgumentException ignored) {
+			barColor = BarColor.WHITE;
 			MagicSpells.error("Wrong bar color defined! '" + color + "'");
 		}
 
-		barStyle = BarStyle.valueOf(style);
-		if (barStyle == null) {
+		try {
+			barStyle = BarStyle.valueOf(style.toUpperCase());
+		}
+		catch (IllegalArgumentException ignored) {
+			barStyle = BarStyle.SOLID;
 			MagicSpells.error("Wrong bar style defined! '" + style + "'");
 		}
 
@@ -68,15 +81,14 @@ public class BossBarEffect extends SpellEffect {
 	}
 
 	private void createBar(Player player) {
-		if (variable != null) createVariableBar(player);
-		else MagicSpells.getBossBarManager().setPlayerBar(player, title, progress, barStyle, barColor);
-		MagicSpells.scheduleDelayedTask(() -> MagicSpells.getBossBarManager().removePlayerBar(player), duration);
+		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespace);
+		if (variable == null) {
+			bar.set(title, progress, barStyle, barColor);
+		}
+		else {
+			double diff = variable.getValue(player) / maxValue;
+			if (diff > 0 && diff < 1) bar.set(title, diff, barStyle, barColor);
+		}
+		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}
-
-	private void createVariableBar(Player player) {
-		double diff = variable.getValue(player) / maxValue;
-		if (diff > 1 || diff < 0) return;
-		MagicSpells.getBossBarManager().setPlayerBar(player, title, diff, barStyle, barColor);
-	}
-
 }
