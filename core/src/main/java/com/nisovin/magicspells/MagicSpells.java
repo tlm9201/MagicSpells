@@ -643,6 +643,19 @@ public class MagicSpells extends JavaPlugin {
 		}
 	}
 
+	public static void setupEffectlib() {
+		if (plugin.effectManager != null) return;
+		plugin.effectManager = new EffectManager(plugin);
+		plugin.effectManager.enableDebug(plugin.debug);
+	}
+
+	public static void disposeEffectlib() {
+		if (plugin.effectManager == null) return;
+		plugin.effectManager.cancel(true);
+		plugin.effectManager.dispose();
+		plugin.effectManager = null;
+	}
+
 	/**
 	 * Gets the instance of the MagicSpells plugin
 	 * @return the MagicSpells plugin

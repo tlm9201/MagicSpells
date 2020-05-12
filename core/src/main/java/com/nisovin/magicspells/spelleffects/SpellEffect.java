@@ -352,6 +352,14 @@ public abstract class SpellEffect {
 	public static boolean addEffect(String name, Class<? extends SpellEffect> effect) {
 		return effects.put(name.toLowerCase(), effect) != null;
 	}
+
+	public static void removeEffect(String name) {
+		effects.remove(name.toLowerCase());
+	}
+
+	public static Map<String, Class<? extends SpellEffect>> getEffects() {
+		return effects;
+	}
 	
 	static {
 		effects.put("actionbartext", ActionBarTextEffect.class);
