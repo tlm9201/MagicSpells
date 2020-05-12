@@ -171,6 +171,15 @@ public class CastCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
+            if (Perm.RELOAD_EFFECTLIB.has(sender) && args[0].equals("reloadeffectlib")) {
+
+                MagicSpells.disposeEffectlib();
+                MagicSpells.setupEffectlib();
+
+                sender.sendMessage(MagicSpells.getTextColor() + "Effectlib reloaded.");
+                return true;
+            }
+
             // resetcd
             if (Perm.RESET_COOLDOWN.has(sender) && args[0].equals("resetcd")) {
                 Player p = null;
