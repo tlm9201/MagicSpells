@@ -16,7 +16,7 @@ import java.util.*;
 
 public class PotionEffectListener extends PassiveListener {
 
-    private Set<potionTrigger> spells = new HashSet<>();
+    private Set<PotionTrigger> spells = new HashSet<>();
 
     @Override
     public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
@@ -48,7 +48,7 @@ public class PotionEffectListener extends PassiveListener {
                 }
             } else causes = Arrays.asList(Cause.values());
         }
-        spells.add(new potionTrigger(spell, types, actions, causes));
+        spells.add(new PotionTrigger(spell, types, actions, causes));
     }
 
     @EventHandler
@@ -56,7 +56,7 @@ public class PotionEffectListener extends PassiveListener {
         if (!(event.getEntity() instanceof Player)) return;
         Player player = (Player) event.getEntity();
         Spellbook spellbook = MagicSpells.getSpellbook(player);
-        for (PotionEffectListener.potionTrigger trigger : spells) {
+        for (PotionEffectListener.PotionTrigger trigger : spells) {
             if (!isCancelStateOk(trigger.spell, event.isCancelled())) continue;
             if (!spellbook.hasSpell(trigger.spell)) continue;
             if (!trigger.actions.contains(event.getAction()) || !trigger.causes.contains(event.getCause())) continue;
@@ -80,13 +80,13 @@ public class PotionEffectListener extends PassiveListener {
         }
     }
 
-    private static class potionTrigger {
+    private static class PotionTrigger {
         PassiveSpell spell;
         List<PotionEffectType> types;
         List<Action> actions;
         List<Cause> causes;
 
-        potionTrigger(PassiveSpell spell, List<PotionEffectType> types, List<Action> actions, List<Cause> causes) {
+        PotionTrigger(PassiveSpell spell, List<PotionEffectType> types, List<Action> actions, List<Cause> causes) {
             this.spell = spell;
             this.types = types;
             this.actions = actions;
