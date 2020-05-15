@@ -43,6 +43,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 	private boolean vertSpeedUsed;
 	private boolean stopOnHitGround;
+	private boolean stopOnHitEntity;
 	private boolean projectileHasGravity;
 
 	private Vector relativeOffset;
@@ -82,6 +83,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 		if (vertSpeed != 0) vertSpeedUsed = true;
 		stopOnHitGround = getConfigBoolean("stop-on-hit-ground", true);
+		stopOnHitEntity = getConfigBoolean("stop-on-hit-entity", true);
 		projectileHasGravity = getConfigBoolean("gravity", true);
 
 		relativeOffset = getConfigVector("relative-offset", "0,0,0");
@@ -228,7 +230,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 				EventUtil.call(event);
 				if (!event.isCancelled()) {
 					if (spellOnHitEntity != null) spellOnHitEntity.castAtEntity(caster, (LivingEntity) e, event.getPower());
-					stop();
+					if (stopOnHitEntity) stop();
 					return;
 				}
 			}
