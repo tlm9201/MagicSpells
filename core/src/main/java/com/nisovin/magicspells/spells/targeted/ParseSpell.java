@@ -1,5 +1,8 @@
 package com.nisovin.magicspells.spells.targeted;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
@@ -13,6 +16,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final String operation;
+	private Pattern regexPattern;
 
 	private final String operationName;
 	private final String parseTo;
@@ -64,6 +68,22 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 				}
 				if (secondVariable.isEmpty() || MagicSpells.getVariableManager().getVariable(secondVariable) == null) {
 					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid second-variable defined!");
+					break;
+				}
+				break;
+			case "regex":
+			case "regexp":
+				if (expectedValue.isEmpty()) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid expected-value defined!");
+					break;
+				}
+				regexPattern = Pattern.compile(expectedValue);
+				if (parseToVariable.isEmpty()) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid parse-to-variable defined!");
+					break;
+				}
+				if (variableToParse.isEmpty() || MagicSpells.getVariableManager().getVariable(variableToParse) == null) {
+					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid variable-to-parse defined!");
 					break;
 				}
 				break;
@@ -122,6 +142,24 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 				String var = MagicSpells.getVariableManager().getStringValue(variableToParse, (Player) target);
 				var += parseTo;
 				MagicSpells.getVariableManager().set(parseToVariable, (Player) target, var);
+				break;
+			case "regex":
+			case "regexp":
+				receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse, (Player) target);
+				Matcher matcher = regexPattern.matcher(receivedValue);
+
+				StringBuilder found = new StringBuilder();
+				while (matcher.find()) {
+					// If there's an intended return value, exit here, because this passed.
+					if (!parseTo.isEmpty()) {
+						found.append(parseTo);
+						break;
+					}
+					// Otherwise, collect all matched text and return it.
+					found.append(matcher.group());
+				}
+
+				MagicSpells.getVariableManager().set(parseToVariable, (Player) target, found.toString());
 				break;
 		}
 	}
