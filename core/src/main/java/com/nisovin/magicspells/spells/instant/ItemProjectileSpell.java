@@ -192,6 +192,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 			entity.setVelocity(velocity);
 			itemList.add(entity);
 
+			playSpellEffects(EffectPosition.CASTER, caster);
 			playSpellEffects(EffectPosition.PROJECTILE, entity);
 			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, from, entity.getLocation(), caster, entity);
 			
@@ -229,6 +230,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 				SpellTargetEvent event = new SpellTargetEvent(ItemProjectileSpell.this, caster, (LivingEntity) e, power);
 				EventUtil.call(event);
 				if (!event.isCancelled()) {
+					playSpellEffects(EffectPosition.TARGET, e);
 					if (spellOnHitEntity != null) spellOnHitEntity.castAtEntity(caster, (LivingEntity) e, event.getPower());
 					if (stopOnHitEntity) stop();
 					return;
@@ -253,7 +255,8 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		}
 
 		private void stop() {
-			itemList.remove(entity);
+			boolean existed = itemList.remove(entity);
+			if (existed) playSpellEffects(EffectPosition.DELAYED, entity.getLocation());
 			entity.remove();
 			MagicSpells.cancelTask(taskId);
 		}
