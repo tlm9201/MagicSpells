@@ -4,7 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.configuration.ConfigurationSection;
 
-// TODO use non deprecated methods
+import de.slikey.effectlib.util.DynamicLocation;
+
 public class EffectLibLineEffect extends EffectLibEffect {
 
 	private boolean forceStaticOriginLocation;
@@ -19,12 +20,14 @@ public class EffectLibLineEffect extends EffectLibEffect {
 	
 	@Override
 	public Runnable playEffect(Location location1, Location location2) {
-		manager.start(className, effectLibSection, location1, location2, null, null, null);
+		updateManager();
+		manager.start(className, effectLibSection, new DynamicLocation(location1), new DynamicLocation(location2), (ConfigurationSection) null, null);
 		return null;
 	}
 	
 	@Override
 	public void playTrackingLinePatterns(Location origin, Location target, Entity originEntity, Entity targetEntity) {
+		updateManager();
 		if (forceStaticOriginLocation) {
 			if (origin == null && originEntity != null) origin = originEntity.getLocation();
 			originEntity = null;
@@ -33,7 +36,7 @@ public class EffectLibLineEffect extends EffectLibEffect {
 			if (target == null && targetEntity != null) target = targetEntity.getLocation();
 			targetEntity = null;
 		}
-		manager.start(className, effectLibSection, origin, target, originEntity, targetEntity, null);
+		manager.start(className, effectLibSection, new DynamicLocation(origin, originEntity), new DynamicLocation(target, targetEntity), (ConfigurationSection) null, null);
 	}
 	
 }
