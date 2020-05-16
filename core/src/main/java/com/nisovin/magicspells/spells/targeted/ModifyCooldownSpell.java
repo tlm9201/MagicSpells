@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import java.util.List;
-import java.util.ArrayList;
 
 import org.bukkit.entity.LivingEntity;
 
@@ -9,44 +8,28 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private List<Spell> spells;
-	private List<String> spellNames;
+	private final SpellFilter filter;
 	
-	private float seconds;
-	private float multiplier;
+	private final float seconds;
+	private final float multiplier;
 	
 	public ModifyCooldownSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
-		spellNames = getConfigStringList("spells", null);
-
 		seconds = getConfigFloat("seconds", 1F);
 		multiplier = getConfigFloat("multiplier", 0F);
-	}
-	
-	@Override
-	public void initialize() {
-		spells = new ArrayList<>();
 
-		if (spellNames == null) {
-			MagicSpells.error("ModifyCooldownSpell '" + internalName + "' has no spells defined!");
-			return;
-		}
-
-		for (String spellName : spellNames) {
-			Spell spell = MagicSpells.getSpellByInternalName(spellName);
-			if (spell == null) {
-				MagicSpells.error("ModifyCooldownSpell '" + internalName + "' has an invalid spell defined '" + spellName + '\'');
-				continue;
-			}
-			spells.add(spell);
-		}
+		List<String> spells = getConfigStringList("spells", null);
+		List<String> deniedSpells = getConfigStringList("denied-spells", null);
+		List<String> tagList = getConfigStringList("spell-tags", null);
+		List<String> deniedTagList = getConfigStringList("denied-spell-tags", null);
+		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
 	}
 
 	@Override
@@ -77,11 +60,11 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 		float sec = seconds * power;
 		float mult = multiplier * (1F / power);
 
-		for (Spell spell : spells) {
-			float cd = spell.getCooldown(target);
-			if (cd <= 0) continue;
+		for (Spell spell : MagicSpells.spells()) {
+		    if (!spell.onCooldown(target)) continue;
+			if (!filter.check(spell)) continue;
 
-			cd -= sec;
+			float cd = spell.getCooldown(target) - sec;
 			if (mult > 0) cd *= mult;
 			if (cd < 0) cd = 0;
 			spell.setCooldown(target, cd, false);
