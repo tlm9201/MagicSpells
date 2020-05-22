@@ -61,7 +61,7 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 		float mult = multiplier * (1F / power);
 
 		for (Spell spell : MagicSpells.spells()) {
-		        if (!spell.onCooldown(target)) continue;
+			if (!spell.onCooldown(target)) continue;
 			if (!filter.check(spell)) continue;
 
 			float cd = spell.getCooldown(target) - sec;
