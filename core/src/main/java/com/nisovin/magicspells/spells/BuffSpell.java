@@ -44,6 +44,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	protected Map<UUID, Integer> useCounter;
 	protected Map<UUID, Long> durationEndTime;
+	protected Map<UUID, LivingEntity> lastCaster;
 
 	protected ValidTargetList targetList;
 
@@ -133,6 +134,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) useCounter = new HashMap<>();
 		if (duration > 0) durationEndTime = new HashMap<>();
+		lastCaster = new HashMap<>();
 	}
 
 	@Override
@@ -220,6 +222,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		if (!ok) return PostCastAction.HANDLE_NORMALLY;
 
 		startSpellDuration(target, power);
+		lastCaster.put(target.getUniqueId(), caster);
 		if (caster != null) playSpellEffects(caster, target);
 		else playSpellEffects(EffectPosition.TARGET, target);
 
@@ -269,6 +272,10 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public float getDuration() {
 		return duration;
+	}
+
+	public LivingEntity getLastCaster(LivingEntity target) {
+		return lastCaster.get(target.getUniqueId());
 	}
 
 	/**

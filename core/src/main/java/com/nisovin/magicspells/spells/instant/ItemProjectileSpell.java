@@ -43,6 +43,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 	private boolean vertSpeedUsed;
 	private boolean stopOnHitGround;
+	private boolean stopOnHitEntity;
 	private boolean projectileHasGravity;
 
 	private Vector relativeOffset;
@@ -82,6 +83,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 		if (vertSpeed != 0) vertSpeedUsed = true;
 		stopOnHitGround = getConfigBoolean("stop-on-hit-ground", true);
+		stopOnHitEntity = getConfigBoolean("stop-on-hit-entity", true);
 		projectileHasGravity = getConfigBoolean("gravity", true);
 
 		relativeOffset = getConfigVector("relative-offset", "0,0,0");
@@ -190,6 +192,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 			entity.setVelocity(velocity);
 			itemList.add(entity);
 
+			playSpellEffects(EffectPosition.CASTER, caster);
 			playSpellEffects(EffectPosition.PROJECTILE, entity);
 			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, from, entity.getLocation(), caster, entity);
 			
@@ -227,8 +230,9 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 				SpellTargetEvent event = new SpellTargetEvent(ItemProjectileSpell.this, caster, (LivingEntity) e, power);
 				EventUtil.call(event);
 				if (!event.isCancelled()) {
+					playSpellEffects(EffectPosition.TARGET, e);
 					if (spellOnHitEntity != null) spellOnHitEntity.castAtEntity(caster, (LivingEntity) e, event.getPower());
-					stop();
+					if (stopOnHitEntity) stop();
 					return;
 				}
 			}
@@ -251,7 +255,8 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		}
 
 		private void stop() {
-			itemList.remove(entity);
+			boolean existed = itemList.remove(entity);
+			if (existed) playSpellEffects(EffectPosition.DELAYED, entity.getLocation());
 			entity.remove();
 			MagicSpells.cancelTask(taskId);
 		}

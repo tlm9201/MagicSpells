@@ -95,6 +95,7 @@ public abstract class Condition {
 		conditions.put("potioneffect", PotionEffectCondition.class);
 		conditions.put("onfire", OnFireCondition.class);
 		conditions.put("buffactive", BuffActiveCondition.class);
+		conditions.put("ownedbuffactive", OwnedBuffActiveCondition.class);
 		conditions.put("lastdamagetype", LastDamageTypeCondition.class);
 		conditions.put("world", InWorldCondition.class);
 		conditions.put("isnpc", IsNPCCondition.class);
