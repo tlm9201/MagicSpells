@@ -44,7 +44,7 @@ public class BossBarEffect extends SpellEffect {
 			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
 		}
 
-		if (!MagicSpells.getBossBarManager().isNameSpace(namespace)) {
+		if (namespace != null && !MagicSpells.getBossBarManager().isNameSpace(namespace)) {
 			MagicSpells.error("Wrong namespace defined! '" + namespace + "'");
 		}
 
