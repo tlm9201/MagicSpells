@@ -39,7 +39,7 @@ public class AngleCondition extends OperatorCondition {
 
 		double degrees = FastMath.round(FastMath.toDegrees(FastMath.abs(dir.angle(facing))));
 
-		return checkAngle(degrees, angle);
+		return checkAngle(degrees);
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class AngleCondition extends OperatorCondition {
 		return false;
 	}
 
-	private boolean checkAngle(double degrees, double angle) {
+	private boolean checkAngle(double degrees) {
 		if (equals) return degrees == angle;
 		else if (moreThan) return degrees > angle;
 		else if (lessThan) return degrees < angle;
