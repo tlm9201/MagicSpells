@@ -145,7 +145,7 @@ public abstract class Condition {
 		conditions.put("wearingprecise", WearingPreciseCondition.class);
 		conditions.put("holdingprecise", HoldingPreciseCondition.class);
 		conditions.put("receivingredstone", ReceivingRedstoneCondition.class);
-		conditions.put("behindtarget", BehindTargetCondition.class);
+		conditions.put("angle", AngleCondition.class);
 		conditions.put("thundering", ThunderingCondition.class);
 		conditions.put("raining", RainingCondition.class);
 		conditions.put("onleash", OnLeashCondition.class);
