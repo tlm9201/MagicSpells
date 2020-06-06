@@ -38,3 +38,12 @@ compileTestKotlin {
         jvmTarget = "1.8"
     }
 }
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = "com.nisovin.magicspells"
+            from components.java
+        }
+    }
+}
