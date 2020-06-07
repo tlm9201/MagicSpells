@@ -1,11 +1,3 @@
-// Add -PDeploymentNaming to the build command to strip the jar filenames
-// Of the version information (this is just for clean files on GitHub)
-//
-// Add -Prelease to the build command to version the jars with release versions
-// (defaults to dev build labeling)
-
-// possible concern: make sure that the timestamps for the jars are correct
-// possible concern: make sure that the yml resources are always updated and correct timestamps
 // TODO build the spigot server jars automatically as needed
 // TODO create task to setup workspace
 // TODO make sure the clean task cleans everything properly
@@ -38,85 +30,17 @@ repositories {
   }
 }
 
-//apply plugin: "java"
-//apply plugin: "com.github.johnrengelman.shadow"
-//apply plugin: "de.undercouch.download"
-//apply plugin: "com.sarhanm.versioner"
-
-final String OPTION_DEPLOYMENT_NAMING = "DeploymentNaming"
-final String OPTION_RELEASE = "release"
-
-/*configurations {
-    spigot
-    mscore.extendsFrom(compile)
-    factions.extendsFrom(spigot)
-    teams.extendsFrom(spigot)
-    memory.extendsFrom(spigot)
-    towny.extendsFrom(spigot)
-    shop.extendsFrom(spigot)
-}*/
-
 ext {
   magicspellsData = new MSConfig()
 }
 
-/*dependencies {
-  compile group: "org.apache.commons", name: "commons-math3", version: "3.0"
-  spigot ":spigot-1.12"
-  mscore ":spigot-1.12"
-  mscore ":EffectLib-4.0"
-  mscore ":Vault"
-  mscore ":ProtocolLib"
-  mscore ":NoCheatPlus"
-  mscore ":WorldEdit"
-  mscore ":WorldGuard"
-  mscore ":LibsDisguises-9.0.9"
-  mscore ":PlaceholderAPI"
-  mscore ":GriefPrevention"
-  factions ":MassiveCore"
-  factions ":Factions"
-  factions configurations.mscore.artifacts.getFiles()
-  teams configurations.mscore.artifacts.getFiles()
-  memory configurations.mscore.artifacts.getFiles()
-  towny configurations.mscore.artifacts.getFiles()
-  towny ":Towny"
-  shop configurations.mscore.artifacts.getFiles()
-  shop ":Vault"
-}*/
-
-public class MSConfig {
-  String distDir = "dist"
+class MSConfig {
   String libDir = "lib"
-  String docDir = "doc"
-
-  // Java versions
-  def javaCoreVersion = "1.8"
-  def javaTeamsVersion = "1.8"
-  def javaMemoryVersion = "1.8"
-  def javaShopVersion = "1.8"
-  def javaTownyVersion = "1.8"
-  def javaFactionsVersion = "1.8"
-
-  //<tstamp><format property="datestamp" pattern="yyMMddHHmm"/></tstamp>
-  def datestampPattern = "yyMMddHHmm"
-  def datestampString = "${-> new Date().format(datestampPattern)}"
 
   // Resource retrieving
   def resourceNcpUrl = "https://ci.md-5.net/job/NoCheatPlus/lastSuccessfulBuild/artifact/target/NoCheatPlus.jar"
-  //def resourcePlaceholderapiUrl = "http://repo.extendedclip.com/content/repositories/placeholderapi/me/clip/placeholderapi/2.8.2/placeholderapi-2.8.2.jar"
-  //def resourceGriefPreventionUrl = "https://github.com/TechFortress/GriefPrevention/releases/download/16.8/GriefPrevention.jar"
 
-  def versionSuffix
-
-  String stringVersionCore
-  String stringVersionFactions
-  String stringVersionMemory
-  String stringVersionTeams
-  String stringVersionTowny
-  String stringVersionShop
 }
-
-MSConfig msconfig = ext.magicspellsData
 
 static def downloadFile(File file, URL url) {
   if (!file.exists()) {
@@ -134,12 +58,6 @@ def magicspellsGetResources() {
   // Get NoCheatPlus
   downloadFile(new File(libFolder, "NoCheatPlus.jar"), new URL(project.ext.magicspellsData.resourceNcpUrl))
 
-  // Get PlaceholderAPI
-  //downloadFile(new File(libFolder, "PlaceholderAPI.jar"), new URL(project.ext.magicspellsData.resourcePlaceholderapiUrl))
-
-  // Get GriefPrevention
-  //downloadFile(new File(libFolder, "GriefPrevention.jar"), new URL(project.ext.magicspellsData.resourceGriefPreventionUrl))
-
   println "Finished running the get resources phase"
 }
 
@@ -148,7 +66,6 @@ afterEvaluate {
 }
 
 // FIXME this should not be run at configuration time
-//magicspellsGetResources()
 task downloadDependencies() {
     group = "Setup"
     doFirst {
@@ -195,65 +112,3 @@ subprojects {
   }
 
 }
-
-// FIXME fix up this task
-/*task magicspellsBuildVersion() {
-  description = "Assign version suffix in dev build format"
-  msconfig.versionSuffix = "dev-${-> msconfig.datestampString}"
-}
-
-// FIXME fix up this task
-task magicspellsReleaseVersion() {
-  description = "Assign version suffix in release format"
-  if (project.hasProperty("${OPTION_RELEASE}")) msconfig.versionSuffix = "Release"
-}
-
-// FIXME do more of this at build time, not config time
-task magicspellsCoreJar(type: com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-  description = "Create the main MagicSpells jar"
-  dependsOn = [
-    "magicspellsCoreCompile",
-    "magicspellsCoreCopyResources"
-  ]
-  archiveFileName = "MagicSpells-${msconfig.stringVersionCore}.jar"
-  if (project.hasProperty("${OPTION_DEPLOYMENT_NAMING}")) archiveFileName = "MagicSpells.jar"
-  destinationDirectory = project.file(msconfig.distDir)
-  from("${msconfig.coreBuildDir}")
-  dependencies {
-    repositories {
-      mavenCentral()
-    }
-    dependency("org.apache.commons:commons-math3")
-  }
-  from (project.configurations.compile)
-  relocate "org.apache.commons.math3", "com.nisovin.magicspells.shaded.org.apache.commons"
-  magicspellsCoreJar.exclude "**${File.separator}*.xml", "**${File.separator}*pom.properties", "**${File.separator}**LocalizedFormats**"
-  println magicspellsCoreJar.excludes
-}
-
-apply plugin: "maven-publish"
-
-group = "com.github.TheComputerGeek2"
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId = "com.github.TheComputerGeek2"
-            afterEvaluate {
-              version = "MagicSpells-${msconfig.coreVersion}-${gitdata.getCommit()}"
-            }
-            artifact magicspellsCoreJar
-        }
-    }
-}
-
-artifacts {
-  mscore magicspellsCoreJar
-  teams magicspellsTeamsJar
-  memory magicspellsMemoryJar
-  shop magicspellsShopJar
-  towny magicspellsTownyJar
-  factions magicspellsFactionsJar
-  archives magicspellsZip
-}
-*/
