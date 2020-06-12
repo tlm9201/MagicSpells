@@ -45,7 +45,7 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (target == null) return noTarget(player);
 
 			playSpellEffects(player, target);
-			String value = dataElement.apply(livingEntity);
+			String value = dataElement.apply(target);
 			MagicSpells.getVariableManager().set(variableName, player, value);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
