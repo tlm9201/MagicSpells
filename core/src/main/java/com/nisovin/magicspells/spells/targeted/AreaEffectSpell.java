@@ -9,6 +9,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.util.NumberConversions;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
@@ -34,8 +35,11 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	private double cone;
 	private double vRadius;
 	private double hRadius;
+	private double vRadiusSquared;
+	private double hRadiusSquared;
 
 	private boolean pointBlank;
+	private boolean circleShape;
 	private boolean failIfNoTargets;
 	private boolean spellSourceInCenter;
 	
@@ -51,8 +55,12 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		hRadius = getConfigDouble("horizontal-radius", 10);
 
 		pointBlank = getConfigBoolean("point-blank", true);
+		circleShape = getConfigBoolean("circle-shape", false);
 		failIfNoTargets = getConfigBoolean("fail-if-no-targets", true);
 		spellSourceInCenter = getConfigBoolean("spell-source-in-center", false);
+
+		vRadiusSquared = vRadius * vRadius;
+		hRadiusSquared = hRadius * hRadius;
 	}
 	
 	@Override
@@ -140,6 +148,12 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		for (Entity e : entities) {
 			if (!(e instanceof LivingEntity)) continue;
+			if (circleShape) {
+				double hDistance = NumberConversions.square(e.getLocation().getX() - location.getX()) + NumberConversions.square(e.getLocation().getZ() - location.getZ());
+				if (hDistance > hRadiusSquared) continue;
+				double vDistance = NumberConversions.square(e.getLocation().getY() - location.getY());
+				if (vDistance > vRadiusSquared) continue;
+			}
 			if (pointBlank && cone > 0) {
 				Vector dir = e.getLocation().toVector().subtract(vLoc);
 				if (FastMath.toDegrees(FastMath.abs(dir.angle(facing))) > cone) continue;
