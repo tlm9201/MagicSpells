@@ -167,7 +167,7 @@ public class BowSpell extends Spell {
 
 		if (!cancelShot) {
 			Entity projectile = event.getProjectile();
-			projectile.setMetadata(METADATA_KEY, new FixedMetadataValue(MagicSpells.plugin, new ArrowData(castEvent.getPower())));
+			projectile.setMetadata(METADATA_KEY, new FixedMetadataValue(MagicSpells.plugin, new ArrowData(castEvent.getPower(), spellOnHitEntity, spellOnHitGround, this)));
 			playSpellEffects(EffectPosition.PROJECTILE, event.getProjectile());
 			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, shooter.getLocation(), projectile.getLocation(), shooter, projectile);
 		}
@@ -187,22 +187,22 @@ public class BowSpell extends Spell {
 		List<MetadataValue> metas = arrow.getMetadata(METADATA_KEY);
 		if (metas == null || metas.isEmpty()) return;
 		Block block = event.getHitBlock();
-		if (block == null) return;;
+		if (block == null) return;
 		for (MetadataValue meta : metas) {
 			ArrowData data = (ArrowData) meta.value();
 			if (data == null) continue;
-			if (spellOnHitGround == null) continue;
+			if (data.groundSpell == null) continue;
 
 			MagicSpells.scheduleDelayedTask(() -> {
 				Player shooter = (Player) arrow.getShooter();
 				if (data.casted) return;
 
-				if (locationModifiers != null && !locationModifiers.check(shooter, block.getLocation())) {
-					MagicSpells.sendMessage(strModifierFailed, shooter, null);
+				if (data.spell.getLocationModifiers() != null && !data.spell.getLocationModifiers().check(shooter, block.getLocation())) {
+					MagicSpells.sendMessage(data.spell.getStrModifierFailed(), shooter, null);
 					return;
 				}
 
-				spellOnHitGround.castAtLocation(shooter, arrow.getLocation(), data.power);
+				data.groundSpell.castAtLocation(shooter, arrow.getLocation(), data.power);
 
 				data.casted = true;
 				arrow.removeMetadata(METADATA_KEY, MagicSpells.plugin);
@@ -225,7 +225,7 @@ public class BowSpell extends Spell {
 			ArrowData data = (ArrowData) meta.value();
 			if (data == null) continue;
 			if (data.casted) continue;
-			if (spellOnHitEntity == null) continue;
+			if (data.entitySpell == null) continue;
 
 			SpellTargetEvent targetEvent = new SpellTargetEvent(this, shooter, target, data.power);
 			EventUtil.call(targetEvent);
@@ -234,9 +234,9 @@ public class BowSpell extends Spell {
 				continue;
 			}
 
-			if (spellOnHitEntity.isTargetedEntityFromLocationSpell()) spellOnHitEntity.castAtEntityFromLocation(shooter, target.getLocation(), target, targetEvent.getPower());
-			else if (spellOnHitEntity.isTargetedLocationSpell()) spellOnHitEntity.castAtLocation(shooter, target.getLocation(), targetEvent.getPower());
-			else if (spellOnHitEntity.isTargetedEntitySpell()) spellOnHitEntity.castAtEntity(shooter, target, targetEvent.getPower());
+			if (data.entitySpell.isTargetedEntityFromLocationSpell()) data.entitySpell.castAtEntityFromLocation(shooter, target.getLocation(), target, targetEvent.getPower());
+			else if (data.entitySpell.isTargetedLocationSpell()) data.entitySpell.castAtLocation(shooter, target.getLocation(), targetEvent.getPower());
+			else if (data.entitySpell.isTargetedEntitySpell()) data.entitySpell.castAtEntity(shooter, target, targetEvent.getPower());
 
 			data.casted = true;
 			break;
@@ -250,8 +250,16 @@ public class BowSpell extends Spell {
 		private float power;
 		private boolean casted = false;
 
-		ArrowData(float power) {
+		private Spell spell;
+
+		private Subspell entitySpell;
+		private Subspell groundSpell;
+
+		ArrowData(float power, Subspell entitySpell, Subspell groundSpell, Spell spell) {
 			this.power = power;
+			this.entitySpell = entitySpell;
+			this.groundSpell = groundSpell;
+			this.spell = spell;
 		}
 		
 	}
