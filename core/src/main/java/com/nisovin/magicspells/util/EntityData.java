@@ -157,7 +157,7 @@ public class EntityData {
 				entityType = EntityType.IRON_GOLEM;
 				isMob = true;
 				break;
-			case "mooshrom":
+			case "mooshroom":
 				entityType = EntityType.MUSHROOM_COW;
 				isMob = true;
 				break;
