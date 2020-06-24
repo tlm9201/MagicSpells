@@ -2,46 +2,43 @@ package com.nisovin.magicspells.util.itemreader;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.Repairable;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
-public class RepairableHandler {
+public class CustomModelDataHandler {
 
-	private static final String CONFIG_NAME = "repair-cost";
+	private static final String CONFIG_NAME = "custom-model-data";
 
 	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof Repairable)) return meta;
 		if (!config.contains(CONFIG_NAME)) return meta;
 		if (!config.isInt(CONFIG_NAME)) return meta;
 
-		int repairCost = config.getInt(CONFIG_NAME);
+		int customModelData = config.getInt(CONFIG_NAME);
 
-		((Repairable) meta).setRepairCost(repairCost);
-		if (data != null) data.setRepairCost(repairCost);
-
+		MagicSpells.getVolatileCodeHandler().setCustomModelData(meta, customModelData);
+		data.setCustomModelData(customModelData);
 		return meta;
 	}
 
 	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
+		if (meta == null) return null;
 		if (data == null) return meta;
-		if (!(meta instanceof Repairable)) return meta;
 
-		int repairCost = data.getRepairCost();
-		if (data.getRepairCost() < 0) return meta;
+		int customModelData = data.getCustomModelData();
+		if (customModelData <= 0) return meta;
 
-		((Repairable) meta).setRepairCost(repairCost);
+		MagicSpells.getVolatileCodeHandler().setCustomModelData(meta, customModelData);
 		return meta;
 	}
 
 	public static MagicItemData process(ItemStack itemStack, MagicItemData itemData) {
 		if (itemData == null) return null;
 		if (itemStack == null) return itemData;
-		if (!(itemStack.getItemMeta() instanceof Repairable)) return itemData;
 
-		itemData.setRepairCost(((Repairable) itemStack.getItemMeta()).getRepairCost());
+		itemData.setCustomModelData(MagicSpells.getVolatileCodeHandler().getCustomModelData(itemStack.getItemMeta()));
 		return itemData;
 	}
-	
+
 }
