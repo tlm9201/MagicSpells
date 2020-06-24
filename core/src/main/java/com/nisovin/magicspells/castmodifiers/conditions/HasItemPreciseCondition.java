@@ -1,7 +1,5 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import java.util.Arrays;
-
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -11,21 +9,23 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.EntityEquipment;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
-// Only accepts predefined items and uses a much stricter match
+// Only accepts magic items and uses a much stricter match
 public class HasItemPreciseCondition extends Condition {
 
-	private ItemStack itemStack = null;
+	private MagicItemData itemData = null;
 	
 	@Override
 	public boolean setVar(String var) {
-		var = var.trim();
-		ItemStack item = Util.predefinedItems.get(var.trim());
-		if (InventoryUtil.isNothing(item)) return false;
-		this.itemStack = item.clone();
+		MagicItem magicItem = MagicItems.getMagicItemFromString(var.trim());
+		if (magicItem == null) return false;
+
+		itemData = magicItem.getMagicItemData();
 		return true;
 	}
 
@@ -48,21 +48,33 @@ public class HasItemPreciseCondition extends Condition {
 		
 		BlockState targetState = target.getState();
 		if (targetState == null) return false;
-		return targetState instanceof InventoryHolder && check(((InventoryHolder)targetState).getInventory());
+		return targetState instanceof InventoryHolder && check(((InventoryHolder) targetState).getInventory());
 	}
 
 	private boolean check(Inventory inventory) {
 		if (inventory == null) return false;
-		return Arrays.stream(inventory.getContents())
-				.filter(item -> !InventoryUtil.isNothing(item))
-				.anyMatch(item -> itemStack.isSimilar(item));
+
+		boolean found = false;
+		for (ItemStack itemStack : inventory.getContents()) {
+			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(itemStack);
+			if (data == null) continue;
+			if (data.equals(itemData)) found = true;
+		}
+
+		return found;
 	}
 
 	private boolean check(EntityEquipment entityEquipment) {
 		if (entityEquipment == null) return false;
-		return Arrays.stream(InventoryUtil.getEquipmentItems(entityEquipment))
-				.filter(item -> !InventoryUtil.isNothing(item))
-				.anyMatch(item -> itemStack.isSimilar(item));
+
+		boolean found = false;
+		for (ItemStack itemStack : InventoryUtil.getEquipmentItems(entityEquipment)) {
+			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(itemStack);
+			if (data == null) continue;
+			if (data.equals(itemData)) found = true;
+		}
+
+		return found;
 	}
 
 }
