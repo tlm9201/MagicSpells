@@ -7,13 +7,14 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Ageable;
-import org.bukkit.block.data.AnaloguePowerable;
 import org.bukkit.block.data.Levelled;
-import org.bukkit.block.data.Powerable;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Powerable;
+import org.bukkit.block.data.AnaloguePowerable;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
@@ -87,6 +88,30 @@ public class BlockUtils {
 
 	public static boolean isPathable(Block block) {
 		return isPathable(block.getType());
+	}
+
+	public static boolean hasDurability(Material type) {
+		String name = type.name().toUpperCase();
+		return
+				name.contains("PICKAXE") ||
+				name.contains("SHOVEL") ||
+				name.contains("AXE") ||
+				name.contains("HOE") ||
+				name.contains("SWORD") ||
+				name.contains("FISHING_ROD") ||
+				name.contains("CARROT_ON_A_STICK") ||
+				name.contains("FLINT_AND_STEEL") ||
+				name.contains("BOW") ||
+				name.contains("CROSSBOW") ||
+				name.contains("TRIDENT") ||
+				name.contains("ELYTRA") ||
+				name.contains("SHIELD") ||
+				name.contains("WARPED_FUNGUS_ON_A_STICK") ||
+				name.contains("SHEARS");
+	}
+
+	public static boolean isAir(ItemStack item) {
+		return isAir(item.getType());
 	}
 
 	public static boolean isAir(Material m) {

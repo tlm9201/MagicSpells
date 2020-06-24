@@ -76,14 +76,14 @@ public class MagicConfig {
 	 *     ops-ignore-reagents: true
 	 *     ops-ignore-cooldowns: true
 	 *     ops-ignore-cast-times: true
-	 *     hide-predefined-items-tooltips: false
+	 *     hide-magic-items-tooltips: false
 	 *     enable-magic-xp: false
 	 *     enable-dance-casting: true
 	 *     enable-logging: false
 	 *     enable-tab-completion: true
 	 *     
 	 *     
-	 *     predefined-items:
+	 *     magic-items:
 	 *     variables:
 	 *     modifiers:
 	 * mana:
@@ -184,11 +184,11 @@ public class MagicConfig {
 
 			// TODO this should be refactored to allow registration of additional "special sections"
 			for (String key : keys) {
-				if (key.equals("predefined-items")) {
-					ConfigurationSection sec = mainConfig.getConfigurationSection("general.predefined-items");
-					if (sec == null) sec = mainConfig.createSection("general.predefined-items");
-					for (String itemKey : spellConfig.getConfigurationSection("predefined-items").getKeys(false)) {
-						sec.set(itemKey, spellConfig.get("predefined-items." + itemKey));
+				if (key.equals("magic-items")) {
+					ConfigurationSection sec = mainConfig.getConfigurationSection("general.magic-items");
+					if (sec == null) sec = mainConfig.createSection("general.magic-items");
+					for (String itemKey : spellConfig.getConfigurationSection("magic-items").getKeys(false)) {
+						sec.set(itemKey, spellConfig.get("magic-items." + itemKey));
 					}
 				} else if (key.equals("variables")) {
 					ConfigurationSection sec = mainConfig.getConfigurationSection("general.variables");
@@ -225,7 +225,7 @@ public class MagicConfig {
 				conf = new YamlConfiguration();
 				try {
 					conf.load(file);
-					for(String key : conf.getKeys(false)) {
+					for (String key : conf.getKeys(false)) {
 						mainConfig.set("spells." + name + '.' + key, conf.get(key));
 					}
 				} catch (Exception e) {

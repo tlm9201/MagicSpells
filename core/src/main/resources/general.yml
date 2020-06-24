@@ -19,6 +19,14 @@ text-color: 3
 broadcast-range: 20
 spell-icon-slot: -1
 separate-player-spells-per-world: false
+global-cooldown: 500
+check-world-pvp-flag: true
+cast-on-animate: false
+use-exp-bar-as-cast-time-bar: true
+cooldowns-persist-through-reload: true
+allow-anticheat-integrations: false
+ignore-grant-perms-fake-value: true
+buff-check-interval: 100
 allow-cycle-to-no-spell: false
 always-show-message-on-cycle: false
 only-cycle-to-castable-spells: true
@@ -31,19 +39,95 @@ ops-ignore-reagents: true
 ops-ignore-cooldowns: true
 ops-ignore-cast-times: true
 default-all-perms-false: false
+hide-magic-items-tooltips: false
 ignore-default-bindings: false
 ignore-cast-item-enchants: true
 ignore-cast-item-names: false
-ignore-cast-item-durability: [] # [ 268, 269, 270, 271, 283, 284, 285, 286, 290, 294, 314, 315, 316, 317 ]
-los-transparent-blocks: [ "AIR" ] # [ 0, 27, 28, 31, 32, 37, 38, 39, 40, 50, 51, 55, 63, 65, 66, 68, 69, 70, 72, 75, 76, 77, 78, 93, 94, 106, 111 ]
-global-cooldown: 500
-check-world-pvp-flag: true
-cast-on-animate: false
-use-exp-bar-as-cast-time-bar: true
-cooldowns-persist-through-reload: true
-allow-anticheat-integrations: false
-ignore-grant-perms-fake-value: true
-buff-check-interval: 100
+ignore-cast-item-amount: true
+ignore-cast-item-breakability: true
+ignore-cast-item-color: true
+ignore-cast-item-potion-types: true
+ignore-cast-item-title: true
+ignore-cast-item-author: true
+ignore-cast-item-lore: true
+ignore-cast-item-custom-model-data: true
+ignore-cast-item-durability:
+    - "leather_helmet"
+    - "leather_chestplate"
+    - "leather_leggings"
+    - "leather_boots"
+    - "iron_helmet"
+    - "iron_chestplate"
+    - "iron_leggings"
+    - "iron_boots"
+    - "golden_helmet"
+    - "golden_chestplate"
+    - "golden_leggings"
+    - "golden_boots"
+    - "chainmail_helmet"
+    - "chainmail_chestplate"
+    - "chainmail_leggings"
+    - "chainmail_boots"
+    - "diamond_helmet"
+    - "diamond_chestplate"
+    - "diamond_leggings"
+    - "diamond_boots"
+    - "wooden_sword"
+    - "wooden_shovel"
+    - "wooden_pickaxe"
+    - "wooden_axe"
+    - "wooden_hoe"
+    - "golden_sword"
+    - "golden_shovel"
+    - "golden_pickaxe"
+    - "golden_axe"
+    - "golden_hoe"
+    - "stone_sword"
+    - "stone_shovel"
+    - "stone_pickaxe"
+    - "stone_axe"
+    - "stone_hoe"
+    - "iron_sword"
+    - "iron_shovel"
+    - "iron_pickaxe"
+    - "iron_axe"
+    - "iron_hoe"
+    - "diamond_sword"
+    - "diamond_shovel"
+    - "diamond_pickaxe"
+    - "diamond_axe"
+    - "diamond_hoe"
+    - "shears"
+    - "fishing_rod"
+    - "carrot_on_a_stick"
+    - "flint_and_steel"
+    - "bow"
+    - "trident"
+    - "shield"
+    - "elytra"
+los-transparent-blocks:
+    - "air"
+    - "cave_air"
+    - "void_air"
+    - "powered_rail"
+    - "detector_rail"
+    - "grass"
+    - "fern"
+    - "dead_bush"
+    - "dandelion"
+    - "poppy"
+    - "brown_mushroom"
+    - "red_mushroom"
+    - "torch"
+    - "fire"
+    - "redstone_wire"
+    - "ladder"
+    - "rail"
+    - "lever"
+    - "redstone_torch"
+    - "repeater"
+    - "vine"
+    - "lily_pad"
 
 entity-names:
     zombie: an ugly zombie
