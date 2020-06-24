@@ -11,6 +11,7 @@ import org.bukkit.Location
 import org.bukkit.entity.*
 import org.bukkit.util.Vector
 import org.bukkit.entity.Entity
+import org.bukkit.OfflinePlayer
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.SkullMeta
@@ -30,9 +31,9 @@ import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
-import net.minecraft.server.v1_14_R1.NBTTagCompound
 
 import net.minecraft.server.v1_14_R1.*
+import net.minecraft.server.v1_14_R1.NBTTagCompound
 
 private typealias nmsItemStack = net.minecraft.server.v1_14_R1.ItemStack
 
@@ -254,12 +255,12 @@ class VolatileCode1_14_R1: VolatileCodeHandle {
         return profile
     }
 
-    override fun setTexture(meta: SkullMeta, texture: String, signature: String, uuid: String?, name: String) {
+    override fun setTexture(meta: SkullMeta, texture: String, signature: String, uuid: String?, offlinePlayer: OfflinePlayer) {
         // Don't spam the user with errors, just stop
         if (SafetyCheckUtils.areAnyNull(this.craftMetaSkullProfileField)) return
 
         try {
-            val profile = GameProfile(if (uuid != null) UUID.fromString(uuid) else null, name)
+            val profile = GameProfile(if (uuid != null) UUID.fromString(uuid) else null, offlinePlayer.name)
             setTexture(profile, texture, signature)
             this.craftMetaSkullProfileField!!.set(meta, profile)
         } catch (e: SecurityException) {
