@@ -24,6 +24,7 @@ import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellSelectionChangedEvent;
+import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
 public class Spellbook {
 
@@ -142,6 +143,7 @@ public class Spellbook {
 					if (file2.exists()) file2.renameTo(file);
 				}
 			}
+
 			if (file.exists()) {
 				Scanner scanner = new Scanner(file);
 				while (scanner.hasNext()) {
@@ -157,7 +159,7 @@ public class Spellbook {
 					if (spell == null) continue;
 
 					List<CastItem> items = new ArrayList<>();
-					String[] s = data[1].split(",");
+					String[] s = data[1].split(MagicItemDataParser.DATA_REGEX);
 					for (String value : s) {
 						try {
 							CastItem castItem = new CastItem(value);
@@ -309,7 +311,8 @@ public class Spellbook {
 	protected CastItem getCastItemForCycling(ItemStack item) {
 		CastItem castItem;
 		if (item != null) castItem = new CastItem(item);
-		else castItem = new CastItem(Material.AIR);
+		else castItem = new CastItem(new ItemStack(Material.AIR));
+
 		List<Spell> spells = itemSpells.get(castItem);
 		if (spells != null && (spells.size() > 1 || (spells.size() == 1 && plugin.allowCycleToNoSpell))) return castItem;
 		return null;
@@ -433,23 +436,24 @@ public class Spellbook {
 				items = castItems;
 				Set<CastItem> set = new HashSet<>();
 				for (CastItem item : items) {
-					if (item != null) set.add(item);
+					if (item == null) continue;
+					set.add(item);
 				}
 				customBindings.put(spell, set);
 			} else if (plugin.ignoreDefaultBindings) return;
 
-			for (CastItem i : items) {
-				MagicSpells.debug(3, "        Cast item: " + i + (castItems != null ? " (custom)" : " (default)"));
-				if (i == null) continue;
-				List<Spell> temp = itemSpells.get(i);
+			for (CastItem item : items) {
+				MagicSpells.debug(3, "        Cast item: " + item + (castItems != null ? " (custom)" : " (default)"));
+				if (item == null) continue;
+				List<Spell> temp = itemSpells.get(item);
 				if (temp != null) {
 					temp.add(spell);
 					continue;
 				}
 				temp = new ArrayList<>();
 				temp.add(spell);
-				itemSpells.put(i, temp);
-				activeSpells.put(i, plugin.allowCycleToNoSpell ? -1 : 0);
+				itemSpells.put(item, temp);
+				activeSpells.put(item, plugin.allowCycleToNoSpell ? -1 : 0);
 			}
 		}
 		// Remove any spells that this spell replaces
@@ -489,12 +493,11 @@ public class Spellbook {
 	}
 
 	public void addTemporarySpell(Spell spell, Plugin plugin) {
-		if (!hasSpell(spell)) {
-			addSpell(spell);
-			Set<Spell> temps = temporarySpells.computeIfAbsent(plugin, pl -> new HashSet<>());
-			if (temps == null) throw new IllegalStateException("temporary spells should not contain a null value!");
-			temps.add(spell);
-		}
+		if (hasSpell(spell)) return;
+		addSpell(spell);
+		Set<Spell> temps = temporarySpells.computeIfAbsent(plugin, pl -> new HashSet<>());
+		if (temps == null) throw new IllegalStateException("temporary spells should not contain a null value!");
+		temps.add(spell);
 	}
 
 	public void removeTemporarySpells(Plugin plugin) {
@@ -535,7 +538,7 @@ public class Spellbook {
 		Set<CastItem> bindings = customBindings.get(spell);
 		if (bindings != null) {
 			removed = bindings.remove(castItem);
-			if (bindings.isEmpty()) bindings.add(new CastItem((Material) null));
+			if (bindings.isEmpty()) bindings.add(new CastItem());
 		}
 
 		// Remove from active bindings
@@ -559,7 +562,8 @@ public class Spellbook {
 
 	public void removeAllSpells() {
 		for (Spell spell : allSpells) {
-			if (spell instanceof BuffSpell) ((BuffSpell) spell).turnOff(player);
+			if (!(spell instanceof BuffSpell)) continue;
+			((BuffSpell) spell).turnOff(player);
 		}
 		allSpells.clear();
 		itemSpells.clear();
@@ -589,6 +593,7 @@ public class Spellbook {
 				if (oldfile.exists()) oldfile.delete();
 				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + uniqueId + ".txt");
 			}
+
 			BufferedWriter writer = new BufferedWriter(new FileWriter(file, false));
 			for (Spell spell : allSpells) {
 				if (isTemporary(spell)) continue;
@@ -596,13 +601,21 @@ public class Spellbook {
 				if (customBindings.containsKey(spell)) {
 					Set<CastItem> items = customBindings.get(spell);
 					StringBuilder s = new StringBuilder();
-					for (CastItem i : items) {
-						s.append((s.length() == 0) ? "" : ",").append(i);
+					for (CastItem item : items) {
+						s.append((s.length() == 0) ? "" : "|").append(item);
+					}
+
+					// when you unbind the item and it has no binds left, restore the original cast item
+					CastItem castItem = (CastItem) items.toArray()[0];
+					if (items.size() == 1 && castItem.getType() == null) {
+						writer.newLine();
+						continue;
 					}
 					writer.append(String.valueOf(':')).append(s.toString());
 				}
 				writer.newLine();
 			}
+
 			writer.close();
 			MagicSpells.debug(2, "Saved spellbook file: " + playerName.toLowerCase());
 		} catch (Exception e) {

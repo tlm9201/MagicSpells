@@ -63,12 +63,15 @@ import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.handlers.MoneyHandler;
 import com.nisovin.magicspells.spelleffects.EffectTracker;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spelleffects.EffectLibEffect;
+import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 import de.slikey.effectlib.Effect;
@@ -210,83 +213,32 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		// General options
 		description = config.getString(path + "description", "");
 		if (config.contains(path + "cast-item")) {
-			String[] sItems = config.getString(path + "cast-item", "-5").trim().replace(" ", "").split(",");
-			castItems = new CastItem[sItems.length];
-			for (int i = 0; i < sItems.length; i++) {
-				ItemStack is = Util.getItemStackFromString(sItems[i]);
-				if (is == null) {
-					MagicSpells.error("Spell '" + internalName + "' has an invalid cast item specified: " + sItems[i]);
-					continue;
-				}
-				castItems[i] = new CastItem(is);
-			}
+			String[] sItems = config.getString(path + "cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
+			castItems = setupCastItems(sItems, "Spell '" + internalName + "' has an invalid cast item specified: %i");
 		} else if (config.contains(path + "cast-items")) {
 			List<String> sItems = config.getStringList(path + "cast-items", null);
 			if (sItems == null) sItems = new ArrayList<>();
-			castItems = new CastItem[sItems.size()];
-			for (int i = 0; i < castItems.length; i++) {
-				ItemStack is = Util.getItemStackFromString(sItems.get(i));
-				if (is == null) {
-					MagicSpells.error("Spell '" + internalName + "' has an invalid cast item listed: " + sItems.get(i));
-					continue;
-				}
-				castItems[i] = new CastItem(is);
-			}
-		} else {
-			castItems = new CastItem[0];
-		}
+			castItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid cast item specified: %i");
+		} else castItems = new CastItem[0];
+
 		if (config.contains(path + "right-click-cast-item")) {
-			String[] sItems = config.getString(path + "right-click-cast-item", "-5").trim().replace(" ", "").split(",");
-			rightClickCastItems = new CastItem[sItems.length];
-			for (int i = 0; i < sItems.length; i++) {
-				ItemStack is = Util.getItemStackFromString(sItems[i]);
-				if (is == null) {
-					MagicSpells.error("Spell '" + internalName + "' has an invalid right click cast item specified: " + sItems[i]);
-					continue;
-				}
-				rightClickCastItems[i] = new CastItem(is);
-			}
+			String[] sItems = config.getString(path + "right-click-cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
+			rightClickCastItems = setupCastItems(sItems, "Spell '" + internalName + "' has an invalid right click cast item specified: %i");
 		} else if (config.contains(path + "right-click-cast-items")) {
 			List<String> sItems = config.getStringList(path + "right-click-cast-items", null);
 			if (sItems == null) sItems = new ArrayList<>();
-			rightClickCastItems = new CastItem[sItems.size()];
-			for (int i = 0; i < rightClickCastItems.length; i++) {
-				ItemStack is = Util.getItemStackFromString(sItems.get(i));
-				if (is == null) {
-					MagicSpells.error("Spell '" + internalName + "' has an invalid right click cast item listed: " + sItems.get(i));
-					continue;
-				}
-				rightClickCastItems[i] = new CastItem(is);
-			}
-		} else {
-			rightClickCastItems = new CastItem[0];
-		}
+			rightClickCastItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid right click cast item listed: %i");
+		} else rightClickCastItems = new CastItem[0];
+
 		if (config.contains(path + "consume-cast-item")) {
-			String[] sItems = config.getString(path + "consume-cast-item", "-5").trim().replace(" ", "").split(",");
-			consumeCastItems = new CastItem[sItems.length];
-			for (int i = 0; i < sItems.length; i++) {
-				ItemStack is = Util.getItemStackFromString(sItems[i]);
-				if (is == null) {
-					MagicSpells.error("Spell '" + internalName + "' has an invalid consume cast item specified: " + sItems[i]);
-					continue;
-				}
-				consumeCastItems[i] = new CastItem(is);
-			}
+			String[] sItems = config.getString(path + "consume-cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
+			consumeCastItems = setupCastItems(sItems, "Spell '" + internalName + "' has an invalid consume cast item specified: %i");
 		} else if (config.contains(path + "consume-cast-items")) {
 			List<String> sItems = config.getStringList(path + "consume-cast-items", null);
 			if (sItems == null) sItems = new ArrayList<>();
-			consumeCastItems = new CastItem[sItems.size()];
-			for (int i = 0; i < consumeCastItems.length; i++) {
-				ItemStack is = Util.getItemStackFromString(sItems.get(i));
-				if (is == null) {
-					MagicSpells.error("Spell '" + internalName + "' has an invalid consume cast item listed: " + sItems.get(i));
-					continue;
-				}
-				consumeCastItems[i] = new CastItem(is);
-			}
-		} else {
-			consumeCastItems = new CastItem[0];
-		}
+			consumeCastItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid consume cast item listed: %i");
+		} else consumeCastItems = new CastItem[0];
+
 		castWithLeftClick = config.getBoolean(path + "cast-with-left-click", MagicSpells.plugin.castWithLeftClick);
 		castWithRightClick = config.getBoolean(path + "cast-with-right-click", MagicSpells.plugin.castWithRightClick);
 		danceCastSequence = config.getString(path + "dance-cast-sequence", null);
@@ -295,23 +247,34 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		List<String> bindables = config.getStringList(path + "bindable-items", null);
 		if (bindables != null) {
 			bindableItems = new HashSet<>();
-			for (String s : bindables) {
-				ItemStack is = Util.getItemStackFromString(s);
-				if (is == null) continue;
-				bindableItems.add(new CastItem(is));
+			for (String str : bindables) {
+				MagicItem magicItem = MagicItems.getMagicItemFromString(str);
+				if (magicItem == null) {
+					MagicSpells.error("Spell '" + internalName + "' has an invalid bindable cast item specified: " + str);
+					continue;
+				}
+
+				ItemStack item = magicItem.getItemStack();
+				if (item == null) {
+					MagicSpells.error("Spell '" + internalName + "' has an invalid bindable cast item specified: " + str);
+					continue;
+				}
+				bindableItems.add(new CastItem(item));
 			}
 		}
-		String icontemp = config.getString(path + "spell-icon", null);
-		if (icontemp == null) {
-			spellIcon = null;
-		} else {
-			spellIcon = Util.getItemStackFromString(icontemp);
-			if (spellIcon != null && spellIcon.getType() != Material.AIR) {
-				spellIcon.setAmount(0);
-				if (!icontemp.contains("|")) {
-					ItemMeta iconMeta = spellIcon.getItemMeta();
-					iconMeta.setDisplayName(MagicSpells.getTextColor() + name);
-					spellIcon.setItemMeta(iconMeta);
+		String iconStr = config.getString(path + "spell-icon", null);
+		if (iconStr == null) spellIcon = null;
+		else {
+			MagicItem magicItem = MagicItems.getMagicItemFromString(iconStr);
+			if (magicItem != null) {
+				spellIcon = magicItem.getItemStack();
+				if (spellIcon != null && !BlockUtils.isAir(spellIcon.getType())) {
+					spellIcon.setAmount(0);
+					if (!iconStr.contains("|")) {
+						ItemMeta iconMeta = spellIcon.getItemMeta();
+						iconMeta.setDisplayName(MagicSpells.getTextColor() + name);
+						spellIcon.setItemMeta(iconMeta);
+					}
 				}
 			}
 		}
@@ -573,11 +536,21 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 							break;
 						default:
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
-							ItemStack is = Util.getItemStackFromString(data[0]);
-							if (is != null) {
-								is.setAmount(amt);
-								reagents.addItem(is);
-							} else MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
+
+							MagicItem magicItem = MagicItems.getMagicItemFromString(data[0]);
+							if (magicItem == null) {
+								MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
+								continue;
+							}
+
+							ItemStack item = magicItem.getItemStack();
+							if (item == null) {
+								MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
+								continue;
+							}
+
+							item.setAmount(amt);
+							reagents.addItem(item);
 							break;
 					}
 				} catch (Exception e) {
@@ -948,7 +921,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public boolean isValidItemForCastCommand(ItemStack item) {
 		if (!requireCastItemOnCommand || castItems == null) return true;
-		if (item == null && castItems.length == 1 && BlockUtils.isAir(castItems[0].getItemType())) return true;
+		if (item == null && castItems.length == 1 && BlockUtils.isAir(castItems[0].getType())) return true;
 		for (CastItem castItem : castItems) {
 			if (castItem.equals(item)) return true;
 		}
@@ -1605,6 +1578,25 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected int scheduleRepeatingTask(Runnable task, int delay, int interval) {
 		return MagicSpells.scheduleRepeatingTask(task, delay, interval);
+	}
+
+	protected CastItem[] setupCastItems(String[] items, String errorMessage) {
+		CastItem[] castItems = new CastItem[items.length];
+		for (int i = 0; i < items.length; i++) {
+			MagicItem magicItem = MagicItems.getMagicItemFromString(items[i]);
+			if (magicItem == null) {
+				MagicSpells.error(errorMessage.replace("%i", items[i]));
+				continue;
+			}
+
+			ItemStack item = magicItem.getItemStack();
+			if (item == null) {
+				MagicSpells.error(errorMessage.replace("%i", items[i]));
+				continue;
+			}
+			castItems[i] = new CastItem(item);
+		}
+		return castItems;
 	}
 
 	protected Subspell initSubspell(String subspellName, String errorMessage) {
