@@ -11,11 +11,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.inventory.CraftItemEvent;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class CraftListener extends PassiveListener {
 
@@ -28,7 +29,9 @@ public class CraftListener extends PassiveListener {
 			spellsAll.add(spell);
 		} else {
 			for (String itemString : var.split(",")) {
-				ItemStack item = Util.getItemStackFromString(itemString.trim());
+				MagicItem magicItem = MagicItems.getMagicItemFromString(itemString.trim());
+				if (magicItem == null) continue;
+				ItemStack item = magicItem.getItemStack();
 				// Stop processing this item if it couldn't be created.
 				if (item == null) continue;
 				List<PassiveSpell> spells = spellsSpecial.getOrDefault(item, new ArrayList<>());

@@ -50,7 +50,6 @@ public class BindSpell extends CommandSpell {
 				Spell s = MagicSpells.getSpellByInternalName(name);
 				if (s != null) allowedSpells.add(s);
 				else MagicSpells.plugin.getLogger().warning("Invalid spell listed: " + name);
-
 			}
 		}
 
@@ -82,14 +81,17 @@ public class BindSpell extends CommandSpell {
 				sendMessage(strNoSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			if (!spellbook.hasSpell(spell)) {
 				sendMessage(strNoSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			if (!spell.canCastWithItem()) {
 				sendMessage(strCantBindSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			if (allowedSpells != null && !allowedSpells.contains(spell)) {
 				sendMessage(strSpellCantBind, player, args);
 				return PostCastAction.ALREADY_HANDLED;
@@ -98,14 +100,16 @@ public class BindSpell extends CommandSpell {
 			CastItem castItem = new CastItem(player.getEquipment().getItemInMainHand());
 			MagicSpells.debug(3, "Trying to bind spell '" + spell.getInternalName() + "' to cast item " + castItem.toString() + "...");
 
-			if (BlockUtils.isAir(castItem.getItemType()) && !allowBindToFist) {
+			if (BlockUtils.isAir(castItem.getType()) && !allowBindToFist) {
 				sendMessage(strCantBindItem, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			if (bindableItems != null && !bindableItems.contains(castItem)) {
 				sendMessage(strCantBindItem, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			if (!spell.canBind(castItem)) {
 				String msg = spell.getCantBindError();
 				if (msg == null) msg = strCantBindItem;
@@ -116,6 +120,7 @@ public class BindSpell extends CommandSpell {
 			MagicSpells.debug(3, "    Performing bind...");
 			spellbook.addCastItem(spell, castItem);
 			spellbook.save();
+			spellbook.reload();
 			MagicSpells.debug(3, "    Bind successful.");
 			sendMessage(formatMessage(strCastSelf, "%s", spell.getName()), player, args);
 			playSpellEffects(EffectPosition.CASTER, player);

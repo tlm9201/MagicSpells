@@ -24,6 +24,8 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.CommandSpell;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class KeybindSpell extends CommandSpell {
 
@@ -37,8 +39,11 @@ public class KeybindSpell extends CommandSpell {
 
 		playerKeybinds = new HashMap<>();
 
-		wandItem = Util.getItemStackFromString(getConfigString("wand-item", "blaze_rod"));
-		defaultSpellIcon = Util.getItemStackFromString(getConfigString("default-spell-icon", "redstone"));
+		MagicItem magicWandItem = MagicItems.getMagicItemFromString(getConfigString("wand-item", "blaze_rod"));
+		if (magicWandItem != null) wandItem = magicWandItem.getItemStack();
+
+		MagicItem magicIconItem = MagicItems.getMagicItemFromString(getConfigString("default-spell-icon", "redstone"));
+		if (magicIconItem != null) defaultSpellIcon = magicIconItem.getItemStack();
 	}
 	
 	@Override
@@ -90,7 +95,7 @@ public class KeybindSpell extends CommandSpell {
 		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
 			Player player = (Player) livingEntity;
 			if (args.length != 1) {
-				player.sendMessage("invalid args");
+				player.sendMessage("Invalid args.");
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
@@ -110,13 +115,13 @@ public class KeybindSpell extends CommandSpell {
 				return PostCastAction.HANDLE_NORMALLY;
 			}
 			if (item != null && !BlockUtils.isAir(item.getType())) {
-				player.sendMessage("not empty");
+				player.sendMessage("Not empty.");
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
 			Spell spell = MagicSpells.getSpellbook(player).getSpellByName(args[0]);
 			if (spell == null) {
-				player.sendMessage("no spell");
+				player.sendMessage("No spell.");
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
@@ -182,13 +187,14 @@ public class KeybindSpell extends CommandSpell {
 			Spell spell = keybinds[slot];
 			if (spell == null) return;
 			ItemStack spellIcon = spell.getSpellIcon();
-			if (spellIcon == null) spellIcon = defaultSpellIcon;
+			if (spellIcon == null && defaultSpellIcon != null) spellIcon = defaultSpellIcon;
 			MagicSpells.getVolatileCodeHandler().sendFakeSlotUpdate(player, slot, spellIcon);
 		}
 
 		private void select(int slot) {
 			Spell spell = keybinds[slot];
 			if (spell == null) return;
+			if (wandItem == null) return;
 			MagicSpells.getVolatileCodeHandler().sendFakeSlotUpdate(player, slot, wandItem);
 		}
 

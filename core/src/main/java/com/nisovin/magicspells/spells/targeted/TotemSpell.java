@@ -29,6 +29,8 @@ import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
@@ -52,6 +54,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private boolean totemNameVisible;
 	private boolean onlyCountOnSuccess;
 	private boolean centerStand;
+	private boolean allowCasterTarget;
 
 	private String strAtCap;
 	private String totemName;
@@ -60,8 +63,8 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private ItemStack chestplate;
 	private ItemStack leggings;
 	private ItemStack boots;
-	private ItemStack hand;
 	private ItemStack mainHand;
+	private ItemStack offHand;
 
 	private List<String> spellNames;
 	private List<TargetedLocationSpell> spells;
@@ -72,19 +75,49 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	public TotemSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		helmet = Util.getItemStackFromString(getConfigString("helmet", "AIR"));
-		chestplate = Util.getItemStackFromString(getConfigString("chestplate", "AIR"));
-		leggings = Util.getItemStackFromString(getConfigString("leggings", "AIR"));
-		boots = Util.getItemStackFromString(getConfigString("boots", "AIR"));
-		hand = Util.getItemStackFromString(getConfigString("hand", "AIR"));
-		mainHand = Util.getItemStackFromString(getConfigString("main-hand", "AIR"));
+		// Equipment
+		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
+		if (magicMainHandItem != null) {
+			mainHand = magicMainHandItem.getItemStack();
+			if (mainHand != null && BlockUtils.isAir(mainHand.getType())) mainHand = null;
+		}
 
-		if (helmet != null && !BlockUtils.isAir(helmet.getType())) helmet.setAmount(1);
-		if (chestplate != null && !BlockUtils.isAir(chestplate.getType())) chestplate.setAmount(1);
-		if (leggings != null && !BlockUtils.isAir(leggings.getType())) leggings.setAmount(1);
-		if (boots != null && !BlockUtils.isAir(boots.getType())) boots.setAmount(1);
-		if (hand != null && !BlockUtils.isAir(hand.getType())) hand.setAmount(1);
-		if (mainHand != null && !BlockUtils.isAir(mainHand.getType())) mainHand.setAmount(1);
+		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
+		if (magicOffHandItem != null) {
+			offHand = magicOffHandItem.getItemStack();
+			if (offHand != null && BlockUtils.isAir(offHand.getType())) offHand = null;
+		}
+
+		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
+		if (magicHelmetItem != null) {
+			helmet = magicHelmetItem.getItemStack();
+			if (helmet != null && BlockUtils.isAir(helmet.getType())) helmet = null;
+		}
+
+		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
+		if (magicChestplateItem != null) {
+			chestplate = magicChestplateItem.getItemStack();
+			if (chestplate != null && BlockUtils.isAir(chestplate.getType())) chestplate = null;
+		}
+
+		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
+		if (magicLeggingsItem != null) {
+			leggings = magicLeggingsItem.getItemStack();
+			if (leggings != null && BlockUtils.isAir(leggings.getType())) leggings = null;
+		}
+
+		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
+		if (magicBootsItem != null) {
+			boots = magicBootsItem.getItemStack();
+			if (boots != null && BlockUtils.isAir(boots.getType())) boots = null;
+		}
+
+		if (mainHand != null) mainHand.setAmount(1);
+		if (offHand != null) offHand.setAmount(1);
+		if (helmet != null) helmet.setAmount(1);
+		if (chestplate != null) chestplate.setAmount(1);
+		if (leggings != null) leggings.setAmount(1);
+		if (boots != null) boots.setAmount(1);
 
 		yOffset = getConfigInt("y-offset", 0);
 		interval = getConfigInt("interval", 30);
@@ -101,7 +134,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		totemNameVisible = getConfigBoolean("totem-name-visible", true);
 		onlyCountOnSuccess = getConfigBoolean("only-count-on-success", false);
 		centerStand = getConfigBoolean("center-stand", true);
-
+		allowCasterTarget = getConfigBoolean("allow-caster-target", false);
 		strAtCap = getConfigString("str-at-cap", "You have too many effects at once.");
 		totemName = getConfigString("totem-name", "");
 
@@ -239,7 +272,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (totems.isEmpty()) return;
 		for (Totem t : totems) {
 			if (target.equals(t.armorStand) && !targetable) e.setCancelled(true);
-			else if (e.getCaster().equals(t.caster) && target.equals(t.armorStand)) e.setCancelled(true);
+			else if (e.getCaster().equals(t.caster) && target.equals(t.armorStand) && !allowCasterTarget) e.setCancelled(true);
 		}
 	}
 
@@ -269,18 +302,19 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			loc.setYaw(caster.getLocation().getYaw());
 			armorStand = (LivingEntity) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
 			if (!totemName.isEmpty()) {
-				armorStand.setCustomName(Util.colorize(totemName));
+				if (caster instanceof Player) armorStand.setCustomName(MagicSpells.doArgumentAndVariableSubstitution(Util.colorize(totemName), (Player) caster, null));
+				else armorStand.setCustomName(Util.colorize(totemName));
 				armorStand.setCustomNameVisible(totemNameVisible);
 			}
 			totemEquipment = armorStand.getEquipment();
 			armorStand.setGravity(gravity);
 			armorStand.addScoreboardTag("MS_Totem");
-			totemEquipment.setItemInMainHand(mainHand);
-			totemEquipment.setItemInOffHand(hand);
-			totemEquipment.setHelmet(helmet);
-			totemEquipment.setChestplate(chestplate);
-			totemEquipment.setLeggings(leggings);
-			totemEquipment.setBoots(boots);
+			if (mainHand != null) totemEquipment.setItemInMainHand(mainHand);
+			if (offHand != null) totemEquipment.setItemInOffHand(offHand);
+			if (helmet != null) totemEquipment.setHelmet(helmet);
+			if (chestplate != null) totemEquipment.setChestplate(chestplate);
+			if (leggings != null) totemEquipment.setLeggings(leggings);
+			if (boots != null) totemEquipment.setBoots(boots);
 			((ArmorStand) armorStand).setVisible(visibility);
 			((ArmorStand) armorStand).setMarker(marker);
 			armorStand.setInvulnerable(true);

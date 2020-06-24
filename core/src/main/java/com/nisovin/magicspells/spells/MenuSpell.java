@@ -25,6 +25,8 @@ import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
@@ -84,7 +86,12 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				}
 				// Otherwise process item list.
 				for (String itemName : itemList) {
-					ItemStack itemStack = Util.getItemStackFromString(itemName);
+					MagicItem magicItem = MagicItems.getMagicItemFromString(itemName);
+					if (magicItem == null) {
+						MagicSpells.error("MenuSpell '" + internalName + "' has an invalid item listed in '" + optionName + "': " + itemName);
+						continue;
+					}
+					ItemStack itemStack = magicItem.getItemStack();
 					if (itemStack == null) {
 						MagicSpells.error("MenuSpell '" + internalName + "' has an invalid item listed in '" + optionName + "': " + itemName);
 						continue;
@@ -208,7 +215,15 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	private ItemStack createItem(String path) {
-		return isConfigSection(path) ? Util.getItemStackFromConfig(getConfigSection(path)) : Util.getItemStackFromString(getConfigString(path, ""));
+		ItemStack item = null;
+		if (isConfigSection(path)) {
+			MagicItem magicItem = MagicItems.getMagicItemFromSection(getConfigSection(path));
+			if (magicItem != null) item = magicItem.getItemStack();
+		} else {
+			MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString(path, ""));
+			if (magicItem != null) item = magicItem.getItemStack();
+		}
+		return item;
 	}
 
 	private String getTitle(Player player) {
@@ -346,6 +361,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	private static class MenuOption {
+
 		private String menuOptionName;
 		private int slot;
 		private ItemStack item;
@@ -364,6 +380,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private List<String> modifierList;
 		private ModifierSet menuOptionModifiers;
 		private boolean stayOpen;
+
 	}
 
 }

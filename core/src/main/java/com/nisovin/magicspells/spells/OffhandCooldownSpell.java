@@ -10,10 +10,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class OffhandCooldownSpell extends InstantSpell {
 
@@ -27,8 +28,13 @@ public class OffhandCooldownSpell extends InstantSpell {
 	public OffhandCooldownSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		if (isConfigString("item")) item = Util.getItemStackFromString(getConfigString("item", "stone"));
-		else if (isConfigSection("item")) item = Util.getItemStackFromConfig(getConfigSection("item"));
+		if (isConfigString("item")) {
+			MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString("item", "stone"));
+			if (magicItem != null) item = magicItem.getItemStack();
+		} else if (isConfigSection("item")) {
+			MagicItem magicItem = MagicItems.getMagicItemFromSection(getConfigSection("item"));
+			if (magicItem != null) item = magicItem.getItemStack();
+		}
 
 		spellToCheckName = getConfigString("spell", "");
 	}

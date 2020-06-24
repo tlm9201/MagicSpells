@@ -32,6 +32,8 @@ import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
@@ -42,13 +44,15 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 	private EntityData entityData;
 
-	private ItemStack holding;
+	private ItemStack mainHandItem;
+	private ItemStack offHandItem;
 	private ItemStack helmet;
 	private ItemStack chestplate;
 	private ItemStack leggings;
 	private ItemStack boots;
 
-	private float holdingDropChance;
+	private float mainHandItemDropChance;
+	private float offHandItemDropChance;
 	private float helmetDropChance;
 	private float chestplateDropChance;
 	private float leggingsDropChance;
@@ -91,19 +95,52 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		ConfigurationSection entitySection = getConfigSection("entity");
 		if (entitySection != null) entityData = new EntityData(entitySection);
 
-		holding = Util.getItemStackFromString(getConfigString("holding", "AIR"));
-		helmet = Util.getItemStackFromString(getConfigString("helmet", "AIR"));
-		chestplate = Util.getItemStackFromString(getConfigString("chestplate", "AIR"));
-		leggings = Util.getItemStackFromString(getConfigString("leggings", "AIR"));
-		boots = Util.getItemStackFromString(getConfigString("boots", "AIR"));
+		// Equipment
+		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
+		if (magicMainHandItem != null) {
+			mainHandItem = magicMainHandItem.getItemStack();
+			if (mainHandItem != null && BlockUtils.isAir(mainHandItem.getType())) mainHandItem = null;
+		}
 
-		if (holding != null && !BlockUtils.isAir(holding.getType())) holding.setAmount(1);
-		if (helmet != null && !BlockUtils.isAir(helmet.getType())) helmet.setAmount(1);
-		if (chestplate != null && !BlockUtils.isAir(chestplate.getType())) chestplate.setAmount(1);
-		if (leggings != null && !BlockUtils.isAir(leggings.getType())) leggings.setAmount(1);
-		if (boots != null && !BlockUtils.isAir(boots.getType())) boots.setAmount(1);
+		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
+		if (magicOffHandItem != null) {
+			offHandItem = magicOffHandItem.getItemStack();
+			if (offHandItem != null && BlockUtils.isAir(offHandItem.getType())) offHandItem = null;
+		}
 
-		holdingDropChance = getConfigFloat("holding-drop-chance", 0) / 100F;
+		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
+		if (magicHelmetItem != null) {
+			helmet = magicHelmetItem.getItemStack();
+			if (helmet != null && BlockUtils.isAir(helmet.getType())) helmet = null;
+		}
+
+		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
+		if (magicChestplateItem != null) {
+			chestplate = magicChestplateItem.getItemStack();
+			if (chestplate != null && BlockUtils.isAir(chestplate.getType())) chestplate = null;
+		}
+
+		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
+		if (magicLeggingsItem != null) {
+			leggings = magicLeggingsItem.getItemStack();
+			if (leggings != null && BlockUtils.isAir(leggings.getType())) leggings = null;
+		}
+
+		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
+		if (magicBootsItem != null) {
+			boots = magicBootsItem.getItemStack();
+			if (boots != null && BlockUtils.isAir(boots.getType())) boots = null;
+		}
+
+		if (mainHandItem != null) mainHandItem.setAmount(1);
+		if (offHandItem != null) offHandItem.setAmount(1);
+		if (helmet != null) helmet.setAmount(1);
+		if (chestplate != null) chestplate.setAmount(1);
+		if (leggings != null) leggings.setAmount(1);
+		if (boots != null) boots.setAmount(1);
+
+		mainHandItemDropChance = getConfigFloat("main-hand-drop-chance", 0) / 100F;
+		offHandItemDropChance = getConfigFloat("off-hand-drop-chance", 0) / 100F;
 		helmetDropChance = getConfigFloat("helmet-drop-chance", 0) / 100F;
 		chestplateDropChance = getConfigFloat("chestplate-drop-chance", 0) / 100F;
 		leggingsDropChance = getConfigFloat("leggings-drop-chance", 0) / 100F;
@@ -346,12 +383,19 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			((Tameable) entity).setOwner((Player) caster);
 		}
 
-		if (holding != null && holding.getType() != Material.AIR) {
-			if (entity instanceof Enderman) ((Enderman) entity).setCarriedMaterial(holding.getData());
-			else if (entity instanceof Skeleton || entity instanceof Zombie) {
-				final EntityEquipment equip = ((LivingEntity)entity).getEquipment();
-				equip.setItemInMainHand(holding.clone());
-				equip.setItemInMainHandDropChance(holdingDropChance);
+		if (entity instanceof Enderman) {
+			if (mainHandItem != null && !BlockUtils.isAir(mainHandItem.getType())) {
+				((Enderman) entity).setCarriedMaterial(mainHandItem.getData());
+			}
+		} else if (entity instanceof LivingEntity) {
+			EntityEquipment entityEquipment = ((LivingEntity) entity).getEquipment();
+			if (mainHandItem != null && !BlockUtils.isAir(mainHandItem.getType())) {
+				entityEquipment.setItemInMainHand(mainHandItem);
+				entityEquipment.setItemInMainHandDropChance(mainHandItemDropChance);
+			}
+			if (offHandItem != null && !BlockUtils.isAir(offHandItem.getType())) {
+				entityEquipment.setItemInOffHand(offHandItem);
+				entityEquipment.setItemInOffHandDropChance(offHandItemDropChance);
 			}
 		}
 

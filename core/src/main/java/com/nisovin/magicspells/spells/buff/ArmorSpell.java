@@ -32,6 +32,8 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
 
 public class ArmorSpell extends BuffSpell {
@@ -78,7 +80,10 @@ public class ArmorSpell extends BuffSpell {
 		try {
 
 			// Get type and data
-			ItemStack item = Util.getItemStackFromString(info[0]);
+			MagicItem magicItem = MagicItems.getMagicItemFromString(info[0]);
+			if (magicItem == null) return null;
+
+			ItemStack item = magicItem.getItemStack();
 			if (item == null) {
 				if (DebugHandler.isNullCheckEnabled()) {
 					NullPointerException e = new NullPointerException("ItemStack is null");

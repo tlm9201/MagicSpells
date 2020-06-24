@@ -33,6 +33,8 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.spells.command.TomeSpell;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.command.ScrollSpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -134,7 +136,11 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 						Spell spell = MagicSpells.getSpellByInternalName(scrollData[2]);
 						int uses = scrollData.length > 3 ? Integer.parseInt(scrollData[3]) : -1;
 						itemTypes[i] = scrollSpell.createScroll(spell, uses, null);
-					} else itemTypes[i] = Util.getItemStackFromString(data[0]);
+					} else {
+						MagicItem magicItem = MagicItems.getMagicItemFromString(data[0]);
+						if (magicItem == null) continue;
+						itemTypes[i] = magicItem.getItemStack();
+					}
 
 					if (itemTypes[i] == null) {
 						MagicSpells.error("ConjureSpell '" + internalName + "' has specified invalid item (e1): " + itemList.get(i));
