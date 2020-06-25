@@ -124,8 +124,13 @@ public class CastListener implements Listener {
 		ItemStack inHand = player.getEquipment().getItemInMainHand();
 		if (!plugin.allowCastWithFist && (inHand == null || BlockUtils.isAir(inHand.getType()))) return;
 
-		Spell spell = MagicSpells.getSpellbook(player).getActiveSpell(inHand);
-		if (spell == null || !spell.canCastWithItem()) return;
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (spellbook == null) return;
+
+		Spell spell = spellbook.getActiveSpell(inHand);
+		if (spell == null) return;
+		if (!spell.canCastWithItem()) return;
+
 		// First check global cooldown
 		if (plugin.globalCooldown > 0 && !spell.ignoreGlobalCooldown) {
 			if (noCastUntil.containsKey(player.getName()) && noCastUntil.get(player.getName()) > System.currentTimeMillis()) return;

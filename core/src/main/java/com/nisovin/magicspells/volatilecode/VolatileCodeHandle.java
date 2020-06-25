@@ -3,6 +3,7 @@ package com.nisovin.magicspells.volatilecode;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -40,9 +41,9 @@ public interface VolatileCodeHandle {
 	void setAbsorptionHearts(LivingEntity entity, double Double);
 
 	void setTexture(SkullMeta meta, String texture, String signature);
-	
-	void setTexture(SkullMeta meta, String texture, String signature, String uuid, String name);
-	
+
+	void setTexture(SkullMeta meta, String texture, String signature, String uuid, OfflinePlayer offlinePlayer);
+
 	void setSkin(Player player, String skin, String signature);
 
 	int getCustomModelData(ItemMeta meta);

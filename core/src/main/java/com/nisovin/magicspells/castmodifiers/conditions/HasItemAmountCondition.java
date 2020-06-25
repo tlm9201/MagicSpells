@@ -9,9 +9,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.EntityEquipment;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.InventoryUtil;
+
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class HasItemAmountCondition extends OperatorCondition {
 
@@ -34,7 +36,9 @@ public class HasItemAmountCondition extends OperatorCondition {
 		}
 
 		try {
-			item = Util.predefinedItems.get(args[1]);
+			MagicItem magicItem = MagicItems.getMagicItemFromString(args[1]);
+			if (magicItem == null) return false;
+			item = magicItem.getItemStack();
 			if (item == null) return false;
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);

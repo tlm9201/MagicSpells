@@ -32,8 +32,10 @@ import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.mana.ManaChangeReason;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.variables.PlayerStringVariable;
 
@@ -320,7 +322,13 @@ public class CastCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
 
-                ItemStack item = Util.getItemStackFromString(args[2]);
+                MagicItem magicItem = MagicItems.getMagicItemFromString(args[2]);
+                if (magicItem == null) {
+                    sender.sendMessage(MagicSpells.getTextColor() + "Item not found.");
+                    return true;
+                }
+
+                ItemStack item = magicItem.getItemStack();
                 if (item == null) {
                     sender.sendMessage(MagicSpells.getTextColor() + "Item not found.");
                     return true;

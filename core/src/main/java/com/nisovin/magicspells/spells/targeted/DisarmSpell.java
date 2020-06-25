@@ -16,11 +16,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
@@ -43,7 +44,10 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (disarmableMaterials != null && !disarmableMaterials.isEmpty()) {
 			disarmable = new HashSet<>();
 			for (String itemName : disarmableMaterials) {
-				ItemStack item = Util.getItemStackFromString(itemName);
+				MagicItem magicItem = MagicItems.getMagicItemFromString(itemName);
+				if (magicItem == null) continue;
+
+				ItemStack item = magicItem.getItemStack();
 				if (item != null) disarmable.add(item.getType());
 			}
 		}

@@ -9,18 +9,20 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.PlayerInventory;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class UnconjureSpell extends InstantSpell {
 
 	private List<String> itemNames;
-	private List<MagicItem> items;
+	private List<UnconjuredItem> items;
 
 	public UnconjureSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
+
 		itemNames = getConfigStringList("items", null);
 	}
 
@@ -30,12 +32,12 @@ public class UnconjureSpell extends InstantSpell {
 		items = new ArrayList<>();
 		if (itemNames == null) return;
 		for (String itemString : itemNames) {
-			MagicItem magicItem = new MagicItem(itemString);
-			if (magicItem.item == null) {
+			UnconjuredItem unconjuredItem = new UnconjuredItem(itemString);
+			if (unconjuredItem.item == null) {
 				MagicSpells.error("UnconjureSpell '" + internalName + "' has an invalid item specified: " + itemString);
 				continue;
 			}
-			items.add(magicItem);
+			items.add(unconjuredItem);
 		}
 	}
 
@@ -71,12 +73,12 @@ public class UnconjureSpell extends InstantSpell {
 
 	private boolean filterItems(ItemStack[] oldItems) {
 		boolean stop = false;
-		for (MagicItem magicItem : items) {
+		for (UnconjuredItem unconjuredItem : items) {
 			// Only look for an ItemStack with specified quantity.
-			if (magicItem.hasSpecialQuantity) {
+			if (unconjuredItem.hasSpecialQuantity) {
 				for (int i = 0; i < oldItems.length; i++) {
 					if (oldItems[i] == null) continue;
-					if (!magicItem.item.equals(oldItems[i])) continue;
+					if (!unconjuredItem.item.equals(oldItems[i])) continue;
 					oldItems[i] = null;
 					// True is only returned if the search is for an item with specific
 					// quantity. If the item is found, this won't search for the item in
@@ -89,20 +91,24 @@ public class UnconjureSpell extends InstantSpell {
 			else {
 				for (int i = 0; i < oldItems.length; i++) {
 					if (oldItems[i] == null) continue;
-					if (magicItem.item.isSimilar(oldItems[i])) oldItems[i] = null;
+					if (unconjuredItem.item.isSimilar(oldItems[i])) oldItems[i] = null;
 				}
 			}
 		}
 		return stop;
 	}
 
-	private static class MagicItem {
+	private static class UnconjuredItem {
+
 		ItemStack item;
 		boolean hasSpecialQuantity = false;
 
-		public MagicItem(String itemString) {
+		public UnconjuredItem(String itemString) {
 			String[] splits = itemString.split(" ");
-			item = Util.getItemStackFromString(splits[0]);
+			MagicItem magicItem = MagicItems.getMagicItemFromString(splits[0]);
+			if (magicItem == null) return;
+
+			item = magicItem.getItemStack();
 			// If it's null, then stop. The item won't make
 			// it to the list anyway.
 			if (item == null) return;
@@ -111,5 +117,7 @@ public class UnconjureSpell extends InstantSpell {
 			item.setAmount(Integer.parseInt(splits[1]));
 			hasSpecialQuantity = true;
 		}
+
 	}
+
 }

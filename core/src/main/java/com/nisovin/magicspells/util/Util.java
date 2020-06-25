@@ -19,355 +19,95 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.attribute.AttributeModifier;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
-import com.nisovin.magicspells.util.itemreader.*;
 import com.nisovin.magicspells.util.CastUtil.CastMode;
-import com.nisovin.magicspells.materials.MagicMaterial;
-import com.nisovin.magicspells.util.managers.AttributeManager;
-import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.handlers.PotionEffectHandler;
-import com.nisovin.magicspells.materials.ItemNameResolver.ItemTypeAndData;
-import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
 
 import org.apache.commons.math3.util.FastMath;
 
 public class Util {
 
-	public static Map<String, ItemStack> predefinedItems = new HashMap<>();
-
 	private static Random random = new Random();
+
 	public static int getRandomInt(int bound) {
 		return random.nextInt(bound);
 	}
 
-	/**
-	 * Format is<br />
-	 *
-	 * <code>itemID#color;enchant-level+enchant-level+enchant-level...|name|lore|lore...</code><p />
-	 *
-	 * OR<p>
-	 *
-	 * <code>predefined item key</code><br />
-	 *
-	 * @param string The string to resolve to an item
-	 *
-	 * @return the item stack represented by the string
-	 */
-	public static ItemStack getItemStackFromString(String string) {
-		try {
-			if (predefinedItems.containsKey(string)) return predefinedItems.get(string).clone();
+	// - <potionEffectType> (level) (duration) (ambient)
+	public static PotionEffect buildPotionEffect(String effectString) {
+		String[] data = effectString.split(" ");
+		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 
-			ItemStack item;
-			String s = string;
-			String name = null;
-			String[] lore = null;
-			HashMap<Enchantment, Integer> enchants = null;
-			int color = -1;
-			if (s.contains("|")) {
-				String[] temp = s.split("\\|");
-				s = temp[0];
-				if (temp.length == 1) {
-					name = "";
-				} else {
-					name = Util.colorize(temp[1].replace("__", " "));
-					if (temp.length > 2) {
-						lore = Arrays.copyOfRange(temp, 2, temp.length);
-						for (int i = 0; i < lore.length; i++) {
-							lore[i] = Util.colorize(lore[i].replace("__", " "));
-						}
-					}
-				}
-			}
-			if (s.contains(";")) {
-				String[] temp = s.split(";", 2);
-				s = temp[0];
-				enchants = new HashMap<>();
-				if (!temp[1].isEmpty()) {
-					String[] split = temp[1].split("\\+");
-					for (int i = 0; i < split.length; i++) {
-						String[] enchantData = split[i].split("-");
-						Enchantment ench;
-						ench = MagicValues.Enchantments.getEnchantmentType(enchantData[0]);
-						if (ench == null) continue;
-						if (RegexUtil.matches(RegexUtil.BASIC_DECIMAL_INT_PATTERN, enchantData[1])) {
-							enchants.put(ench, Integer.parseInt(enchantData[1]));
-						}
-					}
-				}
-			}
-			if (s.contains("#")) {
-				String[] temp = s.split("#");
-				s = temp[0];
-				if (RegexUtil.matches(RegexUtil.BASIC_HEX_PATTERN, temp[1])) {
-					color = Integer.parseInt(temp[1], 16);
-				}
-			}
-			ItemTypeAndData itemTypeAndData = MagicSpells.getItemNameResolver().resolve(s);
-			if (itemTypeAndData != null) {
-				//item = new ItemStack(itemTypeAndData.id, 1, itemTypeAndData.data);
-				// FIXME
-				item = new ItemStack(itemTypeAndData.material, 1);
-			} else {
-				return null;
-			}
-			if (name != null || lore != null || color >= 0) {
+		if (t == null) MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
+		if (t != null) {
+			int level = 0;
+			if (data.length > 1) {
 				try {
-					ItemMeta meta = item.getItemMeta();
-					if (name != null) meta.setDisplayName(name);
-					if (lore != null) meta.setLore(Arrays.asList(lore));
-					if (color >= 0 && meta instanceof LeatherArmorMeta) ((LeatherArmorMeta)meta).setColor(Color.fromRGB(color));
-					item.setItemMeta(meta);
-				} catch (Exception e) {
-					MagicSpells.error("Failed to process item meta for item: " + s);
+					level = Integer.parseInt(data[1]);
+				} catch (NumberFormatException ex) {
+					DebugHandler.debugNumberFormat(ex);
 				}
 			}
-			if (enchants != null) {
-				if (!enchants.isEmpty()) {
-					item.addUnsafeEnchantments(enchants);
-				} else {
-					item = ItemUtil.addFakeEnchantment(item);
+			int duration = 600;
+			if (data.length > 2) {
+				try {
+					duration = Integer.parseInt(data[2]);
+				} catch (NumberFormatException ex) {
+					DebugHandler.debugNumberFormat(ex);
 				}
 			}
-			return item;
-		} catch (Exception e) {
-			MagicSpells.handleException(e);
-			return null;
+			boolean ambient = false;
+			if (data.length > 3 && (BooleanUtils.isYes(data[3]) || data[3].equalsIgnoreCase("ambient"))) ambient = true;
+			return new PotionEffect(t, duration, level, ambient);
 		}
+		return null;
 	}
 
-	// TODO add a blockstate handler
-	// TODO add a spawneggmeta handler
-	// TODO finish this
-	/**
-	 * Item config format:
-	 *
-	 * # Required for all items
-	 * # WRITE EXPLANATION OF 'type'
-	 * type:
-	 *
-	 * # Applicable to all items
-	 * # WRITE EXPLANATION OF 'name'
-	 * name: string
-	 * # WRITE EXPLANATION OF 'lore'
-	 * lore:
-	 *     - lore line 1
-	 *     - lore line 2
-	 *     - etc
-	 * # WRITE EXPLANATION OF 'enchants'
-	 * enchants:
-	 *     - enchant 1
-	 *     - enchant 2
-	 *     - etc
-	 *
-	 * # Used for leather armor
-	 * # WRITE EXPLANATION OF 'color'
-	 * color:
-	 *
-	 * # Applicable to potions
-	 * # WRITE EXPLANATION OF 'potioneffects'
-	 * potioneffects:
-	 *     - effect 1
-	 *     - effect 2
-	 * # Applicable in versions ___ and later
-	 * # WRITE EXPLANATION OF 'potioncolor'
-	 * potioncolor:
-	 *
-	 * # Applicable to skulls
-	 * # NOTE: SKULLS ARE CURRENTLY BUGGED
-	 * # WRITE EXPLANATION OF 'skullowner'
-	 * skullowner:
-	 * # WRITE EXPLANATION OF 'uuid'
-	 * uuid:
-	 * # WRITE EXPLANATION OF 'texture'
-	 * texture:
-	 * # WRITE EXPLANATION OF 'signature'
-	 * signature:
-	 *
-	 * # Used for repairable items
-	 * # WRITE EXPLANATION OF 'repaircost'
-	 * repaircost: integer
-	 *
-	 * # Used for written books
-	 * # WRITE EXPLANATION OF 'title'
-	 * title: String
-	 * # WRITE EXPLANATION OF 'author'
-	 * author: String
-	 * # WRITE EXPLANATION OF 'pages'
-	 * pages:
-	 *     - page 1 contents
-	 *     - page 2 contents
-	 *     - etc
-	 *
-	 * # Applicable to banners
-	 * # WRITE EXPLANATION OF 'color'
-	 * color:
-	 * # WRITE EXPLANATION OF 'patterns'
-	 * patterns:
-	 *     - pattern 1
-	 *     - pattern 2
-	 *
-	 * # Applicable to all items
-	 * # WRITE EXPLANATION OF 'hide-tooltip'
-	 * hide-tooltip: true|false
-	 *
-	 * # Applicable to all items with durability
-	 * # WRITE EXPLANATION OF 'unbreakable'
-	 * unbreakable: true|false
-	 *
-	 * # Applicable to all items
-	 * # WRITE EXPLANATION OF 'attributes'
-	 * attributes:
-	 */
-	public static ItemStack getItemStackFromConfig(ConfigurationSection config) {
-		try {
-			// It MUST have a type option
-			if (!config.contains("type")) return null;
+	// - <potionEffectType> (duration)
+	public static PotionEffect buildSuspiciousStewPotionEffect(String effectString) {
+		String[] data = effectString.split(" ");
+		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 
-			// See if this is managed by an alternative reader
-			ItemStack item = AlternativeReaderManager.deserialize(config);
-			if (item != null) return item;
-
-			// Basic item
-			MagicMaterial material = MagicSpells.getItemNameResolver().resolveItem(config.getString("type"));
-			if (material == null) return null;
-			item = material.toItemStack();
-			ItemMeta meta = item.getItemMeta();
-
-			// Name and lore
-			meta = NameHandler.process(config, meta);
-			meta = LoreHandler.process(config, meta);
-
-			// Enchants
-			boolean emptyEnchants = false;
-			if (config.contains("enchants") && config.isList("enchants")) {
-				List<String> enchants = config.getStringList("enchants");
-				for (String enchant : enchants) {
-					String[] data = enchant.split(" ");
-					Enchantment e = EnchantmentHandler.getEnchantment(data[0]);
-					if (e == null) MagicSpells.error('\'' + data[0] + "' could not be connected to an enchantment");
-					if (e != null) {
-						int level = 0;
-						if (data.length > 1) {
-							try {
-								level = Integer.parseInt(data[1]);
-							} catch (NumberFormatException ex) {
-								DebugHandler.debugNumberFormat(ex);
-							}
-						}
-						if (meta instanceof EnchantmentStorageMeta) {
-							((EnchantmentStorageMeta)meta).addStoredEnchant(e, level, true);
-						} else {
-							meta.addEnchant(e, level, true);
-						}
-					}
-				}
-				if (enchants.isEmpty()) emptyEnchants = true;
-			}
-
-			// Armor color
-			meta = LeatherArmorHandler.process(config, meta);
-
-			// Potioneffects
-			// Potioncolor
-			meta = PotionHandler.process(config, meta);
-
-			// Skull owner
-			meta = SkullHandler.process(config, meta);
-
-			// Flower pot
-			/*if (config.contains("flower") && item.getType() == Material.FLOWER_POT && meta instanceof BlockStateMeta) {
-				MagicMaterial flower = MagicSpells.getItemNameResolver().resolveBlock(config.getString("flower"));
-				BlockState state = ((BlockStateMeta)meta).getBlockState();
-				MaterialData data = state.getData();
-				if (data instanceof FlowerPot) {
-					((FlowerPot)data).setContents(new MaterialData(flower.getMaterial()));
-				}
-				state.setData(data);
-				((BlockStateMeta)meta).setBlockState(state);
-			}*/
-
-			// Durability
-			meta = DurabilityHandler.process(config, meta);
-
-			// Repair cost
-			meta = RepairableHandler.process(config, meta);
-
-			// Written book
-			meta = WrittenBookHandler.process(config, meta);
-
-			// Banner
-			meta = BannerHandler.process(config, meta);
-
-			// Unbreakable
-			if (config.getBoolean("unbreakable", false)) {
-				meta.setUnbreakable(true);
-			}
-
-			// Hide tooltip
-			if (config.getBoolean("hide-tooltip", MagicSpells.hidePredefinedItemTooltips())) {
-				meta.addItemFlags(ItemFlag.values());
-			}
-
-			// Empty enchant
-			if (emptyEnchants) {
-				item = ItemUtil.addFakeEnchantment(item);
-			}
-
-			// Set meta
-			item.setItemMeta(meta);
-
-			// Attributes
-			AttributeManager attributeManager = MagicSpells.getAttributeManager();
-			if (config.contains("attributes")) {
-				Set<String> attrs = config.getConfigurationSection("attributes").getKeys(false);
-				for (String attrName : attrs) {
-					String[] attrData = config.getString("attributes." + attrName).split(" ");
-					String attrType = attrData[0];
-					double attrAmt = 1;
-					try {
-						attrAmt = Double.parseDouble(attrData[1]);
-					} catch (NumberFormatException e) {
-						DebugHandler.debugNumberFormat(e);
-					}
-					AttributeUtil.AttributeOperation operation = AttributeUtil.AttributeOperation.ADD_NUMBER;
-					if (attrData.length > 2) {
-						String attrDataLowercase = attrData[2].toLowerCase();
-						if (attrDataLowercase.startsWith("mult")) {
-							operation = AttributeUtil.AttributeOperation.MULTIPLY_SCALAR_1; // Multiply percent
-						} else if (attrDataLowercase.contains("add") && (attrDataLowercase.contains("perc") || attrDataLowercase.contains("scal"))) {
-							operation = AttributeUtil.AttributeOperation.ADD_SCALAR; // Add percent
-						}
-					}
-					EquipmentSlot slot = null; // Can be null for all slots
-					if (attrData.length > 3) {
-						try {
-							slot = EquipmentSlot.valueOf(attrData[3].toUpperCase());
-						} catch (Exception ex) {
-							/* do nothing */
-						}
-					}
-
-					Attribute attribute = AttributeUtil.AttributeType.getAttribute(attrType);
-					AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), attrType, attrAmt, operation.toBukkitOperation(), slot);
-					attributeManager.addItemAttribute(item, attribute, modifier);
+		if (t == null) MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
+		if (t != null) {
+			int duration = 600;
+			if (data.length > 1) {
+				try {
+					duration = Integer.parseInt(data[1]);
+				} catch (NumberFormatException ex) {
+					DebugHandler.debugNumberFormat(ex);
 				}
 			}
-
-			return item;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			return new PotionEffect(t, duration, 0, true);
 		}
+		return null;
+	}
+
+	public static Color[] getColorsFromString(String str) {
+		int[] colors = new int[] { 0xFF0000 };
+		String[] args = str.replace(" ", "").split(",");
+		if (args.length > 0) {
+			colors = new int[args.length];
+			for (int i = 0; i < colors.length; i++) {
+				try {
+					colors[i] = Integer.parseInt(args[i], 16);
+				} catch (NumberFormatException e) {
+					colors[i] = 0;
+				}
+			}
+		}
+
+		Color[] c = new Color[colors.length];
+		for (int i = 0; i < colors.length; i++) {
+			c[i] = Color.fromRGB(colors[i]);
+		}
+		return c;
 	}
 
 	// Just checks to see if the passed string could be lore data
@@ -828,9 +568,7 @@ public class Util {
 
 	public static <C extends Collection<Material>> C getMaterialList(List<String> strings, Supplier<C> supplier) {
 		C ret = supplier.get();
-		strings.forEach(string -> {
-			ret.add(Material.matchMaterial(string));
-		});
+		strings.forEach(string -> ret.add(Material.matchMaterial(string.toUpperCase())));
 		return ret;
 	}
 
@@ -916,4 +654,5 @@ public class Util {
 	public static String doVarReplacementAndColorize(Player player, String string) {
 		return colorize(MagicSpells.doVariableReplacements(player, string));
 	}
+
 }

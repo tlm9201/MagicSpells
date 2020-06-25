@@ -5,20 +5,21 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EntityEquipment;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class WearingPreciseCondition extends Condition {
-	
-	private ItemStack itemStack = null;
+
+	private MagicItemData itemData = null;
 	
 	@Override
 	public boolean setVar(String var) {
-		var = var.trim();
-		ItemStack item = Util.predefinedItems.get(var.trim());
-		if (InventoryUtil.isNothing(item)) return false;
-		itemStack = item.clone();
+		MagicItem magicItem = MagicItems.getMagicItemFromString(var.trim());
+		if (magicItem == null) return false;
+
+		itemData = magicItem.getMagicItemData();
 		return true;
 	}
 	
@@ -43,9 +44,12 @@ public class WearingPreciseCondition extends Condition {
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
 	}
-	
+
 	private boolean check(ItemStack item) {
-		return itemStack.isSimilar(item);
+		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
+		if (data == null) return false;
+
+		return data.equals(itemData);
 	}
 	
 }

@@ -1,10 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.spells.PassiveSpell;
-import com.nisovin.magicspells.util.OverridePriority;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -13,7 +10,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-import java.util.*;
+import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.spells.PassiveSpell;
+import com.nisovin.magicspells.util.OverridePriority;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class InventoryClickListener extends PassiveListener {
 
@@ -24,11 +26,17 @@ public class InventoryClickListener extends PassiveListener {
         InventoryAction action = null;
         ItemStack itemCurrent = null;
         ItemStack itemCursor = null;
-        if(var != null && !var.isEmpty()) {
+        if (var != null && !var.isEmpty()) {
             String[] splits = var.split(" ");
             if (!splits[0].equals("null")) action = InventoryAction.valueOf(splits[0].toUpperCase());
-            if (splits.length > 1 && !splits[1].equals("null")) itemCurrent = Util.getItemStackFromString(splits[1]);
-            if (splits.length > 2) itemCursor = Util.getItemStackFromString(splits[2]);
+            if (splits.length > 1 && !splits[1].equals("null")) {
+                MagicItem magicItem = MagicItems.getMagicItemFromString(splits[1]);
+                if (magicItem != null) itemCurrent = magicItem.getItemStack();
+            }
+            if (splits.length > 2) {
+                MagicItem magicItem = MagicItems.getMagicItemFromString(splits[2]);
+                if (magicItem != null) itemCursor = magicItem.getItemStack();
+            }
         }
         spells.add(new MagicClick(spell, action, itemCurrent, itemCursor));
     }
@@ -62,6 +70,7 @@ public class InventoryClickListener extends PassiveListener {
     }
 
     private static class MagicClick {
+
         InventoryAction action;
         PassiveSpell spell;
         ItemStack itemCurrent;

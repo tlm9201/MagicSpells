@@ -76,6 +76,7 @@ public class UnbindSpell extends CommandSpell {
 				}
 
 				spellbook.save();
+				spellbook.reload();
 				sendMessage(strUnbindAll, player, args);
 				playSpellEffects(EffectPosition.CASTER, player);
 				return PostCastAction.NO_MESSAGES;
@@ -86,14 +87,17 @@ public class UnbindSpell extends CommandSpell {
 				sendMessage(strNoSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			if (!spellbook.hasSpell(spell)) {
 				sendMessage(strNoSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			if (!spell.canCastWithItem()) {
 				sendMessage(strCantBindSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			if (allowedSpells != null && !allowedSpells.contains(spell)) {
 				sendMessage(strCantUnbind, player, args);
 				return PostCastAction.ALREADY_HANDLED;
@@ -104,7 +108,9 @@ public class UnbindSpell extends CommandSpell {
 				sendMessage(strNotBound, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
+
 			spellbook.save();
+			spellbook.reload();
 			sendMessage(formatMessage(strCastSelf, "%s", spell.getName()), player, args);
 			playSpellEffects(EffectPosition.CASTER, player);
 			return PostCastAction.NO_MESSAGES;

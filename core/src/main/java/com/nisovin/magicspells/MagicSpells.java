@@ -29,7 +29,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -54,10 +53,12 @@ import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.events.SpellLearnEvent;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.materials.ItemNameResolver;
 import com.nisovin.magicspells.util.handlers.MoneyHandler;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.BossBarManager;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
@@ -123,6 +124,19 @@ public class MagicSpells extends JavaPlugin {
 	boolean enableProfiling;
 	boolean enableErrorLogging;
 
+	boolean hideMagicItemTooltips;
+	boolean ignoreCastItemNames;
+	boolean ignoreCastItemAmount;
+	boolean ignoreCastItemEnchants;
+	boolean ignoreCastItemNameColors;
+	boolean ignoreCastItemBreakability;
+	boolean ignoreCastItemColor;
+	boolean ignoreCastItemPotionType;
+	boolean ignoreCastItemTitle;
+	boolean ignoreCastItemAuthor;
+	boolean ignoreCastItemLore;
+	boolean ignoreCastItemCustomModelData;
+
 	boolean castOnAnimate;
 	boolean enableManaBars;
 	boolean ignoreCastPerms;
@@ -133,18 +147,15 @@ public class MagicSpells extends JavaPlugin {
 	boolean castWithLeftClick;
 	boolean castWithRightClick;
 	boolean allowCycleToNoSpell;
-	boolean ignoreCastItemNames;
+
 	boolean checkScoreboardTeams;
 	boolean defaultAllPermsFalse;
 	boolean enableTempGrantPerms;
 	boolean ignoreDefaultBindings;
-	boolean ignoreCastItemEnchants;
 	boolean useExpBarAsCastTimeBar;
 	boolean alwaysShowMessageOnCycle;
-	boolean ignoreCastItemNameColors;
 	boolean onlyCycleToCastableSpells;
 	boolean ignoreGrantPermsFakeValue;
-	boolean hidePredefinedItemTooltips;
 	boolean cycleSpellsOnOffhandAction;
 	boolean separatePlayerSpellsPerWorld;
 	boolean showStrCostOnMissingReagents;
@@ -255,7 +266,15 @@ public class MagicSpells extends JavaPlugin {
 		ignoreDefaultBindings = config.getBoolean(path + "ignore-default-bindings", false);
 		ignoreCastItemEnchants = config.getBoolean(path + "ignore-cast-item-enchants", true);
 		ignoreCastItemNames = config.getBoolean(path + "ignore-cast-item-names", false);
+		ignoreCastItemAmount = config.getBoolean(path + "ignore-cast-item-amount", true);
 		ignoreCastItemNameColors = config.getBoolean(path + "ignore-cast-item-name-colors", false);
+		ignoreCastItemBreakability = config.getBoolean(path + "ignore-cast-item-breakability", true);
+		ignoreCastItemColor = config.getBoolean(path + "ignore-cast-item-color", true);
+		ignoreCastItemPotionType = config.getBoolean(path + "ignore-cast-item-potion-types", true);
+		ignoreCastItemTitle = config.getBoolean(path + "ignore-cast-item-title", true);
+		ignoreCastItemAuthor = config.getBoolean(path + "ignore-cast-item-author", true);
+		ignoreCastItemLore = config.getBoolean(path + "ignore-cast-item-lore", true);
+		ignoreCastItemCustomModelData = config.getBoolean(path + "ignore-cast-item-custom-model-data", true);
 		checkWorldPvpFlag = config.getBoolean(path + "check-world-pvp-flag", true);
 		checkScoreboardTeams = config.getBoolean(path + "check-scoreboard-teams", false);
 		showStrCostOnMissingReagents = config.getBoolean(path + "show-str-cost-on-missing-reagents", true);
@@ -330,44 +349,38 @@ public class MagicSpells extends JavaPlugin {
 		Map<String, Boolean> permCastChildren = new HashMap<>();
 		Map<String, Boolean> permTeachChildren = new HashMap<>();
 
-		// Load predefined items
-		log("Loading predefined items...");
-		hidePredefinedItemTooltips = config.getBoolean(path + "hide-predefined-items-tooltips", false);
-		if (hidePredefinedItemTooltips) {
-			log("... hiding tooltips!");
-		}
-		Util.predefinedItems.clear();
-		if (config.contains(path + "predefined-items")) {
-			Set<String> predefinedItems = config.getKeys(path + "predefined-items");
-			if (predefinedItems != null) {
-				for (String key : predefinedItems) {
-					if (config.isString(path + "predefined-items." + key)) {
-						String s = config.getString(path + "predefined-items." + key, null);
-						if (s != null) {
-							ItemStack is = Util.getItemStackFromString(s);
-							if (is != null) {
-								Util.predefinedItems.put(key, is);
-							} else {
-								MagicSpells.error("Invalid predefined item: " + key + ": " + s);
-							}
-						}
-					} else if (config.isSection(path + "predefined-items." + key)) {
-						ConfigurationSection s = config.getSection(path + "predefined-items." + key);
-						if (s != null) {
-							ItemStack is = Util.getItemStackFromConfig(s);
-							if (is != null) {
-								Util.predefinedItems.put(key, is);
-							} else {
-								MagicSpells.error("Invalid predefined item: " + key + ": (section)");
-							}
-						}
-					} else {
-						MagicSpells.error("Invalid predefined item: " + key);
-					}
+		// Load magic items
+		log("Loading magic items...");
+		hideMagicItemTooltips = config.getBoolean(path + "hide-magic-items-tooltips", false);
+		if (hideMagicItemTooltips) log("... hiding tooltips!");
+
+		MagicItems.getMagicItems().clear();
+		String itemStr = "magic-items";
+		if (config.contains(path + itemStr)) {
+			Set<String> magicItems = config.getKeys(path + itemStr);
+			if (magicItems != null) {
+				for (String key : magicItems) {
+					if (config.isString(path + itemStr + "." + key)) {
+						String str = config.getString(path + itemStr + "." + key, null);
+						if (str == null) continue;
+
+						MagicItem magicItem = MagicItems.getMagicItemFromString(str);
+						if (magicItem != null) MagicItems.getMagicItems().put(key, magicItem);
+						else MagicSpells.error("Invalid magic item: " + key + ": " + str);
+
+					} else if (config.isSection(path + itemStr + "." + key)) {
+						ConfigurationSection section = config.getSection(path + itemStr + "." + key);
+						if (section == null) continue;
+
+						MagicItem magicItem = MagicItems.getMagicItemFromSection(section);
+						if (magicItem != null) MagicItems.getMagicItems().put(key, magicItem);
+						else MagicSpells.error("Invalid magic item: " + key + ": (section)");
+
+					} else MagicSpells.error("Invalid magic item: " + key);
 				}
 			}
 		}
-		log("..." + Util.predefinedItems.size() + " predefined items loaded");
+		log("..." + MagicItems.getMagicItems().size() + " magic items loaded");
 
 		// Load variables
 		log("Loading variables...");
@@ -735,6 +748,38 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.ignoreCastItemEnchants;
 	}
 
+	public static boolean ignoreCastItemAmount() {
+		return plugin.ignoreCastItemAmount;
+	}
+
+	public static boolean ignoreCastItemBreakability() {
+		return plugin.ignoreCastItemBreakability;
+	}
+
+	public static boolean ignoreCastItemColor() {
+		return plugin.ignoreCastItemColor;
+	}
+
+	public static boolean ignoreCastItemPotionType() {
+		return plugin.ignoreCastItemPotionType;
+	}
+
+	public static boolean ignoreCastItemTitle() {
+		return plugin.ignoreCastItemTitle;
+	}
+
+	public static boolean ignoreCastItemAuthor() {
+		return plugin.ignoreCastItemAuthor;
+	}
+
+	public static boolean ignoreCastItemLore() {
+		return plugin.ignoreCastItemLore;
+	}
+
+	public static boolean ignoreCastItemCustomModelData() {
+		return plugin.ignoreCastItemCustomModelData;
+	}
+
 	public static boolean ignoreCastItemNames() {
 		return plugin.ignoreCastItemNames;
 	}
@@ -747,8 +792,8 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.showStrCostOnMissingReagents;
 	}
 
-	public static boolean hidePredefinedItemTooltips() {
-		return plugin.hidePredefinedItemTooltips;
+	public static boolean hideMagicItemTooltips() {
+		return plugin.hideMagicItemTooltips;
 	}
 
 	public static boolean enableManaBars() {

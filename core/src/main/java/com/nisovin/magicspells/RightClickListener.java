@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.util.CastItem;
@@ -41,8 +42,10 @@ public class RightClickListener implements Listener {
 		if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		if (!event.hasItem()) return;
 
-		CastItem castItem = new CastItem(event.getItem());
-		final Spell spell = rightClickCastItems.get(castItem);
+		ItemStack item = event.getItem();
+		if (item == null) return;
+
+		final Spell spell = rightClickCastItems.get(new CastItem(item));
 		if (spell == null) return;
 
 		Player player = event.getPlayer();

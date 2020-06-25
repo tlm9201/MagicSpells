@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
@@ -34,11 +33,14 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spells.SpellDamageSpell;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 
 public class MinionSpell extends BuffSpell {
@@ -145,18 +147,48 @@ public class MinionSpell extends BuffSpell {
 		if (attributeList != null && !attributeList.isEmpty()) attributes = MagicSpells.getAttributeManager().getAttributes(attributeList);
 
 		// Equipment
-		mainHandItem = Util.getItemStackFromString(getConfigString("main-hand", ""));
-		if (mainHandItem != null && mainHandItem.getType() != Material.AIR) mainHandItem.setAmount(1);
-		offHandItem = Util.getItemStackFromString(getConfigString("off-hand", ""));
-		if (offHandItem != null && offHandItem.getType() != Material.AIR) offHandItem.setAmount(1);
-		helmet = Util.getItemStackFromString(getConfigString("helmet", ""));
-		if (helmet != null && helmet.getType() != Material.AIR) helmet.setAmount(1);
-		chestplate = Util.getItemStackFromString(getConfigString("chestplate", ""));
-		if (chestplate != null && chestplate.getType() != Material.AIR) chestplate.setAmount(1);
-		leggings = Util.getItemStackFromString(getConfigString("leggings", ""));
-		if (leggings != null && leggings.getType() != Material.AIR) leggings.setAmount(1);
-		boots = Util.getItemStackFromString(getConfigString("boots", ""));
-		if (boots != null && boots.getType() != Material.AIR) boots.setAmount(1);
+		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
+		if (magicMainHandItem != null) {
+			mainHandItem = magicMainHandItem.getItemStack();
+			if (mainHandItem != null && BlockUtils.isAir(mainHandItem.getType())) mainHandItem = null;
+		}
+
+		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
+		if (magicOffHandItem != null) {
+			offHandItem = magicOffHandItem.getItemStack();
+			if (offHandItem != null && BlockUtils.isAir(offHandItem.getType())) offHandItem = null;
+		}
+
+		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
+		if (magicHelmetItem != null) {
+			helmet = magicHelmetItem.getItemStack();
+			if (helmet != null && BlockUtils.isAir(helmet.getType())) helmet = null;
+		}
+
+		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
+		if (magicChestplateItem != null) {
+			chestplate = magicChestplateItem.getItemStack();
+			if (chestplate != null && BlockUtils.isAir(chestplate.getType())) chestplate = null;
+		}
+
+		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
+		if (magicLeggingsItem != null) {
+			leggings = magicLeggingsItem.getItemStack();
+			if (leggings != null && BlockUtils.isAir(leggings.getType())) leggings = null;
+		}
+
+		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
+		if (magicBootsItem != null) {
+			boots = magicBootsItem.getItemStack();
+			if (boots != null && BlockUtils.isAir(boots.getType())) boots = null;
+		}
+
+		if (mainHandItem != null) mainHandItem.setAmount(1);
+		if (offHandItem != null) offHandItem.setAmount(1);
+		if (helmet != null) helmet.setAmount(1);
+		if (chestplate != null) chestplate.setAmount(1);
+		if (leggings != null) leggings.setAmount(1);
+		if (boots != null) boots.setAmount(1);
 
 		// Minion target list
 		minionTargetList = new ValidTargetList(this, getConfigStringList("minion-targets", null));

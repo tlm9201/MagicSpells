@@ -3,6 +3,7 @@ package com.nisovin.magicspells.volatilecode;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -103,7 +104,7 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public void setTexture(SkullMeta meta, String texture, String signature, String uuid, String name) {
+	public void setTexture(SkullMeta meta, String texture, String signature, String uuid, OfflinePlayer offlinePlayer) {
 		// Need volatile code for this
 	}
 
@@ -128,4 +129,5 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 		// Need volatile code for this
 		return null;
 	}
+
 }
