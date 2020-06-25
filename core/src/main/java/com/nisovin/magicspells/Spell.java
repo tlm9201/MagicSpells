@@ -77,7 +77,7 @@ import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 import de.slikey.effectlib.Effect;
 
 import com.google.common.collect.Multimap;
-import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.LinkedListMultimap;
 
 public abstract class Spell implements Comparable<Spell>, Listener {
 
@@ -410,7 +410,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		// Variable options
 		List<String> varModsCast = config.getStringList(path + "variable-mods-cast", null);
 		if (varModsCast != null && !varModsCast.isEmpty()) {
-			variableModsCast = ArrayListMultimap.create();
+			variableModsCast = LinkedListMultimap.create();
 			for (String s : varModsCast) {
 				try {
 					String[] data = s.split(" ");
@@ -424,7 +424,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 		List<String> varModsCasted = config.getStringList(path + "variable-mods-casted", null);
 		if (varModsCasted != null && !varModsCasted.isEmpty()) {
-			variableModsCasted = ArrayListMultimap.create();
+			variableModsCasted = LinkedListMultimap.create();
 			for (String s : varModsCasted) {
 				try {
 					String[] data = s.split(" ");
@@ -438,7 +438,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 		List<String> varModsTarget = config.getStringList(path + "variable-mods-target", null);
 		if (varModsTarget != null && !varModsTarget.isEmpty()) {
-			variableModsTarget = ArrayListMultimap.create();
+			variableModsTarget = LinkedListMultimap.create();
 			for (String s : varModsTarget) {
 				try {
 					String[] data = s.split(" ");

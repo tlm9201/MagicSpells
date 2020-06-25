@@ -28,6 +28,9 @@ public class MagicItemDataParser {
 	private static final Gson gson = new Gson();
 	private static final TypeAdapter<JsonElement> jsonElementTypeAdapter = gson.getAdapter(JsonElement.class);
 
+	/* splits the saved magicItemData string by the "|" char
+		itemType{data}|itemType{data}...
+	*/
 	public static final String DATA_REGEX = "(?=(?:(?:[^\"]*\"){2})*[^\"]*$)(?![^{]*})(?![^\\[]*\\])\\|+";
 
 	public static MagicItemData parseMagicItemData(String str) {

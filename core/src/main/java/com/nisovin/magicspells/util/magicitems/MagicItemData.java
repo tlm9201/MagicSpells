@@ -1,9 +1,6 @@
 package com.nisovin.magicspells.util.magicitems;
 
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Collection;
+import java.util.*;
 
 import org.bukkit.*;
 import org.bukkit.potion.PotionType;
@@ -258,25 +255,25 @@ public class MagicItemData {
 	public boolean equals(MagicItemData data) {
 		return
 				enumEquals(data.getType(), type) &&
-				objectEquals(data.getName(), name) &&
+				Objects.equals(data.getName(), name) &&
 				data.getDurability() == durability &&
 				data.getRepairCost() == repairCost &&
 				data.getCustomModelData() == customModelData &&
 				data.getPower() == power &&
 				data.isUnbreakable() == unbreakable &&
 				data.isTooltipHidden() == hideTooltip &&
-				objectEquals(data.getColor(), color) &&
+				Objects.equals(data.getColor(), color) &&
 				enumEquals(data.getPotionType(), potionType) &&
 				hasEqualPotionEffects(data.getPotionEffects(), potionEffects) &&
-				objectEquals(data.getFireworkEffect(), fireworkEffect) &&
-				objectEquals(data.getSkullOwner(), skullOwner) &&
-				objectEquals(data.getTitle(), title) &&
-				objectEquals(data.getAuthor(), author) &&
-				objectEquals(data.getEnchantments(), enchantments) &&
-				objectEquals(data.getLore(), lore) &&
-				objectEquals(data.getPages(), pages) &&
-				objectEquals(data.getPatterns(), patterns) &&
-				objectEquals(data.getFireworkEffects(), fireworkEffects) &&
+				Objects.equals(data.getFireworkEffect(), fireworkEffect) &&
+				Objects.equals(data.getSkullOwner(), skullOwner) &&
+				Objects.equals(data.getTitle(), title) &&
+				Objects.equals(data.getAuthor(), author) &&
+				Objects.equals(data.getEnchantments(), enchantments) &&
+				Objects.equals(data.getLore(), lore) &&
+				Objects.equals(data.getPages(), pages) &&
+				Objects.equals(data.getPatterns(), patterns) &&
+				Objects.equals(data.getFireworkEffects(), fireworkEffects) &&
 				hasEqualAttributes(data.getAttributes(), attributes);
 	}
 
@@ -337,13 +334,6 @@ public class MagicItemData {
 		}
 
 		return true;
-	}
-
-	public boolean objectEquals(Object o, Object object) {
-		if (o == null && object == null) return true;
-		if (o == null && object != null) return false;
-		if (o != null && object == null) return false;
-		return o.equals(object);
 	}
 
 	public boolean enumEquals(Object o, Object object) {
