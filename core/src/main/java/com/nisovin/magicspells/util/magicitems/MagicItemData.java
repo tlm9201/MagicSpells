@@ -351,7 +351,7 @@ public class MagicItemData {
 
 		output.append("{");
 		if (name != null) {
-			output.append("name:'").append(name).append("'");
+			output.append("name:'").append(name.replaceAll("'", "\\\\'")).append("'");
 			previous = true;
 		}
 
@@ -433,6 +433,37 @@ public class MagicItemData {
 		output.append("}");
 
 		return output.toString();
+	}
+
+	@Override
+	public MagicItemData clone() {
+		MagicItemData data = new MagicItemData();
+		data.setType(type);
+		data.setName(name);
+		data.setAmount(amount);
+		data.setDurability(durability);
+		data.setRepairCost(repairCost);
+		data.setCustomModelData(customModelData);
+		data.setPower(power);
+		data.setUnbreakable(unbreakable);
+		data.setHideTooltip(hideTooltip);
+		data.setColor(color);
+		data.setPotionType(potionType);
+		data.setFireworkEffect(fireworkEffect);
+		data.setSkullOwner(skullOwner);
+		data.setTitle(title);
+		data.setAuthor(author);
+		data.setUUID(uuid);
+		data.setTexture(texture);
+		data.setSignature(signature);
+		data.setEnchantments(enchantments);
+		data.setAttributes(attributes);
+		data.setLore(lore);
+		data.setPages(pages);
+		data.setPatterns(patterns);
+		data.setPotionEffects(potionEffects);
+		data.setFireworkEffects(fireworkEffects);
+		return data;
 	}
 
 }
