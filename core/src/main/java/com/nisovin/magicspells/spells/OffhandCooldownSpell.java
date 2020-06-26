@@ -15,10 +15,13 @@ import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class OffhandCooldownSpell extends InstantSpell {
 
 	private List<Player> players = new ArrayList<>();
+
+	private MagicItemData itemData;
 
 	private ItemStack item;
 
@@ -30,10 +33,16 @@ public class OffhandCooldownSpell extends InstantSpell {
 
 		if (isConfigString("item")) {
 			MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString("item", "stone"));
-			if (magicItem != null) item = magicItem.getItemStack();
+			if (magicItem != null) {
+				item = magicItem.getItemStack();
+				itemData = magicItem.getMagicItemData();
+			}
 		} else if (isConfigSection("item")) {
 			MagicItem magicItem = MagicItems.getMagicItemFromSection(getConfigSection("item"));
-			if (magicItem != null) item = magicItem.getItemStack();
+			if (magicItem != null) {
+				item = magicItem.getItemStack();
+				itemData = magicItem.getMagicItemData();
+			}
 		}
 
 		spellToCheckName = getConfigString("spell", "");
@@ -45,7 +54,7 @@ public class OffhandCooldownSpell extends InstantSpell {
 
 		spellToCheck = MagicSpells.getSpellByInternalName(spellToCheckName);
 
-		if (spellToCheck == null || item == null) return;
+		if (spellToCheck == null || item == null || itemData == null) return;
 		
 		MagicSpells.scheduleRepeatingTask(() -> {
 			Iterator<Player> iter = players.iterator();
@@ -61,8 +70,12 @@ public class OffhandCooldownSpell extends InstantSpell {
 
 				PlayerInventory inventory = pl.getInventory();
 				ItemStack off = inventory.getItemInOffHand();
+
+				MagicItemData offItemData = MagicItems.getMagicItemDataFromItemStack(off);
+				if (offItemData == null) continue;
+
 				off.setAmount(amt);
-				if (off == null || !off.isSimilar(item)) inventory.setItemInOffHand(item.clone());
+				if (!offItemData.equals(itemData)) inventory.setItemInOffHand(item.clone());
 			}
 		}, TimeUtil.TICKS_PER_SECOND, TimeUtil.TICKS_PER_SECOND);
 	}

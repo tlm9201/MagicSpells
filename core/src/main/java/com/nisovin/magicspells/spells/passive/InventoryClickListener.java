@@ -16,6 +16,7 @@ import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class InventoryClickListener extends PassiveListener {
 
@@ -55,13 +56,25 @@ public class InventoryClickListener extends PassiveListener {
             if (click.itemCurrent != null) {
                 ItemStack item = event.getCurrentItem();
                 if (item == null) continue;
-                if (!item.isSimilar(click.itemCurrent)) continue;
+
+                MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+                if (itemData == null) continue;
+
+                MagicItemData currentItemData = MagicItems.getMagicItemDataFromItemStack(click.itemCurrent);
+                if (currentItemData == null) continue;
+                if (!currentItemData.equals(itemData)) continue;
             }
             // Valid cursor item, but not used.
             if (click.itemCursor != null) {
                 ItemStack item = event.getCursor();
                 if (item == null) continue;
-                if (!item.isSimilar(click.itemCursor)) continue;
+
+                MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+                if (itemData == null) continue;
+
+                MagicItemData cursorItemData = MagicItems.getMagicItemDataFromItemStack(click.itemCursor);
+                if (cursorItemData == null) continue;
+                if (!itemData.equals(cursorItemData)) continue;
             }
             boolean casted = click.spell.activate(player);
             if (!PassiveListener.cancelDefaultAction(click.spell, casted)) continue;
