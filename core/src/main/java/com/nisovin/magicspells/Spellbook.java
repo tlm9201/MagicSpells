@@ -1,6 +1,9 @@
 package com.nisovin.magicspells;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+
 import java.util.Set;
 import java.util.Map;
 import java.util.List;
@@ -8,10 +11,8 @@ import java.util.TreeSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Scanner;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.io.BufferedWriter;
 
 import org.bukkit.World;
 import org.bukkit.Material;
@@ -145,7 +146,7 @@ public class Spellbook {
 			}
 
 			if (file.exists()) {
-				Scanner scanner = new Scanner(file);
+				Scanner scanner = new Scanner(file, "UTF-8");
 				while (scanner.hasNext()) {
 					String line = scanner.nextLine();
 					if (line.isEmpty()) continue;
@@ -594,7 +595,7 @@ public class Spellbook {
 				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + uniqueId + ".txt");
 			}
 
-			BufferedWriter writer = new BufferedWriter(new FileWriter(file, false));
+			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file, false),"UTF-8");
 			for (Spell spell : allSpells) {
 				if (isTemporary(spell)) continue;
 				writer.append(spell.getInternalName());
@@ -608,14 +609,15 @@ public class Spellbook {
 					// when you unbind the item and it has no binds left, restore the original cast item
 					CastItem castItem = (CastItem) items.toArray()[0];
 					if (items.size() == 1 && castItem.getType() == null) {
-						writer.newLine();
+						writer.write("\n");
 						continue;
 					}
-					writer.append(String.valueOf(':')).append(s.toString());
+					writer.append(":").append(s.toString());
 				}
-				writer.newLine();
+				writer.write("\n");
 			}
 
+			writer.flush();
 			writer.close();
 			MagicSpells.debug(2, "Saved spellbook file: " + playerName.toLowerCase());
 		} catch (Exception e) {
