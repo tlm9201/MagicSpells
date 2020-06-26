@@ -1,35 +1,35 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.List;
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.materials.MagicItemWithNameMaterial;
-import com.nisovin.magicspells.materials.MagicMaterial;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 // Trigger variable of a comma separated list of items to accept
 public class RightClickItemListener extends PassiveListener {
 
-	Set<Material> materials = new HashSet<>();
-	Map<MagicMaterial, List<PassiveSpell>> types = new LinkedHashMap<>();
-	
-	Set<Material> materialsOffhand = new HashSet<>();
-	Map<MagicMaterial, List<PassiveSpell>> typesOffhand = new LinkedHashMap<>();
+	private Set<Material> materials = new HashSet<>();
+	private Map<MagicItemData, List<PassiveSpell>> types = new LinkedHashMap<>();
+
+	private Set<Material> materialsOffhand = new HashSet<>();
+	private Map<MagicItemData, List<PassiveSpell>> typesOffhand = new LinkedHashMap<>();
 	
 	@Override
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
@@ -37,8 +37,9 @@ public class RightClickItemListener extends PassiveListener {
 			MagicSpells.error(trigger.getName() + " cannot accept a null variable");
 			return;
 		}
+
 		Set<Material> materialSetAddTo;
-		Map<MagicMaterial, List<PassiveSpell>> typesMapAddTo;
+		Map<MagicItemData, List<PassiveSpell>> typesMapAddTo;
 		if (isMainHand(trigger)) {
 			materialSetAddTo = materials;
 			typesMapAddTo = types;
@@ -47,22 +48,17 @@ public class RightClickItemListener extends PassiveListener {
 			typesMapAddTo = typesOffhand;
 		}
 		
-		String[] split = var.split(",");
+		String[] split = var.split("\\|");
 		for (String s : split) {
 			s = s.trim();
-			MagicMaterial mat = null;
-			if (s.contains("|")) {
-				String[] stuff = s.split("\\|");
-				mat = MagicSpells.getItemNameResolver().resolveItem(stuff[0]);
-				if (mat != null) mat = new MagicItemWithNameMaterial(mat, stuff[1]);
-			} else {
-				mat = MagicSpells.getItemNameResolver().resolveItem(s);
-			}
-			if (mat != null) {
-				List<PassiveSpell> list = typesMapAddTo.computeIfAbsent(mat, m -> new ArrayList<>());
-				list.add(spell);
-				materialSetAddTo.add(mat.getMaterial());
-			}
+			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
+			MagicItemData magicItemData = null;
+			if (magicItem != null) magicItemData = magicItem.getMagicItemData();
+			if (magicItemData == null) continue;
+
+			List<PassiveSpell> list = typesMapAddTo.computeIfAbsent(magicItemData, m -> new ArrayList<>());
+			list.add(spell);
+			materialSetAddTo.add(magicItemData.getType());
 		}
 	}
 	
@@ -88,7 +84,7 @@ public class RightClickItemListener extends PassiveListener {
 	
 	private List<PassiveSpell> getSpells(ItemStack item, boolean mainHand) {
 		Set<Material> materialSet;
-		Map<MagicMaterial, List<PassiveSpell>> spellMap;
+		Map<MagicItemData, List<PassiveSpell>> spellMap;
 		if (mainHand) {
 			materialSet = materials;
 			spellMap = types;
@@ -97,10 +93,12 @@ public class RightClickItemListener extends PassiveListener {
 			spellMap = typesOffhand;
 		}
 		
-		if (materialSet.contains(item.getType())) {
-			for (Entry<MagicMaterial, List<PassiveSpell>> entry : spellMap.entrySet()) {
-				if (entry.getKey().equals(item)) return entry.getValue();
-			}
+		if (!materialSet.contains(item.getType())) return null;
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return null;
+
+		for (Map.Entry<MagicItemData, List<PassiveSpell>> entry : spellMap.entrySet()) {
+			if (entry.getKey().equals(itemData)) return entry.getValue();
 		}
 		return null;
 	}

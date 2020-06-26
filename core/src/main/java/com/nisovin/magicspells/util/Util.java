@@ -41,6 +41,13 @@ public class Util {
 		return random.nextInt(bound);
 	}
 
+	public static Material getMaterial(String name) {
+		Material material = Material.getMaterial(name.toUpperCase());
+		if (material == null) material = Material.matchMaterial(name.toUpperCase());
+		if (material == null) material = Material.valueOf(name.toUpperCase());
+		return material;
+	}
+
 	// - <potionEffectType> (level) (duration) (ambient)
 	public static PotionEffect buildPotionEffect(String effectString) {
 		String[] data = effectString.split(" ");

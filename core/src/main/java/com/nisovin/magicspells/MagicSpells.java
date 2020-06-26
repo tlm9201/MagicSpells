@@ -56,7 +56,6 @@ import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.variables.VariableManager;
-import com.nisovin.magicspells.materials.ItemNameResolver;
 import com.nisovin.magicspells.util.handlers.MoneyHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.BossBarManager;
@@ -66,7 +65,6 @@ import com.nisovin.magicspells.spells.passive.PassiveManager;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.events.MagicSpellsLoadingEvent;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
-import com.nisovin.magicspells.materials.MagicItemNameResolver;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 import com.nisovin.magicspells.util.managers.ExperienceBarManager;
@@ -115,7 +113,6 @@ public class MagicSpells extends JavaPlugin {
 	private MagicConfig config;
 	private MagicLogger magicLogger;
 	private LifeLengthTracker lifeLengthTracker;
-	private ItemNameResolver itemNameResolver;
 
 	boolean debug;
 	boolean debugNull;
@@ -327,7 +324,6 @@ public class MagicSpells extends JavaPlugin {
 		expBarManager = new ExperienceBarManager();
 		bossBarManager = new BossBarManager();
 		attributeManager = new AttributeManager();
-		itemNameResolver = new MagicItemNameResolver();
 		if (CompatBasics.pluginEnabled("Vault")) moneyHandler = new MoneyHandler();
 		lifeLengthTracker = new LifeLengthTracker();
 
@@ -856,10 +852,6 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.attributeManager;
 	}
 
-	public static ItemNameResolver getItemNameResolver() {
-		return plugin.itemNameResolver;
-	}
-
 	public static MoneyHandler getMoneyHandler() {
 		return plugin.moneyHandler;
 	}
@@ -906,10 +898,6 @@ public class MagicSpells extends JavaPlugin {
 
 	public static EffectManager getEffectManager() {
 		return plugin.effectManager;
-	}
-
-	public static void setItemNameResolver(ItemNameResolver resolver) {
-		plugin.itemNameResolver = resolver;
 	}
 
 	/**
@@ -1351,7 +1339,6 @@ public class MagicSpells extends JavaPlugin {
 		strConsoleName = null;
 		strUnknownSpell = null;
 		strXpAutoLearned = null;
-		itemNameResolver = null;
 		lifeLengthTracker = null;
 		strMissingReagents = null;
 		strSpellChangeEmpty = null;
