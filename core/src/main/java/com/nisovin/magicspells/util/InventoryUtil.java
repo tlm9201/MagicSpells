@@ -10,6 +10,9 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.inventory.InventoryType;
 
+import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
+
 public class InventoryUtil {
 
 	private static final String SERIALIZATION_KEY_SIZE = "size";
@@ -92,6 +95,9 @@ public class InventoryUtil {
 
 	public static boolean inventoryContains(EntityEquipment entityEquipment, ItemStack item) {
 		if (entityEquipment == null) return false;
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return false;
+
 		int count = 0;
 		ItemStack[] armorContents = entityEquipment.getArmorContents();
 		ItemStack mainHand = entityEquipment.getItemInMainHand();
@@ -106,7 +112,10 @@ public class InventoryUtil {
 		equipment[5] = offHand;
 
 		for (ItemStack itemInside : equipment) {
-			if (itemInside != null && itemInside.isSimilar(item)) count += itemInside.getAmount();
+			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemInside);
+			if (magicItemData == null) continue;
+			if (itemInside == null) continue;
+			if (magicItemData.equals(itemData)) count += itemInside.getAmount();
 			if (count >= item.getAmount()) return true;
 		}
 		return false;
@@ -114,10 +123,16 @@ public class InventoryUtil {
 
 	public static boolean inventoryContains(Inventory inventory, ItemStack item) {
 		if (inventory == null) return false;
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return false;
+
 		int count = 0;
 		ItemStack[] items = inventory.getContents();
 		for (int i = 0; i < 36; i++) {
-			if (items[i] != null && item.isSimilar(items[i])) count += items[i].getAmount();
+			if (items[i] == null) continue;
+			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (magicItemData == null) continue;
+			if (magicItemData.equals(itemData)) count += items[i].getAmount();
 			if (count >= item.getAmount()) return true;
 		}
 		return false;

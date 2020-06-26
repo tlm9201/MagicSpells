@@ -27,6 +27,8 @@ import org.bukkit.inventory.meta.Damageable;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.CastUtil.CastMode;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.util.handlers.PotionEffectHandler;
 
 import org.apache.commons.math3.util.FastMath;
@@ -339,22 +341,28 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(Inventory inventory, ItemStack item) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return false;
+
 		int amt = item.getAmount();
 		ItemStack[] items = inventory.getContents();
 		for (int i = 0; i < items.length; i++) {
-			if (items[i] != null && item.isSimilar(items[i])) {
-				if (items[i].getAmount() > amt) {
-					items[i].setAmount(items[i].getAmount() - amt);
-					amt = 0;
-					break;
-				} else if (items[i].getAmount() == amt) {
-					items[i] = null;
-					amt = 0;
-					break;
-				} else {
-					amt -= items[i].getAmount();
-					items[i] = null;
-				}
+			if (items[i] == null) continue;
+			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (magicItemData == null) continue;
+			if (!magicItemData.equals(itemData)) continue;
+
+			if (items[i].getAmount() > amt) {
+				items[i].setAmount(items[i].getAmount() - amt);
+				amt = 0;
+				break;
+			} else if (items[i].getAmount() == amt) {
+				items[i] = null;
+				amt = 0;
+				break;
+			} else {
+				amt -= items[i].getAmount();
+				items[i] = null;
 			}
 		}
 		if (amt == 0) {
@@ -365,6 +373,9 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(EntityEquipment entityEquipment, ItemStack item) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return false;
+
 		int amt = item.getAmount();
 		ItemStack[] armorContents = entityEquipment.getArmorContents();
 		ItemStack[] items = new ItemStack[6];
@@ -376,7 +387,9 @@ public class Util {
 
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
-			if (!item.isSimilar(items[i])) continue;
+			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (magicItemData == null) continue;
+			if (!magicItemData.equals(itemData)) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);
@@ -392,7 +405,6 @@ public class Util {
 			}
 		}
 
-
 		if (amt == 0) {
 			ItemStack[] updatedArmorContents = new ItemStack[4];
 			for (int i = 0; i < 4; i++) {
@@ -407,43 +419,51 @@ public class Util {
 	}
 
 	public static boolean addToInventory(Inventory inventory, ItemStack item, boolean stackExisting, boolean ignoreMaxStack) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return false;
+
 		int amt = item.getAmount();
 		ItemStack[] items = Arrays.copyOf(inventory.getContents(), inventory.getSize());
 		if (stackExisting) {
 			for (int i = 0; i < items.length; i++) {
-				if (items[i] != null && item.isSimilar(items[i])) {
-					if (items[i].getAmount() + amt <= items[i].getMaxStackSize()) {
-						items[i].setAmount(items[i].getAmount() + amt);
-						amt = 0;
-						break;
-					} else {
-						int diff = items[i].getMaxStackSize() - items[i].getAmount();
-						items[i].setAmount(items[i].getMaxStackSize());
-						amt -= diff;
-					}
+				if (items[i] == null) continue;
+				MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+				if (magicItemData == null) continue;
+				if (!magicItemData.equals(itemData)) continue;
+
+				if (items[i].getAmount() + amt <= items[i].getMaxStackSize()) {
+					items[i].setAmount(items[i].getAmount() + amt);
+					amt = 0;
+					break;
+				} else {
+					int diff = items[i].getMaxStackSize() - items[i].getAmount();
+					items[i].setAmount(items[i].getMaxStackSize());
+					amt -= diff;
 				}
 			}
 		}
+
 		if (amt > 0) {
 			for (int i = 0; i < items.length; i++) {
-				if (items[i] == null) {
-					if (amt > item.getMaxStackSize() && !ignoreMaxStack) {
-						items[i] = item.clone();
-						items[i].setAmount(item.getMaxStackSize());
-						amt -= item.getMaxStackSize();
-					} else {
-						items[i] = item.clone();
-						items[i].setAmount(amt);
-						amt = 0;
-						break;
-					}
+				if (items[i] != null) continue;
+				if (amt > item.getMaxStackSize() && !ignoreMaxStack) {
+					items[i] = item.clone();
+					items[i].setAmount(item.getMaxStackSize());
+					amt -= item.getMaxStackSize();
+				} else {
+					items[i] = item.clone();
+					items[i].setAmount(amt);
+					amt = 0;
+					break;
 				}
 			}
 		}
+
 		if (amt == 0) {
 			inventory.setContents(items);
 			return true;
 		}
+
 		return false;
 	}
 
