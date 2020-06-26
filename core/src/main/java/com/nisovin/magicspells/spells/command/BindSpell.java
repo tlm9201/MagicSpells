@@ -120,7 +120,6 @@ public class BindSpell extends CommandSpell {
 			MagicSpells.debug(3, "    Performing bind...");
 			spellbook.addCastItem(spell, castItem);
 			spellbook.save();
-			spellbook.reload();
 			MagicSpells.debug(3, "    Bind successful.");
 			sendMessage(formatMessage(strCastSelf, "%s", spell.getName()), player, args);
 			playSpellEffects(EffectPosition.CASTER, player);
