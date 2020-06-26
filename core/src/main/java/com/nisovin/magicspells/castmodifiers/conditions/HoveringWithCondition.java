@@ -8,8 +8,11 @@ import org.bukkit.inventory.ItemStack;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class HoveringWithCondition extends Condition {
+
+    private MagicItemData itemData;
 
     private ItemStack item;
 
@@ -24,6 +27,10 @@ public class HoveringWithCondition extends Condition {
         if (itemStack == null) return false;
 
         item = itemStack;
+
+        itemData = magicItem.getMagicItemData();
+        if (itemData == null) return false;
+
         return true;
     }
 
@@ -32,7 +39,12 @@ public class HoveringWithCondition extends Condition {
         if (!(livingEntity instanceof Player)) return false;
         Player player = (Player) livingEntity;
         ItemStack itemStack = player.getOpenInventory().getCursor();
-        return itemStack != null && itemStack.isSimilar(item);
+        if (itemStack == null) return false;
+
+        MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemStack);
+        if (magicItemData == null) return false;
+
+        return magicItemData.equals(itemData);
     }
 
     @Override
