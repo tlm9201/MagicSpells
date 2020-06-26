@@ -39,6 +39,7 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.command.ScrollSpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
@@ -188,6 +189,9 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		Location loc = player.getEyeLocation().add(player.getLocation().getDirection());
 		boolean updateInv = false;
 		for (ItemStack item : items) {
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+			if (itemData == null) continue;
+
 			boolean added = false;
 			PlayerInventory inv = player.getInventory();
 			if (autoEquip && item.getAmount() == 1) {
@@ -209,19 +213,24 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 			if (!added) {
 				if (addToEnderChest) added = Util.addToInventory(player.getEnderChest(), item, stackExisting, ignoreMaxStackSize);
 				if (!added && addToInventory) {
+
+					ItemStack preferredItem = inv.getItem(preferredSlot);
+					MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(preferredItem);
+
 					if (offhand) player.getEquipment().setItemInOffHand(item);
 					else if (requiredSlot >= 0) {
 						ItemStack old = inv.getItem(requiredSlot);
-						if (old != null && old.isSimilar(item)) item.setAmount(item.getAmount() + old.getAmount());
+						MagicItemData oldItemData = MagicItems.getMagicItemDataFromItemStack(old);
+						if (old != null && (oldItemData != null && oldItemData.equals(itemData))) item.setAmount(item.getAmount() + old.getAmount());
 						inv.setItem(requiredSlot, item);
 						added = true;
 						updateInv = true;
-					} else if (preferredSlot >= 0 && InventoryUtil.isNothing(inv.getItem(preferredSlot))) {
+					} else if (preferredSlot >= 0 && InventoryUtil.isNothing(preferredItem)) {
 						inv.setItem(preferredSlot, item);
 						added = true;
 						updateInv = true;
-					} else if (preferredSlot >= 0 && inv.getItem(preferredSlot).isSimilar(item) && inv.getItem(preferredSlot).getAmount() + item.getAmount() < item.getType().getMaxStackSize()) {
-						item.setAmount(item.getAmount() + inv.getItem(preferredSlot).getAmount());
+					} else if (preferredSlot >= 0 && (magicItemData != null && magicItemData.equals(itemData)) && preferredItem.getAmount() + item.getAmount() < item.getType().getMaxStackSize()) {
+						item.setAmount(item.getAmount() + preferredItem.getAmount());
 						inv.setItem(preferredSlot, item);
 						added = true;
 						updateInv = true;

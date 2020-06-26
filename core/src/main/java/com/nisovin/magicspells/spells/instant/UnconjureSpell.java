@@ -14,6 +14,7 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class UnconjureSpell extends InstantSpell {
 
@@ -74,6 +75,10 @@ public class UnconjureSpell extends InstantSpell {
 	private boolean filterItems(ItemStack[] oldItems) {
 		boolean stop = false;
 		for (UnconjuredItem unconjuredItem : items) {
+			if (unconjuredItem.item == null) continue;
+			MagicItemData unconjuredItemData = MagicItems.getMagicItemDataFromItemStack(unconjuredItem.item);
+			if (unconjuredItemData == null) continue;
+
 			// Only look for an ItemStack with specified quantity.
 			if (unconjuredItem.hasSpecialQuantity) {
 				for (int i = 0; i < oldItems.length; i++) {
@@ -91,7 +96,9 @@ public class UnconjureSpell extends InstantSpell {
 			else {
 				for (int i = 0; i < oldItems.length; i++) {
 					if (oldItems[i] == null) continue;
-					if (unconjuredItem.item.isSimilar(oldItems[i])) oldItems[i] = null;
+					MagicItemData oldItemData = MagicItems.getMagicItemDataFromItemStack(oldItems[i]);
+					if (oldItemData == null) continue;
+					if (unconjuredItemData.equals(oldItemData)) oldItems[i] = null;
 				}
 			}
 		}
