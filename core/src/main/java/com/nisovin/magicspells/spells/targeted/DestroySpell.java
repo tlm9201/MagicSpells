@@ -16,6 +16,7 @@ import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -85,7 +86,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 		if (toThrow != null && !toThrow.isEmpty()) {
 			blockTypesToThrow = EnumSet.noneOf(Material.class);
 			for (String s : toThrow) {
-				Material m = Material.getMaterial(s.toUpperCase());
+				Material m = Util.getMaterial(s);
 				if (m == null) continue;
 				blockTypesToThrow.add(m);
 			}
@@ -95,7 +96,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 		if (toRemove != null && !toRemove.isEmpty()) {
 			blockTypesToRemove = EnumSet.noneOf(Material.class);
 			for (String s : toRemove) {
-				Material m = Material.getMaterial(s.toUpperCase());
+				Material m = Util.getMaterial(s);
 				if (m == null) continue;
 				blockTypesToRemove.add(m);
 			}

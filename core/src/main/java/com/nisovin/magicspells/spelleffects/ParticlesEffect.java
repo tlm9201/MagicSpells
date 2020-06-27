@@ -46,8 +46,8 @@ public class ParticlesEffect extends SpellEffect {
 		particleName = config.getString("particle-name", "EXPLOSION_NORMAL");
 		particle = Util.getParticle(particleName);
 
-		materialName = config.getString("material", "").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = config.getString("material", "");
+		material = Util.getMaterial(materialName);
 
 		count = config.getInt("count", 5);
 		speed = (float) config.getDouble("speed", 0.2F);

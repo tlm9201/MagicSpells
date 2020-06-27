@@ -13,6 +13,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
@@ -68,7 +69,7 @@ public class RepairSpell extends InstantSpell {
 		List<String> list = getConfigStringList("ignore-items", null);
 		if (list != null) {
 			for (String s : list) {
-				Material mat = Material.getMaterial(s.toUpperCase());
+				Material mat = Util.getMaterial(s);
 				if (mat == null) continue;
 				ignoreItems.add(mat);
 			}
@@ -79,7 +80,7 @@ public class RepairSpell extends InstantSpell {
 		list = getConfigStringList("allowed-items", null);
 		if (list != null) {
 			for (String s : list) {
-				Material mat = Material.getMaterial(s.toUpperCase());
+				Material mat = Util.getMaterial(s);
 				if (mat == null) continue;
 				allowedItems.add(mat);
 			}

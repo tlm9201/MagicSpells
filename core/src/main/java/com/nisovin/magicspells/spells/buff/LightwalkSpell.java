@@ -18,6 +18,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
@@ -32,8 +33,8 @@ public class LightwalkSpell extends BuffSpell {
 	public LightwalkSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		String materialName = getConfigString("material", "GLOWSTONE").toUpperCase();
-		material = Material.getMaterial(materialName);
+		String materialName = getConfigString("material", "GLOWSTONE");
+		material = Util.getMaterial(materialName);
 		if (material == null) {
 			MagicSpells.error("LightwalkSpell " + internalName + " has an invalid material defined");
 			material = Material.GLOWSTONE;
@@ -45,7 +46,7 @@ public class LightwalkSpell extends BuffSpell {
 		List<String> blockList = getConfigStringList("allowed-types", null);
 		if (blockList != null) {
 			for (String str : blockList) {
-				Material material = Material.getMaterial(str.toUpperCase());
+				Material material = Util.getMaterial(str);
 				if (material == null) MagicSpells.error("LightwalkSpell " + internalName + " has an invalid block defined " + str);
 				else allowedTypes.add(material);
 			}

@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -16,12 +17,11 @@ public class TestForBlockCondition extends Condition {
 	@Override
 	public boolean setVar(String var) {
 		try {
-			String[] varsplit = var.split("=");
-			String[] locsplit = varsplit[0].split(",");
-			location = new MagicLocation(locsplit[0], Integer.parseInt(locsplit[1]), Integer.parseInt(locsplit[2]), Integer.parseInt(locsplit[3]));
-			blockType = Material.getMaterial(varsplit[1].toUpperCase());
-			if (blockType == null || !blockType.isBlock()) return false;
-			return true;
+			String[] vars = var.split("=");
+			String[] locs = vars[0].split(",");
+			location = new MagicLocation(locs[0], Integer.parseInt(locs[1]), Integer.parseInt(locs[2]), Integer.parseInt(locs[3]));
+			blockType = Util.getMaterial(vars[1]);
+			return blockType != null && blockType.isBlock();
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 			return false;

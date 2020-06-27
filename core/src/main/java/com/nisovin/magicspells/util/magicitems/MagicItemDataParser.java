@@ -18,6 +18,7 @@ import org.bukkit.Material;
 import org.bukkit.potion.PotionType;
 import org.bukkit.enchantments.Enchantment;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
@@ -38,7 +39,7 @@ public class MagicItemDataParser {
 		// check if it contains additional data
 		if (args.length < 2) {
 			// it doesnt, check if its a material type
-			Material type = Material.getMaterial(str.trim().toUpperCase());
+			Material type = Util.getMaterial(str.trim());
 			if (type == null) return null;
 
 			MagicItemData magicItemData = new MagicItemData();
@@ -61,7 +62,7 @@ public class MagicItemDataParser {
 		Map<Enchantment, Integer> enchantments = new HashMap<>();
 		List<String> lore = new ArrayList<>();
 
-		type = Material.getMaterial(args[0].trim().toUpperCase());
+		type = Util.getMaterial(args[0].trim());
 		if (type == null) return null;
 
 		JsonReader jsonReader = new JsonReader(new StringReader(args[1]));

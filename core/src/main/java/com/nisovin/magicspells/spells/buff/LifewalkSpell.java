@@ -15,6 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
@@ -42,14 +43,15 @@ public class LifewalkSpell extends BuffSpell {
 		List<String> blockList = getConfigStringList("blocks", null);
 		if (blockList != null) {
 			for (String str : blockList) {
-				String[] string = str.toUpperCase().split(" ");
+				String[] string = str.split(" ");
 				Material material;
 				int chance = 0;
 				if (string.length < 2) MagicSpells.error("LifewalkSpell " + internalName + " has an invalid block defined");
-				material = Material.getMaterial(string[0]);
+
+				material = Util.getMaterial(string[0]);
 				if (material == null) MagicSpells.error("LifewalkSpell " + internalName + " has an invalid block defined " + string[0]);
 				if (string.length >= 2 && string[1] == null) MagicSpells.error("LifewalkSpell " + internalName + " has an invalid chance defined for block " + string[0]);
-				else if (string.length >= 2) chance = Integer.valueOf(string[1]);
+				else if (string.length >= 2) chance = Integer.parseInt(string[1]);
 
 				if (material != null && chance > 0) blocks.put(material, chance);
 			}

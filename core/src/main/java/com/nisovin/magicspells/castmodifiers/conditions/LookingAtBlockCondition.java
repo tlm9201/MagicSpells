@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -16,12 +17,12 @@ public class LookingAtBlockCondition extends Condition {
 	@Override
 	public boolean setVar(String var) {
 		try {
-			String[] varsplit = var.split(",");
-			blockType = Material.getMaterial(varsplit[0].toUpperCase());
+			String[] split = var.split(",");
+			blockType = Util.getMaterial(split[0]);
+
 			if (blockType == null || !blockType.isBlock()) return false;
-			if (varsplit.length > 1) {
-				dist = Integer.parseInt(varsplit[1]);
-			}
+			if (split.length > 1) dist = Integer.parseInt(split[1]);
+
 			return true;
 		} catch (Exception e) {
 			return false;

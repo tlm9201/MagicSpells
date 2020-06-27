@@ -43,7 +43,7 @@ public class DowseSpell extends InstantSpell {
 		String blockName = getConfigString("block-type", "");
 		String entityName = getConfigString("entity-type", "");
 
-		if (!blockName.isEmpty()) material = Material.getMaterial(blockName.toUpperCase());
+		if (!blockName.isEmpty()) material = Util.getMaterial(blockName);
 		if (!entityName.isEmpty()) {
 			if (entityName.equalsIgnoreCase("player")) {
 				entityType = EntityType.PLAYER;

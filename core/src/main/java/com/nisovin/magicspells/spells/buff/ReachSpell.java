@@ -18,6 +18,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -31,6 +32,7 @@ public class ReachSpell extends BuffSpell {
 	private Set<UUID> reaching;
 
 	private int range;
+
 	private boolean dropBlocks;
 	private boolean consumeBlocks;
 
@@ -41,6 +43,7 @@ public class ReachSpell extends BuffSpell {
 		super(config, spellName);
 		
 		range = getConfigInt("range", 15);
+
 		dropBlocks = getConfigBoolean("drop-blocks", true);
 		consumeBlocks = getConfigBoolean("consume-blocks", true);
 
@@ -51,7 +54,7 @@ public class ReachSpell extends BuffSpell {
 		List<String> list = getConfigStringList("disallowed-break-blocks", null);
 		if (list != null) {
 			for (String s : list) {
-				Material material = Material.getMaterial(s.toUpperCase());
+				Material material = Util.getMaterial(s);
 				if (material == null) continue;
 				disallowedBreakBlocks.add(material);
 			}
@@ -60,7 +63,7 @@ public class ReachSpell extends BuffSpell {
 		list = getConfigStringList("disallowed-place-blocks", null);
 		if (list != null) {
 			for (String s : list) {
-				Material material = Material.getMaterial(s.toUpperCase());
+				Material material = Util.getMaterial(s);
 				if (material == null) continue;
 				disallowedBreakBlocks.add(material);
 			}

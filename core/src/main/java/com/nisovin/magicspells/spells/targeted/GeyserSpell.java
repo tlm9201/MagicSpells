@@ -13,11 +13,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellAnimation;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -42,8 +39,8 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 	public GeyserSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		blockTypeName = getConfigString("geyser-type", "water").toUpperCase();
-		blockType = Material.getMaterial(blockTypeName);
+		blockTypeName = getConfigString("geyser-type", "water");
+		blockType = Util.getMaterial(blockTypeName);
 		if (blockType == null || !blockType.isBlock()) {
 			MagicSpells.error("GeyserSpell '" + internalName + "' has an invalid geyser-type defined!");
 			blockType = null;

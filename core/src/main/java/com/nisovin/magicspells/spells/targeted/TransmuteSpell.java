@@ -9,6 +9,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -30,14 +31,14 @@ public class TransmuteSpell extends TargetedSpell implements TargetedLocationSpe
 		blockTypes = new ArrayList<>();
 		if (list != null && !list.isEmpty()) {
 			for (String s : list) {
-				Material material = Material.getMaterial(s.toUpperCase());
+				Material material = Util.getMaterial(s);
 				if (material == null || !material.isBlock()) continue;
 				blockTypes.add(material);
 			}
 		} else blockTypes.add(Material.IRON_BLOCK);
 
-		String materialName = getConfigString("transmute-type", "gold_block").toUpperCase();
-		transmuteType = Material.getMaterial(materialName);
+		String materialName = getConfigString("transmute-type", "gold_block");
+		transmuteType = Util.getMaterial(materialName);
 		if (transmuteType == null || !transmuteType.isBlock()) {
 			MagicSpells.error("TransmuteSpell '" + internalName + "' has an transmute-type defined!");
 			transmuteType = null;

@@ -14,6 +14,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.BlockUtils;
@@ -58,7 +59,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		allowedTypes = new HashSet<>();
 		for (String str : materials) {
-			Material material = Material.getMaterial(str.toUpperCase());
+			Material material = Util.getMaterial(str);
 			if (material == null) {
 				MagicSpells.error("BuildSpell '" + internalName + "' has an invalid material '" + str + "' defined!");
 				continue;

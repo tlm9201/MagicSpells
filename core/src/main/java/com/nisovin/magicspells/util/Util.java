@@ -42,9 +42,9 @@ public class Util {
 	}
 
 	public static Material getMaterial(String name) {
-		Material material = Material.getMaterial(name.toUpperCase());
-		if (material == null) material = Material.matchMaterial(name.toUpperCase());
-		if (material == null) material = Material.valueOf(name.toUpperCase());
+		name = name.toUpperCase();
+		Material material = Material.getMaterial(name);
+		if (material == null) material = Material.matchMaterial(name);
 		return material;
 	}
 
@@ -53,29 +53,33 @@ public class Util {
 		String[] data = effectString.split(" ");
 		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 
-		if (t == null) MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
-		if (t != null) {
-			int level = 0;
-			if (data.length > 1) {
-				try {
-					level = Integer.parseInt(data[1]);
-				} catch (NumberFormatException ex) {
-					DebugHandler.debugNumberFormat(ex);
-				}
-			}
-			int duration = 600;
-			if (data.length > 2) {
-				try {
-					duration = Integer.parseInt(data[2]);
-				} catch (NumberFormatException ex) {
-					DebugHandler.debugNumberFormat(ex);
-				}
-			}
-			boolean ambient = false;
-			if (data.length > 3 && (BooleanUtils.isYes(data[3]) || data[3].equalsIgnoreCase("ambient"))) ambient = true;
-			return new PotionEffect(t, duration, level, ambient);
+		if (t == null) {
+			MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
+			return null;
 		}
-		return null;
+
+
+		int level = 0;
+		if (data.length > 1) {
+			try {
+				level = Integer.parseInt(data[1]);
+			} catch (NumberFormatException ex) {
+				DebugHandler.debugNumberFormat(ex);
+			}
+		}
+
+		int duration = 600;
+		if (data.length > 2) {
+			try {
+				duration = Integer.parseInt(data[2]);
+			} catch (NumberFormatException ex) {
+				DebugHandler.debugNumberFormat(ex);
+			}
+		}
+
+		boolean ambient = false;
+		if (data.length > 3 && (BooleanUtils.isYes(data[3]) || data[3].equalsIgnoreCase("ambient"))) ambient = true;
+		return new PotionEffect(t, duration, level, ambient);
 	}
 
 	// - <potionEffectType> (duration)
@@ -83,19 +87,20 @@ public class Util {
 		String[] data = effectString.split(" ");
 		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 
-		if (t == null) MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
-		if (t != null) {
-			int duration = 600;
-			if (data.length > 1) {
-				try {
-					duration = Integer.parseInt(data[1]);
-				} catch (NumberFormatException ex) {
-					DebugHandler.debugNumberFormat(ex);
-				}
-			}
-			return new PotionEffect(t, duration, 0, true);
+		if (t == null) {
+			MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
+			return null;
 		}
-		return null;
+
+		int duration = 600;
+		if (data.length > 1) {
+			try {
+				duration = Integer.parseInt(data[1]);
+			} catch (NumberFormatException ex) {
+				DebugHandler.debugNumberFormat(ex);
+			}
+		}
+		return new PotionEffect(t, duration, 0, true);
 	}
 
 	public static Color[] getColorsFromString(String str) {
@@ -595,7 +600,7 @@ public class Util {
 
 	public static <C extends Collection<Material>> C getMaterialList(List<String> strings, Supplier<C> supplier) {
 		C ret = supplier.get();
-		strings.forEach(string -> ret.add(Material.matchMaterial(string.toUpperCase())));
+		strings.forEach(string -> ret.add(Util.getMaterial(string)));
 		return ret;
 	}
 

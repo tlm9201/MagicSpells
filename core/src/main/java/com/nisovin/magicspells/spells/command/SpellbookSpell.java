@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.RegexUtil;
@@ -70,8 +71,8 @@ public class SpellbookSpell extends CommandSpell {
 		bookUses = new ArrayList<>();
 		bookLocations = new ArrayList<>();
 
-		spellbookBlockName = getConfigString("spellbook-block", "bookshelf").toUpperCase();
-		spellbookBlock = Material.getMaterial(spellbookBlockName);
+		spellbookBlockName = getConfigString("spellbook-block", "bookshelf");
+		spellbookBlock = Util.getMaterial(spellbookBlockName);
 		if (spellbookBlock == null || !spellbookBlock.isBlock()) {
 			MagicSpells.error("SpellbookSpell '" + internalName + "' has an invalid spellbook-block defined!");
 			spellbookBlock = null;

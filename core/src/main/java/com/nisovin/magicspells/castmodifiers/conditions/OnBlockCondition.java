@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OnBlockCondition extends Condition {
@@ -21,7 +22,7 @@ public class OnBlockCondition extends Condition {
 			materials = new HashSet<>();
 			String[] split = var.split(",");
 			for (String s : split) {
-				Material mat = Material.getMaterial(s.toUpperCase());
+				Material mat = Util.getMaterial(s);
 				if (mat == null) return false;
 				if (!mat.isBlock()) return false;
 				materials.add(mat);
@@ -29,7 +30,7 @@ public class OnBlockCondition extends Condition {
 			return true;
 		}
 
-		material = Material.getMaterial(var.toUpperCase());
+		material = Util.getMaterial(var);
 		return material != null && material.isBlock();
 	}
 

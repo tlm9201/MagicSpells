@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -37,7 +38,7 @@ public class PhaseSpell extends InstantSpell {
 		List<String> matList = getConfigStringList(path, null);
 		if (matList == null || matList.isEmpty()) return;
 		for (String mat : matList) {
-			Material material = Material.getMaterial(mat.toUpperCase());
+			Material material = Util.getMaterial(mat);
 			if (material == null) {
 				MagicSpells.error("PhaseSpell has an invalid material specified on '" + path + "': " + mat);
 				continue;

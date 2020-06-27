@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
@@ -17,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.SpellAnimation;
@@ -55,7 +55,7 @@ public class NovaEffect extends SpellEffect {
 			Material material;
 
 			for (String str : materialList) {
-				material = Material.getMaterial(str.toUpperCase());
+				material = Util.getMaterial(str);
 				if (material == null || !material.isBlock()) {
 					MagicSpells.error("Wrong nova type defined! '" + str + "'");
 					continue;
@@ -64,8 +64,8 @@ public class NovaEffect extends SpellEffect {
 			}
 		}
 
-		materialName = config.getString("type", "fire").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = config.getString("type", "fire");
+		material = Util.getMaterial(materialName);
 
 		if (material == null || !material.isBlock()) {
 			material = null;

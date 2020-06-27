@@ -70,7 +70,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			material = null;
 			tntFuse = Integer.parseInt(split[1]);
 		} else {
-			material = Material.getMaterial(materialName.toUpperCase());
+			material = Util.getMaterial(materialName);
 			tntFuse = 0;
 		}
 

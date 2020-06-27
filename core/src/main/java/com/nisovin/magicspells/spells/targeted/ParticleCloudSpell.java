@@ -71,8 +71,8 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 		particleName = getConfigString("particle-name", "EXPLOSION_NORMAL");
 		particle = Util.getParticle(particleName);
 
-		materialName = getConfigString("material", "").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = getConfigString("material", "");
+		material = Util.getMaterial(materialName);
 
 		dustSize = getConfigFloat("size", 1);
 		colorHex = getConfigString("dust-color", "FF0000");

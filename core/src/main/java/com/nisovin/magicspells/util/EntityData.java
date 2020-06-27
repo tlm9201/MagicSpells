@@ -291,7 +291,7 @@ public class EntityData {
 			case "enderman":
 				entityType = EntityType.ENDERMAN;
 				isMob = true;
-				material = Material.getMaterial(mat.toUpperCase());
+				material = Util.getMaterial(mat);
 				if (material == null) {
 					MagicSpells.error("Invalid enderman material: " + mat);
 					material = null;
@@ -394,7 +394,7 @@ public class EntityData {
 			case "falling_block":
 				entityType = EntityType.FALLING_BLOCK;
 				isMisc = true;
-				material = Material.getMaterial(mat.toUpperCase());
+				material = Util.getMaterial(mat);
 				if (material == null || !material.isBlock()) {
 					MagicSpells.error("Invalid falling block material: " + mat);
 					material = null;
@@ -403,7 +403,7 @@ public class EntityData {
 			case "item":
 				entityType = EntityType.DROPPED_ITEM;
 				isMisc = true;
-				material = Material.getMaterial(mat.toUpperCase());
+				material = Util.getMaterial(mat);
 				if (material == null) MagicSpells.error("Invalid item material: " + mat);
 				break;
 		}
