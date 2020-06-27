@@ -1,6 +1,7 @@
 dependencies {
-    compile project(":core")
-    compile ":spigot-1.12"
+    implementation project(":core")
+    implementation ":spigot-1.12"
+    implementation "com.github.MilkBowl:VaultAPI:68f14eca20"
 }
 jar {
     archiveFileName = "MagicSpellsShop.jar"

@@ -1,9 +1,9 @@
 
 dependencies {
-    compile project(":core")
-    compile ":spigot-1.12"
-    compile ":MassiveCore"
-    compile ":Factions"
+    implementation project(":core")
+    implementation ":spigot-1.12"
+    implementation ":MassiveCore"
+    implementation ":Factions"
 }
 
 jar {

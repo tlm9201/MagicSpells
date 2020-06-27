@@ -1,6 +1,6 @@
 dependencies {
-    compile project(":core")
-    compile ":spigot-1.12"
+    implementation project(":core")
+    implementation ":spigot-1.12"
 }
 jar {
     archiveFileName = "MagicSpellsTeams.jar"
