@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.HashMap;
-import java.util.ArrayList;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -56,11 +55,11 @@ public class MagicItemDataParser {
 		int customModelData = 0;
 		boolean unbreakable = false;
 		Color color = null;
-		PotionType potionType = null;
+		PotionType potionType = PotionType.UNCRAFTABLE;
 		String title = null;
 		String author = null;
 		Map<Enchantment, Integer> enchantments = new HashMap<>();
-		List<String> lore = new ArrayList<>();
+		List<String> lore = null;
 
 		type = Util.getMaterial(args[0].trim());
 		if (type == null) return null;

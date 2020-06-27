@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import org.bukkit.Material;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -19,6 +20,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
@@ -57,13 +59,14 @@ public class TakeDamageListener extends PassiveListener {
 			if (isDamCause) continue;
 
 			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
-			MagicItemData magicItemData = null;
-			if (magicItem != null) magicItemData = magicItem.getMagicItemData();
-			if (magicItemData == null) continue;
+			MagicItemData itemData = null;
+			if (magicItem != null) itemData = magicItem.getMagicItemData();
+			if (itemData == null) continue;
+			if (itemData.getName() != null) itemData.setName(ChatColor.stripColor(Util.colorize(itemData.getName())));
 
-			List<PassiveSpell> list = weapons.computeIfAbsent(magicItemData, m -> new ArrayList<>());
+			List<PassiveSpell> list = weapons.computeIfAbsent(itemData, m -> new ArrayList<>());
 			list.add(spell);
-			types.add(magicItemData.getType());
+			types.add(itemData.getType());
 		}
 	}
 

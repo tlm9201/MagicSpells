@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import org.bukkit.Material;
+import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
@@ -29,19 +31,20 @@ public class HotBarListener extends PassiveListener {
 	
 	@Override
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
-		MagicItemData magicItemData = null;
+		MagicItemData itemData = null;
 		if (var != null) {
 			MagicItem magicItem = MagicItems.getMagicItemFromString(var.trim());
-			if (magicItem != null) magicItemData = magicItem.getMagicItemData();
+			if (magicItem != null) itemData = magicItem.getMagicItemData();
 		}
 
-		if (magicItemData != null) {
-			materials.add(magicItemData.getType());
+		if (itemData != null) {
+			if (itemData.getName() != null) itemData.setName(ChatColor.stripColor(Util.colorize(itemData.getName())));
+			materials.add(itemData.getType());
 			List<PassiveSpell> list = null;
 			if (PassiveTrigger.HOT_BAR_SELECT.contains(trigger)) {
-				list = select.computeIfAbsent(magicItemData, material -> new ArrayList<>());
+				list = select.computeIfAbsent(itemData, material -> new ArrayList<>());
 			} else if (PassiveTrigger.HOT_BAR_DESELECT.contains(trigger)) {
-				list = deselect.computeIfAbsent(magicItemData, material -> new ArrayList<>());
+				list = deselect.computeIfAbsent(itemData, material -> new ArrayList<>());
 			}
 			if (list != null) list.add(spell);
 		}

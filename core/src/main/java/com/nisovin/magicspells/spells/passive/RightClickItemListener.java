@@ -8,12 +8,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import org.bukkit.Material;
+import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
@@ -52,13 +54,14 @@ public class RightClickItemListener extends PassiveListener {
 		for (String s : split) {
 			s = s.trim();
 			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
-			MagicItemData magicItemData = null;
-			if (magicItem != null) magicItemData = magicItem.getMagicItemData();
-			if (magicItemData == null) continue;
+			MagicItemData itemData = null;
+			if (magicItem != null) itemData = magicItem.getMagicItemData();
+			if (itemData == null) continue;
+			if (itemData.getName() != null) itemData.setName(ChatColor.stripColor(Util.colorize(itemData.getName())));
 
-			List<PassiveSpell> list = typesMapAddTo.computeIfAbsent(magicItemData, m -> new ArrayList<>());
+			List<PassiveSpell> list = typesMapAddTo.computeIfAbsent(itemData, m -> new ArrayList<>());
 			list.add(spell);
-			materialSetAddTo.add(magicItemData.getType());
+			materialSetAddTo.add(itemData.getType());
 		}
 	}
 	

@@ -8,11 +8,13 @@ import java.util.HashMap;
 import java.util.ArrayList;
 
 import org.bukkit.Material;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
@@ -39,13 +41,14 @@ public class PickupItemListener extends PassiveListener {
 		for (String s : split) {
 			s = s.trim();
 			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
-			MagicItemData magicItemData = null;
-			if (magicItem != null) magicItemData = magicItem.getMagicItemData();
-			if (magicItemData == null) continue;
+			MagicItemData itemData = null;
+			if (magicItem != null) itemData = magicItem.getMagicItemData();
+			if (itemData == null) continue;
+			if (itemData.getName() != null) itemData.setName(ChatColor.stripColor(Util.colorize(itemData.getName())));
 
-			List<PassiveSpell> list = types.computeIfAbsent(magicItemData, material -> new ArrayList<>());
+			List<PassiveSpell> list = types.computeIfAbsent(itemData, material -> new ArrayList<>());
 			list.add(spell);
-			materials.add(magicItemData.getType());
+			materials.add(itemData.getType());
 		}
 	}
 	
