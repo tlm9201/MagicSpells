@@ -19,7 +19,7 @@ import org.bukkit.enchantments.Enchantment;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.handlers.PotionEffectHandler;
 

@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.util.managers;
 
 import java.util.Map;
 import java.util.Set;
@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 
@@ -15,6 +16,7 @@ public class BuffManager {
 	private Map<LivingEntity, Set<BuffSpell>> activeBuffs;
 
 	private int interval;
+
 	private Monitor monitor;
 
 	public BuffManager(int interval) {

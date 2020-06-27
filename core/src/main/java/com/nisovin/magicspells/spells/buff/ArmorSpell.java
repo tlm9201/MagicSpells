@@ -29,9 +29,9 @@ import org.bukkit.event.inventory.InventoryType.SlotType;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.handlers.EnchantmentHandler;

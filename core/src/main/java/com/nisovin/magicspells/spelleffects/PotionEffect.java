@@ -5,7 +5,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class PotionEffect extends SpellEffect {
 

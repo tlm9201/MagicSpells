@@ -4,7 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class HealthCondition extends OperatorCondition {
 

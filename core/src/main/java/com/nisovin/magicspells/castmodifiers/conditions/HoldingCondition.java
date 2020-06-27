@@ -11,7 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.EntityEquipment;
 
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class HoldingCondition extends Condition {

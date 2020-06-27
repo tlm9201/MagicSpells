@@ -24,6 +24,8 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.events.SpellSelectionChangedEvent;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
@@ -319,7 +321,7 @@ public class Spellbook {
 		return null;
 	}
 
-	protected Spell nextSpell(ItemStack item) {
+	public Spell nextSpell(ItemStack item) {
 		CastItem castItem = getCastItemForCycling(item);
 		if (castItem != null) return nextSpell(castItem);
 		return null;
@@ -352,7 +354,7 @@ public class Spellbook {
 		return null;
 	}
 
-	protected Spell prevSpell(ItemStack item) {
+	public Spell prevSpell(ItemStack item) {
 		CastItem castItem = getCastItemForCycling(item);
 		if (castItem != null) return prevSpell(castItem);
 		return null;

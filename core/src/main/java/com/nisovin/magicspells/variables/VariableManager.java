@@ -23,12 +23,12 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.util.PlayerNameUtils;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;

@@ -25,7 +25,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.meta.Damageable;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;

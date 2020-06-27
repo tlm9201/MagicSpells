@@ -6,7 +6,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class LeatherArmorHandler {

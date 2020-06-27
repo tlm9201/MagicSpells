@@ -13,7 +13,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OverBlockCondition extends Condition {

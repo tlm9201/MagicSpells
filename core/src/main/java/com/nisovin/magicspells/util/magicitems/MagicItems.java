@@ -19,11 +19,11 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.ItemUtil;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.itemreader.*;
 import com.nisovin.magicspells.util.AttributeUtil;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;

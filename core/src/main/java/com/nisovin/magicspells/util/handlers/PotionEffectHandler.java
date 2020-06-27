@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffectType;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public enum PotionEffectHandler {
 

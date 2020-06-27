@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.handlers;
 
 import java.io.File;
 import java.util.Map;
@@ -18,8 +18,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.IntMap;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.PlayerNameUtils;
@@ -45,7 +48,7 @@ public class MagicXpHandler implements Listener {
 	private String strXpHeader;
 	private String strNoXp;
 	
-	MagicXpHandler(MagicSpells plugin, MagicConfig config) {
+	public MagicXpHandler(MagicSpells plugin, MagicConfig config) {
 		this.plugin = plugin;
 		
 		Set<String> keys = config.getKeys("general.magic-schools");
@@ -156,7 +159,7 @@ public class MagicXpHandler implements Listener {
 
 	@EventHandler
 	public void onChangeWorld(PlayerChangedWorldEvent event) {
-		if (!plugin.separatePlayerSpellsPerWorld) return;
+		if (!MagicSpells.arePlayerSpellsSeparatedPerWorld()) return;
 		Player player = event.getPlayer();
 		String playerName = player.getName();
 		if (dirty.contains(playerName)) save(player);
@@ -178,7 +181,7 @@ public class MagicXpHandler implements Listener {
 	public void load(Player player) {
 		File folder = new File(plugin.getDataFolder(), "xp");
 		if (!folder.exists()) folder.mkdirs();
-		if (plugin.separatePlayerSpellsPerWorld) {
+		if (MagicSpells.arePlayerSpellsSeparatedPerWorld()) {
 			String world = currentWorld.get(player.getName());
 			if (world == null) world = player.getWorld().getName();
 			folder = new File(folder, world);
@@ -218,7 +221,7 @@ public class MagicXpHandler implements Listener {
 		if (world == null) world = player.getWorld().getName();
 		File folder = new File(plugin.getDataFolder(), "xp");
 		if (!folder.exists()) folder.mkdirs();
-		if (plugin.separatePlayerSpellsPerWorld) {
+		if (MagicSpells.arePlayerSpellsSeparatedPerWorld()) {
 			if (world == null) return;
 			folder = new File(folder, world);
 			if (!folder.exists()) folder.mkdirs();

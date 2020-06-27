@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.listeners;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -10,6 +10,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.CastItem;
 
 public class RightClickListener implements Listener {
@@ -19,7 +22,7 @@ public class RightClickListener implements Listener {
 	private Map<CastItem, Spell> rightClickCastItems = new HashMap<>();
 	private Map<String, Long> lastCast = new HashMap<>();
 	
-	RightClickListener(MagicSpells plugin) {
+	public RightClickListener(MagicSpells plugin) {
 		this.plugin = plugin;
 		for (Spell spell : MagicSpells.getSpells().values()) {
 			CastItem[] items = spell.getRightClickCastItems();
@@ -33,7 +36,7 @@ public class RightClickListener implements Listener {
 		}
 	}
 	
-	boolean hasRightClickCastItems() {
+	public boolean hasRightClickCastItems() {
 		return !rightClickCastItems.isEmpty();
 	}
 	
@@ -53,9 +56,9 @@ public class RightClickListener implements Listener {
 
 		if (!spellbook.hasSpell(spell) || !spellbook.canCast(spell)) return;
 
-		if (!spell.ignoreGlobalCooldown) {
+		if (!spell.isIgnoringGlobalCooldown()) {
 			Long lastCastTime = lastCast.get(player.getName());
-			if (lastCastTime != null && lastCastTime + plugin.globalCooldown > System.currentTimeMillis()) return;
+			if (lastCastTime != null && lastCastTime + MagicSpells.getGlobalCooldown() > System.currentTimeMillis()) return;
 			lastCast.put(player.getName(), System.currentTimeMillis());
 		}
 			

@@ -12,7 +12,7 @@ import org.bukkit.command.CommandExecutor;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.MagicXpHandler;
+import com.nisovin.magicspells.handlers.MagicXpHandler;
 
 public class XpCommand implements CommandExecutor, TabCompleter {
 

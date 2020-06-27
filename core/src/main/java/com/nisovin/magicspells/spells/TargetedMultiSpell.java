@@ -11,11 +11,11 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public final class TargetedMultiSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {

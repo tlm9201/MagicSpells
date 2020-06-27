@@ -10,6 +10,7 @@ import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.Spell.SpellCastResult;
 import com.nisovin.magicspells.events.SpellCastEvent;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.events.SpellCastedEvent;

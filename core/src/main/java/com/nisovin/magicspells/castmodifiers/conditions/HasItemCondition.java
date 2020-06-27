@@ -13,8 +13,8 @@ import com.nisovin.magicspells.util.Util;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.InventoryHolder;
 
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.InventoryUtil;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class HasItemCondition extends Condition {

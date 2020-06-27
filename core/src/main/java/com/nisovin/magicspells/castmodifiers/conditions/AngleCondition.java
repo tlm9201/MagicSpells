@@ -4,7 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 import org.apache.commons.math3.util.FastMath;
 

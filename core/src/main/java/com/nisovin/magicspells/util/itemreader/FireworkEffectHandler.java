@@ -8,7 +8,7 @@ import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class FireworkEffectHandler {

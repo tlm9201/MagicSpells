@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.listeners;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -6,11 +6,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
+
 public class MagicChatListener implements Listener {
 
 	private MagicSpells plugin;
 	
-	MagicChatListener(MagicSpells plugin) {
+	public MagicChatListener(MagicSpells plugin) {
 		this.plugin = plugin;
 	}
 	

@@ -9,8 +9,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.EntityEquipment;
 
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.InventoryUtil;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
