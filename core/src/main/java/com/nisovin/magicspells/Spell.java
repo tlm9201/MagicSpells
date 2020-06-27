@@ -1218,8 +1218,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (newDura >= inHand.getType().getMaxDurability()) {
 					livingEntity.getEquipment().setItemInMainHand(null);
 				} else {
-					((Damageable) inHand.getItemMeta()).setDamage(newDura);
-					livingEntity.getEquipment().setItemInMainHand(inHand);
+					ItemMeta meta = inHand.getItemMeta();
+					((Damageable) meta).setDamage(newDura);
+					inHand.setItemMeta(meta);
 				}
 			}
 		}
