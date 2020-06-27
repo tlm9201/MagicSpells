@@ -3,7 +3,7 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class OxygenCondition extends OperatorCondition{
 	

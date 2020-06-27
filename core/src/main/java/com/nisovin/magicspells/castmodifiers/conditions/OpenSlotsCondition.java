@@ -5,8 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.InventoryUtil;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class OpenSlotsCondition extends OperatorCondition {
 

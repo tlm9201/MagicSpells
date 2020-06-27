@@ -2,7 +2,7 @@ package com.nisovin.magicspells.util;
 
 import org.bukkit.Color;
 
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class ColorUtil {
 	

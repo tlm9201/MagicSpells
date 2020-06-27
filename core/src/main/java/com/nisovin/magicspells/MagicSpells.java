@@ -37,6 +37,7 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.listeners.*;
 import com.nisovin.magicspells.util.Metrics;
 import com.nisovin.magicspells.util.TxtUtil;
 import com.nisovin.magicspells.util.RegexUtil;
@@ -47,17 +48,21 @@ import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.commands.ManaCommand;
 import com.nisovin.magicspells.commands.CastCommand;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.events.SpellLearnEvent;
+import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.variables.VariableManager;
+import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.util.handlers.MoneyHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.handlers.LifeLengthTracker;
 import com.nisovin.magicspells.util.managers.BossBarManager;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
@@ -798,6 +803,42 @@ public class MagicSpells extends JavaPlugin {
 
 	public static boolean isDebug() {
 		return plugin.debug;
+	}
+
+	public static boolean isDebugNull() {
+		return plugin.debugNull;
+	}
+
+	public static boolean isDebugNumberFormat() {
+		return plugin.debugNumberFormat;
+	}
+
+	public static boolean isCastingOnAnimate() {
+		return plugin.castOnAnimate;
+	}
+
+	public static boolean isCyclingSpellsOnOffhandAction() {
+		return plugin.cycleSpellsOnOffhandAction;
+	}
+
+	public static boolean canCastWithFist() {
+		return plugin.allowCastWithFist;
+	}
+
+	public static boolean arePlayerSpellsSeparatedPerWorld() {
+		return plugin.separatePlayerSpellsPerWorld;
+	}
+
+	public static int getSpellIconSlot() {
+		return plugin.spellIconSlot;
+	}
+
+	public static int getGlobalCooldown() {
+		return plugin.globalCooldown;
+	}
+
+	public static String getStrSpellUsage() {
+		return plugin.strSpellChange;
 	}
 
 	public static String getStrCastUsage() {

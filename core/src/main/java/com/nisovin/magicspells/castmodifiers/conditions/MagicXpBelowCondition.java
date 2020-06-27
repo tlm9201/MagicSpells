@@ -5,8 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
-import com.nisovin.magicspells.MagicXpHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class MagicXpBelowCondition extends Condition {

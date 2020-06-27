@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.listeners;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -8,6 +8,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.Spell.SpellCastResult;
@@ -19,7 +21,7 @@ public class ConsumeListener implements Listener {
 	private Map<CastItem, Spell> consumeCastItems = new HashMap<>();
 	private Map<String, Long> lastCast = new HashMap<>();
 	
-	ConsumeListener(MagicSpells plugin) {
+	public ConsumeListener(MagicSpells plugin) {
 		this.plugin = plugin;
 		for (Spell spell : MagicSpells.getSpells().values()) {
 			CastItem[] items = spell.getConsumeCastItems();
@@ -32,7 +34,7 @@ public class ConsumeListener implements Listener {
 		}
 	}
 	
-	boolean hasConsumeCastItems() {
+	public boolean hasConsumeCastItems() {
 		return !consumeCastItems.isEmpty();
 	}
 	
@@ -44,11 +46,11 @@ public class ConsumeListener implements Listener {
 
 		Player player = event.getPlayer();
 		Long lastCastTime = lastCast.get(player.getName());
-		if (lastCastTime != null && lastCastTime + plugin.globalCooldown > System.currentTimeMillis()) return;
+		if (lastCastTime != null && lastCastTime + MagicSpells.getGlobalCooldown() > System.currentTimeMillis()) return;
 		lastCast.put(player.getName(), System.currentTimeMillis());
 
 		if (MagicSpells.getSpellbook(player).canCast(spell)) {
-			SpellCastResult result = spell.cast(event.getPlayer());
+			SpellCastResult result = spell.cast(player);
 			if (result.state != SpellCastState.NORMAL) event.setCancelled(true);
 		}
 	}

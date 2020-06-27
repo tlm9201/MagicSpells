@@ -6,7 +6,7 @@ import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.*;
 
 public abstract class Condition {

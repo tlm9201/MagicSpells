@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.listeners;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -8,11 +8,14 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 
-class MagicPlayerListener implements Listener {
+import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
+
+public class MagicPlayerListener implements Listener {
 	
 	private MagicSpells plugin;
 	
-	MagicPlayerListener(MagicSpells plugin) {
+	public MagicPlayerListener(MagicSpells plugin) {
 		this.plugin = plugin;
 	}
 
@@ -36,7 +39,7 @@ class MagicPlayerListener implements Listener {
 	// DEBUG INFO: level 2, player changed from world to world, reloading spells
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
-		if (!plugin.separatePlayerSpellsPerWorld) return;
+		if (!MagicSpells.arePlayerSpellsSeparatedPerWorld()) return;
 		Player player = event.getPlayer();
 		MagicSpells.debug(2, "Player '" + player.getName() + "' changed from world '" + event.getFrom().getName() + "' to '" + player.getWorld().getName() + "', reloading spells");
 		MagicSpells.getSpellbook(player).reload();

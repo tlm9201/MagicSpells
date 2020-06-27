@@ -25,7 +25,6 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.BuffManager;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.TargetInfo;
@@ -35,6 +34,7 @@ import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellCastEvent;
+import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.spelleffects.EffectTracker;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 

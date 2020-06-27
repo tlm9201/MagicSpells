@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.listeners;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -13,7 +13,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 
+import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.MagicConfig;

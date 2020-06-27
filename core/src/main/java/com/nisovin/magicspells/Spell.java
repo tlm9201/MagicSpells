@@ -59,6 +59,7 @@ import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.events.SpellCastEvent;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.ValidTargetChecker;
@@ -917,6 +918,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public boolean isAlwaysGranted() {
 		return alwaysGranted;
+	}
+
+	public boolean isIgnoringGlobalCooldown() {
+		return ignoreGlobalCooldown;
 	}
 
 	public boolean isValidItemForCastCommand(ItemStack item) {

@@ -18,7 +18,7 @@ import org.bukkit.block.data.AnaloguePowerable;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class BlockUtils {
 

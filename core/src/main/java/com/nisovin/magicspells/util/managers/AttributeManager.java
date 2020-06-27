@@ -12,8 +12,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.attribute.AttributeModifier;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.AttributeUtil;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class AttributeManager {
 

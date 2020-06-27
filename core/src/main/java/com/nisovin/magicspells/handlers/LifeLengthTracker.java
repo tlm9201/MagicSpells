@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.handlers;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -12,6 +12,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 
 public class LifeLengthTracker implements Listener {
@@ -19,7 +20,7 @@ public class LifeLengthTracker implements Listener {
 	private Map<String, Long> lastSpawn = new HashMap<>();
 	private Map<String, Integer> lastLifeLength = new HashMap<>();
 	
-	LifeLengthTracker() {
+	public LifeLengthTracker() {
 		Util.forEachPlayerOnline(player -> lastSpawn.put(player.getName(), System.currentTimeMillis()));
 		MagicSpells.registerEvents(this);
 	}

@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.listeners;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -11,11 +11,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 
 public class CastListener implements Listener {
@@ -24,7 +26,7 @@ public class CastListener implements Listener {
 
 	private Map<String, Long> noCastUntil;
 
-	CastListener(MagicSpells plugin) {
+	public CastListener(MagicSpells plugin) {
 		this.plugin = plugin;
 		noCastUntil = new HashMap<>();
 	}
@@ -67,14 +69,14 @@ public class CastListener implements Listener {
 
 		if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
 			// Left click - cast
-			if (!plugin.castOnAnimate) castSpell(event.getPlayer());
+			if (!MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
 			return;
 		}
 
-		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && (plugin.cycleSpellsOnOffhandAction || event.getHand() == EquipmentSlot.HAND)) {
+		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)) {
 			// Right click -- cycle spell
 			ItemStack inHand = player.getEquipment().getItemInMainHand();
-			if ((inHand != null && !BlockUtils.isAir(inHand.getType())) || plugin.allowCastWithFist) {
+			if ((inHand != null && !BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
 
 				// Cycle spell
 				Spell spell;
@@ -83,11 +85,12 @@ public class CastListener implements Listener {
 
 				if (spell == null) return;
 				// Send message
-				MagicSpells.sendMessageAndFormat(player, plugin.strSpellChange, "%s", spell.getName());
+				MagicSpells.sendMessageAndFormat(player, MagicSpells.getStrSpellUsage(), "%s", spell.getName());
 				// Show spell icon
-				if (plugin.spellIconSlot >= 0) showIcon(player, plugin.spellIconSlot, spell.getSpellIcon());
+				if (MagicSpells.getSpellIconSlot() >= 0) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
+
 				// Use cool new text thingy
-				boolean yay = false;
+				/*boolean yay = false;
 				if (yay) {
 					final ItemStack fake = inHand.clone();
 					if (fake == null) return;
@@ -95,34 +98,34 @@ public class CastListener implements Listener {
 					meta.setDisplayName("Spell: " + spell.getName());
 					fake.setItemMeta(meta);
 					MagicSpells.scheduleDelayedTask(() -> MagicSpells.getVolatileCodeHandler().sendFakeSlotUpdate(player, player.getInventory().getHeldItemSlot(), fake), 0);
-				}
+				} */
 			}
 		}
 	}
 
 	@EventHandler
 	public void onItemHeldChange(final PlayerItemHeldEvent event) {
-		if (plugin.spellIconSlot >= 0 && plugin.spellIconSlot <= 8) {
+		if (MagicSpells.getSpellIconSlot() >= 0 && MagicSpells.getSpellIconSlot() <= 8) {
 			Player player = event.getPlayer();
-			if (event.getNewSlot() == plugin.spellIconSlot) {
-				showIcon(player, plugin.spellIconSlot, null);
+			if (event.getNewSlot() == MagicSpells.getSpellIconSlot()) {
+				showIcon(player, MagicSpells.getSpellIconSlot(), null);
 				return;
 			}
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			Spell spell = spellbook.getActiveSpell(player.getInventory().getItem(event.getNewSlot()));
-			if (spell != null) showIcon(player, plugin.spellIconSlot, spell.getSpellIcon());
-			else showIcon(player, plugin.spellIconSlot, null);
+			if (spell != null) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
+			else showIcon(player, MagicSpells.getSpellIconSlot(), null);
 		}
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerAnimation(PlayerAnimationEvent event) {
-		if (plugin.castOnAnimate) castSpell(event.getPlayer());
+		if (MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
 	}
 
 	private void castSpell(Player player) {
 		ItemStack inHand = player.getEquipment().getItemInMainHand();
-		if (!plugin.allowCastWithFist && (inHand == null || BlockUtils.isAir(inHand.getType()))) return;
+		if (!MagicSpells.canCastWithFist() && (inHand == null || BlockUtils.isAir(inHand.getType()))) return;
 
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		if (spellbook == null) return;
@@ -132,16 +135,16 @@ public class CastListener implements Listener {
 		if (!spell.canCastWithItem()) return;
 
 		// First check global cooldown
-		if (plugin.globalCooldown > 0 && !spell.ignoreGlobalCooldown) {
+		if (MagicSpells.getGlobalCooldown() > 0 && !spell.isIgnoringGlobalCooldown()) {
 			if (noCastUntil.containsKey(player.getName()) && noCastUntil.get(player.getName()) > System.currentTimeMillis()) return;
-			noCastUntil.put(player.getName(), System.currentTimeMillis() + plugin.globalCooldown);
+			noCastUntil.put(player.getName(), System.currentTimeMillis() + MagicSpells.getGlobalCooldown());
 		}
 		// Cast spell
 		spell.cast(player);
 	}
 
 	private void showIcon(Player player, int slot, ItemStack icon) {
-		if (icon == null) icon = player.getInventory().getItem(plugin.spellIconSlot);
+		if (icon == null) icon = player.getInventory().getItem(MagicSpells.getSpellIconSlot());
 		MagicSpells.getVolatileCodeHandler().sendFakeSlotUpdate(player, slot, icon);
 	}
 

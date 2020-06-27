@@ -7,7 +7,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.DebugHandler;
+import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class SpellPreImpactEvent extends SpellEvent implements Cancellable {
 

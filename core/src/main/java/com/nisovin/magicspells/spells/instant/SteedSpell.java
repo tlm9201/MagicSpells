@@ -27,9 +27,9 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;

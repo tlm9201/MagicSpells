@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.listeners;
 
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -6,14 +6,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.Perm;
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 
-class MagicSpellListener implements Listener {
+public class MagicSpellListener implements Listener {
 
 	private NoMagicZoneManager noMagicZoneManager;
 		
-	MagicSpellListener(MagicSpells plugin) {
+	public MagicSpellListener(MagicSpells plugin) {
 		noMagicZoneManager = MagicSpells.getNoMagicZoneManager();
 	}
 
