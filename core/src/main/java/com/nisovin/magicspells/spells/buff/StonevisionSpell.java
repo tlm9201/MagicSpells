@@ -42,8 +42,8 @@ public class StonevisionSpell extends BuffSpell {
 		
 		transparentTypes = new HashSet<>();
 
-		String replaceMaterialName = getConfigString("material", "BARRIER").toUpperCase();
-		material = Material.getMaterial(replaceMaterialName);
+		String replaceMaterialName = getConfigString("material", "BARRIER");
+		material = Util.getMaterial(replaceMaterialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("StonevisionSpell '" + internalName + "' has an invalid material defined!");
 			material = null;
@@ -52,7 +52,7 @@ public class StonevisionSpell extends BuffSpell {
 		List<String> types = getConfigStringList("transparent-types", null);
 		if (types != null) {
 			for (String str : types) {
-				Material material = Material.getMaterial(str.toUpperCase());
+				Material material = Util.getMaterial(str);
 				if (material != null && material.isBlock()) transparentTypes.add(material);
 			}
 		}

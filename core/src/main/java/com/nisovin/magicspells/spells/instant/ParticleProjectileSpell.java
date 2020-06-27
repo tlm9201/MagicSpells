@@ -12,14 +12,10 @@ import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.ValidTargetList;
-import com.nisovin.magicspells.util.ProjectileTracker;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -164,7 +160,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		List<String> groundMaterialNames = getConfigStringList("ground-materials", null);
 		if (groundMaterialNames != null) {
 			for (String str : groundMaterialNames) {
-				Material material = Material.getMaterial(str.toUpperCase());
+				Material material = Util.getMaterial(str);
 				if (material == null) continue;
 				if (!material.isBlock()) continue;
 				groundMaterials.add(material);

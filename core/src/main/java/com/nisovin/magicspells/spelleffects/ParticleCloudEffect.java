@@ -48,8 +48,8 @@ public class ParticleCloudEffect extends SpellEffect {
 		particleName = config.getString("particle-name", "EXPLOSION_NORMAL");
 		particle = Util.getParticle(particleName);
 
-		materialName = config.getString("material", "").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = config.getString("material", "");
+		material = Util.getMaterial(materialName);
 
 		dustSize = (float) config.getDouble("size", 1);
 		colorHex = config.getString("color", "FF0000");

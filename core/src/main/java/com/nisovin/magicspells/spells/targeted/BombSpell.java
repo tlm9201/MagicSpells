@@ -10,6 +10,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -34,8 +35,8 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 	public BombSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("block", "stone").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = getConfigString("block", "stone");
+		material = Util.getMaterial(materialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("BombSpell '" + internalName + "' has an invalid block defined!");
 			material = null;

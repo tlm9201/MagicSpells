@@ -19,6 +19,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.block.BlockBreakEvent;
 
 import com.nisovin.magicspells.Subspell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -63,7 +64,7 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 		List<String> blocks = getConfigStringList("wall-types", null);
 		if (blocks != null && !blocks.isEmpty()) {
 			for (String s : blocks) {
-				Material material = Material.getMaterial(s.toUpperCase());
+				Material material = Util.getMaterial(s);
 				if (material == null) continue;
 				if (!material.isBlock()) continue;
 				materials.add(material);

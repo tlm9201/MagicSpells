@@ -13,6 +13,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -41,7 +42,7 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (allowed != null) {
 			allowedBlockTypes = EnumSet.noneOf(Material.class);
 			for (String s : allowed) {
-				Material m = Material.getMaterial(s.toUpperCase());
+				Material m = Util.getMaterial(s);
 				if (m == null) continue;
 
 				allowedBlockTypes.add(m);
@@ -52,7 +53,7 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (disallowed != null) {
 			disallowedBlockTypes = EnumSet.noneOf(Material.class);
 			for (String s : disallowed) {
-				Material m = Material.getMaterial(s.toUpperCase());
+				Material m = Util.getMaterial(s);
 				if (m == null) continue;
 				
 				disallowedBlockTypes.add(m);

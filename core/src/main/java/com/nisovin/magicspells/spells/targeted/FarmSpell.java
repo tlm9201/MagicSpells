@@ -6,6 +6,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -33,8 +34,8 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 	public FarmSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("crop-type", "wheat").toUpperCase();
-		cropType = Material.getMaterial(materialName);
+		materialName = getConfigString("crop-type", "wheat");
+		cropType = Util.getMaterial(materialName);
 		if (cropType == null) MagicSpells.error("FarmSpell '" + internalName + "' has an invalid crop-type defined!");
 
 		radius = getConfigInt("radius", 3);

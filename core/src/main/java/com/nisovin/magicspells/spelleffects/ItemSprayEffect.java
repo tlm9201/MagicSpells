@@ -10,6 +10,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 
 public class ItemSprayEffect extends SpellEffect {
@@ -24,8 +25,8 @@ public class ItemSprayEffect extends SpellEffect {
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		materialName = config.getString("type", "").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = config.getString("type", "");
+		material = Util.getMaterial(materialName);
 
 		amount = config.getInt("amount", 15);
 		duration = config.getInt("duration", 10);
@@ -35,6 +36,7 @@ public class ItemSprayEffect extends SpellEffect {
 			itemStack = new ItemStack(material);
 			itemStack.setAmount(amount);
 		}
+
 		if (material == null) {
 			itemStack = null;
 			MagicSpells.error("Wrong type defined! '" + materialName + "'");

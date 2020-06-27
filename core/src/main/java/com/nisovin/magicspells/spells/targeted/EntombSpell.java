@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.block.BlockBreakEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.TargetInfo;
@@ -37,8 +38,8 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 	public EntombSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("block-type", "glass").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = getConfigString("block-type", "glass");
+		material = Util.getMaterial(materialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("EntombSpell '" + internalName + "' has an invalid block defined!");
 			material = null;

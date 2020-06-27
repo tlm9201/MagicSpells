@@ -110,7 +110,6 @@ public class UnbindSpell extends CommandSpell {
 			}
 
 			spellbook.save();
-			spellbook.reload();
 			sendMessage(formatMessage(strCastSelf, "%s", spell.getName()), player, args);
 			playSpellEffects(EffectPosition.CASTER, player);
 			return PostCastAction.NO_MESSAGES;

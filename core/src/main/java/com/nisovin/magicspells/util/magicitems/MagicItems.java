@@ -17,6 +17,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.ItemUtil;
@@ -239,7 +240,7 @@ public class MagicItems {
 
 			MagicItemData itemData = new MagicItemData();
 
-			Material type = Material.getMaterial(section.getString("type").toUpperCase());
+			Material type = Util.getMaterial(section.getString("type"));
 			if (type == null) return null;
 			item = new ItemStack(type);
 			itemData.setType(type);

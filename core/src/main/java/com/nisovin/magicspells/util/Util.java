@@ -27,6 +27,8 @@ import org.bukkit.inventory.meta.Damageable;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.CastUtil.CastMode;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.util.handlers.PotionEffectHandler;
 
 import org.apache.commons.math3.util.FastMath;
@@ -39,34 +41,45 @@ public class Util {
 		return random.nextInt(bound);
 	}
 
+	public static Material getMaterial(String name) {
+		name = name.toUpperCase();
+		Material material = Material.getMaterial(name);
+		if (material == null) material = Material.matchMaterial(name);
+		return material;
+	}
+
 	// - <potionEffectType> (level) (duration) (ambient)
 	public static PotionEffect buildPotionEffect(String effectString) {
 		String[] data = effectString.split(" ");
 		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 
-		if (t == null) MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
-		if (t != null) {
-			int level = 0;
-			if (data.length > 1) {
-				try {
-					level = Integer.parseInt(data[1]);
-				} catch (NumberFormatException ex) {
-					DebugHandler.debugNumberFormat(ex);
-				}
-			}
-			int duration = 600;
-			if (data.length > 2) {
-				try {
-					duration = Integer.parseInt(data[2]);
-				} catch (NumberFormatException ex) {
-					DebugHandler.debugNumberFormat(ex);
-				}
-			}
-			boolean ambient = false;
-			if (data.length > 3 && (BooleanUtils.isYes(data[3]) || data[3].equalsIgnoreCase("ambient"))) ambient = true;
-			return new PotionEffect(t, duration, level, ambient);
+		if (t == null) {
+			MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
+			return null;
 		}
-		return null;
+
+
+		int level = 0;
+		if (data.length > 1) {
+			try {
+				level = Integer.parseInt(data[1]);
+			} catch (NumberFormatException ex) {
+				DebugHandler.debugNumberFormat(ex);
+			}
+		}
+
+		int duration = 600;
+		if (data.length > 2) {
+			try {
+				duration = Integer.parseInt(data[2]);
+			} catch (NumberFormatException ex) {
+				DebugHandler.debugNumberFormat(ex);
+			}
+		}
+
+		boolean ambient = false;
+		if (data.length > 3 && (BooleanUtils.isYes(data[3]) || data[3].equalsIgnoreCase("ambient"))) ambient = true;
+		return new PotionEffect(t, duration, level, ambient);
 	}
 
 	// - <potionEffectType> (duration)
@@ -74,19 +87,20 @@ public class Util {
 		String[] data = effectString.split(" ");
 		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 
-		if (t == null) MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
-		if (t != null) {
-			int duration = 600;
-			if (data.length > 1) {
-				try {
-					duration = Integer.parseInt(data[1]);
-				} catch (NumberFormatException ex) {
-					DebugHandler.debugNumberFormat(ex);
-				}
-			}
-			return new PotionEffect(t, duration, 0, true);
+		if (t == null) {
+			MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
+			return null;
 		}
-		return null;
+
+		int duration = 600;
+		if (data.length > 1) {
+			try {
+				duration = Integer.parseInt(data[1]);
+			} catch (NumberFormatException ex) {
+				DebugHandler.debugNumberFormat(ex);
+			}
+		}
+		return new PotionEffect(t, duration, 0, true);
 	}
 
 	public static Color[] getColorsFromString(String str) {
@@ -339,22 +353,28 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(Inventory inventory, ItemStack item) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return false;
+
 		int amt = item.getAmount();
 		ItemStack[] items = inventory.getContents();
 		for (int i = 0; i < items.length; i++) {
-			if (items[i] != null && item.isSimilar(items[i])) {
-				if (items[i].getAmount() > amt) {
-					items[i].setAmount(items[i].getAmount() - amt);
-					amt = 0;
-					break;
-				} else if (items[i].getAmount() == amt) {
-					items[i] = null;
-					amt = 0;
-					break;
-				} else {
-					amt -= items[i].getAmount();
-					items[i] = null;
-				}
+			if (items[i] == null) continue;
+			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (magicItemData == null) continue;
+			if (!magicItemData.equals(itemData)) continue;
+
+			if (items[i].getAmount() > amt) {
+				items[i].setAmount(items[i].getAmount() - amt);
+				amt = 0;
+				break;
+			} else if (items[i].getAmount() == amt) {
+				items[i] = null;
+				amt = 0;
+				break;
+			} else {
+				amt -= items[i].getAmount();
+				items[i] = null;
 			}
 		}
 		if (amt == 0) {
@@ -365,6 +385,9 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(EntityEquipment entityEquipment, ItemStack item) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return false;
+
 		int amt = item.getAmount();
 		ItemStack[] armorContents = entityEquipment.getArmorContents();
 		ItemStack[] items = new ItemStack[6];
@@ -376,7 +399,9 @@ public class Util {
 
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
-			if (!item.isSimilar(items[i])) continue;
+			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (magicItemData == null) continue;
+			if (!magicItemData.equals(itemData)) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);
@@ -392,7 +417,6 @@ public class Util {
 			}
 		}
 
-
 		if (amt == 0) {
 			ItemStack[] updatedArmorContents = new ItemStack[4];
 			for (int i = 0; i < 4; i++) {
@@ -407,43 +431,51 @@ public class Util {
 	}
 
 	public static boolean addToInventory(Inventory inventory, ItemStack item, boolean stackExisting, boolean ignoreMaxStack) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return false;
+
 		int amt = item.getAmount();
 		ItemStack[] items = Arrays.copyOf(inventory.getContents(), inventory.getSize());
 		if (stackExisting) {
 			for (int i = 0; i < items.length; i++) {
-				if (items[i] != null && item.isSimilar(items[i])) {
-					if (items[i].getAmount() + amt <= items[i].getMaxStackSize()) {
-						items[i].setAmount(items[i].getAmount() + amt);
-						amt = 0;
-						break;
-					} else {
-						int diff = items[i].getMaxStackSize() - items[i].getAmount();
-						items[i].setAmount(items[i].getMaxStackSize());
-						amt -= diff;
-					}
+				if (items[i] == null) continue;
+				MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+				if (magicItemData == null) continue;
+				if (!magicItemData.equals(itemData)) continue;
+
+				if (items[i].getAmount() + amt <= items[i].getMaxStackSize()) {
+					items[i].setAmount(items[i].getAmount() + amt);
+					amt = 0;
+					break;
+				} else {
+					int diff = items[i].getMaxStackSize() - items[i].getAmount();
+					items[i].setAmount(items[i].getMaxStackSize());
+					amt -= diff;
 				}
 			}
 		}
+
 		if (amt > 0) {
 			for (int i = 0; i < items.length; i++) {
-				if (items[i] == null) {
-					if (amt > item.getMaxStackSize() && !ignoreMaxStack) {
-						items[i] = item.clone();
-						items[i].setAmount(item.getMaxStackSize());
-						amt -= item.getMaxStackSize();
-					} else {
-						items[i] = item.clone();
-						items[i].setAmount(amt);
-						amt = 0;
-						break;
-					}
+				if (items[i] != null) continue;
+				if (amt > item.getMaxStackSize() && !ignoreMaxStack) {
+					items[i] = item.clone();
+					items[i].setAmount(item.getMaxStackSize());
+					amt -= item.getMaxStackSize();
+				} else {
+					items[i] = item.clone();
+					items[i].setAmount(amt);
+					amt = 0;
+					break;
 				}
 			}
 		}
+
 		if (amt == 0) {
 			inventory.setContents(items);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -568,7 +600,7 @@ public class Util {
 
 	public static <C extends Collection<Material>> C getMaterialList(List<String> strings, Supplier<C> supplier) {
 		C ret = supplier.get();
-		strings.forEach(string -> ret.add(Material.matchMaterial(string.toUpperCase())));
+		strings.forEach(string -> ret.add(Util.getMaterial(string)));
 		return ret;
 	}
 

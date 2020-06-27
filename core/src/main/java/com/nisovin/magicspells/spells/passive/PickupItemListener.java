@@ -6,51 +6,50 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.Map.Entry;
 
 import org.bukkit.Material;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.materials.MagicMaterial;
-import com.nisovin.magicspells.materials.MagicItemWithNameMaterial;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 // Optional trigger variable that is a comma separated list of items to accept
 public class PickupItemListener extends PassiveListener {
 
-	Set<Material> materials = new HashSet<>();
-	Map<MagicMaterial, List<PassiveSpell>> types = new HashMap<>();
-	List<PassiveSpell> allTypes = new ArrayList<>();
+	private Set<Material> materials = new HashSet<>();
+	private Map<MagicItemData, List<PassiveSpell>> types = new HashMap<>();
+	private List<PassiveSpell> allTypes = new ArrayList<>();
 	
 	@Override
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
 		if (var == null || var.isEmpty()) {
 			allTypes.add(spell);
-		} else {
-			String[] split = var.split(",");
-			for (String s : split) {
-				s = s.trim();
-				MagicMaterial mat;
-				if (s.contains("|")) {
-					String[] stuff = s.split("\\|");
-					mat = MagicSpells.getItemNameResolver().resolveItem(stuff[0]);
-					if (mat != null) mat = new MagicItemWithNameMaterial(mat, stuff[1]);						
-				} else {
-					mat = MagicSpells.getItemNameResolver().resolveItem(s);
-				}
-				if (mat != null) {
-					List<PassiveSpell> list = types.computeIfAbsent(mat, material -> new ArrayList<>());
-					list.add(spell);
-					materials.add(mat.getMaterial());
-				}
-			}	
-		}		
+			return;
+		}
+
+		String[] split = var.split("\\|");
+		for (String s : split) {
+			s = s.trim();
+			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
+			MagicItemData itemData = null;
+			if (magicItem != null) itemData = magicItem.getMagicItemData();
+			if (itemData == null) continue;
+			if (itemData.getName() != null) itemData.setName(ChatColor.stripColor(Util.colorize(itemData.getName())));
+
+			List<PassiveSpell> list = types.computeIfAbsent(itemData, material -> new ArrayList<>());
+			list.add(spell);
+			materials.add(itemData.getType());
+		}
 	}
 	
 	@OverridePriority
@@ -86,8 +85,11 @@ public class PickupItemListener extends PassiveListener {
 	
 	private List<PassiveSpell> getSpells(ItemStack item) {
 		if (!materials.contains(item.getType())) return null;
-		for (Entry<MagicMaterial, List<PassiveSpell>> entry : types.entrySet()) {
-			if (entry.getKey().equals(item)) return entry.getValue();
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return null;
+
+		for (Map.Entry<MagicItemData, List<PassiveSpell>> entry : types.entrySet()) {
+			if (entry.getKey().equals(itemData)) return entry.getValue();
 		}
 		return null;
 	}

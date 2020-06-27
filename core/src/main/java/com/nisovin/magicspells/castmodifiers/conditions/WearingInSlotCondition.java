@@ -1,19 +1,20 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.materials.MagicMaterial;
 
 public class WearingInSlotCondition extends Condition {
 
 	private int slot = -1;
-	private MagicMaterial mat = null;
+
+	private Material material;
 	
 	@Override
 	public boolean setVar(String var) {
@@ -26,10 +27,10 @@ public class WearingInSlotCondition extends Condition {
 			else if (s.startsWith("boot") || s.startsWith("shoe") || s.startsWith("feet")) slot = 3;
 			if (slot == -1) return false;
 			if (data[1].equals("0") || data[1].equals("air") || data[1].equals("empty")) {
-				mat = null;
+				material = null;
 			} else {
-				mat = MagicSpells.getItemNameResolver().resolveItem(data[1]);
-				if (mat == null) return false;
+				material = Util.getMaterial(data[1]);
+				if (material == null) return false;
 			}
 			return true;
 		} catch (Exception e) {
@@ -46,8 +47,8 @@ public class WearingInSlotCondition extends Condition {
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		ItemStack item = target.getEquipment().getArmorContents()[slot];
-		if (mat == null && (item == null || BlockUtils.isAir(item.getType()))) return true;
-		return mat != null && item != null && mat.getMaterial() == item.getType();
+		if (material == null && (item == null || BlockUtils.isAir(item.getType()))) return true;
+		return material != null && item != null && material == item.getType();
 	}
 
 	@Override

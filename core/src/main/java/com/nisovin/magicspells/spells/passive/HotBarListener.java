@@ -5,47 +5,46 @@ import java.util.Set;
 import java.util.List;
 import java.util.HashSet;
 import java.util.ArrayList;
-import java.util.Map.Entry;
 import java.util.LinkedHashMap;
 
 import org.bukkit.Material;
+import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.materials.MagicMaterial;
-import com.nisovin.magicspells.materials.MagicItemWithNameMaterial;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 // Trigger variable is the item to trigger on
 public class HotBarListener extends PassiveListener {
 
-	Set<Material> materials = new HashSet<>();
-	Map<MagicMaterial, List<PassiveSpell>> select = new LinkedHashMap<>();
-	Map<MagicMaterial, List<PassiveSpell>> deselect = new LinkedHashMap<>();
+	private Set<Material> materials = new HashSet<>();
+	private Map<MagicItemData, List<PassiveSpell>> select = new LinkedHashMap<>();
+	private Map<MagicItemData, List<PassiveSpell>> deselect = new LinkedHashMap<>();
 	
 	@Override
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
-		MagicMaterial mat = null;
+		MagicItemData itemData = null;
 		if (var != null) {
-			if (var.contains("|")) {
-				String[] stuff = var.split("\\|");
-				mat = MagicSpells.getItemNameResolver().resolveItem(stuff[0]);
-				if (mat != null) mat = new MagicItemWithNameMaterial(mat, stuff[1]);
-			} else {
-				mat = MagicSpells.getItemNameResolver().resolveItem(var);
-			}
+			MagicItem magicItem = MagicItems.getMagicItemFromString(var.trim());
+			if (magicItem != null) itemData = magicItem.getMagicItemData();
 		}
-		if (mat != null) {
-			materials.add(mat.getMaterial());
+
+		if (itemData != null) {
+			if (itemData.getName() != null) itemData.setName(ChatColor.stripColor(Util.colorize(itemData.getName())));
+			materials.add(itemData.getType());
 			List<PassiveSpell> list = null;
 			if (PassiveTrigger.HOT_BAR_SELECT.contains(trigger)) {
-				list = select.computeIfAbsent(mat, material -> new ArrayList<>());
+				list = select.computeIfAbsent(itemData, material -> new ArrayList<>());
 			} else if (PassiveTrigger.HOT_BAR_DESELECT.contains(trigger)) {
-				list = deselect.computeIfAbsent(mat, material -> new ArrayList<>());
+				list = deselect.computeIfAbsent(itemData, material -> new ArrayList<>());
 			}
 			if (list != null) list.add(spell);
 		}
@@ -88,10 +87,13 @@ public class HotBarListener extends PassiveListener {
 		}
 	}
 	
-	private List<PassiveSpell> getSpells(ItemStack item, Map<MagicMaterial, List<PassiveSpell>> map) {
+	private List<PassiveSpell> getSpells(ItemStack item, Map<MagicItemData, List<PassiveSpell>> map) {
 		if (!materials.contains(item.getType())) return null;
-		for (Entry<MagicMaterial, List<PassiveSpell>> entry : map.entrySet()) {
-			if (entry.getKey().equals(item)) return entry.getValue();
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return null;
+
+		for (Map.Entry<MagicItemData, List<PassiveSpell>> entry : map.entrySet()) {
+			if (entry.getKey().equals(itemData)) return entry.getValue();
 		}
 		return null;
 	}

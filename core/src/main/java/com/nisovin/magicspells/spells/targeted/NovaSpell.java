@@ -16,6 +16,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -52,8 +53,8 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 	public NovaSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("type", "water").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = getConfigString("type", "water");
+		material = Util.getMaterial(materialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("NovaSpell '" + internalName + "' has an invalid block type defined!");
 			material = null;

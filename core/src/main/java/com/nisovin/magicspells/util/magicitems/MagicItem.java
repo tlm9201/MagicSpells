@@ -20,4 +20,17 @@ public class MagicItem {
 		return magicItemData;
 	}
 
+	public void setItemStack(ItemStack itemStack) {
+		this.itemStack = itemStack;
+	}
+
+	public void setMagicItemData(MagicItemData magicItemData) {
+		this.magicItemData = magicItemData;
+	}
+
+	@Override
+	public MagicItem clone() {
+		return new MagicItem(itemStack.clone(), magicItemData.clone());
+	}
+
 }

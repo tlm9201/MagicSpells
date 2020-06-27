@@ -76,8 +76,8 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 		listSet = new HashSet<>();
 
-		materialName = getConfigString("block-type", "stone").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = getConfigString("block-type", "stone");
+		material = Util.getMaterial(materialName);
 
 		relativeOffset = getConfigVector("relative-offset", "0,0.5,0");
 		targetRelativeOffset = getConfigVector("target-relative-offset", "0,0.5,0");

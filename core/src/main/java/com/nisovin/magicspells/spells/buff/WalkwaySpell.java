@@ -36,8 +36,8 @@ public class WalkwaySpell extends BuffSpell {
 	public WalkwaySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		String materialName = getConfigString("platform-type", "OAK_WOOD").toUpperCase();
-		material = Material.getMaterial(materialName);
+		String materialName = getConfigString("platform-type", "OAK_WOOD");
+		material = Util.getMaterial(materialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("WalkwaySpell '" + internalName + "' has an invalid platform-type defined!");
 			material = null;

@@ -35,8 +35,8 @@ public class CarpetSpell extends BuffSpell {
 	public CarpetSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("platform-block", "GLASS").toUpperCase();
-		platformMaterial = Material.getMaterial(materialName);
+		materialName = getConfigString("platform-block", "GLASS");
+		platformMaterial = Util.getMaterial(materialName);
 
 		if (platformMaterial == null || !platformMaterial.isBlock()) {
 			platformMaterial = null;

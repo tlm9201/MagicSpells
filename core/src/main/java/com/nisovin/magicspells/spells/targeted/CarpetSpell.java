@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -44,8 +45,8 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	public CarpetSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("block", "white_carpet").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = getConfigString("block", "white_carpet");
+		material = Util.getMaterial(materialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("CarpetSpell '" + internalName + "' has an invalid block defined!");
 			material = null;

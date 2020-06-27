@@ -20,6 +20,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -60,8 +61,8 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	public PulserSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("block-type", "DIAMOND_BLOCK").toUpperCase();
-		material = Material.getMaterial(materialName);
+		materialName = getConfigString("block-type", "DIAMOND_BLOCK");
+		material = Util.getMaterial(materialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("PulserSpell '" + internalName + "' has an invalid block-type defined");
 			material = null;

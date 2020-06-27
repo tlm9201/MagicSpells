@@ -15,6 +15,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.util.BlockUtils;
@@ -69,8 +70,8 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	public MaterializeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		String blockType = getConfigString("block-type", "stone").toUpperCase();
-		material = Material.getMaterial(blockType);
+		String blockType = getConfigString("block-type", "stone");
+		material = Util.getMaterial(blockType);
 		if (material == null || !material.isBlock()) MagicSpells.error("MaterializeSpell '" + internalName + "' has an invalid block-type defined!");
 
 		resetDelay = getConfigInt("reset-delay", 0);
@@ -219,7 +220,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 						//Doesn't really become a pattern if you randomize it but ok!
 						if (!stretchPattern || y < 1) material = blockGenerator(randomizePattern, patternPosition, rowPosition);
-						else material = Material.getMaterial(ground.getType().toString().toUpperCase());
+						else material = ground.getType();
 
 						//Add one to the row position so that it will move to the next block.
 						rowPosition++;
@@ -282,7 +283,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			rowPatterns[iteration] = new Material[arraySize];
 
 			for (String block : split) {
-				Material mat = Material.getMaterial(block.toUpperCase());
+				Material mat = Util.getMaterial(block);
 				if (mat == null) mat = Material.STONE;
 
 				materials.add(mat);

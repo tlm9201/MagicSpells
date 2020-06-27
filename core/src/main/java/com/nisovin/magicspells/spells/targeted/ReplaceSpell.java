@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -70,7 +71,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 					break;
 				}
 
-				Material material = Material.getMaterial(block.toUpperCase());
+				Material material = Util.getMaterial(block);
 				if (material == null) {
 					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blocks item: " + block);
 					continue;
@@ -83,7 +84,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 		list = getConfigStringList("replace-with", null);
 		if (list != null) {
 			for (String s : list) {
-				Material material = Material.getMaterial(s.toUpperCase());
+				Material material = Util.getMaterial(s);
 				if (material == null) {
 					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-with item: " + s);
 					continue;
@@ -96,7 +97,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 		list = getConfigStringList("replace-blacklist", null);
 		if (list != null) {
 			for (String s : list) {
-				Material material = Material.getMaterial(s.toUpperCase());
+				Material material = Util.getMaterial(s);
 				if (material == null) {
 					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blacklist item: " + s);
 					continue;

@@ -14,8 +14,11 @@ import com.nisovin.magicspells.util.InventoryUtil;
 
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class HasItemAmountCondition extends OperatorCondition {
+
+	private MagicItemData itemData;
 
 	private ItemStack item;
 
@@ -38,8 +41,12 @@ public class HasItemAmountCondition extends OperatorCondition {
 		try {
 			MagicItem magicItem = MagicItems.getMagicItemFromString(args[1]);
 			if (magicItem == null) return false;
+
 			item = magicItem.getItemStack();
 			if (item == null) return false;
+
+			itemData = magicItem.getMagicItemData();
+			if (itemData == null) return false;
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 			return false;
@@ -76,9 +83,8 @@ public class HasItemAmountCondition extends OperatorCondition {
 	private boolean check(Inventory inventory) {
 		int c = 0;
 		for (ItemStack i : inventory.getContents()) {
-			if (i != null && i.isSimilar(item)) {
-				c += i.getAmount();
-			}
+			if (!isSimilar(i)) continue;
+			c += i.getAmount();
 		}
 
 		if (equals) return c == amount;
@@ -90,15 +96,24 @@ public class HasItemAmountCondition extends OperatorCondition {
 	private boolean check(EntityEquipment entityEquipment) {
 		int c = 0;
 		for (ItemStack i : InventoryUtil.getEquipmentItems(entityEquipment)) {
-			if (i != null && i.isSimilar(item)) {
-				c += i.getAmount();
-			}
+			if (!isSimilar(i)) continue;
+			c += i.getAmount();
 		}
 
 		if (equals) return c == amount;
 		if (moreThan) return c > amount;
 		if (lessThan) return c < amount;
 		return false;
+	}
+
+	private boolean isSimilar(ItemStack item) {
+		if (item == null) return false;
+
+		MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (magicItemData == null) return false;
+		if (!magicItemData.equals(itemData)) return false;
+
+		return true;
 	}
 
 }

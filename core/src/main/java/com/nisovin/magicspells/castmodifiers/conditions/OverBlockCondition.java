@@ -11,6 +11,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -51,7 +52,7 @@ public class OverBlockCondition extends Condition {
 		String[] split = blocks.split(",");
 
 		for (String s : split) {
-			Material mat = Material.getMaterial(s.toUpperCase());
+			Material mat = Util.getMaterial(s);
 			if (mat == null || !mat.isBlock()) return false;
 			types.add(mat);
 			mats.add(mat);

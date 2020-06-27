@@ -27,8 +27,6 @@ import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.spells.CommandSpell;
-import com.nisovin.magicspells.materials.MagicMaterial;
-import com.nisovin.magicspells.materials.ItemNameResolver;
 
 // Advanced perm is for specifying the number of uses if it isn't normally allowed
 
@@ -37,7 +35,7 @@ public class ImbueSpell extends CommandSpell {
 	private static final Pattern CAST_ARG_USES_PATTERN  = Pattern.compile("[0-9]+");
 
 	private Set<Material> allowedItemTypes;
-	private List<MagicMaterial> allowedItemMaterials;
+	private List<Material> allowedItemMaterials;
 
 	private int maxUses;
 	private int defaultUses;
@@ -65,11 +63,10 @@ public class ImbueSpell extends CommandSpell {
 
 		List<String> allowed = getConfigStringList("allowed-items", null);
 		if (allowed != null) {
-			ItemNameResolver resolver = MagicSpells.getItemNameResolver();
 			for (String s : allowed) {
-				MagicMaterial m = resolver.resolveItem(s);
+				Material m = Util.getMaterial(s);
 				if (m == null) continue;
-				allowedItemTypes.add(m.getMaterial());
+				allowedItemTypes.add(m);
 				allowedItemMaterials.add(m);
 			}
 		}
@@ -111,8 +108,8 @@ public class ImbueSpell extends CommandSpell {
 			}
 
 			boolean allowed = false;
-			for (MagicMaterial m : allowedItemMaterials) {
-				if (m.equals(inHand)) {
+			for (Material m : allowedItemMaterials) {
+				if (m == inHand.getType()) {
 					allowed = true;
 					break;
 				}
@@ -181,8 +178,8 @@ public class ImbueSpell extends CommandSpell {
 		if (!allowedItemTypes.contains(item.getType())) return;
 		
 		boolean allowed = false;
-		for (MagicMaterial m : allowedItemMaterials) {
-			if (m.equals(item)) {
+		for (Material m : allowedItemMaterials) {
+			if (m == item.getType()) {
 				allowed = true;
 				break;
 			}

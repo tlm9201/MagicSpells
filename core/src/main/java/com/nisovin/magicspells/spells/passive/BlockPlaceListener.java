@@ -13,6 +13,7 @@ import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockPlaceEvent;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
@@ -34,7 +35,7 @@ public class BlockPlaceListener extends PassiveListener {
 		String[] split = var.split(",");
 		for (String s : split) {
 			s = s.trim();
-			Material m = Material.getMaterial(s.toUpperCase());
+			Material m = Util.getMaterial(s);
 			if (m == null) continue;
 			List<PassiveSpell> list = types.computeIfAbsent(m, material -> new ArrayList<>());
 			list.add(spell);

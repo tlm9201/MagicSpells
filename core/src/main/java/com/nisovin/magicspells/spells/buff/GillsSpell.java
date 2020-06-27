@@ -14,6 +14,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -31,8 +32,8 @@ public class GillsSpell extends BuffSpell {
 	public GillsSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		headMaterialName = getConfigString("head-block", "GLASS").toUpperCase();
-		headMaterial = Material.getMaterial(headMaterialName);
+		headMaterialName = getConfigString("head-block", "GLASS");
+		headMaterial = Util.getMaterial(headMaterialName);
 
 		if (headMaterial == null || !headMaterial.isBlock()) {
 			headMaterial = null;
