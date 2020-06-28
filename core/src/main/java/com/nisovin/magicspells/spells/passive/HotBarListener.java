@@ -8,12 +8,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import org.bukkit.Material;
-import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
@@ -38,7 +36,6 @@ public class HotBarListener extends PassiveListener {
 		}
 
 		if (itemData != null) {
-			if (itemData.getName() != null) itemData.setName(ChatColor.stripColor(Util.colorize(itemData.getName())));
 			materials.add(itemData.getType());
 			List<PassiveSpell> list = null;
 			if (PassiveTrigger.HOT_BAR_SELECT.contains(trigger)) {

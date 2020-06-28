@@ -33,9 +33,10 @@ public class NameHandler {
 	public static MagicItemData process(ItemStack itemStack, MagicItemData itemData) {
 		if (itemData == null) return null;
 		if (itemStack == null) return itemData;
-		if (itemStack.getItemMeta() == null) return itemData;
+		ItemMeta meta = itemStack.getItemMeta();
+		if (meta == null) return itemData;
 
-		if (!itemStack.getItemMeta().getDisplayName().isEmpty()) itemData.setName(ChatColor.stripColor(itemStack.getItemMeta().getDisplayName()));
+		if (!meta.getDisplayName().isEmpty()) itemData.setName(ChatColor.stripColor(meta.getDisplayName()));
 		return itemData;
 	}
 	

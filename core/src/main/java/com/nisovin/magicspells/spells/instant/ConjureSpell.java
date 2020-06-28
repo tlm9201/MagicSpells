@@ -214,8 +214,12 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 				if (addToEnderChest) added = Util.addToInventory(player.getEnderChest(), item, stackExisting, ignoreMaxStackSize);
 				if (!added && addToInventory) {
 
-					ItemStack preferredItem = inv.getItem(preferredSlot);
-					MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(preferredItem);
+					ItemStack preferredItem = null;
+					MagicItemData magicItemData = null;
+					if (preferredSlot >= 0) {
+						preferredItem = inv.getItem(preferredSlot);
+						magicItemData = MagicItems.getMagicItemDataFromItemStack(preferredItem);
+					}
 
 					if (offhand) player.getEquipment().setItemInOffHand(item);
 					else if (requiredSlot >= 0) {

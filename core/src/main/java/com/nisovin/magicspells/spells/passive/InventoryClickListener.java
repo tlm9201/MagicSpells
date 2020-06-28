@@ -95,5 +95,7 @@ public class InventoryClickListener extends PassiveListener {
             this.itemCurrent = itemCurrent;
             this.itemCursor = itemCursor;
         }
+
     }
+
 }

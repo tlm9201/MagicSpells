@@ -597,7 +597,7 @@ public class Spellbook {
 				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + uniqueId + ".txt");
 			}
 
-			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file, false),"UTF-8");
+			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file, false), "UTF-8");
 			for (Spell spell : allSpells) {
 				if (isTemporary(spell)) continue;
 				writer.append(spell.getInternalName());
