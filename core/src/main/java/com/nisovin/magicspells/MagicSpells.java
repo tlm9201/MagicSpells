@@ -87,7 +87,7 @@ public class MagicSpells extends JavaPlugin {
 	public static final String[] NULL_ARGS = null;
 
 	private Set<Material> losTransparentBlocks;
-	private List<Material> ignoreCastItemDurability; // TODO: fix
+	private List<Material> ignoreCastItemDurability;
 	private Map<EntityType, String> entityNames;
 
 	// Profiling

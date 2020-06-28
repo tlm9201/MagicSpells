@@ -83,7 +83,10 @@ public class UnconjureSpell extends InstantSpell {
 			if (unconjuredItem.hasSpecialQuantity) {
 				for (int i = 0; i < oldItems.length; i++) {
 					if (oldItems[i] == null) continue;
-					if (!unconjuredItem.item.equals(oldItems[i])) continue;
+					MagicItemData oldItemData = MagicItems.getMagicItemDataFromItemStack(oldItems[i]);
+					if (oldItemData == null) continue;
+					if (!unconjuredItemData.equals(oldItemData)) continue;
+					if (unconjuredItem.item.getAmount() != oldItems[i].getAmount()) continue;
 					oldItems[i] = null;
 					// True is only returned if the search is for an item with specific
 					// quantity. If the item is found, this won't search for the item in

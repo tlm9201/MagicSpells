@@ -236,7 +236,7 @@ public class MagicItems {
 
 			// See if this is managed by an alternative reader
 			ItemStack item = AlternativeReaderManager.deserialize(section);
-			if (item != null) return new MagicItem(item, null);
+			if (item != null) return new MagicItem(item, getMagicItemDataFromItemStack(item));
 
 			MagicItemData itemData = new MagicItemData();
 
@@ -325,7 +325,10 @@ public class MagicItems {
 			itemData.setUnbreakable(unbreakable);
 
 			// Hide tooltip
-			if (section.getBoolean("hide-tooltip", MagicSpells.hideMagicItemTooltips())) meta.addItemFlags(ItemFlag.values());
+			if (section.getBoolean("hide-tooltip", MagicSpells.hideMagicItemTooltips())) {
+				meta.addItemFlags(ItemFlag.values());
+				itemData.setHideTooltip(true);
+			}
 
 			// Empty enchant
 			if (emptyEnchants) item = ItemUtil.addFakeEnchantment(item);

@@ -11,6 +11,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.attribute.AttributeModifier;
 
+import com.nisovin.magicspells.util.Util;
+
 import com.google.common.collect.Multimap;
 
 public class MagicItemData {
@@ -253,9 +255,14 @@ public class MagicItemData {
 	}
 
 	public boolean equals(MagicItemData data) {
+		String dataName = data.getName();
+		String internalName = name;
+		if (dataName != null) dataName = ChatColor.stripColor(Util.colorize(data.getName()));
+		if (internalName != null) internalName = ChatColor.stripColor(Util.colorize(internalName));
+		
 		return
 				enumEquals(data.getType(), type) &&
-				Objects.equals(data.getName(), name) &&
+				Objects.equals(dataName, internalName) &&
 				data.getDurability() == durability &&
 				data.getRepairCost() == repairCost &&
 				data.getCustomModelData() == customModelData &&
