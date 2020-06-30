@@ -8,7 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -67,15 +69,29 @@ public class CastListener implements Listener {
 			return;
 		}
 
-		if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
+		if ((event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) && (!MagicSpells.areBowCycleButtonsReversed() || (event.hasItem() && event.getItem().getType() != Material.BOW && event.getItem().getType() != Material.CROSSBOW))) {
 			// Left click - cast
 			if (!MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
 			return;
 		}
 
-		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)) {
+		//if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)) {
+		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK)
+				&& (!MagicSpells.areBowCycleButtonsReversed() || (event.hasItem() && event.getItem().getType() != Material.BOW && event.getItem().getType() != Material.CROSSBOW))
+				&& (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)
+				||
+				(event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK)
+						&& MagicSpells.areBowCycleButtonsReversed() && event.hasItem() && (event.getItem().getType() == Material.BOW || event.getItem().getType() == Material.CROSSBOW)
+						&& event.getHand() == EquipmentSlot.HAND) {
 			// Right click -- cycle spell
 			ItemStack inHand = player.getEquipment().getItemInMainHand();
+			
+			if (inHand != null && (inHand.getType() == Material.BOW || event.getItem().getType() != Material.CROSSBOW)) {
+				if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) {
+					return;
+				}
+			}
+			
 			if ((inHand != null && !BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
 
 				// Cycle spell
@@ -121,6 +137,15 @@ public class CastListener implements Listener {
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerAnimation(PlayerAnimationEvent event) {
 		if (MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
+	}
+	
+	@EventHandler
+	public void onPlayerShootBow(EntityShootBowEvent event) {
+		if (event.getEntity() instanceof Player) {
+			Player player = (Player) event.getEntity();
+			castSpell(player);
+			event.getProjectile().setMetadata("bow-draw-strength", new FixedMetadataValue(plugin, event.getForce()));
+		}
 	}
 
 	private void castSpell(Player player) {

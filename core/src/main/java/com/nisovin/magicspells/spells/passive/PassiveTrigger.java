@@ -71,6 +71,8 @@ public class PassiveTrigger {
 	public static Set<PassiveTrigger> INVENTORY_CLICK = addTriggers("inventoryclick", InventoryClickListener.class);
 	public static Set<PassiveTrigger> SPELL_SELECT = addTriggers("spellselect", SpellSelectListener.class);
 	public static Set<PassiveTrigger> POTION_EFFECT = addTriggers("potioneffect", PotionEffectListener.class);
+	public static Set<PassiveTrigger> HIT_ARROW = addTriggers("hitarrow", HitArrowListener.class);
+	public static Set<PassiveTrigger> MISS_ARROW = addTriggers("missarrow", MissArrowListener.class);
 	
 	// can't do priorities here
 	public static PassiveTrigger RESOURCE_PACK = addTrigger("resourcepack", ResourcePackListener.class);
