@@ -25,6 +25,8 @@ import com.nisovin.magicspells.util.BoundingBox;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -34,8 +36,9 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 	private Set<List<LivingEntity>> listSet;
 
+	private ItemStack headItem;
+
 	private Material material;
-	private String materialName;
 
 	private Vector relativeOffset;
 	private Vector targetRelativeOffset;
@@ -76,8 +79,14 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 		listSet = new HashSet<>();
 
-		materialName = getConfigString("block-type", "stone");
-		material = Util.getMaterial(materialName);
+		String item = getConfigString("block-type", "stone");
+		MagicItem magicItem = MagicItems.getMagicItemFromString(item);
+		if (magicItem != null && magicItem.getItemStack() != null) headItem = magicItem.getItemStack();
+		else {
+			material = Util.getMaterial(item);
+			if (material != null && material.isBlock()) headItem = new ItemStack(material);
+			else MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid block-type defined!");
+		}
 
 		relativeOffset = getConfigVector("relative-offset", "0,0.5,0");
 		targetRelativeOffset = getConfigVector("target-relative-offset", "0,0.5,0");
@@ -117,11 +126,6 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 	@Override
 	public void initialize() {
 		super.initialize();
-
-		if (material == null || !material.isBlock()) {
-			MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid block-type defined!");
-			material = null;
-		}
 
 		hitSpell = new Subspell(hitSpellName);
 		if (!hitSpell.process()) {
@@ -214,7 +218,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 		private BlockBeam(LivingEntity caster, Location from, float power) {
 			this.caster = caster;
 			this.power = power;
-			helmet = new ItemStack(material);
+			helmet = headItem;
 			startLoc = from.clone();
 			if (!changePitch) startLoc.setPitch(0F);
 
