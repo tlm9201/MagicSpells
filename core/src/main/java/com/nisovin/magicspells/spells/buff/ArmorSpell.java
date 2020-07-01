@@ -17,7 +17,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -34,7 +33,6 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
-import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
 
 public class ArmorSpell extends BuffSpell {
 
@@ -76,54 +74,35 @@ public class ArmorSpell extends BuffSpell {
 
 	private ItemStack getItem(String s) {
 		if (s.isEmpty()) return null;
-		String[] info = s.split(" ");
-		try {
 
-			// Get type and data
-			MagicItem magicItem = MagicItems.getMagicItemFromString(info[0]);
-			if (magicItem == null) return null;
+		MagicItem magicItem = MagicItems.getMagicItemFromString(s);
+		if (magicItem == null) return null;
 
-			ItemStack item = magicItem.getItemStack();
-			if (item == null) {
-				if (DebugHandler.isNullCheckEnabled()) {
-					NullPointerException e = new NullPointerException("ItemStack is null");
-					e.fillInStackTrace();
-					DebugHandler.nullCheck(e);
-				}
-				return null;
+		ItemStack item = magicItem.getItemStack();
+		if (item == null) {
+			if (DebugHandler.isNullCheckEnabled()) {
+				NullPointerException e = new NullPointerException("ItemStack is null");
+				e.fillInStackTrace();
+				DebugHandler.nullCheck(e);
 			}
-
-			item.setAmount(1);
-
-			if (!permanent) {
-				ItemMeta meta = item.getItemMeta();
-
-				List<String> lore;
-				if (meta.hasLore()) lore = meta.getLore();
-				else lore = new ArrayList<>();
-
-				lore.add(strLoreText);
-				meta.setLore(lore);
-				item.setItemMeta(meta);
-			}
-
-			// Get enchantments (left for backwards compatibility)
-			if (info.length > 1) {
-				for (int i = 1; i < info.length; i++) {
-					String[] enchinfo = info[i].split(":");
-					Enchantment ench = EnchantmentHandler.getEnchantment(enchinfo[0]);
-					int lvl = 1;
-					if (enchinfo.length > 1) lvl = Integer.parseInt(enchinfo[1].toUpperCase().replace(" ", "_"));
-					if (ench != null) item.addUnsafeEnchantment(ench, lvl);
-				}
-			}
-
-			return item;
-
-		} catch (NumberFormatException e) {
-			DebugHandler.debugNumberFormat(e);
 			return null;
 		}
+
+		item.setAmount(1);
+
+		if (!permanent) {
+			ItemMeta meta = item.getItemMeta();
+
+			List<String> lore;
+			if (meta.hasLore()) lore = meta.getLore();
+			else lore = new ArrayList<>();
+
+			lore.add(strLoreText);
+			meta.setLore(lore);
+			item.setItemMeta(meta);
+		}
+
+		return item;
 	}
 
 	@Override
