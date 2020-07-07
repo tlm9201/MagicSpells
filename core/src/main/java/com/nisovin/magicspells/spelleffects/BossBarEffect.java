@@ -82,12 +82,13 @@ public class BossBarEffect extends SpellEffect {
 
 	private void createBar(Player player) {
 		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespace);
+		String ttl = MagicSpells.doVariableReplacements(player, title);
 		if (variable == null) {
-			bar.set(title, progress, barStyle, barColor);
+			bar.set(ttl, progress, barStyle, barColor);
 		}
 		else {
 			double diff = variable.getValue(player) / maxValue;
-			if (diff > 0 && diff < 1) bar.set(title, diff, barStyle, barColor);
+			if (diff > 0 && diff < 1) bar.set(ttl, diff, barStyle, barColor);
 		}
 		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}
