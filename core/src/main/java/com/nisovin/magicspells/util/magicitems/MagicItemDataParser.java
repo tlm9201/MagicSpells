@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.HashMap;
+import java.util.ArrayList;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -124,6 +125,7 @@ public class MagicItemDataParser {
 
 					if (key.equalsIgnoreCase("lore")) {
 						if (!value.isJsonArray()) continue;
+						lore = new ArrayList<>();
 						JsonArray jsonArray = value.getAsJsonArray();
 						for (JsonElement elementInside : jsonArray) {
 							lore.add(elementInside.getAsString());
