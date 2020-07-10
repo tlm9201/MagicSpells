@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.util.handlers;
+package com.nisovin.magicspells.handlers;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;

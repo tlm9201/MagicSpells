@@ -11,7 +11,7 @@ import org.bukkit.enchantments.Enchantment;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
+import com.nisovin.magicspells.handlers.EnchantmentHandler;
 
 public class EnchantSpell extends InstantSpell {
 	

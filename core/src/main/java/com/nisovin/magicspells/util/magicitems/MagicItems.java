@@ -24,8 +24,8 @@ import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.itemreader.*;
 import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
-import com.nisovin.magicspells.util.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
 
 import com.google.common.collect.Multimap;

@@ -1,11 +1,10 @@
-package com.nisovin.magicspells.util.handlers;
+package com.nisovin.magicspells.handlers;
 
 import java.util.Map;
 import java.util.HashMap;
 
 import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffectType;
-import com.nisovin.magicspells.handlers.DebugHandler;
 
 public enum PotionEffectHandler {
 
