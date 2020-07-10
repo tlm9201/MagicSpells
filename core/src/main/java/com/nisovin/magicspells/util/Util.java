@@ -28,8 +28,8 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
-import com.nisovin.magicspells.util.handlers.PotionEffectHandler;
 
 import org.apache.commons.math3.util.FastMath;
 
