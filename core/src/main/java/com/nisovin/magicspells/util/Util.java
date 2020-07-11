@@ -201,7 +201,7 @@ public class Util {
 				entityTypeMap.put(type.name().toLowerCase().replace("_", ""), type);
 			}
 		}
-		entityTypeMap.put("zombiepig", EntityType.PIG_ZOMBIE);
+		entityTypeMap.put("zombiepig", Util.getPigmanEntityType());
 		entityTypeMap.put("mooshroom", EntityType.MUSHROOM_COW);
 		entityTypeMap.put("cat", EntityType.OCELOT);
 		entityTypeMap.put("golem", EntityType.IRON_GOLEM);
@@ -687,4 +687,11 @@ public class Util {
 		return colorize(MagicSpells.doVariableReplacements(player, string));
 	}
 
+	public static EntityType getPigmanEntityType() {
+		try {
+			return EntityType.valueOf("ZOMBIFIED_PIGLIN");
+		} catch (IllegalArgumentException ex) {
+			return EntityType.valueOf("PIG_ZOMBIE");
+		}
+	}
 }
