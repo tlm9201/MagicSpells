@@ -3,6 +3,7 @@ package com.nisovin.magicspells.volatilecode
 import org.bukkit.Bukkit
 
 import com.nisovin.magicspells.MagicSpells
+import io.papermc.lib.PaperLib
 
 object ManagerVolatile {
 
@@ -12,7 +13,12 @@ object ManagerVolatile {
             val volatileCode = Class.forName("com.nisovin.magicspells.volatilecode.$nmsPackage.VolatileCode${nmsPackage.replace("v", "")}")
 
             MagicSpells.log("Found volatile code handler for $nmsPackage.")
-            return volatileCode.newInstance() as VolatileCodeHandle
+            var volatileCodeHandle = volatileCode.newInstance() as VolatileCodeHandle;
+            if (PaperLib.isPaper()) {
+                MagicSpells.log("Detected Paper, hooking in for extra compatibility.")
+                volatileCodeHandle = VolatileCodePaper(volatileCodeHandle)
+            }
+            return volatileCodeHandle
         } catch (ex: Exception) {
             // No volatile code handler found
         }
