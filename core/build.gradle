@@ -5,15 +5,16 @@ plugins {
 repositories {
     maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
     maven { url "https://repo.md-5.net/content/repositories/releases/" }
-    maven { url 'https://papermc.io/repo/repository/maven-public/' }
+    maven { url "https://papermc.io/repo/repository/maven-public/" }
 }
 
 dependencies {
     shadow group: "org.apache.commons", name: "commons-math3", version: "3.0"
     shadow "com.github.Chronoken:EffectLib:4972666012"
     shadow "com.github.PaperMC:PaperLib:578a177643"
-    compile 'com.destroystokyo.paper:paper-api:1.16.1-R0.1-SNAPSHOT'
-    compile ":spigot-1.16.1"
+    shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "com.destroystokyo.paper:paper-api:1.16.1-R0.1-SNAPSHOT"
+    implementation ":spigot-1.16.1"
     implementation ":spigot-1.15"
     implementation ":spigot-1.14.4"
     implementation ":spigot-1.13.2"
@@ -24,7 +25,6 @@ dependencies {
     implementation "LibsDisguises:LibsDisguises:9.8.2"
     implementation "com.github.PlaceholderAPI:PlaceholderAPI:e53cad219e"
     implementation "com.github.TechFortress:GriefPrevention:832ec7ed86"
-    shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.5.0"
 }
 
