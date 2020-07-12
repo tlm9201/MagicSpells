@@ -82,7 +82,7 @@ public class MagicItems {
 		data.setAmount(itemStack.getAmount());
 
 		// durability
-		if (BlockUtils.hasDurability(itemStack.getType())) data = DurabilityHandler.process(itemStack, data);
+		if (ItemUtil.hasDurability(itemStack.getType())) data = DurabilityHandler.process(itemStack, data);
 
 		// repairCost
 		data = RepairableHandler.process(itemStack, data);
@@ -298,7 +298,7 @@ public class MagicItems {
 			meta = SkullHandler.process(section, meta, itemData);
 
 			// Durability
-			if (BlockUtils.hasDurability(item.getType())) meta = DurabilityHandler.process(section, meta, itemData);
+			if (ItemUtil.hasDurability(item.getType())) meta = DurabilityHandler.process(section, meta, itemData);
 
 			// Repair cost
 			meta = RepairableHandler.process(section, meta, itemData);

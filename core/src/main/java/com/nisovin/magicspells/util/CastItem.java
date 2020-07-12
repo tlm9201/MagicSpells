@@ -54,7 +54,7 @@ public class CastItem {
 				else name = meta.getDisplayName();
 			}
 			if (!MagicSpells.ignoreCastItemAmount()) amount = item.getAmount();
-			if (!MagicSpells.ignoreCastItemDurability(type) && BlockUtils.hasDurability(type)) durability = DurabilityHandler.getDurability(meta);
+			if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) durability = DurabilityHandler.getDurability(meta);
 			if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = MagicSpells.getVolatileCodeHandler().getCustomModelData(meta);
 			if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = meta.isUnbreakable();
 			if (!MagicSpells.ignoreCastItemColor()) color = LeatherArmorHandler.getColor(meta);
@@ -73,13 +73,11 @@ public class CastItem {
 			type = data.getType();
 			if (isTypeValid()) {
 				if (!MagicSpells.ignoreCastItemNames() && data.getName() != null) {
-					if (MagicSpells.ignoreCastItemNameColors())
-						name = ChatColor.stripColor(Util.colorize(data.getName()));
+					if (MagicSpells.ignoreCastItemNameColors()) name = ChatColor.stripColor(Util.colorize(data.getName()));
 					else name = Util.colorize(data.getName());
 				}
 				if (!MagicSpells.ignoreCastItemAmount()) amount = data.getAmount();
-				if (!MagicSpells.ignoreCastItemDurability(type) && BlockUtils.hasDurability(type))
-					durability = data.getDurability();
+				if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) durability = data.getDurability();
 				if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = data.getCustomModelData();
 				if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = data.isUnbreakable();
 				if (!MagicSpells.ignoreCastItemColor()) color = data.getColor();
