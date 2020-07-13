@@ -122,45 +122,104 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 			
 			for (int i = 0; i < itemList.size(); i++) {
 				try {
-					String[] data = Util.splitParams(itemList.get(i));
-					String[] quantityData = data.length == 1 ? new String[]{ "1" } : data[1].split("-");
-					
-					if (data[0].startsWith("TOME:")) {
-						String[] tomeData = data[0].split(":");
+					String str = itemList.get(i);
+
+					int brackets = 0;
+					int closedBrackets = 0;
+					for (int j = 0; j < str.length(); j++) {
+						char ch = str.charAt(j);
+						if (ch == '{') brackets++;
+						if (ch == '}') closedBrackets++;
+					}
+
+					// checks if all brackets are properly closed
+					if (brackets != closedBrackets) {
+						MagicSpells.error("ConjureSpell '" + internalName + "' has an invalid item defined (e1): " + str);
+						continue;
+					}
+
+					brackets = 0;
+					closedBrackets = 0;
+
+					String[] data = str.split(" ");
+					String[] conjureData = null;
+
+					StringBuilder itemData = new StringBuilder();
+
+					for (int j = 0; j < data.length; j++) {
+						for (char ch : data[j].toCharArray()) {
+							if (ch == '{') brackets++;
+							if (ch == '}') closedBrackets++;
+						}
+
+						itemData.append(data[j]).append(" ");
+						// magicItemData is ready, add the conjureData
+						if (brackets == closedBrackets) {
+							int dataLeft = data.length - j - 1;
+							conjureData = new String[dataLeft];
+
+							// fill the conjureData array with stuff like amount and chance
+							for (int d = 0; d < dataLeft; d++) {
+								conjureData[d] = data[j + d + 1];
+							}
+							break;
+						}
+					}
+
+					String strItemData = itemData.toString().trim();
+
+					if (strItemData.startsWith("TOME:")) {
+						String[] tomeData = strItemData.split(":");
 						TomeSpell tomeSpell = (TomeSpell) MagicSpells.getSpellByInternalName(tomeData[1]);
 						Spell spell = MagicSpells.getSpellByInternalName(tomeData[2]);
-						int uses = tomeData.length > 3 ? Integer.parseInt(tomeData[3]) : -1;
+						int uses = tomeData.length > 3 ? Integer.parseInt(tomeData[3].trim()) : -1;
 						itemTypes[i] = tomeSpell.createTome(spell, uses, null);
-					} else if (data[0].startsWith("SCROLL:")) {
-						String[] scrollData = data[0].split(":");
+					} else if (strItemData.startsWith("SCROLL:")) {
+						String[] scrollData = strItemData.split(":");
 						ScrollSpell scrollSpell = (ScrollSpell) MagicSpells.getSpellByInternalName(scrollData[1]);
 						Spell spell = MagicSpells.getSpellByInternalName(scrollData[2]);
-						int uses = scrollData.length > 3 ? Integer.parseInt(scrollData[3]) : -1;
+						int uses = scrollData.length > 3 ? Integer.parseInt(scrollData[3].trim()) : -1;
 						itemTypes[i] = scrollSpell.createScroll(spell, uses, null);
 					} else {
-						MagicItem magicItem = MagicItems.getMagicItemFromString(data[0]);
+						MagicItem magicItem = MagicItems.getMagicItemFromString(strItemData);
 						if (magicItem == null) continue;
 						itemTypes[i] = magicItem.getItemStack();
 					}
 
-					if (itemTypes[i] == null) {
-						MagicSpells.error("ConjureSpell '" + internalName + "' has specified invalid item (e1): " + itemList.get(i));
+					int minAmount = 1;
+					int maxAmount = 1;
+
+					double chance = 100;
+
+					// add default values if there arent any specified
+					if (conjureData == null) {
+						itemMinQuantities[i] = minAmount;
+						itemMaxQuantities[i] = maxAmount;
+						itemChances[i] = chance;
 						continue;
 					}
-					
-					if (quantityData.length == 1) {
-						itemMinQuantities[i] = Integer.parseInt(quantityData[0]);
-						itemMaxQuantities[i] = itemMinQuantities[i];
-					} else {
-						itemMinQuantities[i] = Integer.parseInt(quantityData[0]);
-						itemMaxQuantities[i] = Integer.parseInt(quantityData[1]);	
+
+					// parse minAmount, maxAmount
+					if (conjureData.length >= 1) {
+						String[] amount = conjureData[0].split("-");
+						if (amount.length == 1) {
+							minAmount = Integer.parseInt(amount[0].trim());
+							maxAmount = minAmount;
+						} else if (amount.length >= 2) {
+							minAmount = Integer.parseInt(amount[0].trim());
+							maxAmount = Integer.parseInt(amount[1].trim()) + 1;
+						}
 					}
-					
-					if (data.length > 2) {
-						itemChances[i] = Double.parseDouble(data[2].replace("%", ""));
-					} else {
-						itemChances[i] = 100;
+
+					// parse chance
+					if (conjureData.length >= 2) {
+						chance = Double.parseDouble(conjureData[1].replace("%", "").trim());
 					}
+
+					itemMinQuantities[i] = minAmount;
+					itemMaxQuantities[i] = maxAmount;
+					itemChances[i] = chance;
+
 				} catch (Exception e) {
 					MagicSpells.error("ConjureSpell '" + internalName + "' has specified invalid item (e2): " + itemList.get(i));
 					itemTypes[i] = null;
