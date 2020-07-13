@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.*;
@@ -33,6 +34,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private float startYOffset;
 	private float startZOffset;
 	private Vector relativeOffset;
+	private Vector effectOffset;
 
 	private float acceleration;
 	private int accelerationDelay;
@@ -124,6 +126,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		if (relativeOffset.getX() != 1F) startXOffset = (float) relativeOffset.getX();
 		if (relativeOffset.getY() != 1F) startYOffset = (float) relativeOffset.getY();
 		if (relativeOffset.getZ() != 0F) startZOffset = (float) relativeOffset.getZ();
+
+		effectOffset = getConfigVector("effect-offset", "0,0,0");
 
 		acceleration = getConfigFloat("projectile-acceleration", 0F);
 		accelerationDelay = getConfigInt("projectile-acceleration-delay", 0);
@@ -308,6 +312,9 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 	@Override
 	public void turnOff() {
+		for (ProjectileTracker tracker : trackerSet) {
+			tracker.stop(false);
+		}
 		trackerSet.clear();
 	}
 
@@ -396,12 +403,17 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		return playSpellEffectLibEffects(position, location);
 	}
 
+	public Set<ArmorStand> playArmorStandEffectsProjectile(EffectPosition position, Location location) {
+		return playSpellArmorStandEffects(position, location);
+	}
+
 	private void setupProjectile(ProjectileTracker tracker) {
 		tracker.setSpell(this);
 		tracker.setStartXOffset(startXOffset);
 		tracker.setStartYOffset(startYOffset);
 		tracker.setStartZOffset(startZOffset);
 		tracker.setTargetYOffset(targetYOffset);
+		tracker.setEffectOffset(effectOffset);
 
 		tracker.setAcceleration(acceleration);
 		tracker.setAccelerationDelay(accelerationDelay);

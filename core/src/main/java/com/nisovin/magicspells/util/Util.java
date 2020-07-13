@@ -58,7 +58,6 @@ public class Util {
 			return null;
 		}
 
-
 		int level = 0;
 		if (data.length > 1) {
 			try {
@@ -153,42 +152,41 @@ public class Util {
 
 	public static String getLoreData(ItemStack item) {
 		ItemMeta meta = item.getItemMeta();
-		if (meta != null && meta.hasLore()) {
-			List<String> lore = meta.getLore();
-			if (!lore.isEmpty()) {
-				for (int i = 0; i < lore.size(); i++) {
-					String s = ChatColor.stripColor(lore.get(lore.size() - 1));
-					if (s.startsWith("MS$:")) return s.substring(4);
-				}
-			}
+		if (meta == null) return null;
+		if (!meta.hasLore()) return null;
+
+		List<String> lore = meta.getLore();
+		if (lore.isEmpty()) return null;
+
+		for (int i = 0; i < lore.size(); i++) {
+			String s = ChatColor.stripColor(lore.get(lore.size() - 1));
+			if (s.startsWith("MS$:")) return s.substring(4);
 		}
+
 		return null;
 	}
 
 	public static void removeLoreData(ItemStack item) {
 		ItemMeta meta = item.getItemMeta();
 		List<String> lore;
-		if (meta.hasLore()) {
-			lore = meta.getLore();
-			if (!lore.isEmpty()) {
-				boolean removed = false;
-				for (int i = 0; i < lore.size(); i++) {
-					String s = ChatColor.stripColor(lore.get(i));
-					if (s.startsWith("MS$:")) {
-						lore.remove(i);
-						removed = true;
-						break;
-					}
-				}
-				if (removed) {
-					if (!lore.isEmpty()) {
-						meta.setLore(lore);
-					} else {
-						meta.setLore(null);
-					}
-					item.setItemMeta(meta);
-				}
-			}
+		if (!meta.hasLore()) return;
+
+		lore = meta.getLore();
+		if (lore.isEmpty()) return;
+
+		boolean removed = false;
+		for (int i = 0; i < lore.size(); i++) {
+			String s = ChatColor.stripColor(lore.get(i));
+			if (!s.startsWith("MS$:")) continue;
+			lore.remove(i);
+			removed = true;
+			break;
+		}
+
+		if (removed) {
+			if (!lore.isEmpty()) meta.setLore(lore);
+			else meta.setLore(null);
+			item.setItemMeta(meta);
 		}
 	}
 
@@ -298,7 +296,7 @@ public class Util {
 	public static String[] splitParams(String string, int max) {
 		String[] words = string.trim().split(" ");
 		if (words.length <= 1) return words;
-		ArrayList<String> list = new ArrayList<>();
+		List<String> list = new ArrayList<>();
 		char quote = ' ';
 		String building = "";
 
@@ -329,9 +327,9 @@ public class Util {
 				}
 			}
 		}
-		if (!building.isEmpty()) {
-			list.add(building);
-		}
+
+		if (!building.isEmpty()) list.add(building);
+
 		return list.toArray(new String[list.size()]);
 	}
 
@@ -498,8 +496,8 @@ public class Util {
 	}
 
 	public static Vector rotateVector(Vector v, float yawDegrees, float pitchDegrees) {
-		double yaw = FastMath.toRadians((double)(-1.0F * (yawDegrees + 90.0F)));
-		double pitch = FastMath.toRadians((double)(-pitchDegrees));
+		double yaw = FastMath.toRadians(-1.0F * (yawDegrees + 90.0F));
+		double pitch = FastMath.toRadians(-pitchDegrees);
 		double cosYaw = FastMath.cos(yaw);
 		double cosPitch = FastMath.cos(pitch);
 		double sinYaw = FastMath.sin(yaw);
@@ -547,7 +545,6 @@ public class Util {
 
 	public static ItemStack getEggItemForEntityType(EntityType type) {
 		Material eggMaterial = Material.getMaterial(type.name() + "_SPAWN_EGG");
-
 		if (eggMaterial == null) return null;
 
 		return new ItemStack(eggMaterial);
@@ -694,4 +691,5 @@ public class Util {
 			return EntityType.valueOf("PIG_ZOMBIE");
 		}
 	}
+
 }

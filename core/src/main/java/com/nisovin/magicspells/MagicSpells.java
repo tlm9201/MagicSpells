@@ -297,9 +297,8 @@ public class MagicSpells extends JavaPlugin {
 			Set<String> keys = config.getSection(path + "entity-names").getKeys(false);
 			for (String key : keys) {
 				EntityType entityType = Util.getEntityType(key);
-				if (entityType != null) {
-					entityNames.put(entityType, config.getString(path + "entity-names." + key, ""));
-				}
+				if (entityType == null) continue;
+				entityNames.put(entityType, config.getString(path + "entity-names." + key, ""));
 			}
 		}
 

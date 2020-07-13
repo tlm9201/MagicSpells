@@ -8,6 +8,7 @@ import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -156,6 +157,14 @@ public abstract class SpellEffect {
 		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
 		return null;
 	}
+
+	public final ArmorStand playArmorStandEffect(final Location location) {
+		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+		if (!locationModifiers.check(null, location)) return null;
+		if (delay <= 0) return playArmorStandEffectLocationReal(location);
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
+		return null;
+	}
 	
 	private Runnable playEffectLocationReal(Location location) {
 		if (location == null) return playEffectLocation(null);
@@ -170,6 +179,13 @@ public abstract class SpellEffect {
 		applyOffsets(loc);
 		return playEffectLibLocation(loc);
 	}
+
+	private ArmorStand playArmorStandEffectLocationReal(Location location) {
+		if (location == null) return playArmorStandEffectLocation(null);
+		Location loc = location.clone();
+		applyOffsets(loc);
+		return playArmorStandEffectLocation(loc);
+	}
 	
 	protected Runnable playEffectLocation(Location location) {
 		//expect to be overridden
@@ -177,6 +193,11 @@ public abstract class SpellEffect {
 	}
 
 	protected Effect playEffectLibLocation(Location location) {
+		//expect to be overridden
+		return null;
+	}
+
+	protected ArmorStand playArmorStandEffectLocation(Location location) {
 		//expect to be overridden
 		return null;
 	}
@@ -362,6 +383,7 @@ public abstract class SpellEffect {
 	}
 	
 	static {
+		effects.put("armorstand", ArmorStandEffect.class);
 		effects.put("actionbartext", ActionBarTextEffect.class);
 		effects.put("bossbar", BossBarEffect.class);
 		effects.put("broadcast", BroadcastEffect.class);
