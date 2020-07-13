@@ -22,6 +22,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
 import org.bukkit.util.BlockIterator;
@@ -45,6 +46,7 @@ import com.nisovin.magicspells.util.IntMap;
 import com.nisovin.magicspells.util.TxtUtil;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.CastItem;
+import com.nisovin.magicspells.spelleffects.*;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.mana.ManaHandler;
@@ -64,14 +66,10 @@ import com.nisovin.magicspells.handlers.MoneyHandler;
 import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.ValidTargetChecker;
-import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
-import com.nisovin.magicspells.spelleffects.EffectTracker;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
-import com.nisovin.magicspells.spelleffects.EffectLibEffect;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
@@ -1473,6 +1471,18 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			spellEffects.add(effect.playEffectLib(location));
 		}
 		return spellEffects;
+	}
+
+	protected Set<ArmorStand> playSpellArmorStandEffects(EffectPosition pos, Location location) {
+		if (effects == null) return null;
+		List<SpellEffect> effectsList = effects.get(pos);
+		if (effectsList == null) return null;
+		Set<ArmorStand> armorStands = new HashSet<>();
+		for (SpellEffect effect : effectsList) {
+			if (!(effect instanceof ArmorStandEffect)) continue;
+			armorStands.add(effect.playArmorStandEffect(location));
+		}
+		return armorStands;
 	}
 
 	protected void playSpellEffectsTrail(Location loc1, Location loc2) {

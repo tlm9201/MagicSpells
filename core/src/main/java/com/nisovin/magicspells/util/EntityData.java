@@ -413,6 +413,10 @@ public class EntityData {
 		return entityType;
 	}
 
+	public void setEntityType(EntityType entityType) {
+		this.entityType = entityType;
+	}
+
 	public Material getMaterial() {
 		return material;
 	}

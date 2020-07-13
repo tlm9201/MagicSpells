@@ -13,6 +13,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
@@ -24,6 +25,8 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
 import com.nisovin.magicspells.spells.instant.ParticleProjectileSpell;
 
+import io.papermc.lib.PaperLib;
+
 import de.slikey.effectlib.Effect;
 
 public class ProjectileTracker implements Runnable {
@@ -31,6 +34,7 @@ public class ProjectileTracker implements Runnable {
 	private Random rand = new Random();
 
 	private Set<Effect> effectSet;
+	private Set<ArmorStand> armorStandSet;
 
 	private LivingEntity caster;
 	private float power;
@@ -40,6 +44,7 @@ public class ProjectileTracker implements Runnable {
 	private Location currentLocation;
 	private Vector currentVelocity;
 	private Vector startDirection;
+	private Vector effectOffset;
 	private int currentX;
 	private int currentZ;
 	private int counter;
@@ -201,6 +206,7 @@ public class ProjectileTracker implements Runnable {
 		tracker = this;
 		if (spell != null) {
 			effectSet = spell.playEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
+			armorStandSet = spell.playArmorStandEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
 			ParticleProjectileSpell.getProjectileTrackers().add(tracker);
 		}
 		taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
@@ -294,6 +300,20 @@ public class ProjectileTracker implements Runnable {
 		if (effectSet != null) {
 			for (Effect effect : effectSet) {
 				effect.setLocation(currentLocation);
+			}
+		}
+
+		if (armorStandSet != null) {
+			// Changing the effect location
+			Vector dir = currentLocation.getDirection().normalize();
+			Vector horizOffset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
+			Location effectLoc = currentLocation.clone();
+			effectLoc.add(horizOffset.multiply(effectOffset.getZ())).getBlock().getLocation();
+			effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
+			effectLoc.setY(effectLoc.getY() + effectOffset.getY());
+
+			for (ArmorStand armorStand : armorStandSet) {
+				PaperLib.teleportAsync(armorStand, effectLoc);
 			}
 		}
 
@@ -490,6 +510,11 @@ public class ProjectileTracker implements Runnable {
 		if (effectSet != null) {
 			for (Effect effect : effectSet) {
 				effect.cancel();
+			}
+		}
+		if (armorStandSet != null) {
+			for (ArmorStand armorStand : armorStandSet) {
+				armorStand.remove();
 			}
 		}
 		caster = null;
@@ -978,6 +1003,14 @@ public class ProjectileTracker implements Runnable {
 
 	public void setTargetYOffset(float targetYOffset) {
 		this.targetYOffset = targetYOffset;
+	}
+
+	public Vector getEffectOffset() {
+		return effectOffset;
+	}
+
+	public void setEffectOffset(Vector effectOffset) {
+		this.effectOffset = effectOffset;
 	}
 
 	public float getTicksPerSecond() {
