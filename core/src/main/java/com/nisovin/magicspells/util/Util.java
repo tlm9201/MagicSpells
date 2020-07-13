@@ -168,27 +168,24 @@ public class Util {
 	public static void removeLoreData(ItemStack item) {
 		ItemMeta meta = item.getItemMeta();
 		List<String> lore;
-		if (meta.hasLore()) {
-			lore = meta.getLore();
-			if (!lore.isEmpty()) {
-				boolean removed = false;
-				for (int i = 0; i < lore.size(); i++) {
-					String s = ChatColor.stripColor(lore.get(i));
-					if (s.startsWith("MS$:")) {
-						lore.remove(i);
-						removed = true;
-						break;
-					}
-				}
-				if (removed) {
-					if (!lore.isEmpty()) {
-						meta.setLore(lore);
-					} else {
-						meta.setLore(null);
-					}
-					item.setItemMeta(meta);
-				}
-			}
+		if (!meta.hasLore()) return;
+
+		lore = meta.getLore();
+		if (lore.isEmpty()) return;
+
+		boolean removed = false;
+		for (int i = 0; i < lore.size(); i++) {
+			String s = ChatColor.stripColor(lore.get(i));
+			if (!s.startsWith("MS$:")) continue;
+			lore.remove(i);
+			removed = true;
+			break;
+		}
+
+		if (removed) {
+			if (!lore.isEmpty()) meta.setLore(lore);
+			else meta.setLore(null);
+			item.setItemMeta(meta);
 		}
 	}
 
