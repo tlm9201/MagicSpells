@@ -485,14 +485,19 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		private ExpirationResult updateExpiresLineIfNeeded(ItemStack item) {
 			if (item == null) return ExpirationResult.NO_UPDATE;
 			if (!item.hasItemMeta()) return ExpirationResult.NO_UPDATE;
+
 			ItemMeta meta = item.getItemMeta();
 			if (!meta.hasLore()) return ExpirationResult.NO_UPDATE;
-			ArrayList<String> lore = new ArrayList<>(meta.getLore());
+
+			List<String> lore = new ArrayList<>(meta.getLore());
 			if (lore.size() < 2) return ExpirationResult.NO_UPDATE;
+
 			String lastLine = lore.get(lore.size() - 1);
 			if (!lastLine.startsWith(expPrefix)) return ExpirationResult.NO_UPDATE;
+
 			long expiresAt = Long.parseLong(lastLine.replace(expPrefix, ""));
 			if (expiresAt < System.currentTimeMillis()) return ExpirationResult.EXPIRED;
+
 			lore.set(lore.size() - 2, getExpiresText(expiresAt));
 			meta.setLore(lore);
 			item.setItemMeta(meta);
