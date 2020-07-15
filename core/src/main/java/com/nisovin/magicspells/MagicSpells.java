@@ -37,6 +37,7 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.handlers.*;
 import com.nisovin.magicspells.listeners.*;
 import com.nisovin.magicspells.util.Metrics;
 import com.nisovin.magicspells.util.TxtUtil;
@@ -48,13 +49,10 @@ import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.commands.ManaCommand;
 import com.nisovin.magicspells.commands.CastCommand;
-import com.nisovin.magicspells.handlers.MoneyHandler;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.events.SpellLearnEvent;
-import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -62,7 +60,6 @@ import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
-import com.nisovin.magicspells.handlers.LifeLengthTracker;
 import com.nisovin.magicspells.util.managers.BossBarManager;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
@@ -390,6 +387,19 @@ public class MagicSpells extends JavaPlugin {
 		}
 		variableManager = new VariableManager(this, varSec);
 		log("..." + variableManager.count() + " variables loaded");
+
+		// Load crafting recipes.
+		RecipeHandler.clearRecipes();
+		log("Loading recipes...");
+		if (config.contains(path + "recipes") && config.isSection(path + "recipes")) {
+			ConfigurationSection recipeSec = config.getSection(path + "recipes");
+			for (String recipeKey : recipeSec.getKeys(false)) {
+				ConfigurationSection recipe = recipeSec.getConfigurationSection(recipeKey);
+				if (recipe == null) continue;
+				RecipeHandler.create(recipe);
+			}
+		}
+		log("..." + RecipeHandler.getRecipes().size() + " recepies loaded");
 
 		// Load spells
 		log("Loading spells...");
