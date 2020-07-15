@@ -8,9 +8,12 @@ import java.lang.reflect.Field
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.*
+import org.bukkit.Material
 import org.bukkit.util.Vector
 import org.bukkit.entity.Entity
 import org.bukkit.OfflinePlayer
+import org.bukkit.NamespacedKey
+import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.SkullMeta
@@ -67,7 +70,6 @@ class VolatileCode1_13_R2: VolatileCodeHandle {
         /*final EntityLiving el = ((CraftLivingEntity)entity).getHandle();
         final DataWatcher dw = el.getDataWatcher();
         dw.watch(7, Integer.valueOf(color));
-
         if (duration > 0) {
             MagicSpells.scheduleDelayedTask(new Runnable() {
                 public void run() {
@@ -303,4 +305,17 @@ class VolatileCode1_13_R2: VolatileCodeHandle {
         entityPlayer.playerConnection.sendPacket(packet)
         entityPlayer.updateInventory(container)
     }
+
+    override fun createCookingRecipe(type: String, namespaceKey: NamespacedKey, group: String, result: ItemStack, ingredient: Material, experience: Float, cookingTime: Int): Recipe? {
+        return null
+    }
+
+    override fun createStonecutterRecipe(namespaceKey: NamespacedKey, group: String, result: ItemStack, ingredient: Material): Recipe? {
+        return null
+    }
+
+    override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe? {
+        return null
+    }
+
 }

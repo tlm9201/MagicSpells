@@ -66,8 +66,15 @@ public class RecipeHandler implements Listener {
                 recipe = createShapelessRecipe(config, namespaceKey, result, group);
                 break;
 
+            case "smoking":
+            case "campfire":
+            case "blasting":
             case "furnace":
-                recipe = createFurnaceRecipe(config, namespaceKey, result, group);
+                recipe = createCookingRecipe(config, type, namespaceKey, result, group);
+                break;
+
+            case "stonecutting":
+                recipe = createStoneCuttingRecipe(config, namespaceKey, result, group);
                 break;
 
             default:
@@ -139,15 +146,29 @@ public class RecipeHandler implements Listener {
         return recipe;
     }
 
-    private static Recipe createFurnaceRecipe(ConfigurationSection config, NamespacedKey namespaceKey, ItemStack result, String group) {
+    private static Recipe createCookingRecipe(ConfigurationSection config, String type, NamespacedKey namespaceKey, ItemStack result, String group) {
         Material ingredient = getMaterial(config.getString("ingredient"), "Recipe '" + config.getName() + "' has an invalid 'ingredient' defined.");
         if (ingredient == null) return null;
 
         float experience = (float) config.getDouble("experience", 0);
         int cookingTime = config.getInt("cooking-time", 0);
 
-        FurnaceRecipe recipe = new FurnaceRecipe(namespaceKey, result, ingredient, experience, cookingTime);
-        recipe.setGroup(group);
+        if (type.equals("furnace")) {
+            FurnaceRecipe recipe = new FurnaceRecipe(namespaceKey, result, ingredient, experience, cookingTime);
+            recipe.setGroup(group);
+            return recipe;
+        }
+        // Check volatile types.
+        Recipe recipe = MagicSpells.getVolatileCodeHandler().createCookingRecipe(type, namespaceKey, group, result, ingredient, experience, cookingTime);
+        if (recipe == null) MagicSpells.error("Recipe type '" + type + "' on recipe '" + config.getName() + "' is unsupported on this version of spigot.");
+        return recipe;
+    }
+
+    private static Recipe createStoneCuttingRecipe(ConfigurationSection config, NamespacedKey namespaceKey, ItemStack result, String group) {
+        Material ingredient = getMaterial(config.getString("ingredient"), "Recipe '" + config.getName() + "' has an invalid 'ingredient' defined.");
+        if (ingredient == null) return null;
+        Recipe recipe = MagicSpells.getVolatileCodeHandler().createStonecutterRecipe(namespaceKey, group, result, ingredient);
+        if (recipe == null) MagicSpells.error("Recipe type 'stonecutting' on recipe '" + config.getName() + "' is unsupported on this version of spigot.");
         return recipe;
     }
 
