@@ -1,14 +1,9 @@
 package com.nisovin.magicspells.spells;
 
-import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,7 +17,11 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-import java.util.*;
+import com.nisovin.magicspells.Subspell;
+import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.TargetInfo;
+import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.castmodifiers.ModifierSet;
 
 public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -159,7 +158,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
         if(radius > 0) players.removeIf(player -> opener.getLocation().distance(player.getLocation()) > radius);
 
         int size = (int) Math.ceil((players.size()+1) / 9.0) * 9;
-        Inventory inv = Bukkit.createInventory(opener, size, translate(opener, null, title));
+        Inventory inv = Bukkit.createInventory(opener, size, internalName);
 
         for(int i = 0; i < players.size(); i++) {
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
@@ -177,6 +176,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
             inv.setItem(i, head);
         }
         opener.openInventory(inv);
+        Util.setInventoryTitle(opener, title);
     }
 
     @EventHandler
@@ -187,9 +187,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
     @EventHandler
     public void onItemClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
-        String currentTitle = ChatColor.stripColor(event.getView().getTitle());
-        String newTitle = ChatColor.stripColor(translate(player, null, title));
-        if(!currentTitle.equals(newTitle)) return;
+        if (!event.getView().getTitle().equals(internalName)) return;
         event.setCancelled(true);
         ItemStack item = event.getCurrentItem();
         if(item == null) return;

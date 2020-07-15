@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -236,10 +235,6 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		return item;
 	}
 
-	private String getTitle(Player player) {
-		return Util.doVarReplacementAndColorize(player, title);
-	}
-
 	private void open(final Player caster, Player opener, LivingEntity entityTarget, Location locTarget, final float power, final String[] args) {
 		if (delay < 0) {
 			openMenu(caster, opener, entityTarget, locTarget, power, args);
@@ -256,9 +251,10 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		if (requireEntityTarget && entityTarget != null) castEntityTarget.put(opener.getUniqueId(), entityTarget);
 		if (requireLocationTarget && locTarget != null) castLocTarget.put(opener.getUniqueId(), locTarget);
 
-		Inventory inv = Bukkit.createInventory(opener, size, getTitle(opener));
+		Inventory inv = Bukkit.createInventory(opener, size, internalName);
 		applyOptionsToInventory(opener, inv, args);
 		opener.openInventory(inv);
+		Util.setInventoryTitle(opener, title);
 
 		if (entityTarget != null && caster != null) {
 			playSpellEffects(caster, entityTarget);
@@ -315,9 +311,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@EventHandler
 	public void onInvClick(InventoryClickEvent event) {
 		Player player = (Player) event.getWhoClicked();
-		String realTitle = ChatColor.stripColor(getTitle(player));
-		String currentTitle = ChatColor.stripColor(event.getView().getTitle());
-		if (!realTitle.equals(currentTitle)) return;
+		if (!event.getView().getTitle().equals(internalName)) return;
 		event.setCancelled(true);
 
 		String closeState = castSpells(player, event.getCurrentItem(), event.getClick());
@@ -333,9 +327,10 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			return;
 		}
 		// Reopen.
-		Inventory newInv = Bukkit.createInventory(player, event.getView().getTopInventory().getSize(), getTitle(player));
+		Inventory newInv = Bukkit.createInventory(player, event.getView().getTopInventory().getSize(), internalName);
 		applyOptionsToInventory(player, newInv, MagicSpells.NULL_ARGS);
 		player.openInventory(newInv);
+		Util.setInventoryTitle(player, title);
 	}
 
 	private String castSpells(Player player, ItemStack item, ClickType click) {
