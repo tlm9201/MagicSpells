@@ -36,21 +36,16 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.handlers.*;
 import com.nisovin.magicspells.listeners.*;
-import com.nisovin.magicspells.util.Metrics;
-import com.nisovin.magicspells.util.TxtUtil;
-import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.commands.ManaCommand;
 import com.nisovin.magicspells.commands.CastCommand;
 import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.events.SpellLearnEvent;
 import com.nisovin.magicspells.util.compat.CompatBasics;
@@ -1293,6 +1288,10 @@ public class MagicSpells extends JavaPlugin {
 		// Turn off spells
 		for (Spell spell : spells.values()) {
 			spell.turnOff();
+		}
+		// Clear spell animations.
+		for (SpellAnimation animation : SpellAnimation.getAnimations()) {
+			animation.stop();
 		}
 		PassiveSpell.resetManager();
 
