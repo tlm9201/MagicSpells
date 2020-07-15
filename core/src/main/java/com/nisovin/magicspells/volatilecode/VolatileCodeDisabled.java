@@ -130,4 +130,8 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 		return null;
 	}
 
+	@Override
+	public void setInventoryTitle(Player player, String title) {
+		// Need volatile code for this
+	}
 }

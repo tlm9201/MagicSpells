@@ -295,4 +295,12 @@ class VolatileCode1_13_R2: VolatileCodeHandle {
     override fun getNBTString(item: ItemStack, key: String): String {
         return getNBTTag(item).getString(key)
     }
+
+    override fun setInventoryTitle(player: Player, title: String) {
+        val entityPlayer = (player as CraftPlayer).handle
+        val container = entityPlayer.activeContainer
+        val packet = PacketPlayOutOpenWindow(container.windowId, "minecraft:chest", ChatMessage(title))
+        entityPlayer.playerConnection.sendPacket(packet)
+        entityPlayer.updateInventory(container)
+    }
 }

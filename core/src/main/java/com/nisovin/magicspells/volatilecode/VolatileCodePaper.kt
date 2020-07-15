@@ -1,20 +1,23 @@
 package com.nisovin.magicspells.volatilecode
 
-import com.destroystokyo.paper.profile.PlayerProfile
-import com.destroystokyo.paper.profile.ProfileProperty
-import com.nisovin.magicspells.MagicSpells
+import java.util.*
+import java.io.File
+import java.io.FileWriter
+import java.util.stream.Collectors
+
 import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.OfflinePlayer
 import org.bukkit.entity.*
+import org.bukkit.util.Vector
+import org.bukkit.OfflinePlayer
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.SkullMeta
-import org.bukkit.util.Vector
-import java.io.File
-import java.io.FileWriter
-import java.util.*
-import java.util.stream.Collectors
+
+import com.nisovin.magicspells.MagicSpells
+
+import com.destroystokyo.paper.profile.PlayerProfile
+import com.destroystokyo.paper.profile.ProfileProperty
 
 class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHandle {
 
@@ -150,5 +153,9 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
 
     override fun setAbsorptionHearts(entity: LivingEntity, double: Double) {
         parent.setAbsorptionHearts(entity, double)
+    }
+
+    override fun setInventoryTitle(player: Player, title: String) {
+        parent.setInventoryTitle(player, title)
     }
 }

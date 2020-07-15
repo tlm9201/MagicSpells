@@ -12,10 +12,12 @@ import org.bukkit.entity.*
 import org.bukkit.util.Vector
 import org.bukkit.entity.Entity
 import org.bukkit.OfflinePlayer
+import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.craftbukkit.v1_16_R1.entity.*
+import org.bukkit.persistence.PersistentDataType
 import org.bukkit.craftbukkit.v1_16_R1.CraftWorld
 import org.bukkit.event.entity.ExplosionPrimeEvent
 import org.bukkit.craftbukkit.v1_16_R1.CraftServer
@@ -30,8 +32,6 @@ import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 
 import net.minecraft.server.v1_16_R1.*
-import org.bukkit.NamespacedKey
-import org.bukkit.persistence.PersistentDataType
 
 private typealias nmsItemStack = net.minecraft.server.v1_16_R1.ItemStack
 
@@ -283,5 +283,13 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
 
     override fun getNBTString(item: ItemStack, key: String): String? {
         return item.itemMeta?.persistentDataContainer?.get(NamespacedKey(MagicSpells.plugin, key), PersistentDataType.STRING)
+    }
+
+    override fun setInventoryTitle(player: Player, title: String) {
+        val entityPlayer = (player as CraftPlayer).handle
+        val container = entityPlayer.activeContainer
+        val packet = PacketPlayOutOpenWindow(container.windowId, container.type, ChatMessage(title))
+        entityPlayer.playerConnection.sendPacket(packet)
+        entityPlayer.updateInventory(container)
     }
 }

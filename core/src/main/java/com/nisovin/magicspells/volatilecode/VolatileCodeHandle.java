@@ -53,4 +53,6 @@ public interface VolatileCodeHandle {
 	ItemStack setNBTString(ItemStack item, String key, String value);
 
 	String getNBTString(ItemStack item, String key);
+
+	void setInventoryTitle(Player player, String title);
 }

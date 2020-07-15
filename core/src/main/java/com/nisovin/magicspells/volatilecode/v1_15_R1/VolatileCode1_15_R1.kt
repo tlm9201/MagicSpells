@@ -33,7 +33,6 @@ import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 
 import net.minecraft.server.v1_15_R1.*
-import net.minecraft.server.v1_15_R1.NBTTagCompound
 
 private typealias nmsItemStack = net.minecraft.server.v1_15_R1.ItemStack
 
@@ -298,5 +297,13 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
 
     override fun getNBTString(item: ItemStack, key: String): String {
         return getNBTTag(item).getString(key)
+    }
+
+    override fun setInventoryTitle(player: Player, title: String) {
+        val entityPlayer = (player as CraftPlayer).handle
+        val container = entityPlayer.activeContainer
+        val packet = PacketPlayOutOpenWindow(container.windowId, container.type, ChatMessage(title))
+        entityPlayer.playerConnection.sendPacket(packet)
+        entityPlayer.updateInventory(container)
     }
 }
