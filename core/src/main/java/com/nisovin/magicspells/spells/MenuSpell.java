@@ -69,9 +69,20 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		for (String optionName : optionKeys) {
 			String path = "options." + optionName + ".";
 
-			int slot = getConfigInt(path + "slot", -1);
-			if (slot < 0) {
-				MagicSpells.error("MenuSpell '" + internalName + "' has an invalid slot defined for: " + optionName);
+			List<Integer> slots = getConfigIntList(path + "slots", new ArrayList<>());
+			if (slots.isEmpty()) slots.add(getConfigInt(path + "slot", -1));
+
+			List<Integer> validSlots = new ArrayList<>();
+			for (int slot : slots) {
+				if (slot < 0 || slot > 53) {
+					MagicSpells.error("MenuSpell '" + internalName + "' a slot defined which is out of bounds for '" + optionName + "': " + slot);
+					continue;
+				}
+				validSlots.add(slot);
+				if (slot > maxSlot) maxSlot = slot;
+			}
+			if (validSlots.isEmpty()) {
+				MagicSpells.error("MenuSpell '" + internalName + "' has no slots defined for: " + optionName);
 				continue;
 			}
 
@@ -108,7 +119,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 			MenuOption option = new MenuOption();
 			option.menuOptionName = optionName;
-			option.slot = slot;
+			option.slots = validSlots;
 			option.item = item;
 			option.items = items;
 			option.spellName = getConfigString(path + "spell", "");
@@ -120,7 +131,6 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			option.modifierList = getConfigStringList(path + "modifiers", null);
 			option.stayOpen = getConfigBoolean(path + "stay-open", false);
 			options.put(optionName, option);
-			if (slot > maxSlot) maxSlot = slot;
 		}
 		size = (int) Math.ceil((maxSlot+1) / 9.0) * 9;
 		if (options.isEmpty()) MagicSpells.error("MenuSpell '" + spellName + "' has no menu options!");
@@ -262,15 +272,20 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	private void applyOptionsToInventory(Player opener, Inventory inv, String[] args) {
 		// Setup option items.
 		for (MenuOption option : options.values()) {
-			if (inv.getItem(option.slot) != null) continue;
+			// Check modifiers.
 			if (option.menuOptionModifiers != null) {
 				MagicSpellsGenericPlayerEvent event = new MagicSpellsGenericPlayerEvent(opener);
 				option.menuOptionModifiers.apply(event);
 				if (event.isCancelled()) continue;
 			}
+			// Select and finalise item to display.
 			ItemStack item = (option.item != null ? option.item : option.items.get(Util.getRandomInt(option.items.size()))).clone();
 			item = MagicSpells.getVolatileCodeHandler().setNBTString(item, "menuOption", option.menuOptionName);
-			inv.setItem(option.slot, translateItem(opener, args, item));
+			item = translateItem(opener, args, item);
+			// Set item for all defined slots.
+			for (int slot : option.slots) {
+				if (inv.getItem(slot) == null) inv.setItem(slot, item);
+			}
 		}
 		// Fill inventory.
 		if (filler == null) return;
@@ -363,7 +378,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	private static class MenuOption {
 
 		private String menuOptionName;
-		private int slot;
+		private List<Integer> slots;
 		private ItemStack item;
 		private List<ItemStack> items;
 		private String spellName;
