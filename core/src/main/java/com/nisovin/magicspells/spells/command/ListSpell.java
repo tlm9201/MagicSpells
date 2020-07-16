@@ -78,7 +78,7 @@ public class ListSpell extends CommandSpell {
 			s = strPrefix + ' ' + extra + s;
 			while (s.length() > lineLength) {
 				int i = s.substring(0, lineLength).lastIndexOf(' ');
-				if (i < 0) continue;
+				if (i < 0) break;
 				sendMessage(s.substring(0, i), player, args);
 				s = s.substring(i + 1);
 			}
