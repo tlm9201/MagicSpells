@@ -24,7 +24,7 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         creature.pathfinder.moveTo(loc, speed.toDouble())
     }
 
-    override fun getNBTString(item: ItemStack?, key: String?): String {
+    override fun getNBTString(item: ItemStack, key: String): String? {
         return parent.getNBTString(item, key)
     }
 
