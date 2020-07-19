@@ -150,12 +150,12 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 
 				StringBuilder found = new StringBuilder();
 				while (matcher.find()) {
-					// If there's an intended return value, exit here, because this passed.
 					if (!parseTo.isEmpty()) {
-						found.append(parseTo);
+						// If there is replacement text, replace and exit.
+						found = new StringBuilder(receivedValue.replaceAll(regexPattern.pattern(), parseTo));
 						break;
 					}
-					// Otherwise, collect all matched text and return it.
+					// Otherwise, collect found text.
 					found.append(matcher.group());
 				}
 
