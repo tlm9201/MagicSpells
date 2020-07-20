@@ -188,6 +188,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 								return false;
 							}
 						}
+						playSpellEffects(EffectPosition.SPECIAL, finalBlock.getLocation());
 
 						// Break block.
 						if (replaceDuration > 0) {
@@ -200,6 +201,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 									if (event.isCancelled()) return;
 								}
 								finalBlock.setType(previousMat);
+								playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, finalBlock.getLocation());
 							}, replaceDuration);
 						}
 
