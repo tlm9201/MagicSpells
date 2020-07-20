@@ -2,21 +2,26 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Map;
 import java.util.List;
-import java.util.Random;
 import java.util.HashMap;
 import java.util.ArrayList;
 
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.events.MagicSpellsBlockBreakEvent;
+import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 
 public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell {
 
@@ -27,8 +32,6 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 	private List<Material> replaceWith;
 	private List<Material> replaceBlacklist;
 
-	private Random random;
-
 	private int yOffset;
 	private int radiusUp;
 	private int radiusDown;
@@ -38,6 +41,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 	private boolean pointBlank;
 	private boolean replaceRandom;
 	private boolean powerAffectsRadius;
+	private final boolean checkPlugins;
 
 	public ReplaceSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -46,8 +50,6 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 		replace = new ArrayList<>();
 		replaceWith = new ArrayList<>();
 		replaceBlacklist = new ArrayList<>();
-
-		random = new Random();
 
 		yOffset = getConfigInt("y-offset", 0);
 		radiusUp = getConfigInt("radius-up", 1);
@@ -59,6 +61,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 		pointBlank = getConfigBoolean("point-blank", false);
 		replaceRandom = getConfigBoolean("replace-random", true);
 		powerAffectsRadius = getConfigBoolean("power-affects-radius", false);
+		checkPlugins = getConfigBoolean("check-plugins", true);
 
 		List<String> list = getConfigStringList("replace-blocks", null);
 		if (list != null) {
@@ -169,13 +172,36 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 
 						blocks.put(block, block.getType());
 						Block finalBlock = block;
-						if (replaceDuration > 0) MagicSpells.scheduleDelayedTask(() -> {
-							if (blocks.get(finalBlock) != null) finalBlock.setType(blocks.get(finalBlock));
-							blocks.remove(finalBlock);
-						}, replaceDuration);
+						BlockState previousState = block.getState();
 
-						if (replaceRandom) block.setType(replaceWith.get(random.nextInt(replaceWith.size())));
+						// Place block.
+						if (replaceRandom) block.setType(replaceWith.get(Util.getRandomInt(replaceWith.size())));
 						else block.setType(replaceWith.get(i));
+						if (checkPlugins && caster instanceof Player) {
+							Player player = (Player) caster;
+							Block against = target.clone().add(target.getDirection()).getBlock();
+							if (block.equals(against)) against = block.getRelative(BlockFace.DOWN);
+							MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, previousState, against, player.getEquipment().getItemInMainHand(), player, true);
+							EventUtil.call(event);
+							if (event.isCancelled()) {
+								previousState.update(true);
+								return false;
+							}
+						}
+
+						// Break block.
+						if (replaceDuration > 0) {
+							MagicSpells.scheduleDelayedTask(() -> {
+								Material previousMat = blocks.remove(finalBlock);
+								if (previousMat == null) return;
+								if (checkPlugins && caster instanceof Player) {
+									MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(finalBlock, (Player) caster);
+									EventUtil.call(event);
+									if (event.isCancelled()) return;
+								}
+								finalBlock.setType(previousMat);
+							}, replaceDuration);
+						}
 
 						replaced = true;
 						break;

@@ -26,6 +26,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
+import com.nisovin.magicspells.events.MagicSpellsBlockBreakEvent;
 
 public class MaterializeSpell extends TargetedSpell implements TargetedLocationSpell {
 
@@ -333,8 +334,13 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			MagicSpells.scheduleDelayedTask(() -> {
 				if (materials.contains(block.getType())) {
 					blocks.remove(block);
-					block.setType(Material.AIR);
 					playSpellEffects(EffectPosition.DELAYED, block.getLocation());
+					if (checkPlugins && player != null) {
+						MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(block, player);
+						EventUtil.call(event);
+						if (event.isCancelled()) return;
+					}
+					block.setType(Material.AIR);
 					playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation());
 					if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
 				}
