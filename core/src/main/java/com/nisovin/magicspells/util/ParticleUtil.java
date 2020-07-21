@@ -62,7 +62,7 @@ public class ParticleUtil {
 		BUBBLE_COLUMN_UP( "bubble_column_up"),
 		NAUTILUS( "nautilus"),
 		DOLPHIN( "dolphin"),
-		/*SNEEZE( "sneeze"),
+		SNEEZE( "sneeze"),
 		CAMPFIRE_COSY_SMOKE( "campfire_cosy_smoke"),
 		CAMPFIRE_SIGNAL_SMOKE( "campfire_signal_smoke"),
 		COMPOSTER( "composter"),
@@ -73,7 +73,17 @@ public class ParticleUtil {
 		DRIPPING_HONEY( "dripping_honey"),
 		FALLING_HONEY( "falling_honey"),
 		LANDING_HONEY( "landing_honey"),
-		FALLING_NECTAR( "falling_nectar"), */
+		FALLING_NECTAR( "falling_nectar"),
+		SOUL_FIRE_FLAME("soul_fire_flame"),
+		ASH("ash"),
+		CRIMSON_SPORE("crimson_spore"),
+		WARPED_SPORE("warped_spore"),
+		SOUL("soul"),
+		DRIPPING_OBSIDIAN_TEAR("dripping_obsidian_tear"),
+		FALLING_OBSIDIAN_TEAR("falling_obsidian_tear"),
+		LANDING_OBSIDIAN_TEAR("landing_obsidian_tear"),
+		REVERSE_PORTAL("reverse_portal"),
+		WHITE_ASH("white_ash"),
 
 		;
 
@@ -90,7 +100,14 @@ public class ParticleUtil {
 			if (initialized) return;
 
 			for (ParticleEffect pe : ParticleEffect.values()) {
-				Particle particle = Particle.valueOf(pe.name());
+				Particle particle = null;
+
+				try {
+					particle = Particle.valueOf(pe.name());
+				} catch (Exception e) {
+					// ignored
+				}
+
 				if (particle == null) continue;
 
 				// handle the names
