@@ -33,7 +33,7 @@ public class BossBarEffect extends SpellEffect {
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		namespaceKey = config.getString("namespace-key");
-		title = Util.colorize(config.getString("title", ""));
+		title = config.getString("title", "");
 		color = config.getString("color", "red");
 		style = config.getString("style", "solid");
 		strVar = config.getString("variable", "");
@@ -82,12 +82,13 @@ public class BossBarEffect extends SpellEffect {
 
 	private void createBar(Player player) {
 		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey);
+		String newTitle = Util.doVarReplacementAndColorize(player, title);
 		if (variable == null) {
-			bar.set(title, progress, barStyle, barColor);
+			bar.set(newTitle, progress, barStyle, barColor);
 		}
 		else {
 			double diff = variable.getValue(player) / maxValue;
-			if (diff > 0 && diff < 1) bar.set(title, diff, barStyle, barColor);
+			if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
 		}
 		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}
