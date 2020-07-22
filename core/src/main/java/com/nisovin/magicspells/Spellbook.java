@@ -147,34 +147,35 @@ public class Spellbook {
 				}
 			}
 
-			if (file.exists()) {
-				Scanner scanner = new Scanner(file, "UTF-8");
-				while (scanner.hasNext()) {
-					String line = scanner.nextLine();
-					if (line.isEmpty()) continue;
-					if (!line.contains(":")) {
-						Spell spell = MagicSpells.getSpellByInternalName(line);
-						if (spell != null) addSpell(spell);
-						continue;
-					}
-					String[] data = line.split(":", 2);
-					Spell spell = MagicSpells.getSpellByInternalName(data[0]);
-					if (spell == null) continue;
+			if (!file.exists()) return;
 
-					List<CastItem> items = new ArrayList<>();
-					String[] s = data[1].split(MagicItemDataParser.DATA_REGEX);
-					for (String value : s) {
-						try {
-							CastItem castItem = new CastItem(value);
-							items.add(castItem);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
-					}
-					addSpell(spell, items.toArray(new CastItem[items.size()]));
+			Scanner scanner = new Scanner(file, "UTF-8");
+			while (scanner.hasNext()) {
+				String line = scanner.nextLine();
+				if (line.isEmpty()) continue;
+				if (!line.contains(":")) {
+					Spell spell = MagicSpells.getSpellByInternalName(line);
+					if (spell != null) addSpell(spell);
+					continue;
 				}
-				scanner.close();
+				String[] data = line.split(":", 2);
+				Spell spell = MagicSpells.getSpellByInternalName(data[0]);
+				if (spell == null) continue;
+
+				List<CastItem> items = new ArrayList<>();
+				String[] s = data[1].split(MagicItemDataParser.DATA_REGEX);
+				for (String value : s) {
+					try {
+						CastItem castItem = new CastItem(value);
+						items.add(castItem);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+				addSpell(spell, items.toArray(new CastItem[items.size()]));
 			}
+			scanner.close();
+
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 		}
@@ -588,12 +589,12 @@ public class Spellbook {
 			if (plugin.separatePlayerSpellsPerWorld) {
 				File folder = new File(plugin.getDataFolder(), "spellbooks" + File.separator + player.getWorld().getName());
 				if (!folder.exists()) folder.mkdirs();
-				File oldfile = new File(plugin.getDataFolder(), "spellbooks" + File.separator + player.getWorld().getName() + File.separator + playerName + ".txt");
-				if (oldfile.exists()) oldfile.delete();
+				File oldFile = new File(plugin.getDataFolder(), "spellbooks" + File.separator + player.getWorld().getName() + File.separator + playerName + ".txt");
+				if (oldFile.exists()) oldFile.delete();
 				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + player.getWorld().getName() + File.separator + uniqueId + ".txt");
 			} else {
-				File oldfile = new File(plugin.getDataFolder(), "spellbooks" + File.separator + playerName + ".txt");
-				if (oldfile.exists()) oldfile.delete();
+				File oldFile = new File(plugin.getDataFolder(), "spellbooks" + File.separator + playerName + ".txt");
+				if (oldFile.exists()) oldFile.delete();
 				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + uniqueId + ".txt");
 			}
 
