@@ -192,7 +192,7 @@ public class NovaEffect extends SpellEffect {
 		}
 
 		@Override
-		protected void stop() {
+		public void stop() {
 			super.stop();
 
 			for (Block b : blocks) {
@@ -311,7 +311,7 @@ public class NovaEffect extends SpellEffect {
 		}
 
 		@Override
-		protected void stop() {
+		public void stop() {
 			super.stop();
 
 			for (Block b : blocks) {

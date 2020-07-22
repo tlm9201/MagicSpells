@@ -13,7 +13,7 @@ import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
 
-	private String namespace;
+	private String namespaceKey;
 	private String title;
 	private String color;
 	private String style;
@@ -32,8 +32,8 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
-		namespace = config.getString("namespace");
-		title = Util.colorize(config.getString("title", ""));
+		namespaceKey = config.getString("namespace-key");
+		title = config.getString("title", "");
 		color = config.getString("color", "red");
 		style = config.getString("style", "solid");
 		strVar = config.getString("variable", "");
@@ -44,8 +44,8 @@ public class BossBarEffect extends SpellEffect {
 			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
 		}
 
-		if (namespace != null && !MagicSpells.getBossBarManager().isNameSpace(namespace)) {
-			MagicSpells.error("Wrong namespace defined! '" + namespace + "'");
+		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNameSpaceKey(namespaceKey)) {
+			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
 		}
 
 		try {
@@ -81,14 +81,14 @@ public class BossBarEffect extends SpellEffect {
 	}
 
 	private void createBar(Player player) {
-		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespace);
-		String ttl = MagicSpells.doVariableReplacements(player, title);
+		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey);
+		String newTitle = Util.doVarReplacementAndColorize(player, title);
 		if (variable == null) {
-			bar.set(ttl, progress, barStyle, barColor);
+			bar.set(newTitle, progress, barStyle, barColor);
 		}
 		else {
 			double diff = variable.getValue(player) / maxValue;
-			if (diff > 0 && diff < 1) bar.set(ttl, diff, barStyle, barColor);
+			if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
 		}
 		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}

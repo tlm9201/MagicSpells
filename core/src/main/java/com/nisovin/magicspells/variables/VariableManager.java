@@ -77,7 +77,7 @@ public class VariableManager implements Listener {
 				String bossbarTitle = null;
 				BarStyle bossbarStyle = null;
 				BarColor bossbarColor = null;
-				String bossBarNamespace = null;
+				String bossBarNamespaceKey = null;
 				// Reserve preceded handling.
 				if (section.isString(var + ".boss-bar")) bossbarTitle = section.getString(var + ".boss-bar");
 				else {
@@ -102,17 +102,17 @@ public class VariableManager implements Listener {
 								MagicSpells.error("Variable '" + var + "' has an invalid bossbar color defined: '" + color + "'");
 							}
 						}
-						bossBarNamespace = bossBar.getString("namespace");
-						if (!MagicSpells.getBossBarManager().isNameSpace(bossBarNamespace)) {
-							MagicSpells.error("Variable '" + var + "' has an invalid bossbar namespace defined: '" + bossBarNamespace + "'");
+						bossBarNamespaceKey = bossBar.getString("namespace-key");
+						if (!MagicSpells.getBossBarManager().isNameSpaceKey(bossBarNamespaceKey)) {
+							MagicSpells.error("Variable '" + var + "' has an invalid bossbar namespace-key defined: '" + bossBarNamespaceKey + "'");
 						}
 					}
 				}
 				if (bossbarStyle == null) bossbarStyle = BarStyle.SOLID;
 				if (bossbarColor == null) bossbarColor = BarColor.PURPLE;
-				if (bossBarNamespace == null || bossBarNamespace.isEmpty()) bossBarNamespace = MagicSpells.getBossBarManager().getNamespaceVariable();
+				if (bossBarNamespaceKey == null || bossBarNamespaceKey.isEmpty()) bossBarNamespaceKey = MagicSpells.getBossBarManager().getNamespaceKeyVariable();
 
-				variable.init(def, min, max, perm, objective, expBar, bossbarTitle, bossbarStyle, bossbarColor, bossBarNamespace);
+				variable.init(def, min, max, perm, objective, expBar, bossbarTitle, bossbarStyle, bossbarColor, bossBarNamespaceKey);
 				variable.loadExtraData(varSection);
 				variables.put(var, variable);
 				MagicSpells.debug(2, "Loaded variable " + var);
@@ -228,10 +228,10 @@ public class VariableManager implements Listener {
 		if (var.bossbarTitle == null) return;
 		if (var instanceof GlobalVariable) {
 			double pct = var.getValue("") / var.maxValue;
-			Util.forEachPlayerOnline(p -> MagicSpells.getBossBarManager().getBar(p, var.bossbarNamespace).set(var.bossbarTitle, pct, var.bossbarStyle, var.bossbarColor));
+			Util.forEachPlayerOnline(p -> MagicSpells.getBossBarManager().getBar(p, var.bossbarNamespaceKey).set(var.bossbarTitle, pct, var.bossbarStyle, var.bossbarColor));
 		} else if (var instanceof PlayerVariable) {
 			Player p = PlayerNameUtils.getPlayerExact(player);
-			if (p != null) MagicSpells.getBossBarManager().getBar(p, var.bossbarNamespace).set(var.bossbarTitle, var.getValue(p) / var.maxValue, var.bossbarStyle, var.bossbarColor);
+			if (p != null) MagicSpells.getBossBarManager().getBar(p, var.bossbarNamespaceKey).set(var.bossbarTitle, var.getValue(p) / var.maxValue, var.bossbarStyle, var.bossbarColor);
 		}
 	}
 
@@ -385,7 +385,7 @@ public class VariableManager implements Listener {
 	private void loadBossBars(Player player) {
 		for (Variable var : variables.values()) {
 			if (var.bossbarTitle == null) continue;
-			MagicSpells.getBossBarManager().getBar(player, var.bossbarNamespace).set(var.bossbarTitle, var.getValue(player) / var.maxValue, var.bossbarStyle, var.bossbarColor);
+			MagicSpells.getBossBarManager().getBar(player, var.bossbarNamespaceKey).set(var.bossbarTitle, var.getValue(player) / var.maxValue, var.bossbarStyle, var.bossbarColor);
 		}
 	}
 

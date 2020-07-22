@@ -1,9 +1,12 @@
 package com.nisovin.magicspells.volatilecode;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -11,7 +14,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 public class VolatileCodeDisabled implements VolatileCodeHandle {
 
 	public VolatileCodeDisabled() {
-		
+
 	}
 
 	@Override
@@ -126,6 +129,29 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 
 	@Override
 	public String getNBTString(ItemStack item, String key) {
+		// Need volatile code for this
+		return null;
+	}
+
+	@Override
+	public void setInventoryTitle(Player player, String title) {
+		// Need volatile code for this
+	}
+
+	@Override
+	public Recipe createCookingRecipe(String type, NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient, float experience, int cookingTime) {
+		// Need volatile code for this
+		return null;
+	}
+
+	@Override
+	public Recipe createStonecutterRecipe(NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient) {
+		// Need volatile code for this
+		return null;
+	}
+
+	@Override
+	public Recipe createSmithingRecipe(NamespacedKey namespaceKey, ItemStack result, Material base, Material addition) {
 		// Need volatile code for this
 		return null;
 	}

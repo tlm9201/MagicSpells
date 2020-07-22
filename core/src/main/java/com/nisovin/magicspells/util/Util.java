@@ -692,4 +692,9 @@ public class Util {
 		}
 	}
 
+	public static void setInventoryTitle(Player player, String title) {
+		title = doVarReplacementAndColorize(player, title);
+		MagicSpells.getVolatileCodeHandler().setInventoryTitle(player, title);
+	}
+
 }

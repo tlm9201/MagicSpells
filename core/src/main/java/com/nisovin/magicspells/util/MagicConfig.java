@@ -122,6 +122,12 @@ public class MagicConfig {
 					for (String itemKey : spellConfig.getConfigurationSection("variables").getKeys(false)) {
 						sec.set(itemKey, spellConfig.get("variables." + itemKey));
 					}
+				} else if (key.equals("recipes")) {
+					ConfigurationSection sec = mainConfig.getConfigurationSection("general.recipes");
+					if (sec == null) sec = mainConfig.createSection("general.recipes");
+					for (String itemKey : spellConfig.getConfigurationSection("recipes").getKeys(false)) {
+						sec.set(itemKey, spellConfig.get("recipes." + itemKey));
+					}
 				} else if (key.equals("modifiers")) {
 					ConfigurationSection sec = mainConfig.getConfigurationSection("general.modifiers");
 					if (sec == null) sec = mainConfig.createSection("general.modifiers");
