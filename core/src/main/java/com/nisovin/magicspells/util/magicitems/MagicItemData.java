@@ -259,7 +259,10 @@ public class MagicItemData {
 		String internalName = name;
 		if (dataName != null) dataName = ChatColor.stripColor(Util.colorize(data.getName()));
 		if (internalName != null) internalName = ChatColor.stripColor(Util.colorize(internalName));
-		
+
+		Map<Enchantment, Integer> enchants = new HashMap<>(data.getEnchantments());
+		if (enchants.containsKey(Enchantment.FROST_WALKER) && enchants.get(Enchantment.FROST_WALKER) == 65535) enchants.clear();
+
 		return
 				enumEquals(data.getType(), type) &&
 				Objects.equals(dataName, internalName) &&
@@ -276,7 +279,7 @@ public class MagicItemData {
 				Objects.equals(data.getSkullOwner(), skullOwner) &&
 				Objects.equals(data.getTitle(), title) &&
 				Objects.equals(data.getAuthor(), author) &&
-				Objects.equals(data.getEnchantments(), enchantments) &&
+				Objects.equals(enchants, enchantments) &&
 				Objects.equals(data.getLore(), lore) &&
 				Objects.equals(data.getPages(), pages) &&
 				Objects.equals(data.getPatterns(), patterns) &&

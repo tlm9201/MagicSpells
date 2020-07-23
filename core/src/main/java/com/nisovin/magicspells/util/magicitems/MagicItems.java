@@ -330,11 +330,11 @@ public class MagicItems {
 				itemData.setHideTooltip(true);
 			}
 
-			// Empty enchant
-			if (emptyEnchants) item = ItemUtil.addFakeEnchantment(item);
-
 			// Set meta
 			item.setItemMeta(meta);
+
+			// Empty enchant
+			if (emptyEnchants) item = ItemUtil.addFakeEnchantment(item);
 
 			// Attributes
 			//<attribute name> <value> (operation) (slot)
