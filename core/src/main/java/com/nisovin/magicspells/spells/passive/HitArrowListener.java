@@ -25,13 +25,13 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class HitArrowListener extends PassiveListener {
-	
+
 	private Set<Material> materials = new HashSet<>();
 	private Map<MagicItemData, List<PassiveSpell>> types = new HashMap<>();
 	private List<PassiveSpell> allTypes = new ArrayList<>();
-    
-    @Override
-    public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
+
+	@Override
+	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
 		if (var == null || var.isEmpty()) {
 			allTypes.add(spell);
 			return;
@@ -48,71 +48,61 @@ public class HitArrowListener extends PassiveListener {
 			list.add(spell);
 			materials.add(itemData.getType());
 		}
-    }
-    
-    @OverridePriority
-    @EventHandler
-    public void onDamage(EntityDamageByEntityEvent event) {
-        Player player = getPlayerAttacker(event);
-        if (player == null || !(event.getEntity() instanceof LivingEntity)) {
-            return;
-        }
-        LivingEntity attacked = (LivingEntity) event.getEntity();
-        Spellbook spellbook = null;
-        
-        if (!allTypes.isEmpty()) {
-            spellbook = MagicSpells.getSpellbook(player);
-            for (PassiveSpell spell : allTypes) {
-                if (!isCancelStateOk(spell, event.isCancelled())) {
-                    continue;
-                }
-                if (!spellbook.hasSpell(spell, false)) {
-                    continue;
-                }
-                boolean casted = spell.activate(player, attacked);
-                if (!PassiveListener.cancelDefaultAction(spell, casted)) {
-                    continue;
-                }
-                event.setCancelled(true);
-            }
-        }
-        
-        if (!types.isEmpty()) {
-            ItemStack item = player.getEquipment().getItemInMainHand();
-            if (item != null && item.getType() != Material.AIR) {
-                List<PassiveSpell> list = getSpells(item);
-                if (list != null) {
-                    if (spellbook == null) {
-                        spellbook = MagicSpells.getSpellbook(player);
-                    }
-                    for (PassiveSpell spell : list) {
-                        if (!isCancelStateOk(spell, event.isCancelled())) {
-                            continue;
-                        }
-                        if (!spellbook.hasSpell(spell, false)) {
-                            continue;
-                        }
-                        boolean casted = spell.activate(player, attacked);
-                        if (!PassiveListener.cancelDefaultAction(spell, casted)) {
-                            continue;
-                        }
-                        event.setCancelled(true);
-                    }
-                }
-            }
-        }
-    }
-    
-    private Player getPlayerAttacker(EntityDamageByEntityEvent event) {
-        Entity e = event.getDamager();
-        if (e instanceof Arrow) {
-            if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof Player) {
-                return (Player) ((Arrow) e).getShooter();
-            }
-        }
-        return null;
-    }
-    
+	}
+	
+	@OverridePriority
+	@EventHandler
+	public void onDamage(EntityDamageByEntityEvent event) {
+		Player player = getPlayerAttacker(event);
+		if (player == null || !(event.getEntity() instanceof LivingEntity)) {
+			return;
+		}
+		LivingEntity attacked = (LivingEntity) event.getEntity();
+		Spellbook spellbook = null;
+		
+		if (!allTypes.isEmpty()) {
+			spellbook = MagicSpells.getSpellbook(player);
+			for (PassiveSpell spell : allTypes) {
+				if (!isCancelStateOk(spell, event.isCancelled())) continue;
+				if (!spellbook.hasSpell(spell, false)) continue;
+				boolean casted = spell.activate(player, attacked);
+				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
+			}
+		}
+		
+		if (types.isEmpty()) return;
+		
+		ItemStack item = player.getEquipment().getItemInMainHand();
+		
+		if (item == null) return;
+		if (item.getType() == Material.AIR) return;
+		
+		List<PassiveSpell> list = getSpells(item);
+		
+		if (list == null) return;
+
+		if (spellbook == null) {
+			spellbook = MagicSpells.getSpellbook(player);
+		}
+		
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell, false)) continue;
+			boolean casted = spell.activate(player, attacked);
+			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
+		}
+	}
+	
+	private Player getPlayerAttacker(EntityDamageByEntityEvent event) {
+		Entity e = event.getDamager();
+		if (e instanceof Arrow) {
+			if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof Player) {
+				return (Player) ((Arrow) e).getShooter();
+			}
+		}
+		return null;
+	}
+	
 	private List<PassiveSpell> getSpells(ItemStack item) {
 		if (!materials.contains(item.getType())) return null;
 		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
