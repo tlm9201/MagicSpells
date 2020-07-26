@@ -33,6 +33,8 @@ public class InvisibilitySpell extends BuffSpell {
 		mobRadius = getConfigDouble("mob-radius", 30);
 		preventPickups = getConfigBoolean("prevent-pickups", true);
 
+		if (mobRadius > MagicSpells.getGlobalRadius()) mobRadius = MagicSpells.getGlobalRadius();
+
 		invisibles = new HashSet<>();
 	}
 	

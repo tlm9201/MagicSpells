@@ -73,6 +73,7 @@ public class NovaEffect extends SpellEffect {
 		}
 
 		range = Math.max(config.getDouble("range", 20), 1);
+		if (range > MagicSpells.getGlobalRadius()) range = MagicSpells.getGlobalRadius();
 
 		radius = config.getInt("radius", 3);
 		startRadius = config.getInt("start-radius", 0);

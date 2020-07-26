@@ -10,6 +10,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.spells.InstantSpell;
@@ -22,7 +23,7 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 	private double velocity;
 	
 	private boolean teleport;
-	private boolean forcepickup;
+	private boolean forcePickup;
 	private boolean removeItemGravity;
 	
 	public MagnetSpell(MagicConfig config, String spellName) {
@@ -32,8 +33,10 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 		velocity = getConfigDouble("velocity", 1);
 
 		teleport = getConfigBoolean("teleport-items", false);
-		forcepickup = getConfigBoolean("force-pickup", false);
+		forcePickup = getConfigBoolean("force-pickup", false);
 		removeItemGravity = getConfigBoolean("remove-item-gravity", false);
+
+		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 	}
 
 	@Override
@@ -68,7 +71,7 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 			if (InventoryUtil.isNothing(stack)) continue;
 			if (i.isDead()) continue;
 
-			if (forcepickup) {
+			if (forcePickup) {
 				i.setPickupDelay(0);
 				ret.add(i);
 			} else if (i.getPickupDelay() < i.getTicksLived()) {

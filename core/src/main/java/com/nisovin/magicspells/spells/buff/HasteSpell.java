@@ -25,7 +25,6 @@ public class HasteSpell extends BuffSpell {
 
 	private Map<UUID, HasteData> hasted;
 
-	private boolean hidden;
 	private int strength;
 	private int boostDuration;
 	private int accelerationDelay;
@@ -33,12 +32,12 @@ public class HasteSpell extends BuffSpell {
 	private int accelerationIncrease;
 	private int accelerationInterval;
 
+	private boolean hidden;
 	private boolean acceleration;
 
 	public HasteSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		hidden = getConfigBoolean("hidden", false);
 		strength = getConfigInt("effect-strength", 3);
 		boostDuration = getConfigInt("boost-duration", 300);
 		accelerationDelay = getConfigInt("acceleration-delay", 0);
@@ -46,6 +45,7 @@ public class HasteSpell extends BuffSpell {
 		accelerationIncrease = getConfigInt("acceleration-increase", 0);
 		accelerationInterval = getConfigInt("acceleration-interval", 0);
 
+		hidden = getConfigBoolean("hidden", false);
 		if (accelerationDelay >= 0 && accelerationAmount > 0 && accelerationIncrease > 0 && accelerationInterval > 0) acceleration = true;
 
 		hasted = new HashMap<>();

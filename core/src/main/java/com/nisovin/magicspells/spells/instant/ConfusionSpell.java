@@ -22,6 +22,7 @@ public class ConfusionSpell extends InstantSpell implements TargetedLocationSpel
 		super(config, spellName);
 		
 		radius = getConfigDouble("radius", 10);
+		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 	}
 
 	@Override

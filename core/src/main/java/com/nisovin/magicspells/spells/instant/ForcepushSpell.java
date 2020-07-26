@@ -7,6 +7,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -31,6 +32,8 @@ public class ForcepushSpell extends InstantSpell {
 		maxYForce = getConfigFloat("max-vertical-force", 20) / 10F;
 
 		addVelocityInstead = getConfigBoolean("add-velocity-instead", false);
+
+		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 	}
 
 	@Override

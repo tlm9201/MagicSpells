@@ -36,6 +36,8 @@ public class FlamewalkSpell extends BuffSpell {
 		tickInterval = getConfigInt("tick-interval", 100);
 		checkPlugins = getConfigBoolean("check-plugins", true);
 
+		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
+
 		flamewalkers = new HashMap<>();
 	}
 

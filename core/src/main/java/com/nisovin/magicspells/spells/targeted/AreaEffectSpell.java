@@ -59,6 +59,9 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		failIfNoTargets = getConfigBoolean("fail-if-no-targets", true);
 		spellSourceInCenter = getConfigBoolean("spell-source-in-center", false);
 
+		if (vRadius > MagicSpells.getGlobalRadius()) vRadius = MagicSpells.getGlobalRadius();
+		if (hRadius > MagicSpells.getGlobalRadius()) hRadius = MagicSpells.getGlobalRadius();
+
 		vRadiusSquared = vRadius * vRadius;
 		hRadiusSquared = hRadius * hRadius;
 	}
