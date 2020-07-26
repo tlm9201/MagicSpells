@@ -27,6 +27,8 @@ public class RoarSpell extends InstantSpell {
 		strNoTarget = getConfigString("str-no-target", "No targets found.");
 
 		cancelIfNoTargets = getConfigBoolean("cancel-if-no-targets", true);
+
+		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 	}
 
 	@Override

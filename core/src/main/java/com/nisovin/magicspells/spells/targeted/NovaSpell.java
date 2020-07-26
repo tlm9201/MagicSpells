@@ -74,6 +74,7 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 		if (expandingRadiusChange < 1) expandingRadiusChange = 1;
 		
 		visibleRange = Math.max(getConfigDouble("visible-range", 20), 20);
+		if (visibleRange > MagicSpells.getGlobalRadius()) visibleRange = MagicSpells.getGlobalRadius();
 
 		pointBlank = getConfigBoolean("point-blank", true);
 		circleShape = getConfigBoolean("circle-shape", false);

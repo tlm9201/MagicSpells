@@ -37,6 +37,8 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		bounceRange = getConfigDouble("bounce-range", 8);
 
 		spellToCastName = getConfigString("spell", "");
+
+		if (bounceRange > MagicSpells.getGlobalRadius()) bounceRange = MagicSpells.getGlobalRadius();
 	}
 
 	@Override

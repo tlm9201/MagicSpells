@@ -9,6 +9,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -39,6 +40,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		maxYForce = getConfigFloat("max-vertical-force", 20) / 10.0F;
 
 		radiusSquared = getConfigDouble("radius", 3);
+		if (radiusSquared > MagicSpells.getGlobalRadius()) radiusSquared = MagicSpells.getGlobalRadius();
 		radiusSquared *= radiusSquared;
 
 		callTargetEvents = getConfigBoolean("call-target-events", true);

@@ -22,6 +22,7 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 	
 	public ModifyCooldownSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
+
 		seconds = getConfigFloat("seconds", 1F);
 		multiplier = getConfigFloat("multiplier", 0F);
 

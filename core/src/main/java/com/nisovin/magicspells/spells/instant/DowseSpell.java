@@ -65,6 +65,8 @@ public class DowseSpell extends InstantSpell {
 		getDistance = strCastSelf != null && strCastSelf.contains("%d");
 
 		if (material == null && entityType == null) MagicSpells.error("DowseSpell '" + internalName + "' has no dowse target (block or entity) defined!");
+
+		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 	}
 
 	@Override

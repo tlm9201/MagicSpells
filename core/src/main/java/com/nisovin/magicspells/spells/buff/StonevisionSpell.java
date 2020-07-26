@@ -20,6 +20,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.PlayerNameUtils;
@@ -58,6 +59,8 @@ public class StonevisionSpell extends BuffSpell {
 		}
 
 		if (transparentTypes.isEmpty()) MagicSpells.error("StonevisionSpell '" + internalName + "' does not define any transparent types");
+
+		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 
 		seers = new HashMap<>();
 	}
@@ -114,12 +117,12 @@ public class StonevisionSpell extends BuffSpell {
 
 		private TransparentBlockSet(Player player, int radius, Set<Material> types) {
 			this.player = player;
-			this.center = player.getLocation().getBlock();
 			this.radius = radius;
 			this.types = types;
 
-			this.blocks = new ArrayList<>();
-			if (unobfuscate) this.chunks = new HashSet<>();
+			center = player.getLocation().getBlock();
+			blocks = new ArrayList<>();
+			if (unobfuscate) chunks = new HashSet<>();
 
 			setTransparency();
 		}
@@ -160,7 +163,7 @@ public class StonevisionSpell extends BuffSpell {
 							if (types.contains(block.getType()) && dx <= radius && dy <= radius && dz <= radius) {
 								player.sendBlockChange(block.getLocation(), material.createBlockData());
 								newBlocks.add(block);
-							} else if (block.getType() != Material.AIR) {
+							} else if (!BlockUtils.isAir(block.getType())) {
 								player.sendBlockChange(block.getLocation(), block.getType().createBlockData());
 							}
 
@@ -179,9 +182,8 @@ public class StonevisionSpell extends BuffSpell {
 		}
 
 		private boolean moveTransparency() {
-			if (player.isDead()) {
-				player = PlayerNameUtils.getPlayer(player.getName());
-			}
+			if (player.isDead()) player = PlayerNameUtils.getPlayer(player.getName());
+
 			Location loc = this.player.getLocation();
 			if (!center.getWorld().equals(loc.getWorld()) || center.getX() != loc.getBlockX() || center.getY() != loc.getBlockY() || center.getZ() != loc.getBlockZ()) {
 				// Moved

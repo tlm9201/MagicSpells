@@ -27,6 +27,8 @@ public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
 		super(config, spellName);
 		
 		radius = getConfigDouble("radius", 15);
+
+		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 		
 		List<String> list = getConfigStringList("entities", null);
 		if (list != null && !list.isEmpty()) {
