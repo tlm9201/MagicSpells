@@ -19,6 +19,7 @@ text-color: 3
 broadcast-range: 20
 spell-icon-slot: -1
 separate-player-spells-per-world: false
+global-radius: 500
 global-cooldown: 500
 check-world-pvp-flag: true
 cast-on-animate: false

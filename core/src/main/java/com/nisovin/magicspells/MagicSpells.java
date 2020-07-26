@@ -158,6 +158,7 @@ public class MagicSpells extends JavaPlugin {
 
 	int debugLevel;
 	int spellIconSlot;
+	private int globalRadius;
 	int globalCooldown;
 	int broadcastRange;
 
@@ -279,6 +280,7 @@ public class MagicSpells extends JavaPlugin {
 			losTransparentBlocks.add(Material.CAVE_AIR);
 		}
 		ignoreCastItemDurability = Util.getMaterialList(config.getStringList(path + "ignore-cast-item-durability", new ArrayList<>()), ArrayList::new);
+		globalRadius = config.getInt(path + "global-radius", 500);
 		globalCooldown = config.getInt(path + "global-cooldown", 500);
 		castOnAnimate = config.getBoolean(path + "cast-on-animate", false);
 		useExpBarAsCastTimeBar = config.getBoolean(path + "use-exp-bar-as-cast-time-bar", true);
@@ -835,6 +837,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static int getSpellIconSlot() {
 		return plugin.spellIconSlot;
+	}
+
+	public static int getGlobalRadius() {
+		return plugin.globalRadius;
 	}
 
 	public static int getGlobalCooldown() {
