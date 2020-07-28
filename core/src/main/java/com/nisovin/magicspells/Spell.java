@@ -71,6 +71,7 @@ import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
+import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 import de.slikey.effectlib.Effect;

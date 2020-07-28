@@ -16,6 +16,8 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.spelleffects.trackers.BuffTracker;
+import com.nisovin.magicspells.spelleffects.trackers.OrbitTracker;
 
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.util.VectorUtils;
