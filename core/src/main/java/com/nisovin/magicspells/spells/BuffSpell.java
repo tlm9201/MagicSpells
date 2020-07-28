@@ -35,8 +35,8 @@ import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.managers.BuffManager;
-import com.nisovin.magicspells.spelleffects.EffectTracker;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
 
 public abstract class BuffSpell extends TargetedSpell implements TargetedEntitySpell {
 

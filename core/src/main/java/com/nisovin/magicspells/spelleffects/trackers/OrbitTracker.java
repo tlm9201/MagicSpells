@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.trackers;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -7,6 +7,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
 
 import de.slikey.effectlib.util.VectorUtils;
@@ -25,7 +26,7 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 	private float yAxis;
 	private float zAxis;
 
-	OrbitTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
+	public OrbitTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
 		super(entity, checker, effect);
 		currentPosition = entity.getLocation().getDirection().setY(0);
 		Util.rotateVector(currentPosition, effect.getHorizOffset());

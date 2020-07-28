@@ -1,9 +1,10 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.trackers;
 
 import org.bukkit.entity.Entity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
 
 public class EffectTracker implements Runnable {

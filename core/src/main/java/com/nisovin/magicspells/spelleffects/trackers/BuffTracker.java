@@ -1,13 +1,14 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.trackers;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
 
 public class BuffTracker extends EffectTracker implements Runnable {
 
-	BuffTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
+	public BuffTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
 		super(entity, checker, effect);
 	}
 
