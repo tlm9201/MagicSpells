@@ -1,18 +1,19 @@
 package com.nisovin.magicspells.spells.passive;
 
-import com.nisovin.magicspells.MagicSpells;
-import org.bukkit.event.EventPriority;
-
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import org.bukkit.event.EventPriority;
+
+import com.nisovin.magicspells.MagicSpells;
 
 public class PassiveTrigger {
 	
 	private static Map<String, PassiveTrigger> map = new HashMap<>();
-	
 	private static Map<EventPriority, String> triggerPrioritySuffix;
+
 	static {
 		triggerPrioritySuffix = new HashMap<>();
 		triggerPrioritySuffix.put(EventPriority.LOWEST, "_lowestpriority");
@@ -123,14 +124,13 @@ public class PassiveTrigger {
 	}
 	
 	public PassiveListener getListener() {
-		if (listener == null) {
-			try {
-				listener = listenerClass.newInstance();
-				listener.priority = customPriority;
-				MagicSpells.registerEvents(listener, customPriority);
-			} catch (Exception e) {
-				MagicSpells.handleException(e);
-			}
+		if (listener != null) return listener;
+		try {
+			listener = listenerClass.newInstance();
+			listener.priority = customPriority;
+			MagicSpells.registerEvents(listener, customPriority);
+		} catch (Exception e) {
+			MagicSpells.handleException(e);
 		}
 		return listener;
 	}

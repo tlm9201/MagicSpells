@@ -1,17 +1,17 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 
@@ -25,17 +25,17 @@ public class TeleportListener extends PassiveListener {
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
 		if (var == null || var.isEmpty()) {
 			allTypes.add(spell);
-		} else {
-			String[] split = var.replace(" ", "").split(",");
-			for (String s : split) {
-				s = s.trim().replace("_", "");
-				for (TeleportCause cause : TeleportCause.values()) {
-					if (cause.name().replace("_", "").equalsIgnoreCase(s)) {
-						List<PassiveSpell> list = types.computeIfAbsent(cause, c -> new ArrayList<>());
-						list.add(spell);
-						break;
-					}
-				}
+			return;
+		}
+
+		String[] split = var.replace(" ", "").split(",");
+		for (String s : split) {
+			s = s.trim().replace("_", "");
+			for (TeleportCause cause : TeleportCause.values()) {
+				if (!cause.name().replace("_", "").equalsIgnoreCase(s)) continue;
+				List<PassiveSpell> list = types.computeIfAbsent(cause, c -> new ArrayList<>());
+				list.add(spell);
+				break;
 			}
 		}
 	}
@@ -56,14 +56,15 @@ public class TeleportListener extends PassiveListener {
 			}
 		}
 		
-		if (!types.isEmpty() && types.containsKey(event.getCause())) {
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			for (PassiveSpell spell : types.get(event.getCause())) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell)) continue;
-				boolean casted = spell.activate(player);
-				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-			}
+		if (types.isEmpty()) return;
+		if (!types.containsKey(event.getCause())) return;
+
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		for (PassiveSpell spell : types.get(event.getCause())) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell)) continue;
+			boolean casted = spell.activate(player);
+			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 		}
 	}
 

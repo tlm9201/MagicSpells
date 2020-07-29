@@ -1,19 +1,19 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.spells.PassiveSpell;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicLocation;
+import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
-import org.bukkit.inventory.EquipmentSlot;
 
 // Trigger variable is a semicolon separated list of locations to accept
 // Locations follow the format of world,x,y,z
@@ -26,11 +26,9 @@ public class RightClickBlockCoordListener extends PassiveListener {
 	@Override
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
 		Map<MagicLocation, PassiveSpell> addTo;
-		if (isMainHandListener(trigger)) {
-			addTo = locs;
-		} else {
-			addTo = offhandLocs;
-		}
+		if (isMainHandListener(trigger)) addTo = locs;
+		else addTo = offhandLocs;
+
 		String[] split = var.split(";");
 		for (String s : split) {
 			try {
@@ -58,20 +56,17 @@ public class RightClickBlockCoordListener extends PassiveListener {
 		MagicLocation loc = new MagicLocation(location.getWorld().getName(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
 		
 		PassiveSpell spell;
-		if (event.getHand() == EquipmentSlot.HAND) {
-			spell = locs.get(loc);
-		} else {
-			spell = offhandLocs.get(loc);
-		}
-		
-		if (spell != null) {
-			if (!isCancelStateOk(spell, event.isCancelled())) return;
-			Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-			if (spellbook.hasSpell(spell, false)) {
-				boolean casted = spell.activate(event.getPlayer(), location.add(0.5, 0.5, 0.5));
-				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-			}
-		}
+		if (event.getHand() == EquipmentSlot.HAND) spell = locs.get(loc);
+		else spell = offhandLocs.get(loc);
+
+		if (spell == null) return;
+		if (!isCancelStateOk(spell, event.isCancelled())) return;
+
+		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		if (!spellbook.hasSpell(spell, false)) return;
+
+		boolean casted = spell.activate(event.getPlayer(), location.add(0.5, 0.5, 0.5));
+		if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 	}
 
 }

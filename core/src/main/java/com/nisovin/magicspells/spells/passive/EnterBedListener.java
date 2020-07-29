@@ -1,13 +1,13 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 
@@ -27,9 +27,8 @@ public class EnterBedListener extends PassiveListener {
 		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
 		for (PassiveSpell spell : spells) {
 			if (!isCancelStateOk(spell, event.isCancelled())) continue;
-			if (spellbook.hasSpell(spell)) {
-				spell.activate(event.getPlayer()); // TODO is this safe to cancel?
-			}
+			if (!spellbook.hasSpell(spell)) continue;
+			spell.activate(event.getPlayer()); // TODO is this safe to cancel?
 		}
 	}
 	

@@ -27,17 +27,18 @@ public class CraftListener extends PassiveListener {
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
 		if (var == null || var.isEmpty()) {
 			spellsAll.add(spell);
-		} else {
-			for (String itemString : var.split(",")) {
-				MagicItem magicItem = MagicItems.getMagicItemFromString(itemString.trim());
-				if (magicItem == null) continue;
-				ItemStack item = magicItem.getItemStack();
-				// Stop processing this item if it couldn't be created.
-				if (item == null) continue;
-				List<PassiveSpell> spells = spellsSpecial.getOrDefault(item, new ArrayList<>());
-				spells.add(spell);
-				spellsSpecial.put(item, spells);
-			}
+			return;
+		}
+
+		for (String itemString : var.split(",")) {
+			MagicItem magicItem = MagicItems.getMagicItemFromString(itemString.trim());
+			if (magicItem == null) continue;
+			ItemStack item = magicItem.getItemStack();
+			// Stop processing this item if it couldn't be created.
+			if (item == null) continue;
+			List<PassiveSpell> spells = spellsSpecial.getOrDefault(item, new ArrayList<>());
+			spells.add(spell);
+			spellsSpecial.put(item, spells);
 		}
 	}
 
@@ -46,8 +47,8 @@ public class CraftListener extends PassiveListener {
 	public void onCraft(CraftItemEvent event) {
 		ItemStack item = event.getCurrentItem();
 		if (item == null || item.getType() == Material.AIR) return;
-		Player player = (Player) event.getWhoClicked();
 
+		Player player = (Player) event.getWhoClicked();
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
 
 		if (!spellsAll.isEmpty()) {
@@ -59,13 +60,13 @@ public class CraftListener extends PassiveListener {
 			}
 		}
 
-		if (!spellsSpecial.isEmpty()) {
-			for (PassiveSpell spell : spellsSpecial.get(item)) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell)) continue;
-				boolean casted = spell.activate(player);
-				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-			}
+		if (spellsSpecial.isEmpty()) return;
+		for (PassiveSpell spell : spellsSpecial.get(item)) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell)) continue;
+			boolean casted = spell.activate(player);
+			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 		}
 	}
+
 }

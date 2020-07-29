@@ -47,15 +47,15 @@ public class LeftClickBlockTypeListener extends PassiveListener {
 	public void onRightClick(PlayerInteractEvent event) {
 		if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
 		List<PassiveSpell> list = getSpells(event.getClickedBlock());
-		if (list != null) {
-			Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-			for (PassiveSpell spell : list) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell, false)) continue;
-				boolean casted = spell.activate(event.getPlayer(), event.getClickedBlock().getLocation().add(0.5, 0.5, 0.5));
-				if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-				event.setCancelled(true);
-			}
+		if (list == null) return;
+
+		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell, false)) continue;
+			boolean casted = spell.activate(event.getPlayer(), event.getClickedBlock().getLocation().add(0.5, 0.5, 0.5));
+			if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+			event.setCancelled(true);
 		}
 	}
 

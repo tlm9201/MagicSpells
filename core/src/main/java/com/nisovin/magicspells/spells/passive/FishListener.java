@@ -1,23 +1,22 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.player.PlayerFishEvent.State;
 
-import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.util.Util;
 
 // Trigger variable is optional
 // If not specified, it triggers in all forms
@@ -35,22 +34,27 @@ public class FishListener extends PassiveListener {
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
 		if (var == null || var.isEmpty()) {
 			allTypes.add(spell);
-		} else {
-			String[] split = var.replace(" ", "").toUpperCase().split(",");
-			for (String s : split) {
-				if (s.equalsIgnoreCase("ground")) {
+			return;
+		}
+
+		String[] split = var.replace(" ", "").toUpperCase().split(",");
+		for (String s : split) {
+			switch (s.toLowerCase()) {
+				case "ground":
 					ground.add(spell);
-				} else if (s.equalsIgnoreCase("fish")) {
+					break;
+				case "fish":
 					fish.add(spell);
-				} else if (s.equalsIgnoreCase("fail")) {
+					break;
+				case "fail":
 					fail.add(spell);
-				} else {
+					break;
+				default:
 					EntityType t = Util.getEntityType(s);
-					if (t != null) {
-						List<PassiveSpell> list = types.computeIfAbsent(t, type -> new ArrayList<>());
-						list.add(spell);
-					}
-				}
+					if (t == null) return;
+					List<PassiveSpell> list = types.computeIfAbsent(t, type -> new ArrayList<>());
+					list.add(spell);
+					break;
 			}
 		}
 	}
@@ -60,9 +64,9 @@ public class FishListener extends PassiveListener {
 	public void onFish(PlayerFishEvent event) {
 		PlayerFishEvent.State state = event.getState();
 		Player player = event.getPlayer();
-		
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+
 		if (!allTypes.isEmpty()) {
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			Entity entity = event.getCaught();
 			for (PassiveSpell spell : allTypes) {
 				if (!isCancelStateOk(spell, event.isCancelled())) continue;
@@ -72,38 +76,44 @@ public class FishListener extends PassiveListener {
 				event.setCancelled(true);
 			}
 		}
-		
-		if (state == State.IN_GROUND && !ground.isEmpty()) {
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			for (PassiveSpell spell : ground) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell)) continue;
-				boolean casted = spell.activate(player, event.getHook().getLocation());
-				if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-				event.setCancelled(true);
-			}
-		} else if (state == State.CAUGHT_FISH && !fish.isEmpty()) {
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			for (PassiveSpell spell : fish) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell)) continue;
-				boolean casted = spell.activate(player, event.getHook().getLocation());
-				if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-				event.setCancelled(true);
-			}
-		} else if (state == State.FAILED_ATTEMPT && !fail.isEmpty()) {
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			for (PassiveSpell spell : fail) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell)) continue;
-				boolean casted = spell.activate(player, event.getHook().getLocation());
-				if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-				event.setCancelled(true);
-			}
-		} else if (state == State.CAUGHT_ENTITY && !types.isEmpty()) {
-			Entity entity = event.getCaught();
-			if (entity != null && types.containsKey(entity.getType())) {
-				Spellbook spellbook = MagicSpells.getSpellbook(player);
+
+		switch (state) {
+			case IN_GROUND:
+				if (ground.isEmpty()) return;
+				for (PassiveSpell spell : ground) {
+					if (!isCancelStateOk(spell, event.isCancelled())) continue;
+					if (!spellbook.hasSpell(spell)) continue;
+					boolean casted = spell.activate(player, event.getHook().getLocation());
+					if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+					event.setCancelled(true);
+				}
+				break;
+			case CAUGHT_FISH:
+				if (fish.isEmpty()) return;
+				for (PassiveSpell spell : fish) {
+					if (!isCancelStateOk(spell, event.isCancelled())) continue;
+					if (!spellbook.hasSpell(spell)) continue;
+					boolean casted = spell.activate(player, event.getHook().getLocation());
+					if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+					event.setCancelled(true);
+				}
+				break;
+			case FAILED_ATTEMPT:
+				if (fail.isEmpty()) return;
+				for (PassiveSpell spell : fail) {
+					if (!isCancelStateOk(spell, event.isCancelled())) continue;
+					if (!spellbook.hasSpell(spell)) continue;
+					boolean casted = spell.activate(player, event.getHook().getLocation());
+					if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+					event.setCancelled(true);
+				}
+				break;
+			case CAUGHT_ENTITY:
+				if (types.isEmpty()) return;
+				Entity entity = event.getCaught();
+
+				if (entity == null) return;
+				if (!types.containsKey(entity.getType())) return;
 				for (PassiveSpell spell : fail) {
 					if (!isCancelStateOk(spell, event.isCancelled())) continue;
 					if (!spellbook.hasSpell(spell)) continue;
@@ -111,7 +121,7 @@ public class FishListener extends PassiveListener {
 					if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
 					event.setCancelled(true);
 				}
-			}
+				break;
 		}
 	}
 	

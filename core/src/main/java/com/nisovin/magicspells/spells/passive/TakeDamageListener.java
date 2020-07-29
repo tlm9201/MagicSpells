@@ -21,6 +21,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -102,24 +103,24 @@ public class TakeDamageListener extends PassiveListener {
 			}
 		}
 		
-		if (!weapons.isEmpty()) {
-			if (attacker instanceof Player) {
-				Player playerAttacker = (Player) attacker;
-				ItemStack item = playerAttacker.getEquipment().getItemInMainHand();
-				if (item != null && item.getType() != Material.AIR) {
-					List<PassiveSpell> list = getSpells(item);
-					if (list != null) {
-						if (spellbook == null) spellbook = MagicSpells.getSpellbook(player);
-						for (PassiveSpell spell : list) {
-							if (!isCancelStateOk(spell, event.isCancelled())) continue;
-							if (!spellbook.hasSpell(spell, false)) continue;
-							boolean casted = spell.activate(player, attacker);
-							if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-							event.setCancelled(true);
-						}
-					}
-				}
-			}
+		if (weapons.isEmpty()) return;
+		if (!(attacker instanceof Player)) return;
+		Player playerAttacker = (Player) attacker;
+
+		ItemStack item = playerAttacker.getEquipment().getItemInMainHand();
+		if (item == null) return;
+		if (BlockUtils.isAir(item)) return;
+
+		List<PassiveSpell> list = getSpells(item);
+		if (list == null) return;
+		if (spellbook == null) spellbook = MagicSpells.getSpellbook(player);
+
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell, false)) continue;
+			boolean casted = spell.activate(player, attacker);
+			if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+			event.setCancelled(true);
 		}
 	}
 	
@@ -128,7 +129,6 @@ public class TakeDamageListener extends PassiveListener {
 		Entity e = ((EntityDamageByEntityEvent) event).getDamager();
 		
 		if (e instanceof LivingEntity) return (LivingEntity) e;
-		
 		if (e instanceof Projectile && ((Projectile) e).getShooter() instanceof LivingEntity) {
 			return (LivingEntity)((Projectile) e).getShooter();
 		}

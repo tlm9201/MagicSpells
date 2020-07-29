@@ -65,18 +65,17 @@ public class PickupItemListener extends PassiveListener {
 			}
 		}
 		
-		if (!types.isEmpty()) {
-			List<PassiveSpell> list = getSpells(event.getItem().getItemStack());
-			if (list != null) {
-				Spellbook spellbook = MagicSpells.getSpellbook(pl);
-				for (PassiveSpell spell : list) {
-					if (!isCancelStateOk(spell, event.isCancelled())) continue;
-					if (!spellbook.hasSpell(spell)) continue;
-					boolean casted = spell.activate(pl);
-					if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-					event.setCancelled(true);
-				}
-			}
+		if (types.isEmpty()) return;
+		List<PassiveSpell> list = getSpells(event.getItem().getItemStack());
+		if (list == null) return;
+		Spellbook spellbook = MagicSpells.getSpellbook(pl);
+
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell)) continue;
+			boolean casted = spell.activate(pl);
+			if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+			event.setCancelled(true);
 		}
 	}
 	

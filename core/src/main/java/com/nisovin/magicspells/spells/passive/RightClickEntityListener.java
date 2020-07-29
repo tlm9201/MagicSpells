@@ -1,21 +1,21 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
+import java.util.HashMap;
+import java.util.ArrayList;
 
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.util.Util;
-import org.bukkit.inventory.EquipmentSlot;
 
 // Trigger variable option is optional
 // If not defined, it will trigger regardless of entity type
@@ -44,15 +44,15 @@ public class RightClickEntityListener extends PassiveListener {
 		
 		if (var == null || var.isEmpty()) {
 			allTypesLocal.add(spell);
-		} else {
-			String[] split = var.replace(" ", "").toUpperCase().split(",");
-			for (String s : split) {
-				EntityType t = Util.getEntityType(s);
-				if (t != null) {
-					List<PassiveSpell> list = typeMapLocal.computeIfAbsent(t, type -> new ArrayList<>());
-					list.add(spell);
-				}
-			}
+			return;
+		}
+
+		String[] split = var.replace(" ", "").toUpperCase().split(",");
+		for (String s : split) {
+			EntityType t = Util.getEntityType(s);
+			if (t == null) continue;
+			List<PassiveSpell> list = typeMapLocal.computeIfAbsent(t, type -> new ArrayList<>());
+			list.add(spell);
 		}
 	}
 	
@@ -60,7 +60,7 @@ public class RightClickEntityListener extends PassiveListener {
 	@EventHandler
 	public void onRightClickEntity(PlayerInteractAtEntityEvent event) {
 		if (!(event.getRightClicked() instanceof LivingEntity)) return;
-		
+
 		Map<EntityType, List<PassiveSpell>> typeMapLocal;
 		List<PassiveSpell> allTypesLocal;
 		
@@ -82,16 +82,16 @@ public class RightClickEntityListener extends PassiveListener {
 				event.setCancelled(true);
 			}
 		}
-		if (typeMapLocal.containsKey(event.getRightClicked().getType())) {
-			Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-			List<PassiveSpell> list = typeMapLocal.get(event.getRightClicked().getType());
-			for (PassiveSpell spell : list) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell)) continue;
-				boolean casted = spell.activate(event.getPlayer(), (LivingEntity)event.getRightClicked());
-				if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-				event.setCancelled(true);
-			}
+
+		if (!typeMapLocal.containsKey(event.getRightClicked().getType())) return;
+		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		List<PassiveSpell> list = typeMapLocal.get(event.getRightClicked().getType());
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell)) continue;
+			boolean casted = spell.activate(event.getPlayer(), (LivingEntity)event.getRightClicked());
+			if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+			event.setCancelled(true);
 		}
 	}
 

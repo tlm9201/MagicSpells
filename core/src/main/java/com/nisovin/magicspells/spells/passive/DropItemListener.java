@@ -33,6 +33,7 @@ public class DropItemListener extends PassiveListener {
 			allTypes.add(spell);
 			return;
 		}
+
 		String[] split = var.split("\\|");
 		for (String s : split) {
 			s = s.trim();
@@ -60,17 +61,15 @@ public class DropItemListener extends PassiveListener {
 			}
 		}
 		
-		if (!types.isEmpty()) {
-			List<PassiveSpell> list = getSpells(event.getItemDrop().getItemStack());
-			if (list != null) {
-				Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-				for (PassiveSpell spell : list) {
-					if (!isCancelStateOk(spell, event.isCancelled())) continue;
-					if (!spellbook.hasSpell(spell)) continue;
-					boolean casted = spell.activate(event.getPlayer());
-					if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-				}
-			}
+		if (types.isEmpty()) return;
+		List<PassiveSpell> list = getSpells(event.getItemDrop().getItemStack());
+		if (list == null) return;
+		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell)) continue;
+			boolean casted = spell.activate(event.getPlayer());
+			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 		}
 	}
 	

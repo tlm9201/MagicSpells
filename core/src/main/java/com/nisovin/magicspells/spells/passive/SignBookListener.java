@@ -60,7 +60,6 @@ public class SignBookListener extends PassiveListener {
 				spell.activate(player);
 				return;
 			}
-
 		}
 	}
 
