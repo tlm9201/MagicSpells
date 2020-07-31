@@ -1,13 +1,13 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 

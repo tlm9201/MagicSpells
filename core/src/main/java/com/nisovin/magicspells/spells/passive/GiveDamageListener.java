@@ -18,6 +18,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -38,6 +39,7 @@ public class GiveDamageListener extends PassiveListener {
 			always.add(spell);
 			return;
 		}
+
 		String[] split = var.split("\\|");
 		for (String s : split) {
 			s = s.trim();
@@ -71,21 +73,20 @@ public class GiveDamageListener extends PassiveListener {
 			}
 		}
 		
-		if (!weapons.isEmpty()) {
-			ItemStack item = player.getEquipment().getItemInMainHand();
-			if (item != null && item.getType() != Material.AIR) {
-				List<PassiveSpell> list = getSpells(item);
-				if (list != null) {
-					if (spellbook == null) spellbook = MagicSpells.getSpellbook(player);
-					for (PassiveSpell spell : list) {
-						if (!isCancelStateOk(spell, event.isCancelled())) continue;
-						if (!spellbook.hasSpell(spell, false)) continue;
-						boolean casted = spell.activate(player, attacked);
-						if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-						event.setCancelled(true);
-					}
-				}
-			}
+		if (weapons.isEmpty()) return;
+		ItemStack item = player.getEquipment().getItemInMainHand();
+		if (item == null) return;
+		if (BlockUtils.isAir(item.getType())) return;
+
+		List<PassiveSpell> list = getSpells(item);
+		if (list == null) return;
+		if (spellbook == null) spellbook = MagicSpells.getSpellbook(player);
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell, false)) continue;
+			boolean casted = spell.activate(player, attacked);
+			if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+			event.setCancelled(true);
 		}
 	}
 	
@@ -93,7 +94,7 @@ public class GiveDamageListener extends PassiveListener {
 		Entity e = event.getDamager();
 		if (e instanceof Player) return (Player) e;
 		if (e instanceof Projectile && ((Projectile) e).getShooter() instanceof Player) {
-			return (Player)((Projectile) e).getShooter();
+			return (Player) ((Projectile) e).getShooter();
 		}
 		return null;
 	}

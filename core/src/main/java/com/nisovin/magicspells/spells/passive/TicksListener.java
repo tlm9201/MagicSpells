@@ -1,27 +1,27 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.events.SpellForgetEvent;
-import com.nisovin.magicspells.events.SpellLearnEvent;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
+import com.nisovin.magicspells.events.SpellLearnEvent;
+import com.nisovin.magicspells.events.SpellForgetEvent;
 
 // Trigger argument is required
 // Must be an integer.
@@ -166,11 +166,8 @@ public class TicksListener extends PassiveListener {
 				Collection<Player> players = entry.getValue();
 				if (players.isEmpty()) continue;
 				for (Player p : new ArrayList<>(players)) {
-					if (p.isOnline() && p.isValid()) {
-						entry.getKey().activate(p);
-					} else {
-						players.remove(p);
-					}
+					if (p.isOnline() && p.isValid()) entry.getKey().activate(p);
+					else players.remove(p);
 				}
 			}
 			if (profilingKey != null) MagicSpells.addProfile(profilingKey, System.nanoTime() - start);

@@ -74,14 +74,14 @@ public class RightClickItemListener extends PassiveListener {
 		ItemStack item = event.getItem();
 		if (item == null || item.getType() == Material.AIR) return;
 		List<PassiveSpell> list = getSpells(item, event.getHand() == EquipmentSlot.HAND);
-		if (list != null) {
-			Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-			for (PassiveSpell spell : list) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell, false)) continue;
-				boolean casted = spell.activate(event.getPlayer());
-				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-			}
+		if (list == null) return;
+
+		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell, false)) continue;
+			boolean casted = spell.activate(event.getPlayer());
+			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 		}
 	}
 	

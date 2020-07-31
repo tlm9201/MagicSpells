@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.EventPriority;
 
 import com.nisovin.magicspells.spells.PassiveSpell;
 

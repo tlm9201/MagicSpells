@@ -1,15 +1,15 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -46,14 +46,14 @@ public class LeftClickBlockCoordListener extends PassiveListener {
 		Location location = event.getClickedBlock().getLocation();
 		MagicLocation loc = new MagicLocation(location.getWorld().getName(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
 		PassiveSpell spell = locs.get(loc);
-		if (spell != null) {
-			if (!isCancelStateOk(spell, event.isCancelled())) return;
-			Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-			if (spellbook.hasSpell(spell, false)) {
-				boolean casted = spell.activate(event.getPlayer(), location.add(0.5, 0.5, 0.5));
-				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-			}
-		}
+		if (spell == null) return;
+		if (!isCancelStateOk(spell, event.isCancelled())) return;
+
+		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		if (!spellbook.hasSpell(spell, false)) return;
+
+		boolean casted = spell.activate(event.getPlayer(), location.add(0.5, 0.5, 0.5));
+		if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 	}
 
 }

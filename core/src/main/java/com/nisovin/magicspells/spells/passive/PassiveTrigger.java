@@ -1,18 +1,19 @@
 package com.nisovin.magicspells.spells.passive;
 
-import com.nisovin.magicspells.MagicSpells;
-import org.bukkit.event.EventPriority;
-
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import org.bukkit.event.EventPriority;
+
+import com.nisovin.magicspells.MagicSpells;
 
 public class PassiveTrigger {
 	
 	private static Map<String, PassiveTrigger> map = new HashMap<>();
-	
 	private static Map<EventPriority, String> triggerPrioritySuffix;
+
 	static {
 		triggerPrioritySuffix = new HashMap<>();
 		triggerPrioritySuffix.put(EventPriority.LOWEST, "_lowestpriority");
@@ -66,6 +67,7 @@ public class PassiveTrigger {
 	public static Set<PassiveTrigger> WORLD_CHANGE = addTriggers("worldchange", WorldChangeListener.class);
 	public static Set<PassiveTrigger> GAMEMODE_CHANGE = addTriggers("gamemodechange", GameModeChangeListener.class);
 	public static Set<PassiveTrigger> MAGICSPELLS_LOADED = addTriggers("magicspellsloaded", MagicSpellsLoadedListener.class);
+	public static Set<PassiveTrigger> INVENTORY_ACTION = addTriggers("inventoryaction", InventoryActionListener.class);
 	public static Set<PassiveTrigger> INVENTORY_CLICK = addTriggers("inventoryclick", InventoryClickListener.class);
 	public static Set<PassiveTrigger> SPELL_SELECT = addTriggers("spellselect", SpellSelectListener.class);
 	public static Set<PassiveTrigger> POTION_EFFECT = addTriggers("potioneffect", PotionEffectListener.class);
@@ -123,14 +125,13 @@ public class PassiveTrigger {
 	}
 	
 	public PassiveListener getListener() {
-		if (listener == null) {
-			try {
-				listener = listenerClass.newInstance();
-				listener.priority = customPriority;
-				MagicSpells.registerEvents(listener, customPriority);
-			} catch (Exception e) {
-				MagicSpells.handleException(e);
-			}
+		if (listener != null) return listener;
+		try {
+			listener = listenerClass.newInstance();
+			listener.priority = customPriority;
+			MagicSpells.registerEvents(listener, customPriority);
+		} catch (Exception e) {
+			MagicSpells.handleException(e);
 		}
 		return listener;
 	}

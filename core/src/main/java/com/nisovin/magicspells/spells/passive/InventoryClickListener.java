@@ -20,82 +20,82 @@ import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class InventoryClickListener extends PassiveListener {
 
-    private Set<MagicClick> spells = new HashSet<>();
+	private Set<MagicClick> spells = new HashSet<>();
 
-    @Override
-    public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
-        InventoryAction action = null;
-        ItemStack itemCurrent = null;
-        ItemStack itemCursor = null;
-        if (var != null && !var.isEmpty()) {
-            String[] splits = var.split(" ");
-            if (!splits[0].equals("null")) action = InventoryAction.valueOf(splits[0].toUpperCase());
-            if (splits.length > 1 && !splits[1].equals("null")) {
-                MagicItem magicItem = MagicItems.getMagicItemFromString(splits[1]);
-                if (magicItem != null) itemCurrent = magicItem.getItemStack();
-            }
-            if (splits.length > 2) {
-                MagicItem magicItem = MagicItems.getMagicItemFromString(splits[2]);
-                if (magicItem != null) itemCursor = magicItem.getItemStack();
-            }
-        }
-        spells.add(new MagicClick(spell, action, itemCurrent, itemCursor));
-    }
+	@Override
+	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
+		InventoryAction action = null;
+		ItemStack itemCurrent = null;
+		ItemStack itemCursor = null;
+		if (var != null && !var.isEmpty()) {
+			String[] splits = var.split(" ");
+			if (!splits[0].equals("null")) action = InventoryAction.valueOf(splits[0].toUpperCase());
+			if (splits.length > 1 && !splits[1].equals("null")) {
+				MagicItem magicItem = MagicItems.getMagicItemFromString(splits[1]);
+				if (magicItem != null) itemCurrent = magicItem.getItemStack();
+			}
+			if (splits.length > 2) {
+				MagicItem magicItem = MagicItems.getMagicItemFromString(splits[2]);
+				if (magicItem != null) itemCursor = magicItem.getItemStack();
+			}
+		}
+		spells.add(new MagicClick(spell, action, itemCurrent, itemCursor));
+	}
 
-    @OverridePriority
-    @EventHandler
-    public void onInvClick(InventoryClickEvent event) {
-        Player player = Bukkit.getPlayer(event.getWhoClicked().getUniqueId());
-        if (player == null) return;
-        Spellbook spellbook = MagicSpells.getSpellbook(player);
-        for (MagicClick click : spells) {
-            if (!spellbook.hasSpell(click.spell)) continue;
-            // Valid action, but not used.
-            if (click.action != null && !event.getAction().equals(click.action)) continue;
-            // Valid clicked item, but not used.
-            if (click.itemCurrent != null) {
-                ItemStack item = event.getCurrentItem();
-                if (item == null) continue;
+	@OverridePriority
+	@EventHandler
+	public void onInvClick(InventoryClickEvent event) {
+		Player player = Bukkit.getPlayer(event.getWhoClicked().getUniqueId());
+		if (player == null) return;
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		for (MagicClick click : spells) {
+			if (!spellbook.hasSpell(click.spell)) continue;
+			// Valid action, but not used.
+			if (click.action != null && !event.getAction().equals(click.action)) continue;
+			// Valid clicked item, but not used.
+			if (click.itemCurrent != null) {
+				ItemStack item = event.getCurrentItem();
+				if (item == null) continue;
 
-                MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-                if (itemData == null) continue;
+				MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+				if (itemData == null) continue;
 
-                MagicItemData currentItemData = MagicItems.getMagicItemDataFromItemStack(click.itemCurrent);
-                if (currentItemData == null) continue;
-                if (!currentItemData.equals(itemData)) continue;
-            }
-            // Valid cursor item, but not used.
-            if (click.itemCursor != null) {
-                ItemStack item = event.getCursor();
-                if (item == null) continue;
+				MagicItemData currentItemData = MagicItems.getMagicItemDataFromItemStack(click.itemCurrent);
+				if (currentItemData == null) continue;
+				if (!currentItemData.equals(itemData)) continue;
+			}
+			// Valid cursor item, but not used.
+			if (click.itemCursor != null) {
+				ItemStack item = event.getCursor();
+				if (item == null) continue;
 
-                MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-                if (itemData == null) continue;
+				MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+				if (itemData == null) continue;
 
-                MagicItemData cursorItemData = MagicItems.getMagicItemDataFromItemStack(click.itemCursor);
-                if (cursorItemData == null) continue;
-                if (!itemData.equals(cursorItemData)) continue;
-            }
-            boolean casted = click.spell.activate(player);
-            if (!PassiveListener.cancelDefaultAction(click.spell, casted)) continue;
-            event.setCancelled(true);
-        }
-    }
+				MagicItemData cursorItemData = MagicItems.getMagicItemDataFromItemStack(click.itemCursor);
+				if (cursorItemData == null) continue;
+				if (!itemData.equals(cursorItemData)) continue;
+			}
+			boolean casted = click.spell.activate(player);
+			if (!PassiveListener.cancelDefaultAction(click.spell, casted)) continue;
+			event.setCancelled(true);
+		}
+	}
 
-    private static class MagicClick {
+	private static class MagicClick {
 
-        InventoryAction action;
-        PassiveSpell spell;
-        ItemStack itemCurrent;
-        ItemStack itemCursor;
+		InventoryAction action;
+		PassiveSpell spell;
+		ItemStack itemCurrent;
+		ItemStack itemCursor;
 
-        MagicClick(PassiveSpell spell, InventoryAction action, ItemStack itemCurrent, ItemStack itemCursor) {
-            this.action = action;
-            this.spell = spell;
-            this.itemCurrent = itemCurrent;
-            this.itemCursor = itemCursor;
-        }
+		MagicClick(PassiveSpell spell, InventoryAction action, ItemStack itemCurrent, ItemStack itemCursor) {
+			this.action = action;
+			this.spell = spell;
+			this.itemCurrent = itemCurrent;
+			this.itemCursor = itemCursor;
+		}
 
-    }
+	}
 
 }

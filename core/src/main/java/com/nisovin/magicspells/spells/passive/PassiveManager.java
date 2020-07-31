@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.HashSet;
 
 import org.bukkit.event.HandlerList;
 
@@ -12,17 +12,19 @@ public class PassiveManager {
 
 	Set<PassiveListener> listeners = new HashSet<>();
 	Set<PassiveTrigger> triggers = new HashSet<>();
+
 	boolean initialized = false;
 	
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
 		triggers.add(trigger);
 		PassiveListener listener = trigger.getListener();
-		if (listener != null) {
-			listeners.add(listener);
-			listener.registerSpell(spell, trigger, var);
-		} else {
+		if (listener == null) {
 			MagicSpells.error("Failed to register passive spell (no listener): " + spell.getInternalName() + ", " + trigger.getName());
+			return;
 		}
+
+		listeners.add(listener);
+		listener.registerSpell(spell, trigger, var);
 	}
 	
 	public void initialize() {
@@ -38,9 +40,11 @@ public class PassiveManager {
 			HandlerList.unregisterAll(listener);
 			listener.turnOff();
 		}
+
 		for (PassiveTrigger trigger : triggers) {
 			trigger.listener = null;
 		}
+
 		listeners.clear();
 	}
 	

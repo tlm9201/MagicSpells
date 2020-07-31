@@ -1,22 +1,23 @@
 package com.nisovin.magicspells.spells.passive;
 
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.spells.PassiveSpell;
-import com.nisovin.magicspells.util.OverridePriority;
+import java.util.List;
+import java.util.ArrayList;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.spells.PassiveSpell;
+import com.nisovin.magicspells.util.OverridePriority;
 
 // No trigger variable is currently used
 public class GlideListener extends PassiveListener {
 
-	List<PassiveSpell> glide = null;
-	List<PassiveSpell> stopGlide = null;
+	List<PassiveSpell> glide;
+	List<PassiveSpell> stopGlide;
 	
 	@Override
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
@@ -36,27 +37,26 @@ public class GlideListener extends PassiveListener {
 		if (!(entity instanceof Player)) return;
 		Player player = (Player) entity;
 		if (event.isGliding()) {
-			if (glide != null) {
-				Spellbook spellbook = MagicSpells.getSpellbook(player);
-				for (PassiveSpell spell : glide) {
-					if (!isCancelStateOk(spell, event.isCancelled())) continue;
-					if (!spellbook.hasSpell(spell, false)) continue;
-					boolean casted = spell.activate(player);
-					if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-					event.setCancelled(true);
-				}
+			if (glide == null) return;
+			Spellbook spellbook = MagicSpells.getSpellbook(player);
+			for (PassiveSpell spell : glide) {
+				if (!isCancelStateOk(spell, event.isCancelled())) continue;
+				if (!spellbook.hasSpell(spell, false)) continue;
+				boolean casted = spell.activate(player);
+				if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+				event.setCancelled(true);
 			}
-		} else {
-			if (stopGlide != null) {
-				Spellbook spellbook = MagicSpells.getSpellbook(player);
-				for (PassiveSpell spell : stopGlide) {
-					if (!isCancelStateOk(spell, event.isCancelled())) continue;
-					if (!spellbook.hasSpell(spell, false)) continue;
-					boolean casted = spell.activate(player);
-					if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-					event.setCancelled(true);
-				}
-			}
+			return;
+		}
+
+		if (stopGlide == null) return;
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		for (PassiveSpell spell : stopGlide) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell, false)) continue;
+			boolean casted = spell.activate(player);
+			if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+			event.setCancelled(true);
 		}
 	}
 

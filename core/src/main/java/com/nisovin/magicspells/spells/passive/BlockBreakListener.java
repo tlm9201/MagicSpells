@@ -32,6 +32,7 @@ public class BlockBreakListener extends PassiveListener {
 			allTypes.add(spell);
 			return;
 		}
+
 		String[] split = var.split(",");
 		for (String s : split) {
 			s = s.trim();
@@ -55,16 +56,15 @@ public class BlockBreakListener extends PassiveListener {
 				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 			}
 		}
-		if (!types.isEmpty()) {
-			List<PassiveSpell> list = getSpells(event.getBlock());
-			if (list != null) {
-				for (PassiveSpell spell : list) {
-					if (!isCancelStateOk(spell, event.isCancelled())) continue;
-					if (!spellbook.hasSpell(spell, false)) continue;
-					boolean casted = spell.activate(event.getPlayer(), event.getBlock().getLocation().add(0.5, 0.5, 0.5));
-					if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-				}
-			}
+
+		if (types.isEmpty()) return;
+		List<PassiveSpell> list = getSpells(event.getBlock());
+		if (list == null) return;
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell, false)) continue;
+			boolean casted = spell.activate(event.getPlayer(), event.getBlock().getLocation().add(0.5, 0.5, 0.5));
+			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
 		}
 	}
 	

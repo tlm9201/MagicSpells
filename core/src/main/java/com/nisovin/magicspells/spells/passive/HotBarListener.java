@@ -14,6 +14,7 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -35,16 +36,16 @@ public class HotBarListener extends PassiveListener {
 			if (magicItem != null) itemData = magicItem.getMagicItemData();
 		}
 
-		if (itemData != null) {
-			materials.add(itemData.getType());
-			List<PassiveSpell> list = null;
-			if (PassiveTrigger.HOT_BAR_SELECT.contains(trigger)) {
-				list = select.computeIfAbsent(itemData, material -> new ArrayList<>());
-			} else if (PassiveTrigger.HOT_BAR_DESELECT.contains(trigger)) {
-				list = deselect.computeIfAbsent(itemData, material -> new ArrayList<>());
-			}
-			if (list != null) list.add(spell);
+		if (itemData == null) return;
+		materials.add(itemData.getType());
+		List<PassiveSpell> list = null;
+
+		if (PassiveTrigger.HOT_BAR_SELECT.contains(trigger)) {
+			list = select.computeIfAbsent(itemData, material -> new ArrayList<>());
+		} else if (PassiveTrigger.HOT_BAR_DESELECT.contains(trigger)) {
+			list = deselect.computeIfAbsent(itemData, material -> new ArrayList<>());
 		}
+		if (list != null) list.add(spell);
 	}
 	
 	@OverridePriority
@@ -66,21 +67,22 @@ public class HotBarListener extends PassiveListener {
 				}
 			}
 		}
-		if (!select.isEmpty()) {
-			ItemStack item = event.getPlayer().getInventory().getItem(event.getNewSlot());
-			if (item != null && item.getType() != Material.AIR) {
-				List<PassiveSpell> list = getSpells(item, select);
-				if (list != null) {
-					Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-					for (PassiveSpell spell : list) {
-						if (!isCancelStateOk(spell, event.isCancelled())) continue;
-						if (!spellbook.hasSpell(spell, false)) continue;
-						boolean casted = spell.activate(event.getPlayer());
-						if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
-						event.setCancelled(true);
-					}
-				}
-			}
+
+		if (select.isEmpty()) return;
+		ItemStack item = event.getPlayer().getInventory().getItem(event.getNewSlot());
+		if (item == null) return;
+		if (BlockUtils.isAir(item)) return;
+
+		List<PassiveSpell> list = getSpells(item, select);
+		if (list == null) return;
+
+		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		for (PassiveSpell spell : list) {
+			if (!isCancelStateOk(spell, event.isCancelled())) continue;
+			if (!spellbook.hasSpell(spell, false)) continue;
+			boolean casted = spell.activate(event.getPlayer());
+			if (!PassiveListener.cancelDefaultAction(spell, casted)) continue;
+			event.setCancelled(true);
 		}
 	}
 	
