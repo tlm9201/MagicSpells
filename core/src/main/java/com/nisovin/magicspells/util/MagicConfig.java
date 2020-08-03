@@ -108,40 +108,27 @@ public class MagicConfig {
 			spellConfig.load(spellConfigFile);
 			Set<String> keys = spellConfig.getKeys(false);
 
-			// TODO this should be refactored to allow registration of additional "special sections"
 			for (String key : keys) {
-				if (key.equals("magic-items")) {
-					ConfigurationSection sec = mainConfig.getConfigurationSection("general.magic-items");
-					if (sec == null) sec = mainConfig.createSection("general.magic-items");
-					for (String itemKey : spellConfig.getConfigurationSection("magic-items").getKeys(false)) {
-						sec.set(itemKey, spellConfig.get("magic-items." + itemKey));
-					}
-				} else if (key.equals("variables")) {
-					ConfigurationSection sec = mainConfig.getConfigurationSection("general.variables");
-					if (sec == null) sec = mainConfig.createSection("general.variables");
-					for (String itemKey : spellConfig.getConfigurationSection("variables").getKeys(false)) {
-						sec.set(itemKey, spellConfig.get("variables." + itemKey));
-					}
-				} else if (key.equals("recipes")) {
-					ConfigurationSection sec = mainConfig.getConfigurationSection("general.recipes");
-					if (sec == null) sec = mainConfig.createSection("general.recipes");
-					for (String itemKey : spellConfig.getConfigurationSection("recipes").getKeys(false)) {
-						sec.set(itemKey, spellConfig.get("recipes." + itemKey));
-					}
-				} else if (key.equals("modifiers")) {
-					ConfigurationSection sec = mainConfig.getConfigurationSection("general.modifiers");
-					if (sec == null) sec = mainConfig.createSection("general.modifiers");
-					for (String modifierKey : spellConfig.getConfigurationSection("modifiers").getKeys(false)) {
-						sec.set(modifierKey, spellConfig.get("modifiers." + modifierKey));
-					}
-				} else {
-					mainConfig.set("spells." + key, spellConfig.get(key));
-				}
+				if (initSection("magic-items", key, spellConfig)) continue;
+				if (initSection("variables", key, spellConfig)) continue;
+				if (initSection("recipes", key, spellConfig)) continue;
+				if (initSection("modifiers", key, spellConfig)) continue;
+				mainConfig.set("spells." + key, spellConfig.get(key));
 			}
 		} catch (Exception e) {
 			MagicSpells.error("Error loading config file " + spellConfigFile.getName());
 			MagicSpells.handleException(e);
 		}
+	}
+
+	private boolean initSection(String name, String key, YamlConfiguration spellConfig) {
+		if (!key.equals(name)) return false;
+		ConfigurationSection sec = mainConfig.getConfigurationSection("general." + name);
+		if (sec == null) sec = mainConfig.createSection("general." + name);
+		for (String sectionKey : spellConfig.getConfigurationSection(name).getKeys(false)) {
+			sec.set(sectionKey, spellConfig.get(name + "." + sectionKey));
+		}
+		return true;
 	}
 	
 	private void loadSpellConfigs(File folder) {
