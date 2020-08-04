@@ -90,12 +90,12 @@ public class DisguiseSpell extends BuffSpell {
 		} else if (watcher instanceof CreeperWatcher) {
 			((CreeperWatcher) watcher).setPowered(entityData.isPowered());
 		} else if (watcher instanceof VillagerWatcher) {
-			((VillagerWatcher) watcher).setProfession(entityData.getProfession());
+			if (entityData.getProfession() != null) ((VillagerWatcher) watcher).setProfession(entityData.getProfession());
 		} else if (watcher instanceof SheepWatcher) {
-			((SheepWatcher) watcher).setColor(entityData.getDyeColor());
+			if (entityData.getDyeColor() != null) ((SheepWatcher) watcher).setColor(entityData.getDyeColor());
 			((SheepWatcher) watcher).setSheared(entityData.isSheared());
 		} else if (watcher instanceof WolfWatcher) {
-			((WolfWatcher) watcher).setCollarColor(entityData.getDyeColor());
+			if (entityData.getDyeColor() != null) ((WolfWatcher) watcher).setCollarColor(entityData.getDyeColor());
 			((WolfWatcher) watcher).setTamed(entityData.isTamed());
 		} else if (watcher instanceof PigWatcher) {
 			((PigWatcher) watcher).setSaddled(entityData.isSaddled());
