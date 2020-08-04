@@ -3,7 +3,6 @@ package com.nisovin.magicspells.util.itemreader;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.inventory.ItemStack;
@@ -29,7 +28,6 @@ public class FireworkHandler {
 
 		int power = 0;
 		if (config.contains(POWER_CONFIG_NAME) && config.isInt(POWER_CONFIG_NAME)) power = config.getInt(POWER_CONFIG_NAME);
-		Bukkit.broadcastMessage("power " + power);
 
 		if (config.contains(FIREWORK_EFFECTS_CONFIG_NAME) && config.isList(FIREWORK_EFFECTS_CONFIG_NAME)) {
 			List<String> argList = config.getStringList(FIREWORK_EFFECTS_CONFIG_NAME);
