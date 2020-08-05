@@ -26,7 +26,6 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -47,7 +46,6 @@ public class ArmorSpell extends BuffSpell {
 	private ItemStack boots;
 
 	private String strHasArmor;
-	private String strLoreText;
 
 	public ArmorSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -61,7 +59,6 @@ public class ArmorSpell extends BuffSpell {
 		boots = getItem(getConfigString("boots", ""));
 
 		strHasArmor = getConfigString("str-has-armor", "You cannot cast this spell if you are wearing armor.");
-		strLoreText = Util.colorize(getConfigString("str-lore-text", "Conjured"));
 
 		armored = new HashSet<>();
 	}
@@ -97,7 +94,6 @@ public class ArmorSpell extends BuffSpell {
 			if (meta.hasLore()) lore = meta.getLore();
 			else lore = new ArrayList<>();
 
-			lore.add(strLoreText);
 			meta.setLore(lore);
 			item.setItemMeta(meta);
 		}
@@ -224,6 +220,7 @@ public class ArmorSpell extends BuffSpell {
 
 		@EventHandler
 		public void onEntityDeath(EntityDeathEvent event) {
+			if (permanent) return;
 			Iterator<ItemStack> drops = event.getDrops().iterator();
 			while (drops.hasNext()) {
 				ItemStack drop = drops.next();
@@ -235,8 +232,6 @@ public class ArmorSpell extends BuffSpell {
 				List<String> lore = dropMeta.getLore();
 				if (lore == null) continue;
 				if (lore.isEmpty()) continue;
-
-				if (!lore.get(lore.size() - 1).equals(strLoreText)) continue;
 
 				drops.remove();
 			}
