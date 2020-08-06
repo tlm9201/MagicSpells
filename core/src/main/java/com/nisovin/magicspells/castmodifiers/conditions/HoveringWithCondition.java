@@ -12,49 +12,45 @@ import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class HoveringWithCondition extends Condition {
 
-    private MagicItemData itemData;
+	private MagicItemData itemData;
 
-    private ItemStack item;
+	@Override
+	public boolean setVar(String var) {
+		if (var == null || var.isEmpty()) return false;
 
-    @Override
-    public boolean setVar(String var) {
-        if (var == null || var.isEmpty()) return false;
+		MagicItem magicItem = MagicItems.getMagicItemFromString(var);
+		if (magicItem == null) return false;
 
-        MagicItem magicItem = MagicItems.getMagicItemFromString(var);
-        if (magicItem == null) return false;
+		ItemStack itemStack = magicItem.getItemStack();
+		if (itemStack == null) return false;
 
-        ItemStack itemStack = magicItem.getItemStack();
-        if (itemStack == null) return false;
+		itemData = magicItem.getMagicItemData();
+		if (itemData == null) return false;
 
-        item = itemStack;
+		return true;
+	}
 
-        itemData = magicItem.getMagicItemData();
-        if (itemData == null) return false;
+	@Override
+	public boolean check(LivingEntity livingEntity) {
+		if (!(livingEntity instanceof Player)) return false;
+		Player player = (Player) livingEntity;
+		ItemStack itemStack = player.getOpenInventory().getCursor();
+		if (itemStack == null) return false;
 
-        return true;
-    }
+		MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemStack);
+		if (magicItemData == null) return false;
 
-    @Override
-    public boolean check(LivingEntity livingEntity) {
-        if (!(livingEntity instanceof Player)) return false;
-        Player player = (Player) livingEntity;
-        ItemStack itemStack = player.getOpenInventory().getCursor();
-        if (itemStack == null) return false;
+		return magicItemData.equals(itemData);
+	}
 
-        MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemStack);
-        if (magicItemData == null) return false;
+	@Override
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(target);
+	}
 
-        return magicItemData.equals(itemData);
-    }
-
-    @Override
-    public boolean check(LivingEntity livingEntity, LivingEntity target) {
-        return check(target);
-    }
-
-    @Override
-    public boolean check(LivingEntity livingEntity, Location location) {
-        return false;
-    }
+	@Override
+	public boolean check(LivingEntity livingEntity, Location location) {
+		return false;
+	}
 
 }

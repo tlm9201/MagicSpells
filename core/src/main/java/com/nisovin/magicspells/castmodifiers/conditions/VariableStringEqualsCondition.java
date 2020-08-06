@@ -28,7 +28,7 @@ public class VariableStringEqualsCondition extends Condition {
 			return false;
 		}
 		//Translates "null" string to "".
-		if(value.equals("null")) value = "";
+		if (value.equals("null")) value = "";
 
 		//If everything checks out, will continue.
 		return true;
