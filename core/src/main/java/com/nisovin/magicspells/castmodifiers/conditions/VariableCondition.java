@@ -15,6 +15,7 @@ public class VariableCondition extends OperatorCondition {
 	private static Pattern VARIABLE_NAME_PATTERN = Pattern.compile("[0-9a-zA-Z_]+");
 
 	private String variable;
+	private String variableCompared;
 	private double value = 0;
 
 	@Override
@@ -28,11 +29,17 @@ public class VariableCondition extends OperatorCondition {
 		String number = var.substring(variableName.length());
 		super.setVar(number);
 
+		variable = variableName;
+
 		try {
-			variable = variableName;
 			value = Double.parseDouble(number.substring(1));
 			return true;
 		} catch (NumberFormatException e) {
+
+			variableCompared = number.substring(1);
+			if (MagicSpells.getVariableManager().getVariable(variableCompared) != null) return true;
+			else variableCompared = null;
+
 			DebugHandler.debugNumberFormat(e);
 			return false;
 		}
@@ -40,25 +47,30 @@ public class VariableCondition extends OperatorCondition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return variable(livingEntity);
+		return variableType(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return variable(target);
+		return variableType(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		return variable(livingEntity);
+		return variableType(livingEntity);
 	}
 
-	private boolean variable(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player)) return false;
-		if (equals) return MagicSpells.getVariableManager().getValue(variable, (Player) livingEntity) == value;
-		else if (moreThan) return MagicSpells.getVariableManager().getValue(variable, (Player) livingEntity) > value;
-		else if (lessThan) return MagicSpells.getVariableManager().getValue(variable, (Player) livingEntity) < value;
+	private boolean variable(Player player, double v) {
+		if (equals) return MagicSpells.getVariableManager().getValue(variable, player) == v;
+		else if (moreThan) return MagicSpells.getVariableManager().getValue(variable, player) > v;
+		else if (lessThan) return MagicSpells.getVariableManager().getValue(variable, player) < v;
 		return false;
+	}
+
+	private boolean variableType(LivingEntity livingEntity) {
+		if (!(livingEntity instanceof Player)) return false;
+		if (variableCompared != null) return variable((Player) livingEntity, MagicSpells.getVariableManager().getValue(variableCompared, (Player) livingEntity));
+		return variable((Player) livingEntity, value);
 	}
 
 }

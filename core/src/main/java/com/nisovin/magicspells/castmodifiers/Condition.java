@@ -108,7 +108,6 @@ public abstract class Condition {
 		conditions.put("namepattern", NamePatternCondition.class);
 		conditions.put("uptime", UpTimeCondition.class);
 		conditions.put("variable", VariableCondition.class);
-		conditions.put("variablecompare", VariableCompareCondition.class);
 		conditions.put("variablematches", VariableMatchesCondition.class);
 		conditions.put("variablestringequals", VariableStringEqualsCondition.class);
 		conditions.put("alive", AliveCondition.class);
