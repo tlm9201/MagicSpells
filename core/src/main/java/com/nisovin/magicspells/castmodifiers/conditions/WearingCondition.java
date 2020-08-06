@@ -6,11 +6,11 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
-import com.nisovin.magicspells.util.Util;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.EntityEquipment;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -73,13 +73,12 @@ public class WearingCondition extends Condition {
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		EntityEquipment equip = target.getEquipment();
-		if (equip != null) {
-			if (check(equip.getHelmet())) return true;
-			if (check(equip.getChestplate())) return true;
-			if (check(equip.getLeggings())) return true;
-			return check(equip.getBoots());
-		}
-		return false;
+		if (equip == null) return false;
+
+		if (check(equip.getHelmet())) return true;
+		if (check(equip.getChestplate())) return true;
+		if (check(equip.getLeggings())) return true;
+		return check(equip.getBoots());
 	}
 	
 	@Override

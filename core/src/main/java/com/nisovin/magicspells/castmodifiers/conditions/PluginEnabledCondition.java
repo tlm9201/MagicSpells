@@ -15,7 +15,7 @@ public class PluginEnabledCondition extends Condition {
 		if (var == null) return false;
 		var = var.trim();
 		if (var.isEmpty()) return false;
-		this.pluginName = var;
+		pluginName = var;
 		return true;
 	}
 
