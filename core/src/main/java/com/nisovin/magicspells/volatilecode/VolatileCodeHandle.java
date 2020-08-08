@@ -65,4 +65,7 @@ public interface VolatileCodeHandle {
 
 	Recipe createSmithingRecipe(NamespacedKey namespaceKey, ItemStack result, Material base, Material addition);
 
+	String colorize(String message);
+
+	void sendActionBarMessage(Player player, String message);
 }

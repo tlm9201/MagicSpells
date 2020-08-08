@@ -1,11 +1,15 @@
 package com.nisovin.magicspells.util;
 
+import java.util.regex.Pattern;
+
 import org.bukkit.Color;
 
 import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class ColorUtil {
-	
+
+	public static final Pattern HEX_PATTERN = Pattern.compile("&(#\\w{6})");
+
 	public static Color getColorFromHexString(String hex) {
 		if (hex == null) return null;
 		String working = hex.replace("#", "");

@@ -134,6 +134,10 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         setTexture(player.playerProfile, skin, signature)
     }
 
+    override fun colorize(message: String?): String {
+        return parent.colorize(message)
+    }
+
     override fun sendFakeSlotUpdate(player: Player, slot: Int, item: ItemStack) {
         parent.sendFakeSlotUpdate(player, slot, item)
     }
@@ -169,4 +173,9 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
     override fun createSmithingRecipe(namespaceKey: NamespacedKey?, result: ItemStack?, base: Material?, addition: Material?): Recipe {
         return parent.createSmithingRecipe(namespaceKey, result, base, addition)
     }
+
+    override fun sendActionBarMessage(player: Player, message: String?) {
+        player.sendActionBar(message!!)
+    }
+
 }
