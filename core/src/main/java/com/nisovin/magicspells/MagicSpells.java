@@ -1009,9 +1009,8 @@ public class MagicSpells extends JavaPlugin {
 			// Send messages
 			String [] msgs = message.replaceAll("&([0-9a-fk-or])", "\u00A7$1").split("\n");
 			for (String msg : msgs) {
-				if (!msg.isEmpty()) {
-					livingEntity.sendMessage(plugin.textColor + msg);
-				}
+				if (msg.isEmpty()) continue;
+				livingEntity.sendMessage(MagicSpells.getVolatileCodeHandler().colorize(plugin.textColor + msg));
 			}
 		}
 	}

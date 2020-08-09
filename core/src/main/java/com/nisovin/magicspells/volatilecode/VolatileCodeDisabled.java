@@ -11,6 +11,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+
 public class VolatileCodeDisabled implements VolatileCodeHandle {
 
 	public VolatileCodeDisabled() {
@@ -154,6 +157,16 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	public Recipe createSmithingRecipe(NamespacedKey namespaceKey, ItemStack result, Material base, Material addition) {
 		// Need volatile code for this
 		return null;
+	}
+
+	@Override
+	public String colorize(String message) {
+		return message;
+	}
+
+	@Override
+	public void sendActionBarMessage(Player player, String message) {
+		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
 	}
 
 }

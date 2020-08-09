@@ -83,9 +83,7 @@ public class BossBarEffect extends SpellEffect {
 	private void createBar(Player player) {
 		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey);
 		String newTitle = Util.doVarReplacementAndColorize(player, title);
-		if (variable == null) {
-			bar.set(newTitle, progress, barStyle, barColor);
-		}
+		if (variable == null) bar.set(newTitle, progress, barStyle, barColor);
 		else {
 			double diff = variable.getValue(player) / maxValue;
 			if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);

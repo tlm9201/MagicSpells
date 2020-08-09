@@ -5,9 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
-
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import com.nisovin.magicspells.MagicSpells;
 
 public class ActionBarTextEffect extends SpellEffect {
 
@@ -30,7 +28,7 @@ public class ActionBarTextEffect extends SpellEffect {
 	
 	private void send(Player player) {
 		String msg = Util.doVarReplacementAndColorize(player, message);
-		player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(msg));
+		MagicSpells.getVolatileCodeHandler().sendActionBarMessage(player, msg);
 	}
 	
 }

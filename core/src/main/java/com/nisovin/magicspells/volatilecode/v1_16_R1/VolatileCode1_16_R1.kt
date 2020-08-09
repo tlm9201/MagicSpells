@@ -27,11 +27,16 @@ import org.bukkit.craftbukkit.v1_16_R1.inventory.CraftItemStack
 
 import com.nisovin.magicspells.util.*
 import com.nisovin.magicspells.MagicSpells
+import com.nisovin.magicspells.util.ColorUtil
 import com.nisovin.magicspells.util.compat.EventUtil
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
+
+import net.md_5.bungee.api.ChatColor
+import net.md_5.bungee.api.ChatMessageType
+import net.md_5.bungee.api.chat.TextComponent
 
 import net.minecraft.server.v1_16_R1.*
 
@@ -238,6 +243,15 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
         setTexture(craftPlayer.profile, skin, signature)
     }
 
+    override fun colorize(message: String?): String? {
+        val matcher = ColorUtil.HEX_PATTERN.matcher(org.bukkit.ChatColor.translateAlternateColorCodes('&', message!!))
+        val buffer = StringBuffer()
+        while (matcher.find()) {
+            matcher.appendReplacement(buffer, ChatColor.of(matcher.group(1)).toString())
+        }
+        return matcher.appendTail(buffer).toString()
+    }
+
     private fun setTexture(profile: GameProfile, texture: String, signature: String?): GameProfile {
         if (signature == null || signature.isEmpty()) {
             profile.properties.put("textures", Property("textures", texture))
@@ -313,6 +327,10 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
 
     override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe {
         return SmithingRecipe(namespaceKey, result, RecipeChoice.MaterialChoice(base), RecipeChoice.MaterialChoice(addition))
+    }
+
+    override fun sendActionBarMessage(player: Player, message: String?) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent(message))
     }
 
 }

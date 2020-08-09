@@ -35,6 +35,9 @@ import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 
+import net.md_5.bungee.api.ChatMessageType
+import net.md_5.bungee.api.chat.TextComponent
+
 import net.minecraft.server.v1_15_R1.*
 
 private typealias nmsItemStack = net.minecraft.server.v1_15_R1.ItemStack
@@ -247,6 +250,10 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
         setTexture(craftPlayer.profile, skin, signature)
     }
 
+    override fun colorize(message: String?): String {
+        return message.toString()
+    }
+
     private fun setTexture(profile: GameProfile, texture: String, signature: String?): GameProfile {
         if (signature == null || signature.isEmpty()) {
             profile.properties.put("textures", Property("textures", texture))
@@ -328,6 +335,10 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
 
     override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe? {
         return null
+    }
+
+    override fun sendActionBarMessage(player: Player, message: String?) {
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent(message))
     }
 
 }
