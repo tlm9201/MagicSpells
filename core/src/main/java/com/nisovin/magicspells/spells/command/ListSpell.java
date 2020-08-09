@@ -13,6 +13,7 @@ import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellFilter;
+import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.spells.CommandSpell;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 
@@ -120,7 +121,7 @@ public class ListSpell extends CommandSpell {
 
 	private boolean shouldListSpell(Spell spell, Spellbook spellbook) {
 		if (spell.isHelperSpell()) return false;
-		if (onlyShowCastableSpells && !spellbook.canCast(spell)) return false;
+		if (onlyShowCastableSpells && (!spellbook.canCast(spell) || spell instanceof PassiveSpell)) return false;
 		if (spellsToHide != null && spellsToHide.contains(spell.getInternalName())) return false;
 		return spellFilter.check(spell);
 	}
