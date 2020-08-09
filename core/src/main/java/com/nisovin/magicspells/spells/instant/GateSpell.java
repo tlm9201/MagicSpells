@@ -65,7 +65,7 @@ public class GateSpell extends InstantSpell {
 				location = new Location(effectiveWorld, x, y, z, yaw, pitch);
 			} else if (coords.equals("SPAWN")) {
 				location = effectiveWorld.getSpawnLocation();
-				location = new Location(effectiveWorld, location.getX(), effectiveWorld.getHighestBlockYAt(location), location.getZ());
+				location = new Location(effectiveWorld, location.getX(), effectiveWorld.getHighestBlockYAt(location) + 1, location.getZ());
 			} else if (coords.equals("EXACTSPAWN")) {
 				location = effectiveWorld.getSpawnLocation();
 			} else if (coords.equals("CURRENT")) {
