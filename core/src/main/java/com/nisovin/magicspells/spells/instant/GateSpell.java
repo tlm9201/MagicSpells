@@ -49,8 +49,9 @@ public class GateSpell extends InstantSpell {
 			}
 			
 			// Get location
-			Location location;
+			Location location = null;
 			coords = coords.replace(" ", "");
+
 			if (RegexUtil.matches(COORDINATE_PATTERN, coords)) {
 				String[] c = coords.split(",");
 				int x = Integer.parseInt(c[0]);
@@ -63,19 +64,28 @@ public class GateSpell extends InstantSpell {
 					pitch = Float.parseFloat(c[4]);
 				}
 				location = new Location(effectiveWorld, x, y, z, yaw, pitch);
-			} else if (coords.equals("SPAWN")) {
-				location = effectiveWorld.getSpawnLocation();
-				location = new Location(effectiveWorld, location.getX(), effectiveWorld.getHighestBlockYAt(location) + 1, location.getZ());
-			} else if (coords.equals("EXACTSPAWN")) {
-				location = effectiveWorld.getSpawnLocation();
-			} else if (coords.equals("CURRENT")) {
-				Location l = livingEntity.getLocation();
-				location = new Location(effectiveWorld, l.getBlockX(), l.getBlockY(), l.getBlockZ(), l.getYaw(), l.getPitch());
-			} else {
-				MagicSpells.error("GateSpell '" + internalName + "' has invalid coordinates defined!");
-				sendMessage(strGateFailed, livingEntity, args);
-				return PostCastAction.ALREADY_HANDLED;
 			}
+			
+			if (location == null) {
+				switch (coords.toUpperCase()) {
+					case "SPAWN":
+						location = effectiveWorld.getSpawnLocation();
+						location = new Location(effectiveWorld, location.getX(), effectiveWorld.getHighestBlockYAt(location) + 1, location.getZ());
+						break;
+					case "EXACTSPAWN":
+						location = effectiveWorld.getSpawnLocation();
+						break;
+					case "CURRENT":
+						Location l = livingEntity.getLocation();
+						location = new Location(effectiveWorld, l.getBlockX(), l.getBlockY(), l.getBlockZ(), l.getYaw(), l.getPitch());
+						break;
+					default:
+						MagicSpells.error("GateSpell '" + internalName + "' has invalid coordinates defined!");
+						sendMessage(strGateFailed, livingEntity, args);
+						return PostCastAction.ALREADY_HANDLED;
+				}
+			}
+
 			location.setX(location.getX() + .5);
 			location.setZ(location.getZ() + .5);
 			MagicSpells.debug(3, "Gate location: " + location.toString());
