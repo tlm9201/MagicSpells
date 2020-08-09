@@ -128,7 +128,7 @@ public class ScrollSpell extends CommandSpell {
 			}
 			
 			ItemStack inHand = player.getEquipment().getItemInMainHand();
-			if (inHand.getAmount() != 1 || !itemType.equals(inHand)) {
+			if (inHand.getAmount() != 1 || itemType != inHand.getType()) {
 				sendMessage(strUsage, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
