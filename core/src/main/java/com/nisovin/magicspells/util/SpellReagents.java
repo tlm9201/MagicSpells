@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class SpellReagents {
 	
-	private Set<ItemStack> items;
+	private Set<ReagentItem> items;
 	private int mana;
 	private int health;
 	private int hunger;
@@ -49,29 +49,29 @@ public class SpellReagents {
 		}
 	}
 	
-	public Set<ItemStack> getItems() {
+	public Set<ReagentItem> getItems() {
 		return items;
 	}
 	
-	public ItemStack[] getItemsAsArray() {
+	public ReagentItem[] getItemsAsArray() {
 		if (items == null || items.isEmpty()) return null;
-		ItemStack[] arr = new ItemStack[items.size()];
+		ReagentItem[] arr = new ReagentItem[items.size()];
 		arr = items.toArray(arr);
 		return arr;
 	}
 	
-	public void setItems(Collection<ItemStack> newItems) {
+	public void setItems(Collection<ReagentItem> newItems) {
 		if (newItems == null || newItems.isEmpty()) items = null;
 		else items = new HashSet<>(newItems);
 	}
 	
 	// TODO can this safely be varargs?
-	public void setItems(ItemStack[] newItems) {
+	public void setItems(ReagentItem[] newItems) {
 		if (newItems == null || newItems.length == 0) items = null;
 		else items = new HashSet<>(Arrays.asList(newItems));
 	}
 	
-	public void addItem(ItemStack item) {
+	public void addItem(ReagentItem item) {
 		if (items == null) items = new HashSet<>();
 		items.add(item);
 	}
@@ -154,7 +154,7 @@ public class SpellReagents {
 		SpellReagents other = new SpellReagents();
 		if (items != null) {
 			other.items = new HashSet<>();
-			for (ItemStack item : items) {
+			for (ReagentItem item : items) {
 				other.items.add(item.clone());
 			}
 		}
@@ -178,8 +178,8 @@ public class SpellReagents {
 		SpellReagents other = new SpellReagents();
 		if (items != null) {
 			other.items = new HashSet<>();
-			for (ItemStack item : items) {
-				ItemStack i = item.clone();
+			for (ReagentItem item : items) {
+				ReagentItem i = item.clone();
 				i.setAmount(Math.round(i.getAmount() * x));
 				other.items.add(i);
 			}
@@ -213,6 +213,40 @@ public class SpellReagents {
 			+ ",money=" + money
 			+ ",variables=" + variables
 			+ ']';
+	}
+
+	public static class ReagentItem {
+
+		private ItemStack itemStack;
+
+		private int amount;
+
+		public ReagentItem(ItemStack itemStack, int amount) {
+			this.itemStack = itemStack;
+			this.amount = amount;
+		}
+
+		public void setItemStack(ItemStack itemStack) {
+			this.itemStack = itemStack;
+		}
+
+		public void setAmount(int amount) {
+			this.amount = amount;
+		}
+
+		public ItemStack getItemStack() {
+			return itemStack;
+		}
+
+		public int getAmount() {
+			return amount;
+		}
+
+		@Override
+		public ReagentItem clone() {
+			return new ReagentItem(itemStack, amount);
+		}
+
 	}
 	
 }

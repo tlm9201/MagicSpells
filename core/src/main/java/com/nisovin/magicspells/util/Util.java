@@ -350,8 +350,8 @@ public class Util {
 		return meta == null ? 0 : ((Damageable) meta).getDamage();
 	}
 
-	public static boolean removeFromInventory(Inventory inventory, ItemStack item) {
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+	public static boolean removeFromInventory(Inventory inventory, SpellReagents.ReagentItem item) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item.getItemStack());
 		if (itemData == null) return false;
 
 		int amt = item.getAmount();
@@ -382,8 +382,8 @@ public class Util {
 		return false;
 	}
 
-	public static boolean removeFromInventory(EntityEquipment entityEquipment, ItemStack item) {
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+	public static boolean removeFromInventory(EntityEquipment entityEquipment, SpellReagents.ReagentItem item) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item.getItemStack());
 		if (itemData == null) return false;
 
 		int amt = item.getAmount();

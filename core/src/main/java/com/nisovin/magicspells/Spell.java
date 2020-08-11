@@ -550,7 +550,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 							}
 
 							item.setAmount(amt);
-							reagents.addItem(item);
+							reagents.addItem(new SpellReagents.ReagentItem(item, amt));
 							break;
 					}
 				} catch (Exception e) {
@@ -1057,7 +1057,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param manaCost the mana cost
 	 * @return true if the player has all the reagents, false otherwise
 	 */
-	private boolean hasReagents(LivingEntity livingEntity, ItemStack[] reagents, int healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
+	private boolean hasReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents, int healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
 		// Is the livingEntity exempt from reagent costs?
 		if (Perm.NOREAGENTS.has(livingEntity)) return true;
 
@@ -1110,14 +1110,14 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (reagents != null) {
 			if (livingEntity instanceof Player) {
 				Inventory playerInventory = ((Player) livingEntity).getInventory();
-				for (ItemStack item : reagents) {
+				for (SpellReagents.ReagentItem item : reagents) {
 					if (item == null) continue;
 					if (InventoryUtil.inventoryContains(playerInventory, item)) continue;
 					return false;
 				}
 			} else {
 				EntityEquipment entityEquipment = livingEntity.getEquipment();
-				for (ItemStack item : reagents) {
+				for (SpellReagents.ReagentItem item : reagents) {
 					if (item == null) continue;
 					if (InventoryUtil.inventoryContains(entityEquipment, item)) continue;
 					return false;
@@ -1144,7 +1144,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param livingEntity the living entity to remove the reagents from
 	 * @param reagents the inventory item reagents to remove
 	 */
-	protected void removeReagents(LivingEntity livingEntity, ItemStack[] reagents) {
+	protected void removeReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents) {
 		removeReagents(livingEntity, reagents, 0, 0, 0, 0, 0, 0, 0, null);
 	}
 
@@ -1160,11 +1160,11 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param healthCost the health to remove
 	 * @param manaCost the mana to remove
 	 */
-	private void removeReagents(LivingEntity livingEntity, ItemStack[] reagents, int healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
+	private void removeReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents, int healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
 		if (Perm.NOREAGENTS.has(livingEntity)) return;
 
 		if (reagents != null) {
-			for (ItemStack item : reagents) {
+			for (SpellReagents.ReagentItem item : reagents) {
 				if (item == null) continue;
 				if (livingEntity instanceof Player) Util.removeFromInventory(((Player) livingEntity).getInventory(), item);
 				else if (livingEntity.getEquipment() != null) Util.removeFromInventory(livingEntity.getEquipment(), item);
@@ -1690,7 +1690,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			if (entity == ignore) continue;
 			for (String msg : msgs) {
 				if (msg.isEmpty()) continue;
-				entity.sendMessage(MagicSpells.plugin.textColor + msg);
+				entity.sendMessage(MagicSpells.getVolatileCodeHandler().colorize(MagicSpells.getTextColor() + msg));
 			}
 		}
 	}
