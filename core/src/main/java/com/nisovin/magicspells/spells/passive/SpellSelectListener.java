@@ -17,7 +17,8 @@ import com.nisovin.magicspells.events.SpellSelectionChangedEvent;
 public class SpellSelectListener extends PassiveListener {
 
 	private List<PassiveSpell> spellsAll = new ArrayList<>();
-	Map<String, List<PassiveSpell>> spellsSpecial = new HashMap<>();
+
+	private Map<String, List<PassiveSpell>> spellsSpecial = new HashMap<>();
 
 	@Override
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
@@ -46,7 +47,7 @@ public class SpellSelectListener extends PassiveListener {
 			}
 		}
 
-		String spellName = event.getSpell().getInternalName().toLowerCase();
+		String spellName = event.getSpell().getInternalName();
 		if (!spellsSpecial.containsKey(spellName)) return;
 		for (PassiveSpell spell : spellsSpecial.get(spellName)) {
 			if (!spellbook.hasSpell(spell)) continue;
