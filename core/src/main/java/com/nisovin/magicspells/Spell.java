@@ -1690,7 +1690,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			if (entity == ignore) continue;
 			for (String msg : msgs) {
 				if (msg.isEmpty()) continue;
-				entity.sendMessage(MagicSpells.plugin.textColor + msg);
+				entity.sendMessage(MagicSpells.getVolatileCodeHandler().colorize(MagicSpells.getTextColor() + msg));
 			}
 		}
 	}
