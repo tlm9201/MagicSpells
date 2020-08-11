@@ -126,6 +126,7 @@ public abstract class Condition {
 		conditions.put("oxygen", OxygenCondition.class);
 		conditions.put("yaw", YawCondition.class);
 		conditions.put("saturation", SaturationCondition.class);
+		conditions.put("signtext", SignTextCondition.class);
 		conditions.put("money", MoneyCondition.class);
 		conditions.put("collection", MultiCondition.class);
 		conditions.put("age", AgeCondition.class);
