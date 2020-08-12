@@ -86,6 +86,19 @@ public class BlockUtils {
 		return ((Levelled) blockState.getBlockData()).getLevel();
 	}
 
+	public static boolean isChest(Block block) {
+		return isChest(block.getType());
+	}
+
+	public static boolean isChest(Material m) {
+		switch (m) {
+			case CHEST:
+			case TRAPPED_CHEST:
+				return true;
+		}
+		return false;
+	}
+
 	public static boolean isPathable(Block block) {
 		return isPathable(block.getType());
 	}
