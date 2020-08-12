@@ -14,6 +14,7 @@ dependencies {
     shadow "com.github.PaperMC:PaperLib:435a72715a"
     shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "com.destroystokyo.paper:paper-api:1.16.1-R0.1-SNAPSHOT"
+    implementation ":spigot-1.16.2"
     implementation ":spigot-1.16.1"
     implementation ":spigot-1.15"
     implementation ":spigot-1.14.4"
