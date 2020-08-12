@@ -43,6 +43,7 @@ public abstract class Condition {
 	}
 
 	static {
+		conditions.put("advancement", AdvancementCondition.class);
 		conditions.put("displayname", DisplayNameCondition.class);
 		conditions.put("hoveringwith", HoveringWithCondition.class);
 		conditions.put("day", DayCondition.class);
