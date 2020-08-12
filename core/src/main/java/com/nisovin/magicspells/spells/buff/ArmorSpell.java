@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -47,8 +48,12 @@ public class ArmorSpell extends BuffSpell {
 
 	private String strHasArmor;
 
+	private String hiddenLore;
+
 	public ArmorSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
+
+		hiddenLore = getInvisibleLore("MSArmorItem");
 
 		permanent = getConfigBoolean("permanent", false);
 		replace = getConfigBoolean("replace", false);
@@ -67,6 +72,12 @@ public class ArmorSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 		if (!permanent) registerEvents(new ArmorListener());
+	}
+
+	public static String getInvisibleLore(String s) {
+		String lore = "";
+		for (char c : s.toCharArray()) lore += ChatColor.COLOR_CHAR + "" + c;
+		return lore;
 	}
 
 	private ItemStack getItem(String s) {
@@ -93,6 +104,8 @@ public class ArmorSpell extends BuffSpell {
 			List<String> lore;
 			if (meta.hasLore()) lore = meta.getLore();
 			else lore = new ArrayList<>();
+
+			lore.add(hiddenLore);
 
 			meta.setLore(lore);
 			item.setItemMeta(meta);
@@ -232,6 +245,7 @@ public class ArmorSpell extends BuffSpell {
 				List<String> lore = dropMeta.getLore();
 				if (lore == null) continue;
 				if (lore.isEmpty()) continue;
+				if (!lore.get(lore.size() - 1).equals(hiddenLore)) continue;
 
 				drops.remove();
 			}
@@ -254,7 +268,6 @@ public class ArmorSpell extends BuffSpell {
 
 			if (cancelOnLogout) turnOff(player);
 			else removeArmor(player.getEquipment());
-
 		}
 
 		@EventHandler
@@ -264,7 +277,6 @@ public class ArmorSpell extends BuffSpell {
 
 			if (!isExpired(player)) setArmor(player.getEquipment());
 			else turnOff(player);
-
 		}
 
 	}
