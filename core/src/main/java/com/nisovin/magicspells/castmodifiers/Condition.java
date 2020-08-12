@@ -103,6 +103,7 @@ public abstract class Condition {
 		conditions.put("permission", PermissionCondition.class);
 		conditions.put("playeronline", PlayerOnlineCondition.class);
 		conditions.put("chance", ChanceCondition.class);
+		conditions.put("chestcontains", ChestContainsCondition.class);
 		conditions.put("entitytype", EntityTypeCondition.class);
 		conditions.put("distance", DistanceCondition.class);
 		conditions.put("name", NameCondition.class);
