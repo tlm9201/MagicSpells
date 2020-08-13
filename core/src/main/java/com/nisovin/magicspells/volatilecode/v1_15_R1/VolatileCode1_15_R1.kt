@@ -251,7 +251,7 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
     }
 
     override fun colorize(message: String?): String {
-        return message.toString()
+        return org.bukkit.ChatColor.translateAlternateColorCodes('&', message.toString())
     }
 
     private fun setTexture(profile: GameProfile, texture: String, signature: String?): GameProfile {
