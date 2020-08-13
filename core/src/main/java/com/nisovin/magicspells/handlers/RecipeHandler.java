@@ -77,6 +77,10 @@ public class RecipeHandler implements Listener {
                 recipe = createStoneCuttingRecipe(config, namespaceKey, result, group);
                 break;
 
+            case "smithing":
+                recipe = createSmithingRecipe(config, namespaceKey, result);
+                break;
+
             default:
                 MagicSpells.error("Recipe '" + config.getName() + "' has an invalid 'type' defined.");
                 break;
@@ -168,6 +172,16 @@ public class RecipeHandler implements Listener {
         Material ingredient = getMaterial(config.getString("ingredient"), "Recipe '" + config.getName() + "' has an invalid 'ingredient' defined.");
         if (ingredient == null) return null;
         Recipe recipe = MagicSpells.getVolatileCodeHandler().createStonecutterRecipe(namespaceKey, group, result, ingredient);
+        if (recipe == null) MagicSpells.error("Recipe type 'stonecutting' on recipe '" + config.getName() + "' is unsupported on this version of spigot.");
+        return recipe;
+    }
+
+    private static Recipe createSmithingRecipe(ConfigurationSection config, NamespacedKey namespaceKey, ItemStack result) {
+        Material base = getMaterial(config.getString("base"), "Recipe '" + config.getName() + "' has an invalid 'base' defined.");
+        if (base == null) return null;
+        Material addition = getMaterial(config.getString("base"), "Recipe '" + config.getName() + "' has an invalid 'addition' defined.");
+        if (addition == null) return null;
+        Recipe recipe = MagicSpells.getVolatileCodeHandler().createSmithingRecipe(namespaceKey, result, base, addition);
         if (recipe == null) MagicSpells.error("Recipe type 'stonecutting' on recipe '" + config.getName() + "' is unsupported on this version of spigot.");
         return recipe;
     }
