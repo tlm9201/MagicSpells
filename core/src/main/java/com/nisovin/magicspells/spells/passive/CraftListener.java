@@ -60,7 +60,7 @@ public class CraftListener extends PassiveListener {
 			}
 		}
 
-		if (spellsSpecial.isEmpty()) return;
+		if (spellsSpecial.containsKey(item)) return;
 		for (PassiveSpell spell : spellsSpecial.get(item)) {
 			if (!isCancelStateOk(spell, event.isCancelled())) continue;
 			if (!spellbook.hasSpell(spell)) continue;
