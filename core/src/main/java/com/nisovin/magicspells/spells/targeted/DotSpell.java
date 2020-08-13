@@ -14,6 +14,7 @@ import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.spells.SpellDamageSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -33,6 +34,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Spel
 	private boolean preventKnockback;
 
 	private String spellDamageType;
+	private DamageCause damageType;
 
 	public DotSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -46,6 +48,14 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Spel
 		preventKnockback = getConfigBoolean("prevent-knockback", false);
 
 		spellDamageType = getConfigString("spell-damage-type", "");
+		String damageTypeName = getConfigString("damage-type", "ENTITY_ATTACK");
+		try {
+			damageType = DamageCause.valueOf(damageTypeName.toUpperCase());
+		}
+		catch (IllegalArgumentException ignored) {
+			DebugHandler.debugBadEnumValue(DamageCause.class, damageTypeName);
+			damageType = DamageCause.ENTITY_ATTACK;
+		}
 
 		activeDots = new HashMap<>();
 	}
@@ -137,12 +147,12 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Spel
 			}
 
 			double dam = damage * power;
-			SpellApplyDamageEvent event = new SpellApplyDamageEvent(DotSpell.this, caster, target, dam, DamageCause.MAGIC, spellDamageType);
+			SpellApplyDamageEvent event = new SpellApplyDamageEvent(DotSpell.this, caster, target, dam, damageType, spellDamageType);
 			EventUtil.call(event);
 			dam = event.getFinalDamage();
 
 			if (preventKnockback) {
-				MagicSpellsEntityDamageByEntityEvent devent = new MagicSpellsEntityDamageByEntityEvent(caster, target, DamageCause.ENTITY_ATTACK, damage);
+				MagicSpellsEntityDamageByEntityEvent devent = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, damage);
 				EventUtil.call(devent);
 				if (!devent.isCancelled()) target.damage(devent.getDamage());
 			} else target.damage(dam, caster);
