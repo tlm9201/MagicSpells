@@ -34,15 +34,12 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Spe
 		super(config, spellName);
 
 		spellDamageType = getConfigString("spell-damage-type", "");
-		String type = getConfigString("damage-type", "ENTITY_ATTACK");
-		for (DamageCause cause : DamageCause.values()) {
-			if (cause.name().equalsIgnoreCase(type)) {
-				damageType = cause;
-				break;
-			}
+		String damageTypeName = getConfigString("damage-type", "ENTITY_ATTACK");
+		try {
+			damageType = DamageCause.valueOf(damageTypeName.toUpperCase());
 		}
-		if (damageType == null) {
-			DebugHandler.debugBadEnumValue(DamageCause.class, type);
+		catch (IllegalArgumentException ignored) {
+			DebugHandler.debugBadEnumValue(DamageCause.class, damageTypeName);
 			damageType = DamageCause.ENTITY_ATTACK;
 		}
 

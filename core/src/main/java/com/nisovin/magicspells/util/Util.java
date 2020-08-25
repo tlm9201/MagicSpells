@@ -677,7 +677,7 @@ public class Util {
 	}
 
 	public static String colorize(String string) {
-		return MagicSpells.getVolatileCodeHandler().colorize(ChatColor.translateAlternateColorCodes('&', string));
+		return MagicSpells.getVolatileCodeHandler().colorize(string);
 	}
 
 	public static String doVarReplacementAndColorize(Player player, String string) {

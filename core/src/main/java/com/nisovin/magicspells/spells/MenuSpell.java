@@ -22,6 +22,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -114,13 +115,13 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 					continue;
 				}
 			}
-			else item.setAmount(getConfigInt(path + "quantity", 1));
 
 			MenuOption option = new MenuOption();
 			option.menuOptionName = optionName;
 			option.slots = validSlots;
 			option.item = item;
 			option.items = items;
+			option.quantity = getConfigString(path + "quantity", "");
 			option.spellName = getConfigString(path + "spell", "");
 			option.spellRightName = getConfigString(path + "spell-right", "");
 			option.spellMiddleName = getConfigString(path + "spell-middle", "");
@@ -278,6 +279,12 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			ItemStack item = (option.item != null ? option.item : option.items.get(Util.getRandomInt(option.items.size()))).clone();
 			item = MagicSpells.getVolatileCodeHandler().setNBTString(item, "menuOption", option.menuOptionName);
 			item = translateItem(opener, args, item);
+
+			Variable variable = MagicSpells.getVariableManager().getVariable(option.quantity);
+			int quantity = 1;
+			if (variable != null) quantity = (int) Math.round(variable.getValue(opener));
+			item.setAmount(quantity);
+
 			// Set item for all defined slots.
 			for (int slot : option.slots) {
 				if (inv.getItem(slot) == null) inv.setItem(slot, item);
@@ -376,6 +383,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private List<Integer> slots;
 		private ItemStack item;
 		private List<ItemStack> items;
+		private String quantity;
 		private String spellName;
 		private String spellRightName;
 		private String spellMiddleName;

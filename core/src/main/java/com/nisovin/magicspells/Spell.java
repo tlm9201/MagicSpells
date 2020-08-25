@@ -1234,6 +1234,19 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return spellPowerAffectsRange ? Math.round(range * power) : range;
 	}
 
+	public int getCharges() {
+		return charges;
+	}
+
+	/**
+	 * Get how many charges the specified living entity has consumed.
+	 * @param livingEntity The living entity to check
+	 * @return The number of charges consumed
+	 */
+	public int getCharges(LivingEntity livingEntity) {
+		return chargesConsumed.get(livingEntity.getUniqueId());
+	}
+
 	/**
 	 * Gets the player a player is currently looking at, ignoring other living entities
 	 * @param livingEntity the living entity to get the target for
@@ -1680,17 +1693,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (message.isEmpty()) return;
 		if (Perm.SILENT.has(livingEntity)) return;
 
-		// FIXME extract the regexp to a pattern
-		String [] msgs = message.replaceAll("&([0-9a-f])", "\u00A7$1").split("\n");
 		int rangeDoubled = range << 1;
 		List<Entity> entities = livingEntity.getNearbyEntities(rangeDoubled, rangeDoubled, rangeDoubled);
 		for (Entity entity : entities) {
 			if (!(entity instanceof Player)) continue;
 			if (entity == livingEntity) continue;
 			if (entity == ignore) continue;
-			for (String msg : msgs) {
+			for (String msg : message.split("\n")) {
 				if (msg.isEmpty()) continue;
-				entity.sendMessage(MagicSpells.getVolatileCodeHandler().colorize(MagicSpells.getTextColor() + msg));
+				entity.sendMessage(Util.colorize(MagicSpells.getTextColor() + msg));
 			}
 		}
 	}
