@@ -414,7 +414,7 @@ public class MagicSpells extends JavaPlugin {
 		addPermission(pm, "cast.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permCastChildren);
 		addPermission(pm, "teach.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permTeachChildren);
 
-		// Advanced perms
+		// Advanced permissions
 		addPermission(pm, "advanced.list", PermissionDefault.FALSE);
 		addPermission(pm, "advanced.forget", PermissionDefault.FALSE);
 		addPermission(pm, "advanced.scroll", PermissionDefault.FALSE);
@@ -422,7 +422,33 @@ public class MagicSpells extends JavaPlugin {
 		advancedPermChildren.put(Perm.ADVANCED_LIST.getNode(), true);
 		advancedPermChildren.put(Perm.ADVANCED_FORGET.getNode(), true);
 		advancedPermChildren.put(Perm.ADVANCED_SCROLL.getNode(), true);
-		addPermission(pm, "advanced.*", defaultAllPermsFalse? PermissionDefault.FALSE : PermissionDefault.OP, advancedPermChildren);
+		addPermission(pm, "advanced.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.OP, advancedPermChildren);
+
+		// Command permissions
+		addPermission(pm, "command.reload", PermissionDefault.OP);
+		addPermission(pm, "command.reload.spellbook", PermissionDefault.OP);
+		addPermission(pm, "command.reload.effectlib", PermissionDefault.OP);
+		addPermission(pm, "command.resetcd", PermissionDefault.OP);
+		addPermission(pm, "command.mana.show", PermissionDefault.OP);
+		addPermission(pm, "command.mana.reset", PermissionDefault.OP);
+		addPermission(pm, "command.mana.setmax", PermissionDefault.OP);
+		addPermission(pm, "command.mana.add", PermissionDefault.OP);
+		addPermission(pm, "command.mana.set", PermissionDefault.OP);
+		addPermission(pm, "command.mana.updaterank", PermissionDefault.OP);
+		addPermission(pm, "command.variable.show", PermissionDefault.OP);
+		addPermission(pm, "command.variable.modify", PermissionDefault.OP);
+		addPermission(pm, "command.magicitem", PermissionDefault.OP);
+		addPermission(pm, "command.util.download", PermissionDefault.OP);
+		addPermission(pm, "command.util.update", PermissionDefault.OP);
+		addPermission(pm, "command.util.saveskin", PermissionDefault.OP);
+		addPermission(pm, "command.profilereport", PermissionDefault.OP);
+		addPermission(pm, "command.debug", PermissionDefault.OP);
+		addPermission(pm, "command.magicxp", PermissionDefault.OP);
+		addPermission(pm, "command.cast.self", PermissionDefault.OP);
+		addPermission(pm, "command.cast.as", PermissionDefault.OP);
+		addPermission(pm, "command.cast.on", PermissionDefault.OP);
+		addPermission(pm, "command.cast.at", PermissionDefault.OP);
+
 		log("...done");
 
 		// Load xp system
