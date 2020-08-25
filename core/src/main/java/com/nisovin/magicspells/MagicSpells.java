@@ -18,6 +18,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.MalformedURLException;
 
+import co.aikar.commands.PaperCommandManager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.ChatColor;
@@ -102,6 +104,7 @@ public class MagicSpells extends JavaPlugin {
 	private VariableManager variableManager;
 	private AttributeManager attributeManager;
 	private NoMagicZoneManager noMagicZones;
+	private PaperCommandManager commandManager;
 	private ExperienceBarManager expBarManager;
 
 	private MagicConfig config;
@@ -191,6 +194,8 @@ public class MagicSpells extends JavaPlugin {
 
 		effectManager = new EffectManager(this);
 		effectManager.enableDebug(debug);
+
+		commandManager = new PaperCommandManager(plugin);
 
 		// Create storage stuff
 		spells = new HashMap<>();
@@ -523,6 +528,10 @@ public class MagicSpells extends JavaPlugin {
 		if (config.getBoolean(path + "enable-logging", false)) {
 			magicLogger = new MagicLogger(this);
 		}
+
+		// Register commands
+		commandManager.enableUnstableAPI("help");
+		commandManager.registerCommand(new MagicCommand());
 
 		// Setup profiling
 		if (enableProfiling) {
@@ -932,6 +941,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static EffectManager getEffectManager() {
 		return plugin.effectManager;
+	}
+
+	public static PaperCommandManager getCommandManager() {
+		return plugin.commandManager;
 	}
 
 	/**

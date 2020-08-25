@@ -6,12 +6,14 @@ repositories {
     maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
     maven { url "https://repo.md-5.net/content/repositories/releases/" }
     maven { url "https://papermc.io/repo/repository/maven-public/" }
+    maven { url "https://repo.aikar.co/content/groups/aikar/" }
 }
 
 dependencies {
     shadow group: "org.apache.commons", name: "commons-math3", version: "3.0"
     shadow "com.github.Chronoken:EffectLib:4972666012"
     shadow "com.github.PaperMC:PaperLib:435a72715a"
+    shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"
     shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "com.destroystokyo.paper:paper-api:1.16.1-R0.1-SNAPSHOT"
     implementation ":spigot-1.16.2"
@@ -34,10 +36,13 @@ shadowJar {
     relocate("org.apache.commons.math3", "com.nisovin.magicspells.shaded.org.apache.commons")
     relocate("de.slikey.effectlib", "com.nisovin.magicspells.shaded.effectlib")
     relocate("kotlin", "com.nisovin.magicspells.shaded.kotlin")
+    relocate("co.aikar.commands", "com.nisovin.magicspells.shaded.acf")
+    relocate("co.aikar.locales", "com.nisovin.magicspells.shaded.locales")
 }
 compileKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
+        javaParameters = true
     }
 }
 compileTestKotlin {
