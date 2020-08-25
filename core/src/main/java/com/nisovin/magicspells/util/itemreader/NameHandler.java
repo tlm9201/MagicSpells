@@ -17,7 +17,7 @@ public class NameHandler {
 		if (!config.isString(CONFIG_NAME)) return meta;
 
 		meta.setDisplayName(Util.colorize(config.getString(CONFIG_NAME)));
-		if (data != null) data.setName(ChatColor.stripColor(Util.colorize(config.getString(CONFIG_NAME))));
+		if (data != null) data.setName(Util.decolorize(config.getString(CONFIG_NAME)));
 		return meta;
 	}
 
@@ -36,7 +36,7 @@ public class NameHandler {
 		ItemMeta meta = itemStack.getItemMeta();
 		if (meta == null) return itemData;
 
-		if (!meta.getDisplayName().isEmpty()) itemData.setName(ChatColor.stripColor(meta.getDisplayName()));
+		if (!meta.getDisplayName().isEmpty()) itemData.setName(Util.decolorize(meta.getDisplayName()));
 		return itemData;
 	}
 	
