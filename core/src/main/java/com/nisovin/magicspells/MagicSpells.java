@@ -41,10 +41,7 @@ import com.nisovin.magicspells.handlers.*;
 import com.nisovin.magicspells.listeners.*;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
-import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
-import com.nisovin.magicspells.commands.ManaCommand;
-import com.nisovin.magicspells.commands.CastCommand;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.events.SpellLearnEvent;
@@ -169,7 +166,6 @@ public class MagicSpells extends JavaPlugin {
 	// Strings
 	String strCantCast;
 	String strCantBind;
-	String strCastUsage;
 	String strWrongWorld;
 	String strOnCooldown;
 	String strSpellChange;
@@ -299,7 +295,6 @@ public class MagicSpells extends JavaPlugin {
 		soundFailOnCooldown = config.getString(path + "sound-on-cooldown", null);
 		soundFailMissingReagents = config.getString(path + "sound-missing-reagents", null);
 
-		strCastUsage = config.getString(path + "str-cast-usage", "Usage: /cast <spell>. Use /cast list to see a list of spells.");
 		strUnknownSpell = config.getString(path + "str-unknown-spell", "You do not know a spell with that name.");
 		strSpellChange = config.getString(path + "str-spell-change", "You are now using the %s spell.");
 		strSpellChangeEmpty = config.getString(path + "str-spell-change-empty", "You are no longer using a spell.");
@@ -528,14 +523,6 @@ public class MagicSpells extends JavaPlugin {
 		if (config.getBoolean(path + "enable-logging", false)) {
 			magicLogger = new MagicLogger(this);
 		}
-
-		// Register commands
-		CastCommand castCommandExecutor = new CastCommand(this, config.getBoolean(path + "enable-tab-completion", true));
-		ManaCommand manaCommandExecutor = new ManaCommand(this, config.getBoolean(path + "enable-tab-completion", true));
-		XpCommand xpCommandExecutor = new XpCommand(this, config.getBoolean(path + "enable-tab-completion", true));
-		getCommand("magicspellcast").setExecutor(castCommandExecutor);
-		getCommand("magicspellmana").setExecutor(manaCommandExecutor);
-		getCommand("magicspellxp").setExecutor(xpCommandExecutor);
 
 		// Setup profiling
 		if (enableProfiling) {
@@ -849,10 +836,6 @@ public class MagicSpells extends JavaPlugin {
 
 	public static String getStrSpellUsage() {
 		return plugin.strSpellChange;
-	}
-
-	public static String getStrCastUsage() {
-		return plugin.strCastUsage;
 	}
 
 	public static String getStrUnknownSpell() {
@@ -1383,7 +1366,6 @@ public class MagicSpells extends JavaPlugin {
 		config = null;
 		strCantCast = null;
 		strCantBind = null;
-		strCastUsage = null;
 		moneyHandler = null;
 		expBarManager = null;
 		strOnCooldown = null;
