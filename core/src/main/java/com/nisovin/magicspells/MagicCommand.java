@@ -53,19 +53,13 @@ public class MagicCommand extends BaseCommand {
 			Set<String> spells = new HashSet<>();
 			if (context.getConfig() != null && context.getConfig().equals("*")) spells.add("*");
 			// Collect spell names.
-			for (Spell spell : MagicSpells.spells()) {
-				String name = spell.getName();
-				// In case that was the ingame name, add the internal name too.
-				if (!name.equals(spell.getInternalName())) {
-					spells.add("\"" + Util.decolorize(name) + "\"");
-					name = spell.getInternalName();
-				}
-				spells.add(name);
-				// Add aliases.
-				String[] aliases = spell.getAliases();
-				if (aliases != null && aliases.length > 0) Collections.addAll(spells, aliases);
-			}
+			spells.addAll(getSpellNames(MagicSpells.spells()));
 			return spells;
+		});
+		commandManager.getCommandCompletions().registerAsyncCompletion("owned_spells", context -> {
+			Player player = context.getPlayer();
+			if (player == null) return Collections.emptyList();
+			return getSpellNames(MagicSpells.getSpellbook(player).getSpells());
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("players+", context -> {
 			Set<String> players = new HashSet<>();
@@ -112,6 +106,23 @@ public class MagicCommand extends BaseCommand {
 			if (!num.isEmpty()) completions.add(num);
 			return completions;
 		});
+	}
+
+	private static Set<String> getSpellNames(Collection<Spell> spells) {
+		Set<String> spellNames = new HashSet<>();
+		for (Spell spell : spells) {
+			String name = spell.getName();
+			// In case that was the ingame name, add the internal name too.
+			if (!name.equals(spell.getInternalName())) {
+				spellNames.add("\"" + Util.decolorize(name) + "\"");
+				name = spell.getInternalName();
+			}
+			spellNames.add(name);
+			// Add aliases.
+			String[] aliases = spell.getAliases();
+			if (aliases != null && aliases.length > 0) Collections.addAll(spellNames, aliases);
+		}
+		return spellNames;
 	}
 
 	private static Spell getSpell(CommandIssuer issuer, String name) {
@@ -564,7 +575,7 @@ public class MagicCommand extends BaseCommand {
 
 		@Subcommand("self")
 		@CommandAlias("c|cast")
-		@CommandCompletion("@spells -p: @nothing")
+		@CommandCompletion("@owned_spells -p: @nothing")
 		@Syntax("<spell> [-p:(power)] [spellArgs]")
 		@Description("Cast a spell. (You can optionally define power: -p:1.0)")
 		public void onCastSelf(CommandIssuer issuer, String[] args) {
