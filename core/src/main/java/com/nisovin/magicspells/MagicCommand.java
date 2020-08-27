@@ -228,7 +228,7 @@ public class MagicCommand extends BaseCommand {
 
 	@Subcommand("resetcd")
 	@CommandCompletion("@players+ @spells:* @nothing")
-	@Syntax("[player] [spell]")
+	@Syntax("[player/*] [spell/*]")
 	@Description("Reset cooldown of all all players or a player for a spell or all spells.")
 	public static void onResetCD(CommandIssuer issuer, String[] args) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RESET_COOLDOWN)) return;
@@ -634,7 +634,7 @@ public class MagicCommand extends BaseCommand {
 		@Subcommand("as")
 		@CommandCompletion("@players @spells -p: @nothing")
 		@Syntax("<player/UUID> <spell> (-p:[power]) [spellArgs]")
-		@Description("Force a player to cast a spell.")
+		@Description("Force a player to cast a spell. (You can optionally define power: -p:1.0)")
 		public void onCastAs(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_AS)) return;
 			args = Util.splitParams(args);
@@ -675,7 +675,7 @@ public class MagicCommand extends BaseCommand {
 		@Subcommand("at")
 		@CommandCompletion("@spells @worlds @looking_at:X @looking_at:Y @looking_at:Z @looking_at:pitch @looking_at:yaw @nothing")
 		@Syntax("<spell> [world] <x> <y> <z> [pitch] [yaw]")
-		@Description("Cast a spell on an entity.")
+		@Description("Cast a spell at a location.")
 		public void onCastAt(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_AT)) return;
 			args = Util.splitParams(args);
