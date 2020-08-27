@@ -582,6 +582,13 @@ public class MagicCommand extends BaseCommand {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_SELF)) return;
 			args = Util.splitParams(args);
 			if (args[0].isEmpty()) throw new InvalidCommandArgument();
+
+			// This is an abstract way to preserve an old command alias for the "ms cast as" command. ("c forcecast")
+			if (args[0].equals("forcecast")) {
+				onCastAs(issuer, Arrays.copyOfRange(args, 1, args.length));
+				return;
+			}
+
 			Spell spell = getSpell(issuer, args[0]);
 			if (spell == null) return;
 			float power = getPowerFromArgs(args);
