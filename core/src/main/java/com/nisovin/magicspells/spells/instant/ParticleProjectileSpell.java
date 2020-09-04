@@ -403,6 +403,10 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		return playSpellEffectLibEffects(position, location);
 	}
 
+	public Set<Entity> playEntityEffectsProjectile(EffectPosition position, Location location) {
+		return playSpellEntityEffects(position, location);
+	}
+
 	public Set<ArmorStand> playArmorStandEffectsProjectile(EffectPosition position, Location location) {
 		return playSpellArmorStandEffects(position, location);
 	}

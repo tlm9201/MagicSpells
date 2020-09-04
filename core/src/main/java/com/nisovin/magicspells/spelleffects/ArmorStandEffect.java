@@ -11,7 +11,7 @@ import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 
-public class ArmorStandEffect extends SpellEffect{
+public class ArmorStandEffect extends SpellEffect {
 
 	public static final String ENTITY_TAG = "MS_ARMOR_STAND";
 

@@ -34,6 +34,7 @@ public class ProjectileTracker implements Runnable {
 	private Random rand = new Random();
 
 	private Set<Effect> effectSet;
+	private Set<Entity> entitySet;
 	private Set<ArmorStand> armorStandSet;
 
 	private LivingEntity caster;
@@ -206,6 +207,7 @@ public class ProjectileTracker implements Runnable {
 		tracker = this;
 		if (spell != null) {
 			effectSet = spell.playEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
+			entitySet = spell.playEntityEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
 			armorStandSet = spell.playArmorStandEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
 			ParticleProjectileSpell.getProjectileTrackers().add(tracker);
 		}
@@ -303,7 +305,7 @@ public class ProjectileTracker implements Runnable {
 			}
 		}
 
-		if (armorStandSet != null) {
+		if (armorStandSet != null || entitySet != null) {
 			// Changing the effect location
 			Vector dir = currentLocation.getDirection().normalize();
 			Vector horizOffset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
@@ -312,8 +314,16 @@ public class ProjectileTracker implements Runnable {
 			effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
 			effectLoc.setY(effectLoc.getY() + effectOffset.getY());
 
-			for (ArmorStand armorStand : armorStandSet) {
-				PaperLib.teleportAsync(armorStand, effectLoc);
+			if (armorStandSet != null) {
+				for (ArmorStand armorStand : armorStandSet) {
+					PaperLib.teleportAsync(armorStand, effectLoc);
+				}
+			}
+
+			if (entitySet != null) {
+				for (Entity entity : entitySet) {
+					PaperLib.teleportAsync(entity, effectLoc);
+				}
 			}
 		}
 
@@ -515,6 +525,11 @@ public class ProjectileTracker implements Runnable {
 		if (armorStandSet != null) {
 			for (ArmorStand armorStand : armorStandSet) {
 				armorStand.remove();
+			}
+		}
+		if (entitySet != null) {
+			for (Entity entity : entitySet) {
+				entity.remove();
 			}
 		}
 		caster = null;

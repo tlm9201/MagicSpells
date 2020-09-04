@@ -14,6 +14,7 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
+import com.nisovin.magicspells.spelleffects.EntityEffect;
 import com.nisovin.magicspells.spelleffects.ArmorStandEffect;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
 
@@ -35,7 +36,7 @@ public class MagicSpellListener implements Listener {
 		if (Perm.NOTARGET.has(target)) event.setCancelled(true);
 		if (target instanceof Player && ((Player) target).getGameMode() == GameMode.SPECTATOR) event.setCancelled(true);
 		if (spell != null && noMagicZoneManager != null && noMagicZoneManager.willFizzle(target, spell)) event.setCancelled(true);
-		if (target instanceof ArmorStand && target.getScoreboardTags().contains(ArmorStandEffect.ENTITY_TAG)) event.setCancelled(true);
+		if (isMSEntity(target)) event.setCancelled(true);
 	}
 
 	@EventHandler
@@ -44,17 +45,20 @@ public class MagicSpellListener implements Listener {
 		LivingEntity target = event.getTarget();
 
 		if (target == null) return;
-		if (target instanceof ArmorStand && target.getScoreboardTags().contains(ArmorStandEffect.ENTITY_TAG)) event.setCancelled(true);
+		if (isMSEntity(target)) event.setCancelled(true);
 	}
 
 	@EventHandler
 	public void onChunkLoad(ChunkLoadEvent event) {
-		// remove armor stands in unloaded chunks
+		// remove entities in unloaded chunks
 		for (Entity entity : event.getChunk().getEntities()) {
-			if (!(entity instanceof ArmorStand)) continue;
-			if (!entity.getScoreboardTags().contains(ArmorStandEffect.ENTITY_TAG)) continue;
+			if (!isMSEntity(entity)) continue;
 			entity.remove();
 		}
+	}
+
+	private boolean isMSEntity(Entity entity) {
+		return entity.getScoreboardTags().contains(ArmorStandEffect.ENTITY_TAG) || entity.getScoreboardTags().contains(EntityEffect.ENTITY_TAG);
 	}
 
 }
