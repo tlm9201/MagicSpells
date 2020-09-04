@@ -160,6 +160,14 @@ public abstract class SpellEffect {
 		return null;
 	}
 
+	public final Entity playEntityEffect(final Location location) {
+		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+		if (!locationModifiers.check(null, location)) return null;
+		if (delay <= 0) return playEntityEffectLocationReal(location);
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
+		return null;
+	}
+
 	public final ArmorStand playArmorStandEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
 		if (!locationModifiers.check(null, location)) return null;
@@ -182,6 +190,13 @@ public abstract class SpellEffect {
 		return playEffectLibLocation(loc);
 	}
 
+	private Entity playEntityEffectLocationReal(Location location) {
+		if (location == null) return playEntityEffectLocation(null);
+		Location loc = location.clone();
+		applyOffsets(loc);
+		return playEntityEffectLocation(loc);
+	}
+
 	private ArmorStand playArmorStandEffectLocationReal(Location location) {
 		if (location == null) return playArmorStandEffectLocation(null);
 		Location loc = location.clone();
@@ -195,6 +210,11 @@ public abstract class SpellEffect {
 	}
 
 	protected Effect playEffectLibLocation(Location location) {
+		//expect to be overridden
+		return null;
+	}
+
+	protected Entity playEntityEffectLocation(Location location) {
 		//expect to be overridden
 		return null;
 	}
@@ -392,6 +412,7 @@ public abstract class SpellEffect {
 		effects.put("cloud", CloudEffect.class);
 		effects.put("dragondeath", DragonDeathEffect.class);
 		effects.put("ender", EnderSignalEffect.class);
+		effects.put("entity", EntityEffect.class);
 		effects.put("explosion", ExplosionEffect.class);
 		effects.put("fireworks", FireworksEffect.class);
 		effects.put("itemcooldown", ItemCooldownEffect.class);
