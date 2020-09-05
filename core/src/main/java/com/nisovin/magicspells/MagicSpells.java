@@ -1295,8 +1295,10 @@ public class MagicSpells extends JavaPlugin {
 		}
 		// Clear spell animations.
 		for (SpellAnimation animation : SpellAnimation.getAnimations()) {
-			animation.stop();
+			animation.stop(false);
 		}
+		SpellAnimation.getAnimations().clear();
+
 		PassiveSpell.resetManager();
 
 		// Save cooldowns
