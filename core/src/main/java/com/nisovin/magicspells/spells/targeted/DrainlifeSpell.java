@@ -234,7 +234,7 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 			Location playAt = current.toLocation(world).setDirection(v);
 			playSpellEffects(EffectPosition.SPECIAL, playAt);
 			if (current.distanceSquared(caster.getLocation().toVector()) < 4 || tick > range * 1.5) {
-				stop();
+				stop(true);
 				playSpellEffects(EffectPosition.DELAYED, caster);
 				if (spellOnAnimation != null) spellOnAnimation.cast(caster, 1F);
 				if (!instant) giveToCaster(caster, giveAmtAnimator);

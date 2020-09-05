@@ -156,7 +156,7 @@ public class NovaEffect extends SpellEffect {
 			}
 
 			if (tick > radiusNova + 1) {
-				stop();
+				stop(true);
 				return;
 			} else if (tick > radiusNova) {
 				return;
@@ -193,8 +193,8 @@ public class NovaEffect extends SpellEffect {
 		}
 
 		@Override
-		public void stop() {
-			super.stop();
+		public void stop(boolean removeEntry) {
+			super.stop(removeEntry);
 
 			for (Block b : blocks) {
 				for (Player p : nearby) p.sendBlockChange(b.getLocation(), b.getType().createBlockData());
@@ -249,7 +249,7 @@ public class NovaEffect extends SpellEffect {
 			}
 
 			if (tick > radiusNova + 1) {
-				stop();
+				stop(true);
 				return;
 			} else if (tick > radiusNova) {
 				return;
@@ -312,8 +312,8 @@ public class NovaEffect extends SpellEffect {
 		}
 
 		@Override
-		public void stop() {
-			super.stop();
+		public void stop(boolean removeEntry) {
+			super.stop(removeEntry);
 
 			for (Block b : blocks) {
 				for (Player p : nearby) p.sendBlockChange(b.getLocation(), b.getType().createBlockData());

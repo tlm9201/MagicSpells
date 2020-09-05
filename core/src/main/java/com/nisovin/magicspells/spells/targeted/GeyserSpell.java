@@ -143,7 +143,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 		@Override
 		protected void onTick(int tick) {
 			if (tick > geyserHeight << 1) {
-				stop();
+				stop(true);
 				return;
 			}
 
