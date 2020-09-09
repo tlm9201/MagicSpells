@@ -79,11 +79,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public void saveSkinData(Player player, String name) {
-		// Need the volatile code for this
-	}
-
-	@Override
 	public void setClientVelocity(Player player, Vector velocity) {
 		// Need the volatile code for this
 	}
@@ -97,6 +92,12 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	@Override
 	public void setAbsorptionHearts(LivingEntity entity, double amount) {
 		// Need the volatile code for this
+	}
+
+	@Override
+	public String getSkinData(Player player) {
+		// Need the volatile code for this
+		return null;
 	}
 
 	@Override

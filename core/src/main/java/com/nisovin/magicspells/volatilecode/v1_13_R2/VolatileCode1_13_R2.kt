@@ -1,8 +1,6 @@
 package com.nisovin.magicspells.volatilecode.v1_13_R2
 
 import java.util.*
-import java.io.File
-import java.io.FileWriter
 import java.lang.reflect.Field
 
 import org.bukkit.Bukkit
@@ -185,34 +183,6 @@ class VolatileCode1_13_R2: VolatileCodeHandle {
 
     }
 
-    override fun saveSkinData(player: Player, name: String) {
-        val profile = (player as CraftPlayer).handle.profile
-        val props = profile.properties.get("textures")
-        for (prop in props) {
-            val skin = prop.value
-            val sig = prop.signature
-
-            val folder = File(MagicSpells.getInstance().dataFolder, "disguiseskins")
-            if (!folder.exists()) folder.mkdir()
-            val skinFile = File(folder, "$name.skin.txt")
-            val sigFile = File(folder, "$name.sig.txt")
-            try {
-                var writer = FileWriter(skinFile)
-                writer.write(skin)
-                writer.flush()
-                writer.close()
-                writer = FileWriter(sigFile)
-                writer.write(sig)
-                writer.flush()
-                writer.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            break
-        }
-    }
-
     override fun setClientVelocity(player: Player, velocity: Vector) {
         val packet = PacketPlayOutEntityVelocity(player.entityId, velocity.x, velocity.y, velocity.z)
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
@@ -224,6 +194,11 @@ class VolatileCode1_13_R2: VolatileCodeHandle {
 
     override fun setAbsorptionHearts(entity: LivingEntity, amount: Double) {
         (entity as CraftLivingEntity).handle.absorptionHearts = amount.toFloat()
+    }
+
+    override fun getSkinData(player: Player): String {
+        val latestSkin = (player as CraftPlayer).handle.profile.properties.get("textures").first()
+        return "Skin: " + latestSkin.value + "\nSignature: " + latestSkin.signature
     }
 
     override fun setTexture(meta: SkullMeta, texture: String, signature: String) {

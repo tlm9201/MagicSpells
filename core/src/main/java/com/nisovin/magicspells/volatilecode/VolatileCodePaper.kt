@@ -1,8 +1,6 @@
 package com.nisovin.magicspells.volatilecode
 
 import java.util.*
-import java.io.File
-import java.io.FileWriter
 import java.util.stream.Collectors
 
 import org.bukkit.*
@@ -89,33 +87,10 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         parent.setExperienceBar(player, level, percent)
     }
 
-    override fun saveSkinData(player: Player, name: String) {
-        val profile = player.playerProfile
-        println(profile.properties.toString())
-        val props = profile.properties.stream().filter { prop: ProfileProperty -> prop.name == "textures" }.collect(Collectors.toList())
-        for (prop in props) {
-            val skin = prop.value
-            val sig = prop.signature
-
-            val folder = File(MagicSpells.getInstance().dataFolder, "disguiseskins")
-            if (!folder.exists()) folder.mkdir()
-            val skinFile = File(folder, "$name.skin.txt")
-            val sigFile = File(folder, "$name.sig.txt")
-            try {
-                var writer = FileWriter(skinFile)
-                writer.write(skin)
-                writer.flush()
-                writer.close()
-                writer = FileWriter(sigFile)
-                writer.write(sig)
-                writer.flush()
-                writer.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-            break
-        }
+    override fun getSkinData(player: Player): String {
+        val skins = player.playerProfile.properties.stream().filter { prop: ProfileProperty -> prop.name == "textures" }.collect(Collectors.toList())
+        val latestSkin = skins.first()
+        return "Skin: " + latestSkin.value + "\nSignature: " + latestSkin.signature
     }
 
     override fun setClientVelocity(player: Player, velocity: Vector) {

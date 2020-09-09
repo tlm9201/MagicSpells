@@ -57,7 +57,7 @@ public class RightClickItemListener extends PassiveListener {
 			MagicItemData itemData = null;
 			if (magicItem != null) itemData = magicItem.getMagicItemData();
 			if (itemData == null) continue;
-			if (itemData.getName() != null) itemData.setName(ChatColor.stripColor(Util.colorize(itemData.getName())));
+			if (itemData.getName() != null) itemData.setName(Util.decolorize(itemData.getName()));
 
 			List<PassiveSpell> list = typesMapAddTo.computeIfAbsent(itemData, m -> new ArrayList<>());
 			list.add(spell);
