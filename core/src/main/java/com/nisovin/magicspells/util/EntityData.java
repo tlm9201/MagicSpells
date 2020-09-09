@@ -20,6 +20,7 @@ public class EntityData {
 	private DyeColor dyeColor;
 	private DyeColor patternDyeColor;
 
+	private Fox.Type foxType;
 	private Horse.Color horseColor;
 	private Horse.Style horseStyle;
 	private Rabbit.Type rabbitType;
@@ -97,6 +98,10 @@ public class EntityData {
 				entityType = EntityType.PLAYER;
 				isPlayer = true;
 				break;
+			case "bee":
+				entityType = EntityType.BEE;
+				isMob = true;
+				break;
 			case "wither_skeleton":
 				entityType = EntityType.WITHER_SKELETON;
 				isMob = true;
@@ -147,6 +152,16 @@ public class EntityData {
 				} catch (Exception exception) {
 					MagicSpells.error("Invalid wolf collar color: " + color);
 					dyeColor = null;
+				}
+				break;
+			case "fox":
+				entityType = EntityType.FOX;
+				isMob = true;
+				try {
+					foxType = Fox.Type.valueOf(type.toUpperCase());
+				} catch (Exception exception) {
+					MagicSpells.error("Invalid fox type: " + color);
+					foxType = null;
 				}
 				break;
 			case "pig":
@@ -465,6 +480,10 @@ public class EntityData {
 		return size;
 	}
 
+	public Fox.Type getFoxType() {
+		return foxType;
+	}
+
 	public Villager.Profession getProfession() {
 		return profession;
 	}
@@ -579,6 +598,9 @@ public class EntityData {
 				break;
 			case PARROT:
 				((Parrot) entity).setVariant(getParrotVariant());
+				break;
+			case FOX:
+				((Fox) entity).setFoxType(getFoxType());
 				break;
 		}
 
