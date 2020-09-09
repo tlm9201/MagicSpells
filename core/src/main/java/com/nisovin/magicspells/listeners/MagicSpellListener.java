@@ -4,10 +4,10 @@ import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.Spell;
@@ -55,6 +55,14 @@ public class MagicSpellListener implements Listener {
 			if (!isMSEntity(entity)) continue;
 			entity.remove();
 		}
+	}
+
+	@EventHandler
+	public void onEntityDamage(EntityDamageEvent event) {
+		Entity entity = event.getEntity();
+		if (entity == null) return;
+		if (!isMSEntity(entity)) return;
+		event.setCancelled(true);
 	}
 
 	private boolean isMSEntity(Entity entity) {
