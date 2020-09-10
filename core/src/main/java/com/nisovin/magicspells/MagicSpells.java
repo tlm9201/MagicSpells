@@ -114,6 +114,7 @@ public class MagicSpells extends JavaPlugin {
 	boolean debug;
 	boolean debugNull;
 	boolean debugNumberFormat;
+	boolean tabCompleteInternalNames;
 
 	boolean enableProfiling;
 	boolean enableErrorLogging;
@@ -237,6 +238,8 @@ public class MagicSpells extends JavaPlugin {
 		debugNull = config.getBoolean(path + "debug-null", true);
 		debugNumberFormat = config.getBoolean(path + "debug-number-format", true);
 		debugLevel = config.getInt(path + "debug-level", 3);
+
+		tabCompleteInternalNames = config.getBoolean(path + "tab-complete-internal-names", false);
 
 		enableErrorLogging = config.getBoolean(path + "enable-error-logging", true);
 		enableProfiling = config.getBoolean(path + "enable-profiling", false);
@@ -396,7 +399,7 @@ public class MagicSpells extends JavaPlugin {
 				RecipeHandler.create(recipe);
 			}
 		}
-		log("..." + RecipeHandler.getRecipes().size() + " recepies loaded");
+		log("..." + RecipeHandler.getRecipes().size() + " recipes loaded");
 
 		// Load spells
 		log("Loading spells...");
@@ -839,6 +842,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static boolean isDebugNumberFormat() {
 		return plugin.debugNumberFormat;
+	}
+
+	public static boolean tabCompleteInternalNames() {
+		return plugin.tabCompleteInternalNames;
 	}
 
 	public static boolean isCastingOnAnimate() {
