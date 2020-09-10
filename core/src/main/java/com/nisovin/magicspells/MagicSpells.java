@@ -262,6 +262,7 @@ public class MagicSpells extends JavaPlugin {
 		castWithLeftClick = config.getBoolean(path + "cast-with-left-click", true);
 		castWithRightClick = config.getBoolean(path + "cast-with-right-click", false);
 		cycleSpellsOnOffhandAction = config.getBoolean(path + "cycle-spells-with-offhand-action", false);
+
 		ignoreDefaultBindings = config.getBoolean(path + "ignore-default-bindings", false);
 		ignoreCastItemEnchants = config.getBoolean(path + "ignore-cast-item-enchants", true);
 		ignoreCastItemNames = config.getBoolean(path + "ignore-cast-item-names", false);
@@ -274,6 +275,8 @@ public class MagicSpells extends JavaPlugin {
 		ignoreCastItemAuthor = config.getBoolean(path + "ignore-cast-item-author", true);
 		ignoreCastItemLore = config.getBoolean(path + "ignore-cast-item-lore", true);
 		ignoreCastItemCustomModelData = config.getBoolean(path + "ignore-cast-item-custom-model-data", true);
+		ignoreCastItemDurability = Util.getMaterialList(config.getStringList(path + "ignore-cast-item-durability", new ArrayList<>()), ArrayList::new);
+
 		checkWorldPvpFlag = config.getBoolean(path + "check-world-pvp-flag", true);
 		checkScoreboardTeams = config.getBoolean(path + "check-scoreboard-teams", false);
 		showStrCostOnMissingReagents = config.getBoolean(path + "show-str-cost-on-missing-reagents", true);
@@ -283,7 +286,6 @@ public class MagicSpells extends JavaPlugin {
 			losTransparentBlocks.add(Material.VOID_AIR);
 			losTransparentBlocks.add(Material.CAVE_AIR);
 		}
-		ignoreCastItemDurability = Util.getMaterialList(config.getStringList(path + "ignore-cast-item-durability", new ArrayList<>()), ArrayList::new);
 		globalRadius = config.getInt(path + "global-radius", 500);
 		globalCooldown = config.getInt(path + "global-cooldown", 500);
 		castOnAnimate = config.getBoolean(path + "cast-on-animate", false);
