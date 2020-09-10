@@ -6,6 +6,7 @@ import java.io.Writer;
 import java.io.FileWriter;
 import java.util.regex.Pattern;
 
+import com.nisovin.magicspells.spells.PassiveSpell;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -110,15 +111,27 @@ public class MagicCommand extends BaseCommand {
 
 	private static Set<String> getSpellNames(Collection<Spell> spells) {
 		Set<String> spellNames = new HashSet<>();
+		boolean added;
 		for (Spell spell : spells) {
-			String name = spell.getName();
-			// In case that was the ingame name, add the internal name too.
-			if (!name.equals(spell.getInternalName())) {
-				spellNames.add("\"" + Util.decolorize(name) + "\"");
-				name = spell.getInternalName();
+			if (spell instanceof PassiveSpell) continue;
+			if (!spell.canCastByCommand()) continue;
+
+			added = false;
+			if (MagicSpells.tabCompleteInternalNames()) {
+				spellNames.add(spell.getInternalName());
+				added = true;
 			}
-			spellNames.add(name);
-			// Add aliases.
+
+			// Add spell name
+			String name = spell.getName();
+			if (name != null && !name.equals(spell.getInternalName())) {
+				spellNames.add("\"" + Util.decolorize(name) + "\"");
+				added = true;
+			}
+
+			if (!added) spellNames.add(spell.getInternalName());
+
+			// Add aliases
 			String[] aliases = spell.getAliases();
 			if (aliases != null && aliases.length > 0) Collections.addAll(spellNames, aliases);
 		}
