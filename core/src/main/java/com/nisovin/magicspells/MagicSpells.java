@@ -141,6 +141,8 @@ public class MagicSpells extends JavaPlugin {
 	boolean allowCastWithFist;
 	boolean castWithLeftClick;
 	boolean castWithRightClick;
+	boolean reverseBowCycleButtons;
+	boolean bowCycleSpellsSneaking;
 	boolean allowCycleToNoSpell;
 
 	boolean checkScoreboardTeams;
@@ -255,6 +257,8 @@ public class MagicSpells extends JavaPlugin {
 
 		separatePlayerSpellsPerWorld = config.getBoolean(path + "separate-player-spells-per-world", false);
 		allowCycleToNoSpell = config.getBoolean(path + "allow-cycle-to-no-spell", false);
+		reverseBowCycleButtons = config.getBoolean(path + "reverse-bow-cycle-buttons", false);
+		bowCycleSpellsSneaking = config.getBoolean(path + "bow-cycle-spells-sneaking", false);
 		alwaysShowMessageOnCycle = config.getBoolean(path + "always-show-message-on-cycle", false);
 		onlyCycleToCastableSpells = config.getBoolean(path + "only-cycle-to-castable-spells", true);
 		spellIconSlot = config.getInt(path + "spell-icon-slot", -1);
@@ -844,6 +848,14 @@ public class MagicSpells extends JavaPlugin {
 
 	public static boolean isDebugNumberFormat() {
 		return plugin.debugNumberFormat;
+	}
+	
+	public static boolean areBowCycleButtonsReversed() {
+		return plugin.reverseBowCycleButtons;
+	}
+
+	public static boolean canBowCycleSpellsSneaking() {
+		return plugin.bowCycleSpellsSneaking;
 	}
 
 	public static boolean tabCompleteInternalNames() {

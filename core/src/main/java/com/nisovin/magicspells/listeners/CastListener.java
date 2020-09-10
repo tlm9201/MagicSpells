@@ -8,7 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -67,17 +69,22 @@ public class CastListener implements Listener {
 			return;
 		}
 
-		if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
-			// Left click - cast
+		if (isEventCastAction(event)) {
+			// Cast
 			if (!MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
 			return;
 		}
 
-		if ((event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) && (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)) {
-			// Right click -- cycle spell
+		if (isEventCycleAction(event) && (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)) {
 			ItemStack inHand = player.getEquipment().getItemInMainHand();
+			
+			if (inHand != null && isBow(inHand.getType())) {
+				if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) {
+					return;
+				}
+			}
+			
 			if ((inHand != null && !BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
-
 				// Cycle spell
 				Spell spell;
 				if (!player.isSneaking()) spell = MagicSpells.getSpellbook(player).nextSpell(inHand);
@@ -122,6 +129,15 @@ public class CastListener implements Listener {
 	public void onPlayerAnimation(PlayerAnimationEvent event) {
 		if (MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
 	}
+	
+	@EventHandler
+	public void onPlayerShootBow(EntityShootBowEvent event) {
+		if (event.getEntity() instanceof Player) {
+			Player player = (Player) event.getEntity();
+			castSpell(player);
+			event.getProjectile().setMetadata("bow-draw-strength", new FixedMetadataValue(plugin, event.getForce()));
+		}
+	}
 
 	private void castSpell(Player player) {
 		ItemStack inHand = player.getEquipment().getItemInMainHand();
@@ -148,4 +164,27 @@ public class CastListener implements Listener {
 		MagicSpells.getVolatileCodeHandler().sendFakeSlotUpdate(player, slot, icon);
 	}
 
+	private boolean isBow(Material material) {
+		if (material == null) {
+			return false;
+		}
+		
+		return material.name().equalsIgnoreCase("BOW") || material.name().equalsIgnoreCase("CROSSBOW");
+	}
+	
+	private boolean isEventCastAction(PlayerInteractEvent event) {
+		if (MagicSpells.areBowCycleButtonsReversed() && event.hasItem() && isBow(event.getItem().getType())) {
+			return false;
+		}
+		
+		return event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK;
+	}
+	
+	private boolean isEventCycleAction(PlayerInteractEvent event) {
+		if (MagicSpells.areBowCycleButtonsReversed() && event.hasItem() && isBow(event.getItem().getType())) {
+			return event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK;
+		}
+		
+		return event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK;
+	}
 }
