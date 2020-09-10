@@ -22,6 +22,7 @@ public enum Perm {
 	ADVANCED_SCROLL("magicspells.advanced.scroll"),
 
 	// Command permissions.
+	COMMAND_HELP("magicspells.command.help"),
 	COMMAND_RELOAD("magicspells.command.reload"),
 	COMMAND_RELOAD_SPELLBOOK("magicspells.command.reload.spellbook"),
 	COMMAND_RELOAD_EFFECTLIB("magicspells.command.reload.effectlib"),

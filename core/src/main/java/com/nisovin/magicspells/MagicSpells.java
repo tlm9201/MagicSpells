@@ -434,6 +434,7 @@ public class MagicSpells extends JavaPlugin {
 		addPermission(pm, "advanced.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.OP, advancedPermChildren);
 
 		// Command permissions
+		addPermission(pm, "command.help", PermissionDefault.OP);
 		addPermission(pm, "command.reload", PermissionDefault.OP);
 		addPermission(pm, "command.reload.spellbook", PermissionDefault.OP);
 		addPermission(pm, "command.reload.effectlib", PermissionDefault.OP);
