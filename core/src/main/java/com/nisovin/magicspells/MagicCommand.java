@@ -25,7 +25,6 @@ import com.nisovin.magicspells.util.TxtUtil;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.Variable;
-import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -79,12 +78,15 @@ public class MagicCommand extends BaseCommand {
 		commandManager.getCommandCompletions().registerAsyncCompletion("looking_at", context -> {
 			Set<String> completions = new HashSet<>();
 			if (!context.getIssuer().isPlayer()) return completions;
+
 			String config = context.getConfig();
 			if (config == null || config.isEmpty()) return completions;
+
 			Player player = context.getPlayer();
 			Block block = player.getTargetBlockExact(6, FluidCollisionMode.SOURCE_ONLY);
 			if (block == null) return null;
 			if (block.getType().isAir()) return completions;
+
 			Location location = block.getLocation();
 			String num = "";
 			switch (config.toLowerCase()) {
@@ -113,7 +115,6 @@ public class MagicCommand extends BaseCommand {
 		Set<String> spellNames = new HashSet<>();
 		boolean added;
 		for (Spell spell : spells) {
-			if (spell instanceof PassiveSpell) continue;
 			if (!spell.canCastByCommand()) continue;
 
 			added = false;
@@ -163,8 +164,8 @@ public class MagicCommand extends BaseCommand {
 		UUID uuid = null;
 		try {
 			uuid = UUID.fromString(input);
-		}
-		catch (IllegalArgumentException ignored) {}
+		} catch (IllegalArgumentException ignored) {}
+
 		if (uuid != null) {
 			Entity entity = Bukkit.getEntity(uuid);
 			return entity instanceof LivingEntity ? (LivingEntity) entity : null;
@@ -220,8 +221,7 @@ public class MagicCommand extends BaseCommand {
 			plugin.unload();
 			plugin.load();
 			issuer.sendMessage(MagicSpells.getTextColor() + "MagicSpells plugin reloaded.");
-		}
-		else {
+		} else {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD_SPELLBOOK)) return;
 			Player player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
 			if (player == null) return;
@@ -242,14 +242,14 @@ public class MagicCommand extends BaseCommand {
 	@Subcommand("resetcd")
 	@CommandCompletion("@players+ @spells:* @nothing")
 	@Syntax("[player/*] [spell/*]")
-	@Description("Reset cooldown of all all players or a player for a spell or all spells.")
+	@Description("Reset cooldown of all players or a player for a spell or all spells.")
 	public static void onResetCD(CommandIssuer issuer, String[] args) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RESET_COOLDOWN)) return;
 		args = Util.splitParams(args);
 		Player player = null;
 		Spell spell = null;
 
-		if (args.length > 0) {
+		if (args.length > 0 && !args[0].isEmpty()) {
 			if (!args[0].equals("*")) {
 				player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
 				if (player == null) return;
@@ -261,6 +261,8 @@ public class MagicCommand extends BaseCommand {
 			}
 		}
 
+		if (player == null && args[0].isEmpty() && issuer.isPlayer()) player = issuer.getIssuer();
+
 		Set<Spell> spells = new HashSet<>();
 		if (spell == null) spells.addAll(MagicSpells.getSpells().values());
 		else spells.add(spell);
@@ -268,7 +270,7 @@ public class MagicCommand extends BaseCommand {
 			if (player == null) s.getCooldowns().clear();
 			else s.setCooldown(player, 0);
 		}
-		issuer.sendMessage(MagicSpells.getTextColor() + "Cooldowns reset" + (player == null ? "" : " for " + player.getName()) + (spell == null ? "" : " for spell " + spell.getName()) + ".");
+		issuer.sendMessage(MagicSpells.getTextColor() + "Cooldowns reset" + (player == null ? "" : " for " + player.getName()) + (spell == null ? "" : " for spell " + Util.colorize(spell.getName())) + ".");
 	}
 
 	@Subcommand("mana")
@@ -304,11 +306,10 @@ public class MagicCommand extends BaseCommand {
 		public void onSetMax(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_SET_MAX)) return;
 			if (args.length < 1) throw new InvalidCommandArgument();
+
 			int amount;
 			Player player = null;
-			if (ACFUtil.isInteger(args[0])) {
-				amount = Integer.parseInt(args[0]);
-			}
+			if (ACFUtil.isInteger(args[0])) amount = Integer.parseInt(args[0]);
 			else {
 				if (args.length < 2) throw new InvalidCommandArgument();
 				player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
@@ -317,6 +318,7 @@ public class MagicCommand extends BaseCommand {
 				if (!ACFUtil.isInteger(args[1])) throw new InvalidCommandArgument();
 				amount = Integer.parseInt(args[1]);
 			}
+
 			if (player == null) player = getPlayerFromIssuer(issuer);
 			if (player == null) return;
 
@@ -331,11 +333,10 @@ public class MagicCommand extends BaseCommand {
 		public void onAdd(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_ADD)) return;
 			if (args.length < 1) throw new InvalidCommandArgument();
+
 			int amount;
 			Player player = null;
-			if (ACFUtil.isInteger(args[0])) {
-				amount = Integer.parseInt(args[0]);
-			}
+			if (ACFUtil.isInteger(args[0])) amount = Integer.parseInt(args[0]);
 			else {
 				if (args.length < 2) throw new InvalidCommandArgument();
 				player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
@@ -344,6 +345,7 @@ public class MagicCommand extends BaseCommand {
 				if (!ACFUtil.isInteger(args[1])) throw new InvalidCommandArgument();
 				amount = Integer.parseInt(args[1]);
 			}
+
 			if (player == null) player = getPlayerFromIssuer(issuer);
 			if (player == null) return;
 
@@ -358,11 +360,10 @@ public class MagicCommand extends BaseCommand {
 		public void onSet(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_SET)) return;
 			if (args.length < 1) throw new InvalidCommandArgument();
+
 			int amount;
 			Player player = null;
-			if (ACFUtil.isInteger(args[0])) {
-				amount = Integer.parseInt(args[0]);
-			}
+			if (ACFUtil.isInteger(args[0])) amount = Integer.parseInt(args[0]);
 			else {
 				if (args.length < 2) throw new InvalidCommandArgument();
 				player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
@@ -371,6 +372,7 @@ public class MagicCommand extends BaseCommand {
 				if (!ACFUtil.isInteger(args[1])) throw new InvalidCommandArgument();
 				amount = Integer.parseInt(args[1]);
 			}
+
 			if (player == null) player = getPlayerFromIssuer(issuer);
 			if (player == null) return;
 
@@ -441,8 +443,7 @@ public class MagicCommand extends BaseCommand {
 			String oldValue = MagicSpells.getVariableManager().getStringValue(variableName, playerName);
 			if (op.equals(VariableMod.Operation.SET) && variable instanceof PlayerStringVariable) {
 				MagicSpells.getVariableManager().set(variableName, playerName, variableMod.getValue());
-			}
-			else {
+			} else {
 				double value = variableMod.getValue(player, null);
 				MagicSpells.getVariableManager().set(variableName, playerName, op.applyTo(variable.getValue(playerName), value));
 			}
@@ -468,8 +469,7 @@ public class MagicCommand extends BaseCommand {
 		if (args.length > 1) {
 			if (ACFUtil.isInteger(args[1])) {
 				amount = Integer.parseInt(args[1]);
-			}
-			else {
+			} else {
 				player = ACFBukkitUtil.findPlayerSmart(issuer, args[1]);
 				if (player == null) throw new InvalidCommandArgument();
 			}
@@ -479,6 +479,7 @@ public class MagicCommand extends BaseCommand {
 				if (player == null) return;
 			}
 		}
+
 		if (player == null) player = getPlayerFromIssuer(issuer);
 		if (player == null) return;
 
