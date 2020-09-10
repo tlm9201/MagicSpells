@@ -207,6 +207,7 @@ public class MagicCommand extends BaseCommand {
 	@Syntax("[command]")
 	@Description("Display command help.")
 	public void doHelp(CommandSender sender, CommandHelp help) {
+		if (noPermission(sender, Perm.COMMAND_HELP)) return;
 		help.showHelp();
 	}
 
