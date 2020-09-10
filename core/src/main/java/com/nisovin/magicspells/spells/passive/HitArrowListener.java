@@ -10,11 +10,11 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
@@ -54,9 +54,7 @@ public class HitArrowListener extends PassiveListener {
 	@EventHandler
 	public void onDamage(EntityDamageByEntityEvent event) {
 		Player player = getPlayerAttacker(event);
-		if (player == null || !(event.getEntity() instanceof LivingEntity)) {
-			return;
-		}
+		if (player == null || !(event.getEntity() instanceof LivingEntity)) return;
 		LivingEntity attacked = (LivingEntity) event.getEntity();
 		Spellbook spellbook = null;
 		
@@ -81,10 +79,8 @@ public class HitArrowListener extends PassiveListener {
 		
 		if (list == null) return;
 
-		if (spellbook == null) {
-			spellbook = MagicSpells.getSpellbook(player);
-		}
-		
+		if (spellbook == null) spellbook = MagicSpells.getSpellbook(player);
+
 		for (PassiveSpell spell : list) {
 			if (!isCancelStateOk(spell, event.isCancelled())) continue;
 			if (!spellbook.hasSpell(spell, false)) continue;
@@ -95,11 +91,13 @@ public class HitArrowListener extends PassiveListener {
 	
 	private Player getPlayerAttacker(EntityDamageByEntityEvent event) {
 		Entity e = event.getDamager();
-		if (e instanceof Arrow) {
-			if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof Player) {
-				return (Player) ((Arrow) e).getShooter();
-			}
+
+		if (!(e instanceof Arrow)) return null;
+
+		if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof Player) {
+			return (Player) ((Arrow) e).getShooter();
 		}
+
 		return null;
 	}
 	
@@ -113,4 +111,5 @@ public class HitArrowListener extends PassiveListener {
 		}
 		return null;
 	}
+
 }

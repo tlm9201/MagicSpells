@@ -13,11 +13,11 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
@@ -157,6 +157,7 @@ public class MissArrowListener extends PassiveListener {
 	}
 	
 	class ArrowParticle {
+
 		private Player origCaster;
 		Arrow arrow;
 		private boolean hitEntity;
@@ -177,5 +178,7 @@ public class MissArrowListener extends PassiveListener {
 		public void setHitEntity(boolean hitEntity) {
 			this.hitEntity = hitEntity;
 		}
+
 	}
+
 }

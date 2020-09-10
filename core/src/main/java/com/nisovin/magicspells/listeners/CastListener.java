@@ -8,11 +8,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
@@ -79,9 +79,7 @@ public class CastListener implements Listener {
 			ItemStack inHand = player.getEquipment().getItemInMainHand();
 			
 			if (inHand != null && isBow(inHand.getType())) {
-				if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) {
-					return;
-				}
+				if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) return;
 			}
 			
 			if ((inHand != null && !BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
@@ -132,11 +130,10 @@ public class CastListener implements Listener {
 	
 	@EventHandler
 	public void onPlayerShootBow(EntityShootBowEvent event) {
-		if (event.getEntity() instanceof Player) {
-			Player player = (Player) event.getEntity();
-			castSpell(player);
-			event.getProjectile().setMetadata("bow-draw-strength", new FixedMetadataValue(plugin, event.getForce()));
-		}
+		if (!(event.getEntity() instanceof Player)) return;
+		Player player = (Player) event.getEntity();
+		castSpell(player);
+		event.getProjectile().setMetadata("bow-draw-strength", new FixedMetadataValue(plugin, event.getForce()));
 	}
 
 	private void castSpell(Player player) {
@@ -165,10 +162,7 @@ public class CastListener implements Listener {
 	}
 
 	private boolean isBow(Material material) {
-		if (material == null) {
-			return false;
-		}
-		
+		if (material == null) return false;
 		return material.name().equalsIgnoreCase("BOW") || material.name().equalsIgnoreCase("CROSSBOW");
 	}
 	
@@ -187,4 +181,5 @@ public class CastListener implements Listener {
 		
 		return event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK;
 	}
+
 }
