@@ -6,7 +6,6 @@ import java.io.Writer;
 import java.io.FileWriter;
 import java.util.regex.Pattern;
 
-import com.nisovin.magicspells.spells.PassiveSpell;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -26,6 +25,7 @@ import com.nisovin.magicspells.util.TxtUtil;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
