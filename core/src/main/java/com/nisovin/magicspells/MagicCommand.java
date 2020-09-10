@@ -113,7 +113,6 @@ public class MagicCommand extends BaseCommand {
 		Set<String> spellNames = new HashSet<>();
 		boolean added;
 		for (Spell spell : spells) {
-			if (spell instanceof PassiveSpell) continue;
 			if (!spell.canCastByCommand()) continue;
 
 			added = false;
