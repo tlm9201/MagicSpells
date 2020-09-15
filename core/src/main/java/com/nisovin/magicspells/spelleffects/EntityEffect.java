@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spelleffects;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.EntityData;
@@ -12,7 +13,9 @@ public class EntityEffect extends SpellEffect {
 
 	private EntityData entityData;
 
+	private boolean silent;
 	private boolean gravity;
+	private boolean enableAI;
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
@@ -21,7 +24,9 @@ public class EntityEffect extends SpellEffect {
 
 		entityData = new EntityData(section);
 
+		silent = section.getBoolean("silent", false);
 		gravity = section.getBoolean("gravity", false);
+		enableAI = section.getBoolean("ai", true);
 	}
 
 	@Override
@@ -29,6 +34,8 @@ public class EntityEffect extends SpellEffect {
 		Entity entity = entityData.spawn(location);
 		entity.addScoreboardTag(ENTITY_TAG);
 		entity.setGravity(gravity);
+		entity.setSilent(silent);
+		if (entity instanceof LivingEntity) ((LivingEntity) entity).setAI(enableAI);
 		return entity;
 	}
 
