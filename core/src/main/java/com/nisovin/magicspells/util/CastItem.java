@@ -50,7 +50,7 @@ public class CastItem {
 		if (isTypeValid()) {
 			if (!MagicSpells.ignoreCastItemNames()) {
 				if (meta.getDisplayName().isEmpty()) name = null;
-				else if (MagicSpells.ignoreCastItemNameColors()) name = ChatColor.stripColor(meta.getDisplayName());
+				else if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize(meta.getDisplayName());
 				else name = meta.getDisplayName();
 			}
 			if (!MagicSpells.ignoreCastItemAmount()) amount = item.getAmount();
@@ -73,7 +73,7 @@ public class CastItem {
 			type = data.getType();
 			if (isTypeValid()) {
 				if (!MagicSpells.ignoreCastItemNames() && data.getName() != null) {
-					if (MagicSpells.ignoreCastItemNameColors()) name = ChatColor.stripColor(Util.colorize(data.getName()));
+					if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize(data.getName());
 					else name = Util.colorize(data.getName());
 				}
 				if (!MagicSpells.ignoreCastItemAmount()) amount = data.getAmount();

@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.meta.Damageable;
 
 public class ItemUtil {
 
@@ -39,6 +40,12 @@ public class ItemUtil {
 				name.contains("SHIELD") ||
 				name.contains("WARPED_FUNGUS_ON_A_STICK") ||
 				name.contains("SHEARS");
+	}
+
+	public static int getDurability(ItemStack item) {
+		ItemMeta meta = item.getItemMeta();
+		if (!(meta instanceof Damageable)) return 0;
+		return ((Damageable) meta).getDamage();
 	}
 
 }

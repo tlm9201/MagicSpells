@@ -20,12 +20,17 @@ public class EntityData {
 	private DyeColor dyeColor;
 	private DyeColor patternDyeColor;
 
+	private Cat.Type catType;
+	private Fox.Type foxType;
+	private Panda.Gene mainGene;
+	private Panda.Gene hiddenGene;
 	private Horse.Color horseColor;
 	private Horse.Style horseStyle;
 	private Rabbit.Type rabbitType;
 	private Llama.Color llamaColor;
 	private Parrot.Variant parrotVariant;
 	private Villager.Profession profession;
+	private MushroomCow.Variant cowVariant;
 	private TropicalFish.Pattern fishPattern;
 
 	private EulerAngle headAngle;
@@ -92,10 +97,52 @@ public class EntityData {
 		String patternColor = section.getString("pattern-color", "");
 		String style = section.getString("style", "");
 		String entity = section.getString("entity", "");
+		String mainGeneType = section.getString("main-gene", "");
+		String hiddenGeneType = section.getString("hidden-gene", "");
 		switch (entity.toLowerCase()) {
 			case "player":
 				entityType = EntityType.PLAYER;
 				isPlayer = true;
+				break;
+			case "pillager":
+				entityType = EntityType.PILLAGER;
+				isMob = true;
+				break;
+			case "ravager":
+				entityType = EntityType.RAVAGER;
+				isMob = true;
+				break;
+			case "trader_llama":
+				entityType = EntityType.TRADER_LLAMA;
+				isMob = true;
+				break;
+			case "wandering_trader":
+				entityType = EntityType.WANDERING_TRADER;
+				isMob = true;
+				break;
+			case "hoglin":
+				entityType = EntityType.HOGLIN;
+				isMob = true;
+				break;
+			case "piglin":
+				entityType = EntityType.PIGLIN;
+				isMob = true;
+				break;
+			case "piglin_brute":
+				entityType = EntityType.PIGLIN_BRUTE;
+				isMob = true;
+				break;
+			case "zoglin":
+				entityType = EntityType.ZOGLIN;
+				isMob = true;
+				break;
+			case "strider":
+				entityType = EntityType.STRIDER;
+				isMob = true;
+				break;
+			case "bee":
+				entityType = EntityType.BEE;
+				isMob = true;
 				break;
 			case "wither_skeleton":
 				entityType = EntityType.WITHER_SKELETON;
@@ -108,6 +155,22 @@ public class EntityData {
 			case "creeper":
 				entityType = EntityType.CREEPER;
 				isMob = true;
+				break;
+			case "panda":
+				entityType = EntityType.PANDA;
+				isMob = true;
+				try {
+					 mainGene = Panda.Gene.valueOf(mainGeneType.toUpperCase());
+				} catch (Exception exception) {
+					MagicSpells.error("Invalid panda main gene: " + mainGeneType);
+					mainGene = null;
+				}
+				try {
+					hiddenGene = Panda.Gene.valueOf(hiddenGeneType.toUpperCase());
+				} catch (Exception exception) {
+					MagicSpells.error("Invalid panda hidden gene: " + hiddenGeneType);
+					hiddenGene = null;
+				}
 				break;
 			case "villager":
 				entityType = EntityType.VILLAGER;
@@ -149,6 +212,26 @@ public class EntityData {
 					dyeColor = null;
 				}
 				break;
+			case "fox":
+				entityType = EntityType.FOX;
+				isMob = true;
+				try {
+					foxType = Fox.Type.valueOf(type.toUpperCase());
+				} catch (Exception exception) {
+					MagicSpells.error("Invalid fox type: " + type);
+					foxType = null;
+				}
+				break;
+			case "cat":
+				entityType = EntityType.CAT;
+				isMob = true;
+				try {
+					catType = Cat.Type.valueOf(type.toUpperCase());
+				} catch (Exception exception) {
+					MagicSpells.error("Invalid cat type: " + type);
+					catType = null;
+				}
+				break;
 			case "pig":
 				entityType = EntityType.PIG;
 				isMob = true;
@@ -160,6 +243,12 @@ public class EntityData {
 			case "mooshroom":
 				entityType = EntityType.MUSHROOM_COW;
 				isMob = true;
+				try {
+					cowVariant = MushroomCow.Variant.valueOf(type.toUpperCase());
+				} catch (Exception exception) {
+					MagicSpells.error("Invalid mooshroom type: " + type);
+					cowVariant = null;
+				}
 				break;
 			case "magma_cube":
 				entityType = EntityType.MAGMA_CUBE;
@@ -338,6 +427,7 @@ public class EntityData {
 				isMob = true;
 				break;
 			case "zombie_pigman":
+			case "zombified_piglin":
 				entityType = Util.getPigmanEntityType();
 				isMob = true;
 				break;
@@ -465,6 +555,10 @@ public class EntityData {
 		return size;
 	}
 
+	public Fox.Type getFoxType() {
+		return foxType;
+	}
+
 	public Villager.Profession getProfession() {
 		return profession;
 	}
@@ -501,6 +595,21 @@ public class EntityData {
 		return rabbitType;
 	}
 
+	public Cat.Type getCatType() {
+		return catType;
+	}
+
+	public MushroomCow.Variant getCowVariant() {
+		return cowVariant;
+	}
+
+	public Panda.Gene getMainGene() {
+		return mainGene;
+	}
+
+	public Panda.Gene getHiddenGene() {
+		return hiddenGene;
+	}
 
 	public Entity spawn(Location location) {
 		if (location == null) throw new NullPointerException("location");
@@ -579,6 +688,19 @@ public class EntityData {
 				break;
 			case PARROT:
 				((Parrot) entity).setVariant(getParrotVariant());
+				break;
+			case FOX:
+				((Fox) entity).setFoxType(getFoxType());
+				break;
+			case CAT:
+				((Cat) entity).setCatType(getCatType());
+				break;
+			case MUSHROOM_COW:
+				((MushroomCow) entity).setVariant(getCowVariant());
+				break;
+			case PANDA:
+				((Panda) entity).setMainGene(getMainGene());
+				((Panda) entity).setHiddenGene(getMainGene());
 				break;
 		}
 

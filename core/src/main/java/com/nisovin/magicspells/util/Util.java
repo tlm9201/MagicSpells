@@ -126,7 +126,7 @@ public class Util {
 	// Just checks to see if the passed string could be lore data
 	public static boolean isLoreData(String line) {
 		if (line == null) return false;
-		line = ChatColor.stripColor(line);
+		line = Util.decolorize(line);
 		return line.startsWith("MS$:");
 	}
 
@@ -159,7 +159,7 @@ public class Util {
 		if (lore.isEmpty()) return null;
 
 		for (int i = 0; i < lore.size(); i++) {
-			String s = ChatColor.stripColor(lore.get(lore.size() - 1));
+			String s = Util.decolorize(lore.get(lore.size() - 1));
 			if (s.startsWith("MS$:")) return s.substring(4);
 		}
 
@@ -176,7 +176,7 @@ public class Util {
 
 		boolean removed = false;
 		for (int i = 0; i < lore.size(); i++) {
-			String s = ChatColor.stripColor(lore.get(i));
+			String s = Util.decolorize(lore.get(i));
 			if (!s.startsWith("MS$:")) continue;
 			lore.remove(i);
 			removed = true;
@@ -678,6 +678,10 @@ public class Util {
 
 	public static String colorize(String string) {
 		return MagicSpells.getVolatileCodeHandler().colorize(string);
+	}
+
+	public static String decolorize(String string) {
+		return ChatColor.stripColor(colorize(string));
 	}
 
 	public static String doVarReplacementAndColorize(Player player, String string) {
