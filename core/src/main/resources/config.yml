@@ -5,9 +5,6 @@ general:
     enable-stat-collection: true
     enable-volatile-features: true
     enable-new-spell-handling: false
-    str-cast-usage: |
-        Usage: /cast <spell>. 
-        Use /cast list to see a list of spells.
     str-unknown-spell: You do not know a spell with that name.
     str-spell-change: You are now using the %s spell.
     str-spell-change-empty: You are no longer using a spell.

@@ -18,6 +18,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.MalformedURLException;
 
+import co.aikar.commands.PaperCommandManager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.ChatColor;
@@ -41,10 +43,7 @@ import com.nisovin.magicspells.handlers.*;
 import com.nisovin.magicspells.listeners.*;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
-import com.nisovin.magicspells.commands.XpCommand;
 import com.nisovin.magicspells.spells.PassiveSpell;
-import com.nisovin.magicspells.commands.ManaCommand;
-import com.nisovin.magicspells.commands.CastCommand;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.events.SpellLearnEvent;
@@ -105,6 +104,7 @@ public class MagicSpells extends JavaPlugin {
 	private VariableManager variableManager;
 	private AttributeManager attributeManager;
 	private NoMagicZoneManager noMagicZones;
+	private PaperCommandManager commandManager;
 	private ExperienceBarManager expBarManager;
 
 	private MagicConfig config;
@@ -114,6 +114,7 @@ public class MagicSpells extends JavaPlugin {
 	boolean debug;
 	boolean debugNull;
 	boolean debugNumberFormat;
+	boolean tabCompleteInternalNames;
 
 	boolean enableProfiling;
 	boolean enableErrorLogging;
@@ -140,6 +141,8 @@ public class MagicSpells extends JavaPlugin {
 	boolean allowCastWithFist;
 	boolean castWithLeftClick;
 	boolean castWithRightClick;
+	boolean reverseBowCycleButtons;
+	boolean bowCycleSpellsSneaking;
 	boolean allowCycleToNoSpell;
 
 	boolean checkScoreboardTeams;
@@ -169,7 +172,6 @@ public class MagicSpells extends JavaPlugin {
 	// Strings
 	String strCantCast;
 	String strCantBind;
-	String strCastUsage;
 	String strWrongWorld;
 	String strOnCooldown;
 	String strSpellChange;
@@ -195,6 +197,8 @@ public class MagicSpells extends JavaPlugin {
 
 		effectManager = new EffectManager(this);
 		effectManager.enableDebug(debug);
+
+		commandManager = new PaperCommandManager(plugin);
 
 		// Create storage stuff
 		spells = new HashMap<>();
@@ -237,6 +241,8 @@ public class MagicSpells extends JavaPlugin {
 		debugNumberFormat = config.getBoolean(path + "debug-number-format", true);
 		debugLevel = config.getInt(path + "debug-level", 3);
 
+		tabCompleteInternalNames = config.getBoolean(path + "tab-complete-internal-names", false);
+
 		enableErrorLogging = config.getBoolean(path + "enable-error-logging", true);
 		enableProfiling = config.getBoolean(path + "enable-profiling", false);
 		textColor = ChatColor.getByChar(config.getString(path + "text-color", ChatColor.DARK_AQUA.getChar() + ""));
@@ -251,6 +257,8 @@ public class MagicSpells extends JavaPlugin {
 
 		separatePlayerSpellsPerWorld = config.getBoolean(path + "separate-player-spells-per-world", false);
 		allowCycleToNoSpell = config.getBoolean(path + "allow-cycle-to-no-spell", false);
+		reverseBowCycleButtons = config.getBoolean(path + "reverse-bow-cycle-buttons", false);
+		bowCycleSpellsSneaking = config.getBoolean(path + "bow-cycle-spells-sneaking", false);
 		alwaysShowMessageOnCycle = config.getBoolean(path + "always-show-message-on-cycle", false);
 		onlyCycleToCastableSpells = config.getBoolean(path + "only-cycle-to-castable-spells", true);
 		spellIconSlot = config.getInt(path + "spell-icon-slot", -1);
@@ -258,6 +266,7 @@ public class MagicSpells extends JavaPlugin {
 		castWithLeftClick = config.getBoolean(path + "cast-with-left-click", true);
 		castWithRightClick = config.getBoolean(path + "cast-with-right-click", false);
 		cycleSpellsOnOffhandAction = config.getBoolean(path + "cycle-spells-with-offhand-action", false);
+
 		ignoreDefaultBindings = config.getBoolean(path + "ignore-default-bindings", false);
 		ignoreCastItemEnchants = config.getBoolean(path + "ignore-cast-item-enchants", true);
 		ignoreCastItemNames = config.getBoolean(path + "ignore-cast-item-names", false);
@@ -270,6 +279,8 @@ public class MagicSpells extends JavaPlugin {
 		ignoreCastItemAuthor = config.getBoolean(path + "ignore-cast-item-author", true);
 		ignoreCastItemLore = config.getBoolean(path + "ignore-cast-item-lore", true);
 		ignoreCastItemCustomModelData = config.getBoolean(path + "ignore-cast-item-custom-model-data", true);
+		ignoreCastItemDurability = Util.getMaterialList(config.getStringList(path + "ignore-cast-item-durability", new ArrayList<>()), ArrayList::new);
+
 		checkWorldPvpFlag = config.getBoolean(path + "check-world-pvp-flag", true);
 		checkScoreboardTeams = config.getBoolean(path + "check-scoreboard-teams", false);
 		showStrCostOnMissingReagents = config.getBoolean(path + "show-str-cost-on-missing-reagents", true);
@@ -279,7 +290,6 @@ public class MagicSpells extends JavaPlugin {
 			losTransparentBlocks.add(Material.VOID_AIR);
 			losTransparentBlocks.add(Material.CAVE_AIR);
 		}
-		ignoreCastItemDurability = Util.getMaterialList(config.getStringList(path + "ignore-cast-item-durability", new ArrayList<>()), ArrayList::new);
 		globalRadius = config.getInt(path + "global-radius", 500);
 		globalCooldown = config.getInt(path + "global-cooldown", 500);
 		castOnAnimate = config.getBoolean(path + "cast-on-animate", false);
@@ -299,7 +309,6 @@ public class MagicSpells extends JavaPlugin {
 		soundFailOnCooldown = config.getString(path + "sound-on-cooldown", null);
 		soundFailMissingReagents = config.getString(path + "sound-missing-reagents", null);
 
-		strCastUsage = config.getString(path + "str-cast-usage", "Usage: /cast <spell>. Use /cast list to see a list of spells.");
 		strUnknownSpell = config.getString(path + "str-unknown-spell", "You do not know a spell with that name.");
 		strSpellChange = config.getString(path + "str-spell-change", "You are now using the %s spell.");
 		strSpellChangeEmpty = config.getString(path + "str-spell-change-empty", "You are no longer using a spell.");
@@ -396,7 +405,7 @@ public class MagicSpells extends JavaPlugin {
 				RecipeHandler.create(recipe);
 			}
 		}
-		log("..." + RecipeHandler.getRecipes().size() + " recepies loaded");
+		log("..." + RecipeHandler.getRecipes().size() + " recipes loaded");
 
 		// Load spells
 		log("Loading spells...");
@@ -414,7 +423,7 @@ public class MagicSpells extends JavaPlugin {
 		addPermission(pm, "cast.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permCastChildren);
 		addPermission(pm, "teach.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permTeachChildren);
 
-		// Advanced perms
+		// Advanced permissions
 		addPermission(pm, "advanced.list", PermissionDefault.FALSE);
 		addPermission(pm, "advanced.forget", PermissionDefault.FALSE);
 		addPermission(pm, "advanced.scroll", PermissionDefault.FALSE);
@@ -422,7 +431,34 @@ public class MagicSpells extends JavaPlugin {
 		advancedPermChildren.put(Perm.ADVANCED_LIST.getNode(), true);
 		advancedPermChildren.put(Perm.ADVANCED_FORGET.getNode(), true);
 		advancedPermChildren.put(Perm.ADVANCED_SCROLL.getNode(), true);
-		addPermission(pm, "advanced.*", defaultAllPermsFalse? PermissionDefault.FALSE : PermissionDefault.OP, advancedPermChildren);
+		addPermission(pm, "advanced.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.OP, advancedPermChildren);
+
+		// Command permissions
+		addPermission(pm, "command.help", PermissionDefault.OP);
+		addPermission(pm, "command.reload", PermissionDefault.OP);
+		addPermission(pm, "command.reload.spellbook", PermissionDefault.OP);
+		addPermission(pm, "command.reload.effectlib", PermissionDefault.OP);
+		addPermission(pm, "command.resetcd", PermissionDefault.OP);
+		addPermission(pm, "command.mana.show", PermissionDefault.OP);
+		addPermission(pm, "command.mana.reset", PermissionDefault.OP);
+		addPermission(pm, "command.mana.setmax", PermissionDefault.OP);
+		addPermission(pm, "command.mana.add", PermissionDefault.OP);
+		addPermission(pm, "command.mana.set", PermissionDefault.OP);
+		addPermission(pm, "command.mana.updaterank", PermissionDefault.OP);
+		addPermission(pm, "command.variable.show", PermissionDefault.OP);
+		addPermission(pm, "command.variable.modify", PermissionDefault.OP);
+		addPermission(pm, "command.magicitem", PermissionDefault.OP);
+		addPermission(pm, "command.util.download", PermissionDefault.OP);
+		addPermission(pm, "command.util.update", PermissionDefault.OP);
+		addPermission(pm, "command.util.saveskin", PermissionDefault.OP);
+		addPermission(pm, "command.profilereport", PermissionDefault.OP);
+		addPermission(pm, "command.debug", PermissionDefault.OP);
+		addPermission(pm, "command.magicxp", PermissionDefault.OP);
+		addPermission(pm, "command.cast.self", PermissionDefault.TRUE);
+		addPermission(pm, "command.cast.as", PermissionDefault.OP);
+		addPermission(pm, "command.cast.on", PermissionDefault.OP);
+		addPermission(pm, "command.cast.at", PermissionDefault.OP);
+
 		log("...done");
 
 		// Load xp system
@@ -435,7 +471,7 @@ public class MagicSpells extends JavaPlugin {
 		// Load in-game spell names, incantations, and initialize spells
 		log("Initializing spells...");
 		for (Spell spell : spells.values()) {
-			spellNames.put(ChatColor.stripColor(Util.colorize(spell.getName().toLowerCase())), spell);
+			spellNames.put(Util.decolorize(spell.getName().toLowerCase()), spell);
 			String[] aliases = spell.getAliases();
 			if (aliases != null && aliases.length > 0) {
 				for (String alias : aliases) {
@@ -530,12 +566,8 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		// Register commands
-		CastCommand castCommandExecutor = new CastCommand(this, config.getBoolean(path + "enable-tab-completion", true));
-		ManaCommand manaCommandExecutor = new ManaCommand(this, config.getBoolean(path + "enable-tab-completion", true));
-		XpCommand xpCommandExecutor = new XpCommand(this, config.getBoolean(path + "enable-tab-completion", true));
-		getCommand("magicspellcast").setExecutor(castCommandExecutor);
-		getCommand("magicspellmana").setExecutor(manaCommandExecutor);
-		getCommand("magicspellxp").setExecutor(xpCommandExecutor);
+		commandManager.enableUnstableAPI("help");
+		commandManager.registerCommand(new MagicCommand());
 
 		// Setup profiling
 		if (enableProfiling) {
@@ -818,6 +850,18 @@ public class MagicSpells extends JavaPlugin {
 	public static boolean isDebugNumberFormat() {
 		return plugin.debugNumberFormat;
 	}
+	
+	public static boolean areBowCycleButtonsReversed() {
+		return plugin.reverseBowCycleButtons;
+	}
+
+	public static boolean canBowCycleSpellsSneaking() {
+		return plugin.bowCycleSpellsSneaking;
+	}
+
+	public static boolean tabCompleteInternalNames() {
+		return plugin.tabCompleteInternalNames;
+	}
 
 	public static boolean isCastingOnAnimate() {
 		return plugin.castOnAnimate;
@@ -849,10 +893,6 @@ public class MagicSpells extends JavaPlugin {
 
 	public static String getStrSpellUsage() {
 		return plugin.strSpellChange;
-	}
-
-	public static String getStrCastUsage() {
-		return plugin.strCastUsage;
 	}
 
 	public static String getStrUnknownSpell() {
@@ -949,6 +989,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static EffectManager getEffectManager() {
 		return plugin.effectManager;
+	}
+
+	public static PaperCommandManager getCommandManager() {
+		return plugin.commandManager;
 	}
 
 	/**
@@ -1385,7 +1429,6 @@ public class MagicSpells extends JavaPlugin {
 		config = null;
 		strCantCast = null;
 		strCantBind = null;
-		strCastUsage = null;
 		moneyHandler = null;
 		expBarManager = null;
 		strOnCooldown = null;

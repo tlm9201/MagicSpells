@@ -151,6 +151,10 @@ public class VariableManager implements Listener {
 		return variables.put(name, variable) != null;
 	}
 
+	public Map<String, Variable> getVariables() {
+		return variables;
+	}
+
 	public int count() {
 		return variables.size();
 	}

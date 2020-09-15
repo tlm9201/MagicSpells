@@ -35,13 +35,13 @@ public interface VolatileCodeHandle {
 
 	void addAILookAtPlayer(LivingEntity entity, int range);
 
-	void saveSkinData(Player player, String name);
-
 	void setClientVelocity(Player player, Vector velocity);
 
 	double getAbsorptionHearts(LivingEntity entity);
 
 	void setAbsorptionHearts(LivingEntity entity, double Double);
+
+	String getSkinData(Player player);
 
 	void setTexture(SkullMeta meta, String texture, String signature);
 

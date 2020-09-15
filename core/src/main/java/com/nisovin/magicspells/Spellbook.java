@@ -280,38 +280,6 @@ public class Spellbook {
 		return temporarySpells;
 	}
 
-	public List<String> tabComplete(String partial) {
-		String[] data = Util.splitParams(partial, 2);
-		if (data.length == 1) {
-			// Complete spell name
-			partial = data[0].toLowerCase();
-			List<String> options = new ArrayList<>();
-			for (Spell spell : allSpells) {
-				if (!spell.canCastByCommand()) continue;
-				if (spell.isHelperSpell()) continue;
-				if (spell.getName().toLowerCase().startsWith(partial)) {
-					options.add(spell.getName());
-					continue;
-				}
-
-				String[] aliases = spell.getAliases();
-				if (aliases == null || aliases.length <= 0) continue;
-				for (String alias : aliases) {
-					if (!alias.toLowerCase().startsWith(partial)) continue;
-					options.add(alias);
-				}
-			}
-			if (!options.isEmpty()) return options;
-			return null;
-		}
-		// Complete spell params
-		Spell spell = getSpellByName(data[0]);
-		if (spell == null) return null;
-		List<String> ret = spell.tabComplete(player, data[1]);
-		if (ret == null || ret.isEmpty()) return null;
-		return ret;
-	}
-
 	protected CastItem getCastItemForCycling(ItemStack item) {
 		CastItem castItem;
 		if (item != null) castItem = new CastItem(item);
