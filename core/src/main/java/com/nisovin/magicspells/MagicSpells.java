@@ -593,19 +593,11 @@ public class MagicSpells extends JavaPlugin {
 		for (File directoryFile : getDataFolder().listFiles(CLASS_DIRECTORY_FILTER)) {
 			if (!directoryFile.isDirectory()) continue;
 
-			final List<File> jarList = new ArrayList<>();
-			for (File file : directoryFile.listFiles()) {
-				if (file.getName().endsWith(".jar")) jarList.add(file);
-			}
-			classLoaders.add(createSpellClassLoader(jarList, directoryFile));
+			classLoaders.add(createSpellClassLoader(directoryFile));
 		}
 
 		// Load classes from the plugin folder
-		final List<File> mainJarList = new ArrayList<>();
-		for (File file : getDataFolder().listFiles()) {
-			if (file.getName().endsWith(".jar")) mainJarList.add(file);
-		}
-		classLoaders.add(createSpellClassLoader(mainJarList, getDataFolder()));
+		classLoaders.add(createSpellClassLoader(getDataFolder()));
 
 		// Get spells from config
 		Set<String> spellKeys = config.getSpellKeys();
@@ -715,6 +707,15 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		return cl;
+	}
+
+	// Create class loader with jar files within the directory
+	public ClassLoader createSpellClassLoader(File dataFolder) {
+		final List<File> jarList = new ArrayList<>();
+		for (File file : dataFolder.listFiles()) {
+			if (file.getName().endsWith(".jar")) jarList.add(file);
+		}
+		return createSpellClassLoader(jarList, dataFolder);
 	}
 
 	private void addPermission(PluginManager pm, String perm, PermissionDefault permDefault) {
