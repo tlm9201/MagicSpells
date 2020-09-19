@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.3.70'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.0'
 }
 
 repositories {
@@ -23,11 +23,11 @@ dependencies {
     implementation ":spigot-1.13.2"
     implementation "com.github.MilkBowl:VaultAPI:ea40092989"
     implementation ":NoCheatPlus"
-    implementation "com.github.EngineHub.WorldEdit:worldedit-bukkit:d186cce393"
-    implementation "com.github.EngineHub.WorldGuard:worldguard-legacy:ea47e93323"
+    implementation "com.github.EngineHub.WorldEdit:worldedit-bukkit:d47f59e051"
+    implementation "com.github.EngineHub.WorldGuard:worldguard-bukkit:0e73b50d6f"
     implementation "LibsDisguises:LibsDisguises:10.0.16"
-    implementation "com.github.PlaceholderAPI:PlaceholderAPI:325cd2d284"
-    implementation "com.github.TechFortress:GriefPrevention:832ec7ed86"
+    implementation "com.github.PlaceholderAPI:PlaceholderAPI:a74f78bd73"
+    implementation "com.github.TechFortress:GriefPrevention:47cd376610"
     implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.5.1"
 }
 
