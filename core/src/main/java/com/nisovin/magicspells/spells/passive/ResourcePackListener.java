@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -10,8 +11,8 @@ import com.nisovin.magicspells.spells.PassiveSpell;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketListener;
 import com.comphenix.protocol.wrappers.EnumWrappers.ResourcePackStatus;
 
@@ -77,9 +78,11 @@ public class ResourcePackListener extends PassiveListener {
 	}
 	
 	void activate(Player player, List<PassiveSpell> spells) {
-		for (PassiveSpell spell : spells) {
-			spell.activate(player);
-		}
+		Bukkit.getScheduler().runTask(MagicSpells.getInstance(), () -> {
+			for (PassiveSpell spell : spells) {
+				spell.activate(player);
+			}
+		});
 	}
 
 	@Override
