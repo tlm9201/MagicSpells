@@ -1,9 +1,6 @@
 package com.nisovin.magicspells;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -70,6 +67,10 @@ import de.slikey.effectlib.EffectManager;
 public class MagicSpells extends JavaPlugin {
 
 	public static MagicSpells plugin;
+
+	private static final FilenameFilter CLASS_DIRECTORY_FILTER = (File dir, String name) -> name.startsWith("classes");
+
+	private static final List<ClassLoader> classLoaders = new ArrayList<>();
 
 	// Change this when you want to start tweaking the source and fixing bugs
 	public static Level DEVELOPER_DEBUG_LEVEL = Level.OFF;
@@ -584,28 +585,27 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	private static final int LONG_LOAD_THRESHOLD = 50;
-	// DEBUG INFO: level 2, loaded spell spellname
+	// DEBUG INFO: level 2, loaded spell spellName
 	private void loadSpells(MagicConfig config, PluginManager pm, Map<String, Boolean> permGrantChildren, Map<String, Boolean> permLearnChildren, Map<String, Boolean> permCastChildren, Map<String, Boolean> permTeachChildren) {
 		long startTimePre = System.currentTimeMillis();
 
-		// Load spells from plugin folder
-		final List<File> jarList = new ArrayList<>();
-		for (File file : getDataFolder().listFiles()) {
-			if (file.getName().endsWith(".jar")) jarList.add(file);
+		// Load classes from folders inside the plugin
+		for (File directoryFile : getDataFolder().listFiles(CLASS_DIRECTORY_FILTER)) {
+			if (!directoryFile.isDirectory()) continue;
+
+			final List<File> jarList = new ArrayList<>();
+			for (File file : directoryFile.listFiles()) {
+				if (file.getName().endsWith(".jar")) jarList.add(file);
+			}
+			classLoaders.add(createSpellClassLoader(jarList, directoryFile));
 		}
 
-		// Create class loader
-		URL[] urls = new URL[jarList.size() + 1];
-		ClassLoader cl = getClassLoader();
-		try {
-			urls[0] = getDataFolder().toURI().toURL();
-			for(int i = 1; i <= jarList.size(); i++) {
-				urls[i] = jarList.get(i - 1).toURI().toURL();
-			}
-			cl = new URLClassLoader(urls, getClassLoader());
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
+		// Load classes from the plugin folder
+		final List<File> mainJarList = new ArrayList<>();
+		for (File file : getDataFolder().listFiles()) {
+			if (file.getName().endsWith(".jar")) mainJarList.add(file);
 		}
+		classLoaders.add(createSpellClassLoader(mainJarList, getDataFolder()));
 
 		// Get spells from config
 		Set<String> spellKeys = config.getSpellKeys();
@@ -621,51 +621,71 @@ public class MagicSpells extends JavaPlugin {
 			if (className == null || className.isEmpty()) {
 				error("Spell '" + spellName + "' does not have a spell-class property");
 				continue;
-			} else if (className.startsWith(".")) {
-				className = "com.nisovin.magicspells.spells" + className;
 			}
 
-			try {
-				// Load spell class
-				Constructor<? extends Spell> constructor = constructors.get(className);
-				if (constructor == null) {
-					Class<? extends Spell> spellClass = cl.loadClass(className).asSubclass(Spell.class);
-					constructor = spellClass.getConstructor(MagicConfig.class, String.class);
+			if (className.startsWith(".")) className = "com.nisovin.magicspells.spells" + className;
+
+			Constructor<? extends Spell> constructor = constructors.get(className);
+
+			// Load spell class
+			if (constructor == null) {
+				for (ClassLoader cl : classLoaders) {
+					Class<? extends Spell> spellClass;
+					try {
+						spellClass = cl.loadClass(className).asSubclass(Spell.class);
+					} catch (ClassNotFoundException e) {
+						continue;
+					}
+
+					try {
+						constructor = spellClass.getConstructor(MagicConfig.class, String.class);
+					} catch (NoSuchMethodException e) {
+						continue;
+					}
+
 					constructor.setAccessible(true);
 					constructors.put(className, constructor);
 				}
-				Spell spell = constructor.newInstance(config, spellName);
-				spells.put(spellName.toLowerCase(), spell);
-				spellsOrdered.add(spell);
+			}
 
-				// Add permissions
-				if (!spell.isHelperSpell()) {
-					String permName = spell.getPermissionName();
-					if (!spell.isAlwaysGranted()) {
-						addPermission(pm, "grant." + permName, PermissionDefault.FALSE);
-						permGrantChildren.put(Perm.GRANT.getNode() + permName, true);
-					}
-					addPermission(pm, "learn." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
-					addPermission(pm, "cast." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
-					addPermission(pm, "teach." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
-					if (enableTempGrantPerms) addPermission(pm, "tempgrant." + permName, PermissionDefault.FALSE);
+			constructor = constructors.get(className);
+			if (constructor == null) {
+				error("Unable to load spell " + spellName + " (missing/malformed class " + className + ')');
+				continue;
+			}
 
-					permLearnChildren.put(Perm.LEARN.getNode() + permName, true);
-					permCastChildren.put(Perm.CAST.getNode() + permName, true);
-					permTeachChildren.put(Perm.TEACH.getNode() + permName, true);
-				}
-
-				// Done
-				debug(2, "Loaded spell: " + spellName);
-
-			} catch (ClassNotFoundException e) {
-				error("Unable to load spell " + spellName + " (missing class " + className + ')');
-			} catch (NoSuchMethodException e) {
-				error("Unable to load spell " + spellName + " (malformed class)");
+			Spell spell;
+			try {
+				spell = constructor.newInstance(config, spellName);
 			} catch (Exception e) {
 				error("Unable to load spell " + spellName + " (general error)");
 				e.printStackTrace();
+				continue;
 			}
+
+			spells.put(spellName.toLowerCase(), spell);
+			spellsOrdered.add(spell);
+
+			// Add permissions
+			if (!spell.isHelperSpell()) {
+				String permName = spell.getPermissionName();
+				if (!spell.isAlwaysGranted()) {
+					addPermission(pm, "grant." + permName, PermissionDefault.FALSE);
+					permGrantChildren.put(Perm.GRANT.getNode() + permName, true);
+				}
+				addPermission(pm, "learn." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
+				addPermission(pm, "cast." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
+				addPermission(pm, "teach." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
+				if (enableTempGrantPerms) addPermission(pm, "tempgrant." + permName, PermissionDefault.FALSE);
+
+				permLearnChildren.put(Perm.LEARN.getNode() + permName, true);
+				permCastChildren.put(Perm.CAST.getNode() + permName, true);
+				permTeachChildren.put(Perm.TEACH.getNode() + permName, true);
+			}
+
+			// Done
+			debug(2, "Loaded spell: " + spellName);
+
 			long elapsed = System.currentTimeMillis() - startTime;
 			if (elapsed > LONG_LOAD_THRESHOLD) getLogger().warning("LONG SPELL LOAD TIME: " + spellName + ": " + elapsed + "ms");
 		}
@@ -674,6 +694,27 @@ public class MagicSpells extends JavaPlugin {
 		if (lastReloadTime != 0) getLogger().warning("Loaded in " + finalElapsed + "ms (previously " + lastReloadTime + " ms)");
 		getLogger().warning("Need help? Check out our discord: discord.gg/6bYqnNy");
 		lastReloadTime = finalElapsed;
+	}
+
+	public static List<ClassLoader> getClassLoaders() {
+		return classLoaders;
+	}
+
+	// Create class loader
+	public ClassLoader createSpellClassLoader(List<File> jarList, File dataFolder) {
+		URL[] urls = new URL[jarList.size() + 1];
+		ClassLoader cl = null;
+		try {
+			urls[0] = dataFolder.toURI().toURL();
+			for (int i = 1; i <= jarList.size(); i++) {
+				urls[i] = jarList.get(i - 1).toURI().toURL();
+			}
+			cl = new URLClassLoader(urls, getClassLoader());
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+
+		return cl;
 	}
 
 	private void addPermission(PluginManager pm, String perm, PermissionDefault permDefault) {
@@ -1481,9 +1522,5 @@ public class MagicSpells extends JavaPlugin {
 
 /*
  * TODO:
- *
- * - Use MagicPlayer (Caster/PlayerCaster) across the entire plugin
- * - Allow spells to be cast by something other than players, like blocks and other entities
  * - Move NoMagicZoneWorldGuard outside of the core plugin
- *
  */
