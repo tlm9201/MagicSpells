@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.castmodifiers.conditions;
+package com.nisovin.magicspells.castmodifiers.conditions.util;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,7 +11,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 public abstract class AbstractWorldGuardFlagCondition extends AbstractWorldGuardCondition {
 	
 	@Override
-	public boolean setVar(String var) {
+	public boolean initialize(String var) {
 		if (!worldGuardEnabled()) return false;
 		return parseVar(var);
 	}

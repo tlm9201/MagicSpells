@@ -1,18 +1,22 @@
 package com.nisovin.magicspells.factions;
 
+import java.util.Map;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 
 import com.massivecraft.factions.Rel;
-import com.massivecraft.factions.entity.BoardColl;
-import com.massivecraft.factions.entity.Faction;
+import com.massivecraft.massivecore.ps.PS;
 import com.massivecraft.factions.entity.MFlag;
 import com.massivecraft.factions.entity.MPlayer;
+import com.massivecraft.factions.entity.Faction;
+import com.massivecraft.factions.entity.BoardColl;
 import com.massivecraft.massivecore.MassivePlugin;
-import com.massivecraft.massivecore.ps.PS;
-import com.nisovin.magicspells.castmodifiers.ProxyCondition;
-import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
+
+import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
 
 public class MagicSpellsFactions extends MassivePlugin {
 
@@ -54,7 +58,9 @@ public class MagicSpellsFactions extends MassivePlugin {
 	}
 	
 	public void registerCustomConditions() {
-		ProxyCondition.loadBackends(FactionsConditions.conditions);
+		for (Map.Entry<String, Class<? extends Condition>> entry : FactionsConditions.conditions.entrySet()) {
+			MagicSpells.getConditionManager().addCondition(entry.getKey(), entry.getValue());
+		}
 	}
 	
 }

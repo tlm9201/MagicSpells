@@ -35,7 +35,7 @@ public class ProxyCondition extends Condition {
 			for (ProxyCondition c: uninitialized.get(key)) {
 				try {
 					c.actualCondition = clazz.newInstance();
-					if (!c.actualCondition.setVar(c.conditionVar)) c.actualCondition = null;
+					if (!c.actualCondition.initialize(c.conditionVar)) c.actualCondition = null;
 				} catch (InstantiationException | IllegalAccessException e) {
 					// empty
 				}
@@ -49,7 +49,7 @@ public class ProxyCondition extends Condition {
 	}
 	
 	@Override
-	public boolean setVar(String var) {
+	public boolean initialize(String var) {
 		conditionVar = var;
 		return true;
 	}

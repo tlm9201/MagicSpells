@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.castmodifiers.conditions;
+package com.nisovin.magicspells.castmodifiers.conditions.util;
 
 import org.bukkit.World;
 import org.bukkit.Bukkit;

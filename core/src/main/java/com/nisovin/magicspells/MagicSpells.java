@@ -38,6 +38,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.handlers.*;
 import com.nisovin.magicspells.listeners.*;
+import com.nisovin.magicspells.util.managers.*;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.spells.PassiveSpell;
@@ -49,18 +50,14 @@ import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.variables.VariableManager;
-import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
-import com.nisovin.magicspells.util.managers.BossBarManager;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
 import com.nisovin.magicspells.spells.passive.PassiveManager;
-import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.events.MagicSpellsLoadingEvent;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
-import com.nisovin.magicspells.util.managers.ExperienceBarManager;
 
 import de.slikey.effectlib.EffectManager;
 
@@ -104,6 +101,7 @@ public class MagicSpells extends JavaPlugin {
 	private BossBarManager bossBarManager;
 	private VariableManager variableManager;
 	private AttributeManager attributeManager;
+	private ConditionManager conditionManager;
 	private NoMagicZoneManager noMagicZones;
 	private PaperCommandManager commandManager;
 	private ExperienceBarManager expBarManager;
@@ -385,6 +383,11 @@ public class MagicSpells extends JavaPlugin {
 			}
 		}
 		log("..." + MagicItems.getMagicItems().size() + " magic items loaded");
+
+		// Load conditions
+		log("Loading conditions...");
+		conditionManager = new ConditionManager();
+		log("..." + conditionManager.getConditions().size() + " conditions loaded");
 
 		// Load variables
 		log("Loading variables...");
@@ -983,6 +986,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static AttributeManager getAttributeManager() {
 		return plugin.attributeManager;
+	}
+
+	public static ConditionManager getConditionManager() {
+		return plugin.conditionManager;
 	}
 
 	public static MoneyHandler getMoneyHandler() {
