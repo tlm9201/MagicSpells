@@ -4,26 +4,20 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerResourcePackStatusEvent;
+import org.bukkit.event.player.PlayerResourcePackStatusEvent.Status;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
-
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.events.PacketListener;
-import com.comphenix.protocol.wrappers.EnumWrappers.ResourcePackStatus;
+import com.nisovin.magicspells.util.OverridePriority;
 
 // Trigger variable should be set to one of the following
-// loaded
+// loaded,successfully_loaded
 // declined
-// failed
+// failed,failed_download
 // accepted
 public class ResourcePackListener extends PassiveListener {
 
-	PacketListener listener;
-	
 	List<PassiveSpell> spellsLoaded = new ArrayList<>();
 	List<PassiveSpell> spellsDeclined = new ArrayList<>();
 	List<PassiveSpell> spellsFailed = new ArrayList<>();
@@ -31,16 +25,16 @@ public class ResourcePackListener extends PassiveListener {
 	
 	@Override
 	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
-		addPacketListener();
-
 		if (var == null) return;
 		switch (var.toLowerCase()) {
+			case "successfully_loaded":
 			case "loaded":
 				spellsLoaded.add(spell);
 				break;
 			case "declined":
 				spellsDeclined.add(spell);
 				break;
+			case "failed_download":
 			case "failed":
 				spellsFailed.add(spell);
 				break;
@@ -49,34 +43,29 @@ public class ResourcePackListener extends PassiveListener {
 				break;
 		}
 	}
-	
-	void addPacketListener() {
-		if (listener != null) return;
-		listener = new PacketAdapter(MagicSpells.plugin, PacketType.Play.Client.RESOURCE_PACK_STATUS) {
-			@Override
-			public void onPacketReceiving(PacketEvent event) {
-				Player player = event.getPlayer();
-				ResourcePackStatus status = event.getPacket().getResourcePackStatus().read(0);
-				switch (status) {
-					case SUCCESSFULLY_LOADED:
-						activate(player, spellsLoaded);
-						break;
-					case DECLINED:
-						activate(player, spellsDeclined);
-						break;
-					case FAILED_DOWNLOAD:
-						activate(player, spellsFailed);
-						break;
-					case ACCEPTED:
-						activate(player, spellsAccepted);
-						break;
-				}
-			}
-		};
-		ProtocolLibrary.getProtocolManager().addPacketListener(listener);
+
+	@OverridePriority
+	@EventHandler
+	public void onPlayerResourcePack(PlayerResourcePackStatusEvent event) {
+		Player player = event.getPlayer();
+		Status status = event.getStatus();
+		switch (status) {
+			case SUCCESSFULLY_LOADED:
+				activate(player, spellsLoaded);
+				break;
+			case DECLINED:
+				activate(player, spellsDeclined);
+				break;
+			case FAILED_DOWNLOAD:
+				activate(player, spellsFailed);
+				break;
+			case ACCEPTED:
+				activate(player, spellsAccepted);
+				break;
+		}
 	}
-	
-	void activate(Player player, List<PassiveSpell> spells) {
+
+	private void activate(Player player, List<PassiveSpell> spells) {
 		for (PassiveSpell spell : spells) {
 			spell.activate(player);
 		}
@@ -84,7 +73,6 @@ public class ResourcePackListener extends PassiveListener {
 
 	@Override
 	public void turnOff() {
-		ProtocolLibrary.getProtocolManager().removePacketListener(listener);
 		spellsLoaded.clear();
 		spellsDeclined.clear();
 		spellsFailed.clear();
