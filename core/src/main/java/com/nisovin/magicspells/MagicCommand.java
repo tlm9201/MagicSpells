@@ -45,7 +45,7 @@ public class MagicCommand extends BaseCommand {
 
 		// Creating conditions.
 		commandManager.getCommandConditions().addCondition("mana_is_enabled", context -> {
-			if (!MagicSpells.enableManaBars()) throw new ConditionFailedException("The Mana system is not enabled.");
+			if (!MagicSpells.isManaSystemEnabled()) throw new ConditionFailedException("The Mana system is not enabled.");
 		});
 
 		// Create command completions.
