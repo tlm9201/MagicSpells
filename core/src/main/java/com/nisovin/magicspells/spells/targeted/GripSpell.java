@@ -84,7 +84,7 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		loc.add(loc.getDirection().clone().multiply(relativeOffset.getX()));
 		loc.setY(loc.getY() + relativeOffset.getY());
 
-		if(checkGround)
+		if (checkGround)
 		{
 			if (!BlockUtils.isPathable(loc.getBlock())) return false;
 		}
