@@ -134,7 +134,7 @@ public class MagicSpells extends JavaPlugin {
 	boolean ignoreCastItemCustomModelData;
 
 	boolean castOnAnimate;
-	boolean enableManaBars;
+	boolean enableManaSystem;
 	boolean ignoreCastPerms;
 	boolean opsHaveAllSpells;
 	boolean ignoreGrantPerms;
@@ -323,10 +323,10 @@ public class MagicSpells extends JavaPlugin {
 
 		allowAnticheatIntegrations = config.getBoolean(path + "allow-anticheat-integrations", false);
 
-		enableManaBars = config.getBoolean(manaPath + "enable-mana-system", false);
+		enableManaSystem = config.getBoolean(manaPath + "enable-mana-system", false);
 
 		// Create handling objects
-		if (enableManaBars) manaHandler = new ManaSystem(config);
+		if (enableManaSystem) manaHandler = new ManaSystem(config);
 		noMagicZones = new NoMagicZoneManager();
 		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 100));
 		expBarManager = new ExperienceBarManager();
@@ -529,8 +529,8 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		// Setup mana
-		if (enableManaBars) {
-			log("Enabling mana bars...");
+		if (enableManaSystem) {
+			log("Enabling mana system...");
 			// Init
 			manaHandler.initialize();
 
@@ -877,8 +877,8 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.hideMagicItemTooltips;
 	}
 
-	public static boolean enableManaBars() {
-		return plugin.enableManaBars;
+	public static boolean isManaSystemEnabled() {
+		return plugin.enableManaSystem;
 	}
 
 	public static boolean isDebug() {
@@ -1270,29 +1270,30 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	public static void profilingReport() {
-		if (plugin.profilingTotalTime != null && plugin.profilingRuns != null) {
-			PrintWriter writer = null;
-			try {
-				writer = new PrintWriter(new File(plugin.getDataFolder(), "profiling_report_" + System.currentTimeMillis() + ".txt"));
-				long totalTime = 0;
-				writer.println("Key\tRuns\tAvg\tTotal");
-				for (String key : plugin.profilingTotalTime.keySet()) {
-					long time = plugin.profilingTotalTime.get(key);
-					int runs = plugin.profilingRuns.get(key);
-					totalTime += time;
-					writer.println(key + '\t' + runs + '\t' + (time / runs / 1000000F) + "ms\t" + (time / 1000000F) + "ms");
-				}
-				writer.println();
-				writer.println("TOTAL TIME: " + (totalTime / 1000000F) + "ms");
-			} catch (Exception ex) {
-				error("Failed to save profiling report");
-				handleException(ex);
-			} finally {
-				if (writer != null) writer.close();
+		if (plugin.profilingTotalTime == null) return;
+		if (plugin.profilingRuns == null) return;
+
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(new File(plugin.getDataFolder(), "profiling_report_" + System.currentTimeMillis() + ".txt"));
+			long totalTime = 0;
+			writer.println("Key\tRuns\tAvg\tTotal");
+			for (String key : plugin.profilingTotalTime.keySet()) {
+				long time = plugin.profilingTotalTime.get(key);
+				int runs = plugin.profilingRuns.get(key);
+				totalTime += time;
+				writer.println(key + '\t' + runs + '\t' + (time / runs / 1000000F) + "ms\t" + (time / 1000000F) + "ms");
 			}
-			plugin.profilingTotalTime.clear();
-			plugin.profilingRuns.clear();
+			writer.println();
+			writer.println("TOTAL TIME: " + (totalTime / 1000000F) + "ms");
+		} catch (Exception ex) {
+			error("Failed to save profiling report");
+			handleException(ex);
+		} finally {
+			if (writer != null) writer.close();
 		}
+		plugin.profilingTotalTime.clear();
+		plugin.profilingRuns.clear();
 	}
 
 	/**
@@ -1335,16 +1336,16 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	public static void addProfile(String key, long time) {
-		if (plugin.enableProfiling) {
-			Long total = plugin.profilingTotalTime.get(key);
-			if (total == null) total = (long)0;
-			total += time;
-			plugin.profilingTotalTime.put(key, total);
-			Integer runs = plugin.profilingRuns.get(key);
-			if (runs == null) runs = 0;
-			runs += 1;
-			plugin.profilingRuns.put(key, runs);
-		}
+		if (!plugin.enableProfiling) return;
+
+		Long total = plugin.profilingTotalTime.get(key);
+		if (total == null) total = (long) 0;
+		total += time;
+		plugin.profilingTotalTime.put(key, total);
+		Integer runs = plugin.profilingRuns.get(key);
+		if (runs == null) runs = 0;
+		runs += 1;
+		plugin.profilingRuns.put(key, runs);
 	}
 
 	/**
@@ -1501,6 +1502,7 @@ public class MagicSpells extends JavaPlugin {
 		PromptType.unloadDestructPromptData();
 		CompatBasics.destructExemptionAssistant();
 
+		classLoaders.clear();
 		effectManager.dispose();
 		effectManager = null;
 		plugin = null;
