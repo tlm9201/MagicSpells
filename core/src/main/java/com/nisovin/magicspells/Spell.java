@@ -564,10 +564,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	// DEBUG INFO: level 2, adding modifiers to internalname
 	// DEBUG INFO: level 2, adding target modifiers to internalname
-	/**
-	 * This method is called immediately after all spells have been loaded.
-	 */
-	protected void initialize() {
+	protected void initializeModifiers() {
 		// Modifiers
 		if (modifierStrings != null && !modifierStrings.isEmpty()) {
 			debug(2, "Adding modifiers to " + internalName + " spell");
@@ -585,6 +582,21 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			locationModifierStrings = null;
 		}
 
+		if (effects != null && !effects.isEmpty()) {
+			for (EffectPosition position : effects.keySet()) {
+				if (position == null) continue;
+
+				List<SpellEffect> spellEffects = effects.get(position);
+				if (spellEffects == null || spellEffects.isEmpty()) continue;
+				spellEffects.forEach(SpellEffect::initializeModifiers);
+			}
+		}
+	}
+
+	/**
+	 * This method is called immediately after all spells have been loaded.
+	 */
+	protected void initialize() {
 		// Process shared cooldowns
 		if (rawSharedCooldowns != null) {
 			sharedCooldowns = new HashMap<>();

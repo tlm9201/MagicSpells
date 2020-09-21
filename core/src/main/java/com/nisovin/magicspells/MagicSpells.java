@@ -38,6 +38,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.handlers.*;
 import com.nisovin.magicspells.listeners.*;
+import com.nisovin.magicspells.util.managers.*;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.spells.PassiveSpell;
@@ -49,18 +50,15 @@ import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.variables.VariableManager;
-import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
-import com.nisovin.magicspells.util.managers.BossBarManager;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
 import com.nisovin.magicspells.spells.passive.PassiveManager;
-import com.nisovin.magicspells.util.managers.AttributeManager;
+import com.nisovin.magicspells.events.ConditionsLoadingEvent;
 import com.nisovin.magicspells.events.MagicSpellsLoadingEvent;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
-import com.nisovin.magicspells.util.managers.ExperienceBarManager;
 
 import de.slikey.effectlib.EffectManager;
 
@@ -104,6 +102,7 @@ public class MagicSpells extends JavaPlugin {
 	private BossBarManager bossBarManager;
 	private VariableManager variableManager;
 	private AttributeManager attributeManager;
+	private ConditionManager conditionManager;
 	private NoMagicZoneManager noMagicZones;
 	private PaperCommandManager commandManager;
 	private ExperienceBarManager expBarManager;
@@ -326,7 +325,6 @@ public class MagicSpells extends JavaPlugin {
 		enableManaSystem = config.getBoolean(manaPath + "enable-mana-system", false);
 
 		// Create handling objects
-		if (enableManaSystem) manaHandler = new ManaSystem(config);
 		noMagicZones = new NoMagicZoneManager();
 		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 100));
 		expBarManager = new ExperienceBarManager();
@@ -531,11 +529,8 @@ public class MagicSpells extends JavaPlugin {
 		// Setup mana
 		if (enableManaSystem) {
 			log("Enabling mana system...");
-			// Init
-			manaHandler.initialize();
 
-			// Setup online player mana bars
-			Util.forEachPlayerOnline(p -> manaHandler.createManaBar(p));
+			manaHandler = new ManaSystem(config);
 
 			log("...done");
 		}
@@ -558,7 +553,6 @@ public class MagicSpells extends JavaPlugin {
 		if (consumeListener.hasConsumeCastItems()) registerEvents(consumeListener);
 		if (config.getBoolean(path + "enable-dance-casting", true)) new DanceCastListener(this, config);
 
-		ModifierSet.initializeModifierListeners();
 		log("...done");
 
 		// Initialize logger
@@ -582,6 +576,34 @@ public class MagicSpells extends JavaPlugin {
 		pm.callEvent(new MagicSpellsLoadedEvent(this));
 
 		log("MagicSpells loading complete!");
+
+		Bukkit.getScheduler().runTaskLater(this, this::loadExternalData, 1);
+	}
+
+	private void loadExternalData() {
+		PluginManager pm = plugin.getServer().getPluginManager();
+		log("Loading external data...");
+
+		// Load conditions
+		log("Loading conditions...");
+		conditionManager = new ConditionManager();
+		// Call conditions event
+		pm.callEvent(new ConditionsLoadingEvent(plugin, conditionManager));
+
+		for (Spell spell : spells.values()) {
+			spell.initializeModifiers();
+		}
+
+		// setup mana bar conditions
+		manaHandler.initialize();
+
+		// Setup online player mana bars
+		Util.forEachPlayerOnline(p -> manaHandler.createManaBar(p));
+
+		ModifierSet.initializeModifierListeners();
+		log("..." + conditionManager.getConditions().size() + " conditions loaded");
+
+		log("...done");
 	}
 
 	private static final int LONG_LOAD_THRESHOLD = 50;
@@ -983,6 +1005,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static AttributeManager getAttributeManager() {
 		return plugin.attributeManager;
+	}
+
+	public static ConditionManager getConditionManager() {
+		return plugin.conditionManager;
 	}
 
 	public static MoneyHandler getMoneyHandler() {

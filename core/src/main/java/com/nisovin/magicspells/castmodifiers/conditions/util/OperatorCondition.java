@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.castmodifiers.conditions;
+package com.nisovin.magicspells.castmodifiers.conditions.util;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -7,12 +7,12 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OperatorCondition extends Condition {
 
-	boolean equals;
-	boolean moreThan;
-	boolean lessThan;
+	public boolean equals;
+	public boolean moreThan;
+	public boolean lessThan;
 
 	@Override
-	public boolean setVar(String var) {
+	public boolean initialize(String var) {
 		switch (var.charAt(0)) {
 			case '=':
 			case ':':

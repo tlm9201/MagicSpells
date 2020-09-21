@@ -59,8 +59,11 @@ public abstract class SpellEffect {
 
 	private boolean counterClockwise;
 
+	private List<String> modifiersList;
+	private List<String> locationModifiersList;
 	private ModifierSet modifiers;
 	private ModifierSet locationModifiers;
+
 	private Random random = new Random();
 
 	public void loadFromString(String string) {
@@ -98,16 +101,19 @@ public abstract class SpellEffect {
 
 		counterClockwise = config.getBoolean("orbit-counter-clockwise", false);
 		
-		List<String> modifiersList = config.getStringList("modifiers");
-		List<String> locationModifiersList = config.getStringList("location-modifiers");
-		if (modifiersList != null) modifiers = new ModifierSet(modifiersList);
-		if (locationModifiersList != null) locationModifiers = new ModifierSet(locationModifiersList);
+		modifiersList = config.getStringList("modifiers");
+		locationModifiersList = config.getStringList("location-modifiers");
 
 		maxDistance *= maxDistance;
 		ticksPerSecond = 20F / (float) effectInterval;
 		ticksPerRevolution = Math.round(ticksPerSecond * secondsPerRevolution);
 		distancePerTick = 6.28F / (ticksPerSecond * secondsPerRevolution);
 		loadFromConfig(config);
+	}
+
+	public void initializeModifiers() {
+		if (modifiersList != null) modifiers = new ModifierSet(modifiersList);
+		if (locationModifiersList != null) locationModifiers = new ModifierSet(locationModifiersList);
 	}
 	
 	protected abstract void loadFromConfig(ConfigurationSection config);
@@ -130,7 +136,7 @@ public abstract class SpellEffect {
 	 */
 	public Runnable playEffect(final Entity entity) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (entity instanceof LivingEntity && !modifiers.check((LivingEntity) entity)) return null;
+		if (entity instanceof LivingEntity && modifiers != null && !modifiers.check((LivingEntity) entity)) return null;
 		if (delay <= 0) return playEffectEntity(entity);
 		MagicSpells.scheduleDelayedTask(() -> playEffectEntity(entity), delay);
 		return null;
@@ -146,7 +152,7 @@ public abstract class SpellEffect {
 	 */
 	public final Runnable playEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (!locationModifiers.check(null, location)) return null;
+		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playEffectLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLocationReal(location), delay);
 		return null;
@@ -154,7 +160,7 @@ public abstract class SpellEffect {
 
 	public final Effect playEffectLib(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (!locationModifiers.check(null, location)) return null;
+		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playEffectLibLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
 		return null;
@@ -162,7 +168,7 @@ public abstract class SpellEffect {
 
 	public final Entity playEntityEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (!locationModifiers.check(null, location)) return null;
+		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playEntityEffectLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
 		return null;
@@ -170,7 +176,7 @@ public abstract class SpellEffect {
 
 	public final ArmorStand playArmorStandEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (!locationModifiers.check(null, location)) return null;
+		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playArmorStandEffectLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
 		return null;
