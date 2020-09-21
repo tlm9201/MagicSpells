@@ -54,6 +54,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
 import com.nisovin.magicspells.spells.passive.PassiveManager;
+import com.nisovin.magicspells.events.ConditionsLoadingEvent;
 import com.nisovin.magicspells.events.MagicSpellsLoadingEvent;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
@@ -387,6 +388,8 @@ public class MagicSpells extends JavaPlugin {
 		// Load conditions
 		log("Loading conditions...");
 		conditionManager = new ConditionManager();
+		// Call conditions event
+		pm.callEvent(new ConditionsLoadingEvent(this, conditionManager));
 		log("..." + conditionManager.getConditions().size() + " conditions loaded");
 
 		// Load variables
