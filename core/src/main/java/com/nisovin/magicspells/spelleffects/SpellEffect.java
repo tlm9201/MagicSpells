@@ -136,7 +136,7 @@ public abstract class SpellEffect {
 	 */
 	public Runnable playEffect(final Entity entity) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (entity instanceof LivingEntity && !modifiers.check((LivingEntity) entity)) return null;
+		if (entity instanceof LivingEntity && modifiers != null && !modifiers.check((LivingEntity) entity)) return null;
 		if (delay <= 0) return playEffectEntity(entity);
 		MagicSpells.scheduleDelayedTask(() -> playEffectEntity(entity), delay);
 		return null;
@@ -152,7 +152,7 @@ public abstract class SpellEffect {
 	 */
 	public final Runnable playEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (!locationModifiers.check(null, location)) return null;
+		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playEffectLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLocationReal(location), delay);
 		return null;
@@ -160,7 +160,7 @@ public abstract class SpellEffect {
 
 	public final Effect playEffectLib(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (!locationModifiers.check(null, location)) return null;
+		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playEffectLibLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
 		return null;
@@ -168,7 +168,7 @@ public abstract class SpellEffect {
 
 	public final Entity playEntityEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (!locationModifiers.check(null, location)) return null;
+		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playEntityEffectLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
 		return null;
@@ -176,7 +176,7 @@ public abstract class SpellEffect {
 
 	public final ArmorStand playArmorStandEffect(final Location location) {
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
-		if (!locationModifiers.check(null, location)) return null;
+		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
 		if (delay <= 0) return playArmorStandEffectLocationReal(location);
 		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
 		return null;
