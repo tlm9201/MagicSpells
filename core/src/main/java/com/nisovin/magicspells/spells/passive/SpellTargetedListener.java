@@ -1,9 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,29 +9,25 @@ import org.bukkit.event.EventHandler;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Optional trigger variable of comma separated list of internal spell names to accept
 public class SpellTargetedListener extends PassiveListener {
 
-	Map<Spell, List<PassiveSpell>> spells = new HashMap<>();
-	List<PassiveSpell> anySpell = new ArrayList<>();
-	
+	private final Set<String> spellNames = new HashSet<>();
+
 	@Override
-	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
-		if (var == null || var.isEmpty()) {
-			anySpell.add(spell);
-			return;
-		}
+	public void initialize(String var) {
+		if (var == null || var.isEmpty()) return;
 
 		String[] split = var.split(",");
 		for (String s : split) {
 			Spell sp = MagicSpells.getSpellByInternalName(s.trim());
 			if (sp == null) continue;
-			List<PassiveSpell> passives = spells.computeIfAbsent(sp, p -> new ArrayList<>());
-			passives.add(spell);
+
+			spellNames.add(sp.getInternalName());
 		}
 	}
 	
@@ -43,21 +37,13 @@ public class SpellTargetedListener extends PassiveListener {
 		if (!(event.getTarget() instanceof Player)) return;
 		Player player = (Player) event.getTarget();
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		for (PassiveSpell spell : anySpell) {
-			if (!isCancelStateOk(spell, event.isCancelled())) continue;
-			if (!spellbook.hasSpell(spell, false)) continue;
-			boolean casted = spell.activate(player, event.getCaster());
-			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-		}
 
-		List<PassiveSpell> list = spells.get(event.getSpell());
-		if (list == null) return;
-		for (PassiveSpell spell : list) {
-			if (!isCancelStateOk(spell, event.isCancelled())) continue;
-			if (!spellbook.hasSpell(spell, false)) continue;
-			boolean casted = spell.activate(player, event.getCaster());
-			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-		}
+		if (!spellNames.isEmpty() && !spellNames.contains(event.getSpell().getInternalName())) return;
+
+		if (!isCancelStateOk(event.isCancelled())) return;
+		if (!spellbook.hasSpell(passiveSpell, false)) return;
+		boolean casted = passiveSpell.activate(player, event.getCaster());
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }

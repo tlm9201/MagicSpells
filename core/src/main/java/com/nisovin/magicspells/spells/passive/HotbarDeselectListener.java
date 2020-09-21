@@ -4,11 +4,9 @@ import java.util.Set;
 import java.util.HashSet;
 
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -17,47 +15,36 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// Trigger variable of a comma separated list of items to accept
-public class RightClickItemListener extends PassiveListener {
+public class HotbarDeselectListener extends PassiveListener {
 
 	private final Set<MagicItemData> items = new HashSet<>();
-	
+
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
-		
-		String[] split = var.split("\\|");
-		for (String s : split) {
-			s = s.trim();
-			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
-			MagicItemData itemData = null;
-			if (magicItem != null) itemData = magicItem.getMagicItemData();
-			if (itemData == null) continue;
-			if (itemData.getName() != null) itemData.setName(Util.decolorize(itemData.getName()));
-
-			items.add(itemData);
-		}
-	}
-	
-	@OverridePriority
-	@EventHandler
-	public void onRightClick(PlayerInteractEvent event) {
-		if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if (!event.hasItem()) return;
-		
-		ItemStack item = event.getItem();
-		if (item == null || item.getType().isAir()) return;
-
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		MagicItemData itemData = null;
+		MagicItem magicItem = MagicItems.getMagicItemFromString(var.trim());
+		if (magicItem != null) itemData = magicItem.getMagicItemData();
 		if (itemData == null) return;
 
+		items.add(itemData);
+	}
+
+	@OverridePriority
+	@EventHandler
+	public void onPlayerScroll(PlayerItemHeldEvent event) {
+		ItemStack item = event.getPlayer().getInventory().getItem(event.getPreviousSlot());
+		if (item == null || item.getType().isAir()) return;
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		if (itemData == null) return;
 		if (!items.isEmpty() && !items.contains(itemData)) return;
 
 		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
 		if (!isCancelStateOk(event.isCancelled())) return;
 		if (!spellbook.hasSpell(passiveSpell, false)) return;
 		boolean casted = passiveSpell.activate(event.getPlayer());
-		if (cancelDefaultAction(casted)) event.setCancelled(true);
+		if (!cancelDefaultAction(casted)) return;
+		event.setCancelled(true);
 	}
 
 }

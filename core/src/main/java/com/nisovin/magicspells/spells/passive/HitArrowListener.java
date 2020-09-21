@@ -1,13 +1,8 @@
 package com.nisovin.magicspells.spells.passive;
 
 import java.util.Set;
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
 
-import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -18,24 +13,21 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.spells.PassiveSpell;
+import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 public class HitArrowListener extends PassiveListener {
 
-	private Set<Material> materials = new HashSet<>();
-	private Map<MagicItemData, List<PassiveSpell>> types = new HashMap<>();
-	private List<PassiveSpell> allTypes = new ArrayList<>();
+	private final Set<MagicItemData> items = new HashSet<>();
 
 	@Override
-	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
-		if (var == null || var.isEmpty()) {
-			allTypes.add(spell);
-			return;
-		}
+	public void initialize(String var) {
+		if (var == null || var.isEmpty()) return;
+
 		String[] split = var.split("\\|");
 		for (String s : split) {
 			s = s.trim();
@@ -44,9 +36,7 @@ public class HitArrowListener extends PassiveListener {
 			if (magicItem != null) itemData = magicItem.getMagicItemData();
 			if (itemData == null) continue;
 
-			List<PassiveSpell> list = types.computeIfAbsent(itemData, material -> new ArrayList<>());
-			list.add(spell);
-			materials.add(itemData.getType());
+			items.add(itemData);
 		}
 	}
 	
@@ -56,58 +46,34 @@ public class HitArrowListener extends PassiveListener {
 		Player player = getPlayerAttacker(event);
 		if (player == null || !(event.getEntity() instanceof LivingEntity)) return;
 		LivingEntity attacked = (LivingEntity) event.getEntity();
-		Spellbook spellbook = null;
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		
-		if (!allTypes.isEmpty()) {
-			spellbook = MagicSpells.getSpellbook(player);
-			for (PassiveSpell spell : allTypes) {
-				if (!isCancelStateOk(spell, event.isCancelled())) continue;
-				if (!spellbook.hasSpell(spell, false)) continue;
-				boolean casted = spell.activate(player, attacked);
-				if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-			}
+		if (items.isEmpty()) {
+			if (!isCancelStateOk(event.isCancelled())) return;
+			if (!spellbook.hasSpell(passiveSpell, false)) return;
+			boolean casted = passiveSpell.activate(player, attacked);
+			if (cancelDefaultAction(casted)) event.setCancelled(true);
+
+			return;
 		}
-		
-		if (types.isEmpty()) return;
-		
+
 		ItemStack item = player.getEquipment().getItemInMainHand();
-		
 		if (item == null) return;
-		if (item.getType() == Material.AIR) return;
-		
-		List<PassiveSpell> list = getSpells(item);
-		
-		if (list == null) return;
+		if (BlockUtils.isAir(item.getType())) return;
+		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
+		if (!items.contains(data)) return;
 
-		if (spellbook == null) spellbook = MagicSpells.getSpellbook(player);
-
-		for (PassiveSpell spell : list) {
-			if (!isCancelStateOk(spell, event.isCancelled())) continue;
-			if (!spellbook.hasSpell(spell, false)) continue;
-			boolean casted = spell.activate(player, attacked);
-			if (PassiveListener.cancelDefaultAction(spell, casted)) event.setCancelled(true);
-		}
+		if (!isCancelStateOk(event.isCancelled())) return;
+		if (!spellbook.hasSpell(passiveSpell, false)) return;
+		boolean casted = passiveSpell.activate(player, attacked);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 	
 	private Player getPlayerAttacker(EntityDamageByEntityEvent event) {
 		Entity e = event.getDamager();
-
 		if (!(e instanceof Arrow)) return null;
-
 		if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof Player) {
 			return (Player) ((Arrow) e).getShooter();
-		}
-
-		return null;
-	}
-	
-	private List<PassiveSpell> getSpells(ItemStack item) {
-		if (!materials.contains(item.getType())) return null;
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		if (itemData == null) return null;
-
-		for (Map.Entry<MagicItemData, List<PassiveSpell>> entry : types.entrySet()) {
-			if (entry.getKey().equals(itemData)) return entry.getValue();
 		}
 		return null;
 	}

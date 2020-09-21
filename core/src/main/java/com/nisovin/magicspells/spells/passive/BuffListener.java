@@ -1,8 +1,5 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.List;
-import java.util.ArrayList;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,6 +8,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
+import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
@@ -19,24 +17,19 @@ import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellLearnEvent;
 import com.nisovin.magicspells.events.SpellForgetEvent;
+import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // No trigger variable currently used
 public class BuffListener extends PassiveListener {
 
-	private List<PassiveSpell> spells = new ArrayList<>();
-
 	@Override
-	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
-		spells.add(spell);
-		for (Subspell s : spell.getActivatedSpells()) {
+	public void initialize(String var) {
+		for (Subspell s : passiveSpell.getActivatedSpells()) {
 			if (!(s.getSpell() instanceof BuffSpell)) continue;
 			BuffSpell buff = (BuffSpell) s.getSpell();
 			buff.setAsEverlasting();
 		}
-	}
 
-	@Override
-	public void initialize() {
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			on(player);
 		}
@@ -69,24 +62,24 @@ public class BuffListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onSpellLearn(final SpellLearnEvent event) {
-		if (event.getSpell() instanceof PassiveSpell && spells.contains(event.getSpell())) {
-			MagicSpells.scheduleDelayedTask(() -> on(event.getLearner(), (PassiveSpell) event.getSpell()), 1);
+		Spell spell = event.getSpell();
+		if (spell instanceof PassiveSpell && spell.getInternalName().equalsIgnoreCase(passiveSpell.getInternalName())) {
+			MagicSpells.scheduleDelayedTask(() -> on(event.getLearner(), (PassiveSpell) spell), 1);
 		}
 	}
 
 	@OverridePriority
 	@EventHandler
 	public void onSpellForget(SpellForgetEvent event) {
-		if (event.getSpell() instanceof PassiveSpell && spells.contains(event.getSpell())) {
-			off(event.getForgetter(), (PassiveSpell) event.getSpell());
+		Spell spell = event.getSpell();
+		if (spell instanceof PassiveSpell && spell.getInternalName().equalsIgnoreCase(passiveSpell.getInternalName())) {
+			off(event.getForgetter(), (PassiveSpell) spell);
 		}
 	}
 
 	private void on(Player player) {
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		for (PassiveSpell spell : spells) {
-			if (spellbook.hasSpell(spell)) on(player, spell);
-		}
+		if (spellbook.hasSpell(passiveSpell)) on(player, passiveSpell);
 	}
 
 	private void on(Player player, PassiveSpell spell) {
@@ -100,9 +93,7 @@ public class BuffListener extends PassiveListener {
 
 	private void off(Player player) {
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		for (PassiveSpell spell : spells) {
-			if (spellbook.hasSpell(spell)) off(player, spell);
-		}
+		if (spellbook.hasSpell(passiveSpell)) off(player, passiveSpell);
 	}
 
 	private void off(Player player, PassiveSpell spell) {

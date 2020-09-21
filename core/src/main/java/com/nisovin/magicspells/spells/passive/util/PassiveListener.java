@@ -1,0 +1,55 @@
+package com.nisovin.magicspells.spells.passive.util;
+
+import org.bukkit.event.Listener;
+import org.bukkit.event.EventPriority;
+
+import com.nisovin.magicspells.spells.PassiveSpell;
+
+public abstract class PassiveListener implements Listener {
+
+	protected PassiveSpell passiveSpell;
+
+	protected EventPriority priority;
+
+	public PassiveSpell getPassiveSpell() {
+		return passiveSpell;
+	}
+
+	public void setPassiveSpell(PassiveSpell passiveSpell) {
+		this.passiveSpell = passiveSpell;
+	}
+
+	public EventPriority getEventPriority() {
+		return priority;
+	}
+
+	public void setEventPriority(EventPriority priority) {
+		this.priority = priority;
+	}
+		
+	public boolean cancelDefaultAction(boolean casted) {
+		if (passiveSpell == null) return true;
+		if (casted && passiveSpell.cancelDefaultAction()) return true;
+		if (!casted && passiveSpell.cancelDefaultActionWhenCastFails()) return true;
+		return false;
+	}
+	
+	public boolean isCancelStateOk(boolean cancelled) {
+		if (passiveSpell == null) return false;
+		if (passiveSpell.ignoreCancelled() && cancelled) return false;
+		if (passiveSpell.requireCancelledEvent() && !cancelled) return false;
+		return true;
+	}
+	
+	public abstract void initialize(String var);
+
+	public void turnOff() {
+		// No op
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		return this == other; // Don't want to make things equal unless they are the same object
+	}
+	
+}
