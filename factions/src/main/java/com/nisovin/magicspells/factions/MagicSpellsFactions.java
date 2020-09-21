@@ -16,7 +16,7 @@ import com.massivecraft.massivecore.MassivePlugin;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.events.SpellTargetEvent;
-import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
+import com.nisovin.magicspells.events.ConditionsLoadingEvent;
 
 public class MagicSpellsFactions extends MassivePlugin {
 
@@ -53,7 +53,7 @@ public class MagicSpellsFactions extends MassivePlugin {
 	}
 	
 	@EventHandler
-	public void onMagicSpellsLoad(MagicSpellsLoadedEvent event) {
+	public void onConditionsLoad(ConditionsLoadingEvent event) {
 		registerCustomConditions();
 	}
 	
