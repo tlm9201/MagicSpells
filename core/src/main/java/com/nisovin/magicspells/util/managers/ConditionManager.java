@@ -6,7 +6,6 @@ import java.util.HashMap;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.castmodifiers.conditions.*;
-import com.nisovin.magicspells.castmodifiers.ProxyCondition;
 
 public class ConditionManager {
 
@@ -36,13 +35,8 @@ public class ConditionManager {
 
 	public Condition getConditionByName(String name) {
 		Class<? extends Condition> clazz = conditions.get(name.toLowerCase());
-		if (clazz == null) {
-			if (name.toLowerCase().startsWith("addon")) {
-				// If it starts with addon, then load it as an addon provided condition
-				return new ProxyCondition(name.replaceFirst("addon:", ""));
-			}
-			return null;
-		}
+		if (clazz == null) return null;
+
 		try {
 			return clazz.newInstance();
 		} catch (Exception e) {

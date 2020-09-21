@@ -385,13 +385,6 @@ public class MagicSpells extends JavaPlugin {
 		}
 		log("..." + MagicItems.getMagicItems().size() + " magic items loaded");
 
-		// Load conditions
-		log("Loading conditions...");
-		conditionManager = new ConditionManager();
-		// Call conditions event
-		pm.callEvent(new ConditionsLoadingEvent(this, conditionManager));
-		log("..." + conditionManager.getConditions().size() + " conditions loaded");
-
 		// Load variables
 		log("Loading variables...");
 		ConfigurationSection varSec = null;
@@ -564,7 +557,6 @@ public class MagicSpells extends JavaPlugin {
 		if (consumeListener.hasConsumeCastItems()) registerEvents(consumeListener);
 		if (config.getBoolean(path + "enable-dance-casting", true)) new DanceCastListener(this, config);
 
-		ModifierSet.initializeModifierListeners();
 		log("...done");
 
 		// Initialize logger
@@ -588,6 +580,26 @@ public class MagicSpells extends JavaPlugin {
 		pm.callEvent(new MagicSpellsLoadedEvent(this));
 
 		log("MagicSpells loading complete!");
+
+		Bukkit.getScheduler().runTaskLater(this, this::loadExternalData, 1);
+	}
+
+	private void loadExternalData() {
+		PluginManager pm = plugin.getServer().getPluginManager();
+		log("Loading external data...");
+
+		// Load conditions
+		log("Loading conditions...");
+		conditionManager = new ConditionManager();
+		// Call conditions event
+		pm.callEvent(new ConditionsLoadingEvent(plugin, conditionManager));
+		for (Spell spell : spells.values()) {
+			spell.initializeModifiers();
+		}
+		ModifierSet.initializeModifierListeners();
+		log("..." + conditionManager.getConditions().size() + " conditions loaded");
+
+		log("...done");
 	}
 
 	private static final int LONG_LOAD_THRESHOLD = 50;
