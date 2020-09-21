@@ -325,7 +325,6 @@ public class MagicSpells extends JavaPlugin {
 		enableManaSystem = config.getBoolean(manaPath + "enable-mana-system", false);
 
 		// Create handling objects
-		if (enableManaSystem) manaHandler = new ManaSystem(config);
 		noMagicZones = new NoMagicZoneManager();
 		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 100));
 		expBarManager = new ExperienceBarManager();
@@ -530,11 +529,8 @@ public class MagicSpells extends JavaPlugin {
 		// Setup mana
 		if (enableManaSystem) {
 			log("Enabling mana system...");
-			// Init
-			manaHandler.initialize();
 
-			// Setup online player mana bars
-			Util.forEachPlayerOnline(p -> manaHandler.createManaBar(p));
+			manaHandler = new ManaSystem(config);
 
 			log("...done");
 		}
@@ -593,9 +589,17 @@ public class MagicSpells extends JavaPlugin {
 		conditionManager = new ConditionManager();
 		// Call conditions event
 		pm.callEvent(new ConditionsLoadingEvent(plugin, conditionManager));
+
 		for (Spell spell : spells.values()) {
 			spell.initializeModifiers();
 		}
+
+		// setup mana bar conditions
+		manaHandler.initialize();
+
+		// Setup online player mana bars
+		Util.forEachPlayerOnline(p -> manaHandler.createManaBar(p));
+
 		ModifierSet.initializeModifierListeners();
 		log("..." + conditionManager.getConditions().size() + " conditions loaded");
 

@@ -59,8 +59,11 @@ public abstract class SpellEffect {
 
 	private boolean counterClockwise;
 
+	private List<String> modifiersList;
+	private List<String> locationModifiersList;
 	private ModifierSet modifiers;
 	private ModifierSet locationModifiers;
+
 	private Random random = new Random();
 
 	public void loadFromString(String string) {
@@ -98,16 +101,19 @@ public abstract class SpellEffect {
 
 		counterClockwise = config.getBoolean("orbit-counter-clockwise", false);
 		
-		List<String> modifiersList = config.getStringList("modifiers");
-		List<String> locationModifiersList = config.getStringList("location-modifiers");
-		if (modifiersList != null) modifiers = new ModifierSet(modifiersList);
-		if (locationModifiersList != null) locationModifiers = new ModifierSet(locationModifiersList);
+		modifiersList = config.getStringList("modifiers");
+		locationModifiersList = config.getStringList("location-modifiers");
 
 		maxDistance *= maxDistance;
 		ticksPerSecond = 20F / (float) effectInterval;
 		ticksPerRevolution = Math.round(ticksPerSecond * secondsPerRevolution);
 		distancePerTick = 6.28F / (ticksPerSecond * secondsPerRevolution);
 		loadFromConfig(config);
+	}
+
+	public void initializeModifiers() {
+		if (modifiersList != null) modifiers = new ModifierSet(modifiersList);
+		if (locationModifiersList != null) locationModifiers = new ModifierSet(locationModifiersList);
 	}
 	
 	protected abstract void loadFromConfig(ConfigurationSection config);

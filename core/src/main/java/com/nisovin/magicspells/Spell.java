@@ -581,6 +581,16 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			locationModifiers = new ModifierSet(locationModifierStrings);
 			locationModifierStrings = null;
 		}
+
+		if (effects != null && !effects.isEmpty()) {
+			for (EffectPosition position : effects.keySet()) {
+				if (position == null) continue;
+
+				List<SpellEffect> spellEffects = effects.get(position);
+				if (spellEffects == null || spellEffects.isEmpty()) continue;
+				spellEffects.forEach(SpellEffect::initializeModifiers);
+			}
+		}
 	}
 
 	/**
