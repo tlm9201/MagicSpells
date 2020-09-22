@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -6,6 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class PotionEffect extends SpellEffect {
 

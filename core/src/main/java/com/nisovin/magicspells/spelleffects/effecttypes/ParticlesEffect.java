@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -12,6 +12,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ColorUtil;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class ParticlesEffect extends SpellEffect {
 

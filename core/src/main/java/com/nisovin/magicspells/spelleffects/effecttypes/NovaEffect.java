@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import java.util.Set;
 import java.util.List;
@@ -20,6 +20,7 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.SpellAnimation;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class NovaEffect extends SpellEffect {
 

@@ -1,9 +1,7 @@
 package com.nisovin.magicspells.spelleffects;
 
-import java.util.Map;
 import java.util.List;
 import java.util.Random;
-import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -14,7 +12,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.trackers.BuffTracker;
 import com.nisovin.magicspells.spelleffects.trackers.OrbitTracker;
@@ -24,7 +21,7 @@ import de.slikey.effectlib.util.VectorUtils;
 
 public abstract class SpellEffect {
 
-	private static Map<String, Class<? extends SpellEffect>> effects = new HashMap<>();
+	private final Random random = new Random();
 
 	private int delay;
 	private double chance;
@@ -63,8 +60,6 @@ public abstract class SpellEffect {
 	private List<String> locationModifiersList;
 	private ModifierSet modifiers;
 	private ModifierSet locationModifiers;
-
-	private Random random = new Random();
 
 	public void loadFromString(String string) {
 		MagicSpells.plugin.getLogger().warning("Warning: single line effects are being removed, usage encountered: " + string);
@@ -370,75 +365,9 @@ public abstract class SpellEffect {
 	public ModifierSet getModifiers() {
 		return modifiers;
 	}
-
-	/**
-	 * Gets the GraphicalEffect by the provided name.
-	 * @param name the name of the effect
-	 * @return
-	 */
-	public static SpellEffect createNewEffectByName(String name) {
-		Class<? extends SpellEffect> clazz = effects.get(name.toLowerCase());
-		if (clazz == null) return null;
-		try {
-			return clazz.newInstance();
-		} catch (Exception e) {
-			DebugHandler.debugGeneral(e);
-			return null;
-		}
-	}
 	
 	public void playTrackingLinePatterns(Location origin, Location target, Entity originEntity, Entity targetEntity) {
 		// no op, effects should override this with their own behavior
 	}
-	
-	/**
-	 * Adds an effect with the provided name to the list of available effects.
-	 * This will replace an existing effect if the same name is used.
-	 * @param name the name of the effect
-	 * @param effect the effect to add
-	 * @return Returns true if an existing effect was overwritten
-	 */
-	public static boolean addEffect(String name, Class<? extends SpellEffect> effect) {
-		return effects.put(name.toLowerCase(), effect) != null;
-	}
 
-	public static void removeEffect(String name) {
-		effects.remove(name.toLowerCase());
-	}
-
-	public static Map<String, Class<? extends SpellEffect>> getEffects() {
-		return effects;
-	}
-	
-	static {
-		effects.put("armorstand", ArmorStandEffect.class);
-		effects.put("actionbartext", ActionBarTextEffect.class);
-		effects.put("bossbar", BossBarEffect.class);
-		effects.put("broadcast", BroadcastEffect.class);
-		effects.put("cloud", CloudEffect.class);
-		effects.put("dragondeath", DragonDeathEffect.class);
-		effects.put("ender", EnderSignalEffect.class);
-		effects.put("entity", EntityEffect.class);
-		effects.put("explosion", ExplosionEffect.class);
-		effects.put("fireworks", FireworksEffect.class);
-		effects.put("itemcooldown", ItemCooldownEffect.class);
-		effects.put("itemspray", ItemSprayEffect.class);
-		effects.put("lightning", LightningEffect.class);
-		effects.put("nova", NovaEffect.class);
-		effects.put("particles", ParticlesEffect.class);
-		effects.put("particlespersonal", ParticlesPersonalEffect.class);
-		effects.put("particlecloud", ParticleCloudEffect.class);
-		effects.put("potion", PotionEffect.class);
-		effects.put("smokeswirl", SmokeSwirlEffect.class);
-		effects.put("smoketrail", SmokeTrailEffect.class);
-		effects.put("sound", SoundEffect.class);
-		effects.put("soundpersonal", SoundPersonalEffect.class);
-		effects.put("spawn", MobSpawnerEffect.class);
-		effects.put("splash", SplashPotionEffect.class);
-		effects.put("title", TitleEffect.class);
-		effects.put("effectlib", EffectLibEffect.class);
-		effects.put("effectlibline", EffectLibLineEffect.class);
-		effects.put("effectlibentity", EffectLibEntityEffect.class);
-	}
-	
 }

@@ -73,6 +73,9 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
+import com.nisovin.magicspells.spelleffects.effecttypes.EntityEffect;
+import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
+import com.nisovin.magicspells.spelleffects.effecttypes.ArmorStandEffect;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 import de.slikey.effectlib.Effect;
@@ -322,40 +325,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			losTransparentBlocks.add(Material.VOID_AIR);
 		}
 
-		// Graphical effects
-		effectTrackerSet = new HashSet<>();
-		if (config.contains(path + "effects")) {
-			effects = new EnumMap<>(EffectPosition.class);
-			if (config.isList(path + "effects")) {
-				List<String> effectsList = config.getStringList(path + "effects", null);
-				if (effectsList != null) {
-					for (String eff : effectsList) {
-						String[] data = eff.split(" ", 3);
-						EffectPosition pos = EffectPosition.getPositionFromString(data[0]);
-						if (pos == null) continue;
-						SpellEffect effect = SpellEffect.createNewEffectByName(data[1]);
-						if (effect == null) continue;
-						effect.loadFromString(data.length > 2 ? data[2] : null);
-						List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
-						e.add(effect);
-					}
-				}
-			} else if (config.isSection(path + "effects")) {
-				for (String key : config.getKeys(path + "effects")) {
-					ConfigurationSection effConf = config.getSection(path + "effects." + key);
-					EffectPosition pos = EffectPosition.getPositionFromString(effConf.getString("position", ""));
-					if (pos == null) continue;
-					SpellEffect effect = SpellEffect.createNewEffectByName(effConf.getString("effect", ""));
-					if (effect == null) continue;
-					effect.loadFromConfiguration(effConf);
-					List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
-					e.add(effect);
-				}
-			}
-		}
-
-		//TODO load the fast mapping for effects here
-
 		// Cost
 		reagents = getConfigReagents("cost");
 		if (reagents == null) reagents = new SpellReagents();
@@ -561,6 +530,43 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		}
 		return reagents;
+	}
+
+	protected void initializeSpellEffects() {
+		// Graphical effects
+		String path = "spells" + '.' + internalName + '.';
+		effectTrackerSet = new HashSet<>();
+		if (!config.contains(path + "effects")) return;
+
+		effects = new EnumMap<>(EffectPosition.class);
+		if (config.isList(path + "effects")) {
+			List<String> effectsList = config.getStringList(path + "effects", null);
+			if (effectsList == null) return;
+
+			for (String eff : effectsList) {
+				String[] data = eff.split(" ", 3);
+				EffectPosition pos = EffectPosition.getPositionFromString(data[0]);
+				if (pos == null) continue;
+				SpellEffect effect = MagicSpells.getSpellEffectManager().getSpellEffectByName(data[1]);
+				if (effect == null) continue;
+				effect.loadFromString(data.length > 2 ? data[2] : null);
+				List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
+				e.add(effect);
+			}
+			return;
+		}
+
+		if (!config.isSection(path + "effects")) return;
+		for (String key : config.getKeys(path + "effects")) {
+			ConfigurationSection effConf = config.getSection(path + "effects." + key);
+			EffectPosition pos = EffectPosition.getPositionFromString(effConf.getString("position", ""));
+			if (pos == null) continue;
+			SpellEffect effect = MagicSpells.getSpellEffectManager().getSpellEffectByName(effConf.getString("effect", ""));
+			if (effect == null) continue;
+			effect.loadFromConfiguration(effConf);
+			List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
+			e.add(effect);
+		}
 	}
 
 	// DEBUG INFO: level 2, adding modifiers to internalname

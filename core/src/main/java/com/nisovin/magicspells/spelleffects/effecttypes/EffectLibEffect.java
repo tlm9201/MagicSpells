@@ -1,18 +1,19 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.EffectManager;
 
 public class EffectLibEffect extends SpellEffect {
 
-	ConfigurationSection effectLibSection;
-	EffectManager manager;
-	String className;
+	protected ConfigurationSection effectLibSection;
+	protected EffectManager manager;
+	protected String className;
 	
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
@@ -34,7 +35,7 @@ public class EffectLibEffect extends SpellEffect {
 		return manager.start(className, effectLibSection, location);
 	}
 
-	void updateManager() {
+	protected void updateManager() {
 		if (manager == null || manager.isDisposed()) manager = MagicSpells.getEffectManager();
 	}
 	

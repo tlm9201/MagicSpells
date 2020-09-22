@@ -98,6 +98,7 @@ public class MagicSpells extends JavaPlugin {
 	private VariableManager variableManager;
 	private AttributeManager attributeManager;
 	private PassiveManager passiveManager;
+	private SpellEffectManager spellEffectManager;
 	private ConditionManager conditionManager;
 	private NoMagicZoneManager noMagicZones;
 	private PaperCommandManager commandManager;
@@ -566,11 +567,27 @@ public class MagicSpells extends JavaPlugin {
 		PluginManager pm = plugin.getServer().getPluginManager();
 		log("Loading external data...");
 
+		loadSpellEffects(pm);
 		loadVariables(pm);
 		loadConditions(pm);
 		loadPassiveListeners(pm);
 
 		log("...done");
+	}
+
+	private void loadSpellEffects(PluginManager pm) {
+		// Load spell effects
+		log("Loading spell effect types...");
+		spellEffectManager = new SpellEffectManager();
+
+		// Call spell effect event
+		pm.callEvent(new SpellEffectsLoadingEvent(plugin, spellEffectManager));
+
+		for (Spell spell : spells.values()) {
+			spell.initializeSpellEffects();
+		}
+
+		log("...spell effect types loaded: " + spellEffectManager.getSpellEffects().size());
 	}
 
 	private void loadVariables(PluginManager pm) {
@@ -617,7 +634,7 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	private void loadPassiveListeners(PluginManager pm) {
-		// Load passive triggers
+		// Load passive listeners
 		log("Loading passive listeners...");
 		passiveManager = new PassiveManager();
 
@@ -1038,6 +1055,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static PassiveManager getPassiveManager() {
 		return plugin.passiveManager;
+	}
+
+	public static SpellEffectManager getSpellEffectManager() {
+		return plugin.spellEffectManager;
 	}
 
 	public static MoneyHandler getMoneyHandler() {

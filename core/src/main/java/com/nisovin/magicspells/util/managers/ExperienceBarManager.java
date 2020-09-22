@@ -11,7 +11,7 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class ExperienceBarManager {
 
-	private Map<Player, Object> locks = new HashMap<>();
+	private final Map<Player, Object> locks = new HashMap<>();
 	
 	public void update(Player player, int level, float percent) {
 		update(player, level, percent, null);
