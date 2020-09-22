@@ -52,6 +52,7 @@ import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.util.SpellReagents;
@@ -1599,13 +1600,17 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		List<SpellEffect> effectsList = effects.get(EffectPosition.BUFF);
 		if (effectsList != null) {
 			for (SpellEffect effect : effectsList) {
-				effectTrackerSet.add(effect.playEffectWhileActiveOnEntity(entity, checker));
+				EffectTracker tracker = effect.playEffectWhileActiveOnEntity(entity, checker);
+				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
+				effectTrackerSet.add(tracker);
 			}
 		}
 		effectsList = effects.get(EffectPosition.ORBIT);
 		if (effectsList != null) {
 			for (SpellEffect effect : effectsList) {
-				effectTrackerSet.add(effect.playEffectWhileActiveOrbit(entity, checker));
+				EffectTracker tracker = effect.playEffectWhileActiveOrbit(entity, checker);
+				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
+				effectTrackerSet.add(tracker);
 			}
 		}
 	}
