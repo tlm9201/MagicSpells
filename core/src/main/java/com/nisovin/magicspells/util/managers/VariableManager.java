@@ -78,12 +78,14 @@ public class VariableManager {
 	}
 
 	private void initialize() {
+		// variable types
 		addVariableType("player", PlayerVariable.class);
 		addVariableType("global", GlobalVariable.class);
 		addVariableType("distancetolocation", DistanceToLocationVariable.class);
 		addVariableType("squareddistancetolocation", SquaredDistanceToLocationVariable.class);
 		addVariableType("playerstring", PlayerStringVariable.class);
 
+		// meta variable types
 		addMetaVariableType("location_x", new CoordXVariable());
 		addMetaVariableType("location_y", new CoordYVariable());
 		addMetaVariableType("location_z", new CoordZVariable());
@@ -123,7 +125,7 @@ public class VariableManager {
 		addMetaVariableType("timestamp_minutes", new TimestampMinutesVariable());
 		addMetaVariableType("timestamp_seconds", new TimestampSecondsVariable());
 
-		// attributes
+		// meta variable attribute types
 		addMetaVariableType("attribute_generic_max_health_base", new AttributeBaseValueVariable("GENERIC_MAX_HEALTH"));
 		addMetaVariableType("attribute_generic_follow_range_base", new AttributeBaseValueVariable("GENERIC_FOLLOW_RANGE"));
 		addMetaVariableType("attribute_generic_knockback_resistance_base", new AttributeBaseValueVariable("GENERIC_KNOCKBACK_RESISTANCE"));

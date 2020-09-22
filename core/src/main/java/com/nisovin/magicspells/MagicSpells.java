@@ -589,8 +589,9 @@ public class MagicSpells extends JavaPlugin {
 
 		variableManager.loadVariables(varSec);
 
-		log("...variable types loaded: " + (variableManager.getVariableTypes().size() + variableManager.getMetaVariables().size()));
-		log("...variables loaded: " + variableManager.getVariables().size());
+		log("...variable meta types loaded: " + variableManager.getMetaVariables().size());
+		log("...variable types loaded: " + variableManager.getVariableTypes().size());
+		log("...variables loaded: " + (variableManager.getVariables().size() - variableManager.getMetaVariables().size()));
 	}
 
 	private void loadConditions(PluginManager pm) {
