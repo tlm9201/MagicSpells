@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spells.passive.util;
 
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventPriority;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.spells.PassiveSpell;
 
@@ -25,6 +26,14 @@ public abstract class PassiveListener implements Listener {
 
 	public void setEventPriority(EventPriority priority) {
 		this.priority = priority;
+	}
+
+	public boolean canTrigger(LivingEntity livingEntity) {
+		return passiveSpell.getTriggerList().canTarget(livingEntity);
+	}
+
+	public boolean canTrigger(LivingEntity livingEntity, boolean ignoreGameMode) {
+		return passiveSpell.getTriggerList().canTarget(livingEntity, ignoreGameMode);
 	}
 		
 	public boolean cancelDefaultAction(boolean casted) {
