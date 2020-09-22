@@ -567,27 +567,12 @@ public class MagicSpells extends JavaPlugin {
 		PluginManager pm = plugin.getServer().getPluginManager();
 		log("Loading external data...");
 
-		loadSpellEffects(pm);
 		loadVariables(pm);
+		loadSpellEffects(pm);
 		loadConditions(pm);
 		loadPassiveListeners(pm);
 
 		log("...done");
-	}
-
-	private void loadSpellEffects(PluginManager pm) {
-		// Load spell effects
-		log("Loading spell effect types...");
-		spellEffectManager = new SpellEffectManager();
-
-		// Call spell effect event
-		pm.callEvent(new SpellEffectsLoadingEvent(plugin, spellEffectManager));
-
-		for (Spell spell : spells.values()) {
-			spell.initializeSpellEffects();
-		}
-
-		log("...spell effect types loaded: " + spellEffectManager.getSpellEffects().size());
 	}
 
 	private void loadVariables(PluginManager pm) {
@@ -609,6 +594,21 @@ public class MagicSpells extends JavaPlugin {
 		log("...variable meta types loaded: " + variableManager.getMetaVariables().size());
 		log("...variable types loaded: " + variableManager.getVariableTypes().size());
 		log("...variables loaded: " + (variableManager.getVariables().size() - variableManager.getMetaVariables().size()));
+	}
+
+	private void loadSpellEffects(PluginManager pm) {
+		// Load spell effects
+		log("Loading spell effect types...");
+		spellEffectManager = new SpellEffectManager();
+
+		// Call spell effect event
+		pm.callEvent(new SpellEffectsLoadingEvent(plugin, spellEffectManager));
+
+		for (Spell spell : spells.values()) {
+			spell.initializeSpellEffects();
+		}
+
+		log("...spell effect types loaded: " + spellEffectManager.getSpellEffects().size());
 	}
 
 	private void loadConditions(PluginManager pm) {

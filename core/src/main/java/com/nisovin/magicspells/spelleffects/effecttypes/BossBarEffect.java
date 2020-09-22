@@ -91,4 +91,5 @@ public class BossBarEffect extends SpellEffect {
 		}
 		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}
+
 }
