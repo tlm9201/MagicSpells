@@ -6,6 +6,8 @@ import java.util.ArrayList;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
@@ -19,19 +21,21 @@ import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
-import com.nisovin.magicspells.spells.passive.PassiveManager;
-import com.nisovin.magicspells.spells.passive.PassiveTrigger;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
+import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 public class PassiveSpell extends Spell {
 
-	private static PassiveManager manager;
-	
-	private Random random = new Random();
+	private final Random random = new Random();
 
-	private float chance;
+	private final List<PassiveListener> passiveListeners;
+	private List<Subspell> spells;
+	private List<String> triggers;
+	private List<String> spellNames;
 
 	private int delay;
+
+	private float chance;
 
 	private boolean disabled = false;
 	private boolean ignoreCancelled;
@@ -41,18 +45,17 @@ public class PassiveSpell extends Spell {
 	private boolean requireCancelledEvent;
 	private boolean cancelDefaultActionWhenCastFails;
 
-	private List<String> triggers;
-	private List<String> spellNames;
-	private List<Subspell> spells;
-
 	public PassiveSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
-		if (manager == null) manager = new PassiveManager();
 
-		chance = getConfigFloat("chance", 100F) / 100F;
+		passiveListeners = new ArrayList<>();
+
+		triggers = getConfigStringList("triggers", null);
+		spellNames = getConfigStringList("spells", null);
 
 		delay = getConfigInt("delay", -1);
+
+		chance = getConfigFloat("chance", 100F) / 100F;
 
 		ignoreCancelled = getConfigBoolean("ignore-cancelled", true);
 		castWithoutTarget = getConfigBoolean("cast-without-target", false);
@@ -60,9 +63,6 @@ public class PassiveSpell extends Spell {
 		cancelDefaultAction = getConfigBoolean("cancel-default-action", false);
 		requireCancelledEvent = getConfigBoolean("require-cancelled-event", false);
 		cancelDefaultActionWhenCastFails = getConfigBoolean("cancel-default-action-when-cast-fails", false);
-
-		triggers = getConfigStringList("triggers", null);
-		spellNames = getConfigStringList("spells", null);
 	}
 
 	@Override
@@ -81,40 +81,64 @@ public class PassiveSpell extends Spell {
 				spells.add(spell);
 			}
 		}
-		if (spells.isEmpty()) {
-			MagicSpells.error("PassiveSpell '" + internalName + "' has no spells defined!");
+
+		if (spells.isEmpty()) MagicSpells.error("PassiveSpell '" + internalName + "' has no spells defined!");
+	}
+
+	@Override
+	public void turnOff() {
+		super.turnOff();
+
+		for (PassiveListener listener : passiveListeners) {
+			listener.turnOff();
+			HandlerList.unregisterAll(listener);
+		}
+	}
+
+	public void initializeListeners() {
+		// Get trigger
+		int trigCount = 0;
+		if (triggers == null) {
+			MagicSpells.error("PassiveSpell '" + internalName + "' has no triggers defined!");
 			return;
 		}
 
-		// Get trigger
-		int trigCount = 0;
-		if (triggers != null) {
-			for (String strigger : triggers) {
-				String type = strigger;
-				String var = null;
-				if (strigger.contains(" ")) {
-					String[] data = Util.splitParams(strigger, 2);
-					type = data[0];
-					var = data[1];
-				}
-				type = type.toLowerCase();
-
-				PassiveTrigger trigger = PassiveTrigger.getByName(type);
-				if (trigger != null) {
-					manager.registerSpell(this, trigger, var);
-					trigCount++;
-				} else {
-					MagicSpells.error("PassiveSpell '" + internalName + "' has an invalid trigger defined: " + strigger);
-				}
+		for (String trigger : triggers) {
+			String type = trigger;
+			String args = null;
+			if (trigger.contains(" ")) {
+				String[] data = Util.splitParams(trigger, 2);
+				type = data[0];
+				args = data[1];
 			}
+			type = type.toLowerCase();
+
+			EventPriority priority = MagicSpells.getPassiveManager().getEventPriorityFromName(type);
+			if (priority == null) priority = EventPriority.NORMAL;
+
+			String priorityName = MagicSpells.getPassiveManager().getEventPriorityName(priority);
+			if (priorityName != null) type = type.replace(priorityName, "");
+
+			PassiveListener listener = MagicSpells.getPassiveManager().getListenerByName(type);
+			if (listener == null) {
+				MagicSpells.error("PassiveSpell '" + internalName + "' has an invalid trigger defined: " + type);
+				continue;
+			}
+
+			listener.setPassiveSpell(this);
+			listener.setEventPriority(priority);
+			listener.initialize(args);
+			MagicSpells.registerEvents(listener, priority);
+			trigCount++;
 		}
+
 		if (trigCount == 0) MagicSpells.error("PassiveSpell '" + internalName + "' has no triggers defined!");
 	}
-	
-	public static PassiveManager getManager() {
-		return manager;
+
+	public List<PassiveListener> getPassiveListeners() {
+		return passiveListeners;
 	}
-	
+
 	public List<Subspell> getActivatedSpells() {
 		return spells;
 	}
@@ -148,12 +172,6 @@ public class PassiveSpell extends Spell {
 	@Override
 	public boolean canCastByCommand() {
 		return false;
-	}
-
-	public static void resetManager() {
-		if (manager == null) return;
-		manager.turnOff();
-		manager = null;
 	}
 
 	private boolean isActuallyNonTargeted(Spell spell) {

@@ -1,9 +1,5 @@
 package com.nisovin.magicspells.spells.passive;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -22,6 +18,7 @@ import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellLearnEvent;
 import com.nisovin.magicspells.events.SpellForgetEvent;
+import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Trigger argument is required
 // Must be an integer.
@@ -30,71 +27,61 @@ import com.nisovin.magicspells.events.SpellForgetEvent;
 // The trigger will activate every x ticks
 public class TicksListener extends PassiveListener {
 
-	Map<Integer, Ticker> tickers = new HashMap<>();
-	
+	private Ticker ticker;
+
 	@Override
-	public void registerSpell(PassiveSpell spell, PassiveTrigger trigger, String var) {
+	public void initialize(String var) {
+		if (var == null || var.isEmpty()) return;
 		try {
 			int interval = Integer.parseInt(var);
-			Ticker ticker = tickers.computeIfAbsent(interval, Ticker::new);
-			ticker.add(spell);
+			ticker = new Ticker(passiveSpell, interval);
 		} catch (NumberFormatException e) {
-			// No op
+			// ignored
 		}
-	}
-	
-	@Override
-	public void initialize() {
+
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			if (!player.isValid()) continue;
-			for (Ticker ticker : tickers.values()) {
-				ticker.add(player);
-			}
+			ticker.add(player);
 		}
 	}
 	
 	@Override
 	public void turnOff() {
-		for (Ticker ticker : tickers.values()) {
-			ticker.turnOff();
-		}
-		tickers.clear();
+		ticker.turnOff();
 	}
 	
 	@OverridePriority
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		for (Ticker ticker : tickers.values()) {
-			ticker.add(player);
-		}
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (spellbook == null) return;
+		if (!spellbook.hasSpell(passiveSpell)) return;
+		ticker.add(player);
 	}
 	
 	@OverridePriority
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
-		for (Ticker ticker : tickers.values()) {
-			ticker.remove(player);
-		}
+		ticker.remove(player);
 	}
 	
 	@OverridePriority
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event) {
 		Player player = event.getEntity();
-		for (Ticker ticker : tickers.values()) {
-			ticker.remove(player);
-		}
+		ticker.remove(player);
 	}
 	
 	@OverridePriority
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
 		Player player = event.getPlayer();
-		for (Ticker ticker : tickers.values()) {
-			ticker.add(player);
-		}
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (spellbook == null) return;
+		if (!spellbook.hasSpell(passiveSpell)) return;
+		ticker.add(player);
 	}
 	
 	@OverridePriority
@@ -102,10 +89,8 @@ public class TicksListener extends PassiveListener {
 	public void onLearn(SpellLearnEvent event) {
 		Spell spell = event.getSpell();
 		if (!(spell instanceof PassiveSpell)) return;
-		for (Ticker ticker : tickers.values()) {
-			if (!ticker.monitoringSpell((PassiveSpell)spell)) continue;
-			ticker.add(event.getLearner(), (PassiveSpell)spell);
-		}
+		if (!spell.getInternalName().equals(passiveSpell.getInternalName())) return;
+		ticker.add(event.getLearner());
 	}
 	
 	@OverridePriority
@@ -113,63 +98,43 @@ public class TicksListener extends PassiveListener {
 	public void onForget(SpellForgetEvent event) {
 		Spell spell = event.getSpell();
 		if (!(spell instanceof PassiveSpell)) return;
-		for (Ticker ticker : tickers.values()) {
-			if (!ticker.monitoringSpell((PassiveSpell)spell)) continue;
-			ticker.remove(event.getForgetter(), (PassiveSpell)spell);
-		}
+		if (!spell.getInternalName().equals(passiveSpell.getInternalName())) return;
+		ticker.remove(event.getForgetter());
 	}
 	
-	static class Ticker implements Runnable {
+	private static class Ticker implements Runnable {
 
-		int taskId;
-		Map<PassiveSpell, Collection<Player>> spells = new HashMap<>();
-		String profilingKey;
+		private final Collection<Player> players;
+
+		private final PassiveSpell passiveSpell;
+
+		private final int taskId;
+		private final String profilingKey;
 		
-		public Ticker(int interval) {
+		public Ticker(PassiveSpell passiveSpell, int interval) {
+			this.passiveSpell = passiveSpell;
 			taskId = MagicSpells.scheduleRepeatingTask(this, interval, interval);
 			profilingKey = MagicSpells.profilingEnabled() ? "PassiveTick:" + interval : null;
-		}
-		
-		public void add(PassiveSpell spell) {
-			spells.put(spell, new HashSet<>());
+			players = new ArrayList<>();
 		}
 		
 		public void add(Player player) {
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			for (Entry<PassiveSpell, Collection<Player>> entry : spells.entrySet()) {
-				if (spellbook.hasSpell(entry.getKey())) entry.getValue().add(player);
-			}
+			players.add(player);
 		}
-		
-		public void add(Player player, PassiveSpell spell) {
-			spells.get(spell).add(player);
-		}
-		
+
 		public void remove(Player player) {
-			for (Collection<Player> players : spells.values()) {
-				players.remove(player);
-			}
+			players.remove(player);
 		}
-		
-		public void remove(Player player, PassiveSpell spell) {
-			spells.get(spell).remove(player);
-		}
-		
-		public boolean monitoringSpell(PassiveSpell spell) {
-			return spells.containsKey(spell);
-		}
-		
+
 		@Override
 		public void run() {
 			long start = System.nanoTime();
-			for (Map.Entry<PassiveSpell, Collection<Player>> entry : spells.entrySet()) {
-				Collection<Player> players = entry.getValue();
-				if (players.isEmpty()) continue;
-				for (Player p : new ArrayList<>(players)) {
-					if (p.isOnline() && p.isValid()) entry.getKey().activate(p);
-					else players.remove(p);
-				}
+
+			for (Player p : new ArrayList<>(players)) {
+				if (p.isOnline() && p.isValid()) passiveSpell.activate(p);
+				else players.remove(p);
 			}
+
 			if (profilingKey != null) MagicSpells.addProfile(profilingKey, System.nanoTime() - start);
 		}
 		

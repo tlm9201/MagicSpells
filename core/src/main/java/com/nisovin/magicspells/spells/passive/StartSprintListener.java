@@ -2,16 +2,16 @@ package com.nisovin.magicspells.spells.passive;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerBedEnterEvent;
+import org.bukkit.event.player.PlayerToggleSprintEvent;
 
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// No trigger variable is currently used
-public class EnterBedListener extends PassiveListener {
-
+// No trigger variable is used here
+public class StartSprintListener extends PassiveListener {
+	
 	@Override
 	public void initialize(String var) {
 
@@ -19,14 +19,16 @@ public class EnterBedListener extends PassiveListener {
 	
 	@OverridePriority
 	@EventHandler
-	public void onDeath(PlayerBedEnterEvent event) {
+	public void onSprint(PlayerToggleSprintEvent event) {
 		Player player = event.getPlayer();
+		if (!event.isSprinting()) return;
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
+		if (!spellbook.hasSpell(passiveSpell, false)) return;
 		boolean casted = passiveSpell.activate(player);
-		if (cancelDefaultAction(casted)) event.setCancelled(true);
+		if (!cancelDefaultAction(casted)) return;
+		event.setCancelled(true);
 	}
-	
+
 }

@@ -36,6 +36,7 @@ import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.events.*;
 import com.nisovin.magicspells.handlers.*;
 import com.nisovin.magicspells.listeners.*;
 import com.nisovin.magicspells.util.managers.*;
@@ -44,7 +45,6 @@ import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.prompt.PromptType;
-import com.nisovin.magicspells.events.SpellLearnEvent;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -52,10 +52,6 @@ import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
-import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
-import com.nisovin.magicspells.spells.passive.PassiveManager;
-import com.nisovin.magicspells.events.ConditionsLoadingEvent;
-import com.nisovin.magicspells.events.MagicSpellsLoadingEvent;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
@@ -102,6 +98,7 @@ public class MagicSpells extends JavaPlugin {
 	private BossBarManager bossBarManager;
 	private VariableManager variableManager;
 	private AttributeManager attributeManager;
+	private PassiveManager passiveManager;
 	private ConditionManager conditionManager;
 	private NoMagicZoneManager noMagicZones;
 	private PaperCommandManager commandManager;
@@ -493,12 +490,6 @@ public class MagicSpells extends JavaPlugin {
 		Util.forEachPlayerOnline(p -> spellbooks.put(p.getName(), new Spellbook(p, this)));
 		log("...done");
 
-		// Initialize passive manager
-		log("Initializing passive manager...");
-		PassiveManager passiveManager = PassiveSpell.getManager();
-		if (passiveManager != null) passiveManager.initialize();
-		log("...done");
-
 		// Load saved cooldowns
 		if (cooldownsPersistThroughReload) {
 			File file = new File(getDataFolder(), "cooldowns.txt");
@@ -584,6 +575,13 @@ public class MagicSpells extends JavaPlugin {
 		PluginManager pm = plugin.getServer().getPluginManager();
 		log("Loading external data...");
 
+		loadConditions(pm);
+		loadPassiveListeners(pm);
+
+		log("...done");
+	}
+
+	private void loadConditions(PluginManager pm) {
 		// Load conditions
 		log("Loading conditions...");
 		conditionManager = new ConditionManager();
@@ -601,9 +599,23 @@ public class MagicSpells extends JavaPlugin {
 		Util.forEachPlayerOnline(p -> manaHandler.createManaBar(p));
 
 		ModifierSet.initializeModifierListeners();
-		log("..." + conditionManager.getConditions().size() + " conditions loaded");
+		log("...conditions loaded: " + conditionManager.getConditions().size());
+	}
 
-		log("...done");
+	private void loadPassiveListeners(PluginManager pm) {
+		// Load passive triggers
+		log("Loading passive listeners...");
+		passiveManager = new PassiveManager();
+		passiveManager.initialize();
+
+		// Call conditions event
+		pm.callEvent(new PassiveListenersLoadingEvent(plugin, passiveManager));
+
+		for (Spell spell : spells.values()) {
+			if (!(spell instanceof PassiveSpell)) continue;
+			((PassiveSpell) spell).initializeListeners();
+		}
+		log("...passive listeners loaded: " + passiveManager.getListeners().size());
 	}
 
 	private static final int LONG_LOAD_THRESHOLD = 50;
@@ -1011,6 +1023,10 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.conditionManager;
 	}
 
+	public static PassiveManager getPassiveManager() {
+		return plugin.passiveManager;
+	}
+
 	public static MoneyHandler getMoneyHandler() {
 		return plugin.moneyHandler;
 	}
@@ -1411,8 +1427,6 @@ public class MagicSpells extends JavaPlugin {
 			animation.stop(false);
 		}
 		SpellAnimation.getAnimations().clear();
-
-		PassiveSpell.resetManager();
 
 		// Save cooldowns
 		if (cooldownsPersistThroughReload) {
