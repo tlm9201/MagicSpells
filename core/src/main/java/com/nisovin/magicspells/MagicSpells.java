@@ -587,9 +587,12 @@ public class MagicSpells extends JavaPlugin {
 
 		// Call variable event
 		pm.callEvent(new VariablesLoadingEvent(plugin, variableManager));
-		if (!variableManager.getVariables().isEmpty()) registerEvents(new VariableListener());
 
 		variableManager.loadVariables(varSec);
+
+		spells.values().forEach(Spell::initializeVariables);
+
+		if (!variableManager.getVariables().isEmpty()) registerEvents(new VariableListener());
 
 		log("...variable meta types loaded: " + variableManager.getMetaVariables().size());
 		log("...variable types loaded: " + variableManager.getVariableTypes().size());
@@ -604,9 +607,7 @@ public class MagicSpells extends JavaPlugin {
 		// Call spell effect event
 		pm.callEvent(new SpellEffectsLoadingEvent(plugin, spellEffectManager));
 
-		for (Spell spell : spells.values()) {
-			spell.initializeSpellEffects();
-		}
+		spells.values().forEach(Spell::initializeSpellEffects);
 
 		log("...spell effect types loaded: " + spellEffectManager.getSpellEffects().size());
 	}
@@ -645,6 +646,7 @@ public class MagicSpells extends JavaPlugin {
 			if (!(spell instanceof PassiveSpell)) continue;
 			((PassiveSpell) spell).initializeListeners();
 		}
+
 		log("...passive listeners loaded: " + passiveManager.getListeners().size());
 	}
 
