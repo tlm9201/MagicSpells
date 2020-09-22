@@ -3,12 +3,11 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -34,16 +33,18 @@ public class HotbarSelectListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onPlayerScroll(PlayerItemHeldEvent event) {
-		ItemStack item = event.getPlayer().getInventory().getItem(event.getNewSlot());
+		Player player = event.getPlayer();
+		ItemStack item = player.getInventory().getItem(event.getNewSlot());
 		if (item == null || item.getType().isAir()) return;
+
 		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
 		if (itemData == null) return;
 		if (!items.isEmpty() && !items.contains(itemData)) return;
 
-		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		if (!hasSpell(player)) return;
+
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
-		boolean casted = passiveSpell.activate(event.getPlayer());
+		boolean casted = passiveSpell.activate(player);
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);
 	}

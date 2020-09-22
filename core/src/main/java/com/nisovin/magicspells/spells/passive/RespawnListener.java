@@ -4,7 +4,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -21,8 +20,7 @@ public class RespawnListener extends PassiveListener {
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
 		final Player player = event.getPlayer();
-		final Spellbook spellbook = MagicSpells.getSpellbook(player);
-		if (!spellbook.hasSpell(passiveSpell)) return;
+		if (!hasSpell(player)) return;
 		MagicSpells.scheduleDelayedTask(() -> passiveSpell.activate(player), 1);
 	}
 

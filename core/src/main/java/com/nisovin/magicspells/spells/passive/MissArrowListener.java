@@ -6,16 +6,15 @@ import java.util.HashSet;
 
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -46,23 +45,25 @@ public class MissArrowListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onHitEntity(EntityDamageByEntityEvent event) {
-		Player p = getPlayerAttacker(event);
-		if (p == null) return;
-		if (event.getDamager() instanceof Arrow && event.getDamager().hasMetadata("mal-" + p.getUniqueId() + '-' + p.getName())
-				&& !event.getEntity().getMetadata("mal-" + p.getUniqueId() + '-' + p.getName()).isEmpty()) {
-			((ArrowParticle) event.getDamager().getMetadata("mal-" + p.getUniqueId() + '-' + p.getName()).get(0).value()).setHitEntity(true);
+		LivingEntity attacker = getAttacker(event);
+		if (attacker == null) return;
+		String name = attacker.getName();
+		UUID id = attacker.getUniqueId();
+		if (event.getDamager() instanceof Arrow && event.getDamager().hasMetadata("mal-" + id + '-' + name)
+				&& !event.getEntity().getMetadata("mal-" + id + '-' + name).isEmpty()) {
+			((ArrowParticle) event.getDamager().getMetadata("mal-" + id + '-' + name).get(0).value()).setHitEntity(true);
 		}
 	}
 	
 	@OverridePriority
 	@EventHandler
 	public void onDamage(ProjectileHitEvent event) {
-		Player player = getPlayerAttacker(event);
-		if (player == null) return;
+		LivingEntity attacker = getAttacker(event);
+		if (attacker == null) return;
 		if (!(event.getEntity() instanceof Arrow)) return;
 
-		String name = player.getName();
-		UUID id = player.getUniqueId();
+		String name = attacker.getName();
+		UUID id = attacker.getUniqueId();
 		
 		if (!event.getEntity().hasMetadata("mal-" + id + '-' + name)) return;
 		if (event.getEntity().getMetadata("mal-" + id + '-' + name).isEmpty()) return;
@@ -70,15 +71,15 @@ public class MissArrowListener extends PassiveListener {
 		ArrowParticle arrowParticle = (ArrowParticle) event.getEntity().getMetadata("mal-" + id + '-' + name).get(0).value();
 
 		if (arrowParticle.isHitEntity()) return;
+		if (!hasSpell(attacker)) return;
+		if (!canTrigger(attacker)) return;
 		
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		if (items.isEmpty()) {
-			if (!spellbook.hasSpell(passiveSpell, false)) return;
-			passiveSpell.activate(player, event.getEntity().getLocation());
+			passiveSpell.activate(attacker, event.getEntity().getLocation());
 			return;
 		}
 
-		ItemStack item = player.getEquipment().getItemInMainHand();
+		ItemStack item = attacker.getEquipment().getItemInMainHand();
 		
 		if (item == null) return;
 		if (item.getType().isAir()) return;
@@ -86,24 +87,23 @@ public class MissArrowListener extends PassiveListener {
 		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
 		if (!items.contains(itemData)) return;
 
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
-		passiveSpell.activate(player, event.getEntity().getLocation());
+		passiveSpell.activate(attacker, event.getEntity().getLocation());
 	}
 	
-	private Player getPlayerAttacker(ProjectileHitEvent event) {
+	private LivingEntity getAttacker(ProjectileHitEvent event) {
 		Projectile e = event.getEntity();
 		if (!(e instanceof Arrow)) return null;
-		if (e.getShooter() != null && e.getShooter() instanceof Player) {
-			return (Player) e.getShooter();
+		if (e.getShooter() != null && e.getShooter() instanceof LivingEntity) {
+			return (LivingEntity) e.getShooter();
 		}
 		return null;
 	}
 
-	private Player getPlayerAttacker(EntityDamageByEntityEvent event) {
+	private LivingEntity getAttacker(EntityDamageByEntityEvent event) {
 		Entity e = event.getDamager();
 		if (!(e instanceof Arrow)) return null;
-		if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof Player) {
-			return (Player) ((Arrow) e).getShooter();
+		if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof LivingEntity) {
+			return (LivingEntity) ((Arrow) e).getShooter();
 		}
 		return null;
 	}
@@ -111,8 +111,8 @@ public class MissArrowListener extends PassiveListener {
 	@EventHandler
 	public void shoot(ProjectileLaunchEvent event) {
 		if (event.getEntity() != null && event.getEntity().getShooter() != null
-				&& event.getEntity().getShooter() instanceof Player && event.getEntity() instanceof Arrow) {
-			Player p = (Player) event.getEntity().getShooter();
+				&& event.getEntity().getShooter() instanceof LivingEntity && event.getEntity() instanceof Arrow) {
+			LivingEntity p = (LivingEntity) event.getEntity().getShooter();
 			ArrowParticle arrowParticle = new ArrowParticle(p);
 			event.getEntity().setMetadata("mal-" + p.getUniqueId() + '-' + p.getName(), new FixedMetadataValue(MagicSpells.getInstance(), arrowParticle));
 		}
@@ -120,14 +120,14 @@ public class MissArrowListener extends PassiveListener {
 	
 	private static class ArrowParticle {
 
-		private Player origCaster;
+		private LivingEntity origCaster;
 		private boolean hitEntity;
 		
-		private ArrowParticle(Player origCaster) {
+		private ArrowParticle(LivingEntity origCaster) {
 			this.origCaster = origCaster;
 		}
 		
-		public Player getOrigCaster() {
+		public LivingEntity getOrigCaster() {
 			return origCaster;
 		}
 		

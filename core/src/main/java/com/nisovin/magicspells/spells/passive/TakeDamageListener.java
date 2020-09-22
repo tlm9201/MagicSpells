@@ -14,8 +14,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -59,31 +57,30 @@ public class TakeDamageListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onDamage(EntityDamageEvent event) {
-		if (!(event.getEntity() instanceof Player)) return;
-		Player player = (Player) event.getEntity();
+		if (!(event.getEntity() instanceof LivingEntity)) return;
+		LivingEntity entity = (LivingEntity) event.getEntity();
 		LivingEntity attacker = getAttacker(event);
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+
+		if (!hasSpell(entity)) return;
+		if (!canTrigger(entity)) return;
 
 		if (items.isEmpty() && damageCauses.isEmpty()) {
 			if (!isCancelStateOk(event.isCancelled())) return;
-			if (!spellbook.hasSpell(passiveSpell, false)) return;
-			boolean casted = passiveSpell.activate(player, attacker);
+			boolean casted = passiveSpell.activate(entity, attacker);
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
 			return;
 		}
 
 		if (damageCauses.isEmpty() || damageCauses.contains(event.getCause())) {
 			if (!isCancelStateOk(event.isCancelled())) return;
-			if (!spellbook.hasSpell(passiveSpell, false)) return;
-			boolean casted = passiveSpell.activate(player, attacker);
+			boolean casted = passiveSpell.activate(entity, attacker);
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
 			return;
 		}
 		
 		if (!(attacker instanceof Player)) return;
-		Player playerAttacker = (Player) attacker;
 
-		ItemStack item = playerAttacker.getEquipment().getItemInMainHand();
+		ItemStack item = attacker.getEquipment().getItemInMainHand();
 		if (item == null) return;
 		if (BlockUtils.isAir(item)) return;
 
@@ -92,8 +89,7 @@ public class TakeDamageListener extends PassiveListener {
 		if (!items.isEmpty() && !items.contains(itemData)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
-		boolean casted = passiveSpell.activate(player, attacker);
+		boolean casted = passiveSpell.activate(entity, attacker);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 	

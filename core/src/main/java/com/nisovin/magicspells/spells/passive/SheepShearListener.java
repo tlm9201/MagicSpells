@@ -8,8 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -34,15 +32,14 @@ public class SheepShearListener extends PassiveListener {
 	@EventHandler
 	public void onSheepShear(PlayerShearEntityEvent event) {
 		if (!(event.getEntity() instanceof Sheep)) return;
-		Sheep s = (Sheep) event.getEntity();
-		Player p = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(p);
+		Sheep sheep = (Sheep) event.getEntity();
+		Player pl = event.getPlayer();
+		if (!hasSpell(pl)) return;
 
-		if (!dyeColors.isEmpty() && !dyeColors.contains(s.getColor())) return;
+		if (!dyeColors.isEmpty() && !dyeColors.contains(sheep.getColor())) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
-		boolean casted = passiveSpell.activate(p);
+		boolean casted = passiveSpell.activate(pl);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 

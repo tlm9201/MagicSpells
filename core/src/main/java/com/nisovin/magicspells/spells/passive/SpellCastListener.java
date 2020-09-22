@@ -8,7 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.events.SpellCastEvent;
@@ -37,16 +36,15 @@ public class SpellCastListener extends PassiveListener {
 	@EventHandler
 	public void onSpellCast(SpellCastEvent event) {
 		LivingEntity caster = event.getCaster();
-		if (!(caster instanceof Player)) return;
 		if (event.getSpellCastState() != SpellCastState.NORMAL) return;
+		if (!hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 
-		Spellbook spellbook = MagicSpells.getSpellbook((Player) caster);
 		Spell spell = event.getSpell();
 		if (!spellNames.isEmpty() && !spellNames.contains(spell.getInternalName())) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
 		if (spell.equals(passiveSpell)) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
 		boolean casted = passiveSpell.activate((Player) caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

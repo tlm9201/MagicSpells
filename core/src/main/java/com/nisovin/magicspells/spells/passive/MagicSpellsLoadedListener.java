@@ -1,10 +1,11 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -20,8 +21,17 @@ public class MagicSpellsLoadedListener extends PassiveListener {
 	@EventHandler
 	public void onLoaded(MagicSpellsLoadedEvent e) {
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (!MagicSpells.getSpellbook(player).hasSpell(passiveSpell)) continue;
+			if (!canTrigger(player)) continue;
+			if (!hasSpell(player)) continue;
 			passiveSpell.activate(player);
+		}
+
+		for (World world : Bukkit.getWorlds()) {
+			for (LivingEntity livingEntity : world.getLivingEntities()) {
+				if (!canTrigger(livingEntity)) continue;
+				if (!hasSpell(livingEntity)) continue;
+				passiveSpell.activate(livingEntity);
+			}
 		}
 	}
 

@@ -8,8 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.inventory.CraftItemEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -41,12 +39,11 @@ public class CraftListener extends PassiveListener {
 		if (item == null || item.getType().isAir()) return;
 
 		Player player = (Player) event.getWhoClicked();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(player)) return;
 
 		// all items
 		if (items.isEmpty()) {
 			if (!isCancelStateOk(event.isCancelled())) return;
-			if (!spellbook.hasSpell(passiveSpell)) return;
 			boolean casted = passiveSpell.activate(player);
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
 
@@ -57,7 +54,6 @@ public class CraftListener extends PassiveListener {
 		if (!items.contains(item)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
 		boolean casted = passiveSpell.activate(player);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

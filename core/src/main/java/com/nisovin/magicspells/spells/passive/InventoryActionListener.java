@@ -8,8 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -39,10 +37,10 @@ public class InventoryActionListener extends PassiveListener {
 		HumanEntity humanEntity = event.getPlayer();
 		if (!(humanEntity instanceof Player)) return;
 		Player player = (Player) humanEntity;
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+
+		if (!hasSpell(player)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
 		boolean casted = passiveSpell.activate(player);
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);
@@ -55,9 +53,8 @@ public class InventoryActionListener extends PassiveListener {
 		HumanEntity humanEntity = event.getPlayer();
 		if (!(humanEntity instanceof Player)) return;
 		Player player = (Player) humanEntity;
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(player)) return;
 
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
 		passiveSpell.activate(player);
 	}
 

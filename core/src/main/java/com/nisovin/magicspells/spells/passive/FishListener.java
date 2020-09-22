@@ -10,8 +10,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerFishEvent;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -59,14 +57,13 @@ public class FishListener extends PassiveListener {
 	public void onFish(PlayerFishEvent event) {
 		PlayerFishEvent.State state = event.getState();
 		Player player = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(player)) return;
 
 		Entity entity = event.getCaught();
 
 		if (states.isEmpty()) {
 			if (!isCancelStateOk(event.isCancelled())) return;
-			if (!spellbook.hasSpell(passiveSpell)) return;
-			boolean casted = passiveSpell.activate(player, entity instanceof LivingEntity ? (LivingEntity)entity : null);
+			boolean casted = passiveSpell.activate(player, entity instanceof LivingEntity ? (LivingEntity) entity : null);
 			if (!cancelDefaultAction(casted)) return;
 			event.setCancelled(true);
 
@@ -81,7 +78,6 @@ public class FishListener extends PassiveListener {
 			case FAILED_ATTEMPT:
 				if (!states.contains(state)) return;
 				if (!isCancelStateOk(event.isCancelled())) return;
-				if (!spellbook.hasSpell(passiveSpell)) return;
 				casted = passiveSpell.activate(player, event.getHook().getLocation());
 				if (!cancelDefaultAction(casted)) return;
 				event.setCancelled(true);
@@ -90,7 +86,6 @@ public class FishListener extends PassiveListener {
 				if (entity == null) return;
 				if (!types.contains(entity.getType())) return;
 				if (!isCancelStateOk(event.isCancelled())) return;
-				if (!spellbook.hasSpell(passiveSpell)) return;
 				casted = passiveSpell.activate(player, entity instanceof LivingEntity ? (LivingEntity) entity : null);
 				if (!cancelDefaultAction(casted)) return;
 				event.setCancelled(true);

@@ -1,9 +1,11 @@
 package com.nisovin.magicspells.spells.passive.util;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 
 public abstract class PassiveListener implements Listener {
@@ -47,6 +49,13 @@ public abstract class PassiveListener implements Listener {
 		if (passiveSpell == null) return false;
 		if (passiveSpell.ignoreCancelled() && cancelled) return false;
 		if (passiveSpell.requireCancelledEvent() && !cancelled) return false;
+		return true;
+	}
+
+	public boolean hasSpell(LivingEntity entity) {
+		if (entity instanceof Player) {
+			return MagicSpells.getSpellbook((Player) entity).hasSpell(passiveSpell);
+		}
 		return true;
 	}
 	

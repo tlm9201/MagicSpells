@@ -2,12 +2,10 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent.Status;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -44,13 +42,9 @@ public class ResourcePackListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onPlayerResourcePack(PlayerResourcePackStatusEvent event) {
-		Player player = event.getPlayer();
-		Status status = event.getStatus();
-
-		if (!packStatus.isEmpty() && !packStatus.contains(status)) return;
-		if (!MagicSpells.getSpellbook(player).hasSpell(passiveSpell)) return;
-
-		passiveSpell.activate(player);
+		if (!hasSpell(event.getPlayer())) return;
+		if (!packStatus.isEmpty() && !packStatus.contains(event.getStatus())) return;
+		passiveSpell.activate(event.getPlayer());
 	}
 
 }

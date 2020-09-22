@@ -4,8 +4,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -22,10 +20,9 @@ public class StopSprintListener extends PassiveListener {
 	public void onSprint(PlayerToggleSprintEvent event) {
 		Player player = event.getPlayer();
 		if (event.isSprinting()) return;
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(player)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
 		boolean casted = passiveSpell.activate(player);
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);
