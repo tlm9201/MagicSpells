@@ -7,8 +7,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -44,9 +42,8 @@ public class InventoryClickListener extends PassiveListener {
 	public void onInvClick(InventoryClickEvent event) {
 		Player player = Bukkit.getPlayer(event.getWhoClicked().getUniqueId());
 		if (player == null) return;
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(player)) return;
 
-		if (!spellbook.hasSpell(passiveSpell)) return;
 		// Valid action, but not used.
 		if (click.action != null && !event.getAction().equals(click.action)) return;
 

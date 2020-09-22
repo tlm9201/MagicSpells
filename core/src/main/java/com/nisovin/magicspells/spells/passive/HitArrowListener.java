@@ -5,14 +5,11 @@ import java.util.HashSet;
 
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -43,37 +40,35 @@ public class HitArrowListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onDamage(EntityDamageByEntityEvent event) {
-		Player player = getPlayerAttacker(event);
-		if (player == null || !(event.getEntity() instanceof LivingEntity)) return;
+		LivingEntity attacker = getAttacker(event);
+		if (attacker == null || !(event.getEntity() instanceof LivingEntity)) return;
 		LivingEntity attacked = (LivingEntity) event.getEntity();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		
+		if (!hasSpell(attacker)) return;
+		if (!canTrigger(attacker)) return;
+
 		if (items.isEmpty()) {
 			if (!isCancelStateOk(event.isCancelled())) return;
-			if (!spellbook.hasSpell(passiveSpell, false)) return;
-			boolean casted = passiveSpell.activate(player, attacked);
+			boolean casted = passiveSpell.activate(attacker, attacked);
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
-
 			return;
 		}
 
-		ItemStack item = player.getEquipment().getItemInMainHand();
+		ItemStack item = attacker.getEquipment().getItemInMainHand();
 		if (item == null) return;
 		if (BlockUtils.isAir(item.getType())) return;
 		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
 		if (!items.contains(data)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
-		boolean casted = passiveSpell.activate(player, attacked);
+		boolean casted = passiveSpell.activate(attacker, attacked);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 	
-	private Player getPlayerAttacker(EntityDamageByEntityEvent event) {
+	private LivingEntity getAttacker(EntityDamageByEntityEvent event) {
 		Entity e = event.getDamager();
 		if (!(e instanceof Arrow)) return null;
-		if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof Player) {
-			return (Player) ((Arrow) e).getShooter();
+		if (((Arrow) e).getShooter() != null && ((Arrow) e).getShooter() instanceof LivingEntity) {
+			return (LivingEntity) ((Arrow) e).getShooter();
 		}
 		return null;
 	}

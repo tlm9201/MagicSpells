@@ -6,7 +6,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -47,9 +46,7 @@ public class RightClickBlockCoordListener extends PassiveListener {
 		if (!magicLocation.equals(loc)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-
-		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
+		if (!hasSpell(event.getPlayer())) return;
 
 		boolean casted = passiveSpell.activate(event.getPlayer(), location.add(0.5, 0.5, 0.5));
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

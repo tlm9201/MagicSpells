@@ -3,12 +3,10 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -36,14 +34,12 @@ public class SpellTargetListener extends PassiveListener {
 	@EventHandler
 	public void onSpellTarget(SpellTargetEvent event) {
 		LivingEntity caster = event.getCaster();
-		if (!(caster instanceof Player)) return;
-		Spellbook spellbook = MagicSpells.getSpellbook((Player) caster);
-
+		if (!hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 		if (!spellNames.isEmpty() && !spellNames.contains(event.getSpell().getInternalName())) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
-		boolean casted = passiveSpell.activate((Player) caster, event.getTarget());
+		boolean casted = passiveSpell.activate(caster, event.getTarget());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 

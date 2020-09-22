@@ -1,11 +1,9 @@
 package com.nisovin.magicspells.spells.passive;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityShootBowEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -20,14 +18,13 @@ public class ShootListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onShoot(final EntityShootBowEvent event) {
-		if (!(event.getEntity() instanceof Player)) return;
+		LivingEntity shooter = event.getEntity();
 
-		Player player = (Player) event.getEntity();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(shooter)) return;
+		if (!canTrigger(shooter)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
-		boolean casted = passiveSpell.activate(player, event.getForce());
+		boolean casted = passiveSpell.activate(shooter, event.getForce());
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);
 		event.getProjectile().remove();

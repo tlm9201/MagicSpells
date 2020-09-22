@@ -9,8 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -44,10 +42,8 @@ public class WorldChangeListener extends PassiveListener {
 		if (worldFrom.equals(worldTo)) return;
 
 		if (!worldNames.isEmpty() && !worldNames.contains(worldTo.getName())) return;
-		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
-
+		if (!hasSpell(event.getPlayer())) return;
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

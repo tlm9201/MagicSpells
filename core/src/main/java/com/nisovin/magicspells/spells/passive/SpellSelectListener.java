@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellSelectionChangedEvent;
@@ -35,11 +34,10 @@ public class SpellSelectListener extends PassiveListener {
 	public void onSpellSelect(SpellSelectionChangedEvent event) {
 		if (!(event.getCaster() instanceof Player)) return;
 		Player player = (Player) event.getCaster();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(player)) return;
 
 		Spell spell = event.getSpell();
 		if (!spellNames.isEmpty() && !spellNames.contains(spell.getInternalName())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
 
 		passiveSpell.activate(player);
 	}

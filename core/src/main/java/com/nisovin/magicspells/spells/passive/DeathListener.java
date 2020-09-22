@@ -1,11 +1,9 @@
 package com.nisovin.magicspells.spells.passive;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.entity.EntityDeathEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -19,11 +17,11 @@ public class DeathListener extends PassiveListener {
 	
 	@OverridePriority
 	@EventHandler
-	public void onDeath(PlayerDeathEvent event) {
-		Player player = event.getEntity();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		if (!spellbook.hasSpell(passiveSpell)) return;
-		passiveSpell.activate(player);
+	public void onDeath(EntityDeathEvent event) {
+		LivingEntity entity = event.getEntity();
+		if (!canTrigger(entity)) return;
+		if (!hasSpell(entity)) return;
+		passiveSpell.activate(entity);
 	}
 
 }

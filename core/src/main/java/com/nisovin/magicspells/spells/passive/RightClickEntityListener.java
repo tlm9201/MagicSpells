@@ -8,9 +8,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -41,10 +39,9 @@ public class RightClickEntityListener extends PassiveListener {
 		if (event.getHand() != EquipmentSlot.HAND) return;
 		if (!entities.isEmpty() && !entities.contains(event.getRightClicked().getType())) return;
 
-		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		if (!hasSpell(event.getPlayer())) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
 		boolean casted = passiveSpell.activate(event.getPlayer(), (LivingEntity)event.getRightClicked());
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);

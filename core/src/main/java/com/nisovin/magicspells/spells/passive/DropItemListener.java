@@ -8,8 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -41,12 +39,11 @@ public class DropItemListener extends PassiveListener {
 	@EventHandler
 	public void onDrop(PlayerDropItemEvent event) {
 		Player player = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
 		ItemStack item = event.getItemDrop().getItemStack();
+		if (!hasSpell(player)) return;
 
 		if (items.isEmpty()) {
 			if (!isCancelStateOk(event.isCancelled())) return;
-			if (!spellbook.hasSpell(passiveSpell)) return;
 			boolean casted = passiveSpell.activate(player);
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
 
@@ -58,7 +55,6 @@ public class DropItemListener extends PassiveListener {
 		if (items.contains(itemData)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
 		boolean casted = passiveSpell.activate(player);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

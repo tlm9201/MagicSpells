@@ -7,8 +7,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -37,10 +35,9 @@ public class TeleportListener extends PassiveListener {
 	public void onTeleport(PlayerTeleportEvent event) {
 		if (!teleportCauses.isEmpty() && !teleportCauses.contains(event.getCause())) return;
 		Player player = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(player)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
 		boolean casted = passiveSpell.activate(player);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

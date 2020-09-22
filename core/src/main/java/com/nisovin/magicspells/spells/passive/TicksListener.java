@@ -3,16 +3,20 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.bukkit.World;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -41,7 +45,16 @@ public class TicksListener extends PassiveListener {
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			if (!player.isValid()) continue;
+			if (!hasSpell(player)) continue;
+			if (!canTrigger(player)) return;
 			ticker.add(player);
+		}
+
+		for (World world : Bukkit.getWorlds()) {
+			for (LivingEntity livingEntity : world.getLivingEntities()) {
+				if (!canTrigger(livingEntity)) continue;
+				ticker.add(livingEntity);
+			}
 		}
 	}
 	
@@ -49,14 +62,33 @@ public class TicksListener extends PassiveListener {
 	public void turnOff() {
 		ticker.turnOff();
 	}
+
+	@OverridePriority
+	@EventHandler
+	public void onChunkLoad(ChunkLoadEvent event) {
+		for (Entity entity : event.getChunk().getEntities()) {
+			if (!(entity instanceof LivingEntity)) continue;
+			if (!canTrigger((LivingEntity) entity)) return;
+			ticker.add((LivingEntity) entity);
+		}
+	}
+
+	@OverridePriority
+	@EventHandler
+	public void onChunkUnload(ChunkUnloadEvent event) {
+		for (Entity entity : event.getChunk().getEntities()) {
+			if (!(entity instanceof LivingEntity)) continue;
+			if (!canTrigger((LivingEntity) entity)) return;
+			ticker.remove((LivingEntity) entity);
+		}
+	}
 	
 	@OverridePriority
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		if (spellbook == null) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
+		if (!hasSpell(player)) return;
+		if (!canTrigger(player)) return;
 		ticker.add(player);
 	}
 	
@@ -78,9 +110,8 @@ public class TicksListener extends PassiveListener {
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
 		Player player = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		if (spellbook == null) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
+		if (!hasSpell(player)) return;
+		if (!canTrigger(player)) return;
 		ticker.add(player);
 	}
 	
@@ -104,7 +135,7 @@ public class TicksListener extends PassiveListener {
 	
 	private static class Ticker implements Runnable {
 
-		private final Collection<Player> players;
+		private final Collection<LivingEntity> entities;
 
 		private final PassiveSpell passiveSpell;
 
@@ -115,24 +146,24 @@ public class TicksListener extends PassiveListener {
 			this.passiveSpell = passiveSpell;
 			taskId = MagicSpells.scheduleRepeatingTask(this, interval, interval);
 			profilingKey = MagicSpells.profilingEnabled() ? "PassiveTick:" + interval : null;
-			players = new ArrayList<>();
+			entities = new ArrayList<>();
 		}
 		
-		public void add(Player player) {
-			players.add(player);
+		public void add(LivingEntity livingEntity) {
+			entities.add(livingEntity);
 		}
 
-		public void remove(Player player) {
-			players.remove(player);
+		public void remove(LivingEntity livingEntity) {
+			entities.remove(livingEntity);
 		}
 
 		@Override
 		public void run() {
 			long start = System.nanoTime();
 
-			for (Player p : new ArrayList<>(players)) {
-				if (p.isOnline() && p.isValid()) passiveSpell.activate(p);
-				else players.remove(p);
+			for (LivingEntity entity : new ArrayList<>(entities)) {
+				if (entity.isValid()) passiveSpell.activate(entity);
+				else entities.remove(entity);
 			}
 
 			if (profilingKey != null) MagicSpells.addProfile(profilingKey, System.nanoTime() - start);

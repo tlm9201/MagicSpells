@@ -9,8 +9,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.event.player.PlayerEditBookEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -35,21 +33,17 @@ public class SignBookListener extends PassiveListener {
 		Player player = event.getPlayer();
 		BookMeta meta = event.getNewBookMeta();
 		if (!meta.hasAuthor()) return;
+		if (!hasSpell(player)) return;
 
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		if (text.isEmpty()) {
-			if (!spellbook.hasSpell(passiveSpell)) return;
 			passiveSpell.activate(player);
 			return;
 		}
-
-		if (!spellbook.hasSpell(passiveSpell)) return;
 
 		for (int i = 1; i <= meta.getPageCount(); i++) {
 			if (!text.contains(meta.getPage(i))) continue;
 			passiveSpell.activate(player);
 			return;
-
 		}
 	}
 

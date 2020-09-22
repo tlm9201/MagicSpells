@@ -4,13 +4,12 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent.*;
 
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -54,12 +53,12 @@ public class PotionEffectListener extends PassiveListener {
 
 	@EventHandler
 	public void onPotionEffect(EntityPotionEffectEvent event) {
-		if (!(event.getEntity() instanceof Player)) return;
-		Player player = (Player) event.getEntity();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!(event.getEntity() instanceof LivingEntity)) return;
+		LivingEntity entity = (LivingEntity) event.getEntity();
+		if (!hasSpell(entity)) return;
+		if (!canTrigger(entity)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
 		if (!trigger.actions.contains(event.getAction()) || !trigger.causes.contains(event.getCause())) return;
 
 		PotionEffectType thisEffect = null;
@@ -77,7 +76,7 @@ public class PotionEffectListener extends PassiveListener {
 		}
 
 		if (thisEffect == null || !trigger.types.contains(thisEffect)) return;
-		boolean casted = passiveSpell.activate(player);
+		boolean casted = passiveSpell.activate(entity);
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);
 	}

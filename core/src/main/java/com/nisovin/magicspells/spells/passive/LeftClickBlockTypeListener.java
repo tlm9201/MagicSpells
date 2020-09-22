@@ -8,7 +8,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -39,9 +38,9 @@ public class LeftClickBlockTypeListener extends PassiveListener {
 		if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
 		if (!materials.isEmpty() && !materials.contains(event.getClickedBlock().getType())) return;
 
-		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		if (!hasSpell(event.getPlayer())) return;
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
+
 		boolean casted = passiveSpell.activate(event.getPlayer(), event.getClickedBlock().getLocation().add(0.5, 0.5, 0.5));
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);

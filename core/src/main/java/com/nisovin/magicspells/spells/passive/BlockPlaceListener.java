@@ -9,8 +9,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -36,16 +34,14 @@ public class BlockPlaceListener extends PassiveListener {
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) {
 		Player player = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		Block block = event.getBlock();
+		if (!hasSpell(player)) return;
 
 		// all blocks if its empty
 		if (materials.isEmpty()) {
 			if (!isCancelStateOk(event.isCancelled())) return;
-			if (!spellbook.hasSpell(passiveSpell, false)) return;
-			boolean casted = passiveSpell.activate(event.getPlayer(), block.getLocation().add(0.5, 0.5, 0.5));
+			boolean casted = passiveSpell.activate(player, block.getLocation().add(0.5, 0.5, 0.5));
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
-
 			return;
 		}
 
@@ -53,10 +49,8 @@ public class BlockPlaceListener extends PassiveListener {
 		if (!materials.contains(block.getType())) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
-		boolean casted = passiveSpell.activate(event.getPlayer(), event.getBlock().getLocation().add(0.5, 0.5, 0.5));
+		boolean casted = passiveSpell.activate(player, event.getBlock().getLocation().add(0.5, 0.5, 0.5));
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
-
 	}
 
 }

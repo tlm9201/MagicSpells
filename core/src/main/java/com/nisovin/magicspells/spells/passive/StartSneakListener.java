@@ -3,8 +3,6 @@ package com.nisovin.magicspells.spells.passive;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -20,10 +18,9 @@ public class StartSneakListener extends PassiveListener {
 	@EventHandler
 	public void onSneak(PlayerToggleSneakEvent event) {
 		if (!event.isSneaking()) return;
-		Spellbook spellbook = MagicSpells.getSpellbook(event.getPlayer());
+		if (!hasSpell(event.getPlayer())) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell, false)) return;
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

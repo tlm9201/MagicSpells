@@ -7,8 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -33,10 +31,9 @@ public class GameModeChangeListener extends PassiveListener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		Player player = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!hasSpell(player)) return;
 
 		if (gameModes.isEmpty()) {
-			if (!spellbook.hasSpell(passiveSpell)) return;
 			boolean casted = passiveSpell.activate(player);
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
 			return;
@@ -44,7 +41,6 @@ public class GameModeChangeListener extends PassiveListener {
 
 		if (!gameModes.contains(event.getNewGameMode())) return;
 
-		if (!spellbook.hasSpell(passiveSpell)) return;
 		boolean casted = passiveSpell.activate(player);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

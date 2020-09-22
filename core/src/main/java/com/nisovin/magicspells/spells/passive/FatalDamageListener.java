@@ -1,11 +1,9 @@
 package com.nisovin.magicspells.spells.passive;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
 
-import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -20,14 +18,15 @@ public class FatalDamageListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	void onDamage(EntityDamageEvent event) {
-		if (!(event.getEntity() instanceof Player)) return;
-		Player player = (Player) event.getEntity();
-		if (event.getFinalDamage() < player.getHealth()) return;
+		if (!(event.getEntity() instanceof LivingEntity)) return;
+		LivingEntity entity = (LivingEntity) event.getEntity();
 
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (event.getFinalDamage() < entity.getHealth()) return;
+		if (!canTrigger(entity)) return;
+		if (!hasSpell(entity)) return;
+
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!spellbook.hasSpell(passiveSpell)) return;
-		boolean casted = passiveSpell.activate(player);
+		boolean casted = passiveSpell.activate(entity);
 		if (!cancelDefaultAction(casted)) return;
 
 		event.setCancelled(true);
