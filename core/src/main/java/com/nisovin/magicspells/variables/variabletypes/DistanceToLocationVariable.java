@@ -1,15 +1,16 @@
-package com.nisovin.magicspells.variables;
+package com.nisovin.magicspells.variables.variabletypes;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.LocationUtil;
+import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.util.ConfigReaderUtil;
 
-public class DistanceToVariable extends Variable {
+public class DistanceToLocationVariable extends Variable {
 
 	// If true, distance will be calculated across worlds.
 	protected boolean crossWorld = false;
@@ -19,7 +20,7 @@ public class DistanceToVariable extends Variable {
 	// When calculating distance between locations between multiple worlds, the distance is multiplied by this value.
 	protected double crossWorldDistanceMultiplier = 1.0;
 	
-	public DistanceToVariable() {
+	public DistanceToLocationVariable() {
 		super();
 	}
 	

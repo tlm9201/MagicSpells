@@ -1,10 +1,10 @@
-package com.nisovin.magicspells.variables;
+package com.nisovin.magicspells.variables.variabletypes;
 
 import org.bukkit.Location;
 
-public class DistanceToSquaredVariable extends DistanceToVariable {
+public class SquaredDistanceToLocationVariable extends DistanceToLocationVariable {
 
-	public DistanceToSquaredVariable() {
+	public SquaredDistanceToLocationVariable() {
 		super();
 	}
 	

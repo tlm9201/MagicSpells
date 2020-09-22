@@ -1,4 +1,6 @@
-package com.nisovin.magicspells.variables;
+package com.nisovin.magicspells.variables.variabletypes;
+
+import com.nisovin.magicspells.variables.Variable;
 
 public class GlobalVariable extends Variable {
 

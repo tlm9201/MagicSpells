@@ -3,6 +3,8 @@ package com.nisovin.magicspells.events;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.managers.PassiveManager;
 
@@ -13,9 +15,9 @@ public class PassiveListenersLoadingEvent extends Event {
 
 	private static final HandlerList handlers = new HandlerList();
 
-	private MagicSpells plugin;
+	private final MagicSpells plugin;
 
-	private PassiveManager passiveManager;
+	private final PassiveManager passiveManager;
 
 	public PassiveListenersLoadingEvent(MagicSpells plugin, PassiveManager passiveManager) {
 		this.plugin = plugin;
@@ -34,6 +36,7 @@ public class PassiveListenersLoadingEvent extends Event {
 		return passiveManager;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;
