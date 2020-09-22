@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.variables;
+package com.nisovin.magicspells.variables.variabletypes;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -7,7 +7,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class PlayerStringVariable extends PlayerVariable {
 
-	private Map<String, String> data;
+	private final Map<String, String> data;
 	
 	public PlayerStringVariable() {
 		data = new HashMap<>();

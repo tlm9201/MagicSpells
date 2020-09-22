@@ -1,11 +1,13 @@
-package com.nisovin.magicspells.variables;
+package com.nisovin.magicspells.variables.variabletypes;
+
+import com.nisovin.magicspells.variables.Variable;
 
 public abstract class MetaVariable extends Variable {
 
 	public MetaVariable() {
 		permanent = false;
 		expBar = false;
-		bossbarTitle = null;
+		bossBarTitle = null;
 		objective = null;
 		minValue = Double.MIN_VALUE;
 	}

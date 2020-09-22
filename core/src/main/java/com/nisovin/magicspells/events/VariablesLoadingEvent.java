@@ -6,22 +6,22 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.managers.ConditionManager;
+import com.nisovin.magicspells.util.managers.VariableManager;
 
 /**
- * This event is fired whenever MagicSpells begins loading conditions.
+ * This event is fired whenever MagicSpells begins loading variables.
  */
-public class ConditionsLoadingEvent extends Event {
+public class VariablesLoadingEvent extends Event {
 
 	private static final HandlerList handlers = new HandlerList();
 
 	private final MagicSpells plugin;
 
-	private final ConditionManager conditionManager;
+	private final VariableManager variableManager;
 
-	public ConditionsLoadingEvent(MagicSpells plugin, ConditionManager conditionManager) {
+	public VariablesLoadingEvent(MagicSpells plugin, VariableManager variableManager) {
 		this.plugin = plugin;
-		this.conditionManager = conditionManager;
+		this.variableManager = variableManager;
 	}
 
 	/**
@@ -32,8 +32,8 @@ public class ConditionsLoadingEvent extends Event {
 		return plugin;
 	}
 
-	public ConditionManager getConditionManager() {
-		return conditionManager;
+	public VariableManager getVariableManager() {
+		return variableManager;
 	}
 
 	@NotNull

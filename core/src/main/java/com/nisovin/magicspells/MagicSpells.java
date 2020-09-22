@@ -49,7 +49,6 @@ import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
-import com.nisovin.magicspells.variables.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
@@ -381,15 +380,6 @@ public class MagicSpells extends JavaPlugin {
 		}
 		log("..." + MagicItems.getMagicItems().size() + " magic items loaded");
 
-		// Load variables
-		log("Loading variables...");
-		ConfigurationSection varSec = null;
-		if (config.contains(path + "variables") && config.isSection(path + "variables")) {
-			varSec = config.getSection(path + "variables");
-		}
-		variableManager = new VariableManager(this, varSec);
-		log("..." + variableManager.count() + " variables loaded");
-
 		// Load crafting recipes.
 		RecipeHandler.clearRecipes();
 		log("Loading recipes...");
@@ -568,6 +558,7 @@ public class MagicSpells extends JavaPlugin {
 
 		log("MagicSpells loading complete!");
 
+		// Load external data
 		Bukkit.getScheduler().runTaskLater(this, this::loadExternalData, 1);
 	}
 
@@ -575,17 +566,39 @@ public class MagicSpells extends JavaPlugin {
 		PluginManager pm = plugin.getServer().getPluginManager();
 		log("Loading external data...");
 
+		loadVariables(pm);
 		loadConditions(pm);
 		loadPassiveListeners(pm);
 
 		log("...done");
 	}
 
+	private void loadVariables(PluginManager pm) {
+		// Load variables
+		log("Loading variables...");
+		String path = "general.";
+		ConfigurationSection varSec = null;
+		if (config.contains(path + "variables") && config.isSection(path + "variables")) {
+			varSec = config.getSection(path + "variables");
+		}
+		variableManager = new VariableManager();
+
+		// Call variable event
+		pm.callEvent(new VariablesLoadingEvent(plugin, variableManager));
+		if (!variableManager.getVariables().isEmpty()) registerEvents(new VariableListener());
+
+		variableManager.loadVariables(varSec);
+
+		log("...variable types loaded: " + (variableManager.getVariableTypes().size() + variableManager.getMetaVariables().size()));
+		log("...variables loaded: " + variableManager.getVariables().size());
+	}
+
 	private void loadConditions(PluginManager pm) {
 		// Load conditions
 		log("Loading conditions...");
 		conditionManager = new ConditionManager();
-		// Call conditions event
+
+		// Call condition event
 		pm.callEvent(new ConditionsLoadingEvent(plugin, conditionManager));
 
 		for (Spell spell : spells.values()) {
@@ -606,9 +619,8 @@ public class MagicSpells extends JavaPlugin {
 		// Load passive triggers
 		log("Loading passive listeners...");
 		passiveManager = new PassiveManager();
-		passiveManager.initialize();
 
-		// Call conditions event
+		// Call passive event
 		pm.callEvent(new PassiveListenersLoadingEvent(plugin, passiveManager));
 
 		for (Spell spell : spells.values()) {

@@ -16,7 +16,7 @@ public class PassiveManager {
 	private static final Map<String, Class<? extends PassiveListener>> listeners = new HashMap<>();
 
 	public PassiveManager() {
-
+		initialize();
 	}
 
 	public void addListener(String name, Class<? extends PassiveListener> listener) {
@@ -64,7 +64,7 @@ public class PassiveManager {
 		return null;
 	}
 	
-	public void initialize() {
+	private void initialize() {
 		// initialize priorities
 		for (EventPriority priority : EventPriority.values()) {
 			eventPriorities.put("_" + priority.name().toLowerCase() + "priority", priority);

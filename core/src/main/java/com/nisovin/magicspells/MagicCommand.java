@@ -31,7 +31,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.variables.PlayerStringVariable;
+import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
 @CommandAlias("ms|magicspells")
 public class MagicCommand extends BaseCommand {

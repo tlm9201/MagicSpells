@@ -1,15 +1,16 @@
-package com.nisovin.magicspells.variables;
+package com.nisovin.magicspells.variables.variabletypes;
 
 import java.util.Map;
 import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 
+import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.PlayerNameUtils;
 
 public class PlayerVariable extends Variable {
 
-	private Map<String, Double> map = new HashMap<>();
+	private final Map<String, Double> map = new HashMap<>();
 
 	@Override
 	public void set(String player, double amount) {
