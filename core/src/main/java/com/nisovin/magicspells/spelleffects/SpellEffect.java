@@ -80,21 +80,22 @@ public abstract class SpellEffect {
 		maxDistance = config.getDouble("max-distance", 100);
 		distanceBetween = config.getDouble("distance-between", 1);
 
-		orbitXAxis = (float) config.getDouble("orbit-x-axis", 0F);
-		orbitYAxis = (float) config.getDouble("orbit-y-axis", 0F);
-		orbitZAxis = (float) config.getDouble("orbit-z-axis", 0F);
-		orbitRadius = (float) config.getDouble("orbit-radius", 1F);
-		orbitYOffset = (float) config.getDouble("orbit-y-offset", 0F);
-		horizOffset = (float) config.getDouble("orbit-horiz-offset", 0F);
-		horizExpandRadius = (float) config.getDouble("orbit-horiz-expand-radius", 0);
-		vertExpandRadius = (float) config.getDouble("orbit-vert-expand-radius", 0);
-		secondsPerRevolution = (float) config.getDouble("orbit-seconds-per-revolution", 3);
+		String path = "orbit-";
+		orbitXAxis = (float) config.getDouble(path + "x-axis", 0F);
+		orbitYAxis = (float) config.getDouble(path + "y-axis", 0F);
+		orbitZAxis = (float) config.getDouble(path + "z-axis", 0F);
+		orbitRadius = (float) config.getDouble(path + "radius", 1F);
+		orbitYOffset = (float) config.getDouble(path + "y-offset", 0F);
+		horizOffset = (float) config.getDouble(path + "horiz-offset", 0F);
+		horizExpandRadius = (float) config.getDouble(path + "horiz-expand-radius", 0);
+		vertExpandRadius = (float) config.getDouble(path + "vert-expand-radius", 0);
+		secondsPerRevolution = (float) config.getDouble(path + "seconds-per-revolution", 3);
 
-		horizExpandDelay = config.getInt("orbit-horiz-expand-delay", 0);
-		vertExpandDelay = config.getInt("orbit-vert-expand-delay", 0);
+		horizExpandDelay = config.getInt(path + "horiz-expand-delay", 0);
+		vertExpandDelay = config.getInt(path + "vert-expand-delay", 0);
 		effectInterval = config.getInt("effect-interval", TimeUtil.TICKS_PER_SECOND);
 
-		counterClockwise = config.getBoolean("orbit-counter-clockwise", false);
+		counterClockwise = config.getBoolean(path + "counter-clockwise", false);
 		
 		modifiersList = config.getStringList("modifiers");
 		locationModifiersList = config.getStringList("location-modifiers");
