@@ -1563,10 +1563,11 @@ public class MagicSpells extends JavaPlugin {
 		soundFailMissingReagents = null;
 
 		// Remove star permissions (to allow new spells to be added to them)
-		getServer().getPluginManager().removePermission("magicspells.grant.*");
-		getServer().getPluginManager().removePermission("magicspells.cast.*");
-		getServer().getPluginManager().removePermission("magicspells.learn.*");
-		getServer().getPluginManager().removePermission("magicspells.teach.*");
+		PluginManager pm = getServer().getPluginManager();
+		pm.removePermission("magicspells.grant.*");
+		pm.removePermission("magicspells.cast.*");
+		pm.removePermission("magicspells.learn.*");
+		pm.removePermission("magicspells.teach.*");
 
 		// Unregister all listeners
 		HandlerList.unregisterAll(this);
