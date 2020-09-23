@@ -45,17 +45,22 @@ public class RightClickItemListener extends PassiveListener {
 		
 		ItemStack item = event.getItem();
 		if (item == null || item.getType().isAir()) return;
-
 		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
 		if (itemData == null) return;
 
-		if (!items.isEmpty() && !items.contains(itemData)) return;
+		if (!items.isEmpty() && !contains(itemData)) return;
 
 		if (!hasSpell(event.getPlayer())) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
+
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.equals(itemData)) return true;
+		}
+		return false;
 	}
 
 }

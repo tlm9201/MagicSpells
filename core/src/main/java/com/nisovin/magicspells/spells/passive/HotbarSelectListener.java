@@ -39,7 +39,7 @@ public class HotbarSelectListener extends PassiveListener {
 
 		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
 		if (itemData == null) return;
-		if (!items.isEmpty() && !items.contains(itemData)) return;
+		if (!items.isEmpty() && !contains(itemData)) return;
 
 		if (!hasSpell(player)) return;
 
@@ -47,6 +47,13 @@ public class HotbarSelectListener extends PassiveListener {
 		boolean casted = passiveSpell.activate(player);
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);
+	}
+
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.equals(itemData)) return true;
+		}
+		return false;
 	}
 
 }

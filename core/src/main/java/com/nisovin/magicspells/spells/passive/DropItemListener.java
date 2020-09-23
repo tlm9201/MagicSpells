@@ -52,11 +52,18 @@ public class DropItemListener extends PassiveListener {
 
 		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
 		if (itemData == null) return;
-		if (items.contains(itemData)) return;
+		if (!contains(itemData)) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
 		boolean casted = passiveSpell.activate(player);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
+
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.equals(itemData)) return true;
+		}
+		return false;
 	}
 
 }
