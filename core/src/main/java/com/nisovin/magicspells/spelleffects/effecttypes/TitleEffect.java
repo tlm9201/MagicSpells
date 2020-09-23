@@ -1,10 +1,11 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class TitleEffect extends SpellEffect {
 

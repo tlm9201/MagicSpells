@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -9,6 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
@@ -39,27 +40,20 @@ public class BossBarEffect extends SpellEffect {
 		strVar = config.getString("variable", "");
 		maxValue = config.getDouble("max-value", 100);
 
-		variable = MagicSpells.getVariableManager().getVariable(strVar);
-		if (variable == null && !strVar.isEmpty()) {
-			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
-		}
-
 		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNameSpaceKey(namespaceKey)) {
 			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
 		}
 
 		try {
 			barColor = BarColor.valueOf(color.toUpperCase());
-		}
-		catch (IllegalArgumentException ignored) {
+		} catch (IllegalArgumentException ignored) {
 			barColor = BarColor.WHITE;
 			MagicSpells.error("Wrong bar color defined! '" + color + "'");
 		}
 
 		try {
 			barStyle = BarStyle.valueOf(style.toUpperCase());
-		}
-		catch (IllegalArgumentException ignored) {
+		} catch (IllegalArgumentException ignored) {
 			barStyle = BarStyle.SOLID;
 			MagicSpells.error("Wrong bar style defined! '" + style + "'");
 		}
@@ -70,6 +64,16 @@ public class BossBarEffect extends SpellEffect {
 		if (progress < 0) progress = 0;
 
 		broadcast = config.getBoolean("broadcast", false);
+	}
+
+	@Override
+	public void initializeModifiers() {
+		super.initializeModifiers();
+		
+		variable = MagicSpells.getVariableManager().getVariable(strVar);
+		if (variable == null && !strVar.isEmpty()) {
+			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
+		}
 	}
 
 	@Override
@@ -90,4 +94,5 @@ public class BossBarEffect extends SpellEffect {
 		}
 		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}
+
 }

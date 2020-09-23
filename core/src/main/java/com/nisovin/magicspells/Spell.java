@@ -73,6 +73,9 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
+import com.nisovin.magicspells.spelleffects.effecttypes.EntityEffect;
+import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
+import com.nisovin.magicspells.spelleffects.effecttypes.ArmorStandEffect;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 import de.slikey.effectlib.Effect;
@@ -322,44 +325,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			losTransparentBlocks.add(Material.VOID_AIR);
 		}
 
-		// Graphical effects
-		effectTrackerSet = new HashSet<>();
-		if (config.contains(path + "effects")) {
-			effects = new EnumMap<>(EffectPosition.class);
-			if (config.isList(path + "effects")) {
-				List<String> effectsList = config.getStringList(path + "effects", null);
-				if (effectsList != null) {
-					for (String eff : effectsList) {
-						String[] data = eff.split(" ", 3);
-						EffectPosition pos = EffectPosition.getPositionFromString(data[0]);
-						if (pos == null) continue;
-						SpellEffect effect = SpellEffect.createNewEffectByName(data[1]);
-						if (effect == null) continue;
-						effect.loadFromString(data.length > 2 ? data[2] : null);
-						List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
-						e.add(effect);
-					}
-				}
-			} else if (config.isSection(path + "effects")) {
-				for (String key : config.getKeys(path + "effects")) {
-					ConfigurationSection effConf = config.getSection(path + "effects." + key);
-					EffectPosition pos = EffectPosition.getPositionFromString(effConf.getString("position", ""));
-					if (pos == null) continue;
-					SpellEffect effect = SpellEffect.createNewEffectByName(effConf.getString("effect", ""));
-					if (effect == null) continue;
-					effect.loadFromConfiguration(effConf);
-					List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
-					e.add(effect);
-				}
-			}
-		}
-
-		//TODO load the fast mapping for effects here
-
-		// Cost
-		reagents = getConfigReagents("cost");
-		if (reagents == null) reagents = new SpellReagents();
-
 		// Cooldowns
 		cooldown = (float) config.getDouble(path + "cooldown", 0);
 		serverCooldown = (float) config.getDouble(path + "server-cooldown", 0);
@@ -404,50 +369,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					xpRequired.put(split[0], amt);
 				} catch (NumberFormatException e) {
 					MagicSpells.error("Error in xp-required entry for spell '" + internalName + "': " + s);
-				}
-			}
-		}
-
-		// Variable options
-		List<String> varModsCast = config.getStringList(path + "variable-mods-cast", null);
-		if (varModsCast != null && !varModsCast.isEmpty()) {
-			variableModsCast = LinkedListMultimap.create();
-			for (String s : varModsCast) {
-				try {
-					String[] data = s.split(" ");
-					String var = data[0];
-					VariableMod varMod = new VariableMod(data[1]);
-					variableModsCast.put(var, varMod);
-				} catch (Exception e) {
-					MagicSpells.error("Invalid variable-mods-cast option for spell '" + spellName + "': " + s);
-				}
-			}
-		}
-		List<String> varModsCasted = config.getStringList(path + "variable-mods-casted", null);
-		if (varModsCasted != null && !varModsCasted.isEmpty()) {
-			variableModsCasted = LinkedListMultimap.create();
-			for (String s : varModsCasted) {
-				try {
-					String[] data = s.split(" ");
-					String var = data[0];
-					VariableMod varMod = new VariableMod(data[1]);
-					variableModsCasted.put(var, varMod);
-				} catch (Exception e) {
-					MagicSpells.error("Invalid variable-mods-casted option for spell '" + spellName + "': " + s);
-				}
-			}
-		}
-		List<String> varModsTarget = config.getStringList(path + "variable-mods-target", null);
-		if (varModsTarget != null && !varModsTarget.isEmpty()) {
-			variableModsTarget = LinkedListMultimap.create();
-			for (String s : varModsTarget) {
-				try {
-					String[] data = s.split(" ");
-					String var = data[0];
-					VariableMod varMod = new VariableMod(data[1]);
-					variableModsTarget.put(var, varMod);
-				} catch (Exception e) {
-					MagicSpells.error("Invalid variable-mods-target option for spell '" + spellName + "': " + s);
 				}
 			}
 		}
@@ -561,6 +482,94 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		}
 		return reagents;
+	}
+
+	protected void initializeVariables() {
+		// Variable options
+		String path = "spells" + '.' + internalName + '.';
+		List<String> varModsCast = config.getStringList(path + "variable-mods-cast", null);
+		if (varModsCast != null && !varModsCast.isEmpty()) {
+			variableModsCast = LinkedListMultimap.create();
+			for (String s : varModsCast) {
+				try {
+					String[] data = s.split(" ");
+					String var = data[0];
+					VariableMod varMod = new VariableMod(data[1]);
+					variableModsCast.put(var, varMod);
+				} catch (Exception e) {
+					MagicSpells.error("Invalid variable-mods-cast option for spell '" + internalName + "': " + s);
+				}
+			}
+		}
+		List<String> varModsCasted = config.getStringList(path + "variable-mods-casted", null);
+		if (varModsCasted != null && !varModsCasted.isEmpty()) {
+			variableModsCasted = LinkedListMultimap.create();
+			for (String s : varModsCasted) {
+				try {
+					String[] data = s.split(" ");
+					String var = data[0];
+					VariableMod varMod = new VariableMod(data[1]);
+					variableModsCasted.put(var, varMod);
+				} catch (Exception e) {
+					MagicSpells.error("Invalid variable-mods-casted option for spell '" + internalName + "': " + s);
+				}
+			}
+		}
+		List<String> varModsTarget = config.getStringList(path + "variable-mods-target", null);
+		if (varModsTarget != null && !varModsTarget.isEmpty()) {
+			variableModsTarget = LinkedListMultimap.create();
+			for (String s : varModsTarget) {
+				try {
+					String[] data = s.split(" ");
+					String var = data[0];
+					VariableMod varMod = new VariableMod(data[1]);
+					variableModsTarget.put(var, varMod);
+				} catch (Exception e) {
+					MagicSpells.error("Invalid variable-mods-target option for spell '" + internalName + "': " + s);
+				}
+			}
+		}
+
+		// Cost
+		reagents = getConfigReagents("cost");
+		if (reagents == null) reagents = new SpellReagents();
+	}
+
+	protected void initializeSpellEffects() {
+		// Graphical effects
+		String path = "spells" + '.' + internalName + '.';
+		effectTrackerSet = new HashSet<>();
+		if (!config.contains(path + "effects")) return;
+
+		effects = new EnumMap<>(EffectPosition.class);
+		if (config.isList(path + "effects")) {
+			List<String> effectsList = config.getStringList(path + "effects", null);
+			if (effectsList == null) return;
+
+			for (String eff : effectsList) {
+				String[] data = eff.split(" ", 3);
+				EffectPosition pos = EffectPosition.getPositionFromString(data[0]);
+				if (pos == null) continue;
+				SpellEffect effect = MagicSpells.getSpellEffectManager().getSpellEffectByName(data[1]);
+				if (effect == null) continue;
+				effect.loadFromString(data.length > 2 ? data[2] : null);
+				List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
+				e.add(effect);
+			}
+			return;
+		}
+
+		if (!config.isSection(path + "effects")) return;
+		for (String key : config.getKeys(path + "effects")) {
+			ConfigurationSection effConf = config.getSection(path + "effects." + key);
+			EffectPosition pos = EffectPosition.getPositionFromString(effConf.getString("position", ""));
+			if (pos == null) continue;
+			SpellEffect effect = MagicSpells.getSpellEffectManager().getSpellEffectByName(effConf.getString("effect", ""));
+			if (effect == null) continue;
+			effect.loadFromConfiguration(effConf);
+			List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
+			e.add(effect);
+		}
 	}
 
 	// DEBUG INFO: level 2, adding modifiers to internalname

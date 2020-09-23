@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -6,6 +6,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.EntityData;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class EntityEffect extends SpellEffect {
 

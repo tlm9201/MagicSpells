@@ -98,6 +98,7 @@ public class MagicSpells extends JavaPlugin {
 	private VariableManager variableManager;
 	private AttributeManager attributeManager;
 	private PassiveManager passiveManager;
+	private SpellEffectManager spellEffectManager;
 	private ConditionManager conditionManager;
 	private NoMagicZoneManager noMagicZones;
 	private PaperCommandManager commandManager;
@@ -567,6 +568,7 @@ public class MagicSpells extends JavaPlugin {
 		log("Loading external data...");
 
 		loadVariables(pm);
+		loadSpellEffects(pm);
 		loadConditions(pm);
 		loadPassiveListeners(pm);
 
@@ -585,13 +587,29 @@ public class MagicSpells extends JavaPlugin {
 
 		// Call variable event
 		pm.callEvent(new VariablesLoadingEvent(plugin, variableManager));
-		if (!variableManager.getVariables().isEmpty()) registerEvents(new VariableListener());
 
 		variableManager.loadVariables(varSec);
+
+		spells.values().forEach(Spell::initializeVariables);
+
+		if (!variableManager.getVariables().isEmpty()) registerEvents(new VariableListener());
 
 		log("...variable meta types loaded: " + variableManager.getMetaVariables().size());
 		log("...variable types loaded: " + variableManager.getVariableTypes().size());
 		log("...variables loaded: " + (variableManager.getVariables().size() - variableManager.getMetaVariables().size()));
+	}
+
+	private void loadSpellEffects(PluginManager pm) {
+		// Load spell effects
+		log("Loading spell effect types...");
+		spellEffectManager = new SpellEffectManager();
+
+		// Call spell effect event
+		pm.callEvent(new SpellEffectsLoadingEvent(plugin, spellEffectManager));
+
+		spells.values().forEach(Spell::initializeSpellEffects);
+
+		log("...spell effect types loaded: " + spellEffectManager.getSpellEffects().size());
 	}
 
 	private void loadConditions(PluginManager pm) {
@@ -617,7 +635,7 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	private void loadPassiveListeners(PluginManager pm) {
-		// Load passive triggers
+		// Load passive listeners
 		log("Loading passive listeners...");
 		passiveManager = new PassiveManager();
 
@@ -628,6 +646,7 @@ public class MagicSpells extends JavaPlugin {
 			if (!(spell instanceof PassiveSpell)) continue;
 			((PassiveSpell) spell).initializeListeners();
 		}
+
 		log("...passive listeners loaded: " + passiveManager.getListeners().size());
 	}
 
@@ -1038,6 +1057,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static PassiveManager getPassiveManager() {
 		return plugin.passiveManager;
+	}
+
+	public static SpellEffectManager getSpellEffectManager() {
+		return plugin.spellEffectManager;
 	}
 
 	public static MoneyHandler getMoneyHandler() {

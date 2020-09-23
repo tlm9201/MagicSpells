@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.spelleffects;
+package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
@@ -8,6 +8,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.EntityData;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 
