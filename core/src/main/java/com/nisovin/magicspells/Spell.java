@@ -116,6 +116,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected List<String> targetModifierStrings;
 	protected List<String> locationModifierStrings;
 
+	protected List<String> varModsCast;
+	protected List<String> varModsCasted;
+	protected List<String> varModsTarget;
+
 	protected boolean debug;
 	protected boolean obeyLos;
 	protected boolean bindable;
@@ -341,6 +345,11 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		targetModifierStrings = config.getStringList(path + "target-modifiers", null);
 		locationModifierStrings = config.getStringList(path + "location-modifiers", null);
 
+		// Variables
+		varModsCast = config.getStringList(path + "variable-mods-cast", null);
+		varModsCasted = config.getStringList(path + "variable-mods-casted", null);
+		varModsTarget = config.getStringList(path + "variable-mods-target", null);
+
 		// Hierarchy options
 		prerequisites = config.getStringList(path + "prerequisites", null);
 		replaces = config.getStringList(path + "replaces", null);
@@ -486,8 +495,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected void initializeVariables() {
 		// Variable options
-		String path = "spells" + '.' + internalName + '.';
-		List<String> varModsCast = config.getStringList(path + "variable-mods-cast", null);
 		if (varModsCast != null && !varModsCast.isEmpty()) {
 			variableModsCast = LinkedListMultimap.create();
 			for (String s : varModsCast) {
@@ -501,7 +508,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				}
 			}
 		}
-		List<String> varModsCasted = config.getStringList(path + "variable-mods-casted", null);
 		if (varModsCasted != null && !varModsCasted.isEmpty()) {
 			variableModsCasted = LinkedListMultimap.create();
 			for (String s : varModsCasted) {
@@ -515,7 +521,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				}
 			}
 		}
-		List<String> varModsTarget = config.getStringList(path + "variable-mods-target", null);
 		if (varModsTarget != null && !varModsTarget.isEmpty()) {
 			variableModsTarget = LinkedListMultimap.create();
 			for (String s : varModsTarget) {
