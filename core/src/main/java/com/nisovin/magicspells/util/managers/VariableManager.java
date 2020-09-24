@@ -561,8 +561,6 @@ public class VariableManager {
 		if (variable == null) return 0 + "";
 		if (mod == null) return 0 + "";
 		if (playerToMod == null) return 0 + "";
-		if (caster == null) return 0 + "";
-		if (target == null) return 0 + "";
 
 		double amount = mod.getValue(caster, target);
 		if (amount == 0 && mod.isConstantValue()) {
