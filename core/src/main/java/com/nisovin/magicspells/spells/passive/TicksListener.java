@@ -162,8 +162,11 @@ public class TicksListener extends PassiveListener {
 			long start = System.nanoTime();
 
 			for (LivingEntity entity : new ArrayList<>(entities)) {
-				if (entity.isValid()) passiveSpell.activate(entity);
-				else entities.remove(entity);
+				if (entity == null || !entity.isValid()) {
+					entities.remove(entity);
+					continue;
+				}
+				passiveSpell.activate(entity);
 			}
 
 			if (profilingKey != null) MagicSpells.addProfile(profilingKey, System.nanoTime() - start);

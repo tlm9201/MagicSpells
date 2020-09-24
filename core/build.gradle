@@ -15,7 +15,7 @@ dependencies {
     shadow "com.github.PaperMC:PaperLib:1c3c36b188"
     shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"
     shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation "com.destroystokyo.paper:paper-api:1.16.2-R0.1-SNAPSHOT"
+    implementation "com.destroystokyo.paper:paper-api:1.16.3-R0.1-SNAPSHOT"
     implementation ":spigot-1.16.2"
     implementation ":spigot-1.16.1"
     implementation ":spigot-1.15"

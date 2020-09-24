@@ -57,6 +57,7 @@ public class VariableListener implements Listener {
 			Collection<VariableMod> mods = varMods.get(var);
 			if (mods == null) continue;
 			for (VariableMod mod : mods) {
+				if (mod == null) continue;
 				String amount = variableManager.processVariableMods(var, mod, player, player, null);
 				MagicSpells.debug(3, "Variable '" + var + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell cast '" + event.getSpell().getName() + "'");
 			}
@@ -76,6 +77,7 @@ public class VariableListener implements Listener {
 			Collection<VariableMod> mods = varMods.get(var);
 			if (mods == null) continue;
 			for (VariableMod mod : mods) {
+				if (mod == null) continue;
 				String amount = variableManager.processVariableMods(var, mod, player, player, null);
 				MagicSpells.debug(3, "Variable '" + var + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell casted '" + event.getSpell().getName() + "'");
 			}
@@ -95,6 +97,7 @@ public class VariableListener implements Listener {
 			Collection<VariableMod> mods = varMods.get(var);
 			if (mods == null) continue;
 			for (VariableMod mod : mods) {
+				if (mod == null) continue;
 				String amount = variableManager.processVariableMods(var, mod, target, (Player) caster, target);
 				MagicSpells.debug(3, "Variable '" + var + "' for player '" + target.getName() + "' modified by " + amount + " as a result of spell target from '" + event.getSpell().getName() + "'");
 			}

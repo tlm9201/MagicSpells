@@ -6,9 +6,9 @@ import java.io.FileWriter;
 import java.io.BufferedWriter;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
-import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.configuration.ConfigurationSection;
@@ -347,21 +347,33 @@ public class VariableManager {
 	}
 
 	public void updateBossBar(Variable var, String player) {
+		if (var == null) return;
+		if (!var.isDisplayedOnExpBar()) return;
 		if (var.getBossBarTitle() == null) return;
+		if (player == null || player.isEmpty()) return;
 		if (var instanceof GlobalVariable) {
 			double pct = var.getValue("") / var.getMaxValue();
-			Util.forEachPlayerOnline(p -> MagicSpells.getBossBarManager().getBar(p, var.getBossBarNamespacedKey()).set(var.getBossBarTitle(), pct, var.getBossBarStyle(), var.getBossBarColor()));
+			for (Player pl : Bukkit.getOnlinePlayers()) {
+				if (pl == null || !pl.isValid()) continue;
+				BossBarManager.Bar bar = MagicSpells.getBossBarManager().getBar(pl, var.getBossBarNamespacedKey());
+				if (bar == null) continue;
+				bar.set(var.getBossBarTitle(), pct, var.getBossBarStyle(), var.getBossBarColor());
+			}
 			return;
 		}
 		if (var instanceof PlayerVariable) {
-			Player p = PlayerNameUtils.getPlayerExact(player);
-			if (p == null) return;
-			MagicSpells.getBossBarManager().getBar(p, var.getBossBarNamespacedKey()).set(var.getBossBarTitle(), var.getValue(p) / var.getMaxValue(), var.getBossBarStyle(), var.getBossBarColor());
+			Player pl = PlayerNameUtils.getPlayerExact(player);
+			if (pl == null) return;
+			BossBarManager.Bar bar = MagicSpells.getBossBarManager().getBar(pl, var.getBossBarNamespacedKey());
+			if (bar == null) return;
+			bar.set(var.getBossBarTitle(), var.getValue(pl) / var.getMaxValue(), var.getBossBarStyle(), var.getBossBarColor());
 		}
 	}
 
 	public void updateExpBar(Variable var, String player) {
+		if (var == null) return;
 		if (!var.isDisplayedOnExpBar()) return;
+		if (player == null || player.isEmpty()) return;
 		if (var instanceof GlobalVariable) {
 			double pct = var.getValue("") / var.getMaxValue();
 			Util.forEachPlayerOnline(p -> MagicSpells.getVolatileCodeHandler().setExperienceBar(p, (int) var.getValue(""), (float) pct));
@@ -545,7 +557,13 @@ public class VariableManager {
 	}
 
 	public String processVariableMods(String var, VariableMod mod, Player playerToMod, Player caster, Player target) {
-		Variable variable = MagicSpells.getVariableManager().getVariable(var);
+		Variable variable = getVariable(var);
+		if (variable == null) return 0 + "";
+		if (mod == null) return 0 + "";
+		if (playerToMod == null) return 0 + "";
+		if (caster == null) return 0 + "";
+		if (target == null) return 0 + "";
+
 		double amount = mod.getValue(caster, target);
 		if (amount == 0 && mod.isConstantValue()) {
 			reset(var, playerToMod);
