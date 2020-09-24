@@ -36,13 +36,14 @@ public class RightClickEntityListener extends PassiveListener {
 	@EventHandler
 	public void onRightClickEntity(PlayerInteractAtEntityEvent event) {
 		if (!(event.getRightClicked() instanceof LivingEntity)) return;
+		LivingEntity entity = (LivingEntity) event.getRightClicked();
 		if (event.getHand() != EquipmentSlot.HAND) return;
-		if (!entities.isEmpty() && !entities.contains(event.getRightClicked().getType())) return;
+		if (!entities.isEmpty() && !entities.contains(entity.getType())) return;
 
 		if (!hasSpell(event.getPlayer())) return;
 
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(event.getPlayer(), (LivingEntity)event.getRightClicked());
+		boolean casted = passiveSpell.activate(event.getPlayer(), entity);
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);
 	}

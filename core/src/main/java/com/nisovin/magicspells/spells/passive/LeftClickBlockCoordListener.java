@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
 import org.bukkit.Location;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -37,16 +38,19 @@ public class LeftClickBlockCoordListener extends PassiveListener {
 	
 	@OverridePriority
 	@EventHandler
-	public void onRightClick(PlayerInteractEvent event) {
+	public void onLeftClick(PlayerInteractEvent event) {
 		if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
 		Location location = event.getClickedBlock().getLocation();
 		MagicLocation loc = new MagicLocation(location.getWorld().getName(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
 		if (!magicLocation.equals(loc)) return;
-		if (!isCancelStateOk(event.isCancelled())) return;
+		if (!isCancelStateOk(isCancelled(event))) return;
 		if (!hasSpell(event.getPlayer())) return;
-
 		boolean casted = passiveSpell.activate(event.getPlayer(), location.add(0.5, 0.5, 0.5));
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
+
+	private boolean isCancelled(PlayerInteractEvent event) {
+		return event.useInteractedBlock() == Event.Result.DENY;
 	}
 
 }

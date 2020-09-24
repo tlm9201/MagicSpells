@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
@@ -42,20 +43,29 @@ public class RightClickItemListener extends PassiveListener {
 	public void onRightClick(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		if (!event.hasItem()) return;
-		
+
 		ItemStack item = event.getItem();
 		if (item == null || item.getType().isAir()) return;
-
 		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
 		if (itemData == null) return;
 
-		if (!items.isEmpty() && !items.contains(itemData)) return;
+		if (!items.isEmpty() && !contains(itemData)) return;
 
 		if (!hasSpell(event.getPlayer())) return;
-
-		if (!isCancelStateOk(event.isCancelled())) return;
+		if (!isCancelStateOk(isCancelled(event))) return;
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
+
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.equals(itemData)) return true;
+		}
+		return false;
+	}
+
+	private boolean isCancelled(PlayerInteractEvent event) {
+		return event.useInteractedBlock() == Event.Result.DENY && event.useItemInHand() == Event.Result.DENY;
 	}
 
 }

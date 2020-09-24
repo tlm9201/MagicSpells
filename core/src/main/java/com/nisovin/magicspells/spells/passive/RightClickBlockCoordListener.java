@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
 import org.bukkit.Location;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
@@ -45,11 +46,14 @@ public class RightClickBlockCoordListener extends PassiveListener {
 		if (event.getHand() != EquipmentSlot.HAND) return;
 		if (!magicLocation.equals(loc)) return;
 
-		if (!isCancelStateOk(event.isCancelled())) return;
+		if (!isCancelStateOk(isCancelled(event))) return;
 		if (!hasSpell(event.getPlayer())) return;
-
 		boolean casted = passiveSpell.activate(event.getPlayer(), location.add(0.5, 0.5, 0.5));
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
+
+	private boolean isCancelled(PlayerInteractEvent event) {
+		return event.useInteractedBlock() == Event.Result.DENY;
 	}
 
 }

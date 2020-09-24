@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.EnumSet;
 
 import org.bukkit.Material;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -39,10 +40,14 @@ public class RightClickBlockTypeListener extends PassiveListener {
 		if (!materials.isEmpty() && !materials.contains(event.getClickedBlock().getType())) return;
 
 		if (!hasSpell(event.getPlayer())) return;
-		if (!isCancelStateOk(event.isCancelled())) return;
+		if (!isCancelStateOk(isCancelled(event))) return;
 		boolean casted = passiveSpell.activate(event.getPlayer(), event.getClickedBlock().getLocation().add(0.5, 0.5, 0.5));
 		if (!cancelDefaultAction(casted)) return;
 		event.setCancelled(true);
+	}
+
+	private boolean isCancelled(PlayerInteractEvent event) {
+		return event.useInteractedBlock() == Event.Result.DENY;
 	}
 
 }

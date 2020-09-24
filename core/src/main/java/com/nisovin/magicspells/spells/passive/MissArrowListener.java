@@ -85,9 +85,16 @@ public class MissArrowListener extends PassiveListener {
 		if (item.getType().isAir()) return;
 
 		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		if (!items.contains(itemData)) return;
+		if (!contains(itemData)) return;
 
 		passiveSpell.activate(attacker, event.getEntity().getLocation());
+	}
+
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.equals(itemData)) return true;
+		}
+		return false;
 	}
 	
 	private LivingEntity getAttacker(ProjectileHitEvent event) {
