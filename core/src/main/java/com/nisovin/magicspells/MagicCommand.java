@@ -697,7 +697,7 @@ public class MagicCommand extends BaseCommand {
 			if (args.length < 4) throw new InvalidCommandArgument();
 			Spell spell = getSpell(issuer, args[0]);
 			if (spell == null) return;
-			if (!(spell instanceof TargetedEntitySpell)) {
+			if (!(spell instanceof TargetedLocationSpell)) {
 				throw new ConditionFailedException("Spell is not a targeted location spell.");
 			}
 
