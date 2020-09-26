@@ -624,11 +624,13 @@ public class MagicSpells extends JavaPlugin {
 			spell.initializeModifiers();
 		}
 
-		// setup mana bar conditions
-		manaHandler.initialize();
+		if (enableManaSystem) {
+			// setup mana bar conditions
+			manaHandler.initialize();
 
-		// Setup online player mana bars
-		Util.forEachPlayerOnline(p -> manaHandler.createManaBar(p));
+			// Setup online player mana bars
+			Util.forEachPlayerOnline(p -> manaHandler.createManaBar(p));
+		}
 
 		ModifierSet.initializeModifierListeners();
 		log("...conditions loaded: " + conditionManager.getConditions().size());
