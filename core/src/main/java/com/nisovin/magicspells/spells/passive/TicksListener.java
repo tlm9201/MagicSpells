@@ -14,6 +14,7 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.nisovin.magicspells.Spell;
@@ -46,7 +47,7 @@ public class TicksListener extends PassiveListener {
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			if (!player.isValid()) continue;
 			if (!hasSpell(player)) continue;
-			if (!canTrigger(player)) return;
+			if (!canTrigger(player)) continue;
 			ticker.add(player);
 		}
 
@@ -68,7 +69,7 @@ public class TicksListener extends PassiveListener {
 	public void onChunkLoad(ChunkLoadEvent event) {
 		for (Entity entity : event.getChunk().getEntities()) {
 			if (!(entity instanceof LivingEntity)) continue;
-			if (!canTrigger((LivingEntity) entity)) return;
+			if (!canTrigger((LivingEntity) entity)) continue;
 			ticker.add((LivingEntity) entity);
 		}
 	}
@@ -78,9 +79,19 @@ public class TicksListener extends PassiveListener {
 	public void onChunkUnload(ChunkUnloadEvent event) {
 		for (Entity entity : event.getChunk().getEntities()) {
 			if (!(entity instanceof LivingEntity)) continue;
-			if (!canTrigger((LivingEntity) entity)) return;
+			if (!canTrigger((LivingEntity) entity)) continue;
 			ticker.remove((LivingEntity) entity);
 		}
+	}
+
+	@OverridePriority
+	@EventHandler
+	public void onEntitySpawn(EntitySpawnEvent event) {
+		Entity entity = event.getEntity();
+		if (entity instanceof Player) return;
+		if (!(entity instanceof LivingEntity)) return;
+		if (!canTrigger((LivingEntity) entity)) return;
+		ticker.add((LivingEntity) entity);
 	}
 	
 	@OverridePriority
@@ -96,6 +107,7 @@ public class TicksListener extends PassiveListener {
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
+		if (!canTrigger(player)) return;
 		ticker.remove(player);
 	}
 	
@@ -103,6 +115,7 @@ public class TicksListener extends PassiveListener {
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event) {
 		Player player = event.getEntity();
+		if (!canTrigger(player)) return;
 		ticker.remove(player);
 	}
 	
