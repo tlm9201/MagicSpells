@@ -20,9 +20,10 @@ public class ExperienceBarManager {
 	public void update(Player player, int level, float percent, Object object) {
 		Object lock = locks.get(player);
 		if (lock == null || Objects.equals(object, lock)) {
-			if (player.getOpenInventory().getType() != InventoryType.ENCHANTING) {
-				MagicSpells.getVolatileCodeHandler().setExperienceBar(player, level, percent);
-			}
+			if (player.getOpenInventory().getType() == InventoryType.ENCHANTING) return;
+			if (percent < 0F) percent = 0F;
+			if (percent > 1F) percent = 1F;
+			MagicSpells.getVolatileCodeHandler().setExperienceBar(player, level, percent);
 		}
 	}
 	
