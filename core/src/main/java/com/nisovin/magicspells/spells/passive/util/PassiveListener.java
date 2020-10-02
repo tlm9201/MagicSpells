@@ -31,7 +31,7 @@ public abstract class PassiveListener implements Listener {
 	}
 
 	public boolean canTrigger(LivingEntity livingEntity) {
-		return passiveSpell.getTriggerList().canTarget(livingEntity);
+		return passiveSpell.getTriggerList().canTarget(livingEntity, true);
 	}
 
 	public boolean canTrigger(LivingEntity livingEntity, boolean ignoreGameMode) {
