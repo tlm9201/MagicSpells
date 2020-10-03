@@ -554,11 +554,6 @@ public class MagicSpells extends JavaPlugin {
 
 		CompatBasics.setupExemptionAssistant();
 
-		// Call loaded event
-		pm.callEvent(new MagicSpellsLoadedEvent(this));
-
-		log("MagicSpells loading complete!");
-
 		// Load external data
 		Bukkit.getScheduler().runTaskLater(this, this::loadExternalData, 1);
 	}
@@ -573,6 +568,11 @@ public class MagicSpells extends JavaPlugin {
 		loadPassiveListeners(pm);
 
 		log("...done");
+
+		// Call loaded event
+		pm.callEvent(new MagicSpellsLoadedEvent(this));
+
+		log("MagicSpells loading complete!");
 	}
 
 	private void loadVariables(PluginManager pm) {
