@@ -209,6 +209,7 @@ public class MagicCommand extends BaseCommand {
 	@Description("Display command help.")
 	public void doHelp(CommandSender sender, CommandHelp help) {
 		if (noPermission(sender, Perm.COMMAND_HELP)) return;
+		CommandHelpFilter.filter(sender, help);
 		help.showHelp();
 	}
 
@@ -216,6 +217,7 @@ public class MagicCommand extends BaseCommand {
 	@CommandCompletion("@players @nothing")
 	@Syntax("[player]")
 	@Description("Reloads MagicSpells. If player is specified, then it reloads their spellbook.")
+	@HelpPermission(permission = Perm.COMMAND_RELOAD)
 	public static void onReload(CommandIssuer issuer, String[] args) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD)) return;
 		MagicSpells plugin = MagicSpells.getInstance();
@@ -234,6 +236,7 @@ public class MagicCommand extends BaseCommand {
 
 	@Subcommand("reloadeffectlib")
 	@Description("Reloads EffectLib, the shaded version inside MagicSpells.")
+	@HelpPermission(permission = Perm.COMMAND_RELOAD_EFFECTLIB)
 	public static void onReloadEffectLib(CommandIssuer issuer) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD_EFFECTLIB)) return;
 		MagicSpells.disposeEffectlib();
@@ -245,6 +248,7 @@ public class MagicCommand extends BaseCommand {
 	@CommandCompletion("@players+ @spells:* @nothing")
 	@Syntax("[player/*] [spell/*]")
 	@Description("Reset cooldown of all players or a player for a spell or all spells.")
+	@HelpPermission(permission = Perm.COMMAND_RESET_COOLDOWN)
 	public static void onResetCD(CommandIssuer issuer, String[] args) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RESET_COOLDOWN)) return;
 		args = Util.splitParams(args);
@@ -282,6 +286,7 @@ public class MagicCommand extends BaseCommand {
 		@Subcommand("show")
 		@CommandAlias("mana")
 		@Description("Display your mana.")
+		@HelpPermission(permission = Perm.COMMAND_MANA_SHOW)
 		public void onShow(CommandIssuer issuer) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_SHOW)) return;
 			Player player = getPlayerFromIssuer(issuer);
@@ -293,6 +298,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@players @nothing")
 		@Syntax("[player]")
 		@Description("Reset mana of yourself or another player.")
+		@HelpPermission(permission = Perm.COMMAND_MANA_RESET)
 		public void onReset(CommandIssuer issuer, @Optional OnlinePlayer onlinePlayer) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_RESET)) return;
 			Player player = onlinePlayer == null ? getPlayerFromIssuer(issuer) : onlinePlayer.getPlayer();
@@ -305,6 +311,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@players @nothing")
 		@Syntax("[player] <amount>")
 		@Description("Set the max mana of yourself or another player.")
+		@HelpPermission(permission = Perm.COMMAND_MANA_SET_MAX)
 		public void onSetMax(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_SET_MAX)) return;
 			if (args.length < 1) throw new InvalidCommandArgument();
@@ -332,6 +339,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@players @nothing")
 		@Syntax("[player] <amount>")
 		@Description("Add mana to yourself or another player.")
+		@HelpPermission(permission = Perm.COMMAND_MANA_ADD)
 		public void onAdd(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_ADD)) return;
 			if (args.length < 1) throw new InvalidCommandArgument();
@@ -359,6 +367,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@players @nothing")
 		@Syntax("[player] <amount>")
 		@Description("Set your or another player's mana to a new value.")
+		@HelpPermission(permission = Perm.COMMAND_MANA_SET)
 		public void onSet(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_SET)) return;
 			if (args.length < 1) throw new InvalidCommandArgument();
@@ -386,6 +395,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@players @nothing")
 		@Syntax("[player]")
 		@Description("Update your or another player's mana rank.")
+		@HelpPermission(permission = Perm.COMMAND_MANA_UPDATE_RANK)
 		public void onUpdateManaRank(CommandIssuer issuer, @Optional OnlinePlayer onlinePlayer) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_MANA_UPDATE_RANK)) return;
 			Player player = onlinePlayer == null ? getPlayerFromIssuer(issuer) : onlinePlayer.getPlayer();
@@ -405,6 +415,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@variables @players @nothing")
 		@Syntax("<variable> [player]")
 		@Description("Display value of a variable.")
+		@HelpPermission(permission = Perm.COMMAND_VARIABLE_SHOW)
 		public void onShowVariable(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_VARIABLE_SHOW)) return;
 			Variable variable;
@@ -425,6 +436,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@variables @players @nothing")
 		@Syntax("<variable> <player> <varMod>")
 		@Description("Modify a variable's value.")
+		@HelpPermission(permission = Perm.COMMAND_VARIABLE_MODIFY)
 		public void onModifyVariable(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_VARIABLE_MODIFY)) return;
 			if (args.length < 3) throw new InvalidCommandArgument();
@@ -460,6 +472,7 @@ public class MagicCommand extends BaseCommand {
 	@CommandCompletion("@magic_items @players @nothing")
 	@Syntax("<magicItem> [amount] [player]")
 	@Description("Give a user a Magic Item.")
+	@HelpPermission(permission = Perm.COMMAND_MAGIC_ITEM)
 	public static void onMagicItem(CommandIssuer issuer, String[] args) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_MAGIC_ITEM)) return;
 		if (args.length == 0) throw new InvalidCommandArgument();
@@ -497,6 +510,7 @@ public class MagicCommand extends BaseCommand {
 		@Subcommand("download")
 		@Syntax("<url> <fileName>")
 		@Description("Download a file from a specified URL and save it with the specified name. (The spell file prefix is not automatically added.)")
+		@HelpPermission(permission = Perm.COMMAND_UTIL_DOWNLOAD)
 		public void onDownload(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_UTIL_DOWNLOAD)) return;
 			if (args.length < 2) throw new InvalidCommandArgument();
@@ -511,6 +525,7 @@ public class MagicCommand extends BaseCommand {
 		@Subcommand("update")
 		@Syntax("<url> <fileName>")
 		@Description("This behaves the same as the download command, except it can overwrite existing files.")
+		@HelpPermission(permission = Perm.COMMAND_UTIL_UPDATE)
 		public void onUpdate(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_UTIL_UPDATE)) return;
 			if (args.length < 2) throw new InvalidCommandArgument();
@@ -535,6 +550,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@players @nothing")
 		@Syntax("[player]")
 		@Description("Save a player's current skin data to a readable file.")
+		@HelpPermission(permission = Perm.COMMAND_UTIL_SAVE_SKIN)
 		public void onSaveSkin(CommandIssuer issuer, @Optional Player player) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_UTIL_SAVE_SKIN)) return;
 			if (player == null) player = getPlayerFromIssuer(issuer);
@@ -560,6 +576,7 @@ public class MagicCommand extends BaseCommand {
 
 	@Subcommand("profilereport")
 	@Description("Save profile report to a file.")
+	@HelpPermission(permission = Perm.COMMAND_PROFILE_REPORT)
 	public static void onProfiler(CommandIssuer issuer) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_PROFILE_REPORT)) return;
 		MagicSpells.profilingReport();
@@ -568,6 +585,7 @@ public class MagicCommand extends BaseCommand {
 
 	@Subcommand("debug")
 	@Description("Toggle MagicSpells debug mode.")
+	@HelpPermission(permission = Perm.COMMAND_DEBUG)
 	public static void onDebug(CommandIssuer issuer) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_DEBUG)) return;
 		MagicSpells.setDebug(!MagicSpells.isDebug());
@@ -577,6 +595,7 @@ public class MagicCommand extends BaseCommand {
 	@Subcommand("magicxp")
 	@CommandAlias("magicxp")
 	@Description("Display your MagicXp.")
+	@HelpPermission(permission = Perm.COMMAND_MAGICXP)
 	public void onShow(CommandIssuer issuer) {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_MAGICXP)) return;
 		Player player = getPlayerFromIssuer(issuer);
@@ -594,6 +613,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@owned_spells -p: @nothing")
 		@Syntax("<spell> [-p:(power)] [spellArgs]")
 		@Description("Cast a spell. (You can optionally define power: -p:1.0)")
+		@HelpPermission(permission = Perm.COMMAND_CAST_SELF)
 		public void onCastSelf(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_SELF)) return;
 			args = Util.splitParams(args);
@@ -651,6 +671,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@players @spells -p: @nothing")
 		@Syntax("<player/UUID> <spell> (-p:[power]) [spellArgs]")
 		@Description("Force a player to cast a spell. (You can optionally define power: -p:1.0)")
+		@HelpPermission(permission = Perm.COMMAND_CAST_AS)
 		public void onCastAs(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_AS)) return;
 			args = Util.splitParams(args);
@@ -668,6 +689,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@players @spells @nothing")
 		@Syntax("<player/UUID> <spell>")
 		@Description("Cast a spell on an entity.")
+		@HelpPermission(permission = Perm.COMMAND_CAST_ON)
 		public void onCastOn(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_ON)) return;
 			args = Util.splitParams(args);
@@ -692,6 +714,7 @@ public class MagicCommand extends BaseCommand {
 		@CommandCompletion("@spells @worlds @looking_at:X @looking_at:Y @looking_at:Z @looking_at:pitch @looking_at:yaw @nothing")
 		@Syntax("<spell> [world] <x> <y> <z> [pitch] [yaw]")
 		@Description("Cast a spell at a location.")
+		@HelpPermission(permission = Perm.COMMAND_CAST_AT)
 		public void onCastAt(CommandIssuer issuer, String[] args) {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_AT)) return;
 			args = Util.splitParams(args);

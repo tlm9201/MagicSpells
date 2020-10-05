@@ -50,6 +50,7 @@ import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.commands.CommandHelpFilter;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
@@ -546,6 +547,7 @@ public class MagicSpells extends JavaPlugin {
 		// Register commands
 		commandManager.enableUnstableAPI("help");
 		commandManager.registerCommand(new MagicCommand());
+		CommandHelpFilter.mapPerms();
 
 		// Setup profiling
 		if (enableProfiling) {
