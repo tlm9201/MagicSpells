@@ -1,4 +1,4 @@
-package com.nisovin.magicspells;
+package com.nisovin.magicspells.commands;
 
 import java.util.*;
 import java.io.File;
@@ -20,10 +20,11 @@ import co.aikar.commands.annotation.*;
 import co.aikar.commands.annotation.Optional;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.TxtUtil;
-import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.VariableMod;
+import com.nisovin.magicspells.Perm;
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
