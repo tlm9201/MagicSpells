@@ -311,7 +311,7 @@ public class MagicSpells extends JavaPlugin {
 		strUnknownSpell = config.getString(path + "str-unknown-spell", "You do not know a spell with that name.");
 		strSpellChange = config.getString(path + "str-spell-change", "You are now using the %s spell.");
 		strSpellChangeEmpty = config.getString(path + "str-spell-change-empty", "You are no longer using a spell.");
-		strOnCooldown = config.getString(path + "str-on-cooldown", "That spell is on cooldown.");
+		strOnCooldown = config.getString(path + "str-on-cooldown", "That spell is on cooldown (%c seconds remaining).");
 		strMissingReagents = config.getString(path + "str-missing-reagents", "You do not have the reagents for that spell.");
 		strCantCast = config.getString(path + "str-cant-cast", "You can't cast that spell right now.");
 		strCantBind = config.getString(path + "str-cant-bind", "You cannot bind that spell to that item.");
