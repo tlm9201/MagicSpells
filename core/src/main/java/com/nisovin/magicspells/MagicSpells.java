@@ -211,14 +211,14 @@ public class MagicSpells extends JavaPlugin {
 		new File(getDataFolder(), "spellbooks").mkdir();
 
 		// Load config
-		if (!new File(getDataFolder(), "config.yml").exists() && !new File(getDataFolder(), "general.yml").exists()) {
+		if (!new File(getDataFolder(), "general.yml").exists()) {
 			saveResource("general.yml", false);
 			if (!new File(getDataFolder(), "mana.yml").exists()) saveResource("mana.yml", false);
 			if (!new File(getDataFolder(), "spells-command.yml").exists()) saveResource("spells-command.yml", false);
 			if (!new File(getDataFolder(), "spells-regular.yml").exists()) saveResource("spells-regular.yml", false);
 			if (!new File(getDataFolder(), "zones.yml").exists()) saveResource("zones.yml", false);
 		}
-		config = new MagicConfig(this);
+		config = new MagicConfig();
 		if (!config.isLoaded()) {
 			MagicSpells.log(Level.SEVERE, "Error in config file, stopping config load");
 			return;
@@ -1038,10 +1038,6 @@ public class MagicSpells extends JavaPlugin {
 
 	public static VolatileCodeHandle getVolatileCodeHandler() {
 		return plugin.volatileCodeHandle;
-	}
-
-	public static MagicXpHandler getMagicExpHandler() {
-		return plugin.magicXpHandler;
 	}
 
 	public static ExperienceBarManager getExpBarManager() {
