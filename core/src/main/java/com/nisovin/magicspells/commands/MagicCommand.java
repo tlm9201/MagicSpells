@@ -600,7 +600,7 @@ public class MagicCommand extends BaseCommand {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_MAGICXP)) return;
 		Player player = getPlayerFromIssuer(issuer);
 		if (player == null) return;
-		MagicXpHandler xpHandler = MagicSpells.getMagicExpHandler();
+		MagicXpHandler xpHandler = MagicSpells.getMagicXpHandler();
 		if (xpHandler == null) throw new ConditionFailedException("The ManaXp system is not enabled.");
 		xpHandler.showXpInfo(player);
 	}
