@@ -110,6 +110,12 @@ public class MagicCommand extends BaseCommand {
 			if (!num.isEmpty()) completions.add(num);
 			return completions;
 		});
+		commandManager.getCommandCompletions().registerAsyncCompletion("power", context -> {
+			Player player = context.getPlayer();
+			if (player == null) return Collections.emptyList();
+			if (!Perm.COMMAND_CAST_POWER.has(player)) return Collections.emptyList();
+			return Collections.singleton("-p:");
+		});
 	}
 
 	private static Set<String> getSpellNames(Collection<Spell> spells) {
@@ -188,6 +194,14 @@ public class MagicCommand extends BaseCommand {
 		return spellArgs.toArray(new String[0]);
 	}
 
+	private static boolean hasPowerArg(String[] args) {
+		for (String string : args) {
+			if (!string.startsWith("-p:")) continue;
+			return true;
+		}
+		return false;
+	}
+
 	private static float getPowerFromArgs(String[] args) {
 		float power = 1F;
 		for (String string : args) {
@@ -199,8 +213,12 @@ public class MagicCommand extends BaseCommand {
 	}
 
 	private static boolean noPermission(CommandSender sender, Perm perm) {
+		return noPermission(sender, perm, "You do not have permission to perform this command.");
+	}
+
+	private static boolean noPermission(CommandSender sender, Perm perm, String error) {
 		if (perm.has(sender)) return false;
-		sender.sendMessage(Util.colorize("&4Error: You do not have permission to perform this command."));
+		sender.sendMessage(Util.colorize("&4Error: " + error));
 		return true;
 	}
 
@@ -610,7 +628,7 @@ public class MagicCommand extends BaseCommand {
 
 		@Subcommand("self")
 		@CommandAlias("c|cast")
-		@CommandCompletion("@owned_spells -p: @nothing")
+		@CommandCompletion("@owned_spells @power @nothing")
 		@Syntax("<spell> [-p:(power)] [spellArgs]")
 		@Description("Cast a spell. (You can optionally define power: -p:1.0)")
 		@HelpPermission(permission = Perm.COMMAND_CAST_SELF)
@@ -627,6 +645,12 @@ public class MagicCommand extends BaseCommand {
 
 			Spell spell = getSpell(issuer, args[0]);
 			if (spell == null) return;
+
+			// Get spell power if the user has permission.
+			if (hasPowerArg(args)) {
+				boolean noPowerPerm = noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_POWER,"You do not have permission to use the power parameter.");
+				if (noPowerPerm) return;
+			}
 			float power = getPowerFromArgs(args);
 			String[] spellArgs = getCustomArgs(args, 1);
 
@@ -668,7 +692,7 @@ public class MagicCommand extends BaseCommand {
 		}
 
 		@Subcommand("as")
-		@CommandCompletion("@players @spells -p: @nothing")
+		@CommandCompletion("@players @spells @power @nothing")
 		@Syntax("<player/UUID> <spell> (-p:[power]) [spellArgs]")
 		@Description("Force a player to cast a spell. (You can optionally define power: -p:1.0)")
 		@HelpPermission(permission = Perm.COMMAND_CAST_AS)
@@ -680,6 +704,12 @@ public class MagicCommand extends BaseCommand {
 			if (target == null) throw new ConditionFailedException("Entity not found.");
 			Spell spell = getSpell(issuer, args[1]);
 			if (spell == null) return;
+
+			// Get spell power if the user has permission.
+			if (hasPowerArg(args)) {
+				boolean noPowerPerm = noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_POWER,"You do not have permission to use the power parameter.");
+				if (noPowerPerm) return;
+			}
 			float power = getPowerFromArgs(args);
 			String[] spellArgs = getCustomArgs(args, 2);
 			spell.cast(target, power, spellArgs);
