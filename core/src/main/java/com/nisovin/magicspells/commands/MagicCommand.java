@@ -670,7 +670,7 @@ public class MagicCommand extends BaseCommand {
 					MagicSpells.sendMessage(MagicSpells.getTextColor() + "You cannot cast this spell by commands.", player, null);
 					return;
 				}
-				if ((spell.isHelperSpell() && !MagicSpells.getSpellbook(player).hasSpell(spell))) {
+				if ((!spell.isHelperSpell() && !MagicSpells.getSpellbook(player).hasSpell(spell))) {
 					MagicSpells.sendMessage(MagicSpells.getTextColor() + MagicSpells.getStrUnknownSpell(), player, null);
 					return;
 				}
@@ -685,7 +685,6 @@ public class MagicCommand extends BaseCommand {
 			if (sender instanceof LivingEntity) {
 				LivingEntity livingEntity = (LivingEntity) sender;
 				if (!spell.canCastByCommand()) return;
-				if (spell.isHelperSpell() && !livingEntity.isOp()) return;
 				if (!spell.isValidItemForCastCommand(livingEntity.getActiveItem())) return;
 				spell.cast(livingEntity, power, spellArgs);
 			}
