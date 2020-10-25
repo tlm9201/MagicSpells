@@ -33,6 +33,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
+import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 
 @CommandAlias("ms|magicspells")
 public class MagicCommand extends BaseCommand {
@@ -473,7 +474,7 @@ public class MagicCommand extends BaseCommand {
 			VariableMod variableMod = new VariableMod(args[2]);
 			VariableMod.Operation op = variableMod.getOperation();
 			String oldValue = MagicSpells.getVariableManager().getStringValue(variableName, playerName);
-			if (op.equals(VariableMod.Operation.SET) && variable instanceof PlayerStringVariable) {
+			if (op.equals(VariableMod.Operation.SET) && (variable instanceof PlayerStringVariable || variable instanceof GlobalStringVariable)) {
 				MagicSpells.getVariableManager().set(variableName, playerName, variableMod.getValue());
 			} else {
 				double value = variableMod.getValue(player, null);
