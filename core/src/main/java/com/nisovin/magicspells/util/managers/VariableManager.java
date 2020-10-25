@@ -81,6 +81,7 @@ public class VariableManager {
 		// variable types
 		addVariableType("player", PlayerVariable.class);
 		addVariableType("global", GlobalVariable.class);
+		addVariableType("globalstring", GlobalStringVariable.class);
 		addVariableType("distancetolocation", DistanceToLocationVariable.class);
 		addVariableType("squareddistancetolocation", SquaredDistanceToLocationVariable.class);
 		addVariableType("playerstring", PlayerStringVariable.class);
@@ -290,6 +291,7 @@ public class VariableManager {
 		if (!var.isPermanent()) return;
 		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player);
 		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
+		else if (var instanceof GlobalStringVariable) dirtyGlobalVars = true;
 	}
 
 	public void set(String variable, Player player, String amount) {
@@ -305,6 +307,7 @@ public class VariableManager {
 		if (!var.isPermanent()) return;
 		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player);
 		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
+		else if (var instanceof GlobalStringVariable) dirtyGlobalVars = true;
 	}
 
 	public double getValue(String variable, Player player) {
@@ -344,6 +347,7 @@ public class VariableManager {
 		if (!var.isPermanent()) return;
 		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player != null ? player.getName() : "");
 		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
+		else if (var instanceof GlobalStringVariable) dirtyGlobalVars = true;
 	}
 
 	public void updateBossBar(Variable var, String player) {
@@ -351,7 +355,7 @@ public class VariableManager {
 		if (!var.isDisplayedOnExpBar()) return;
 		if (var.getBossBarTitle() == null) return;
 		if (player == null || player.isEmpty()) return;
-		if (var instanceof GlobalVariable) {
+		if (var instanceof GlobalVariable || var instanceof GlobalStringVariable) {
 			double pct = var.getValue("") / var.getMaxValue();
 			for (Player pl : Bukkit.getOnlinePlayers()) {
 				if (pl == null || !pl.isValid()) continue;
@@ -401,6 +405,7 @@ public class VariableManager {
 					String[] s = line.split("=", 2);
 					Variable variable = variables.get(s[0]);
 					if (variable instanceof GlobalVariable && variable.isPermanent()) variable.parseAndSet("", s[1]);
+					else if (variable instanceof GlobalStringVariable && variable.isPermanent()) variable.parseAndSet("", s[1]);
 				}
 			}
 			scanner.close();
@@ -419,7 +424,7 @@ public class VariableManager {
 		List<String> lines = new ArrayList<>();
 		for (String variableName : variables.keySet()) {
 			Variable variable = variables.get(variableName);
-			if (variable instanceof GlobalVariable && variable.isPermanent()) {
+			if ((variable instanceof GlobalVariable || variable instanceof GlobalStringVariable) && variable.isPermanent()) {
 				String val = variable.getStringValue("");
 				if (!val.equals(variable.getDefaultStringValue())) lines.add(variableName + '=' + Util.flattenLineBreaks(val));
 			}
@@ -569,7 +574,7 @@ public class VariableManager {
 		}
 
 		VariableMod.Operation op = mod.getOperation();
-		if (op.equals(VariableMod.Operation.SET) && variable instanceof PlayerStringVariable) {
+		if (op.equals(VariableMod.Operation.SET) && (variable instanceof PlayerStringVariable || variable instanceof GlobalStringVariable)) {
 			set(var, playerToMod, mod.getValue());
 			return mod.getValue();
 		}
