@@ -72,7 +72,7 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 		ignoreArmor = getConfigBoolean("ignore-armor", false);
 		checkPlugins = getConfigBoolean("check-plugins", true);
 		showSpellEffect = getConfigBoolean("show-spell-effect", true);
-		avoidDamageModification = getConfigBoolean("avoid-damage-modification", false);
+		avoidDamageModification = getConfigBoolean("avoid-damage-modification", true);
 
 		spellOnAnimationName = getConfigString("spell-on-animation", "");
 
