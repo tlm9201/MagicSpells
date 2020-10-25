@@ -42,13 +42,13 @@ public class BuffListener extends PassiveListener {
 		}
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			on(player, false);
+			on(player);
 		}
 
 		for (World world : Bukkit.getWorlds()) {
 			for (LivingEntity livingEntity : world.getLivingEntities()) {
 				if (!canTrigger(livingEntity)) continue;
-				on(livingEntity, true);
+				on(livingEntity);
 			}
 		}
 	}
@@ -59,7 +59,7 @@ public class BuffListener extends PassiveListener {
 		Entity entity = event.getEntity();
 		if (entity instanceof Player) return;
 		if (!(entity instanceof LivingEntity)) return;
-		on((LivingEntity) entity, true);
+		on((LivingEntity) entity);
 	}
 
 	@OverridePriority
@@ -67,7 +67,7 @@ public class BuffListener extends PassiveListener {
 	public void onChunkLoad(ChunkLoadEvent event) {
 		for (Entity entity : event.getChunk().getEntities()) {
 			if (!(entity instanceof LivingEntity)) continue;
-			on((LivingEntity) entity, true);
+			on((LivingEntity) entity);
 		}
 	}
 
@@ -84,13 +84,13 @@ public class BuffListener extends PassiveListener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		if (gameModes.contains(event.getNewGameMode())) off(event.getPlayer());
-		else on(event.getPlayer(), true);
+		else on(event.getPlayer());
 	}
 
 	@OverridePriority
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		on(event.getPlayer(), false);
+		on(event.getPlayer());
 	}
 
 	@OverridePriority
@@ -108,7 +108,7 @@ public class BuffListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onPlayerRespawn(final PlayerRespawnEvent event) {
-		MagicSpells.scheduleDelayedTask(() -> on(event.getPlayer(), false), 1);
+		MagicSpells.scheduleDelayedTask(() -> on(event.getPlayer()), 1);
 	}
 
 	@OverridePriority
@@ -117,7 +117,7 @@ public class BuffListener extends PassiveListener {
 		Spell spell = event.getSpell();
 		if (!(spell instanceof PassiveSpell)) return;
 		if (!spell.getInternalName().equalsIgnoreCase(passiveSpell.getInternalName())) return;
-		MagicSpells.scheduleDelayedTask(() -> on(event.getLearner(), false), 1);
+		MagicSpells.scheduleDelayedTask(() -> on(event.getLearner()), 1);
 	}
 
 	@OverridePriority
@@ -129,8 +129,8 @@ public class BuffListener extends PassiveListener {
 		off(event.getForgetter());
 	}
 
-	private void on(LivingEntity entity, boolean ignoreGameMode) {
-		if (!canTrigger(entity, ignoreGameMode)) return;
+	private void on(LivingEntity entity) {
+		if (!canTrigger(entity, true)) return;
 		if (!hasSpell(entity)) return;
 
 		for (Subspell s : passiveSpell.getActivatedSpells()) {

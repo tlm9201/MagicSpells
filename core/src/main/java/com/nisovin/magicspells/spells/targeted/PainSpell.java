@@ -46,7 +46,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Spe
 
 		ignoreArmor = getConfigBoolean("ignore-armor", false);
 		checkPlugins = getConfigBoolean("check-plugins", true);
-		avoidDamageModification = getConfigBoolean("avoid-damage-modification", false);
+		avoidDamageModification = getConfigBoolean("avoid-damage-modification", true);
 		tryAvoidingAntiCheatPlugins = getConfigBoolean("try-avoiding-anticheat-plugins", false);
 	}
 
