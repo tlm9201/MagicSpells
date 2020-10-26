@@ -36,7 +36,6 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		if (variableName.isEmpty() || MagicSpells.getVariableManager().getVariable(variableName) == null) {
 			MagicSpells.error("DataSpell '" + internalName + "' has an invalid variable-name defined!");
-			return;
 		}
 	}
 	

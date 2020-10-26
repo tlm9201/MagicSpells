@@ -356,9 +356,7 @@ public class MagicItems {
 					if (args.length >= 4) {
 						try {
 							slot = EquipmentSlot.valueOf(args[3].toUpperCase());
-						} catch (Exception e) {
-
-						}
+						} catch (Exception ignored) {}
 					}
 
 					AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), args[0], value, operation, slot);

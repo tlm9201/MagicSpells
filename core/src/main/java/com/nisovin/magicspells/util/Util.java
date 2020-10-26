@@ -389,9 +389,7 @@ public class Util {
 		int amt = item.getAmount();
 		ItemStack[] armorContents = entityEquipment.getArmorContents();
 		ItemStack[] items = new ItemStack[6];
-		for (int i = 0; i < 4; i++) {
-			items[i] = armorContents[i];
-		}
+		System.arraycopy(armorContents, 0, items, 0, 4);
 		items[4] = entityEquipment.getItemInMainHand();
 		items[5] = entityEquipment.getItemInOffHand();
 
@@ -417,9 +415,7 @@ public class Util {
 
 		if (amt == 0) {
 			ItemStack[] updatedArmorContents = new ItemStack[4];
-			for (int i = 0; i < 4; i++) {
-				updatedArmorContents[i] = items[i];
-			}
+			System.arraycopy(items, 0, updatedArmorContents, 0, 4);
 			entityEquipment.setArmorContents(updatedArmorContents);
 			entityEquipment.setItemInMainHand(items[4]);
 			entityEquipment.setItemInOffHand(items[5]);
@@ -435,19 +431,19 @@ public class Util {
 		int amt = item.getAmount();
 		ItemStack[] items = Arrays.copyOf(inventory.getContents(), inventory.getSize());
 		if (stackExisting) {
-			for (int i = 0; i < items.length; i++) {
-				if (items[i] == null) continue;
-				MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			for (ItemStack itemStack : items) {
+				if (itemStack == null) continue;
+				MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemStack);
 				if (magicItemData == null) continue;
 				if (!magicItemData.equals(itemData)) continue;
 
-				if (items[i].getAmount() + amt <= items[i].getMaxStackSize()) {
-					items[i].setAmount(items[i].getAmount() + amt);
+				if (itemStack.getAmount() + amt <= itemStack.getMaxStackSize()) {
+					itemStack.setAmount(itemStack.getAmount() + amt);
 					amt = 0;
 					break;
 				} else {
-					int diff = items[i].getMaxStackSize() - items[i].getAmount();
-					items[i].setAmount(items[i].getMaxStackSize());
+					int diff = itemStack.getMaxStackSize() - itemStack.getAmount();
+					itemStack.setAmount(itemStack.getMaxStackSize());
 					amt -= diff;
 				}
 			}
