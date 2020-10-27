@@ -49,11 +49,11 @@ public class ArmorStandEffect extends SpellEffect {
 		customName = section.getString("custom-name", "");
 
 		poseArray = section.getString("head-pose", "0,0,0").split(",");
-		headPose = new EulerAngle(Integer.parseInt(poseArray[0]), Integer.parseInt(poseArray[1]), Integer.parseInt(poseArray[2]));
+		headPose = new EulerAngle(Double.parseDouble(poseArray[0]), Double.parseDouble(poseArray[1]), Double.parseDouble(poseArray[2]));
 		poseArray = section.getString("mainhand-pose", "0,0,0").split(",");
-		mainhandPose = new EulerAngle(Integer.parseInt(poseArray[0]), Integer.parseInt(poseArray[1]), Integer.parseInt(poseArray[2]));
+		mainhandPose = new EulerAngle(Double.parseDouble(poseArray[0]), Double.parseDouble(poseArray[1]), Double.parseDouble(poseArray[2]));
 		poseArray = section.getString("offhand-pose", "0,0,0").split(",");
-		offhandPose = new EulerAngle(Integer.parseInt(poseArray[0]), Integer.parseInt(poseArray[1]), Integer.parseInt(poseArray[2]));
+		offhandPose = new EulerAngle(Double.parseDouble(poseArray[0]), Double.parseDouble(poseArray[1]), Double.parseDouble(poseArray[2]));
 
 		strMagicItem = section.getString("head", "");
 		MagicItem magicItem = MagicItems.getMagicItemFromString(strMagicItem);
