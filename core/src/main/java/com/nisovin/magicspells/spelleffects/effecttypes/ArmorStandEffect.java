@@ -11,7 +11,6 @@ import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
-import org.bukkit.util.EulerAngle;
 
 public class ArmorStandEffect extends SpellEffect {
 
@@ -19,21 +18,14 @@ public class ArmorStandEffect extends SpellEffect {
 
 	private EntityData entityData;
 
-	private String strMagicItem;
+	private boolean gravity;
+
 	private String customName;
+	private boolean customNameVisible;
 
 	private ItemStack headItem;
 	private ItemStack mainhandItem;
 	private ItemStack offhandItem;
-
-	private boolean gravity;
-	private boolean customNameVisible;
-
-	private EulerAngle headPose;
-	private EulerAngle mainhandPose;
-	private EulerAngle offhandPose;
-
-	private String[] poseArray;
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
@@ -44,18 +36,11 @@ public class ArmorStandEffect extends SpellEffect {
 		entityData.setEntityType(EntityType.ARMOR_STAND);
 
 		gravity = section.getBoolean("gravity", false);
-		customNameVisible = section.getBoolean("name-visible", false);
 
 		customName = section.getString("custom-name", "");
+		customNameVisible = section.getBoolean("custom-name-visible", false);
 
-		poseArray = section.getString("head-pose", "0,0,0").split(",");
-		headPose = new EulerAngle(Double.parseDouble(poseArray[0]), Double.parseDouble(poseArray[1]), Double.parseDouble(poseArray[2]));
-		poseArray = section.getString("mainhand-pose", "0,0,0").split(",");
-		mainhandPose = new EulerAngle(Double.parseDouble(poseArray[0]), Double.parseDouble(poseArray[1]), Double.parseDouble(poseArray[2]));
-		poseArray = section.getString("offhand-pose", "0,0,0").split(",");
-		offhandPose = new EulerAngle(Double.parseDouble(poseArray[0]), Double.parseDouble(poseArray[1]), Double.parseDouble(poseArray[2]));
-
-		strMagicItem = section.getString("head", "");
+		String strMagicItem = section.getString("head", "");
 		MagicItem magicItem = MagicItems.getMagicItemFromString(strMagicItem);
 		if (magicItem != null) headItem = magicItem.getItemStack();
 
@@ -77,9 +62,6 @@ public class ArmorStandEffect extends SpellEffect {
 		armorStand.setSilent(true);
 		armorStand.setCustomName(customName);
 		armorStand.setCustomNameVisible(customNameVisible);
-		armorStand.setHeadPose(headPose);
-		armorStand.setRightArmPose(mainhandPose);
-		armorStand.setLeftArmPose(offhandPose);
 
 		if (headItem != null) armorStand.setItem(EquipmentSlot.HEAD, headItem);
 		if (mainhandItem != null) armorStand.setItem(EquipmentSlot.HAND, mainhandItem);
