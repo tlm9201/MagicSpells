@@ -1,16 +1,6 @@
 package com.nisovin.magicspells;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.UUID;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.WeakHashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -85,6 +75,8 @@ import com.google.common.collect.LinkedListMultimap;
 
 public abstract class Spell implements Comparable<Spell>, Listener {
 
+	protected Random random = new Random();
+
 	protected MagicConfig config;
 
 	protected Map<UUID, Long> nextCast;
@@ -131,6 +123,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected boolean interruptOnDamage;
 	protected boolean castWithLeftClick;
 	protected boolean castWithRightClick;
+	protected boolean usePreciseCooldowns;
 	protected boolean interruptOnTeleport;
 	protected boolean ignoreGlobalCooldown;
 	protected boolean spellPowerAffectsRange;
@@ -195,6 +188,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected float cooldown;
 	protected float serverCooldown;
 
+	protected float minCooldown = -1F;
+	protected float maxCooldown = -1F;
+
 	public Spell(MagicConfig config, String spellName) {
 		this.config = config;
 		this.internalName = spellName;
@@ -249,6 +245,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		castWithLeftClick = config.getBoolean(path + "cast-with-left-click", MagicSpells.plugin.castWithLeftClick);
 		castWithRightClick = config.getBoolean(path + "cast-with-right-click", MagicSpells.plugin.castWithRightClick);
+
+		usePreciseCooldowns = config.getBoolean(path + "use-precise-cooldowns", false);
+
 		danceCastSequence = config.getString(path + "dance-cast-sequence", null);
 		requireCastItemOnCommand = config.getBoolean(path + "require-cast-item-on-command", false);
 		bindable = config.getBoolean(path + "bindable", true);
@@ -330,7 +329,29 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 
 		// Cooldowns
-		cooldown = (float) config.getDouble(path + "cooldown", 0);
+		String cooldownRange = config.getString(path + "cooldown", "0");
+		try {
+			cooldown = Float.parseFloat(cooldownRange);
+		} catch (NumberFormatException e) {
+
+			// parse min max cooldowns
+			String[] cdRange = cooldownRange.split("-");
+
+			try {
+				float min = Float.parseFloat(cdRange[0]);
+				float max = Float.parseFloat(cdRange[1]);
+				if (min > max) {
+					minCooldown = max;
+					maxCooldown = min;
+				} else {
+					minCooldown = min;
+					maxCooldown = max;
+				}
+			} catch (NumberFormatException ex) {
+
+			}
+		}
+
 		serverCooldown = (float) config.getDouble(path + "server-cooldown", 0);
 		rawSharedCooldowns = config.getStringList(path + "shared-cooldowns", null);
 		ignoreGlobalCooldown = config.getBoolean(path + "ignore-global-cooldown", false);
@@ -942,6 +963,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return castWithRightClick;
 	}
 
+	public boolean hasPreciseCooldowns() {
+		return usePreciseCooldowns;
+	}
+
 	public boolean isAlwaysGranted() {
 		return alwaysGranted;
 	}
@@ -1029,9 +1054,16 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param livingEntity The living entity to set the cooldown for
 	 */
 	public void setCooldown(final LivingEntity livingEntity, float cooldown, boolean activateSharedCooldowns) {
-		if (cooldown > 0) {
+		if (cooldown > 0 || minCooldown > 0) {
+			float cd = cooldown;
+			// calculate random cooldown
+			if (minCooldown != -1F) {
+				if (usePreciseCooldowns) cd = minCooldown + (maxCooldown - minCooldown) * random.nextFloat();
+				else cd = minCooldown + random.nextInt((int) maxCooldown - (int) minCooldown + 1);
+			}
+
 			if (charges <= 0) {
-				nextCast.put(livingEntity.getUniqueId(), System.currentTimeMillis() + (long) (cooldown * TimeUtil.MILLISECONDS_PER_SECOND));
+				nextCast.put(livingEntity.getUniqueId(), System.currentTimeMillis() + (long) (cd * TimeUtil.MILLISECONDS_PER_SECOND));
 			} else {
 				final UUID uuid = livingEntity.getUniqueId();
 				chargesConsumed.increment(uuid);
@@ -1041,8 +1073,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					if (rechargeSound == null) return;
 					if (rechargeSound.isEmpty()) return;
 					if (livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), rechargeSound, 1.0F, 1.0F);
-				}, Math.round(TimeUtil.TICKS_PER_SECOND * cooldown));
+				}, Math.round(TimeUtil.TICKS_PER_SECOND * cd));
 			}
+
 		} else {
 			if (charges <= 0) nextCast.remove(livingEntity.getUniqueId());
 			else chargesConsumed.remove(livingEntity.getUniqueId());
