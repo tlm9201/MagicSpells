@@ -21,6 +21,7 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
@@ -35,6 +36,8 @@ import org.apache.commons.math3.util.FastMath;
 public class ProjectileTracker implements Runnable {
 
 	private final Random rand = new Random();
+
+	private NoMagicZoneManager zoneManager;
 
 	private Set<Effect> effectSet;
 	private Set<Entity> entitySet;
@@ -186,6 +189,7 @@ public class ProjectileTracker implements Runnable {
 	}
 
 	private void init() {
+		zoneManager = MagicSpells.getNoMagicZoneManager();
 		counter = 0;
 		if (projectileHorizOffset != 0) Util.rotateVector(currentVelocity, projectileHorizOffset);
 		if (projectileVertOffset != 0) currentVelocity.add(new Vector(0, projectileVertOffset, 0)).normalize();
@@ -225,6 +229,11 @@ public class ProjectileTracker implements Runnable {
 		previousLocation = Util.makeFinite(previousLocation);
 
 		if (caster != null && !caster.isValid()) {
+			stop(true);
+			return;
+		}
+
+		if (zoneManager.willFizzle(currentLocation, spell)) {
 			stop(true);
 			return;
 		}

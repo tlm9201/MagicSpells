@@ -20,6 +20,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -30,6 +31,8 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 public class HomingProjectileSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
 	private HomingProjectileSpell thisSpell;
+
+	private NoMagicZoneManager zoneManager;
 
 	private List<HomingProjectileMonitor> monitors;
 
@@ -147,6 +150,8 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			if (!modifierSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
 			modifierSpell = null;
 		}
+
+		zoneManager = MagicSpells.getNoMagicZoneManager();
 	}
 
 	@Override
@@ -311,6 +316,11 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			}
 
 			if (!projectile.getLocation().getWorld().equals(target.getWorld())) {
+				stop();
+				return;
+			}
+
+			if (zoneManager.willFizzle(currentLocation, thisSpell)) {
 				stop();
 				return;
 			}

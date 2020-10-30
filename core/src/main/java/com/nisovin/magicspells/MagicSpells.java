@@ -102,7 +102,7 @@ public class MagicSpells extends JavaPlugin {
 	private PassiveManager passiveManager;
 	private SpellEffectManager spellEffectManager;
 	private ConditionManager conditionManager;
-	private NoMagicZoneManager noMagicZones;
+	private NoMagicZoneManager zoneManager;
 	private PaperCommandManager commandManager;
 	private ExperienceBarManager expBarManager;
 
@@ -324,7 +324,7 @@ public class MagicSpells extends JavaPlugin {
 		enableManaSystem = config.getBoolean(manaPath + "enable-mana-system", false);
 
 		// Create handling objects
-		noMagicZones = new NoMagicZoneManager();
+		zoneManager = new NoMagicZoneManager();
 		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 100));
 		expBarManager = new ExperienceBarManager();
 		bossBarManager = new BossBarManager();
@@ -521,8 +521,7 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		// Load no-magic zones
-		noMagicZones.load(config);
-		if (noMagicZones.zoneCount() == 0) noMagicZones = null;
+		zoneManager.load(config);
 
 		// Load listeners
 		log("Loading cast listeners...");
@@ -1022,7 +1021,7 @@ public class MagicSpells extends JavaPlugin {
 	 * @return the no-magic zone handler
 	 */
 	public static NoMagicZoneManager getNoMagicZoneManager() {
-		return plugin.noMagicZones;
+		return plugin.zoneManager;
 	}
 
 	public static BuffManager getBuffManager() {
@@ -1527,9 +1526,9 @@ public class MagicSpells extends JavaPlugin {
 			manaHandler.turnOff();
 			manaHandler = null;
 		}
-		if (noMagicZones != null) {
-			noMagicZones.turnOff();
-			noMagicZones = null;
+		if (zoneManager != null) {
+			zoneManager.turnOff();
+			zoneManager = null;
 		}
 		if (magicLogger != null) {
 			magicLogger.disable();

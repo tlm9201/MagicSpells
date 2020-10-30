@@ -16,6 +16,7 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -49,6 +50,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	private String endSpellName;
 	private String travelSpellName;
 	private String groundSpellName;
+
+	private NoMagicZoneManager zoneManager;
 
 	public BeamSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -108,6 +111,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			if (!groundSpellName.isEmpty()) MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
 			groundSpell = null;
 		}
+
+		zoneManager = MagicSpells.getNoMagicZoneManager();
 	}
 
 	@Override
@@ -230,6 +235,10 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 				if (gravity != 0) dir.add(new Vector(0, gravity,0));
 				if (rotation != 0 || gravity != 0) currentLoc.setDirection(dir);
 
+				if (zoneManager.willFizzle(currentLoc, BeamSpell.this)) {
+					break;
+				}
+
 				//check block collision
 				if (!isTransparent(currentLoc.getBlock())) {
 					playSpellEffects(EffectPosition.DISABLED, currentLoc);
@@ -270,7 +279,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			}
 
 			//end of the beam
-			if (d >= maxDistance) {
+			if (!zoneManager.willFizzle(currentLoc, BeamSpell.this) && d >= maxDistance) {
 				playSpellEffects(EffectPosition.DELAYED, currentLoc);
 				if (endSpell != null) endSpell.castAtLocation(caster, currentLoc, power);
 			}
