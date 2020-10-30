@@ -19,6 +19,7 @@ import com.nisovin.magicspells.util.BoundingBox;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.ValidTargetChecker;
+import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.events.SpellPreImpactEvent;
@@ -32,6 +33,8 @@ import io.papermc.lib.PaperLib;
 public class HomingMissileSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
 	private HomingMissileSpell thisSpell;
+
+	private NoMagicZoneManager zoneManager;
 
 	private ModifierSet homingModifiers;
 	private List<String> homingModifiersStrings;
@@ -169,6 +172,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			if (!entityLocationSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
 			entityLocationSpell = null;
 		}
+
+		zoneManager = MagicSpells.getNoMagicZoneManager();
 	}
 
 	@Override
@@ -276,6 +281,11 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			}
 
 			if (!currentLocation.getWorld().equals(target.getWorld())) {
+				stop();
+				return;
+			}
+
+			if (zoneManager.willFizzle(currentLocation, thisSpell)) {
 				stop();
 				return;
 			}
