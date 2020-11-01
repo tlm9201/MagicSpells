@@ -288,6 +288,9 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			playSpellEffects(EffectPosition.CASTER, startLocation);
 
 			projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass());
+
+			currentLocation = startLocation.clone();
+
 			if (!projectileName.isEmpty()) {
 				projectile.setCustomName(projectileName);
 				projectile.setCustomNameVisible(true);
