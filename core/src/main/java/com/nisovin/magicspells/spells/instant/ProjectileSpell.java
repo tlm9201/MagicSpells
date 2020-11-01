@@ -319,6 +319,8 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 			startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
 			startLocation.setY(startLocation.getY() + relativeOffset.getY());
 
+			currentLocation = startLocation.clone();
+
 			playSpellEffects(EffectPosition.CASTER, startLocation);
 
 			projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass());
