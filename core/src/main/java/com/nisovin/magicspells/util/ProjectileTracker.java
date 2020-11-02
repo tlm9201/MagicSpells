@@ -327,6 +327,8 @@ public class ProjectileTracker implements Runnable {
 			effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
 			effectLoc.setY(effectLoc.getY() + effectOffset.getY());
 
+			effectLoc = Util.makeFinite(effectLoc);
+
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
 					PaperLib.teleportAsync(armorStand, effectLoc);
