@@ -645,6 +645,22 @@ public class Util {
 		double y = location.getY();
 		double z = location.getZ();
 
+		float yaw = location.getYaw();
+		float pitch = location.getPitch();
+
+		if (Float.isNaN(yaw)) yaw = 0.0F;
+		if (Float.isNaN(pitch)) pitch = 0.0F;
+
+		if (Float.isInfinite(yaw)) {
+			boolean negative = (yaw < 0.0F);
+			yaw = negative ? -1F : 1F;
+		}
+
+		if (Float.isInfinite(pitch)) {
+			boolean negative = (pitch < 0.0F);
+			pitch = negative ? -1F : 1F;
+		}
+
 		if (Double.isNaN(x)) x = 0.0D;
 		if (Double.isNaN(y)) y = 0.0D;
 		if (Double.isNaN(z)) z = 0.0D;
@@ -664,7 +680,7 @@ public class Util {
 			z = negative ? -1 : 1;
 		}
 
-		return new Location(location.getWorld(), x, y, z, location.getYaw(), location.getPitch());
+		return new Location(location.getWorld(), x, y, z, yaw, pitch);
 	}
 
 	public static Vector getVector(String str) {
