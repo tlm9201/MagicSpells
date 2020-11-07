@@ -69,6 +69,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	protected boolean cancelOnChangeWorld;
 	protected boolean powerAffectsDuration;
 
+	private final boolean endSpellFromTarget;
+
 	protected String strFade;
 	protected String spellOnEndName;
 	protected String spellOnCostName;
@@ -111,6 +113,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		cancelOnGiveDamage = getConfigBoolean("cancel-on-give-damage", false);
 		cancelOnChangeWorld = getConfigBoolean("cancel-on-change-world", false);
 		powerAffectsDuration = getConfigBoolean("power-affects-duration", true);
+
+		endSpellFromTarget = getConfigBoolean("end-spell-from-target", true);
 
 		strFade = getConfigString("str-fade", "");
 		spellOnEndName = getConfigString("spell-on-end", "");
@@ -391,7 +395,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		cancelEffects(EffectPosition.CASTER, entity.getUniqueId().toString());
 		stopEffects(entity);
 
-		if (spellOnEnd != null) spellOnEnd.cast(entity, 1f);
+		if (spellOnEnd != null) spellOnEnd.cast(endSpellFromTarget ? entity : getLastCaster(entity), 1f);
 		sendMessage(strFade, entity, null);
 	}
 
