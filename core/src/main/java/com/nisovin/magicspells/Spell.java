@@ -548,32 +548,46 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		effects = new EnumMap<>(EffectPosition.class);
 		if (config.isList(path + "effects")) {
-			List<String> effectsList = config.getStringList(path + "effects", null);
-			if (effectsList == null) return;
-
-			for (String eff : effectsList) {
-				String[] data = eff.split(" ", 3);
-				EffectPosition pos = EffectPosition.getPositionFromString(data[0]);
-				if (pos == null) continue;
-				SpellEffect effect = MagicSpells.getSpellEffectManager().getSpellEffectByName(data[1]);
-				if (effect == null) continue;
-				effect.loadFromString(data.length > 2 ? data[2] : null);
-				List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
-				e.add(effect);
-			}
+			MagicSpells.error("Warning: Single line effects are deprecated. Usage encountered on spell: " + internalName);
 			return;
 		}
 
 		if (!config.isSection(path + "effects")) return;
 		for (String key : config.getKeys(path + "effects")) {
-			ConfigurationSection effConf = config.getSection(path + "effects." + key);
-			EffectPosition pos = EffectPosition.getPositionFromString(effConf.getString("position", ""));
-			if (pos == null) continue;
-			SpellEffect effect = MagicSpells.getSpellEffectManager().getSpellEffectByName(effConf.getString("effect", ""));
-			if (effect == null) continue;
-			effect.loadFromConfiguration(effConf);
-			List<SpellEffect> e = effects.computeIfAbsent(pos, p -> new ArrayList<>());
-			e.add(effect);
+			ConfigurationSection section = config.getSection(path + "effects." + key);
+			if (section == null) {
+				MagicSpells.error("Spell effect '" + key + "' on spell '" + internalName + "' does not contain a configuration section.");
+				continue;
+			}
+
+			String positionName = section.getString("position", "");
+			if (positionName == null || positionName.isEmpty()) {
+				MagicSpells.error("Spell effect '" + key + "' on spell '" + internalName + "' does not contain a 'position' value.");
+				continue;
+			}
+
+			EffectPosition position = EffectPosition.getPositionFromString(positionName);
+			if (position == null) {
+				MagicSpells.error("Spell effect '" + key + "' on spell '" + internalName + "' does not have a valid 'position' defined: " + positionName);
+				continue;
+			}
+
+			String effectType = section.getString("effect", "");
+			if (effectType == null || effectType.isEmpty()) {
+				MagicSpells.error("Spell effect '" + key + "' on spell '" + internalName + "' does not contain an 'effect' value.");
+				continue;
+			}
+
+			SpellEffect effect = MagicSpells.getSpellEffectManager().getSpellEffectByName(effectType);
+			if (effect == null) {
+				MagicSpells.error("Spell effect '" + key + "' on spell '" + internalName + "' does not have a valid 'effect' defined: " + effectType);
+				continue;
+			}
+
+			effect.loadFromConfiguration(section);
+
+			List<SpellEffect> effectList = effects.computeIfAbsent(position, p -> new ArrayList<>());
+			effectList.add(effect);
 		}
 	}
 
