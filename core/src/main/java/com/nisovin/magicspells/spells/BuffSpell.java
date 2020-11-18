@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -20,6 +21,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -130,13 +132,13 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
 
 		if (cancelOnGiveDamage || cancelOnTakeDamage) registerEvents(new DamageListener());
-		if (cancelOnDeath) registerEvents(new DeathListener());
+		if (cancelOnDeath) registerEvents(new PlayerDeathListener());
 		if (cancelOnTeleport) registerEvents(new TeleportListener());
 		if (cancelOnChangeWorld) registerEvents(new ChangeWorldListener());
 		if (cancelOnSpellCast) registerEvents(new SpellCastListener());
-		if (cancelOnLogout) registerEvents(new QuitListener());
-		if (cancelOnJoin) registerEvents(new JoinListener());
-		registerEvents(new EntityListener());
+		if (cancelOnLogout) registerEvents(new PlayerQuitListener());
+		if (cancelOnJoin) registerEvents(new PlayerJoinListener());
+		registerEvents(new EntityDeathListener());
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) useCounter = new HashMap<>();
 		if (duration > 0) durationEndTime = new HashMap<>();
@@ -459,7 +461,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public class DamageListener implements Listener {
 
-		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+		@EventHandler(ignoreCancelled=true)
 		public void onEntityDamage(EntityDamageEvent e) {
 			if (cancelOnTakeDamage) {
 				Entity entity = e.getEntity();
@@ -493,9 +495,10 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	}
 
-	public class EntityListener implements Listener {
+	public class EntityDeathListener implements Listener {
 
-		@EventHandler
+		// Entity only
+		@EventHandler(ignoreCancelled = true)
 		public void onEntityDeath(EntityDeathEvent event) {
 			LivingEntity entity = getWhoToCancel(event.getEntity());
 			if (entity == null) return;
@@ -505,9 +508,9 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	}
 
-	public class DeathListener implements Listener {
+	public class PlayerDeathListener implements Listener {
 
-		@EventHandler
+		@EventHandler(ignoreCancelled = true)
 		public void onPlayerDeath(PlayerDeathEvent event) {
 			LivingEntity player = getWhoToCancel(event.getEntity());
 			if (player == null) return;
@@ -518,6 +521,16 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public class TeleportListener implements Listener {
 
+		// player only
+		@EventHandler(ignoreCancelled = true)
+		public void onTeleport(PlayerTeleportEvent event) {
+			LivingEntity player = getWhoToCancel(event.getPlayer());
+			if (player == null) return;
+			if (!LocationUtil.differentWorldDistanceGreaterThan(event.getFrom(), event.getTo(), 5)) return;
+			turnOff(player);
+		}
+
+		// entity only
 		@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
 		public void onTeleport(EntityTeleportEvent event) {
 			if (!(event.getEntity() instanceof LivingEntity)) return;
@@ -531,6 +544,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public class ChangeWorldListener implements Listener {
 
+		// player only
 		@EventHandler(priority=EventPriority.LOWEST)
 		public void onChangeWorld(PlayerChangedWorldEvent event) {
 			LivingEntity player = getWhoToCancel(event.getPlayer());
@@ -538,11 +552,26 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 			turnOff(player);
 		}
 
+		// entity only
+		@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
+		public void onChangeWorld(EntityTeleportEvent event) {
+			if (!(event.getEntity() instanceof LivingEntity)) return;
+
+			// Check if the world is the same.
+			Location to = event.getTo();
+			if (to == null) return;
+			if (event.getFrom().getWorld().equals(to.getWorld())) return;
+
+			LivingEntity entity = getWhoToCancel((LivingEntity) event.getEntity());
+			if (entity == null) return;
+			turnOff(entity);
+		}
+
 	}
 
 	public class SpellCastListener implements Listener {
 
-		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+		@EventHandler(ignoreCancelled=true)
 		public void onSpellCast(SpellCastEvent event) {
 			if (thisSpell == event.getSpell()) return;
 			if (event.getSpellCastState() != SpellCastState.NORMAL) return;
@@ -554,9 +583,9 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	}
 
-	public class QuitListener implements Listener {
+	public class PlayerQuitListener implements Listener {
 
-		@EventHandler(priority=EventPriority.MONITOR)
+		@EventHandler
 		public void onQuit(PlayerQuitEvent event) {
 			LivingEntity player = getWhoToCancel(event.getPlayer());
 			if (player == null) return;
@@ -565,7 +594,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	}
 
-	public class JoinListener implements Listener {
+	public class PlayerJoinListener implements Listener {
 
 		@EventHandler
 		public void onJoin(PlayerJoinEvent event) {
