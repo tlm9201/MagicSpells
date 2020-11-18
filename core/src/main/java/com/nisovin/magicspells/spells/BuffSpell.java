@@ -7,7 +7,7 @@ import java.util.UUID;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.bukkit.Location;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -67,6 +67,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	protected boolean cancelOnTakeDamage;
 	protected boolean cancelOnGiveDamage;
 	protected boolean cancelOnChangeWorld;
+	protected boolean cancelAffectsTarget;
 	protected boolean powerAffectsDuration;
 
 	private final boolean endSpellFromTarget;
@@ -112,6 +113,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		cancelOnTakeDamage = getConfigBoolean("cancel-on-take-damage", false);
 		cancelOnGiveDamage = getConfigBoolean("cancel-on-give-damage", false);
 		cancelOnChangeWorld = getConfigBoolean("cancel-on-change-world", false);
+		cancelAffectsTarget = getConfigBoolean("cancel-affects-target", true);
 		powerAffectsDuration = getConfigBoolean("power-affects-duration", true);
 
 		endSpellFromTarget = getConfigBoolean("end-spell-from-target", true);
@@ -189,9 +191,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 			target = targetInfo.getTarget();
 			power = targetInfo.getPower();
-		} else {
-			target = livingEntity;
 		}
+		else target = livingEntity;
 
 		PostCastAction action = activate(livingEntity, target, power, args, state == SpellCastState.NORMAL);
 		if (targeted && action == PostCastAction.HANDLE_NORMALLY) {
@@ -432,28 +433,57 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		return targeted;
 	}
 
+	private LivingEntity getWhoToCancel(LivingEntity livingEntity) {
+		// If the target was affected by the event, cancel them.
+		if (!targeted || cancelAffectsTarget) return isActiveAndNotExpired(livingEntity) ? livingEntity : null;
+
+		// targeted && !cancelAffectsTarget
+		// If the caster was affected by the event, cancel the target if they have the buff.
+
+		for (Map.Entry<UUID, LivingEntity> entry : lastCaster.entrySet()) {
+			// Check if the entity is the caster of this entry.
+			if (!entry.getValue().getUniqueId().equals(livingEntity.getUniqueId())) continue;
+
+			Entity entity = Bukkit.getEntity(entry.getKey());
+			if (!(entity instanceof LivingEntity)) return null;
+			LivingEntity target = (LivingEntity) entity;
+			return isActiveAndNotExpired(target) ? target : null;
+		}
+
+		return null;
+	}
+
 	public class DamageListener implements Listener {
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onEntityDamage(EntityDamageEvent e) {
-			Entity entity = e.getEntity();
-			if (!cancelOnTakeDamage) return;
-			if (entity instanceof LivingEntity && isActiveAndNotExpired((LivingEntity) entity)) {
-				turnOff((LivingEntity) entity);
+			if (cancelOnTakeDamage) {
+				Entity entity = e.getEntity();
+				if (!(entity instanceof LivingEntity)) return;
+				LivingEntity target = getWhoToCancel((LivingEntity) entity);
+				if (target == null) return;
+				turnOff(target);
 				return;
 			}
 
-			if (!(e instanceof EntityDamageByEntityEvent)) return;
+			if (cancelOnGiveDamage) {
+				if (!(e instanceof EntityDamageByEntityEvent)) return;
+				EntityDamageByEntityEvent evt = (EntityDamageByEntityEvent) e;
 
-			EntityDamageByEntityEvent evt = (EntityDamageByEntityEvent) e;
-			Entity damager = evt.getDamager();
-			if (damager instanceof LivingEntity && isActiveAndNotExpired((LivingEntity) damager)) {
-				turnOff((LivingEntity) damager);
-				return;
-			}
-			if (damager instanceof Projectile && ((Projectile) damager).getShooter() instanceof LivingEntity) {
-				LivingEntity shooter = (LivingEntity) ((Projectile) damager).getShooter();
-				if (isActiveAndNotExpired(shooter)) turnOff(shooter);
+				Entity damager = evt.getDamager();
+				if (!(damager instanceof LivingEntity)) return;
+
+				LivingEntity target = getWhoToCancel((LivingEntity) damager);
+				if (target != null) {
+					turnOff(target);
+					return;
+				}
+
+				if (damager instanceof Projectile && ((Projectile) damager).getShooter() instanceof LivingEntity) {
+					LivingEntity newTarget = getWhoToCancel((LivingEntity) ((Projectile) damager).getShooter());
+					if (newTarget == null) return;
+					turnOff(newTarget);
+				}
 			}
 		}
 
@@ -463,9 +493,9 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		@EventHandler
 		public void onEntityDeath(EntityDeathEvent event) {
-			LivingEntity entity = event.getEntity();
+			LivingEntity entity = getWhoToCancel(event.getEntity());
+			if (entity == null) return;
 			if (entity instanceof Player) return;
-			if (!isActiveAndNotExpired(entity)) return;
 			turnOff(entity);
 		}
 
@@ -475,9 +505,9 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		@EventHandler
 		public void onPlayerDeath(PlayerDeathEvent event) {
-			Player pl = event.getEntity();
-			if (!isActiveAndNotExpired(pl)) return;
-			turnOff(pl);
+			LivingEntity player = getWhoToCancel(event.getEntity());
+			if (player == null) return;
+			turnOff(player);
 		}
 
 	}
@@ -485,18 +515,12 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public class TeleportListener implements Listener {
 
 		@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
-		public void onTeleport(EntityTeleportEvent e) {
-			if (!(e.getEntity() instanceof LivingEntity)) return;
-			LivingEntity entity = (LivingEntity) e.getEntity();
-			if (!isActiveAndNotExpired(entity)) return;
-
-			Location locationFrom = e.getFrom();
-			Location locationTo = e.getTo();
-
-			if (LocationUtil.differentWorldDistanceGreaterThan(locationFrom, locationTo, 5)) {
-				turnOff(entity);
-			}
-
+		public void onTeleport(EntityTeleportEvent event) {
+			if (!(event.getEntity() instanceof LivingEntity)) return;
+			LivingEntity entity = getWhoToCancel((LivingEntity) event.getEntity());
+			if (entity == null) return;
+			if (!LocationUtil.differentWorldDistanceGreaterThan(event.getFrom(), event.getTo(), 5)) return;
+			turnOff(entity);
 		}
 
 	}
@@ -504,9 +528,10 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public class ChangeWorldListener implements Listener {
 
 		@EventHandler(priority=EventPriority.LOWEST)
-		public void onChangeWorld(PlayerChangedWorldEvent e) {
-			Player pl = e.getPlayer();
-			if (isActiveAndNotExpired(pl)) turnOff(pl);
+		public void onChangeWorld(PlayerChangedWorldEvent event) {
+			LivingEntity player = getWhoToCancel(event.getPlayer());
+			if (player == null) return;
+			turnOff(player);
 		}
 
 	}
@@ -514,11 +539,13 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public class SpellCastListener implements Listener {
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
-		public void onSpellCast(SpellCastEvent e) {
-			if (thisSpell == e.getSpell()) return;
-			if (e.getSpellCastState() != SpellCastState.NORMAL) return;
-			if (!isActiveAndNotExpired(e.getCaster())) return;
-			if (filter.check(e.getSpell())) turnOff(e.getCaster());
+		public void onSpellCast(SpellCastEvent event) {
+			if (thisSpell == event.getSpell()) return;
+			if (event.getSpellCastState() != SpellCastState.NORMAL) return;
+			LivingEntity entity = getWhoToCancel(event.getCaster());
+			if (entity == null) return;
+			if (filter.check(event.getSpell())) return;
+			turnOff(entity);
 		}
 
 	}
@@ -526,9 +553,10 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public class QuitListener implements Listener {
 
 		@EventHandler(priority=EventPriority.MONITOR)
-		public void onQuit(PlayerQuitEvent e) {
-			Player pl = e.getPlayer();
-			if (isActiveAndNotExpired(pl)) turnOff(pl);
+		public void onQuit(PlayerQuitEvent event) {
+			LivingEntity player = getWhoToCancel(event.getPlayer());
+			if (player == null) return;
+			turnOff(player);
 		}
 
 	}
@@ -536,9 +564,10 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public class JoinListener implements Listener {
 
 		@EventHandler
-		public void onJoin(PlayerJoinEvent e) {
-			Player pl = e.getPlayer();
-			if (isActiveAndNotExpired(pl)) turnOff(pl);
+		public void onJoin(PlayerJoinEvent event) {
+			LivingEntity player = getWhoToCancel(event.getPlayer());
+			if (player == null) return;
+			turnOff(player);
 		}
 
 	}
