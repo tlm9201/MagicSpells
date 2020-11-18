@@ -398,6 +398,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		if (spellOnEnd != null) spellOnEnd.cast(endSpellFromTarget ? entity : getLastCaster(entity), 1f);
 		sendMessage(strFade, entity, null);
+
+		lastCaster.remove(entity.getUniqueId());
 	}
 
 	public void stopEffects(LivingEntity livingEntity) {
@@ -441,6 +443,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		// If the caster was affected by the event, cancel the target if they have the buff.
 
 		for (Map.Entry<UUID, LivingEntity> entry : lastCaster.entrySet()) {
+			if (entry == null) continue;
+
 			// Check if the entity is the caster of this entry.
 			if (!entry.getValue().getUniqueId().equals(livingEntity.getUniqueId())) continue;
 
