@@ -671,7 +671,7 @@ public class MagicCommand extends BaseCommand {
 					MagicSpells.sendMessage(MagicSpells.getTextColor() + "You cannot cast this spell by commands.", player, null);
 					return;
 				}
-				if ((!spell.isHelperSpell() && !MagicSpells.getSpellbook(player).hasSpell(spell))) {
+				if (spell.isHelperSpell() && !Perm.COMMAND_CAST_SELF_HELPER.has(player) || !MagicSpells.getSpellbook(player).hasSpell(spell)) {
 					MagicSpells.sendMessage(MagicSpells.getTextColor() + MagicSpells.getStrUnknownSpell(), player, null);
 					return;
 				}
