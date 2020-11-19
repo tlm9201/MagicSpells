@@ -102,6 +102,7 @@ public class PassiveSpell extends Spell {
 			listener.turnOff();
 			HandlerList.unregisterAll(listener);
 		}
+		passiveListeners.clear();
 	}
 
 	public void initializeListeners() {
@@ -138,6 +139,7 @@ public class PassiveSpell extends Spell {
 			listener.setEventPriority(priority);
 			listener.initialize(args);
 			MagicSpells.registerEvents(listener, priority);
+			passiveListeners.add(listener);
 			trigCount++;
 		}
 
