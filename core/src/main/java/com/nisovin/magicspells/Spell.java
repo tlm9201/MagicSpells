@@ -1629,10 +1629,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		MagicSpells.registerEvents(listener);
 	}
 
-	protected void unregisterEvents() {
-		unregisterEvents(this);
-	}
-
 	protected void unregisterEvents(Listener listener) {
 		HandlerList.unregisterAll(listener);
 	}
