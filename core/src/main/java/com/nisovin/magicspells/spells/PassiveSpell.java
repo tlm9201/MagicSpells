@@ -34,7 +34,7 @@ public class PassiveSpell extends Spell {
 	private final List<String> spellNames;
 	private List<Subspell> spells;
 
-	private final ValidTargetList targetList;
+	private final ValidTargetList triggerList;
 
 	private final int delay;
 
@@ -59,8 +59,8 @@ public class PassiveSpell extends Spell {
 		if (config.isList("spells." + internalName + '.' + "can-trigger")) {
 			List<String> defaultTargets = getConfigStringList("can-trigger", null);
 			if (defaultTargets.isEmpty()) defaultTargets.add("players");
-			targetList = new ValidTargetList(this, defaultTargets);
-		} else targetList = new ValidTargetList(this, getConfigString("can-trigger", "players"));
+			triggerList = new ValidTargetList(this, defaultTargets);
+		} else triggerList = new ValidTargetList(this, getConfigString("can-trigger", "players"));
 
 		delay = getConfigInt("delay", -1);
 
@@ -154,8 +154,8 @@ public class PassiveSpell extends Spell {
 		return spells;
 	}
 
-	public ValidTargetList getTargetList() {
-		return targetList;
+	public ValidTargetList getTriggerList() {
+		return triggerList;
 	}
 
 	public boolean cancelDefaultAction() {
@@ -238,7 +238,7 @@ public class PassiveSpell extends Spell {
 	// DEBUG INFO: level 3, target cancelled (UL)
 	// DEBUG INFO: level 3, passive spell cancelled
 	private boolean activateSpells(LivingEntity caster, LivingEntity target, Location location, float basePower) {
-		if (!targetList.canTarget(caster, true)) return false;
+		if (!triggerList.canTarget(caster, true)) return false;
 		SpellCastState state = getCastState(caster);
 		if (caster instanceof Player) {
 			MagicSpells.debug(3, "Activating passive spell '" + name + "' for player " + caster.getName() + " (state: " + state + ')');

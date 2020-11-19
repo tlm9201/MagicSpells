@@ -31,11 +31,11 @@ public abstract class PassiveListener implements Listener {
 	}
 
 	public boolean canTrigger(LivingEntity livingEntity) {
-		return passiveSpell.getTargetList().canTarget(livingEntity, true);
+		return passiveSpell.getTriggerList().canTarget(livingEntity, true);
 	}
 
 	public boolean canTrigger(LivingEntity livingEntity, boolean ignoreGameMode) {
-		return passiveSpell.getTargetList().canTarget(livingEntity, ignoreGameMode);
+		return passiveSpell.getTriggerList().canTarget(livingEntity, ignoreGameMode);
 	}
 		
 	public boolean cancelDefaultAction(boolean casted) {
