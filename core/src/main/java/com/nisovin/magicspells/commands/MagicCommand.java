@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.command.ConsoleCommandSender;
 
 import co.aikar.commands.*;
@@ -671,7 +672,7 @@ public class MagicCommand extends BaseCommand {
 					MagicSpells.sendMessage(MagicSpells.getTextColor() + "You cannot cast this spell by commands.", player, null);
 					return;
 				}
-				if ((!spell.isHelperSpell() && !MagicSpells.getSpellbook(player).hasSpell(spell))) {
+				if (spell.isHelperSpell() && !Perm.COMMAND_CAST_SELF_HELPER.has(player) || !MagicSpells.getSpellbook(player).hasSpell(spell)) {
 					MagicSpells.sendMessage(MagicSpells.getTextColor() + MagicSpells.getStrUnknownSpell(), player, null);
 					return;
 				}
@@ -686,7 +687,9 @@ public class MagicCommand extends BaseCommand {
 			if (sender instanceof LivingEntity) {
 				LivingEntity livingEntity = (LivingEntity) sender;
 				if (!spell.canCastByCommand()) return;
-				if (!spell.isValidItemForCastCommand(livingEntity.getActiveItem())) return;
+				EntityEquipment equipment = livingEntity.getEquipment();
+				if (equipment == null) return;
+				if (!spell.isValidItemForCastCommand(equipment.getItemInMainHand())) return;
 				spell.cast(livingEntity, power, spellArgs);
 			}
 		}

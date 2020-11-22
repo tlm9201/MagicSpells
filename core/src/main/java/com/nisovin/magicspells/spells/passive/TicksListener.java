@@ -44,15 +44,10 @@ public class TicksListener extends PassiveListener {
 			// ignored
 		}
 
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (!player.isValid()) continue;
-			if (!hasSpell(player)) continue;
-			if (!canTrigger(player)) continue;
-			ticker.add(player);
-		}
-
 		for (World world : Bukkit.getWorlds()) {
 			for (LivingEntity livingEntity : world.getLivingEntities()) {
+				if (!livingEntity.isValid()) continue;
+				if (livingEntity instanceof Player && !hasSpell(livingEntity)) continue;
 				if (!canTrigger(livingEntity)) continue;
 				ticker.add(livingEntity);
 			}

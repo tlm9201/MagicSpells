@@ -30,23 +30,23 @@ public class PassiveSpell extends Spell {
 	private final Random random = new Random();
 
 	private final List<PassiveListener> passiveListeners;
+	private final List<String> triggers;
+	private final List<String> spellNames;
 	private List<Subspell> spells;
-	private List<String> triggers;
-	private List<String> spellNames;
 
-	private ValidTargetList triggerList;
+	private final ValidTargetList triggerList;
 
-	private int delay;
+	private final int delay;
 
-	private float chance;
+	private final float chance;
 
 	private boolean disabled = false;
-	private boolean ignoreCancelled;
-	private boolean castWithoutTarget;
-	private boolean sendFailureMessages;
-	private boolean cancelDefaultAction;
-	private boolean requireCancelledEvent;
-	private boolean cancelDefaultActionWhenCastFails;
+	private final boolean ignoreCancelled;
+	private final boolean castWithoutTarget;
+	private final boolean sendFailureMessages;
+	private final boolean cancelDefaultAction;
+	private final boolean requireCancelledEvent;
+	private final boolean cancelDefaultActionWhenCastFails;
 
 	public PassiveSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -102,6 +102,7 @@ public class PassiveSpell extends Spell {
 			listener.turnOff();
 			HandlerList.unregisterAll(listener);
 		}
+		passiveListeners.clear();
 	}
 
 	public void initializeListeners() {
@@ -138,6 +139,7 @@ public class PassiveSpell extends Spell {
 			listener.setEventPriority(priority);
 			listener.initialize(args);
 			MagicSpells.registerEvents(listener, priority);
+			passiveListeners.add(listener);
 			trigCount++;
 		}
 
