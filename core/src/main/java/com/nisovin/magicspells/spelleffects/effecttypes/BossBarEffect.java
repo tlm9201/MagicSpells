@@ -21,6 +21,8 @@ public class BossBarEffect extends SpellEffect {
 
 	private String strVar;
 	private Variable variable;
+	private String maxVar;
+	private Variable maxVariable;
 	private double maxValue;
 
 	private BarColor barColor;
@@ -39,6 +41,7 @@ public class BossBarEffect extends SpellEffect {
 		style = config.getString("style", "solid");
 		strVar = config.getString("variable", "");
 		maxValue = config.getDouble("max-value", 100);
+		maxVar = config.getString("variable-max", "");
 
 		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNameSpaceKey(namespaceKey)) {
 			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
@@ -74,6 +77,11 @@ public class BossBarEffect extends SpellEffect {
 		if (variable == null && !strVar.isEmpty()) {
 			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
 		}
+
+		maxVariable = MagicSpells.getVariableManager().getVariable(maxVar);
+		if (maxVariable == null && !maxVar.isEmpty()) {
+			MagicSpells.error("Wrong variable defined! '" + maxVar + "'");
+		}
 	}
 
 	@Override
@@ -87,10 +95,28 @@ public class BossBarEffect extends SpellEffect {
 	private void createBar(Player player) {
 		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey);
 		String newTitle = Util.doVarReplacementAndColorize(player, title);
-		if (variable == null) bar.set(newTitle, progress, barStyle, barColor);
-		else {
-			double diff = variable.getValue(player) / maxValue;
-			if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
+		if (maxVariable == null) {
+			// Not doing max variable replacement
+			if (variable == null) bar.set(newTitle, progress, barStyle, barColor);
+			else {
+				double diff = variable.getValue(player) / maxValue;
+				if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
+			}
+		} else {
+			// Doing max variable replacement
+			if (variable == null) {
+				double diff = progress / maxVariable.getValue(player);
+				if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
+			} else {
+				// Doing double replacement!
+				double diff = variable.getValue(player) / maxVariable.getValue(player);
+				if (maxVariable.getValue(player) <= variable.getValue(player)) {
+					bar.set(newTitle, 1, barStyle, barColor);
+				}
+				if (maxVariable.getValue(player) > variable.getValue(player)) {
+					if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
+				}
+			}
 		}
 		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}
