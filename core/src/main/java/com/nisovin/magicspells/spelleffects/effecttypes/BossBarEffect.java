@@ -41,7 +41,7 @@ public class BossBarEffect extends SpellEffect {
 		style = config.getString("style", "solid");
 		strVar = config.getString("variable", "");
 		maxValue = config.getDouble("max-value", 100);
-		maxVar = config.getString("variable-max", "");
+		maxVar = config.getString("max-variable", "");
 
 		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNameSpaceKey(namespaceKey)) {
 			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
