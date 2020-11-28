@@ -52,6 +52,7 @@ public class Modifier implements IModifier {
 			negated = true;
 			data[0] = data[0].substring(1);
 		}
+
 		condition = MagicSpells.getConditionManager().getConditionByName(data[0].replace("_", ""));
 		if (condition == null) return;
 
@@ -150,24 +151,22 @@ public class Modifier implements IModifier {
 	@Override
 	public boolean check(LivingEntity livingEntity) {
 		boolean check = condition.check(livingEntity);
-		if (negated) check = !check;
-		if (!check && type == ModifierType.REQUIRED) return false;
-		if (check && type == ModifierType.DENIED) return false;
-		return true;
+		return checkCondition(check);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity entity) {
 		boolean check = condition.check(livingEntity, entity);
-		if (negated) check = !check;
-		if (!check && type == ModifierType.REQUIRED) return false;
-		if (check && type == ModifierType.DENIED) return false;
-		return true;
+		return checkCondition(check);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		boolean check = condition.check(livingEntity, location);
+		return checkCondition(check);
+	}
+
+	private boolean checkCondition(boolean check) {
 		if (negated) check = !check;
 		if (!check && type == ModifierType.REQUIRED) return false;
 		if (check && type == ModifierType.DENIED) return false;
