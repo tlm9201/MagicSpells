@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     shadow group: "org.apache.commons", name: "commons-math3", version: "3.6.1"
-    shadow "com.github.Chronoken:EffectLib:a37bed64dc"
+    shadow "com.github.Chronoken:EffectLib:e3ba478aa"
     shadow "com.github.PaperMC:PaperLib:1c3c36b188"
     shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"
     shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -41,12 +41,14 @@ shadowJar {
     relocate("co.aikar.locales", "com.nisovin.magicspells.shaded.locales")
     archiveClassifier = null
 }
+
 compileKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
         javaParameters = true
     }
 }
+
 compileTestKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
