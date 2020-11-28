@@ -41,9 +41,9 @@ public class Modifier implements IModifier {
 		process(string);
 	}
 
-	private void process(String s) {
-		String[] s1 = RegexUtil.split(MODIFIER_STR_FAILED_PATTERN, s, 0);
-		String[] data = s1[0].trim().split(" ", 4);
+	private void process(String string) {
+		String[] s = RegexUtil.split(MODIFIER_STR_FAILED_PATTERN, string, 0);
+		String[] data = s[0].trim().split(" ", 4);
 		//String[] data = Util.splitParams(s1[0].trim(), 4);
 		if (data.length < 2) return;
 
@@ -85,7 +85,7 @@ public class Modifier implements IModifier {
 		}
 
 		// Check for failed string
-		if (s1.length > 1) strModifierFailed = s1[1].trim();
+		if (s.length > 1) strModifierFailed = s[1].trim();
 
 		// Check for the alert condition
 		if (condition instanceof IModifier) alertCondition = true;
