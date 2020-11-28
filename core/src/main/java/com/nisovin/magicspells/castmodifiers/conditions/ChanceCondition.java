@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -15,7 +16,7 @@ public class ChanceCondition extends Condition {
 	
 	@Override
 	public boolean initialize(String var) {
-		random = new Random();
+		random = ThreadLocalRandom.current();
 		try {
 			chance = Integer.parseInt(var);
 			return chance >= 1 && chance <= 100;

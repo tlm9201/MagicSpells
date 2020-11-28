@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -35,7 +36,7 @@ import org.apache.commons.math3.util.FastMath;
 
 public class ProjectileTracker implements Runnable {
 
-	private final Random rand = new Random();
+	private final Random rand = ThreadLocalRandom.current();
 
 	private NoMagicZoneManager zoneManager;
 

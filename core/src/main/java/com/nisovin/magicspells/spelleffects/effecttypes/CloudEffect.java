@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.World;
 import org.bukkit.Effect;
@@ -13,7 +14,7 @@ import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class CloudEffect extends SpellEffect {
 
-	private Random rand = new Random();
+	private Random rand = ThreadLocalRandom.current();
 
 	private int radius;
 

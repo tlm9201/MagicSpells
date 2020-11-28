@@ -1,6 +1,7 @@
 package com.nisovin.magicspells;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -22,7 +23,7 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class Subspell {
 
-	private static final Random random = new Random();
+	private static final Random random = ThreadLocalRandom.current();
 	
 	private Spell spell;
 	private String spellName;

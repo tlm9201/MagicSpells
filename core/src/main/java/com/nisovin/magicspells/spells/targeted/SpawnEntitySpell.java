@@ -4,13 +4,14 @@ import java.util.Set;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.*;
+import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.HandlerList;
@@ -84,7 +85,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private List<PotionEffect> potionEffects;
 	private Set<AttributeManager.AttributeInfo> attributes;
 
-	private Random random = new Random();
+	private Random random = ThreadLocalRandom.current();
 	
 	// DEBUG INFO: level 2, invalid potion effect on internalname spell data
 	public SpawnEntitySpell(MagicConfig config, String spellName) {

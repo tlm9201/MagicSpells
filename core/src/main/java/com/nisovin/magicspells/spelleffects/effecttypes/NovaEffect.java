@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -86,7 +87,7 @@ public class NovaEffect extends SpellEffect {
 		circleShape = config.getBoolean("circle-shape", false);
 		removePreviousBlocks = config.getBoolean("remove-previous-blocks", true);
 
-		random = new Random();
+		random = ThreadLocalRandom.current();
 
 	}
 

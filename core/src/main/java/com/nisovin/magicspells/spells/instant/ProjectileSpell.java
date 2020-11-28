@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.instant;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -88,7 +89,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 		monitors = new ArrayList<>();
 
-		random = new Random();
+		random = ThreadLocalRandom.current();
 
 		projectileManager = ProjectileManagers.getManager(getConfigString("projectile-type",  "arrow"));
 
