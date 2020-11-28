@@ -19,68 +19,85 @@ public class Modifier implements IModifier {
 
 	private static final Pattern MODIFIER_STR_FAILED_PATTERN = Pattern.compile("\\$\\$");
 
-	private boolean negated = false;
 	private Condition condition;
 	private ModifierType type;
+
 	private String modifierVar;
-	private float modifierVarFloat;
-	private int modifierVarInt;
+	private String strModifierFailed = null;
+
 	private Object customActionData = null;
-	String strModifierFailed = null;
+
+	private int modifierVarInt;
+
+	private float modifierVarFloat;
 
 	// Is this a condition that will want to access the events directly?
 	private boolean alertCondition = false;
 
-	public static Modifier factory(String s) {
-		Modifier m = new Modifier();
+	private boolean negated = false;
+	private boolean initialized = false;
+
+	public Modifier(String string) {
+		process(string);
+	}
+
+	private void process(String s) {
 		String[] s1 = RegexUtil.split(MODIFIER_STR_FAILED_PATTERN, s, 0);
 		String[] data = s1[0].trim().split(" ", 4);
 		//String[] data = Util.splitParams(s1[0].trim(), 4);
-		if (data.length < 2) return null;
+		if (data.length < 2) return;
 
 		// Get condition
 		if (data[0].startsWith("!")) {
-			m.negated = true;
+			negated = true;
 			data[0] = data[0].substring(1);
 		}
-		m.condition = MagicSpells.getConditionManager().getConditionByName(data[0].replace("_", ""));
-		if (m.condition == null) return null;
+		condition = MagicSpells.getConditionManager().getConditionByName(data[0].replace("_", ""));
+		if (condition == null) return;
 
 		// Get type and vars
-		m.type = getTypeByName(data[1]);
-		if (m.type == null && data.length > 2) {
-			boolean init = m.condition.initialize(data[1]);
-			if (!init) return null;
-			m.type = getTypeByName(data[2]);
-			if (data.length > 3) m.modifierVar = data[3];
+		type = getTypeByName(data[1]);
+		if (type == null && data.length > 2) {
+			boolean init = condition.initialize(data[1]);
+			if (!init) return;
+
+			type = getTypeByName(data[2]);
+			if (data.length > 3) modifierVar = data[3];
 		} else if (data.length > 2) {
-			m.modifierVar = data[2];
+			modifierVar = data[2];
 		}
 
 		// Check type
-		if (m.type == null) return null;
+		if (type == null) return;
 
-		// Process modifiervar
+		// Process modifierVar
 		try {
-			if (m.type.usesModifierFloat()) m.modifierVarFloat = Float.parseFloat(m.modifierVar);
-			else if (m.type.usesModifierInt()) m.modifierVarInt = Integer.parseInt(m.modifierVar);
-			else if (m.type.usesCustomData()) {
-				m.customActionData = m.type.buildCustomActionData(m.modifierVar);
-				if (m.customActionData == null) return null;
+			if (type.usesModifierFloat()) modifierVarFloat = Float.parseFloat(modifierVar);
+			else if (type.usesModifierInt()) modifierVarInt = Integer.parseInt(modifierVar);
+			else if (type.usesCustomData()) {
+				customActionData = type.buildCustomActionData(modifierVar);
+				if (customActionData == null) return;
 			}
 		} catch (NumberFormatException e) {
 			DebugHandler.debugNumberFormat(e);
-			return null;
+			return;
 		}
 
 		// Check for failed string
-		if (s1.length > 1) m.strModifierFailed = s1[1].trim();
+		if (s1.length > 1) strModifierFailed = s1[1].trim();
 
 		// Check for the alert condition
-		if (m.condition instanceof IModifier) m.alertCondition = true;
+		if (condition instanceof IModifier) alertCondition = true;
 
-		// Done
-		return m;
+		initialized = true;
+	}
+
+	public boolean isInitialized() {
+		return initialized;
+	}
+
+	public String getStrModifierFailed() {
+		return strModifierFailed;
 	}
 
 	@Override

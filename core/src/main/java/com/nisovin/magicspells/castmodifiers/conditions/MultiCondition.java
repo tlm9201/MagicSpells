@@ -76,8 +76,8 @@ public class MultiCondition extends Condition implements IModifier {
 		
 		modifiers = new ArrayList<>();
 		for (String modString : modifierStrings) {
-			Modifier m = Modifier.factory(modString);
-			if (m != null) modifiers.add(m);
+			Modifier m = new Modifier(modString);
+			if (m.isInitialized()) modifiers.add(m);
 			else MagicSpells.error("Problem in reading predefined modifier: \"" + modString + "\" from \"" + var + '\"');
 		}
 		
