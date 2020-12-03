@@ -69,11 +69,14 @@ public class LeapSpell extends InstantSpell {
 			Vector v = livingEntity.getLocation().getDirection();
 			v.setY(0).normalize().multiply(forwardVelocity * power).setY(upwardVelocity * power);
 			if (rotation != 0) Util.rotateVector(v, rotation);
+			v = Util.makeFinite(v);
+
 			if (clientOnly && livingEntity instanceof Player) MagicSpells.getVolatileCodeHandler().setClientVelocity((Player) livingEntity, v);
 			else {
 				if (addVelocityInstead) livingEntity.setVelocity(livingEntity.getVelocity().add(v));
 				else livingEntity.setVelocity(v);
 			}
+
 			jumping.add(livingEntity.getUniqueId());
 			playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
