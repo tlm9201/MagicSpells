@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -37,7 +38,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 	public TargetedMultiSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		random = new Random();
+		random = ThreadLocalRandom.current();
 
 		actions = new ArrayList<>();
 		spellList = getConfigStringList("spells", null);

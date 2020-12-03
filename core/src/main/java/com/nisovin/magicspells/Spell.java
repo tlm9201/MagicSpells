@@ -1,6 +1,7 @@
 package com.nisovin.magicspells;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -75,7 +76,7 @@ import com.google.common.collect.LinkedListMultimap;
 
 public abstract class Spell implements Comparable<Spell>, Listener {
 
-	protected Random random = new Random();
+	protected Random random = ThreadLocalRandom.current();
 
 	protected MagicConfig config;
 

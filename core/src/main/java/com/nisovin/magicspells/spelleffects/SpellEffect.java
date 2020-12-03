@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spelleffects;
 
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -21,7 +22,7 @@ import de.slikey.effectlib.util.VectorUtils;
 
 public abstract class SpellEffect {
 
-	private final Random random = new Random();
+	private final Random random = ThreadLocalRandom.current();
 
 	private int delay;
 	private double chance;

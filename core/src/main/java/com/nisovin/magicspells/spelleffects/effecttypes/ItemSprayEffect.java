@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -48,7 +49,7 @@ public class ItemSprayEffect extends SpellEffect {
 	public Runnable playEffectLocation(Location location) {
 		if (itemStack == null) return null;
 
-		Random rand = new Random();
+		Random rand = ThreadLocalRandom.current();
 		Location loc = location.clone().add(0, 1, 0);
 		final Item[] items = new Item[amount];
 		for (int i = 0; i < amount; i++) {

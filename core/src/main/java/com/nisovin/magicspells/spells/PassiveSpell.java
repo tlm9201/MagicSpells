@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -27,7 +28,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 public class PassiveSpell extends Spell {
 
-	private final Random random = new Random();
+	private final Random random = ThreadLocalRandom.current();
 
 	private final List<PassiveListener> passiveListeners;
 	private final List<String> triggers;

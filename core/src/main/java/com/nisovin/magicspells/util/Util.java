@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.Predicate;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.*;
 import org.bukkit.inventory.*;
@@ -35,7 +36,7 @@ import org.apache.commons.math3.util.FastMath;
 
 public class Util {
 
-	private static Random random = new Random();
+	private static Random random = ThreadLocalRandom.current();
 
 	public static int getRandomInt(int bound) {
 		return random.nextInt(bound);

@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -91,7 +92,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 		}
 
 		if (backfireChance > 0) {
-			Random rand = new Random();
+			Random rand = ThreadLocalRandom.current();
 			if (rand.nextInt(10000) < backfireChance) target = livingEntity.getLocation();
 		}
 

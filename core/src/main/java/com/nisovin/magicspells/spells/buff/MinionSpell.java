@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -92,7 +93,7 @@ public class MinionSpell extends BuffSpell {
 	public MinionSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		random = new Random();
+		random = ThreadLocalRandom.current();
 		minions = new HashMap<>();
 		players = new HashMap<>();
 		targets = new ConcurrentHashMap<>();
