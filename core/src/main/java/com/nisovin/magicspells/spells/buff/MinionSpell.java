@@ -108,7 +108,7 @@ public class MinionSpell extends BuffSpell {
 		chances = new int[c.size()];
 		for (int i = 0; i < c.size(); i++) {
 			String[] data = c.get(i).split(" ");
-			EntityType creatureType = Util.getEntityType(data[0]);
+			EntityType creatureType = MobUtil.getEntityType(data[0]);
 			int chance = 0;
 			if (creatureType != null) {
 				try {

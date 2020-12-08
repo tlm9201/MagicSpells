@@ -9,7 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerFishEvent;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -44,7 +44,7 @@ public class FishListener extends PassiveListener {
 					states.add(PlayerFishEvent.State.FAILED_ATTEMPT);
 					break;
 				default:
-					EntityType type = Util.getEntityType(s);
+					EntityType type = MobUtil.getEntityType(s);
 					if (type == null) return;
 					types.add(type);
 					break;

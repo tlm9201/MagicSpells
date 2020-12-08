@@ -299,7 +299,7 @@ public class MagicSpells extends JavaPlugin {
 		if (config.contains(path + "entity-names")) {
 			Set<String> keys = config.getSection(path + "entity-names").getKeys(false);
 			for (String key : keys) {
-				EntityType entityType = Util.getEntityType(key);
+				EntityType entityType = MobUtil.getEntityType(key);
 				if (entityType == null) continue;
 				entityNames.put(entityType, config.getString(path + "entity-names." + key, ""));
 			}

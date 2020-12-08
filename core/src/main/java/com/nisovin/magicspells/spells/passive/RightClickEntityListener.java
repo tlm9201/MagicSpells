@@ -8,7 +8,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -25,7 +25,7 @@ public class RightClickEntityListener extends PassiveListener {
 
 		String[] split = var.replace(" ", "").toUpperCase().split(",");
 		for (String s : split) {
-			EntityType type = Util.getEntityType(s);
+			EntityType type = MobUtil.getEntityType(s);
 			if (type == null) continue;
 
 			entities.add(type);

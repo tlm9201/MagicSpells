@@ -5,7 +5,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class RidingCondition extends Condition {
@@ -15,7 +15,7 @@ public class RidingCondition extends Condition {
 	@Override
 	public boolean initialize(String var) {
 		if (var == null || var.isEmpty()) return true;
-		entityType = Util.getEntityType(var);
+		entityType = MobUtil.getEntityType(var);
 		return entityType != null;
 	}
 

@@ -120,31 +120,6 @@ global-cooldown: 500
 cast-on-animate: false
 use-exp-bar-as-cast-time-bar: true
 cooldowns-persist-through-reload: true
-entity-names:
-    zombie: an ugly zombie
-    skeleton: a scary skeleton
-    spider: a spider
-    cavespider: a nasty little spider
-    creeper: a creepy creeper
-    slime: a slimy blob
-    wolf: a wolf
-    snowman: a snow golem
-    villager: an innocent villager
-    enderman: Mr. Enderman
-    silverfish: a slimy silverfish
-    ghast: a ghast
-    pigzombie: a pig zombie
-    blaze: a blaze
-    lavaslime: a magma slime
-    giant: the giant
-    enderdragon: the ender dragon
-    cow: a cow
-    sheep: a sheep
-    pig: a smelly pig
-    chicken: a duck
-    mushroomcow: a deformed cow
-    squid: a slimy squid
-    irongolem: a friendly iron golem
 sound-on-cooldown: ""
 sound-missing-reagents: ""
 str-unknown-spell: You do not know a spell with that name.
@@ -166,3 +141,27 @@ hide-magic-items-tooltips: false
 enable-magic-xp: false
 enable-dance-casting: true
 enable-logging: false
+entity-names:
+    zombie: an ugly zombie
+    skeleton: a scary skeleton
+    spider: a spider
+    cave_spider: a nasty little spider
+    creeper: a creepy creeper
+    slime: a slimy blob
+    wolf: a wolf
+    snowman: a snow golem
+    villager: an innocent villager
+    enderman: Mr. Enderman
+    silverfish: a slimy silverfish
+    ghast: a ghast
+    blaze: a blaze
+    magma_cube: a magma cube
+    giant: the giant
+    ender_dragon: the ender dragon
+    cow: a cow
+    sheep: a sheep
+    pig: a smelly pig
+    chicken: a duck
+    mooshroom: a deformed cow
+    squid: a slimy squid
+    iron_golem: a friendly iron golem

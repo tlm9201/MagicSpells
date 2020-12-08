@@ -7,7 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDeathEvent;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -24,7 +24,7 @@ public class KillListener extends PassiveListener {
 
 		String[] split = var.replace(" ", "").split(",");
 		for (String s : split) {
-			EntityType type = Util.getEntityType(s);
+			EntityType type = MobUtil.getEntityType(s);
 			if (type == null) continue;
 
 			types.add(type);
