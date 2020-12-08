@@ -107,12 +107,6 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
         return event.isCancelled
     }
 
-    override fun createExplosionByEntity(entity: Entity, location: Location, size: Float, fire: Boolean, breakBlocks: Boolean): Boolean {
-        // Due to the way MagicSpells is set up, the new method introduced for this in 1.14 can't be used properly
-        // return location.world!!.createExplosion(location, size, fire, entity)
-        return !(location.world as CraftWorld).handle.createExplosion((entity as CraftEntity).handle, location.x, location.y, location.z, size, fire, if (breakBlocks) Explosion.Effect.BREAK else Explosion.Effect.NONE).wasCanceled
-    }
-
     override fun setExperienceBar(player: Player, level: Int, percent: Float) {
         val packet = PacketPlayOutExperience(percent, player.totalExperience, level)
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)

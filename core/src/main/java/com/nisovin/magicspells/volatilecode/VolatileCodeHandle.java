@@ -20,8 +20,6 @@ public interface VolatileCodeHandle {
 
 	boolean simulateTnt(Location target, LivingEntity source, float explosionSize, boolean fire);
 
-	boolean createExplosionByEntity(Entity entity, Location location, float size, boolean fire, boolean breakBlocks);
-
 	void setExperienceBar(Player player, int level, float percent);
 
 	void setTarget(LivingEntity entity, LivingEntity target);

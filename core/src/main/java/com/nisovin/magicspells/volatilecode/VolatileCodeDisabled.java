@@ -41,12 +41,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public boolean createExplosionByEntity(Entity entity, Location location, float size, boolean fire, boolean breakBlocks) {
-		// Due to the way MagicSpells is set up, the new method introduced for this in 1.14 can't be used properly
-		return location.getWorld().createExplosion(location, size, fire/*, entity*/);
-	}
-
-	@Override
 	public void setExperienceBar(Player player, int level, float percent) {
 		// Need the volatile code for this
 	}

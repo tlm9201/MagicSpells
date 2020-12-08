@@ -29,10 +29,6 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         return parent.simulateTnt(target, source, explosionSize, fire)
     }
 
-    override fun createExplosionByEntity(entity: Entity, location: Location, size: Float, fire: Boolean, breakBlocks: Boolean): Boolean {
-        return parent.createExplosionByEntity(entity, location, size, fire, breakBlocks)
-    }
-
     override fun setTarget(entity: LivingEntity?, target: LivingEntity?) {
         parent.setTarget(entity, target)
     }

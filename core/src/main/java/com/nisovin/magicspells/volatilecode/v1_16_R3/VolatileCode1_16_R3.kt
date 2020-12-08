@@ -104,10 +104,6 @@ class VolatileCode1_16_R3: VolatileCodeHandle {
         return event.isCancelled
     }
 
-    override fun createExplosionByEntity(entity: Entity, location: Location, size: Float, fire: Boolean, breakBlocks: Boolean): Boolean {
-        return location.world!!.createExplosion(location, size, fire, breakBlocks, entity)
-    }
-
     override fun setExperienceBar(player: Player, level: Int, percent: Float) {
         player.sendExperienceChange(percent, level)
     }

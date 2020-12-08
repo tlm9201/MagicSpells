@@ -99,9 +99,9 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 		currentTick = Bukkit.getWorlds().get(0).getFullTime();
 		currentPower = power;
 
-		boolean ret = false;
-		ret = MagicSpells.getVolatileCodeHandler().createExplosionByEntity(livingEntity, target, explosionSize * power, addFire, !preventBlockDamage);
+		boolean ret = target.getWorld().createExplosion(target, explosionSize * power, addFire, !preventBlockDamage, livingEntity);
 		if (ret) playSpellEffects(livingEntity, target);
+
 		return ret;
 	}
 
