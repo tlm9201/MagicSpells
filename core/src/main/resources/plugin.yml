@@ -2,7 +2,7 @@ name: MagicSpells
 main: com.nisovin.magicspells.MagicSpells
 version: $version
 authors: [nisovin, TheComputerGeek2, Chronoken]
-api-version: "1.13"
+api-version: "1.15"
 softdepend:
     - GriefPrevention
     - Vault

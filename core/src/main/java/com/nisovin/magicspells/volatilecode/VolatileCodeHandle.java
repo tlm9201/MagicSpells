@@ -8,7 +8,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 public interface VolatileCodeHandle {
@@ -21,11 +20,7 @@ public interface VolatileCodeHandle {
 
 	boolean simulateTnt(Location target, LivingEntity source, float explosionSize, boolean fire);
 
-	boolean createExplosionByEntity(Entity entity, Location location, float size, boolean fire, boolean breakBlocks);
-
 	void setExperienceBar(Player player, int level, float percent);
-
-	void setTarget(LivingEntity entity, LivingEntity target);
 
 	void setFallingBlockHurtEntities(FallingBlock block, float damage, int max);
 
@@ -37,10 +32,6 @@ public interface VolatileCodeHandle {
 
 	void setClientVelocity(Player player, Vector velocity);
 
-	double getAbsorptionHearts(LivingEntity entity);
-
-	void setAbsorptionHearts(LivingEntity entity, double Double);
-
 	String getSkinData(Player player);
 
 	void setTexture(SkullMeta meta, String texture, String signature);
@@ -49,19 +40,11 @@ public interface VolatileCodeHandle {
 
 	void setSkin(Player player, String skin, String signature);
 
-	int getCustomModelData(ItemMeta meta);
-
-	void setCustomModelData(ItemMeta meta, int data);
-
 	ItemStack setNBTString(ItemStack item, String key, String value);
 
 	String getNBTString(ItemStack item, String key);
 
 	void setInventoryTitle(Player player, String title);
-
-	Recipe createCookingRecipe(String type, NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient, float experience, int cookingTime);
-
-	Recipe createStonecutterRecipe(NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient);
 
 	Recipe createSmithingRecipe(NamespacedKey namespaceKey, ItemStack result, Material base, Material addition);
 

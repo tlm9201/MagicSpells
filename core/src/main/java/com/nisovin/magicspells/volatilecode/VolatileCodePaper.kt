@@ -8,7 +8,6 @@ import org.bukkit.entity.*
 import org.bukkit.util.Vector
 import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.SkullMeta
 
 import com.nisovin.magicspells.MagicSpells
@@ -30,24 +29,8 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         return parent.simulateTnt(target, source, explosionSize, fire)
     }
 
-    override fun getCustomModelData(meta: ItemMeta?): Int {
-        return parent.getCustomModelData(meta)
-    }
-
-    override fun createExplosionByEntity(entity: Entity, location: Location, size: Float, fire: Boolean, breakBlocks: Boolean): Boolean {
-        return parent.createExplosionByEntity(entity, location, size, fire, breakBlocks)
-    }
-
-    override fun setTarget(entity: LivingEntity?, target: LivingEntity?) {
-        parent.setTarget(entity, target)
-    }
-
     override fun addPotionGraphicalEffect(entity: LivingEntity, color: Int, duration: Int) {
         parent.addPotionGraphicalEffect(entity, color, duration)
-    }
-
-    override fun getAbsorptionHearts(entity: LivingEntity): Double {
-        return parent.getAbsorptionHearts(entity)
     }
 
     override fun setTexture(meta: SkullMeta, texture: String, signature: String?) {
@@ -101,10 +84,6 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         parent.playDragonDeathEffect(location)
     }
 
-    override fun setCustomModelData(meta: ItemMeta?, data: Int) {
-        parent.setCustomModelData(meta, data)
-    }
-
     override fun setSkin(player: Player, skin: String, signature: String) {
         setTexture(player.playerProfile, skin, signature)
     }
@@ -129,20 +108,8 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         parent.setFallingBlockHurtEntities(block, damage, max)
     }
 
-    override fun setAbsorptionHearts(entity: LivingEntity, double: Double) {
-        parent.setAbsorptionHearts(entity, double)
-    }
-
     override fun setInventoryTitle(player: Player, title: String) {
         parent.setInventoryTitle(player, title)
-    }
-
-    override fun createCookingRecipe(type: String?, namespaceKey: NamespacedKey?, group: String?, result: ItemStack?, ingredient: Material?, experience: Float, cookingTime: Int): Recipe {
-        return parent.createCookingRecipe(type, namespaceKey, group, result, ingredient, experience, cookingTime)
-    }
-
-    override fun createStonecutterRecipe(namespaceKey: NamespacedKey?, group: String?, result: ItemStack?, ingredient: Material?): Recipe {
-        return parent.createStonecutterRecipe(namespaceKey, group, result, ingredient)
     }
 
     override fun createSmithingRecipe(namespaceKey: NamespacedKey?, result: ItemStack?, base: Material?, addition: Material?): Recipe {

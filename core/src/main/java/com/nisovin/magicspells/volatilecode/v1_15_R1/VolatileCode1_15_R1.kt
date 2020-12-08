@@ -107,23 +107,9 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
         return event.isCancelled
     }
 
-    override fun createExplosionByEntity(entity: Entity, location: Location, size: Float, fire: Boolean, breakBlocks: Boolean): Boolean {
-        // Due to the way MagicSpells is set up, the new method introduced for this in 1.14 can't be used properly
-        // return location.world!!.createExplosion(location, size, fire, entity)
-        return !(location.world as CraftWorld).handle.createExplosion((entity as CraftEntity).handle, location.x, location.y, location.z, size, fire, if (breakBlocks) Explosion.Effect.BREAK else Explosion.Effect.NONE).wasCanceled
-    }
-
     override fun setExperienceBar(player: Player, level: Int, percent: Float) {
         val packet = PacketPlayOutExperience(percent, player.totalExperience, level)
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
-    }
-
-    override fun setTarget(entity: LivingEntity?, target: LivingEntity?) {
-        if (entity is Creature) {
-            entity.target = target
-        } else {
-            ((entity as CraftLivingEntity).handle as EntityInsentient).setGoalTarget((target as CraftLivingEntity).handle, EntityTargetEvent.TargetReason.CUSTOM, true)
-        }
     }
 
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
@@ -188,14 +174,6 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
     }
 
-    override fun getAbsorptionHearts(entity: LivingEntity): Double {
-        return (entity as CraftLivingEntity).handle.absorptionHearts.toDouble()
-    }
-
-    override fun setAbsorptionHearts(entity: LivingEntity, amount: Double) {
-        (entity as CraftLivingEntity).handle.absorptionHearts = amount.toFloat()
-    }
-
     override fun getSkinData(player: Player): String {
         val latestSkin = (player as CraftPlayer).handle.profile.properties.get("textures").first()
         return "Skin: " + latestSkin.value + "\nSignature: " + latestSkin.signature
@@ -255,16 +233,6 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
 
     }
 
-    override fun getCustomModelData(meta: ItemMeta?): Int {
-        if (meta == null) return 0
-        if (meta.hasCustomModelData()) return meta.customModelData
-        return 0
-    }
-
-    override fun setCustomModelData(meta: ItemMeta?, data: Int) {
-        meta?.setCustomModelData(data)
-    }
-
     private fun getNBTTag(item: ItemStack): NBTTagCompound {
         val itemNms: nmsItemStack = CraftItemStack.asNMSCopy(item)
         return (if (itemNms.hasTag()) itemNms.tag else NBTTagCompound()) as NBTTagCompound
@@ -288,23 +256,6 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
         val packet = PacketPlayOutOpenWindow(container.windowId, container.type, ChatMessage(title))
         entityPlayer.playerConnection.sendPacket(packet)
         entityPlayer.updateInventory(container)
-    }
-
-    override fun createCookingRecipe(type: String, namespaceKey: NamespacedKey, group: String, result: ItemStack, ingredient: Material, experience: Float, cookingTime: Int): Recipe {
-        var recipe : Recipe? = null
-        when (type) {
-            "smoking" -> recipe = SmokingRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-            "campfire" -> recipe = CampfireRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-            "blasting" -> recipe = BlastingRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-        }
-        (recipe as CookingRecipe<*>).group = group
-        return recipe
-    }
-
-    override fun createStonecutterRecipe(namespaceKey: NamespacedKey, group: String, result: ItemStack, ingredient: Material): Recipe {
-        val recipe = StonecuttingRecipe(namespaceKey, result, ingredient)
-        recipe.group = group
-        return recipe
     }
 
     override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe? {

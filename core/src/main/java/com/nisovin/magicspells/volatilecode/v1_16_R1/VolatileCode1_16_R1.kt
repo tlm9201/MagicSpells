@@ -13,7 +13,6 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Entity
 import org.bukkit.OfflinePlayer
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.craftbukkit.v1_16_R1.entity.*
 import org.bukkit.persistence.PersistentDataType
@@ -105,18 +104,8 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
         return event.isCancelled
     }
 
-    override fun createExplosionByEntity(entity: Entity, location: Location, size: Float, fire: Boolean, breakBlocks: Boolean): Boolean {
-        return location.world!!.createExplosion(location, size, fire, breakBlocks, entity)
-    }
-
     override fun setExperienceBar(player: Player, level: Int, percent: Float) {
         player.sendExperienceChange(percent, level)
-    }
-
-    override fun setTarget(entity: LivingEntity?, target: LivingEntity?) {
-        if (entity is Mob) {
-            entity.target = target
-        }
     }
 
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
@@ -179,14 +168,6 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
     override fun setClientVelocity(player: Player, velocity: Vector) {
         val packet = PacketPlayOutEntityVelocity(player.entityId, Vec3D(velocity.x, velocity.y, velocity.z))
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
-    }
-
-    override fun getAbsorptionHearts(entity: LivingEntity): Double {
-        return entity.absorptionAmount
-    }
-
-    override fun setAbsorptionHearts(entity: LivingEntity, amount: Double) {
-        entity.absorptionAmount = amount
     }
 
     override fun setTexture(meta: SkullMeta, texture: String, signature: String) {
@@ -257,16 +238,6 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
 
     }
 
-    override fun getCustomModelData(meta: ItemMeta?): Int {
-        if (meta == null) return 0
-        if (meta.hasCustomModelData()) return meta.customModelData
-        return 0
-    }
-
-    override fun setCustomModelData(meta: ItemMeta?, data: Int) {
-        meta?.setCustomModelData(data)
-    }
-
     override fun setNBTString(item: ItemStack, key: String, value: String): ItemStack {
         val meta = if (item.hasItemMeta()) item.itemMeta else Bukkit.getItemFactory().getItemMeta(item.type)
         meta?.persistentDataContainer?.set(NamespacedKey(MagicSpells.plugin, key), PersistentDataType.STRING, value)
@@ -284,23 +255,6 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
         val packet = PacketPlayOutOpenWindow(container.windowId, container.type, ChatMessage(title))
         entityPlayer.playerConnection.sendPacket(packet)
         entityPlayer.updateInventory(container)
-    }
-
-    override fun createCookingRecipe(type: String, namespaceKey: NamespacedKey, group: String, result: ItemStack, ingredient: Material, experience: Float, cookingTime: Int): Recipe {
-        var recipe : Recipe? = null
-        when (type) {
-            "smoking" -> recipe = SmokingRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-            "campfire" -> recipe = CampfireRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-            "blasting" -> recipe = BlastingRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-        }
-        (recipe as CookingRecipe<*>).group = group
-        return recipe
-    }
-
-    override fun createStonecutterRecipe(namespaceKey: NamespacedKey, group: String, result: ItemStack, ingredient: Material): Recipe {
-        val recipe = StonecuttingRecipe(namespaceKey, result, ingredient)
-        recipe.group = group
-        return recipe
     }
 
     override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe {

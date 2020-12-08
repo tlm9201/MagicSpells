@@ -17,7 +17,6 @@ import org.bukkit.*;
 import org.bukkit.inventory.*;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
@@ -189,35 +188,6 @@ public class Util {
 			else meta.setLore(null);
 			item.setItemMeta(meta);
 		}
-	}
-
-	static Map<String, EntityType> entityTypeMap = new HashMap<>();
-	static {
-		for (EntityType type : EntityType.values()) {
-			if (type != null && type.getName() != null) {
-				entityTypeMap.put(type.getName().toLowerCase(), type);
-				entityTypeMap.put(type.name().toLowerCase(), type);
-				entityTypeMap.put(type.name().toLowerCase().replace("_", ""), type);
-			}
-		}
-		entityTypeMap.put("zombiepig", Util.getPigmanEntityType());
-		entityTypeMap.put("mooshroom", EntityType.MUSHROOM_COW);
-		entityTypeMap.put("cat", EntityType.OCELOT);
-		entityTypeMap.put("golem", EntityType.IRON_GOLEM);
-		entityTypeMap.put("snowgolem", EntityType.SNOWMAN);
-		entityTypeMap.put("dragon", EntityType.ENDER_DRAGON);
-		Map<String, EntityType> toAdd = new HashMap<>();
-		for (Map.Entry<String, EntityType> entry : entityTypeMap.entrySet()) {
-			toAdd.put(entry.getKey() + 's', entry.getValue());
-		}
-		entityTypeMap.putAll(toAdd);
-		entityTypeMap.put("endermen", EntityType.ENDERMAN);
-		entityTypeMap.put("wolves", EntityType.WOLF);
-	}
-
-	public static EntityType getEntityType(String type) {
-		if (type.equalsIgnoreCase("player")) return EntityType.PLAYER;
-		return entityTypeMap.get(type.toLowerCase());
 	}
 
 	public static PotionEffectType getPotionEffectType(String type) {
@@ -540,13 +510,6 @@ public class Util {
 		}
 	}
 
-	public static ItemStack getEggItemForEntityType(EntityType type) {
-		Material eggMaterial = Material.getMaterial(type.name() + "_SPAWN_EGG");
-		if (eggMaterial == null) return null;
-
-		return new ItemStack(eggMaterial);
-	}
-
 	private static Map<String, String> uniqueIds = new HashMap<>();
 
 	public static String getUniqueId(Player player) {
@@ -699,14 +662,6 @@ public class Util {
 
 	public static String doVarReplacementAndColorize(Player player, String string) {
 		return colorize(MagicSpells.doVariableReplacements(player, string));
-	}
-
-	public static EntityType getPigmanEntityType() {
-		try {
-			return EntityType.valueOf("ZOMBIFIED_PIGLIN");
-		} catch (IllegalArgumentException ex) {
-			return EntityType.valueOf("PIG_ZOMBIE");
-		}
 	}
 
 	public static void setInventoryTitle(Player player, String title) {

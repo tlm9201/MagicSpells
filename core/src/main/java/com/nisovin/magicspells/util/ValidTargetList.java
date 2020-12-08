@@ -1,11 +1,12 @@
 package com.nisovin.magicspells.util;
 
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.Spell;
-import org.bukkit.GameMode;
-import org.bukkit.entity.*;
-
 import java.util.*;
+
+import org.bukkit.entity.*;
+import org.bukkit.GameMode;
+
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.MagicSpells;
 
 public class ValidTargetList {
 	
@@ -149,7 +150,7 @@ public class ValidTargetList {
 					targetEntityTarget = true;
 					break;
 				default:
-					EntityType type = Util.getEntityType(s);
+					EntityType type = MobUtil.getEntityType(s);
 					if (type != null) types.add(type);
 					else MagicSpells.error("Spell '" + spell.getInternalName() + "' has an invalid target type defined: " + s);
 			}

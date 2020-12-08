@@ -428,7 +428,7 @@ public class EntityData {
 				break;
 			case "zombie_pigman":
 			case "zombified_piglin":
-				entityType = Util.getPigmanEntityType();
+				entityType = MobUtil.getPigZombieEntityType();
 				isMob = true;
 				break;
 			case "silverfish":

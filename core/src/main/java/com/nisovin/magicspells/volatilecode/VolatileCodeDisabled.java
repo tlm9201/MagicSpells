@@ -8,7 +8,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import net.md_5.bungee.api.ChatMessageType;
@@ -42,19 +41,8 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public boolean createExplosionByEntity(Entity entity, Location location, float size, boolean fire, boolean breakBlocks) {
-		// Due to the way MagicSpells is set up, the new method introduced for this in 1.14 can't be used properly
-		return location.getWorld().createExplosion(location, size, fire/*, entity*/);
-	}
-
-	@Override
 	public void setExperienceBar(Player player, int level, float percent) {
 		// Need the volatile code for this
-	}
-
-	@Override
-	public void setTarget(LivingEntity entity, LivingEntity target) {
-		if (entity instanceof Creature) ((Creature) entity).setTarget(target);
 	}
 
 	@Override
@@ -84,17 +72,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public double getAbsorptionHearts(LivingEntity entity) {
-		// Need the volatile code for this
-		return 0;
-	}
-
-	@Override
-	public void setAbsorptionHearts(LivingEntity entity, double amount) {
-		// Need the volatile code for this
-	}
-
-	@Override
 	public String getSkinData(Player player) {
 		// Need the volatile code for this
 		return null;
@@ -116,16 +93,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public int getCustomModelData(ItemMeta meta) {
-		return 0;
-	}
-
-	@Override
-	public void setCustomModelData(ItemMeta meta, int data) {
-
-	}
-
-	@Override
 	public ItemStack setNBTString(ItemStack item, String key, String value) {
 		// Need volatile code for this
 		return null;
@@ -140,18 +107,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	@Override
 	public void setInventoryTitle(Player player, String title) {
 		// Need volatile code for this
-	}
-
-	@Override
-	public Recipe createCookingRecipe(String type, NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient, float experience, int cookingTime) {
-		// Need volatile code for this
-		return null;
-	}
-
-	@Override
-	public Recipe createStonecutterRecipe(NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient) {
-		// Need volatile code for this
-		return null;
 	}
 
 	@Override
