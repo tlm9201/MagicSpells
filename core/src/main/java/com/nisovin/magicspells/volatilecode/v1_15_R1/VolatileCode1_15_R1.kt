@@ -9,18 +9,14 @@ import org.bukkit.Material
 import org.bukkit.entity.*
 import org.bukkit.util.Vector
 import org.bukkit.inventory.*
-import org.bukkit.entity.Entity
 import org.bukkit.OfflinePlayer
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.craftbukkit.v1_15_R1.entity.*
-import org.bukkit.event.entity.EntityTargetEvent
 import org.bukkit.craftbukkit.v1_15_R1.CraftWorld
 import org.bukkit.event.entity.ExplosionPrimeEvent
 import org.bukkit.craftbukkit.v1_15_R1.CraftServer
-import org.bukkit.craftbukkit.v1_15_R1.entity.CraftEntity
 import org.bukkit.craftbukkit.v1_15_R1.inventory.CraftItemStack
 
 import com.nisovin.magicspells.util.*
