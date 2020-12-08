@@ -180,14 +180,6 @@ class VolatileCode1_16_R3: VolatileCodeHandle {
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
     }
 
-    override fun getAbsorptionHearts(entity: LivingEntity): Double {
-        return entity.absorptionAmount
-    }
-
-    override fun setAbsorptionHearts(entity: LivingEntity, amount: Double) {
-        entity.absorptionAmount = amount
-    }
-
     override fun getSkinData(player: Player): String {
         val latestSkin = (player as CraftPlayer).handle.profile.properties.get("textures").first()
         return "Skin: " + latestSkin.value + "\nSignature: " + latestSkin.signature

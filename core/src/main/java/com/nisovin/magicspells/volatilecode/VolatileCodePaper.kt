@@ -41,10 +41,6 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         parent.addPotionGraphicalEffect(entity, color, duration)
     }
 
-    override fun getAbsorptionHearts(entity: LivingEntity): Double {
-        return parent.getAbsorptionHearts(entity)
-    }
-
     override fun setTexture(meta: SkullMeta, texture: String, signature: String?) {
         val profile = meta.playerProfile!!
         setTexture(profile, texture, signature)
@@ -118,10 +114,6 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
 
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
         parent.setFallingBlockHurtEntities(block, damage, max)
-    }
-
-    override fun setAbsorptionHearts(entity: LivingEntity, double: Double) {
-        parent.setAbsorptionHearts(entity, double)
     }
 
     override fun setInventoryTitle(player: Player, title: String) {

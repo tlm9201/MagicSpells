@@ -83,17 +83,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public double getAbsorptionHearts(LivingEntity entity) {
-		// Need the volatile code for this
-		return 0;
-	}
-
-	@Override
-	public void setAbsorptionHearts(LivingEntity entity, double amount) {
-		// Need the volatile code for this
-	}
-
-	@Override
 	public String getSkinData(Player player) {
 		// Need the volatile code for this
 		return null;

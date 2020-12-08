@@ -180,14 +180,6 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
     }
 
-    override fun getAbsorptionHearts(entity: LivingEntity): Double {
-        return entity.absorptionAmount
-    }
-
-    override fun setAbsorptionHearts(entity: LivingEntity, amount: Double) {
-        entity.absorptionAmount = amount
-    }
-
     override fun setTexture(meta: SkullMeta, texture: String, signature: String) {
         // Don't spam the user with errors, just stop
         if (SafetyCheckUtils.areAnyNull(this.craftMetaSkullProfileField)) return

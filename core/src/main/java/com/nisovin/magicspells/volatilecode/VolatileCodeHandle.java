@@ -36,10 +36,6 @@ public interface VolatileCodeHandle {
 
 	void setClientVelocity(Player player, Vector velocity);
 
-	double getAbsorptionHearts(LivingEntity entity);
-
-	void setAbsorptionHearts(LivingEntity entity, double Double);
-
 	String getSkinData(Player player);
 
 	void setTexture(SkullMeta meta, String texture, String signature);
