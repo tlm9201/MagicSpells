@@ -38,9 +38,9 @@ import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
+import com.nisovin.magicspells.spells.DamageSpell;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellTargetEvent;
-import com.nisovin.magicspells.spells.SpellDamageSpell;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.AttributeManager;
@@ -529,7 +529,7 @@ public class MinionSpell extends BuffSpell {
 	// Owner cant damage his minion with spells
 	@EventHandler(ignoreCancelled = true)
 	public void onSpellTarget(SpellTargetEvent e) {
-		if (!(e.getSpell() instanceof SpellDamageSpell)) return;
+		if (!(e.getSpell() instanceof DamageSpell)) return;
 		if (!isActive(e.getCaster())) return;
 		if (e.getTarget().equals(minions.get(e.getCaster().getUniqueId()))) e.setCancelled(true);
 	}

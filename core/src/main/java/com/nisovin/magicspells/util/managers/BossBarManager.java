@@ -27,7 +27,7 @@ public class BossBarManager {
 		return NAMESPACE_KEY_VARIABLE;
 	}
 
-	public boolean isNameSpaceKey(String namespaceKey) {
+	public boolean isNamespaceKey(String namespaceKey) {
 		return VALID_NAMESPACE_KEY.matcher(namespaceKey).matches();
 	}
 

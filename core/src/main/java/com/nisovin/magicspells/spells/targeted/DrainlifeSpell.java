@@ -13,19 +13,19 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.spells.DamageSpell;
 import com.nisovin.magicspells.util.SpellAnimation;
 import com.nisovin.magicspells.util.ExperienceUtils;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.handlers.DebugHandler;
-import com.nisovin.magicspells.spells.SpellDamageSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
-public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell, SpellDamageSpell {
+public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell, DamageSpell {
 
 	private static final String STR_MANA = "mana";
 	private static final String STR_HEALTH = "health";
