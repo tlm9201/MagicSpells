@@ -8,7 +8,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import net.md_5.bungee.api.ChatMessageType;
@@ -116,16 +115,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public int getCustomModelData(ItemMeta meta) {
-		return 0;
-	}
-
-	@Override
-	public void setCustomModelData(ItemMeta meta, int data) {
-
-	}
-
-	@Override
 	public ItemStack setNBTString(ItemStack item, String key, String value) {
 		// Need volatile code for this
 		return null;
@@ -140,18 +129,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	@Override
 	public void setInventoryTitle(Player player, String title) {
 		// Need volatile code for this
-	}
-
-	@Override
-	public Recipe createCookingRecipe(String type, NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient, float experience, int cookingTime) {
-		// Need volatile code for this
-		return null;
-	}
-
-	@Override
-	public Recipe createStonecutterRecipe(NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient) {
-		// Need volatile code for this
-		return null;
 	}
 
 	@Override

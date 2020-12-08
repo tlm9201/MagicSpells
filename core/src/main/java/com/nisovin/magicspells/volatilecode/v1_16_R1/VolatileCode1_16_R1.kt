@@ -13,7 +13,6 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Entity
 import org.bukkit.OfflinePlayer
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.craftbukkit.v1_16_R1.entity.*
 import org.bukkit.persistence.PersistentDataType
@@ -257,16 +256,6 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
 
     }
 
-    override fun getCustomModelData(meta: ItemMeta?): Int {
-        if (meta == null) return 0
-        if (meta.hasCustomModelData()) return meta.customModelData
-        return 0
-    }
-
-    override fun setCustomModelData(meta: ItemMeta?, data: Int) {
-        meta?.setCustomModelData(data)
-    }
-
     override fun setNBTString(item: ItemStack, key: String, value: String): ItemStack {
         val meta = if (item.hasItemMeta()) item.itemMeta else Bukkit.getItemFactory().getItemMeta(item.type)
         meta?.persistentDataContainer?.set(NamespacedKey(MagicSpells.plugin, key), PersistentDataType.STRING, value)
@@ -284,23 +273,6 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
         val packet = PacketPlayOutOpenWindow(container.windowId, container.type, ChatMessage(title))
         entityPlayer.playerConnection.sendPacket(packet)
         entityPlayer.updateInventory(container)
-    }
-
-    override fun createCookingRecipe(type: String, namespaceKey: NamespacedKey, group: String, result: ItemStack, ingredient: Material, experience: Float, cookingTime: Int): Recipe {
-        var recipe : Recipe? = null
-        when (type) {
-            "smoking" -> recipe = SmokingRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-            "campfire" -> recipe = CampfireRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-            "blasting" -> recipe = BlastingRecipe(namespaceKey, result, ingredient, experience, cookingTime)
-        }
-        (recipe as CookingRecipe<*>).group = group
-        return recipe
-    }
-
-    override fun createStonecutterRecipe(namespaceKey: NamespacedKey, group: String, result: ItemStack, ingredient: Material): Recipe {
-        val recipe = StonecuttingRecipe(namespaceKey, result, ingredient)
-        recipe.group = group
-        return recipe
     }
 
     override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe {

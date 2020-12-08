@@ -8,7 +8,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 public interface VolatileCodeHandle {
@@ -49,19 +48,11 @@ public interface VolatileCodeHandle {
 
 	void setSkin(Player player, String skin, String signature);
 
-	int getCustomModelData(ItemMeta meta);
-
-	void setCustomModelData(ItemMeta meta, int data);
-
 	ItemStack setNBTString(ItemStack item, String key, String value);
 
 	String getNBTString(ItemStack item, String key);
 
 	void setInventoryTitle(Player player, String title);
-
-	Recipe createCookingRecipe(String type, NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient, float experience, int cookingTime);
-
-	Recipe createStonecutterRecipe(NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient);
 
 	Recipe createSmithingRecipe(NamespacedKey namespaceKey, ItemStack result, Material base, Material addition);
 
