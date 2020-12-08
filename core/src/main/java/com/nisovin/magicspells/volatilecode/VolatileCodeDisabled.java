@@ -46,11 +46,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public void setTarget(LivingEntity entity, LivingEntity target) {
-		if (entity instanceof Creature) ((Creature) entity).setTarget(target);
-	}
-
-	@Override
 	public void setFallingBlockHurtEntities(FallingBlock block, float damage, int max) {
 		block.setHurtEntities(true);
 		// Need the (rest of) volatile code for this

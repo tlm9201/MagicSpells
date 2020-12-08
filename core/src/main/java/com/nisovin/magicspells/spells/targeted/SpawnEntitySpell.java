@@ -28,6 +28,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.util.TargetInfo;
@@ -356,7 +357,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		}
 		if (noAI) entity.setAI(false);
 
-		if (target != null) MagicSpells.getVolatileCodeHandler().setTarget(entity, target);
+		if (target != null) MobUtil.setTarget(entity, target);
 		if (targetInterval > 0) new Targeter(caster, entity);
 
 		if (attackSpell != null) {
@@ -505,7 +506,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			}
 			target = t;
 			if (t == null) return;
-			MagicSpells.getVolatileCodeHandler().setTarget(monster, t);
+			MobUtil.setTarget(monster, t);
 		}
 		
 	}
@@ -539,7 +540,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 			if (targetable.isEmpty()) return;
 			LivingEntity target = targetable.get(random.nextInt(targetable.size()));
-			MagicSpells.getVolatileCodeHandler().setTarget(entity, target);
+			MobUtil.setTarget(entity, target);
 		}
 		
 	}

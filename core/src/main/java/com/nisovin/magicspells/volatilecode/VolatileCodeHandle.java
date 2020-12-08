@@ -22,8 +22,6 @@ public interface VolatileCodeHandle {
 
 	void setExperienceBar(Player player, int level, float percent);
 
-	void setTarget(LivingEntity entity, LivingEntity target);
-
 	void setFallingBlockHurtEntities(FallingBlock block, float damage, int max);
 
 	void setKiller(LivingEntity entity, Player killer);

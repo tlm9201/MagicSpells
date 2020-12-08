@@ -29,10 +29,6 @@ class VolatileCodePaper(private val parent: VolatileCodeHandle): VolatileCodeHan
         return parent.simulateTnt(target, source, explosionSize, fire)
     }
 
-    override fun setTarget(entity: LivingEntity?, target: LivingEntity?) {
-        parent.setTarget(entity, target)
-    }
-
     override fun addPotionGraphicalEffect(entity: LivingEntity, color: Int, duration: Int) {
         parent.addPotionGraphicalEffect(entity, color, duration)
     }

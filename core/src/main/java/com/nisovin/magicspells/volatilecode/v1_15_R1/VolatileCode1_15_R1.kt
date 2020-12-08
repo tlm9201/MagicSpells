@@ -112,14 +112,6 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
     }
 
-    override fun setTarget(entity: LivingEntity?, target: LivingEntity?) {
-        if (entity is Creature) {
-            entity.target = target
-        } else {
-            ((entity as CraftLivingEntity).handle as EntityInsentient).setGoalTarget((target as CraftLivingEntity).handle, EntityTargetEvent.TargetReason.CUSTOM, true)
-        }
-    }
-
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
         val efb = (block as CraftFallingBlock).handle
         try {

@@ -540,13 +540,6 @@ public class Util {
 		}
 	}
 
-	public static ItemStack getEggItemForEntityType(EntityType type) {
-		Material eggMaterial = Material.getMaterial(type.name() + "_SPAWN_EGG");
-		if (eggMaterial == null) return null;
-
-		return new ItemStack(eggMaterial);
-	}
-
 	private static Map<String, String> uniqueIds = new HashMap<>();
 
 	public static String getUniqueId(Player player) {

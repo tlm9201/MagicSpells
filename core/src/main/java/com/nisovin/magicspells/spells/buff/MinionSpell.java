@@ -34,6 +34,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
@@ -384,7 +385,7 @@ public class MinionSpell extends BuffSpell {
 		// Set the correct target
 		e.setTarget(target);
 		addUseAndChargeCost(pl);
-		MagicSpells.getVolatileCodeHandler().setTarget(minion, target);
+		MobUtil.setTarget(minion, target);
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -401,7 +402,7 @@ public class MinionSpell extends BuffSpell {
 			// If a Minion tries to attack his owner, cancel the damage and stop the minion
 			if (minions.get(pl.getUniqueId()).equals(damager)) {
 				targets.remove(pl.getUniqueId());
-				MagicSpells.getVolatileCodeHandler().setTarget(minions.get(pl.getUniqueId()), null);
+				MobUtil.setTarget(minions.get(pl.getUniqueId()), null);
 				e.setCancelled(true);
 				return;
 			}
@@ -417,7 +418,7 @@ public class MinionSpell extends BuffSpell {
 			if (previousTarget != null && previousTarget.getWorld().equals(pl.getWorld()) && pl.getLocation().distanceSquared(previousTarget.getLocation()) < pl.getLocation().distanceSquared(damager.getLocation())) return;
 
 			targets.put(pl.getUniqueId(), (LivingEntity) damager);
-			MagicSpells.getVolatileCodeHandler().setTarget(minions.get(pl.getUniqueId()), (LivingEntity) damager);
+			MobUtil.setTarget(minions.get(pl.getUniqueId()), (LivingEntity) damager);
 			return;
 		}
 
@@ -459,7 +460,7 @@ public class MinionSpell extends BuffSpell {
 				}
 				if (minionDamager != null) {
 					targets.put(owner.getUniqueId(), minionDamager);
-					MagicSpells.getVolatileCodeHandler().setTarget(minion, minionDamager);
+					MobUtil.setTarget(minion, minionDamager);
 				}
 			}
 		}
@@ -486,7 +487,7 @@ public class MinionSpell extends BuffSpell {
 
 			addUseAndChargeCost(pl);
 			targets.put(pl.getUniqueId(), (LivingEntity) entity);
-			MagicSpells.getVolatileCodeHandler().setTarget(minions.get(pl.getUniqueId()), (LivingEntity) entity);
+			MobUtil.setTarget(minions.get(pl.getUniqueId()), (LivingEntity) entity);
 
 		}
 
@@ -516,7 +517,7 @@ public class MinionSpell extends BuffSpell {
 				if (pl == null || !pl.isValid() || !pl.isOnline()) continue;
 
 				targets.remove(id);
-				MagicSpells.getVolatileCodeHandler().setTarget(minions.get(id), null);
+				MobUtil.setTarget(minions.get(id), null);
 
 				Location loc = pl.getLocation().clone();
 				loc.add(loc.getDirection().setY(0).normalize().multiply(followRange));
@@ -570,7 +571,7 @@ public class MinionSpell extends BuffSpell {
 			// The minion has a target but he is far away from his owner, remove his current target
 			if (targets.get(pl.getUniqueId()) != null) {
 				targets.remove(pl.getUniqueId());
-				MagicSpells.getVolatileCodeHandler().setTarget(minion, null);
+				MobUtil.setTarget(minion, null);
 			}
 
 			// The distance between minion and his owner is greater that the defined max distance or the minion has no targets, he will follow his owner

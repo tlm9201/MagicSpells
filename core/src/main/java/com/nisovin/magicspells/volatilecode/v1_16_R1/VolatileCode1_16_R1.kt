@@ -108,12 +108,6 @@ class VolatileCode1_16_R1: VolatileCodeHandle {
         player.sendExperienceChange(percent, level)
     }
 
-    override fun setTarget(entity: LivingEntity?, target: LivingEntity?) {
-        if (entity is Mob) {
-            entity.target = target
-        }
-    }
-
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
         val efb = (block as CraftFallingBlock).handle
         try {
