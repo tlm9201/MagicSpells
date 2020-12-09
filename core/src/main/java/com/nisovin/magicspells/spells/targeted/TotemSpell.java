@@ -319,7 +319,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			if (boots != null) totemEquipment.setBoots(boots);
 			((ArmorStand) armorStand).setVisible(visibility);
 			((ArmorStand) armorStand).setMarker(marker);
-			((ArmorStand) armorStand).setSilent(silenced);
+			armorStand.setSilent(silenced);
 			armorStand.setInvulnerable(true);
 			totemLocation = armorStand.getLocation();
 		}
