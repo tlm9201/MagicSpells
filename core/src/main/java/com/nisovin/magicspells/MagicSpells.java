@@ -1299,7 +1299,7 @@ public class MagicSpells extends JavaPlugin {
 		}
 	}
 
-	private static Pattern chatVarMatchPattern = Pattern.compile("%var:[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern chatVarMatchPattern = Pattern.compile("%var:[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doSubjectVariableReplacements(Player player, String string) {
 		if (string != null && plugin.variableManager != null && string.contains("%var")) {
 			Matcher matcher = chatVarMatchPattern.matcher(string);
@@ -1314,7 +1314,7 @@ public class MagicSpells extends JavaPlugin {
 		return string;
 	}
 
-	private static Pattern chatPlayerVarMatchPattern = Pattern.compile("%playervar:" + RegexUtil.USERNAME_REGEXP + ":[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern chatPlayerVarMatchPattern = Pattern.compile("%playervar:" + RegexUtil.USERNAME_REGEXP + ":[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doVariableReplacements(Player player, String string) {
 		string = doSubjectVariableReplacements(player, string);
 		if (string != null && plugin.variableManager != null && string.contains("%playervar")) {
@@ -1332,9 +1332,9 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	//%arg:(index):defaultValue%
-	private static Pattern argumentSubstitutionPattern = Pattern.compile("%arg:[0-9]+:[0-9a-zA-Z_]+%");
+	private static final Pattern argumentSubstitutionPattern = Pattern.compile("%arg:[0-9]+:[0-9a-zA-Z_]+%");
 	public static String doArgumentSubstitution(String string, String[] args) {
-		if (string != null && argumentSubstitutionPattern != null && string.contains("%arg")) {
+		if (string != null && string.contains("%arg")) {
 			Matcher matcher = argumentSubstitutionPattern.matcher(string);
 			while (matcher.find()) {
 				String argText = matcher.group();

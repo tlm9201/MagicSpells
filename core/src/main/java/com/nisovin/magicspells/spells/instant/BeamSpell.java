@@ -37,6 +37,10 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	private float beamVertOffset;
 	private float beamHorizOffset;
 
+	private float beamSpread;
+	private float beamVerticalSpread;
+	private float beamHorizontalSpread;
+
 	private boolean changePitch;
 	private boolean stopOnHitEntity;
 	private boolean stopOnHitGround;
@@ -69,6 +73,10 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		rotation = getConfigFloat("rotation", 0F);
 		beamVertOffset = getConfigFloat("beam-vert-offset", 0F);
 		beamHorizOffset = getConfigFloat("beam-horiz-offset", 0F);
+
+		beamSpread = getConfigFloat("beam-spread", 0F);
+		beamVerticalSpread = getConfigFloat("beam-vertical-spread", beamSpread);
+		beamHorizontalSpread = getConfigFloat("beam-horizontal-spread", beamSpread);
 
 		changePitch = getConfigBoolean("change-pitch", true);
 		stopOnHitEntity = getConfigBoolean("stop-on-hit-entity", false);
@@ -221,6 +229,13 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			Vector dir;
 			if (target == null) dir = startLoc.getDirection().multiply(interval);
 			else dir = targetLoc.toVector().subtract(startLoc.clone().toVector()).normalize().multiply(interval);
+
+			if (beamVerticalSpread > 0 || beamHorizontalSpread > 0) {
+				float rx = -1 + random.nextFloat() * 2;
+				float ry = -1 + random.nextFloat() * 2;
+				float rz = -1 + random.nextFloat() * 2;
+				dir.add(new Vector(rx * beamHorizontalSpread, ry * beamVerticalSpread, rz * beamHorizontalSpread));
+			}
 
 			BoundingBox box = new BoundingBox(currentLoc, hitRadius, verticalHitRadius);
 
