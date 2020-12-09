@@ -673,7 +673,7 @@ public class MagicCommand extends BaseCommand {
 					return;
 				}
 				if (spell.isHelperSpell() && !Perm.COMMAND_CAST_SELF_HELPER.has(player) || !MagicSpells.getSpellbook(player).hasSpell(spell)) {
-					MagicSpells.sendMessage(MagicSpells.getTextColor() + MagicSpells.getStrUnknownSpell(), player, null);
+					MagicSpells.sendMessage(MagicSpells.getTextColor() + MagicSpells.getUnknownSpellMessage(), player, null);
 					return;
 				}
 				if (!spell.isValidItemForCastCommand(player.getInventory().getItemInMainHand())) {

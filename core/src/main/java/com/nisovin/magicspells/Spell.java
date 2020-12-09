@@ -244,8 +244,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			consumeCastItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid consume cast item listed: %i");
 		} else consumeCastItems = new CastItem[0];
 
-		castWithLeftClick = config.getBoolean(path + "cast-with-left-click", MagicSpells.plugin.castWithLeftClick);
-		castWithRightClick = config.getBoolean(path + "cast-with-right-click", MagicSpells.plugin.castWithRightClick);
+		castWithLeftClick = config.getBoolean(path + "cast-with-left-click", MagicSpells.canCastWithLeftClick());
+		castWithRightClick = config.getBoolean(path + "cast-with-right-click", MagicSpells.canCastWithRightClick());
 
 		usePreciseCooldowns = config.getBoolean(path + "use-precise-cooldowns", false);
 
@@ -287,7 +287,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		}
 		experience = config.getInt(path + "experience", 0);
-		broadcastRange = config.getInt(path + "broadcast-range", MagicSpells.plugin.broadcastRange);
+		broadcastRange = config.getInt(path + "broadcast-range", MagicSpells.getBroadcastRange());
 
 		// Cast time
 		castTime = config.getInt(path + "cast-time", 0);
@@ -404,25 +404,25 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		}
 
-		soundOnCooldown = config.getString(path + "sound-on-cooldown", MagicSpells.plugin.soundFailOnCooldown);
-		soundMissingReagents = config.getString(path + "sound-missing-reagents", MagicSpells.plugin.soundFailMissingReagents);
+		soundOnCooldown = config.getString(path + "sound-on-cooldown", MagicSpells.getCooldownSound());
+		soundMissingReagents = config.getString(path + "sound-missing-reagents", MagicSpells.getMissingReagentsSound());
 		if (soundOnCooldown != null && soundOnCooldown.isEmpty()) soundOnCooldown = null;
 		if (soundMissingReagents != null && soundMissingReagents.isEmpty()) soundMissingReagents = null;
 
 		// Strings
 		strCost = config.getString(path + "str-cost", null);
-		strCantCast = config.getString(path + "str-cant-cast", MagicSpells.plugin.strCantCast);
+		strCantCast = config.getString(path + "str-cant-cast", MagicSpells.getCantCastMessage());
 		strCantBind = config.getString(path + "str-cant-bind", null);
 		strCastSelf = config.getString(path + "str-cast-self", null);
 		strCastStart = config.getString(path + "str-cast-start", null);
 		strCastOthers = config.getString(path + "str-cast-others", null);
-		strOnCooldown = config.getString(path + "str-on-cooldown", MagicSpells.plugin.strOnCooldown);
-		strWrongWorld = config.getString(path + "str-wrong-world", MagicSpells.plugin.strWrongWorld);
+		strOnCooldown = config.getString(path + "str-on-cooldown", MagicSpells.getOnCooldownMessage());
+		strWrongWorld = config.getString(path + "str-wrong-world", MagicSpells.getWrongWorldMessage());
 		strInterrupted = config.getString(path + "str-interrupted", null);
-		strXpAutoLearned = config.getString(path + "str-xp-auto-learned", MagicSpells.plugin.strXpAutoLearned);
+		strXpAutoLearned = config.getString(path + "str-xp-auto-learned", MagicSpells.getXpAutoLearnedMessage());
 		strWrongCastItem = config.getString(path + "str-wrong-cast-item", strCantCast);
 		strModifierFailed = config.getString(path + "str-modifier-failed", null);
-		strMissingReagents = config.getString(path + "str-missing-reagents", MagicSpells.plugin.strMissingReagents);
+		strMissingReagents = config.getString(path + "str-missing-reagents", MagicSpells.getMissingReagentsMessage());
 		if (strXpAutoLearned != null) strXpAutoLearned = strXpAutoLearned.replace("%s", name);
 
 		tags = new HashSet<>(config.getStringList(path + "tags", new ArrayList<>()));
@@ -802,7 +802,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			action = PostCastAction.DELAYED;
 			sendMessage(strCastStart, livingEntity, args);
 			playSpellEffects(EffectPosition.START_CAST, livingEntity);
-			if (MagicSpells.plugin.useExpBarAsCastTimeBar) new DelayedSpellCastWithBar(spellCast);
+			if (MagicSpells.useExpBarAsCastTimeBar()) new DelayedSpellCastWithBar(spellCast);
 			else new DelayedSpellCast(spellCast);
 		}
 		return new SpellCastResult(spellCast.getSpellCastState(), action);
@@ -861,9 +861,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		float power = spellCast.getPower();
 		debug(3, "    Power: " + power);
 		debug(3, "    Cooldown: " + cooldown);
-		if (MagicSpells.plugin.debug && args != null && args.length > 0) debug(3, "    Args: {" + Util.arrayJoin(args, ',') + '}');
+		if (MagicSpells.isDebug() && args != null && args.length > 0) debug(3, "    Args: {" + Util.arrayJoin(args, ',') + '}');
 		PostCastAction action = castSpell(livingEntity, state, power, args);
-		if (MagicSpells.plugin.enableProfiling) {
+		if (MagicSpells.hasProfilingEnabled()) {
 			Long total = MagicSpells.getProfilingTotalTime().get(profilingKey);
 			if (total == null) total = (long) 0;
 			total += System.nanoTime() - start;
@@ -898,7 +898,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			} else if (state == SpellCastState.MISSING_REAGENTS) {
 				MagicSpells.sendMessage(strMissingReagents, livingEntity, spellCast.getSpellArgs());
 				playSpellEffects(EffectPosition.MISSING_REAGENTS, livingEntity);
-				if (MagicSpells.plugin.showStrCostOnMissingReagents && strCost != null && !strCost.isEmpty()) MagicSpells.sendMessage("    (" + strCost + ')', livingEntity, spellCast.getSpellArgs());
+				if (MagicSpells.showStrCostOnMissingReagents() && strCost != null && !strCost.isEmpty()) MagicSpells.sendMessage("    (" + strCost + ')', livingEntity, spellCast.getSpellArgs());
 				if (soundMissingReagents != null && livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), soundMissingReagents, 1F, 1F);
 			} else if (state == SpellCastState.CANT_CAST) {
 				MagicSpells.sendMessage(strCantCast, livingEntity, spellCast.getSpellArgs());
@@ -1354,7 +1354,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		// Get valid targets
 		List<LivingEntity> entities;
-		if (MagicSpells.plugin.checkWorldPvpFlag && validTargetList.canTargetPlayers() && !isBeneficial() && !livingEntity.getWorld().getPVP()) {
+		if (MagicSpells.checkWorldPvpFlag() && validTargetList.canTargetPlayers() && !isBeneficial() && !livingEntity.getWorld().getPVP()) {
 			entities = validTargetList.filterTargetListCastingAsLivingEntities(livingEntity, nearbyEntities, false);
 		} else if (forceTargetPlayers) {
 			entities = validTargetList.filterTargetListCastingAsLivingEntities(livingEntity, nearbyEntities, true);
@@ -1421,7 +1421,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				}
 
 				// Check for teams
-				if (target instanceof Player && MagicSpells.plugin.checkScoreboardTeams) {
+				if (target instanceof Player && MagicSpells.checkScoreboardTeams()) {
 					Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 
 					Team playerTeam = null;
@@ -1830,7 +1830,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	public String getConsoleName() {
-		return MagicSpells.plugin.strConsoleName;
+		return MagicSpells.getConsoleName();
 	}
 
 	public String getStrWrongCastItem() {

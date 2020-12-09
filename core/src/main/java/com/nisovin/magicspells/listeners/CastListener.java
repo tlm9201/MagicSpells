@@ -90,7 +90,7 @@ public class CastListener implements Listener {
 
 				if (spell == null) return;
 				// Send message
-				MagicSpells.sendMessageAndFormat(player, MagicSpells.getStrSpellUsage(), "%s", spell.getName());
+				MagicSpells.sendMessageAndFormat(player, MagicSpells.getSpellChangeMessage(), "%s", spell.getName());
 				// Show spell icon
 				if (MagicSpells.getSpellIconSlot() >= 0) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
 
