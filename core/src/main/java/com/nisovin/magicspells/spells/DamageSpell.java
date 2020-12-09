@@ -1,6 +1,6 @@
 package com.nisovin.magicspells.spells;
 
-public interface SpellDamageSpell {
+public interface DamageSpell {
 
 	String getSpellDamageType();
 	

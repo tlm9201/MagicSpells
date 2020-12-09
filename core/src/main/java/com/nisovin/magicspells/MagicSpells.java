@@ -110,78 +110,78 @@ public class MagicSpells extends JavaPlugin {
 	private MagicLogger magicLogger;
 	private LifeLengthTracker lifeLengthTracker;
 
-	boolean debug;
-	boolean debugNull;
-	boolean debugNumberFormat;
-	boolean tabCompleteInternalNames;
+	private boolean debug;
+	private boolean debugNull;
+	private boolean debugNumberFormat;
+	private boolean tabCompleteInternalNames;
 
-	boolean enableProfiling;
-	boolean enableErrorLogging;
+	private boolean enableProfiling;
+	private boolean enableErrorLogging;
 
-	boolean hideMagicItemTooltips;
-	boolean ignoreCastItemNames;
-	boolean ignoreCastItemAmount;
-	boolean ignoreCastItemEnchants;
-	boolean ignoreCastItemNameColors;
-	boolean ignoreCastItemBreakability;
-	boolean ignoreCastItemColor;
-	boolean ignoreCastItemPotionType;
-	boolean ignoreCastItemTitle;
-	boolean ignoreCastItemAuthor;
-	boolean ignoreCastItemLore;
-	boolean ignoreCastItemCustomModelData;
+	private boolean hideMagicItemTooltips;
+	private boolean ignoreCastItemNames;
+	private boolean ignoreCastItemAmount;
+	private boolean ignoreCastItemEnchants;
+	private boolean ignoreCastItemNameColors;
+	private boolean ignoreCastItemBreakability;
+	private boolean ignoreCastItemColor;
+	private boolean ignoreCastItemPotionType;
+	private boolean ignoreCastItemTitle;
+	private boolean ignoreCastItemAuthor;
+	private boolean ignoreCastItemLore;
+	private boolean ignoreCastItemCustomModelData;
 
-	boolean castOnAnimate;
-	boolean enableManaSystem;
-	boolean ignoreCastPerms;
-	boolean opsHaveAllSpells;
-	boolean ignoreGrantPerms;
-	boolean checkWorldPvpFlag;
-	boolean allowCastWithFist;
-	boolean castWithLeftClick;
-	boolean castWithRightClick;
-	boolean reverseBowCycleButtons;
-	boolean bowCycleSpellsSneaking;
-	boolean allowCycleToNoSpell;
+	private boolean castOnAnimate;
+	private boolean enableManaSystem;
+	private boolean ignoreCastPerms;
+	private boolean opsHaveAllSpells;
+	private boolean ignoreGrantPerms;
+	private boolean checkWorldPvpFlag;
+	private boolean allowCastWithFist;
+	private boolean castWithLeftClick;
+	private boolean castWithRightClick;
+	private boolean reverseBowCycleButtons;
+	private boolean bowCycleSpellsSneaking;
+	private boolean allowCycleToNoSpell;
 
-	boolean checkScoreboardTeams;
-	boolean defaultAllPermsFalse;
-	boolean enableTempGrantPerms;
-	boolean ignoreDefaultBindings;
-	boolean useExpBarAsCastTimeBar;
-	boolean alwaysShowMessageOnCycle;
-	boolean onlyCycleToCastableSpells;
-	boolean ignoreGrantPermsFakeValue;
-	boolean cycleSpellsOnOffhandAction;
-	boolean separatePlayerSpellsPerWorld;
-	boolean showStrCostOnMissingReagents;
-	boolean cooldownsPersistThroughReload;
-	public boolean allowAnticheatIntegrations;
+	private boolean checkScoreboardTeams;
+	private boolean defaultAllPermsFalse;
+	private boolean enableTempGrantPerms;
+	private boolean ignoreDefaultBindings;
+	private boolean useExpBarAsCastTimeBar;
+	private boolean alwaysShowMessageOnCycle;
+	private boolean onlyCycleToCastableSpells;
+	private boolean ignoreGrantPermsFakeValue;
+	private boolean cycleSpellsOnOffhandAction;
+	private boolean separatePlayerSpellsPerWorld;
+	private boolean showStrCostOnMissingReagents;
+	private boolean cooldownsPersistThroughReload;
+	private boolean allowAnticheatIntegrations;
 
-	int debugLevel;
-	int spellIconSlot;
+	private int debugLevel;
+	private int spellIconSlot;
 	private int globalRadius;
-	int globalCooldown;
-	int broadcastRange;
+	private int globalCooldown;
+	private int broadcastRange;
 
-	long lastReloadTime = 0;
+	private long lastReloadTime = 0;
 
-	ChatColor textColor;
+	private ChatColor textColor;
 
 	// Strings
-	String strCantCast;
-	String strCantBind;
-	String strWrongWorld;
-	String strOnCooldown;
-	String strSpellChange;
-	String strConsoleName;
-	String strUnknownSpell;
-	String strXpAutoLearned;
-	String strMissingReagents;
-	String strSpellChangeEmpty;
+	private String strCantCast;
+	private String strCantBind;
+	private String strWrongWorld;
+	private String strOnCooldown;
+	private String strSpellChange;
+	private String strConsoleName;
+	private String strUnknownSpell;
+	private String strXpAutoLearned;
+	private String strMissingReagents;
+	private String strSpellChangeEmpty;
 
-	String soundFailOnCooldown;
-	String soundFailMissingReagents;
+	private String soundFailOnCooldown;
+	private String soundFailMissingReagents;
 
 	@Override
 	public void onEnable() {
@@ -992,6 +992,10 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.separatePlayerSpellsPerWorld;
 	}
 
+	public static int getBroadcastRange() {
+		return plugin.broadcastRange;
+	}
+
 	public static int getSpellIconSlot() {
 		return plugin.spellIconSlot;
 	}
@@ -1004,16 +1008,132 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.globalCooldown;
 	}
 
-	public static String getStrSpellUsage() {
+	public static void setDebug(boolean debug) {
+		plugin.debug = debug;
+	}
+
+	public static boolean hasProfilingEnabled() {
+		return plugin.enableProfiling;
+	}
+
+	public static boolean hasAnticheatIntegrations() {
+		return plugin.allowAnticheatIntegrations;
+	}
+
+	public static boolean hasCastPermsIgnored() {
+		return plugin.ignoreCastPerms;
+	}
+
+	public static boolean grantOpsAllSpells() {
+		return plugin.opsHaveAllSpells;
+	}
+
+	public static boolean ignoreGrantPerms() {
+		return plugin.ignoreGrantPerms;
+	}
+
+	public static boolean canCastWithLeftClick() {
+		return plugin.castWithLeftClick;
+	}
+
+	public static boolean canCastWithRightClick() {
+		return plugin.castWithRightClick;
+	}
+
+	public static boolean profilingEnabled() {
+		return plugin.enableProfiling;
+	}
+
+	public static boolean errorLoggingEnabled() {
+		return plugin.enableErrorLogging;
+	}
+
+	public static boolean canCycleToNoSpell() {
+		return plugin.allowCycleToNoSpell;
+	}
+
+	public static boolean checkScoreboardTeams() {
+		return plugin.checkScoreboardTeams;
+	}
+
+	public static boolean tempGrantPermsEnabled() {
+		return plugin.enableTempGrantPerms;
+	}
+
+	public static boolean checkWorldPvpFlag() {
+		return plugin.checkWorldPvpFlag;
+	}
+
+	public static boolean ignoreGrantPermsFakeValue() {
+		return plugin.ignoreGrantPermsFakeValue;
+	}
+
+	public static boolean ignoreDefaultBindings() {
+		return plugin.ignoreDefaultBindings;
+	}
+
+	public static boolean useExpBarAsCastTimeBar() {
+		return plugin.useExpBarAsCastTimeBar;
+	}
+
+	public static boolean showMessageOnCycle() {
+		return plugin.alwaysShowMessageOnCycle;
+	}
+
+	public static boolean cycleToCastableSpells() {
+		return plugin.onlyCycleToCastableSpells;
+	}
+
+	public static boolean cooldownsPersistThroughReload() {
+		return plugin.cooldownsPersistThroughReload;
+	}
+
+	public static String getCantCastMessage() {
+		return plugin.strCantCast;
+	}
+
+	public static String getCantBindMessage() {
+		return plugin.strCantBind;
+	}
+
+	public static String getWrongWorldMessage() {
+		return plugin.strWrongWorld;
+	}
+
+	public static String getOnCooldownMessage() {
+		return plugin.strOnCooldown;
+	}
+
+	public static String getSpellChangeMessage() {
 		return plugin.strSpellChange;
 	}
 
-	public static String getStrUnknownSpell() {
+	public static String getConsoleName() {
+		return plugin.strConsoleName;
+	}
+
+	public static String getUnknownSpellMessage() {
 		return plugin.strUnknownSpell;
 	}
 
-	public static void setDebug(boolean debug) {
-		plugin.debug = debug;
+	public static String getXpAutoLearnedMessage() {
+		return plugin.strXpAutoLearned;
+	}
+
+	public static String getMissingReagentsMessage() {
+		return plugin.strMissingReagents;
+	}
+
+	public static String getSpellChangeEmptyMessage() {
+		return plugin.strSpellChangeEmpty;
+	}
+
+	public static String getCooldownSound() {
+		return plugin.soundFailOnCooldown;
+	}
+
+	public static String getMissingReagentsSound() {
+		return plugin.soundFailMissingReagents;
 	}
 
 	/**
@@ -1408,10 +1528,6 @@ public class MagicSpells extends JavaPlugin {
 	 */
 	public static void log(Level level, String message) {
 		plugin.getLogger().log(level, message);
-	}
-
-	public static boolean profilingEnabled() {
-		return plugin.enableProfiling;
 	}
 
 	public static void addProfile(String key, long time) {

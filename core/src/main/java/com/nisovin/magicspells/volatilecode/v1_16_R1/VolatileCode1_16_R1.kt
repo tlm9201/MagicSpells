@@ -10,7 +10,6 @@ import org.bukkit.entity.*
 import org.bukkit.inventory.*
 import org.bukkit.util.Vector
 import org.bukkit.NamespacedKey
-import org.bukkit.entity.Entity
 import org.bukkit.OfflinePlayer
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
