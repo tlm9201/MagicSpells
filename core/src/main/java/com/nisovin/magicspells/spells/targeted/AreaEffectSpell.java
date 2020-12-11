@@ -149,6 +149,11 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		List<LivingEntity> entities = new ArrayList<>(location.getWorld().getNearbyLivingEntities(location, hRadius, vRadius, hRadius));
 
 		if (useProximity) {
+			// check world before distance
+			for (LivingEntity entity : new ArrayList<>(entities)) {
+				if (entity.getWorld().equals(finalLoc.getWorld())) continue;
+				entities.remove(entity);
+			}
 			Comparator<LivingEntity> comparator = Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(finalLoc));
 			if (reverseProximity) comparator = comparator.reversed();
 			entities.sort(comparator);
