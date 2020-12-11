@@ -187,7 +187,7 @@ public class MagicSpells extends JavaPlugin {
 	public void onEnable() {
 		load();
 
-		Metrics metrics = new Metrics(this);
+		new Metrics(this);
 	}
 
 	public void load() {
