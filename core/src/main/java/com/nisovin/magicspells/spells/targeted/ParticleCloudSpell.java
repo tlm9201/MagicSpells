@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
+import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -29,6 +30,8 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class ParticleCloudSpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntitySpell {
+
+	private Vector relativeOffset;
 
 	private String customName;
 
@@ -69,6 +72,8 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 	public ParticleCloudSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
+
+		relativeOffset = getConfigVector("relative-offset", "0,0.5,0");
 
 		customName = getConfigString("custom-name", null);
 		if (customName != null) customName = Util.colorize(customName);
@@ -141,11 +146,14 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	private static PotionEffect getPotionEffectFromString(String s) {
 		String[] splits = s.split(" ");
 		PotionEffectType type = Util.getPotionEffectType(splits[0]);
+
 		int durationTicks = Integer.parseInt(splits[1]);
 		int amplifier = Integer.parseInt(splits[2]);
+
 		boolean ambient = Boolean.parseBoolean(splits[3]);
 		boolean particles = Boolean.parseBoolean(splits[4]);
 		boolean icon = Boolean.parseBoolean(splits[5]);
+
 		return new PotionEffect(type, durationTicks, amplifier, ambient, particles, icon);
 	}
 
@@ -153,16 +161,20 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location locToSpawn = null;
+
 			if (canTargetEntities) {
 				TargetInfo<LivingEntity> targetEntityInfo = getTargetedEntity(livingEntity, power);
 				if (targetEntityInfo != null && targetEntityInfo.getTarget() != null) locToSpawn = targetEntityInfo.getTarget().getLocation();
 			}
+
 			if (canTargetLocation && locToSpawn == null) {
 				Block targetBlock = getTargetedBlock(livingEntity, power);
 				if (targetBlock != null) locToSpawn = targetBlock.getLocation().add(0.5, 1, 0.5);
 			}
 
 			if (locToSpawn == null) return noTarget(livingEntity);
+
+			locToSpawn.setDirection(livingEntity.getLocation().getDirection());
 
 			AreaEffectCloud cloud = spawnCloud(locToSpawn);
 			cloud.setSource(livingEntity);
@@ -173,14 +185,14 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		if (!canTargetLocation) return false;
-		AreaEffectCloud cloud = spawnCloud(target.getBlock().getLocation().add(0.5, 1, 0.5));
+		AreaEffectCloud cloud = spawnCloud(target);
 		cloud.setSource(caster);
 		return true;
 	}
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(null, target.getBlock().getLocation().add(0.5, 1, 0.5), power);
+		return castAtLocation(null, target, power);
 	}
 
 	@Override
@@ -197,7 +209,16 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	}
 
 	private AreaEffectCloud spawnCloud(Location loc) {
-		AreaEffectCloud cloud = loc.getWorld().spawn(loc, AreaEffectCloud.class);
+		Location location = loc.clone();
+		Vector startDir = loc.getDirection().normalize();
+
+		//apply relative offset
+		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
+		location.add(horizOffset.multiply(relativeOffset.getZ()));
+		location.add(location.getDirection().clone().multiply(relativeOffset.getX()));
+		location.setY(location.getY() + relativeOffset.getY());
+
+		AreaEffectCloud cloud = location.getWorld().spawn(location, AreaEffectCloud.class);
 		if (block) cloud.setParticle(particle, blockData);
 		else if (item) cloud.setParticle(particle, itemStack);
 		else if (dust) cloud.setParticle(particle, dustOptions);
@@ -213,7 +234,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 		cloud.setRadiusPerTick(radiusPerTick);
 		cloud.setReapplicationDelay(reapplicationDelay);
 
-		for (PotionEffect eff: this.potionEffects) {
+		for (PotionEffect eff : potionEffects) {
 			cloud.addCustomEffect(eff, true);
 		}
 

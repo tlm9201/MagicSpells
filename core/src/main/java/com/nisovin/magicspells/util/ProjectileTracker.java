@@ -195,9 +195,9 @@ public class ProjectileTracker implements Runnable {
 		if (projectileHorizOffset != 0) Util.rotateVector(currentVelocity, projectileHorizOffset);
 		if (projectileVertOffset != 0) currentVelocity.add(new Vector(0, projectileVertOffset, 0)).normalize();
 		if (projectileVertSpread > 0 || projectileHorizSpread > 0) {
-			float rx = -1 + rand.nextFloat() * (1 + 1);
-			float ry = -1 + rand.nextFloat() * (1 + 1);
-			float rz = -1 + rand.nextFloat() * (1 + 1);
+			float rx = -1 + rand.nextFloat() * 2;
+			float ry = -1 + rand.nextFloat() * 2;
+			float rz = -1 + rand.nextFloat() * 2;
 			currentVelocity.add(new Vector(rx * projectileHorizSpread, ry * projectileVertSpread, rz * projectileHorizSpread));
 		}
 		if (hugSurface) {

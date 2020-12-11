@@ -18,7 +18,7 @@ public class JumpListener extends PassiveListener {
 
 	@OverridePriority
 	@EventHandler
-	public void onJoin(PlayerStatisticIncrementEvent event) {
+	public void onJump(PlayerStatisticIncrementEvent event) {
 		Player player = event.getPlayer();
 		if (event.getStatistic() != Statistic.JUMP) return;
 		if (!hasSpell(player)) return;

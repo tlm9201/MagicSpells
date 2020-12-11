@@ -14,6 +14,8 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class EntityData {
 
+	private Vector relativeOffset;
+
 	private EntityType entityType;
 
 	private Material material;
@@ -61,6 +63,8 @@ public class EntityData {
 
 	public EntityData(ConfigurationSection section) {
 		if (section == null) throw new NullPointerException("section");
+
+		relativeOffset = Util.getVector(section.getString("relative-offset", "0,0,0"));
 
 		size = section.getInt("size", 0);
 
@@ -613,8 +617,16 @@ public class EntityData {
 
 	public Entity spawn(Location location) {
 		if (location == null) throw new NullPointerException("location");
+
+		Location startLoc = location.clone();
+		Vector dir = startLoc.getDirection().normalize();
+
+		Vector horizOffset = new Vector(-dir.getZ(), 0, dir.getX()).normalize();
+		startLoc.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
+		startLoc.add(startLoc.getDirection().clone().multiply(relativeOffset.getX()));
+		startLoc.setY(startLoc.getY() + relativeOffset.getY());
 		
-		Entity entity = location.getWorld().spawnEntity(location, entityType);
+		Entity entity = startLoc.getWorld().spawnEntity(startLoc, entityType);
 
 		if (entity instanceof Ageable) {
 			if (isBaby()) ((Ageable) entity).setBaby();
