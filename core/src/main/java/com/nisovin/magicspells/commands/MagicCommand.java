@@ -575,7 +575,7 @@ public class MagicCommand extends BaseCommand {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_UTIL_SAVE_SKIN)) return;
 			if (player == null) player = getPlayerFromIssuer(issuer);
 			if (player == null) return;
-			String data = MagicSpells.getVolatileCodeHandler().getSkinData(player);
+			String data = Util.getSkinData(player);
 
 			File folder = new File(MagicSpells.getInstance().getDataFolder(), "skins");
 			if (!folder.exists()) folder.mkdir();

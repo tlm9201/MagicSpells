@@ -107,7 +107,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 			health = health - localDamage;
 			if (health < 0) health = 0;
 			if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
-			if (health == 0 && caster instanceof Player) MagicSpells.getVolatileCodeHandler().setKiller(target, (Player) caster);
+			if (health == 0 && caster instanceof Player) target.setKiller((Player) caster);
 
 			target.setHealth(health);
 			playSpellEffects(caster, target);

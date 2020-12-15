@@ -8,6 +8,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.Predicate;
@@ -22,6 +23,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
@@ -29,6 +31,9 @@ import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 
 import org.apache.commons.math3.util.FastMath;
 
@@ -125,7 +130,7 @@ public class Util {
 	// Just checks to see if the passed string could be lore data
 	public static boolean isLoreData(String line) {
 		if (line == null) return false;
-		line = Util.decolorize(line);
+		line = decolorize(line);
 		return line.startsWith("MS$:");
 	}
 
@@ -158,7 +163,7 @@ public class Util {
 		if (lore.isEmpty()) return null;
 
 		for (int i = 0; i < lore.size(); i++) {
-			String s = Util.decolorize(lore.get(lore.size() - 1));
+			String s = decolorize(lore.get(lore.size() - 1));
 			if (s.startsWith("MS$:")) return s.substring(4);
 		}
 
@@ -175,7 +180,7 @@ public class Util {
 
 		boolean removed = false;
 		for (int i = 0; i < lore.size(); i++) {
-			String s = Util.decolorize(lore.get(i));
+			String s = decolorize(lore.get(i));
 			if (!s.startsWith("MS$:")) continue;
 			lore.remove(i);
 			removed = true;
@@ -551,7 +556,7 @@ public class Util {
 
 	public static <C extends Collection<Material>> C getMaterialList(List<String> strings, Supplier<C> supplier) {
 		C ret = supplier.get();
-		strings.forEach(string -> ret.add(Util.getMaterial(string)));
+		strings.forEach(string -> ret.add(getMaterial(string)));
 		return ret;
 	}
 
@@ -661,6 +666,40 @@ public class Util {
 	public static void setInventoryTitle(Player player, String title) {
 		title = doVarReplacementAndColorize(player, title);
 		MagicSpells.getVolatileCodeHandler().setInventoryTitle(player, title);
+	}
+
+	public static PlayerProfile setTexture(PlayerProfile profile, String texture, String signature) {
+		if (signature == null || signature.isEmpty()) profile.setProperty(new ProfileProperty("textures", texture));
+		else profile.setProperty(new ProfileProperty("textures", texture, signature));
+		return profile;
+	}
+
+	public static String getSkinData(Player player) {
+		List<ProfileProperty> skins = player.getPlayerProfile().getProperties().stream().filter(prop -> prop.getName().equals("textures")).collect(Collectors.toList());
+		ProfileProperty latestSkin = skins.get(0);
+		return "Skin: " + latestSkin.getValue() + "\nSignature: " + latestSkin.getSignature();
+	}
+
+	public static void setTexture(SkullMeta meta, String texture, String signature) {
+		PlayerProfile profile = meta.getPlayerProfile();
+		setTexture(profile, texture, signature);
+		meta.setPlayerProfile(profile);
+	}
+
+	public static void setSkin(Player player, String skin, String signature) {
+		setTexture(player.getPlayerProfile(), skin, signature);
+	}
+
+	public static void setTexture(SkullMeta meta, String texture, String signature, String uuid, OfflinePlayer offlinePlayer) {
+		try {
+			PlayerProfile profile;
+			if (uuid != null) profile = Bukkit.createProfile(UUID.fromString(uuid), offlinePlayer.getName());
+			else profile = Bukkit.createProfile(null, offlinePlayer.getName());
+			setTexture(profile, texture, signature);
+			meta.setPlayerProfile(profile);
+		} catch (SecurityException | IllegalArgumentException e) {
+			MagicSpells.handleException(e);
+		}
 	}
 
 }
