@@ -29,7 +29,7 @@ public class MagicSpellListener implements Listener {
 
 	@EventHandler
 	public void onSpellTarget(SpellTargetEvent event) {
-		// Check if target has noTarget permission / spectator gamemode / is in noMagicZone / is a invisible marker armorstand
+		// Check if target has noTarget permission / spectator gamemode / is in noMagicZone / is an invisible marker armorstand
 		LivingEntity target = event.getTarget();
 		Spell spell = event.getSpell();
 		if (target == null) return;
