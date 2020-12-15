@@ -100,13 +100,13 @@ public class BossBarEffect extends SpellEffect {
 			if (variable == null) bar.set(newTitle, progress, barStyle, barColor);
 			else {
 				double diff = variable.getValue(player) / maxValue;
-				if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
+				if (diff >= 0 && diff <= 1) bar.set(newTitle, diff, barStyle, barColor);
 			}
 		} else {
 			// Doing max variable replacement
 			if (variable == null) {
 				double diff = progress / maxVariable.getValue(player);
-				if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
+				if (diff >= 0 && diff <= 1) bar.set(newTitle, diff, barStyle, barColor);
 			} else {
 				// Doing double replacement!
 				double diff = variable.getValue(player) / maxVariable.getValue(player);
@@ -114,7 +114,7 @@ public class BossBarEffect extends SpellEffect {
 					bar.set(newTitle, 1, barStyle, barColor);
 				}
 				if (maxVariable.getValue(player) > variable.getValue(player)) {
-					if (diff > 0 && diff < 1) bar.set(newTitle, diff, barStyle, barColor);
+					if (diff >= 0 && diff <= 1) bar.set(newTitle, diff, barStyle, barColor);
 				}
 			}
 		}
