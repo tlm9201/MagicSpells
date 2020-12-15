@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.volatilecode.v1_16_R2
 
-import java.util.UUID
 import java.lang.reflect.Field
 
 import org.bukkit.Bukkit
@@ -10,9 +9,7 @@ import org.bukkit.entity.*
 import org.bukkit.inventory.*
 import org.bukkit.util.Vector
 import org.bukkit.NamespacedKey
-import org.bukkit.OfflinePlayer
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.craftbukkit.v1_16_R2.entity.*
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.craftbukkit.v1_16_R2.CraftWorld
@@ -30,8 +27,6 @@ import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 
 import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.ChatMessageType
-import net.md_5.bungee.api.chat.TextComponent
 
 import net.minecraft.server.v1_16_R2.*
 
@@ -76,12 +71,6 @@ class VolatileCode1_16_R2: VolatileCodeHandle {
                 }
             }, duration);
         }*/
-    }
-
-    override fun creaturePathToLoc(creature: Creature, loc: Location, speed: Float) {
-        val entity = (creature as CraftCreature).handle
-        val pathEntity = entity.navigation.a(loc.x, loc.y, loc.z, 1)
-        entity.navigation.a(pathEntity, speed.toDouble())
     }
 
     override fun sendFakeSlotUpdate(player: Player, slot: Int, item: ItemStack?) {
@@ -145,10 +134,6 @@ class VolatileCode1_16_R2: VolatileCodeHandle {
         }, 250)
     }
 
-    override fun setKiller(entity: LivingEntity, killer: Player) {
-        (entity as CraftLivingEntity).handle.killer = (killer as CraftPlayer).handle
-    }
-
     override fun addAILookAtPlayer(entity: LivingEntity, range: Int) {
         try {
             val ev = (entity as CraftLivingEntity).handle as EntityInsentient
@@ -167,34 +152,6 @@ class VolatileCode1_16_R2: VolatileCodeHandle {
     override fun setClientVelocity(player: Player, velocity: Vector) {
         val packet = PacketPlayOutEntityVelocity(player.entityId, Vec3D(velocity.x, velocity.y, velocity.z))
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
-    }
-
-    override fun getSkinData(player: Player): String {
-        val latestSkin = (player as CraftPlayer).handle.profile.properties.get("textures").first()
-        return "Skin: " + latestSkin.value + "\nSignature: " + latestSkin.signature
-    }
-
-    override fun setTexture(meta: SkullMeta, texture: String, signature: String) {
-        // Don't spam the user with errors, just stop
-        if (SafetyCheckUtils.areAnyNull(this.craftMetaSkullProfileField)) return
-
-        try {
-            val profile = this.craftMetaSkullProfileField!!.get(meta) as GameProfile
-            setTexture(profile, texture, signature)
-            this.craftMetaSkullProfileField!!.set(meta, profile)
-        } catch (e: SecurityException) {
-            MagicSpells.handleException(e)
-        } catch (e: IllegalArgumentException) {
-            MagicSpells.handleException(e)
-        } catch (e: IllegalAccessException) {
-            MagicSpells.handleException(e)
-        }
-
-    }
-
-    override fun setSkin(player: Player, skin: String, signature: String) {
-        val craftPlayer = player as CraftPlayer
-        setTexture(craftPlayer.profile, skin, signature)
     }
 
     override fun colorize(message: String?): String? {
@@ -219,24 +176,6 @@ class VolatileCode1_16_R2: VolatileCodeHandle {
         return profile
     }
 
-    override fun setTexture(meta: SkullMeta, texture: String, signature: String, uuid: String?, offlinePlayer: OfflinePlayer) {
-        // Don't spam the user with errors, just stop
-        if (SafetyCheckUtils.areAnyNull(this.craftMetaSkullProfileField)) return
-
-        try {
-            val profile = GameProfile(if (uuid != null) UUID.fromString(uuid) else null, offlinePlayer.name)
-            setTexture(profile, texture, signature)
-            this.craftMetaSkullProfileField!!.set(meta, profile)
-        } catch (e: SecurityException) {
-            MagicSpells.handleException(e)
-        } catch (e: IllegalArgumentException) {
-            MagicSpells.handleException(e)
-        } catch (e: IllegalAccessException) {
-            MagicSpells.handleException(e)
-        }
-
-    }
-
     override fun setNBTString(item: ItemStack, key: String, value: String): ItemStack {
         val meta = if (item.hasItemMeta()) item.itemMeta else Bukkit.getItemFactory().getItemMeta(item.type)
         meta?.persistentDataContainer?.set(NamespacedKey(MagicSpells.plugin, key), PersistentDataType.STRING, value)
@@ -258,10 +197,6 @@ class VolatileCode1_16_R2: VolatileCodeHandle {
 
     override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe {
         return SmithingRecipe(namespaceKey, result, RecipeChoice.MaterialChoice(base), RecipeChoice.MaterialChoice(addition))
-    }
-
-    override fun sendActionBarMessage(player: Player, message: String?) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent(message))
     }
 
 }

@@ -521,7 +521,7 @@ public class MinionSpell extends BuffSpell {
 
 				Location loc = pl.getLocation().clone();
 				loc.add(loc.getDirection().setY(0).normalize().multiply(followRange));
-				MagicSpells.getVolatileCodeHandler().creaturePathToLoc((Creature) minions.get(pl.getUniqueId()), loc, followSpeed);
+				((Creature) minions.get(pl.getUniqueId())).getPathfinder().moveTo(loc, followSpeed);
 			}
 		}
 	}
@@ -577,7 +577,7 @@ public class MinionSpell extends BuffSpell {
 			// The distance between minion and his owner is greater that the defined max distance or the minion has no targets, he will follow his owner
 			Location loc = pl.getLocation().clone();
 			loc.add(loc.getDirection().setY(0).normalize().multiply(followRange));
-			MagicSpells.getVolatileCodeHandler().creaturePathToLoc((Creature) minions.get(pl.getUniqueId()), loc, followSpeed);
+			((Creature) minions.get(pl.getUniqueId())).getPathfinder().moveTo(loc, followSpeed);
 		}
 	}
 

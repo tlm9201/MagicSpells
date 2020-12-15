@@ -104,7 +104,7 @@ public class SeeHealthSpell extends BuffSpell {
 			for (int i = 0; i < barSize - remain; i++) sb.append(symbol);
 		}
 
-		MagicSpells.getVolatileCodeHandler().sendActionBarMessage(player, sb.toString());
+		player.sendActionBar(sb.toString());
 	}
 	
 	private class Updater implements Runnable {

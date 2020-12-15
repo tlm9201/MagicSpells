@@ -272,7 +272,7 @@ public class ManaSystem extends ManaHandler {
 	}
 
 	private void showManaOnActionBar(Player player, ManaBar bar) {
-		MagicSpells.getVolatileCodeHandler().sendActionBarMessage(player, getManaMessage(bar));
+		player.sendActionBar(getManaMessage(bar));
 	}
 	
 	private void showManaOnExperienceBar(Player player, ManaBar bar) {

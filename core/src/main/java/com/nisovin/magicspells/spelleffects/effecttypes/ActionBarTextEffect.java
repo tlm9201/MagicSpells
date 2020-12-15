@@ -28,8 +28,7 @@ public class ActionBarTextEffect extends SpellEffect {
 	}
 	
 	private void send(Player player) {
-		String msg = Util.doVarReplacementAndColorize(player, message);
-		MagicSpells.getVolatileCodeHandler().sendActionBarMessage(player, msg);
+		player.sendActionBar(Util.doVarReplacementAndColorize(player, message));
 	}
 	
 }
