@@ -1367,6 +1367,7 @@ public class MagicSpells extends JavaPlugin {
 			DebugHandler.debugNoClassDefFoundError(e);
 			return;
 		}
+
 		for (final Method method : methods) {
 			final EventHandler eh = method.getAnnotation(EventHandler.class);
 			if (eh == null) continue;
@@ -1379,6 +1380,7 @@ public class MagicSpells extends JavaPlugin {
 				plugin.getLogger().severe("Wrong method arguments used for event type registered");
 				continue;
 			}
+
 			final Class<? extends Event> eventClass = checkClass.asSubclass(Event.class);
 			method.setAccessible(true);
 			EventExecutor executor = new EventExecutor() {
@@ -1438,33 +1440,34 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	public static void handleException(Exception ex) {
-		if (plugin.enableErrorLogging) {
-			plugin.getLogger().severe("AN EXCEPTION HAS OCCURED:");
-			PrintWriter writer = null;
-			try {
-				File folder = new File(plugin.getDataFolder(), "errors");
-				if (!folder.exists()) folder.mkdir();
-				writer = new PrintWriter(new File(folder, System.currentTimeMillis() + ".txt"));
-				Throwable t = ex;
-				while (t != null) {
-					plugin.getLogger().severe("    " + t.getMessage() + " (" + t.getClass().getName() + ')');
-					t.printStackTrace(writer);
-					writer.println();
-					t = t.getCause();
-				}
-				plugin.getLogger().severe("This error has been saved in the errors folder");
-				writer.println("Server version: " + Bukkit.getServer().getVersion());
-				writer.println("MagicSpells version: " + plugin.getDescription().getVersion());
-				writer.println("Error log date: " + new Date());
-			} catch (Exception x) {
-				plugin.getLogger().severe("ERROR HANDLING EXCEPTION");
-				x.printStackTrace();
-				ex.printStackTrace();
-			} finally {
-				if (writer != null) writer.close();
-			}
-		} else {
+		if (!plugin.enableErrorLogging) {
 			ex.printStackTrace();
+			return;
+		}
+
+		plugin.getLogger().severe("AN EXCEPTION HAS OCCURED:");
+		PrintWriter writer = null;
+		try {
+			File folder = new File(plugin.getDataFolder(), "errors");
+			if (!folder.exists()) folder.mkdir();
+			writer = new PrintWriter(new File(folder, System.currentTimeMillis() + ".txt"));
+			Throwable t = ex;
+			while (t != null) {
+				plugin.getLogger().severe("    " + t.getMessage() + " (" + t.getClass().getName() + ')');
+				t.printStackTrace(writer);
+				writer.println();
+				t = t.getCause();
+			}
+			plugin.getLogger().severe("This error has been saved in the errors folder");
+			writer.println("Server version: " + Bukkit.getServer().getVersion());
+			writer.println("MagicSpells version: " + plugin.getDescription().getVersion());
+			writer.println("Error log date: " + new Date());
+		} catch (Exception x) {
+			plugin.getLogger().severe("ERROR HANDLING EXCEPTION");
+			x.printStackTrace();
+			ex.printStackTrace();
+		} finally {
+			if (writer != null) writer.close();
 		}
 	}
 
