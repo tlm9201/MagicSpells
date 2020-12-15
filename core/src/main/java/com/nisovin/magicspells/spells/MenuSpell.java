@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells;
 
 import java.util.*;
 
+import co.aikar.commands.ACFUtil;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -289,9 +291,10 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			item = MagicSpells.getVolatileCodeHandler().setNBTString(item, "menuOption", option.menuOptionName);
 			item = translateItem(opener, args, item);
 
+			int quantity;
 			Variable variable = MagicSpells.getVariableManager().getVariable(option.quantity);
-			int quantity = 1;
-			if (variable != null) quantity = (int) Math.round(variable.getValue(opener));
+			if (variable == null) quantity = ACFUtil.parseInt(option.quantity, 1);
+			else quantity = (int) Math.round(variable.getValue(opener));
 			item.setAmount(quantity);
 
 			// Set item for all defined slots.
