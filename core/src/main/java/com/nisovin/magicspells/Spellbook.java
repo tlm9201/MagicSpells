@@ -68,11 +68,11 @@ public class Spellbook {
 
 	};
 
-	private Map<CastItem, List<Spell>> itemSpells = new HashMap<>();
-	private Map<CastItem, Integer> activeSpells = new HashMap<>();
-	private Map<Spell, Set<CastItem>> customBindings = new HashMap<>();
-	private Map<Plugin, Set<Spell>> temporarySpells = new HashMap<>();
-	private Set<String> cantLearn = new HashSet<>();
+	private final Map<CastItem, List<Spell>> itemSpells = new HashMap<>();
+	private final Map<CastItem, Integer> activeSpells = new HashMap<>();
+	private final Map<Spell, Set<CastItem>> customBindings = new HashMap<>();
+	private final Map<Plugin, Set<Spell>> temporarySpells = new HashMap<>();
+	private final Set<String> cantLearn = new HashSet<>();
 
 	// DEBUG INFO: level 1, loaded player spell list (player)
 	public Spellbook(Player player, MagicSpells plugin) {
