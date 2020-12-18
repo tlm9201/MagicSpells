@@ -6,6 +6,9 @@ import java.util.Random;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.destroystokyo.paper.entity.ai.MobGoals;
+import com.nisovin.magicspells.util.ai.LookAtEntityGoal;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.GameMode;
@@ -352,8 +355,16 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(entity, attributes);
 
 		if (removeAI) {
-			entity.setAI(false);
-			if (addLookAtPlayerAI) MagicSpells.getVolatileCodeHandler().addAILookAtPlayer(entity, 10);
+			if (addLookAtPlayerAI) {
+				if (entity instanceof Mob) {
+					Mob mob = (Mob) entity;
+					MobGoals mobGoals = Bukkit.getMobGoals();
+					mobGoals.removeAllGoals(mob);
+					mobGoals.addGoal(mob, 1, new LookAtEntityGoal(mob, HumanEntity.class, 10.0F, 1.0F));
+				}
+			} else {
+				entity.setAI(false);
+			}
 		}
 		if (noAI) entity.setAI(false);
 

@@ -134,21 +134,6 @@ class VolatileCode1_16_R3: VolatileCodeHandle {
         }, 250)
     }
 
-    override fun addAILookAtPlayer(entity: LivingEntity, range: Int) {
-        try {
-            val ev = (entity as CraftLivingEntity).handle as EntityInsentient
-
-            val goalsField = EntityInsentient::class.java.getDeclaredField("goalSelector")
-            goalsField.isAccessible = true
-            val goals = goalsField.get(ev) as PathfinderGoalSelector
-
-            goals.a(1, PathfinderGoalLookAtPlayer(ev, EntityHuman::class.java, range.toFloat(), 1.0f))
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-    }
-
     override fun setClientVelocity(player: Player, velocity: Vector) {
         val packet = PacketPlayOutEntityVelocity(player.entityId, Vec3D(velocity.x, velocity.y, velocity.z))
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
