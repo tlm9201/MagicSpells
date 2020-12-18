@@ -25,6 +25,7 @@ public abstract class SpellEffect {
 	private final Random random = ThreadLocalRandom.current();
 
 	private int delay;
+
 	private double chance;
 	private double zOffset;
 	private double heightOffset;
@@ -59,6 +60,7 @@ public abstract class SpellEffect {
 
 	private List<String> modifiersList;
 	private List<String> locationModifiersList;
+
 	private ModifierSet modifiers;
 	private ModifierSet locationModifiers;
 

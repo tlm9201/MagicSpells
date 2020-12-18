@@ -145,11 +145,9 @@ public class Subspell {
 	}
 	
 	private boolean castAtEntityReal(LivingEntity livingEntity, LivingEntity target, float power) {
-		boolean ret = false;
-
 		if (!isTargetedEntity) {
 			if (isTargetedLocation) castAtLocationReal(livingEntity, target.getLocation(), power);
-			return ret;
+			return false;
 		}
 
 		if (mode == CastMode.HARD && livingEntity != null) {
@@ -168,6 +166,8 @@ public class Subspell {
 			}
 			return success;
 		}
+
+		boolean ret = false;
 
 		if (mode == CastMode.PARTIAL) {
 			SpellCastEvent event = new SpellCastEvent(spell, livingEntity, SpellCastState.NORMAL, power * subPower, null, 0, null, 0);
@@ -194,9 +194,7 @@ public class Subspell {
 	}
 	
 	private boolean castAtLocationReal(LivingEntity livingEntity, Location target, float power) {
-		boolean ret = false;
-
-		if (!isTargetedLocation) return ret;
+		if (!isTargetedLocation) return false;
 
 		if (mode == CastMode.HARD && livingEntity != null) {
 			SpellCastResult result = spell.cast(livingEntity, power, null);
@@ -214,6 +212,8 @@ public class Subspell {
 			}
 			return success;
 		}
+
+		boolean ret = false;
 
 		if (mode == CastMode.PARTIAL) {
 			SpellCastEvent event = new SpellCastEvent(spell, livingEntity, SpellCastState.NORMAL, power * subPower, null, 0, null, 0);
@@ -240,9 +240,7 @@ public class Subspell {
 	}
 	
 	private boolean castAtEntityFromLocationReal(LivingEntity livingEntity, Location from, LivingEntity target, float power) {
-		boolean ret = false;
-
-		if (!isTargetedEntityFromLocation) return ret;
+		if (!isTargetedEntityFromLocation) return false;
 
 		if (mode == CastMode.HARD && livingEntity != null) {
 			SpellCastResult result = spell.cast(livingEntity, power, MagicSpells.NULL_ARGS);
@@ -262,6 +260,8 @@ public class Subspell {
 			}
 			return success;
 		}
+
+		boolean ret = false;
 
 		if (mode == CastMode.PARTIAL) {
 			SpellCastEvent event = new SpellCastEvent(spell, livingEntity, SpellCastState.NORMAL, power * subPower, null, 0, null, 0);
