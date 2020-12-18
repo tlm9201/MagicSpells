@@ -34,6 +34,7 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
     private var entityFallingBlockFallHurtMaxField: Field? = null
     private var craftMetaSkullClass: Class<*>? = null
     private var craftMetaSkullProfileField: Field? = null
+    private var entityLivingPotionEffectColor: DataWatcherObject<Int>? = null
 
     init {
         try {
@@ -46,6 +47,10 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
             this.craftMetaSkullClass = Class.forName("org.bukkit.craftbukkit.v1_15_R1.inventory.CraftMetaSkull")
             this.craftMetaSkullProfileField = this.craftMetaSkullClass!!.getDeclaredField("profile")
             this.craftMetaSkullProfileField!!.isAccessible = true
+
+            val entityLivingPotionEffectColorField = EntityLiving::class.java.getDeclaredField("e")
+            entityLivingPotionEffectColorField.isAccessible = true;
+            this.entityLivingPotionEffectColor = entityLivingPotionEffectColorField.get(null) as DataWatcherObject<Int>
         } catch (e: Exception) {
             MagicSpells.error("THIS OCCURRED WHEN CREATING THE VOLATILE CODE HANDLE FOR 1.15, THE FOLLOWING ERROR IS MOST LIKELY USEFUL IF YOU'RE RUNNING THE LATEST VERSION OF MAGICSPELLS.")
             e.printStackTrace()
@@ -53,20 +58,18 @@ class VolatileCode1_15_R1: VolatileCodeHandle {
     }
 
     override fun addPotionGraphicalEffect(entity: LivingEntity, color: Int, duration: Int) {
-        /*final EntityLiving el = ((CraftLivingEntity)entity).getHandle();
-        final DataWatcher dw = el.getDataWatcher();
-        dw.watch(7, Integer.valueOf(color));
+        val livingEntity = (entity as CraftLivingEntity).handle;
+        val dataWatcher = livingEntity.dataWatcher;
+        dataWatcher.set(entityLivingPotionEffectColor, color)
         if (duration > 0) {
-            MagicSpells.scheduleDelayedTask(new Runnable() {
-                public void run() {
-                    int c = 0;
-                    if (!el.effects.isEmpty()) {
-                        c = net.minecraft.server.v1_12_R1.PotionBrewer.a(el.effects.values());
-                    }
-                    dw.watch(7, Integer.valueOf(c));
+            MagicSpells.scheduleDelayedTask({
+                var c = 0
+                if (livingEntity.effects.isNotEmpty()) {
+                    c = PotionUtil.a(livingEntity.effects.values)
                 }
-            }, duration);
-        }*/
+                dataWatcher.set(entityLivingPotionEffectColor, c)
+            }, duration)
+        }
     }
 
     override fun sendFakeSlotUpdate(player: Player, slot: Int, item: ItemStack?) {
