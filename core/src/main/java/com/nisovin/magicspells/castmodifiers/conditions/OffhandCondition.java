@@ -51,7 +51,7 @@ public class OffhandCondition extends Condition {
 						checkData[i] = true;
 					}
 				} else {
-					ids[i] = Material.matchMaterial(vardata[i], true);
+					ids[i] = Material.matchMaterial(vardata[i]);
 					datas[i] = 0;
 					checkData[i] = false;
 				}
