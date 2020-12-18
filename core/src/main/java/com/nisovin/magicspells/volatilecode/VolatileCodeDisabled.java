@@ -45,12 +45,6 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 		// Need the volatile code for this
 	}
 
-
-	@Override
-	public void addAILookAtPlayer(LivingEntity entity, int range) {
-		// Need the volatile code for this
-	}
-
 	@Override
 	public void setClientVelocity(Player player, Vector velocity) {
 		// Need the volatile code for this

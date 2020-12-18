@@ -22,8 +22,6 @@ public interface VolatileCodeHandle {
 
 	void playDragonDeathEffect(Location location);
 
-	void addAILookAtPlayer(LivingEntity entity, int range);
-
 	void setClientVelocity(Player player, Vector velocity);
 
 	ItemStack setNBTString(ItemStack item, String key, String value);

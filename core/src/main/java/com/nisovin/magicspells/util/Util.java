@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.*;
+import org.bukkit.entity.Entity;
 import org.bukkit.inventory.*;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
@@ -36,6 +37,7 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 
 import org.apache.commons.math3.util.FastMath;
+import org.jetbrains.annotations.Nullable;
 
 public class Util {
 
@@ -702,4 +704,20 @@ public class Util {
 		}
 	}
 
+	@Nullable
+	public static Entity getNearestEntity(Entity entity, double range, @Nullable Predicate<Entity> predicate) {
+		Entity nearestEntity = null;
+		double nearestDistance = range * range;
+		for (Entity nextEntity : entity.getNearbyEntities(range, range, range)) {
+			if (predicate != null && !predicate.test(nextEntity)) {
+				continue;
+			}
+			double distance = entity.getLocation().distanceSquared(nextEntity.getLocation());
+			if (distance < nearestDistance) {
+				nearestDistance = distance;
+				nearestEntity = nextEntity;
+			}
+		}
+		return nearestEntity;
+	}
 }
