@@ -49,7 +49,7 @@ public class HasItemCondition extends Condition {
 					checkData = true;
 				}
 			} else {
-				material = Material.matchMaterial(var, true);
+				material = Material.matchMaterial(var);
 				checkData = false;
 			}
 			return true;
