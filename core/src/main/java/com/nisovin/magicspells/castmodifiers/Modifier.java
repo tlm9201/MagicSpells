@@ -37,15 +37,16 @@ public class Modifier implements IModifier {
 	private boolean negated = false;
 	private boolean initialized = false;
 
-	public Modifier(String string) {
-		process(string);
+	public Modifier() {
+
 	}
 
-	private void process(String string) {
+	public boolean process(String string) {
 		String[] s = RegexUtil.split(MODIFIER_STR_FAILED_PATTERN, string, 0);
+		if (s == null || s.length <= 0) return false;
 		String[] data = s[0].trim().split(" ", 4);
 		//String[] data = Util.splitParams(s1[0].trim(), 4);
-		if (data.length < 2) return;
+		if (data.length < 2) return false;
 
 		// Get condition
 		if (data[0].startsWith("!")) {
@@ -53,14 +54,16 @@ public class Modifier implements IModifier {
 			data[0] = data[0].substring(1);
 		}
 
+		if (MagicSpells.getConditionManager() == null) return false;
+
 		condition = MagicSpells.getConditionManager().getConditionByName(data[0].replace("_", ""));
-		if (condition == null) return;
+		if (condition == null) return false;
 
 		// Get type and vars
 		type = getTypeByName(data[1]);
 		if (type == null && data.length > 2) {
 			boolean init = condition.initialize(data[1]);
-			if (!init) return;
+			if (!init) return false;
 
 			type = getTypeByName(data[2]);
 			if (data.length > 3) modifierVar = data[3];
@@ -69,7 +72,7 @@ public class Modifier implements IModifier {
 		}
 
 		// Check type
-		if (type == null) return;
+		if (type == null) return false;
 
 		// Process modifierVar
 		try {
@@ -77,11 +80,11 @@ public class Modifier implements IModifier {
 			else if (type.usesModifierInt()) modifierVarInt = Integer.parseInt(modifierVar);
 			else if (type.usesCustomData()) {
 				customActionData = type.buildCustomActionData(modifierVar);
-				if (customActionData == null) return;
+				if (customActionData == null) return false;
 			}
 		} catch (NumberFormatException e) {
 			DebugHandler.debugNumberFormat(e);
-			return;
+			return false;
 		}
 
 		// Check for failed string
@@ -91,6 +94,7 @@ public class Modifier implements IModifier {
 		if (condition instanceof IModifier) alertCondition = true;
 
 		initialized = true;
+		return true;
 	}
 
 	public boolean isInitialized() {
