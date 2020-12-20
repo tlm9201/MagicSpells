@@ -61,13 +61,16 @@ public class ModifierSet {
 	public ModifierSet(List<String> data) {
 		modifiers = new ArrayList<>();
 		for (String s : data) {
-			Modifier m = new Modifier(s);
-			if (m.isInitialized()) {
-				modifiers.add(m);
-				MagicSpells.debug(3, "    Modifier added: " + s);
-			} else {
+			Modifier m = new Modifier();
+			m.process(s);
+
+			if (!m.isInitialized()) {
 				MagicSpells.error("Problem with modifier: " + s);
+				continue;
 			}
+
+			modifiers.add(m);
+			MagicSpells.debug(3, "    Modifier added: " + s);
 		}
 	}
 
