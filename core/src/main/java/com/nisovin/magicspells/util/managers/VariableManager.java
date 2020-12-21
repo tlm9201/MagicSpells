@@ -105,6 +105,7 @@ public class VariableManager {
 		addMetaVariableType("fall_distance", new FallDistanceVariable());
 		addMetaVariableType("players_online", new PlayersOnlineVariable());
 		addMetaVariableType("max_health", new MaxHealthVariable());
+		addMetaVariableType("current_health", new CurrentHealthVariable());
 		addMetaVariableType("health_scale", new HealthScaleVariable());
 		addMetaVariableType("compass_target_x", new CompassTargetXVariable());
 		addMetaVariableType("compass_target_y", new CompassTargetYVariable());
