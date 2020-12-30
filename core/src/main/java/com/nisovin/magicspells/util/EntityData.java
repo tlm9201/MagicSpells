@@ -360,6 +360,12 @@ public class EntityData {
 					MagicSpells.error("Invalid llama color: " + color);
 					llamaColor = null;
 				}
+
+				material = Util.getMaterial(mat);
+				if (material == null) {
+					MagicSpells.error("Invalid llama material: " + mat);
+					material = null;
+				}
 				break;
 			case "polar_bear":
 				entityType = EntityType.POLAR_BEAR;
