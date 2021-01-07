@@ -4,11 +4,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 
+import org.bukkit.EntityEffect;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -31,7 +34,10 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 
 	private float damage;
 
-	private boolean preventKnockback;
+	private boolean ignoreArmor;
+	private boolean checkPlugins;
+	private boolean avoidDamageModification;
+	private boolean tryAvoidingAntiCheatPlugins;
 
 	private String spellDamageType;
 	private DamageCause damageType;
@@ -45,7 +51,10 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 
 		damage = getConfigFloat("damage", 2);
 
-		preventKnockback = getConfigBoolean("prevent-knockback", false);
+		ignoreArmor = getConfigBoolean("ignore-armor", false);
+		checkPlugins = getConfigBoolean("check-plugins", true);
+		avoidDamageModification = getConfigBoolean("avoid-damage-modification", true);
+		tryAvoidingAntiCheatPlugins = getConfigBoolean("try-avoiding-anticheat-plugins", false);
 
 		spellDamageType = getConfigString("spell-damage-type", "");
 		String damageTypeName = getConfigString("damage-type", "ENTITY_ATTACK");
@@ -146,18 +155,41 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 				return;
 			}
 
-			double dam = damage * power;
-			SpellApplyDamageEvent event = new SpellApplyDamageEvent(DotSpell.this, caster, target, dam, damageType, spellDamageType);
+			double localDamage = damage * power;
+
+			if (checkPlugins) {
+				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, localDamage);
+				EventUtil.call(event);
+				if (event.isCancelled()) return;
+				if (!avoidDamageModification) localDamage = event.getDamage();
+				target.setLastDamageCause(event);
+			}
+
+			SpellApplyDamageEvent event = new SpellApplyDamageEvent(DotSpell.this, caster, target, localDamage, damageType, spellDamageType);
 			EventUtil.call(event);
-			dam = event.getFinalDamage();
+			localDamage = event.getFinalDamage();
 
-			if (preventKnockback) {
-				MagicSpellsEntityDamageByEntityEvent devent = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, damage);
-				EventUtil.call(devent);
-				if (!devent.isCancelled()) target.damage(devent.getDamage());
-			} else target.damage(dam, caster);
+			if (ignoreArmor) {
+				double maxHealth = Util.getMaxHealth(target);
+				double health = target.getHealth();
 
-			target.setNoDamageTicks(0);
+				if (health > maxHealth) health = maxHealth;
+				health = health - localDamage;
+
+				if (health < 0) {
+					health = 0;
+					if (caster instanceof Player) target.setKiller((Player) caster);
+				}
+
+				if (health > maxHealth) health = maxHealth;
+
+				target.setHealth(health);
+				target.playEffect(EntityEffect.HURT);
+			} else {
+				if (tryAvoidingAntiCheatPlugins) target.damage(localDamage);
+				else target.damage(localDamage, caster);
+			}
+
 			playSpellEffects(EffectPosition.DELAYED, target);
 		}
 
