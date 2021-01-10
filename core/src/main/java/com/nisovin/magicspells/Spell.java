@@ -26,6 +26,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.configuration.ConfigurationSection;
@@ -1982,167 +1983,190 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public class DelayedSpellCast implements Runnable, Listener {
 
-		private LivingEntity livingEntity;
-		private Location prevLoc;
-		private Spell spell;
-		private SpellCastEvent spellCast;
-		private int taskId;
-		private boolean cancelled = false;
-		private double motionToleranceX = 0.2;
-		private double motionToleranceY = 0.2;
-		private double motionToleranceZ = 0.2;
+		private static final double motionTolerance = 0.2;
+
+		private final SpellCastEvent spellCast;
+		private final LivingEntity caster;
+		private final Location from;
+		private final int taskId;
 
 		public DelayedSpellCast(SpellCastEvent spellCast) {
 			this.spellCast = spellCast;
 
-			spell = spellCast.getSpell();
-			livingEntity = spellCast.getCaster();
-			prevLoc = livingEntity.getLocation().clone();
 			taskId = scheduleDelayedTask(this, spellCast.getCastTime());
+			caster = spellCast.getCaster();
+			from = caster.getLocation();
+
 			registerEvents(this);
 		}
 
 		@Override
 		public void run() {
-			if (!cancelled && livingEntity.isValid() && !livingEntity.isDead()) {
-				Location currLoc = livingEntity.getLocation();
-				if (!interruptOnMove || (Math.abs(currLoc.getX() - prevLoc.getX()) < motionToleranceX && Math.abs(currLoc.getY() - prevLoc.getY()) < motionToleranceY && Math.abs(currLoc.getZ() - prevLoc.getZ()) < motionToleranceZ)) {
-					if (!spell.hasReagents(livingEntity, reagents)) spellCast.setSpellCastState(SpellCastState.MISSING_REAGENTS);
-					spell.handleCast(spellCast);
+			if (caster.isValid() && !caster.isDead()) {
+				if (!interruptOnMove || inBounds(caster.getLocation())) {
+					unregisterEvents(this);
+
+					spellCast.setSpellCastState(getCastState(caster));
+					spellCast.getSpell().handleCast(spellCast);
 				} else interrupt();
+
+				return;
 			}
+
 			unregisterEvents(this);
+		}
+
+		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+		public void onMove(PlayerMoveEvent event) {
+			if (!interruptOnMove) return;
+			if (!event.getPlayer().equals(caster)) return;
+			if (inBounds(event.getTo())) return;
+
+			interrupt();
 		}
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onDamage(EntityDamageEvent event) {
 			if (!interruptOnDamage) return;
-			if (cancelled) return;
-			if (!event.getEntity().equals(livingEntity)) return;
-			cancelled = true;
-			MagicSpells.cancelTask(taskId);
+			if (!event.getEntity().equals(caster)) return;
+
 			interrupt();
 		}
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onSpellCast(SpellCastEvent event) {
 			if (!interruptOnCast) return;
-			if (cancelled) return;
 			if (event.getSpell() instanceof PassiveSpell) return;
-			if (!event.getCaster().equals(livingEntity)) return;
-			cancelled = true;
-			MagicSpells.cancelTask(taskId);
+			if (!event.getCaster().equals(caster)) return;
+
 			interrupt();
 		}
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onTeleport(PlayerTeleportEvent event) {
 			if (!interruptOnTeleport) return;
-			if (cancelled) return;
-			if (!event.getPlayer().equals(livingEntity)) return;
-			cancelled = true;
-			MagicSpells.cancelTask(taskId);
+			if (!event.getPlayer().equals(caster)) return;
+
 			interrupt();
 		}
 
-		private void interrupt() {
-			sendMessage(strInterrupted, livingEntity, null);
-			if (spellOnInterrupt != null) spellOnInterrupt.castSpell(livingEntity, SpellCastState.NORMAL, spellCast.getPower(), null);
+		private boolean inBounds(Location to) {
+			return Math.abs(from.getX() - to.getX()) < motionTolerance
+				&& Math.abs(from.getY() - to.getY()) < motionTolerance
+				&& Math.abs(from.getZ() - to.getZ()) < motionTolerance;
 		}
+
+		private void interrupt() {
+			MagicSpells.cancelTask(taskId);
+			unregisterEvents(this);
+
+			sendMessage(strInterrupted, caster, null);
+			if (spellOnInterrupt != null) spellOnInterrupt.castSpell(caster, SpellCastState.NORMAL, spellCast.getPower(), null);
+		}
+
 	}
 
 	public class DelayedSpellCastWithBar implements Runnable, Listener {
 
-		private LivingEntity livingEntity;
-		private Location prevLoc;
-		private Spell spell;
-		private SpellCastEvent spellCast;
-		private int castTime;
-		private int taskId;
-		private boolean cancelled = false;
+		private static final double motionTolerance = 0.2;
+		private static final int interval = 5;
 
-		private int interval = 5;
+		private final SpellCastEvent spellCast;
+		private final LivingEntity caster;
+		private final Location from;
+		private final int castTime;
+		private final int taskId;
+
 		private int elapsed = 0;
-
-		private double motionToleranceX = 0.2;
-		private double motionToleranceY = 0.2;
-		private double motionToleranceZ = 0.2;
 
 		public DelayedSpellCastWithBar(SpellCastEvent spellCast) {
 			this.spellCast = spellCast;
 
-			livingEntity = spellCast.getCaster();
-			spell = spellCast.getSpell();
-			prevLoc = livingEntity.getLocation().clone();
 			castTime = spellCast.getCastTime();
+			caster = spellCast.getCaster();
+			from = caster.getLocation();
 
-			if (livingEntity instanceof Player) MagicSpells.getExpBarManager().lock((Player) livingEntity, this);
+			if (caster instanceof Player) MagicSpells.getExpBarManager().lock((Player) caster, this);
 			taskId = scheduleRepeatingTask(this, interval, interval);
 			registerEvents(this);
 		}
 
 		@Override
 		public void run() {
-			if (!cancelled && livingEntity.isValid() && !livingEntity.isDead()) {
+			if (caster.isValid() && !caster.isDead()) {
 				elapsed += interval;
-				Location currLoc = livingEntity.getLocation();
-				if (!interruptOnMove || (Math.abs(currLoc.getX() - prevLoc.getX()) < motionToleranceX && Math.abs(currLoc.getY() - prevLoc.getY()) < motionToleranceY && Math.abs(currLoc.getZ() - prevLoc.getZ()) < motionToleranceZ)) {
+
+				if (!interruptOnMove || inBounds(caster.getLocation())) {
 					if (elapsed >= castTime) {
-						if (!spell.hasReagents(livingEntity, reagents)) spellCast.setSpellCastState(SpellCastState.MISSING_REAGENTS);
-						spell.handleCast(spellCast);
-						cancelled = true;
+						end();
+
+						spellCast.setSpellCastState(getCastState(caster));
+						spellCast.getSpell().handleCast(spellCast);
 					}
-					if (livingEntity instanceof Player) MagicSpells.getExpBarManager().update((Player) livingEntity, 0, (float) elapsed / (float) castTime, this);
+
+					if (caster instanceof Player) MagicSpells.getExpBarManager().update((Player) caster, 0, (float) elapsed / (float) castTime, this);
 				} else interrupt();
 			} else end();
 		}
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+		public void onMove(PlayerMoveEvent event) {
+			if (!interruptOnMove) return;
+			if (!event.getPlayer().equals(caster)) return;
+			if (inBounds(event.getTo())) return;
+
+			interrupt();
+		}
+
+		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onDamage(EntityDamageEvent event) {
 			if (!interruptOnDamage) return;
-			if (cancelled) return;
-			if (!event.getEntity().equals(livingEntity)) return;
-			cancelled = true;
+			if (!event.getEntity().equals(caster)) return;
+
 			interrupt();
 		}
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onSpellCast(SpellCastEvent event) {
-			LivingEntity caster = event.getCaster();
 			if (!interruptOnCast) return;
-			if (cancelled) return;
 			if (event.getSpell() instanceof PassiveSpell) return;
-			if (caster == null) return;
-			if (!caster.equals(livingEntity)) return;
-			cancelled = true;
+			if (!caster.equals(event.getCaster())) return;
+
 			interrupt();
 		}
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onTeleport(PlayerTeleportEvent event) {
-			if (interruptOnTeleport && !cancelled && event.getPlayer().equals(livingEntity)) {
-				cancelled = true;
-				interrupt();
-			}
+			if (!interruptOnTeleport) return;
+			if (!event.getPlayer().equals(caster)) return;
+
+			interrupt();
+		}
+
+		private boolean inBounds(Location to) {
+			return Math.abs(from.getX() - to.getX()) < motionTolerance
+				&& Math.abs(from.getY() - to.getY()) < motionTolerance
+				&& Math.abs(from.getZ() - to.getZ()) < motionTolerance;
 		}
 
 		private void interrupt() {
-			sendMessage(strInterrupted, livingEntity, null);
+			sendMessage(strInterrupted, caster, null);
 			end();
-			if (spellOnInterrupt != null) spellOnInterrupt.castSpell(livingEntity, SpellCastState.NORMAL, spellCast.getPower(), null);
+			if (spellOnInterrupt != null) spellOnInterrupt.castSpell(caster, SpellCastState.NORMAL, spellCast.getPower(), null);
 		}
 
 		private void end() {
-			cancelled = true;
 			MagicSpells.cancelTask(taskId);
 			unregisterEvents(this);
-			if (livingEntity instanceof Player) {
-				MagicSpells.getExpBarManager().unlock((Player) livingEntity, this);
-				MagicSpells.getExpBarManager().update((Player) livingEntity, ((Player) livingEntity).getLevel(), ((Player) livingEntity).getExp());
+
+			if (caster instanceof Player) {
+				MagicSpells.getExpBarManager().unlock((Player) caster, this);
+				MagicSpells.getExpBarManager().update((Player) caster, ((Player) caster).getLevel(), ((Player) caster).getExp());
 				ManaHandler mana = MagicSpells.getManaHandler();
-				if (mana != null) mana.showMana((Player) livingEntity);
+				if (mana != null) mana.showMana((Player) caster);
 			}
 		}
+
 	}
 
 	public ValidTargetChecker getValidTargetChecker() {
