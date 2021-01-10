@@ -162,7 +162,7 @@ public class Subspell {
 			EventUtil.call(spellTarget);
 			if (!spellTarget.isCancelled() && spellCast != null && spellCast.getSpellCastState() == SpellCastState.NORMAL) {
 				success = ((TargetedEntitySpell) spell).castAtEntity(livingEntity, target, spellCast.getPower());
-				spell.postCast(spellCast, success ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED);
+				spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
 			}
 			return success;
 		}
@@ -208,7 +208,7 @@ public class Subspell {
 			EventUtil.call(spellLocation);
 			if (!spellLocation.isCancelled() && spellCast != null && spellCast.getSpellCastState() == SpellCastState.NORMAL) {
 				success = ((TargetedLocationSpell) spell).castAtLocation(livingEntity, target, spellCast.getPower());
-				spell.postCast(spellCast, success ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED);
+				spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
 			}
 			return success;
 		}
@@ -256,7 +256,7 @@ public class Subspell {
 			EventUtil.call(spellTarget);
 			if (!spellLocation.isCancelled() && !spellTarget.isCancelled() && spellCast != null && spellCast.getSpellCastState() == SpellCastState.NORMAL) {
 				success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(livingEntity, from, target, spellCast.getPower());
-				spell.postCast(spellCast, success ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED);
+				spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
 			}
 			return success;
 		}
@@ -282,5 +282,5 @@ public class Subspell {
 
 		return ret;
 	}
-	
+
 }
