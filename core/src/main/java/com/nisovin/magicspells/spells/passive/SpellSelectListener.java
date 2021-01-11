@@ -58,8 +58,7 @@ public class SpellSelectListener extends PassiveListener {
 		if (!(event.getCaster() instanceof Player)) return;
 		Player player = (Player) event.getCaster();
 		if (!hasSpell(player)) return;
-		if (!filter.check(event.getSpell())) return;
-
+		if (filter != null && !filter.check(event.getSpell())) return;
 
 		passiveSpell.activate(player);
 	}
