@@ -1,14 +1,21 @@
 package com.nisovin.magicspells.spells.passive;
 
-import org.bukkit.Statistic;
-import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerStatisticIncrementEvent;
+import org.bukkit.entity.LivingEntity;
+
+import com.destroystokyo.paper.event.entity.EntityJumpEvent;
+import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// No trigger variable is currently used
+// No trigger variable is currently used.
+// Cancelling this event causes the entity to be teleported back
+// to the location they jumped from. This may cause unintended effects
+// such as velocity being reset for the entity.
+// The effect of the player's jump attempt is not visible to other
+// players, but it is visible to the player doing the jump action.
 public class JumpListener extends PassiveListener {
 
 	@Override
@@ -18,11 +25,22 @@ public class JumpListener extends PassiveListener {
 
 	@OverridePriority
 	@EventHandler
-	public void onJump(PlayerStatisticIncrementEvent event) {
-		Player player = event.getPlayer();
-		if (event.getStatistic() != Statistic.JUMP) return;
-		if (!hasSpell(player)) return;
-		passiveSpell.activate(player);
+	public void onJump(EntityJumpEvent event) {
+		handleEvent(event.getEntity(), event);
+	}
+
+	@OverridePriority
+	@EventHandler
+	public void onJump(PlayerJumpEvent event) {
+		handleEvent(event.getPlayer(), event);
+	}
+
+	private void handleEvent(LivingEntity entity, Cancellable event) {
+		if (!hasSpell(entity)) return;
+		if (!isCancelStateOk(event.isCancelled())) return;
+		boolean casted = passiveSpell.activate(entity);
+		if (!cancelDefaultAction(casted)) return;
+		event.setCancelled(true);
 	}
 
 }
