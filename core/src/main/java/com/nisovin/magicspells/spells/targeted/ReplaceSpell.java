@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
@@ -25,7 +26,7 @@ import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 
 public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Map<Block, Material> blocks;
+	private Map<Block, BlockData> blocks;
 
 	private boolean replaceAll;
 	private List<Material> replace;
@@ -123,7 +124,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 	public void turnOff() {
 		if (replaceDuration > 0) {
 			for (Block b : blocks.keySet()) {
-				b.setType(blocks.get(b));
+				b.setBlockData(blocks.get(b));
 			}
 		}
 
@@ -170,7 +171,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 
 						if (replaceBlacklist.contains(block.getType())) continue;
 
-						blocks.put(block, block.getType());
+						blocks.put(block, block.getBlockData());
 						Block finalBlock = block;
 						BlockState previousState = block.getState();
 
@@ -181,7 +182,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 							Player player = (Player) caster;
 							Block against = target.clone().add(target.getDirection()).getBlock();
 							if (block.equals(against)) against = block.getRelative(BlockFace.DOWN);
-							MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, previousState, against, player.getEquipment().getItemInMainHand(), player, true);
+							MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, previousState, against, player.getInventory().getItemInMainHand(), player, true);
 							EventUtil.call(event);
 							if (event.isCancelled()) {
 								previousState.update(true);
@@ -193,14 +194,14 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 						// Break block.
 						if (replaceDuration > 0) {
 							MagicSpells.scheduleDelayedTask(() -> {
-								Material previousMat = blocks.remove(finalBlock);
-								if (previousMat == null) return;
+								BlockData previous = blocks.remove(finalBlock);
+								if (previous == null) return;
 								if (checkPlugins && caster instanceof Player) {
 									MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(finalBlock, (Player) caster);
 									EventUtil.call(event);
 									if (event.isCancelled()) return;
 								}
-								finalBlock.setType(previousMat);
+								finalBlock.setBlockData(previous);
 								playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, finalBlock.getLocation());
 							}, replaceDuration);
 						}

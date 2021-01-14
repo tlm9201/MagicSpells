@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.FallingBlock;
@@ -25,6 +26,7 @@ import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
+import com.nisovin.magicspells.events.MagicSpellsBlockBreakEvent;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class DestroySpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntityFromLocationSpell {
@@ -33,6 +35,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	private Set<Material> blockTypesToRemove;
 	private Set<FallingBlock> fallingBlocks;
 
+	private boolean checkPlugins;
 	private int vertRadius;
 	private int horizRadius;
 	private int fallingBlockDamage;
@@ -46,6 +49,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	public DestroySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
+		checkPlugins = getConfigBoolean("check-plugins", true);
 		vertRadius = getConfigInt("vert-radius", 3);
 		horizRadius = getConfigInt("horiz-radius", 3);
 		fallingBlockDamage = getConfigInt("falling-block-damage", 0);
@@ -123,7 +127,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 			}
 			if (b != null && !BlockUtils.isAir(b.getType())) {
 				Location loc = b.getLocation().add(0.5, 0.5, 0.5);
-				doIt(livingEntity.getLocation(), loc);
+				doIt(livingEntity, livingEntity.getLocation(), loc);
 				playSpellEffects(livingEntity, loc);
 			}
 		}
@@ -132,7 +136,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		doIt(caster.getLocation(), target);
+		doIt(caster, caster.getLocation(), target);
 		playSpellEffects(caster, target);
 		return true;
 	}
@@ -144,19 +148,19 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		doIt(from, target.getLocation());
+		doIt(caster, from, target.getLocation());
 		playSpellEffects(from, target);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		doIt(from, target.getLocation());
+		doIt(null, from, target.getLocation());
 		playSpellEffects(from, target);
 		return true;
 	}
 
-	private void doIt(Location source, Location target) {
+	private void doIt(LivingEntity caster, Location source, Location target) {
 		int centerX = target.getBlockX();
 		int centerY = target.getBlockY();
 		int centerZ = target.getBlockZ();
@@ -170,6 +174,12 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 					Block b = target.getWorld().getBlockAt(x, y, z);
 					if (b.getType() == Material.BEDROCK) continue;
 					if (BlockUtils.isAir(b.getType())) continue;
+
+					if (checkPlugins && caster instanceof Player) {
+						MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(b, (Player) caster);
+						EventUtil.call(event);
+						if (event.isCancelled()) continue;
+					}
 
 					if (blockTypesToThrow != null) {
 						if (blockTypesToThrow.contains(b.getType())) blocksToThrow.add(b);

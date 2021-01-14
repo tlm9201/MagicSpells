@@ -12,6 +12,7 @@ repositories {
 dependencies {
     shadow group: "org.apache.commons", name: "commons-math3", version: "3.6.1"
     shadow "com.github.Chronoken:EffectLib:fdd144ae6b"
+    shadow "com.github.Xezard:XGlow:c886344de3"
     shadow "com.github.PaperMC:PaperLib:1c3c36b188"
     shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"
     shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -35,6 +36,7 @@ shadowJar {
     setArchivesBaseName("MagicSpells")
     relocate("org.apache.commons.math3", "com.nisovin.magicspells.shaded.org.apache.commons")
     relocate("de.slikey.effectlib", "com.nisovin.magicspells.shaded.effectlib")
+    relocate("ru.xezard.glow", "com.nisovin.magicspells.shaded.xglow")
     relocate("kotlin", "com.nisovin.magicspells.shaded.kotlin")
     relocate("co.aikar.commands", "com.nisovin.magicspells.shaded.acf")
     relocate("co.aikar.locales", "com.nisovin.magicspells.shaded.locales")
