@@ -101,7 +101,7 @@ public class FlamewalkSpell extends BuffSpell {
 		this.tickInterval = tickInterval;
 	}
 
-	public boolean isCheckPlugins() {
+	public boolean shouldCheckPlugins() {
 		return checkPlugins;
 	}
 
