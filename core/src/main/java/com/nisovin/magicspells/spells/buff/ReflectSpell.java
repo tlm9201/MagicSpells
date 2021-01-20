@@ -17,6 +17,7 @@ import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.events.SpellPreImpactEvent;
 
+// NO API CHANGES - NEEDS TOTAL REWORK
 public class ReflectSpell extends BuffSpell {
 
 	private Map<UUID, Float> reflectors;

@@ -26,9 +26,10 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class WalkwaySpell extends BuffSpell {
 
-	private Map<UUID, Platform> platforms;
+	private final Map<UUID, Platform> entities;
 
 	private Material material;
+
 	private int size;
 
 	private WalkwayListener listener;
@@ -45,24 +46,24 @@ public class WalkwaySpell extends BuffSpell {
 
 		size = getConfigInt("size", 6);
 
-		platforms = new HashMap<>();
+		entities = new HashMap<>();
 	}
 	
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		platforms.put(entity.getUniqueId(), new Platform(entity, material, size));
+		entities.put(entity.getUniqueId(), new Platform(entity, material, size));
 		registerListener();
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return platforms.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		Platform platform = platforms.remove(entity.getUniqueId());
+		Platform platform = entities.remove(entity.getUniqueId());
 		if (platform == null) return;
 
 		platform.remove();
@@ -71,9 +72,9 @@ public class WalkwaySpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		Util.forEachValueOrdered(platforms, Platform::remove);
+		Util.forEachValueOrdered(entities, Platform::remove);
 
-		platforms.clear();
+		entities.clear();
 		unregisterListener();
 	}
 	
@@ -84,17 +85,37 @@ public class WalkwaySpell extends BuffSpell {
 	}
 	
 	private void unregisterListener() {
-		if (listener == null || !platforms.isEmpty()) return;
+		if (listener == null || !entities.isEmpty()) return;
 		unregisterEvents(listener);
 		listener = null;
 	}
-	
+
+	public Map<UUID, Platform> getEntities() {
+		return entities;
+	}
+
+	public Material getMaterial() {
+		return material;
+	}
+
+	public void setMaterial(Material material) {
+		this.material = material;
+	}
+
+	public int getSize() {
+		return size;
+	}
+
+	public void setSize(int size) {
+		this.size = size;
+	}
+
 	public class WalkwayListener implements Listener {
 	
 		@EventHandler(priority=EventPriority.MONITOR)
 		public void onPlayerMove(PlayerMoveEvent event) {
 			Player player = event.getPlayer();
-			Platform carpet = platforms.get(player.getUniqueId());
+			Platform carpet = entities.get(player.getUniqueId());
 			if (carpet == null) return;
 			boolean moved = carpet.move();
 			if (moved) addUseAndChargeCost(player);
@@ -103,7 +124,7 @@ public class WalkwaySpell extends BuffSpell {
 		@EventHandler(ignoreCancelled=true)
 		public void onBlockBreak(BlockBreakEvent event) {
 			Block block = event.getBlock();
-			for (Platform platform : platforms.values()) {
+			for (Platform platform : entities.values()) {
 				if (!platform.blockInPlatform(block)) continue;
 
 				event.setCancelled(true);
@@ -113,7 +134,7 @@ public class WalkwaySpell extends BuffSpell {
 		
 	}
 	
-	private class Platform {
+	private static class Platform {
 		
 		private LivingEntity entity;
 		private Material materialPlatform;

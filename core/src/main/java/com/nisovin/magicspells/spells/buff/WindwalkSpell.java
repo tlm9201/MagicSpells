@@ -22,12 +22,14 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class WindwalkSpell extends BuffSpell {
 
-	private Set<UUID> flyers;
+	private final Set<UUID> entities;
 
 	private int maxY;
 	private int maxAltitude;
+
 	private float flySpeed;
 	private float launchSpeed;
+
 	private boolean cancelOnLand;
 
 	private HeightMonitor heightMonitor;
@@ -41,7 +43,7 @@ public class WindwalkSpell extends BuffSpell {
 		launchSpeed = getConfigFloat("launch-speed", 1F);
 		cancelOnLand = getConfigBoolean("cancel-on-land", true);
 		
-		flyers = new HashSet<>();
+		entities = new HashSet<>();
 	}
 	
 	@Override
@@ -60,7 +62,7 @@ public class WindwalkSpell extends BuffSpell {
 			entity.setVelocity(new Vector(0, launchSpeed, 0));
 		}
 
-		flyers.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		((Player) entity).setAllowFlight(true);
 		((Player) entity).setFlying(true);
 		((Player) entity).setFlySpeed(flySpeed);
@@ -72,18 +74,18 @@ public class WindwalkSpell extends BuffSpell {
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return flyers.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		flyers.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 		((Player) entity).setFlying(false);
 		if (((Player) entity).getGameMode() != GameMode.CREATIVE) ((Player) entity).setAllowFlight(false);
 		((Player) entity).setFlySpeed(0.1F);
 		entity.setFallDistance(0);
 
-		if (heightMonitor != null && flyers.isEmpty()) {
+		if (heightMonitor != null && entities.isEmpty()) {
 			heightMonitor.stop();
 			heightMonitor = null;
 		}
@@ -91,18 +93,62 @@ public class WindwalkSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		for (UUID id : flyers) {
+		for (UUID id : entities) {
 			Player player = Bukkit.getPlayer(id);
 			if (player == null) continue;
 			if (!player.isValid()) continue;
 			turnOff(player);
 		}
 
-		flyers.clear();
+		entities.clear();
 
 		if (heightMonitor == null) return;
 		heightMonitor.stop();
 		heightMonitor = null;
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public int getMaxY() {
+		return maxY;
+	}
+
+	public void setMaxY(int maxY) {
+		this.maxY = maxY;
+	}
+
+	public int getMaxAltitude() {
+		return maxAltitude;
+	}
+
+	public void setMaxAltitude(int maxAltitude) {
+		this.maxAltitude = maxAltitude;
+	}
+
+	public float getFlySpeed() {
+		return flySpeed;
+	}
+
+	public void setFlySpeed(float flySpeed) {
+		this.flySpeed = flySpeed;
+	}
+
+	public float getLaunchSpeed() {
+		return launchSpeed;
+	}
+
+	public void setLaunchSpeed(float launchSpeed) {
+		this.launchSpeed = launchSpeed;
+	}
+
+	public boolean shouldCancelOnLand() {
+		return cancelOnLand;
+	}
+
+	public void setCancelOnLand(boolean cancelOnLand) {
+		this.cancelOnLand = cancelOnLand;
 	}
 
 	public class SneakListener implements Listener {
@@ -119,7 +165,7 @@ public class WindwalkSpell extends BuffSpell {
 	
 	private class HeightMonitor implements Runnable {
 
-		private int taskId;
+		private final int taskId;
 
 		private HeightMonitor() {
 			taskId = MagicSpells.scheduleRepeatingTask( this, TimeUtil.TICKS_PER_SECOND, TimeUtil.TICKS_PER_SECOND);
@@ -127,7 +173,7 @@ public class WindwalkSpell extends BuffSpell {
 		
 		@Override
 		public void run() {
-			for (UUID id : flyers) {
+			for (UUID id : entities) {
 				Player pl = Bukkit.getPlayer(id);
 				if (pl == null) continue;
 				if (!pl.isValid()) continue;

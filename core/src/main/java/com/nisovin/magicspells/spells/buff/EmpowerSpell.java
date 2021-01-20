@@ -16,7 +16,7 @@ import com.nisovin.magicspells.events.SpellCastEvent;
 
 public class EmpowerSpell extends BuffSpell {
 
-	private Map<UUID, Float> empowered;
+	private final Map<UUID, Float> entities;
 
 	private float maxPower;
 	private float extraPower;
@@ -35,14 +35,14 @@ public class EmpowerSpell extends BuffSpell {
 		List<String> deniedTagList = getConfigStringList("denied-spell-tags", null);
 		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
 
-		empowered = new HashMap<>();
+		entities = new HashMap<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		float p = power * extraPower;
 		if (p > maxPower) p = maxPower;
-		empowered.put(entity.getUniqueId(), p);
+		entities.put(entity.getUniqueId(), p);
 		return true;
 	}
 
@@ -53,17 +53,17 @@ public class EmpowerSpell extends BuffSpell {
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return empowered.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		empowered.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		empowered.clear();
+		entities.clear();
 	}
 
 	@EventHandler(priority=EventPriority.HIGHEST)
@@ -74,7 +74,35 @@ public class EmpowerSpell extends BuffSpell {
 		if (!filter.check(event.getSpell())) return;
 
 		addUseAndChargeCost(player);
-		event.increasePower(empowered.get(player.getUniqueId()));
+		event.increasePower(entities.get(player.getUniqueId()));
+	}
+
+	public Map<UUID, Float> getEntities() {
+		return entities;
+	}
+
+	public float getMaxPower() {
+		return maxPower;
+	}
+
+	public void setMaxPower(float maxPower) {
+		this.maxPower = maxPower;
+	}
+
+	public float getExtraPower() {
+		return extraPower;
+	}
+
+	public void setExtraPower(float extraPower) {
+		this.extraPower = extraPower;
+	}
+
+	public SpellFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(SpellFilter filter) {
+		this.filter = filter;
 	}
 
 }

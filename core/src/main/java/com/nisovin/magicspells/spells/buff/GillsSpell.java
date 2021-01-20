@@ -21,9 +21,8 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class GillsSpell extends BuffSpell {
 
-	private Map<UUID, ItemStack> fishes;
+	private final Map<UUID, ItemStack> entities;
 
-	private String headMaterialName;
 	private Material headMaterial;
 
 	private boolean headEffect;
@@ -32,7 +31,7 @@ public class GillsSpell extends BuffSpell {
 	public GillsSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		headMaterialName = getConfigString("head-block", "GLASS");
+		String headMaterialName = getConfigString("head-block", "GLASS");
 		headMaterial = Util.getMaterial(headMaterialName);
 
 		if (headMaterial == null || !headMaterial.isBlock()) {
@@ -43,7 +42,7 @@ public class GillsSpell extends BuffSpell {
 		headEffect = getConfigBoolean("head-effect", true);
 		refillAirBar = getConfigBoolean("refill-air-bar", true);
 		
-		fishes = new HashMap<>();
+		entities = new HashMap<>();
 	}
 
 	@Override
@@ -51,34 +50,34 @@ public class GillsSpell extends BuffSpell {
 		if (headEffect && headMaterial != null) {
 			EntityEquipment equipment = entity.getEquipment();
 			ItemStack helmet = equipment.getHelmet();
-			fishes.put(entity.getUniqueId(), helmet);
+			entities.put(entity.getUniqueId(), helmet);
 			equipment.setHelmet(new ItemStack(headMaterial));
 			return true;
 		}
 
-		fishes.put(entity.getUniqueId(), null);
+		entities.put(entity.getUniqueId(), null);
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return fishes.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
 		if (headEffect && headMaterial != null) {
 			EntityEquipment equipment = entity.getEquipment();
-			equipment.setHelmet(fishes.get(entity.getUniqueId()));
+			equipment.setHelmet(entities.get(entity.getUniqueId()));
 		}
 
-		fishes.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
 		if (headEffect && headMaterial != null) {
-			for (UUID id : fishes.keySet()) {
+			for (UUID id : entities.keySet()) {
 				Entity entity = Bukkit.getEntity(id);
 				if (!(entity instanceof LivingEntity)) continue;
 				LivingEntity livingEntity = (LivingEntity) entity;
@@ -86,11 +85,11 @@ public class GillsSpell extends BuffSpell {
 
 				EntityEquipment equipment = livingEntity.getEquipment();
 
-				equipment.setHelmet(fishes.get(id));
+				equipment.setHelmet(entities.get(id));
 			}
 		}
 
-		fishes.clear();
+		entities.clear();
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -109,7 +108,34 @@ public class GillsSpell extends BuffSpell {
 		event.setCancelled(true);
 		addUseAndChargeCost(livingEntity);
 		if (refillAirBar) livingEntity.setRemainingAir(livingEntity.getMaximumAir());
+	}
 
+	public Map<UUID, ItemStack> getEntities() {
+		return entities;
+	}
+
+	public Material getHeadMaterial() {
+		return headMaterial;
+	}
+
+	public void setHeadMaterial(Material headMaterial) {
+		this.headMaterial = headMaterial;
+	}
+
+	public boolean hasHeadEffect() {
+		return headEffect;
+	}
+
+	public void setHeadEffect(boolean headEffect) {
+		this.headEffect = headEffect;
+	}
+
+	public boolean shouldRefillAirBar() {
+		return refillAirBar;
+	}
+
+	public void setRefillAirBar(boolean refillAirBar) {
+		this.refillAirBar = refillAirBar;
 	}
 
 }

@@ -26,7 +26,7 @@ import de.slikey.effectlib.util.RandomUtils;
 
 public class DodgeSpell extends BuffSpell {
 
-	private Set<UUID> entities;
+	private final Set<UUID> entities;
 
 	private float distance;
 
@@ -34,8 +34,9 @@ public class DodgeSpell extends BuffSpell {
 
 	private Subspell spellBeforeDodge;
 	private Subspell spellAfterDodge;
-	private String spellBeforeDodgeName;
-	private String spellAfterDodgeName;
+
+	private final String spellBeforeDodgeName;
+	private final String spellAfterDodgeName;
 
 	public DodgeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -132,6 +133,42 @@ public class DodgeSpell extends BuffSpell {
 		playSpellEffectsTrail(entityLoc, targetLoc);
 		playSpellEffects(EffectPosition.DELAYED, targetLoc);
 		if (spellAfterDodge != null) spellAfterDodge.castAtLocation(entity, targetLoc, 1F);
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public float getDistance() {
+		return distance;
+	}
+
+	public void setDistance(float distance) {
+		this.distance = distance;
+	}
+
+	public SpellFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(SpellFilter filter) {
+		this.filter = filter;
+	}
+
+	public Subspell getSpellBeforeDodge() {
+		return spellBeforeDodge;
+	}
+
+	public void setSpellBeforeDodge(Subspell spellBeforeDodge) {
+		this.spellBeforeDodge = spellBeforeDodge;
+	}
+
+	public Subspell getSpellAfterDodge() {
+		return spellAfterDodge;
+	}
+
+	public void setSpellAfterDodge(Subspell spellAfterDodge) {
+		this.spellAfterDodge = spellAfterDodge;
 	}
 
 }

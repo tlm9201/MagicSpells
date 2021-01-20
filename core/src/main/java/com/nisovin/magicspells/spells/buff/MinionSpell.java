@@ -12,15 +12,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Zombie;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Creature;
-import org.bukkit.entity.Projectile;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -47,14 +41,16 @@ import com.nisovin.magicspells.util.managers.AttributeManager;
 
 public class MinionSpell extends BuffSpell {
 
-	private Map<UUID, LivingEntity> minions;
-	private Map<LivingEntity, UUID> players;
-	private Map<UUID, LivingEntity> targets;
+	private final Map<UUID, LivingEntity> minions;
+	private final Map<LivingEntity, UUID> players;
+	private final Map<UUID, LivingEntity> targets;
 
-	private Random random;
+	private final Random random;
+
+	private final int[] chances;
+
 	private ValidTargetList minionTargetList;
 	private EntityType[] creatureTypes;
-	private int[] chances;
 	private boolean powerAffectsHealth;
 	private boolean preventCombust;
 	private boolean gravity;
@@ -68,9 +64,10 @@ public class MinionSpell extends BuffSpell {
 	private float followSpeed;
 	private float maxDistance;
 
-	private String spawnSpellName;
-	private String deathSpellName;
-	private String attackSpellName;
+	private final String spawnSpellName;
+	private final String deathSpellName;
+	private final String attackSpellName;
+
 	private Subspell spawnSpell;
 	private Subspell deathSpell;
 	private Subspell attackSpell;
@@ -81,6 +78,7 @@ public class MinionSpell extends BuffSpell {
 	private ItemStack chestplate;
 	private ItemStack leggings;
 	private ItemStack boots;
+
 	private float mainHandItemDropChance;
 	private float offHandItemDropChance;
 	private float helmetDropChance;
@@ -89,6 +87,7 @@ public class MinionSpell extends BuffSpell {
 	private float bootsDropChance;
 
 	private List<PotionEffect> potionEffects;
+
 	private Set<AttributeManager.AttributeInfo> attributes;
 
 	public MinionSpell(MagicConfig config, String spellName) {
@@ -265,7 +264,7 @@ public class MinionSpell extends BuffSpell {
 		Location loc = player.getLocation().clone();
 		Vector startDir = loc.clone().getDirection().setY(0).normalize();
 		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
-		loc.add(horizOffset.multiply(spawnOffset.getZ())).getBlock().getLocation();
+		loc.add(horizOffset.multiply(spawnOffset.getZ()));
 		loc.add(startDir.clone().multiply(spawnOffset.getX()));
 		loc.setY(loc.getY() + spawnOffset.getY());
 
@@ -277,10 +276,15 @@ public class MinionSpell extends BuffSpell {
 			return false;
 		}
 
-		if (minion instanceof Zombie) ((Zombie) minion).setBaby(baby);
+		if (minion instanceof Ageable) {
+			if (baby) ((Ageable) minion).setBaby();
+			else ((Ageable) minion).setAdult();
+		}
+
 		minion.setGravity(gravity);
 		minion.setCustomName(Util.colorize(minionName.replace("%c", player.getName())));
 		minion.setCustomNameVisible(true);
+
 		if (powerAffectsHealth) {
 			Util.setMaxHealth(minion, maxHealth * power * powerHealthFactor);
 			minion.setHealth(health * power * powerHealthFactor);
@@ -585,6 +589,258 @@ public class MinionSpell extends BuffSpell {
 	public void onEntityCombust(EntityCombustEvent e) {
 		if (!preventCombust || !isMinion(e.getEntity())) return;
 		e.setCancelled(true);
+	}
+
+	public Map<UUID, LivingEntity> getMinions() {
+		return minions;
+	}
+
+	public Map<LivingEntity, UUID> getPlayers() {
+		return players;
+	}
+
+	public Map<UUID, LivingEntity> getTargets() {
+		return targets;
+	}
+
+	public List<PotionEffect> getPotionEffects() {
+		return potionEffects;
+	}
+
+	public Set<AttributeManager.AttributeInfo> getAttributes() {
+		return attributes;
+	}
+
+	public ValidTargetList getMinionTargetList() {
+		return minionTargetList;
+	}
+
+	public void setMinionTargetList(ValidTargetList minionTargetList) {
+		this.minionTargetList = minionTargetList;
+	}
+
+	public EntityType[] getCreatureTypes() {
+		return creatureTypes;
+	}
+
+	public void setCreatureTypes(EntityType[] creatureTypes) {
+		this.creatureTypes = creatureTypes;
+	}
+
+	public boolean shouldPowerAffectHealth() {
+		return powerAffectsHealth;
+	}
+
+	public void setPowerAffectsHealth(boolean powerAffectsHealth) {
+		this.powerAffectsHealth = powerAffectsHealth;
+	}
+
+	public boolean shouldPreventCombust() {
+		return preventCombust;
+	}
+
+	public void setPreventCombust(boolean preventCombust) {
+		this.preventCombust = preventCombust;
+	}
+
+	public boolean hasGravity() {
+		return gravity;
+	}
+
+	public void setGravity(boolean gravity) {
+		this.gravity = gravity;
+	}
+
+	public boolean isBaby() {
+		return baby;
+	}
+
+	public void setBaby(boolean baby) {
+		this.baby = baby;
+	}
+
+	public double getPowerHealthFactor() {
+		return powerHealthFactor;
+	}
+
+	public void setPowerHealthFactor(double powerHealthFactor) {
+		this.powerHealthFactor = powerHealthFactor;
+	}
+
+	public double getMaxHealth() {
+		return maxHealth;
+	}
+
+	public void setMaxHealth(double maxHealth) {
+		this.maxHealth = maxHealth;
+	}
+
+	public double getHealth() {
+		return health;
+	}
+
+	public void setHealth(double health) {
+		this.health = health;
+	}
+
+	public String getMinionName() {
+		return minionName;
+	}
+
+	public void setMinionName(String minionName) {
+		this.minionName = minionName;
+	}
+
+	public Vector getSpawnOffset() {
+		return spawnOffset;
+	}
+
+	public void setSpawnOffset(Vector spawnOffset) {
+		this.spawnOffset = spawnOffset;
+	}
+
+	public double getFollowRange() {
+		return followRange;
+	}
+
+	public void setFollowRange(double followRange) {
+		this.followRange = followRange;
+	}
+
+	public float getFollowSpeed() {
+		return followSpeed;
+	}
+
+	public void setFollowSpeed(float followSpeed) {
+		this.followSpeed = followSpeed;
+	}
+
+	public float getMaxDistance() {
+		return maxDistance;
+	}
+
+	public void setMaxDistance(float maxDistance) {
+		this.maxDistance = maxDistance;
+	}
+
+	public Subspell getSpawnSpell() {
+		return spawnSpell;
+	}
+
+	public void setSpawnSpell(Subspell spawnSpell) {
+		this.spawnSpell = spawnSpell;
+	}
+
+	public Subspell getDeathSpell() {
+		return deathSpell;
+	}
+
+	public void setDeathSpell(Subspell deathSpell) {
+		this.deathSpell = deathSpell;
+	}
+
+	public Subspell getAttackSpell() {
+		return attackSpell;
+	}
+
+	public void setAttackSpell(Subspell attackSpell) {
+		this.attackSpell = attackSpell;
+	}
+
+	public ItemStack getMainHandItem() {
+		return mainHandItem;
+	}
+
+	public void setMainHandItem(ItemStack mainHandItem) {
+		this.mainHandItem = mainHandItem;
+	}
+
+	public ItemStack getOffHandItem() {
+		return offHandItem;
+	}
+
+	public void setOffHandItem(ItemStack offHandItem) {
+		this.offHandItem = offHandItem;
+	}
+
+	public ItemStack getHelmet() {
+		return helmet;
+	}
+
+	public void setHelmet(ItemStack helmet) {
+		this.helmet = helmet;
+	}
+
+	public ItemStack getChestplate() {
+		return chestplate;
+	}
+
+	public void setChestplate(ItemStack chestplate) {
+		this.chestplate = chestplate;
+	}
+
+	public ItemStack getLeggings() {
+		return leggings;
+	}
+
+	public void setLeggings(ItemStack leggings) {
+		this.leggings = leggings;
+	}
+
+	public ItemStack getBoots() {
+		return boots;
+	}
+
+	public void setBoots(ItemStack boots) {
+		this.boots = boots;
+	}
+
+	public float getMainHandItemDropChance() {
+		return mainHandItemDropChance;
+	}
+
+	public void setMainHandItemDropChance(float mainHandItemDropChance) {
+		this.mainHandItemDropChance = mainHandItemDropChance;
+	}
+
+	public float getOffHandItemDropChance() {
+		return offHandItemDropChance;
+	}
+
+	public void setOffHandItemDropChance(float offHandItemDropChance) {
+		this.offHandItemDropChance = offHandItemDropChance;
+	}
+
+	public float getHelmetDropChance() {
+		return helmetDropChance;
+	}
+
+	public void setHelmetDropChance(float helmetDropChance) {
+		this.helmetDropChance = helmetDropChance;
+	}
+
+	public float getChestplateDropChance() {
+		return chestplateDropChance;
+	}
+
+	public void setChestplateDropChance(float chestplateDropChance) {
+		this.chestplateDropChance = chestplateDropChance;
+	}
+
+	public float getLeggingsDropChance() {
+		return leggingsDropChance;
+	}
+
+	public void setLeggingsDropChance(float leggingsDropChance) {
+		this.leggingsDropChance = leggingsDropChance;
+	}
+
+	public float getBootsDropChance() {
+		return bootsDropChance;
+	}
+
+	public void setBootsDropChance(float bootsDropChance) {
+		this.bootsDropChance = bootsDropChance;
 	}
 
 }

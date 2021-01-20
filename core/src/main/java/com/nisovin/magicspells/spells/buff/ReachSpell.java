@@ -29,25 +29,21 @@ import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 // TODO this needs exemptions for anticheat
 public class ReachSpell extends BuffSpell {
 
-	private Set<UUID> reaching;
+	private final Set<UUID> entities;
 
-	private int range;
+	private final Set<Material> disallowedBreakBlocks;
+	private final Set<Material> disallowedPlaceBlocks;
 
 	private boolean dropBlocks;
 	private boolean consumeBlocks;
-
-	private Set<Material> disallowedBreakBlocks;
-	private Set<Material> disallowedPlaceBlocks;
 	
 	public ReachSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
-		range = getConfigInt("range", 15);
 
 		dropBlocks = getConfigBoolean("drop-blocks", true);
 		consumeBlocks = getConfigBoolean("consume-blocks", true);
 
-		reaching = new HashSet<>();
+		entities = new HashSet<>();
 		disallowedPlaceBlocks = new HashSet<>();
 		disallowedBreakBlocks = new HashSet<>();
 
@@ -73,23 +69,23 @@ public class ReachSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		reaching.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return reaching.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		reaching.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		reaching.clear();
+		entities.clear();
 	}
 
 	@EventHandler(priority=EventPriority.HIGHEST)
@@ -135,7 +131,7 @@ public class ReachSpell extends BuffSpell {
 			
 			// Check for block in hand
 			ItemStack inHand = player.getEquipment().getItemInMainHand();
-			if (inHand != null && inHand.getType() != Material.AIR && inHand.getType().isBlock()) {
+			if (inHand.getType() != Material.AIR && inHand.getType().isBlock()) {
 				
 				// Check for disallowed
 				if (disallowedPlaceBlocks.contains(inHand.getType())) return;
@@ -170,6 +166,34 @@ public class ReachSpell extends BuffSpell {
 				}
 			}
 		}
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public Set<Material> getDisallowedBreakBlocks() {
+		return disallowedBreakBlocks;
+	}
+
+	public Set<Material> getDisallowedPlaceBlocks() {
+		return disallowedPlaceBlocks;
+	}
+
+	public boolean shouldDropBlocks() {
+		return dropBlocks;
+	}
+
+	public void setDropBlocks(boolean dropBlocks) {
+		this.dropBlocks = dropBlocks;
+	}
+
+	public boolean shouldConsumeBlocks() {
+		return consumeBlocks;
+	}
+
+	public void setConsumeBlocks(boolean consumeBlocks) {
+		this.consumeBlocks = consumeBlocks;
 	}
 
 }

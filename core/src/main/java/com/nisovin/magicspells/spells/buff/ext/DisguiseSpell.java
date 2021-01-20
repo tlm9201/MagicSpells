@@ -22,7 +22,7 @@ import me.libraryaddict.disguise.disguisetypes.watchers.*;
 // NOTE: LIBSDISGUISES IS REQUIRED FOR THIS
 public class DisguiseSpell extends BuffSpell {
 
-	private Set<UUID> entities;
+	private final Set<UUID> entities;
 
 	private EntityData entityData;
 
@@ -142,6 +142,26 @@ public class DisguiseSpell extends BuffSpell {
 			DisguiseAPI.undisguiseToAll(entity);
 		}
 		entities.clear();
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public EntityData getEntityData() {
+		return entityData;
+	}
+
+	public void setEntityData(EntityData entityData) {
+		this.entityData = entityData;
+	}
+
+	public Disguise getDisguise() {
+		return disguise;
+	}
+
+	public void setDisguise(Disguise disguise) {
+		this.disguise = disguise;
 	}
 
 }

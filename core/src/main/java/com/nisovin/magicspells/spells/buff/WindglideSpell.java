@@ -21,21 +21,23 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class WindglideSpell extends BuffSpell {
 
-	private Set<UUID> gliders;
+	private final Set<UUID> entities;
 
 	private Subspell glideSpell;
 	private Subspell collisionSpell;
-	private String glideSpellName;
-	private String collisionSpellName;
+
+	private final String glideSpellName;
+	private final String collisionSpellName;
 
 	private boolean cancelOnCollision;
 	private boolean blockCollisionDmg;
 
 	private int interval;
+
 	private float height;
 	private float velocity;
 
-	private GlideMonitor monitor;
+	private final GlideMonitor monitor;
 
 	public WindglideSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -51,7 +53,8 @@ public class WindglideSpell extends BuffSpell {
 		velocity = getConfigFloat("velocity", 20F) / 10;
 		if (interval <= 0) interval = 4;
 
-		gliders = new HashSet<>();
+		entities = new HashSet<>();
+
 		monitor = new GlideMonitor();
 	}
 
@@ -62,31 +65,31 @@ public class WindglideSpell extends BuffSpell {
 		glideSpell = new Subspell(glideSpellName);
 		if (!glideSpell.process() || !glideSpell.isTargetedLocationSpell()) {
 			glideSpell = null;
-			if (!glideSpellName.isEmpty()) MagicSpells.error("WindglideSpell " + internalName + " has an invalid spell defined");
+			if (!glideSpellName.isEmpty()) MagicSpells.error("WindglideSpell " + internalName + " has an invalid spell defined: " + glideSpellName);
 		}
 
 		collisionSpell = new Subspell(collisionSpellName);
 		if (!collisionSpell.process() || !collisionSpell.isTargetedLocationSpell()) {
 			collisionSpell = null;
-			if (!collisionSpellName.isEmpty()) MagicSpells.error("WindglideSpell " + internalName + " has an invalid collision-spell defined");
+			if (!collisionSpellName.isEmpty()) MagicSpells.error("WindglideSpell " + internalName + " has an invalid collision-spell defined: " + collisionSpellName);
 		}
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		gliders.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		entity.setGliding(true);
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return gliders.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		gliders.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 		entity.setGliding(false);
 	}
 
@@ -96,7 +99,7 @@ public class WindglideSpell extends BuffSpell {
 			cancelEffectForAllPlayers(pos);
 		}
 
-		for (UUID id : gliders) {
+		for (UUID id : entities) {
 			Entity entity = Bukkit.getEntity(id);
 			if (entity == null) continue;
 			if (!(entity instanceof LivingEntity)) continue;
@@ -106,7 +109,7 @@ public class WindglideSpell extends BuffSpell {
 			turnOffBuff((LivingEntity) entity);
 		}
 
-		gliders.clear();
+		entities.clear();
 	}
 
 	@EventHandler
@@ -130,9 +133,69 @@ public class WindglideSpell extends BuffSpell {
 		if (collisionSpell != null) collisionSpell.castAtLocation(livingEntity, livingEntity.getLocation(), 1F);
 	}
 
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public Subspell getGlideSpell() {
+		return glideSpell;
+	}
+
+	public void setGlideSpell(Subspell glideSpell) {
+		this.glideSpell = glideSpell;
+	}
+
+	public Subspell getCollisionSpell() {
+		return collisionSpell;
+	}
+
+	public void setCollisionSpell(Subspell collisionSpell) {
+		this.collisionSpell = collisionSpell;
+	}
+
+	public boolean shouldCancelOnCollision() {
+		return cancelOnCollision;
+	}
+
+	public void setCancelOnCollision(boolean cancelOnCollision) {
+		this.cancelOnCollision = cancelOnCollision;
+	}
+
+	public boolean shouldBlockCollisionDamage() {
+		return blockCollisionDmg;
+	}
+
+	public void setBlockCollisionDmg(boolean blockCollisionDmg) {
+		this.blockCollisionDmg = blockCollisionDmg;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
+	public float getHeight() {
+		return height;
+	}
+
+	public void setHeight(float height) {
+		this.height = height;
+	}
+
+	public float getVelocity() {
+		return velocity;
+	}
+
+	public void setVelocity(float velocity) {
+		this.velocity = velocity;
+	}
+
 	private class GlideMonitor implements Runnable {
 
-		private int taskId;
+		private final int taskId;
 
 		private GlideMonitor() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, interval, interval);
@@ -140,7 +203,7 @@ public class WindglideSpell extends BuffSpell {
 
 		@Override
 		public void run() {
-			for (UUID id : gliders) {
+			for (UUID id : entities) {
 				Entity entity = Bukkit.getEntity(id);
 				if (entity == null || !entity.isValid()) continue;
 				if (!(entity instanceof LivingEntity)) continue;
