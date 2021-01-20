@@ -16,7 +16,7 @@ import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 
 public class DamageEmpowerSpell extends BuffSpell {
 
-	private Set<UUID> empowered;
+	private final Set<UUID> entities;
 
 	private SpellFilter filter;
 
@@ -34,28 +34,28 @@ public class DamageEmpowerSpell extends BuffSpell {
 
 		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
 
-		empowered = new HashSet<>();
+		entities = new HashSet<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		empowered.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return empowered.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOffBuff(LivingEntity entity) {
-		empowered.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		empowered.clear();
+		entities.clear();
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -66,6 +66,26 @@ public class DamageEmpowerSpell extends BuffSpell {
 
 		addUseAndChargeCost(caster);
 		event.applyDamageModifier(damageMultiplier);
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public float getDamageMultiplier() {
+		return damageMultiplier;
+	}
+
+	public void setDamageMultiplier(float damageMultiplier) {
+		this.damageMultiplier = damageMultiplier;
+	}
+
+	public SpellFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(SpellFilter filter) {
+		this.filter = filter;
 	}
 
 }

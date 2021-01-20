@@ -25,17 +25,18 @@ import com.nisovin.magicspells.util.BlockPlatform;
 
 public class CarpetSpell extends BuffSpell {
 
-	private Map<UUID, BlockPlatform> carpets;
-	private Set<UUID> falling;
+	private final Map<UUID, BlockPlatform> entities;
+
+	private final Set<UUID> falling;
 
 	private Material platformMaterial;
-	private String materialName;
+
 	private int platformSize;
 
 	public CarpetSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("platform-block", "GLASS");
+		String materialName = getConfigString("platform-block", "GLASS");
 		platformMaterial = Util.getMaterial(materialName);
 
 		if (platformMaterial == null || !platformMaterial.isBlock()) {
@@ -45,41 +46,40 @@ public class CarpetSpell extends BuffSpell {
 
 		platformSize = getConfigInt("size", 2);
 
-		carpets = new HashMap<>();
+		entities = new HashMap<>();
 		falling = new HashSet<>();
 	}
 	
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		carpets.put(entity.getUniqueId(), new BlockPlatform(platformMaterial, Material.AIR, entity.getLocation().getBlock().getRelative(0, -1, 0), platformSize, true, "square"));
+		entities.put(entity.getUniqueId(), new BlockPlatform(platformMaterial, Material.AIR, entity.getLocation().getBlock().getRelative(0, -1, 0), platformSize, true, "square"));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return carpets.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		BlockPlatform platform = carpets.get(entity.getUniqueId());
+		BlockPlatform platform = entities.get(entity.getUniqueId());
 		if (platform == null) return;
 
 		platform.destroyPlatform();
-		carpets.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		Util.forEachValueOrdered(carpets, BlockPlatform::destroyPlatform);
-		carpets.clear();
-
+		Util.forEachValueOrdered(entities, BlockPlatform::destroyPlatform);
+		entities.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onPlayerMove(PlayerMoveEvent event) {
 		Player player = event.getPlayer();
-		BlockPlatform platform = carpets.get(player.getUniqueId());
+		BlockPlatform platform = entities.get(player.getUniqueId());
 		if (platform == null) return;
 
 		if (isExpired(player)) {
@@ -113,7 +113,7 @@ public class CarpetSpell extends BuffSpell {
 		}
 
 		Block block = player.getLocation().getBlock().getRelative(BlockFace.DOWN, 2);
-		boolean moved = carpets.get(player.getUniqueId()).movePlatform(block);
+		boolean moved = entities.get(player.getUniqueId()).movePlatform(block);
 
 		if (moved) {
 			falling.add(player.getUniqueId());
@@ -123,10 +123,34 @@ public class CarpetSpell extends BuffSpell {
 	
 	@EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		if (carpets.isEmpty()) return;
+		if (entities.isEmpty()) return;
 		final Block block = event.getBlock();
 		if (block.getType() != platformMaterial) return;
-		if (Util.containsValueParallel(carpets, platform -> platform.blockInPlatform(block))) event.setCancelled(true);
+		if (Util.containsValueParallel(entities, platform -> platform.blockInPlatform(block))) event.setCancelled(true);
+	}
+
+	public Map<UUID, BlockPlatform> getEntities() {
+		return entities;
+	}
+
+	public Set<UUID> getFalling() {
+		return falling;
+	}
+
+	public Material getPlatformMaterial() {
+		return platformMaterial;
+	}
+
+	public void setPlatformMaterial(Material platformMaterial) {
+		this.platformMaterial = platformMaterial;
+	}
+
+	public int getPlatformSize() {
+		return platformSize;
+	}
+
+	public void setPlatformSize(int platformSize) {
+		this.platformSize = platformSize;
 	}
 
 }

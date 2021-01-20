@@ -27,10 +27,12 @@ import com.nisovin.magicspells.util.PlayerNameUtils;
 
 public class StonevisionSpell extends BuffSpell {
 
-	private Map<UUID, TransparentBlockSet> seers;
-	private Set<Material> transparentTypes;
+	private final Map<UUID, TransparentBlockSet> entities;
+
+	private final Set<Material> transparentTypes;
 
 	private int radius;
+
 	private boolean unobfuscate;
 
 	private Material material;
@@ -62,34 +64,34 @@ public class StonevisionSpell extends BuffSpell {
 
 		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 
-		seers = new HashMap<>();
+		entities = new HashMap<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		if (!(entity instanceof Player)) return true;
-		seers.put(entity.getUniqueId(), new TransparentBlockSet((Player) entity, radius, transparentTypes));
+		entities.put(entity.getUniqueId(), new TransparentBlockSet((Player) entity, radius, transparentTypes));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return seers.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		TransparentBlockSet t = seers.remove(entity.getUniqueId());
+		TransparentBlockSet t = entities.remove(entity.getUniqueId());
 		if (t != null) t.removeTransparency();
 	}
 
 	@Override
 	protected void turnOff() {
-		for (TransparentBlockSet tbs : seers.values()) {
+		for (TransparentBlockSet tbs : entities.values()) {
 			tbs.removeTransparency();
 		}
 
-		seers.clear();
+		entities.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
@@ -101,9 +103,41 @@ public class StonevisionSpell extends BuffSpell {
 			return;
 		}
 
-		boolean moved = seers.get(pl.getUniqueId()).moveTransparency();
+		boolean moved = entities.get(pl.getUniqueId()).moveTransparency();
 		if (!moved) return;
 		addUseAndChargeCost(pl);
+	}
+
+	public Map<UUID, TransparentBlockSet> getEntities() {
+		return entities;
+	}
+
+	public Set<Material> getTransparentTypes() {
+		return transparentTypes;
+	}
+
+	public int getRadius() {
+		return radius;
+	}
+
+	public void setRadius(int radius) {
+		this.radius = radius;
+	}
+
+	public boolean shouldUnobfuscate() {
+		return unobfuscate;
+	}
+
+	public void setUnobfuscate(boolean unobfuscate) {
+		this.unobfuscate = unobfuscate;
+	}
+
+	public Material getMaterial() {
+		return material;
+	}
+
+	public void setMaterial(Material material) {
+		this.material = material;
 	}
 
 	private class TransparentBlockSet {

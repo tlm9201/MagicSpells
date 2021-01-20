@@ -16,7 +16,7 @@ import com.nisovin.magicspells.events.ManaChangeEvent;
 
 public class ManaRegenSpell extends BuffSpell { 
 
-	private Set<UUID> regeners;
+	private final Set<UUID> entities;
 
 	private int regenModAmt;
 
@@ -25,28 +25,28 @@ public class ManaRegenSpell extends BuffSpell {
 
 		regenModAmt = getConfigInt("regen-mod-amt", 3);
 
-		regeners = new HashSet<>();
+		entities = new HashSet<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		regeners.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return regeners.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		regeners.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		regeners.clear();
+		entities.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
@@ -66,6 +66,18 @@ public class ManaRegenSpell extends BuffSpell {
 
 		addUseAndChargeCost(pl);
 		event.setNewAmount(newAmt);
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public int getRegenModAmt() {
+		return regenModAmt;
+	}
+
+	public void setRegenModAmt(int regenModAmt) {
+		this.regenModAmt = regenModAmt;
 	}
 
 }

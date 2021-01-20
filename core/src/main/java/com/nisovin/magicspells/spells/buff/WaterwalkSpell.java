@@ -20,7 +20,7 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class WaterwalkSpell extends BuffSpell {
 
-	private Set<UUID> waterwalking;
+	private final Set<UUID> entities;
 
 	private float speed;
 	
@@ -31,34 +31,34 @@ public class WaterwalkSpell extends BuffSpell {
 		
 		speed = getConfigFloat("speed", 0.05F);
 		
-		waterwalking = new HashSet<>();
+		entities = new HashSet<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		if (!(entity instanceof Player)) return true;
-		waterwalking.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		startTicker();
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return waterwalking.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		waterwalking.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 		((Player) entity).setFlying(false);
 		if (((Player) entity).getGameMode() != GameMode.CREATIVE) ((Player) entity).setAllowFlight(false);
 
-		if (waterwalking.isEmpty()) stopTicker();
+		if (entities.isEmpty()) stopTicker();
 	}
 	
 	@Override
 	protected void turnOff() {
-		for (UUID id : waterwalking) {
+		for (UUID id : entities) {
 			Player pl = Bukkit.getPlayer(id);
 			if (pl == null) continue;
 			if (!pl.isValid()) continue;
@@ -67,7 +67,7 @@ public class WaterwalkSpell extends BuffSpell {
 			if (pl.getGameMode() != GameMode.CREATIVE) pl.setAllowFlight(false);
 		}
 
-		waterwalking.clear();
+		entities.clear();
 		stopTicker();
 	}
 	
@@ -81,10 +81,22 @@ public class WaterwalkSpell extends BuffSpell {
 		ticker.stop();
 		ticker = null;
 	}
-	
+
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public float getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(float speed) {
+		this.speed = speed;
+	}
+
 	private class Ticker implements Runnable {
 		
-		private int taskId;
+		private final int taskId;
 		
 		private int count = 0;
 		
@@ -101,7 +113,7 @@ public class WaterwalkSpell extends BuffSpell {
 			Block underfeet;
 			Location loc;
 
-			for (UUID id : waterwalking) {
+			for (UUID id : entities) {
 				Player pl = Bukkit.getPlayer(id);
 				if (pl == null) continue;
 				if (!pl.isValid()) continue;

@@ -16,9 +16,10 @@ import com.nisovin.magicspells.events.SpellCastEvent;
 
 public class ClaritySpell extends BuffSpell {
 
-	private Map<UUID, Float> buffed;
+	private final Map<UUID, Float> entities;
 
 	private float multiplier;
+
 	private SpellFilter filter;
 
 	public ClaritySpell(MagicConfig config, String spellName) {
@@ -32,28 +33,28 @@ public class ClaritySpell extends BuffSpell {
 		List<String> deniedTagList = getConfigStringList("denied-spell-tags", null);
 		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
 
-		buffed = new HashMap<>();
+		entities = new HashMap<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		buffed.put(entity.getUniqueId(), power);
+		entities.put(entity.getUniqueId(), power);
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return buffed.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOffBuff(LivingEntity entity) {
-		buffed.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		buffed.clear();
+		entities.clear();
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -63,7 +64,7 @@ public class ClaritySpell extends BuffSpell {
 		if (!filter.check(event.getSpell())) return;
 
 		float mod = multiplier;
-		float power = buffed.get(caster.getUniqueId());
+		float power = entities.get(caster.getUniqueId());
 
 		if (multiplier < 1) mod *= 1 / power;
 		else if (multiplier > 1) mod *= power;
@@ -72,6 +73,26 @@ public class ClaritySpell extends BuffSpell {
 		if (reagents != null) event.setReagents(reagents.multiply(mod));
 		
 		addUseAndChargeCost(caster);
+	}
+
+	public Map<UUID, Float> getEntities() {
+		return entities;
+	}
+
+	public float getMultiplier() {
+		return multiplier;
+	}
+
+	public void setMultiplier(float multiplier) {
+		this.multiplier = multiplier;
+	}
+
+	public SpellFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(SpellFilter filter) {
+		this.filter = filter;
 	}
 
 }

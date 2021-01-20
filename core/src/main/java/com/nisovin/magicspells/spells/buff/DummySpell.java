@@ -12,7 +12,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class DummySpell extends BuffSpell {
 
-	private Set<UUID> entities;
+	private final Set<UUID> entities;
 	
 	public DummySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -42,6 +42,10 @@ public class DummySpell extends BuffSpell {
 			cancelEffectForAllPlayers(pos);
 		}
 		entities.clear();
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
 	}
 
 }

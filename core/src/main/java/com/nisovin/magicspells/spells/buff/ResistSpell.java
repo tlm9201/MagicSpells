@@ -1,6 +1,11 @@
 package com.nisovin.magicspells.spells.buff;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.List;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
@@ -16,12 +21,13 @@ import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 
 public class ResistSpell extends BuffSpell {
 
-	private Map<UUID, Float> buffed;
+	private final Map<UUID, Float> entities;
+
+	private final Set<String> spellDamageTypes;
+
+	private final Set<DamageCause> normalDamageTypes;
 
 	private float multiplier;
-
-	private Set<String> spellDamageTypes;
-	private Set<DamageCause> normalDamageTypes;
 
 	public ResistSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -35,8 +41,7 @@ public class ResistSpell extends BuffSpell {
 				try {
 					DamageCause damageCause = DamageCause.valueOf(cause.replace(" ","_").replace("-","_").toUpperCase());
 					normalDamageTypes.add(damageCause);
-				}
-				catch (IllegalArgumentException e) {
+				} catch (IllegalArgumentException e) {
 					MagicSpells.error("ResistSpell '" + internalName + "' has an invalid damage cause defined '" + cause + "'!");
 				}
 			}
@@ -46,28 +51,28 @@ public class ResistSpell extends BuffSpell {
 		causes = getConfigStringList("spell-damage-types", null);
 		if (causes != null) spellDamageTypes.addAll(causes);
 
-		buffed = new HashMap<>();
+		entities = new HashMap<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		buffed.put(entity.getUniqueId(), power);
+		entities.put(entity.getUniqueId(), power);
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return buffed.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOffBuff(LivingEntity entity) {
-		buffed.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		buffed.clear();
+		entities.clear();
 	}
 	
 	@EventHandler
@@ -84,8 +89,8 @@ public class ResistSpell extends BuffSpell {
 		LivingEntity entity = event.getTarget();
 
 		float power = multiplier;
-		if (multiplier < 1) power *= 1 / buffed.get(entity.getUniqueId());
-		else if (multiplier > 1) power *= buffed.get(entity.getUniqueId());
+		if (multiplier < 1) power *= 1 / entities.get(entity.getUniqueId());
+		else if (multiplier > 1) power *= entities.get(entity.getUniqueId());
 
 		addUseAndChargeCost(entity);
 		event.applyDamageModifier(power);
@@ -101,11 +106,31 @@ public class ResistSpell extends BuffSpell {
 		if (!isActive((LivingEntity) entity)) return;
 
 		float mult = multiplier;
-		if (multiplier < 1) mult *= 1 / buffed.get(entity.getUniqueId());
-		else if (multiplier > 1) mult *= buffed.get(entity.getUniqueId());
+		if (multiplier < 1) mult *= 1 / entities.get(entity.getUniqueId());
+		else if (multiplier > 1) mult *= entities.get(entity.getUniqueId());
 
 		addUseAndChargeCost((LivingEntity) entity);
 		event.setDamage(event.getDamage() * mult);
+	}
+
+	public Map<UUID, Float> getEntities() {
+		return entities;
+	}
+
+	public Set<String> getSpellDamageTypes() {
+		return spellDamageTypes;
+	}
+
+	public Set<DamageCause> getNormalDamageTypes() {
+		return normalDamageTypes;
+	}
+
+	public float getMultiplier() {
+		return multiplier;
+	}
+
+	public void setMultiplier(float multiplier) {
+		this.multiplier = multiplier;
 	}
 
 }

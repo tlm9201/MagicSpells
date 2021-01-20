@@ -36,7 +36,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class ArmorSpell extends BuffSpell {
 
-	private Set<UUID> armored;
+	private final Set<UUID> entities;
 
 	private boolean permanent;
 	private boolean replace;
@@ -65,7 +65,7 @@ public class ArmorSpell extends BuffSpell {
 
 		strHasArmor = getConfigString("str-has-armor", "You cannot cast this spell if you are wearing armor.");
 
-		armored = new HashSet<>();
+		entities = new HashSet<>();
 	}
 
 	@Override
@@ -125,7 +125,7 @@ public class ArmorSpell extends BuffSpell {
 
 		setArmor(inv);
 
-		if (!permanent) armored.add(entity.getUniqueId());
+		if (!permanent) entities.add(entity.getUniqueId());
 		return true;
 	}
 
@@ -136,12 +136,12 @@ public class ArmorSpell extends BuffSpell {
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return armored.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		if (!armored.remove(entity.getUniqueId())) return;
+		if (!entities.remove(entity.getUniqueId())) return;
 		if (!entity.isValid()) return;
 		EntityEquipment inv = entity.getEquipment();
 		removeArmor(inv);
@@ -149,14 +149,14 @@ public class ArmorSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		for (UUID id : armored) {
+		for (UUID id : entities) {
 			Entity entity = Bukkit.getEntity(id);
 			if (entity == null) continue;
 			if (!entity.isValid()) continue;
 			EntityEquipment inv = ((LivingEntity) entity).getEquipment();
 			removeArmor(inv);
 		}
-		armored.clear();
+		entities.clear();
 	}
 
 	private void setArmor(EntityEquipment inv) {
@@ -281,4 +281,73 @@ public class ArmorSpell extends BuffSpell {
 
 	}
 
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public boolean isPermanent() {
+		return permanent;
+	}
+
+	public void setPermanent(boolean permanent) {
+		this.permanent = permanent;
+	}
+
+	public boolean shouldReplace() {
+		return replace;
+	}
+
+	public void setReplace(boolean replace) {
+		this.replace = replace;
+	}
+
+	public ItemStack getHelmet() {
+		return helmet;
+	}
+
+	public void setHelmet(ItemStack helmet) {
+		this.helmet = helmet;
+	}
+
+	public ItemStack getChestplate() {
+		return chestplate;
+	}
+
+	public void setChestplate(ItemStack chestplate) {
+		this.chestplate = chestplate;
+	}
+
+	public ItemStack getLeggings() {
+		return leggings;
+	}
+
+	public void setLeggings(ItemStack leggings) {
+		this.leggings = leggings;
+	}
+
+	public ItemStack getBoots() {
+		return boots;
+	}
+
+	public void setBoots(ItemStack boots) {
+		this.boots = boots;
+	}
+
+	public String getHasArmorMessage() {
+		return strHasArmor;
+	}
+
+	public void setHasArmorMessage(String strHasArmor) {
+		this.strHasArmor = strHasArmor;
+	}
+
+	public String getHiddenLore() {
+		return hiddenLore;
+	}
+
+	public void setHiddenLore(String hiddenLore) {
+		this.hiddenLore = hiddenLore;
+	}
+
 }
+

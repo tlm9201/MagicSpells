@@ -26,8 +26,10 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class LightwalkSpell extends BuffSpell {
 	
-	private Map<UUID, Block> lightwalkers;
-	private Set<Material> allowedTypes;
+	private final Map<UUID, Block> entities;
+
+	private final Set<Material> allowedTypes;
+
 	private Material material;
 
 	public LightwalkSpell(MagicConfig config, String spellName) {
@@ -40,14 +42,15 @@ public class LightwalkSpell extends BuffSpell {
 			material = Material.GLOWSTONE;
 		}
 
-		lightwalkers = new HashMap<>();
+		entities = new HashMap<>();
+
 		allowedTypes = new HashSet<>();
 
 		List<String> blockList = getConfigStringList("allowed-types", null);
 		if (blockList != null) {
 			for (String str : blockList) {
 				Material material = Util.getMaterial(str);
-				if (material == null) MagicSpells.error("LightwalkSpell " + internalName + " has an invalid block defined " + str);
+				if (material == null) MagicSpells.error("LightwalkSpell " + internalName + " has an invalid block defined: " + str);
 				else allowedTypes.add(material);
 			}
 		} else {
@@ -70,18 +73,18 @@ public class LightwalkSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		lightwalkers.put(entity.getUniqueId(), entity.getLocation().getBlock().getRelative(BlockFace.DOWN));
+		entities.put(entity.getUniqueId(), entity.getLocation().getBlock().getRelative(BlockFace.DOWN));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return lightwalkers.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		Block b = lightwalkers.remove(entity.getUniqueId());
+		Block b = entities.remove(entity.getUniqueId());
 		if (b == null) return;
 		if (!(entity instanceof Player)) return;
 		((Player) entity).sendBlockChange(b.getLocation(), b.getBlockData());
@@ -89,15 +92,15 @@ public class LightwalkSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		for (UUID id : lightwalkers.keySet()) {
+		for (UUID id : entities.keySet()) {
 			Entity entity = Bukkit.getEntity(id);
 			if (!(entity instanceof Player)) continue;
-			Block b = lightwalkers.get(id);
+			Block b = entities.get(id);
 			if (b == null) continue;
 			((Player) entity).sendBlockChange(b.getLocation(), b.getBlockData());
 		}
 
-		lightwalkers.clear();
+		entities.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
@@ -105,10 +108,9 @@ public class LightwalkSpell extends BuffSpell {
 		Player player = event.getPlayer();
 		if (!isActive(player)) return;
 
-		Block oldBlock = lightwalkers.get(player.getUniqueId());
+		Block oldBlock = entities.get(player.getUniqueId());
 		Block newBlock = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
 		if (oldBlock == null) return;
-		if (newBlock == null) return;
 		if (oldBlock.equals(newBlock)) return;
 		if (!allowedTypes.contains(newBlock.getType())) return;
 		if (BlockUtils.isAir(newBlock.getType())) return;
@@ -118,9 +120,25 @@ public class LightwalkSpell extends BuffSpell {
 		}
 
 		addUseAndChargeCost(player);
-		lightwalkers.put(player.getUniqueId(), newBlock);
+		entities.put(player.getUniqueId(), newBlock);
 		player.sendBlockChange(newBlock.getLocation(), material.createBlockData());
-		if (oldBlock != null) player.sendBlockChange(oldBlock.getLocation(), oldBlock.getBlockData());
+		player.sendBlockChange(oldBlock.getLocation(), oldBlock.getBlockData());
+	}
+
+	public Map<UUID, Block> getEntities() {
+		return entities;
+	}
+
+	public Set<Material> getAllowedTypes() {
+		return allowedTypes;
+	}
+
+	public Material getMaterial() {
+		return material;
+	}
+
+	public void setMaterial(Material material) {
+		this.material = material;
 	}
 
 }

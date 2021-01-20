@@ -16,7 +16,7 @@ import com.nisovin.magicspells.events.SpellCastEvent;
 
 public class SpellHasteSpell extends BuffSpell {
 
-	private Map<UUID, Float> spellTimers;
+	private final Map<UUID, Float> entities;
 
 	private float castTimeModAmt;
 	private float cooldownModAmt;
@@ -29,7 +29,7 @@ public class SpellHasteSpell extends BuffSpell {
 		castTimeModAmt = getConfigInt("cast-time-mod-amt", -25) / 100F;
 		cooldownModAmt = getConfigInt("cooldown-mod-amt", -25) / 100F;
 	
-		spellTimers = new HashMap<>();
+		entities = new HashMap<>();
 
 		List<String> spells = getConfigStringList("spells", null);
 		List<String> deniedSpells = getConfigStringList("denied-spells", null);
@@ -41,23 +41,23 @@ public class SpellHasteSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		spellTimers.put(entity.getUniqueId(), power);
+		entities.put(entity.getUniqueId(), power);
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return spellTimers.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		spellTimers.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		spellTimers.clear();
+		entities.clear();
 	}
 
 	@EventHandler (priority=EventPriority.MONITOR)
@@ -65,7 +65,7 @@ public class SpellHasteSpell extends BuffSpell {
 		if (!filter.check(event.getSpell())) return;
 		if (!isActive(event.getCaster())) return;
 		
-		Float power = spellTimers.get(event.getCaster().getUniqueId());
+		Float power = entities.get(event.getCaster().getUniqueId());
 		if (power == null) return;
 
 		if (castTimeModAmt != 0) {
@@ -82,6 +82,34 @@ public class SpellHasteSpell extends BuffSpell {
 			event.setCooldown(newCD);
 		}
 
+	}
+
+	public Map<UUID, Float> getEntities() {
+		return entities;
+	}
+
+	public float getCastTimeModAmt() {
+		return castTimeModAmt;
+	}
+
+	public void setCastTimeModAmt(float castTimeModAmt) {
+		this.castTimeModAmt = castTimeModAmt;
+	}
+
+	public float getCooldownModAmt() {
+		return cooldownModAmt;
+	}
+
+	public void setCooldownModAmt(float cooldownModAmt) {
+		this.cooldownModAmt = cooldownModAmt;
+	}
+
+	public SpellFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(SpellFilter filter) {
+		this.filter = filter;
 	}
 
 }

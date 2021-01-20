@@ -24,7 +24,7 @@ import org.apache.commons.math3.util.FastMath;
 
 public class HasteSpell extends BuffSpell {
 
-	private Map<UUID, HasteData> hasted;
+	private final Map<UUID, HasteData> entities;
 
 	private int strength;
 	private int boostDuration;
@@ -49,42 +49,42 @@ public class HasteSpell extends BuffSpell {
 		hidden = getConfigBoolean("hidden", false);
 		if (accelerationDelay >= 0 && accelerationAmount > 0 && accelerationIncrease > 0 && accelerationInterval > 0) acceleration = true;
 
-		hasted = new HashMap<>();
+		entities = new HashMap<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		hasted.put(entity.getUniqueId(), new HasteData(FastMath.round(strength * power)));
+		entities.put(entity.getUniqueId(), new HasteData(FastMath.round(strength * power)));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return hasted.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		HasteData data = hasted.get(entity.getUniqueId());
+		HasteData data = entities.get(entity.getUniqueId());
 		if (data == null) return;
 		MagicSpells.cancelTask(data.task);
-		hasted.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 		entity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0));
 		entity.removePotionEffect(PotionEffectType.SPEED);
 	}
 
 	@Override
 	protected void turnOff() {
-		for (UUID id : hasted.keySet()) {
+		for (UUID id : entities.keySet()) {
 			Entity e = Bukkit.getEntity(id);
 			if (!(e instanceof LivingEntity)) continue;
 			LivingEntity livingEntity = (LivingEntity) e;
 			livingEntity.removePotionEffect(PotionEffectType.SPEED);
-			HasteData data = hasted.get(id);
+			HasteData data = entities.get(id);
 			if (data != null) MagicSpells.cancelTask(data.task);
 		}
 
-		hasted.clear();
+		entities.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
@@ -97,7 +97,7 @@ public class HasteSpell extends BuffSpell {
 			return;
 		}
 
-		HasteData data = hasted.get(pl.getUniqueId());
+		HasteData data = entities.get(pl.getUniqueId());
 		int amplifier = data.strength;
 
 		if (event.isSprinting()) {
@@ -131,9 +131,77 @@ public class HasteSpell extends BuffSpell {
 		if (!pl.isSprinting()) return;
 		pl.removePotionEffect(PotionEffectType.SPEED);
 
-		HasteData data = hasted.get(pl.getUniqueId());
+		HasteData data = entities.get(pl.getUniqueId());
 		if (data == null) return;
 		MagicSpells.cancelTask(data.task);
+	}
+
+	public Map<UUID, HasteData> getEntities() {
+		return entities;
+	}
+
+	public int getStrength() {
+		return strength;
+	}
+
+	public void setStrength(int strength) {
+		this.strength = strength;
+	}
+
+	public int getBoostDuration() {
+		return boostDuration;
+	}
+
+	public void setBoostDuration(int boostDuration) {
+		this.boostDuration = boostDuration;
+	}
+
+	public int getAccelerationDelay() {
+		return accelerationDelay;
+	}
+
+	public void setAccelerationDelay(int accelerationDelay) {
+		this.accelerationDelay = accelerationDelay;
+	}
+
+	public int getAccelerationAmount() {
+		return accelerationAmount;
+	}
+
+	public void setAccelerationAmount(int accelerationAmount) {
+		this.accelerationAmount = accelerationAmount;
+	}
+
+	public int getAccelerationIncrease() {
+		return accelerationIncrease;
+	}
+
+	public void setAccelerationIncrease(int accelerationIncrease) {
+		this.accelerationIncrease = accelerationIncrease;
+	}
+
+	public int getAccelerationInterval() {
+		return accelerationInterval;
+	}
+
+	public void setAccelerationInterval(int accelerationInterval) {
+		this.accelerationInterval = accelerationInterval;
+	}
+
+	public boolean isHidden() {
+		return hidden;
+	}
+
+	public void setHidden(boolean hidden) {
+		this.hidden = hidden;
+	}
+
+	public boolean hasAcceleration() {
+		return acceleration;
+	}
+
+	public void setAcceleration(boolean acceleration) {
+		this.acceleration = acceleration;
 	}
 
 	private static class HasteData {

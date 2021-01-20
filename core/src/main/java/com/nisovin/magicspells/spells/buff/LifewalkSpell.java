@@ -24,11 +24,13 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class LifewalkSpell extends BuffSpell {
 	
-	private Set<UUID> lifewalkers;
-	private Map<Material, Integer> blocks;
+	private final Set<UUID> entities;
+
+	private final Map<Material, Integer> blocks;
+
+	private final Random random;
 
 	private Grower grower;
-	private Random random;
 
 	private int tickInterval;
 	
@@ -38,8 +40,10 @@ public class LifewalkSpell extends BuffSpell {
 		tickInterval = getConfigInt("tick-interval", 15);
 
 		random = ThreadLocalRandom.current();
+
 		blocks = new HashMap<>();
-		lifewalkers = new HashSet<>();
+
+		entities = new HashSet<>();
 
 		List<String> blockList = getConfigStringList("blocks", null);
 		if (blockList != null) {
@@ -50,8 +54,8 @@ public class LifewalkSpell extends BuffSpell {
 				if (string.length < 2) MagicSpells.error("LifewalkSpell " + internalName + " has an invalid block defined");
 
 				material = Util.getMaterial(string[0]);
-				if (material == null) MagicSpells.error("LifewalkSpell " + internalName + " has an invalid block defined " + string[0]);
-				if (string.length >= 2 && string[1] == null) MagicSpells.error("LifewalkSpell " + internalName + " has an invalid chance defined for block " + string[0]);
+				if (material == null) MagicSpells.error("LifewalkSpell " + internalName + " has an invalid block defined: " + string[0]);
+				if (string.length >= 2 && string[1] == null) MagicSpells.error("LifewalkSpell " + internalName + " has an invalid chance defined for block: " + string[0]);
 				else if (string.length >= 2) chance = Integer.parseInt(string[1]);
 
 				if (material != null && chance > 0) blocks.put(material, chance);
@@ -68,20 +72,20 @@ public class LifewalkSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		lifewalkers.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		if (grower == null) grower = new Grower();
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return lifewalkers.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		lifewalkers.remove(entity.getUniqueId());
-		if (!lifewalkers.isEmpty()) return;
+		entities.remove(entity.getUniqueId());
+		if (!entities.isEmpty()) return;
 		if (grower == null) return;
 		
 		grower.stop();
@@ -90,16 +94,32 @@ public class LifewalkSpell extends BuffSpell {
 	
 	@Override
 	protected void turnOff() {
-		lifewalkers.clear();
+		entities.clear();
 		if (grower == null) return;
 		
 		grower.stop();
 		grower = null;
 	}
 
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public Map<Material, Integer> getBlocks() {
+		return blocks;
+	}
+
+	public int getTickInterval() {
+		return tickInterval;
+	}
+
+	public void setTickInterval(int tickInterval) {
+		this.tickInterval = tickInterval;
+	}
+
 	private class Grower implements Runnable {
 		
-		private int taskId;
+		private final int taskId;
 
 		private Grower() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, tickInterval, tickInterval);
@@ -111,7 +131,7 @@ public class LifewalkSpell extends BuffSpell {
 		
 		@Override
 		public void run() {
-			for (UUID id : lifewalkers) {
+			for (UUID id : entities) {
 				Entity entity = Bukkit.getEntity(id);
 				if (entity == null) continue;
 				if (!entity.isValid()) continue;

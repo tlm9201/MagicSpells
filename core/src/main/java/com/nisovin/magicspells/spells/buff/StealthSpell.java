@@ -13,33 +13,33 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class StealthSpell extends BuffSpell {
 	
-	private Set<UUID> stealthy;
+	private final Set<UUID> entities;
 	
 	public StealthSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 		
-		stealthy = new HashSet<>();
+		entities = new HashSet<>();
 	}
 	
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		stealthy.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return stealthy.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		stealthy.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		stealthy.clear();
+		entities.clear();
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -54,6 +54,10 @@ public class StealthSpell extends BuffSpell {
 
 		addUseAndChargeCost(target);
 		event.setCancelled(true);
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
 	}
 	
 }

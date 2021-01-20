@@ -26,12 +26,12 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class LilywalkSpell extends BuffSpell {
 
-	private Map<UUID, Lilies> lilywalkers;
+	private final Map<UUID, Lilies> entities;
 
 	public LilywalkSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		lilywalkers = new HashMap<>();
+		entities = new HashMap<>();
 	}
 
 	@Override
@@ -39,32 +39,32 @@ public class LilywalkSpell extends BuffSpell {
 		Lilies lilies = new Lilies();
 		lilies.move(entity.getLocation().getBlock());
 
-		lilywalkers.put(entity.getUniqueId(), lilies);
+		entities.put(entity.getUniqueId(), lilies);
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return lilywalkers.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		Lilies lilies = lilywalkers.remove(entity.getUniqueId());
+		Lilies lilies = entities.remove(entity.getUniqueId());
 		if (lilies == null) return;
 		lilies.remove();
 	}
 
 	@Override
 	protected void turnOff() {
-		Util.forEachValueOrdered(lilywalkers, Lilies::remove);
-		lilywalkers.clear();
+		Util.forEachValueOrdered(entities, Lilies::remove);
+		entities.clear();
 	}
 	
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onPlayerMove(PlayerMoveEvent event) {
 		Player player = event.getPlayer();
-		Lilies lilies = lilywalkers.get(player.getUniqueId());
+		Lilies lilies = entities.get(player.getUniqueId());
 
 		if (lilies == null) return;
 		if (isExpired(player)) {
@@ -83,26 +83,31 @@ public class LilywalkSpell extends BuffSpell {
 	
 	@EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)
 	public void onBlockBreak(BlockBreakEvent event) {
-		if (lilywalkers.isEmpty()) return;
+		if (entities.isEmpty()) return;
 		final Block block = event.getBlock();
 		if (block.getType() != Material.LILY_PAD) return;
-		if (Util.containsValueParallel(lilywalkers, lilies -> lilies.contains(block))) event.setCancelled(true);
+		if (Util.containsValueParallel(entities, lilies -> lilies.contains(block))) event.setCancelled(true);
+	}
+
+	public Map<UUID, Lilies> getEntities() {
+		return entities;
 	}
 
 	private static class Lilies {
-		
+
+		private final Set<Block> blocks = new HashSet<>();
+
 		private Block center = null;
-		private Set<Block> blocks = new HashSet<>();
-		
+
 		private void move(Block center) {
 			this.center = center;
 			
-			Iterator<Block> iter = blocks.iterator();
-			while (iter.hasNext()) {
-				Block b = iter.next();
+			Iterator<Block> iterator = blocks.iterator();
+			while (iterator.hasNext()) {
+				Block b = iterator.next();
 				if (b.equals(center)) continue;
 				b.setType(Material.AIR);
-				iter.remove();
+				iterator.remove();
 			}
 			
 			setToLily(center);

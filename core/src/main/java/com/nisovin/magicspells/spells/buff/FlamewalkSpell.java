@@ -19,11 +19,12 @@ import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class FlamewalkSpell extends BuffSpell {
 
-	private Map<UUID, Float> flamewalkers;
+	private final Map<UUID, Float> entities;
 
 	private int radius;
 	private int fireTicks;
 	private int tickInterval;
+
 	private boolean checkPlugins;
 
 	private Burner burner;
@@ -38,25 +39,25 @@ public class FlamewalkSpell extends BuffSpell {
 
 		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 
-		flamewalkers = new HashMap<>();
+		entities = new HashMap<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		flamewalkers.put(entity.getUniqueId(), power);
+		entities.put(entity.getUniqueId(), power);
 		if (burner == null) burner = new Burner();
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return flamewalkers.containsKey(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		flamewalkers.remove(entity.getUniqueId());
-		if (!flamewalkers.isEmpty()) return;
+		entities.remove(entity.getUniqueId());
+		if (!entities.isEmpty()) return;
 		if (burner == null) return;
 		
 		burner.stop();
@@ -65,16 +66,52 @@ public class FlamewalkSpell extends BuffSpell {
 	
 	@Override
 	protected void turnOff() {
-		flamewalkers.clear();
+		entities.clear();
 		if (burner == null) return;
 		
 		burner.stop();
 		burner = null;
 	}
 
+	public Map<UUID, Float> getEntities() {
+		return entities;
+	}
+
+	public int getRadius() {
+		return radius;
+	}
+
+	public void setRadius(int radius) {
+		this.radius = radius;
+	}
+
+	public int getFireTicks() {
+		return fireTicks;
+	}
+
+	public void setFireTicks(int fireTicks) {
+		this.fireTicks = fireTicks;
+	}
+
+	public int getTickInterval() {
+		return tickInterval;
+	}
+
+	public void setTickInterval(int tickInterval) {
+		this.tickInterval = tickInterval;
+	}
+
+	public boolean isCheckPlugins() {
+		return checkPlugins;
+	}
+
+	public void setCheckPlugins(boolean checkPlugins) {
+		this.checkPlugins = checkPlugins;
+	}
+
 	private class Burner implements Runnable {
 		
-		private int taskId;
+		private final int taskId;
 
 		private Burner() {
 			taskId = MagicSpells.scheduleRepeatingTask(this, tickInterval, tickInterval);
@@ -86,7 +123,7 @@ public class FlamewalkSpell extends BuffSpell {
 		
 		@Override
 		public void run() {
-			for (UUID id : flamewalkers.keySet()) {
+			for (UUID id : entities.keySet()) {
 				Entity entity = Bukkit.getEntity(id);
 				if (!(entity instanceof LivingEntity)) continue;
 				LivingEntity livingEntity = (LivingEntity) entity;
@@ -96,7 +133,7 @@ public class FlamewalkSpell extends BuffSpell {
 					continue;
 				}
 
-				float power = flamewalkers.get(livingEntity.getUniqueId());
+				float power = entities.get(livingEntity.getUniqueId());
 				playSpellEffects(EffectPosition.DELAYED, livingEntity);
 
 				List<Entity> entities = livingEntity.getNearbyEntities(radius, radius, radius);

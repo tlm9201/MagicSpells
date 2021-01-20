@@ -18,9 +18,10 @@ import com.nisovin.magicspells.events.SpellTargetEvent;
 
 public class ImpactRecordSpell extends BuffSpell {
 	
-	private Set<UUID> recorders;
+	private final Set<UUID> entities;
 
 	private String variableName;
+
 	private SpellFilter recordFilter;
 
 	private boolean recordCancelled;
@@ -29,10 +30,12 @@ public class ImpactRecordSpell extends BuffSpell {
 		super(config, spellName);
 
 		variableName = getConfigString("variable-name", null);
+
 		recordFilter = SpellFilter.fromConfig(config, "spells." + internalName + ".filter");
+
 		recordCancelled = getConfigBoolean("record-cancelled", false);
 
-		recorders = new HashSet<>();
+		entities = new HashSet<>();
 	}
 	
 	@Override
@@ -47,23 +50,23 @@ public class ImpactRecordSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		recorders.add(entity.getUniqueId());
+		entities.add(entity.getUniqueId());
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return recorders.contains(entity.getUniqueId());
+		return entities.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		recorders.remove(entity.getUniqueId());
+		entities.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		recorders.clear();
+		entities.clear();
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -81,6 +84,26 @@ public class ImpactRecordSpell extends BuffSpell {
 		
 		addUseAndChargeCost(playerTarget);
 		MagicSpells.getVariableManager().set(variableName, playerTarget, spell.getInternalName());
+	}
+
+	public Set<UUID> getEntities() {
+		return entities;
+	}
+
+	public SpellFilter getFilter() {
+		return recordFilter;
+	}
+
+	public void setFilter(SpellFilter recordFilter) {
+		this.recordFilter = recordFilter;
+	}
+
+	public boolean isRecordCancelled() {
+		return recordCancelled;
+	}
+
+	public void setRecordCancelled(boolean recordCancelled) {
+		this.recordCancelled = recordCancelled;
 	}
 
 }
