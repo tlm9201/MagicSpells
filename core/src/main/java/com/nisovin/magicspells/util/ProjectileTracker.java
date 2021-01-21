@@ -146,7 +146,7 @@ public class ProjectileTracker implements Runnable {
 		startLocation = from.clone();
 
 		// Changing the start location
-		startDirection = caster.getLocation().getDirection().normalize();
+		startDirection = from.getDirection().normalize();
 		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
 		startLocation.add(horizOffset.multiply(startZOffset)).getBlock().getLocation();
 		startLocation.add(startLocation.getDirection().multiply(startXOffset));
