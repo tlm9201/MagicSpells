@@ -401,15 +401,7 @@ public class ProjectileTracker implements Runnable {
 		Set<ProjectileTracker> toRemove = new HashSet<>();
 		Set<ProjectileTracker> trackers = new HashSet<>(ParticleProjectileSpell.getProjectileTrackers());
 		for (ProjectileTracker collisionTracker : trackers) {
-			if (collisionTracker == null) continue;
-			if (tracker == null) continue;
-			if (tracker.caster == null) continue;
-			if (collisionTracker.caster == null) continue;
-			if (collisionTracker.equals(tracker)) continue;
-			if (!interactionSpells.containsKey(collisionTracker.spell.getInternalName())) continue;
-			if (!collisionTracker.currentLocation.getWorld().equals(tracker.currentLocation.getWorld())) continue;
-			if (!collisionTracker.hitBox.contains(tracker.currentLocation) && !tracker.hitBox.contains(collisionTracker.currentLocation)) continue;
-			if (!allowCasterInteract && collisionTracker.caster.equals(tracker.caster)) continue;
+			if (!canInteractWith(collisionTracker)) continue;
 
 			Subspell collisionSpell = interactionSpells.get(collisionTracker.spell.getInternalName());
 			if (collisionSpell == null) {
@@ -435,6 +427,19 @@ public class ProjectileTracker implements Runnable {
 		ParticleProjectileSpell.getProjectileTrackers().removeAll(toRemove);
 		toRemove.clear();
 		trackers.clear();
+	}
+
+	private boolean canInteractWith(ProjectileTracker collisionTracker) {
+		if (collisionTracker == null) return false;
+		if (tracker == null) return false;
+		if (tracker.caster == null) return false;
+		if (collisionTracker.caster == null) return false;
+		if (collisionTracker.equals(tracker)) return false;
+		if (!interactionSpells.containsKey(collisionTracker.spell.getInternalName())) return false;
+		if (!collisionTracker.currentLocation.getWorld().equals(tracker.currentLocation.getWorld())) return false;
+		if (!collisionTracker.hitBox.contains(tracker.currentLocation) && !tracker.hitBox.contains(collisionTracker.currentLocation)) return false;
+		if (!allowCasterInteract && collisionTracker.caster.equals(tracker.caster)) return false;
+		return true;
 	}
 
 	private Location setDirection(Location loc, Vector v) {

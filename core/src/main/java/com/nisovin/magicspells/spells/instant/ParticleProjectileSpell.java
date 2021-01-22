@@ -298,10 +298,6 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 			for (String str : interactions) {
 				String[] params = str.split(" ");
 				if (params[0] == null) continue;
-				if (params[0].equalsIgnoreCase(internalName)) {
-					MagicSpells.error("ParticleProjectileSpell '" + internalName + "' has an interaction with itself!");
-					continue;
-				}
 
 				Subspell projectile = new Subspell(params[0]);
 				if (!projectile.process() || !(projectile.getSpell() instanceof ParticleProjectileSpell)) {
