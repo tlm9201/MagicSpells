@@ -62,7 +62,7 @@ public class BindSpell extends CommandSpell {
 		strSpellCantBind = getConfigString("str-spell-cant-bind", "That spell cannot be bound like this.");
 	}
 	
-	// DEBUG INFO: level 3, trying to bind spell internalname to cast item castitemstring
+	// DEBUG INFO: level 3, trying to bind spell internalName to cast item castItemString
 	// DEBUG INFO: level 3, performing bind
 	// DEBUG INFO: level 3, bind successful
 	@Override
@@ -137,6 +137,62 @@ public class BindSpell extends CommandSpell {
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		if (sender instanceof Player && !partial.contains(" ")) return tabCompleteSpellName(sender, partial);
 		return null;
+	}
+
+	public Set<CastItem> getBindableItems() {
+		return bindableItems;
+	}
+
+	public Set<Spell> getAllowedSpells() {
+		return allowedSpells;
+	}
+
+	public boolean shouldAllowBindToFist() {
+		return allowBindToFist;
+	}
+
+	public void setAllowBindToFist(boolean allowBindToFist) {
+		this.allowBindToFist = allowBindToFist;
+	}
+
+	public String getStrUsage() {
+		return strUsage;
+	}
+
+	public void setStrUsage(String strUsage) {
+		this.strUsage = strUsage;
+	}
+
+	public String getStrNoSpell() {
+		return strNoSpell;
+	}
+
+	public void setStrNoSpell(String strNoSpell) {
+		this.strNoSpell = strNoSpell;
+	}
+
+	public String getStrCantBindItem() {
+		return strCantBindItem;
+	}
+
+	public void setStrCantBindItem(String strCantBindItem) {
+		this.strCantBindItem = strCantBindItem;
+	}
+
+	public String getStrCantBindSpell() {
+		return strCantBindSpell;
+	}
+
+	public void setStrCantBindSpell(String strCantBindSpell) {
+		this.strCantBindSpell = strCantBindSpell;
+	}
+
+	public String getStrSpellCantBind() {
+		return strSpellCantBind;
+	}
+
+	public void setStrSpellCantBind(String strSpellCantBind) {
+		this.strSpellCantBind = strSpellCantBind;
 	}
 
 }

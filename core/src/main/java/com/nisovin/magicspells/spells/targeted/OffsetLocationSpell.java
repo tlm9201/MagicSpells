@@ -45,10 +45,13 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 		if (state == SpellCastState.NORMAL) {
 			Location baseTargetLocation;
 			TargetInfo<LivingEntity> entityTargetInfo = getTargetedEntity(livingEntity, power);
+
 			if (entityTargetInfo != null && entityTargetInfo.getTarget() != null) baseTargetLocation = entityTargetInfo.getTarget().getLocation();
 			else baseTargetLocation = getTargetedBlock(livingEntity, power).getLocation();
+
 			if (baseTargetLocation == null) return noTarget(livingEntity);
-			Location loc = Util.applyOffsets(baseTargetLocation, relativeOffset, absoluteOffset);
+
+			Location loc = Util.applyOffsets(baseTargetLocation.clone(), relativeOffset, absoluteOffset);
 			if (loc == null) return PostCastAction.ALREADY_HANDLED;
 
 			if (spellToCast != null) spellToCast.castAtLocation(livingEntity, loc, power);
@@ -59,7 +62,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		if (spellToCast != null) spellToCast.castAtLocation(caster, Util.applyOffsets(target, relativeOffset, absoluteOffset), power);
+		if (spellToCast != null) spellToCast.castAtLocation(caster, Util.applyOffsets(target.clone(), relativeOffset, absoluteOffset), power);
 		return true;
 	}
 

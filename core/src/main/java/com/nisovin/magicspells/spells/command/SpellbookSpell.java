@@ -42,16 +42,15 @@ public class SpellbookSpell extends CommandSpell {
 	
 	private static final Pattern PATTERN_CAST_ARG_USAGE = Pattern.compile("^[0-9]+$");
 
-	private ArrayList<String> bookSpells;
-	private ArrayList<Integer> bookUses;
-	private ArrayList<MagicLocation> bookLocations;
+	private List<String> bookSpells;
+	private List<Integer> bookUses;
+	private List<MagicLocation> bookLocations;
 
 	private Material spellbookBlock;
-	private String spellbookBlockName;
 
 	private int defaultUses;
 
-	private boolean destroyBookcase;
+	private boolean destroySpellbook;
 
 	private String strUsage;
 	private String strNoSpell;
@@ -71,7 +70,7 @@ public class SpellbookSpell extends CommandSpell {
 		bookUses = new ArrayList<>();
 		bookLocations = new ArrayList<>();
 
-		spellbookBlockName = getConfigString("spellbook-block", "bookshelf");
+		String spellbookBlockName = getConfigString("spellbook-block", "bookshelf");
 		spellbookBlock = Util.getMaterial(spellbookBlockName);
 		if (spellbookBlock == null || !spellbookBlock.isBlock()) {
 			MagicSpells.error("SpellbookSpell '" + internalName + "' has an invalid spellbook-block defined!");
@@ -80,7 +79,7 @@ public class SpellbookSpell extends CommandSpell {
 
 		defaultUses = getConfigInt("default-uses", -1);
 
-		destroyBookcase = getConfigBoolean("destroy-when-used-up", false);
+		destroySpellbook = getConfigBoolean("destroy-when-used-up", false);
 
 		strUsage = getConfigString("str-usage", "Usage: /cast spellbook <spell> [uses]");
 		strNoSpell = getConfigString("str-no-spell", "You do not know a spell by that name.");
@@ -207,7 +206,7 @@ public class SpellbookSpell extends CommandSpell {
 
 		uses--;
 		if (uses == 0) {
-			if (destroyBookcase) bookLocations.get(i).getLocation().getBlock().setType(Material.AIR);
+			if (destroySpellbook) bookLocations.get(i).getLocation().getBlock().setType(Material.AIR);
 			removeSpellbook(i);
 		} else bookUses.set(i, uses);
 	}
@@ -271,5 +270,125 @@ public class SpellbookSpell extends CommandSpell {
 			MagicSpells.plugin.getServer().getLogger().severe("MagicSpells: Error saving spellbooks");
 		}
 	}
-	
+
+	public static Pattern getPatternCastArgUsage() {
+		return PATTERN_CAST_ARG_USAGE;
+	}
+
+	public List<String> getBookSpells() {
+		return bookSpells;
+	}
+
+	public List<Integer> getBookUses() {
+		return bookUses;
+	}
+
+	public List<MagicLocation> getBookLocations() {
+		return bookLocations;
+	}
+
+	public Material getSpellbookBlock() {
+		return spellbookBlock;
+	}
+
+	public void setSpellbookBlock(Material spellbookBlock) {
+		this.spellbookBlock = spellbookBlock;
+	}
+
+	public int getDefaultUses() {
+		return defaultUses;
+	}
+
+	public void setDefaultUses(int defaultUses) {
+		this.defaultUses = defaultUses;
+	}
+
+	public boolean shouldDestroySpellbook() {
+		return destroySpellbook;
+	}
+
+	public void setDestroySpellbook(boolean destroySpellbook) {
+		this.destroySpellbook = destroySpellbook;
+	}
+
+	public String getStrUsage() {
+		return strUsage;
+	}
+
+	public void setStrUsage(String strUsage) {
+		this.strUsage = strUsage;
+	}
+
+	public String getStrNoSpell() {
+		return strNoSpell;
+	}
+
+	public void setStrNoSpell(String strNoSpell) {
+		this.strNoSpell = strNoSpell;
+	}
+
+	public String getStrLearned() {
+		return strLearned;
+	}
+
+	public void setStrLearned(String strLearned) {
+		this.strLearned = strLearned;
+	}
+
+	public String getStrNoTarget() {
+		return strNoTarget;
+	}
+
+	public void setStrNoTarget(String strNoTarget) {
+		this.strNoTarget = strNoTarget;
+	}
+
+	public String getStrCantTeach() {
+		return strCantTeach;
+	}
+
+	public void setStrCantTeach(String strCantTeach) {
+		this.strCantTeach = strCantTeach;
+	}
+
+	public String getStrCantLearn() {
+		return strCantLearn;
+	}
+
+	public void setStrCantLearn(String strCantLearn) {
+		this.strCantLearn = strCantLearn;
+	}
+
+	public String getStrLearnError() {
+		return strLearnError;
+	}
+
+	public void setStrLearnError(String strLearnError) {
+		this.strLearnError = strLearnError;
+	}
+
+	public String getStrCantDestroy() {
+		return strCantDestroy;
+	}
+
+	public void setStrCantDestroy(String strCantDestroy) {
+		this.strCantDestroy = strCantDestroy;
+	}
+
+	public String getStrHasSpellbook() {
+		return strHasSpellbook;
+	}
+
+	public void setStrHasSpellbook(String strHasSpellbook) {
+		this.strHasSpellbook = strHasSpellbook;
+	}
+
+	public String getStrAlreadyKnown() {
+		return strAlreadyKnown;
+	}
+
+	public void setStrAlreadyKnown(String strAlreadyKnown) {
+		this.strAlreadyKnown = strAlreadyKnown;
+	}
+
 }

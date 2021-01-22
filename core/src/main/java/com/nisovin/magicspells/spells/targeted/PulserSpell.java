@@ -112,37 +112,37 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			if (capPerPlayer > 0) {
 				int count = 0;
 				for (Pulser pulser : pulsers.values()) {
-					if (!pulser.caster.equals(livingEntity)) continue;
+					if (!pulser.caster.equals(caster)) continue;
 					
 					count++;
 					if (count >= capPerPlayer) {
-						sendMessage(strAtCap, livingEntity, args);
+						sendMessage(strAtCap, caster, args);
 						return PostCastAction.ALREADY_HANDLED;
 					}
 				}
 			}
-			List<Block> lastTwo = getLastTwoTargetedBlocks(livingEntity, power);
+			List<Block> lastTwo = getLastTwoTargetedBlocks(caster, power);
 			Block target = null;
 
 			if (lastTwo != null && lastTwo.size() == 2) target = lastTwo.get(0);
-			if (target == null) return noTarget(livingEntity);
+			if (target == null) return noTarget(caster);
 			if (yOffset > 0) target = target.getRelative(BlockFace.UP, yOffset);
 			else if (yOffset < 0) target = target.getRelative(BlockFace.DOWN, yOffset);
-			if (!BlockUtils.isPathable(target)) return noTarget(livingEntity);
+			if (!BlockUtils.isPathable(target)) return noTarget(caster);
 
 			if (target != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, target.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
 				EventUtil.call(event);
-				if (event.isCancelled()) return noTarget(livingEntity);
+				if (event.isCancelled()) return noTarget(caster);
 				target = event.getTargetLocation().getBlock();
 				power = event.getPower();
 			}
-			createPulser(livingEntity, target, power);
+			createPulser(caster, target, power, caster.getLocation());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -154,14 +154,14 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		else if (yOffset < 0) block = block.getRelative(BlockFace.DOWN, yOffset);
 
 		if (BlockUtils.isPathable(block)) {
-			createPulser(caster, block, power);
+			createPulser(caster, block, power, target);
 			return true;
 		}
 
 		if (checkFace) {
 			block = block.getRelative(BlockFace.UP);
 			if (BlockUtils.isPathable(block)) {
-				createPulser(caster, block, power);
+				createPulser(caster, block, power, target);
 				return true;
 			}
 		}
@@ -173,10 +173,10 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		return castAtLocation(null, target, power);
 	}
 
-	private void createPulser(LivingEntity caster, Block block, float power) {
+	private void createPulser(LivingEntity caster, Block block, float power, Location from) {
 		if (material == null) return;
 		block.setType(material);
-		pulsers.put(block, new Pulser(caster, block, power));
+		pulsers.put(block, new Pulser(caster, block, power, from));
 		ticker.start();
 		if (caster != null) playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5));
 		else playSpellEffects(EffectPosition.TARGET, block.getLocation().add(0.5, 0.5, 0.5));
@@ -253,10 +253,10 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		private float power;
 		private int pulseCount;
 		
-		private Pulser(LivingEntity caster, Block block, float power) {
+		private Pulser(LivingEntity caster, Block block, float power, Location from) {
 			this.caster = caster;
 			this.block = block;
-			this.location = block.getLocation().add(0.5, 0.5, 0.5);
+			this.location = block.getLocation().add(0.5, 0.5, 0.5).setDirection(from.getDirection());
 			this.power = power;
 			this.pulseCount = 0;
 		}

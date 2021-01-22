@@ -29,7 +29,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class KeybindSpell extends CommandSpell {
 
-	private Map<String, Keybinds> playerKeybinds;
+	private final Map<String, Keybinds> playerKeybinds;
 
 	private ItemStack wandItem;
 	private ItemStack defaultSpellIcon;
@@ -172,7 +172,27 @@ public class KeybindSpell extends CommandSpell {
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		return null;
 	}
-	
+
+	public Map<String, Keybinds> getPlayerKeybinds() {
+		return playerKeybinds;
+	}
+
+	public ItemStack getWandItem() {
+		return wandItem;
+	}
+
+	public void setWandItem(ItemStack wandItem) {
+		this.wandItem = wandItem;
+	}
+
+	public ItemStack getDefaultSpellIcon() {
+		return defaultSpellIcon;
+	}
+
+	public void setDefaultSpellIcon(ItemStack defaultSpellIcon) {
+		this.defaultSpellIcon = defaultSpellIcon;
+	}
+
 	private class Keybinds {
 		
 		private Player player;

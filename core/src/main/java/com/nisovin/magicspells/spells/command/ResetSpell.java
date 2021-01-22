@@ -8,21 +8,22 @@ import org.bukkit.command.CommandSender;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.CommandSpell;
 
-// PLANNED OPTIONS
-// get spellbook(s)
-//     remove certain spells
-//     remove all spells
-//     remove bindings
-// variables
-//     remove certain variables
-//     remove all variables
-// MarkSpell
-//     remove certain
-//     remove all
-// KeybindSpell
-//     reset
-// Spellbook spells
-//     remove by player/world/all
+/* PLANNED OPTIONS
+ - get spellbook(s):
+    * remove certain spells
+    * remove all spells
+    * remove bindings
+ - variables:
+    * remove certain variables
+    * remove all variables
+ - MarkSpell:
+    * remove certain
+    * remove all
+ - KeybindSpell:
+    * reset
+ - Spellbook spells:
+    * remove by player/world/all
+*/
 
 public class ResetSpell extends CommandSpell {
 	

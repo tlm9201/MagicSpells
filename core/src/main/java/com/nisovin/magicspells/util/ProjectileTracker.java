@@ -146,9 +146,9 @@ public class ProjectileTracker implements Runnable {
 		startLocation = from.clone();
 
 		// Changing the start location
-		startDirection = caster.getLocation().getDirection().normalize();
+		startDirection = from.getDirection().normalize();
 		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-		startLocation.add(horizOffset.multiply(startZOffset)).getBlock().getLocation();
+		startLocation.add(horizOffset.multiply(startZOffset));
 		startLocation.add(startLocation.getDirection().multiply(startXOffset));
 		startLocation.setY(startLocation.getY() + startYOffset);
 
@@ -176,7 +176,7 @@ public class ProjectileTracker implements Runnable {
 		// Changing the start location
 		startDirection = dir.clone().normalize();
 		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-		startLocation.add(horizOffset.multiply(startZOffset)).getBlock().getLocation();
+		startLocation.add(horizOffset.multiply(startZOffset));
 		startLocation.add(startLocation.getDirection().multiply(startXOffset));
 		startLocation.setY(startLocation.getY() + startYOffset);
 
@@ -324,7 +324,7 @@ public class ProjectileTracker implements Runnable {
 			Vector dir = currentLocation.getDirection().normalize();
 			Vector horizOffset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
 			Location effectLoc = currentLocation.clone();
-			effectLoc.add(horizOffset.multiply(effectOffset.getZ())).getBlock().getLocation();
+			effectLoc.add(horizOffset.multiply(effectOffset.getZ()));
 			effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
 			effectLoc.setY(effectLoc.getY() + effectOffset.getY());
 
@@ -401,15 +401,7 @@ public class ProjectileTracker implements Runnable {
 		Set<ProjectileTracker> toRemove = new HashSet<>();
 		Set<ProjectileTracker> trackers = new HashSet<>(ParticleProjectileSpell.getProjectileTrackers());
 		for (ProjectileTracker collisionTracker : trackers) {
-			if (collisionTracker == null) continue;
-			if (tracker == null) continue;
-			if (tracker.caster == null) continue;
-			if (collisionTracker.caster == null) continue;
-			if (collisionTracker.equals(tracker)) continue;
-			if (!interactionSpells.containsKey(collisionTracker.spell.getInternalName())) continue;
-			if (!collisionTracker.currentLocation.getWorld().equals(tracker.currentLocation.getWorld())) continue;
-			if (!collisionTracker.hitBox.contains(tracker.currentLocation) && !tracker.hitBox.contains(collisionTracker.currentLocation)) continue;
-			if (!allowCasterInteract && collisionTracker.caster.equals(tracker.caster)) continue;
+			if (!canInteractWith(collisionTracker)) continue;
 
 			Subspell collisionSpell = interactionSpells.get(collisionTracker.spell.getInternalName());
 			if (collisionSpell == null) {
@@ -435,6 +427,19 @@ public class ProjectileTracker implements Runnable {
 		ParticleProjectileSpell.getProjectileTrackers().removeAll(toRemove);
 		toRemove.clear();
 		trackers.clear();
+	}
+
+	private boolean canInteractWith(ProjectileTracker collisionTracker) {
+		if (collisionTracker == null) return false;
+		if (tracker == null) return false;
+		if (tracker.caster == null) return false;
+		if (collisionTracker.caster == null) return false;
+		if (collisionTracker.equals(tracker)) return false;
+		if (!interactionSpells.containsKey(collisionTracker.spell.getInternalName())) return false;
+		if (!collisionTracker.currentLocation.getWorld().equals(tracker.currentLocation.getWorld())) return false;
+		if (!collisionTracker.hitBox.contains(tracker.currentLocation) && !tracker.hitBox.contains(collisionTracker.currentLocation)) return false;
+		if (!allowCasterInteract && collisionTracker.caster.equals(tracker.caster)) return false;
+		return true;
 	}
 
 	private Location setDirection(Location loc, Vector v) {

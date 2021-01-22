@@ -74,7 +74,7 @@ public class AdminTeachSpell extends CommandSpell {
 		
 		@Override
 		public void run() {
-			// TODO can the retrieval of Magicspells::spells be done async or does that need to be done sync?
+			// TODO can the retrieval of MagicSpells::spells be done async or does that need to be done sync?
 			final Collection<Spell> spellCollection = SpellUtil.getSpellsByPermissionNames(MagicSpells.spells(), nodeSet);
 			Bukkit.getScheduler().scheduleSyncDelayedTask(MagicSpells.plugin, () -> {
 				if (spellbook.getSpells() == null) {

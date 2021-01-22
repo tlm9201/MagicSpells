@@ -19,10 +19,10 @@ import com.nisovin.magicspells.util.PlayerNameUtils;
 
 public class SublistSpell extends CommandSpell {
 
-	private List<String> spellsToHide;
-	private List<String> spellsToShow;
+	private final List<String> spellsToHide;
+	private final List<String> spellsToShow;
 
-	private int lineLength = 60;
+	private final int lineLength = 60;
 
 	private boolean reloadGrantedSpells;
 	private boolean onlyShowCastableSpells;
@@ -110,6 +110,50 @@ public class SublistSpell extends CommandSpell {
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		if (sender instanceof ConsoleCommandSender && !partial.contains(" ")) return tabCompletePlayerName(sender, partial);
 		return null;
+	}
+
+	public List<String> getSpellsToHide() {
+		return spellsToHide;
+	}
+
+	public List<String> getSpellsToShow() {
+		return spellsToShow;
+	}
+
+	public int getLineLength() {
+		return lineLength;
+	}
+
+	public boolean shouldReloadGrantedSpells() {
+		return reloadGrantedSpells;
+	}
+
+	public void setReloadGrantedSpells(boolean reloadGrantedSpells) {
+		this.reloadGrantedSpells = reloadGrantedSpells;
+	}
+
+	public boolean shouldOnlyShowCastableSpells() {
+		return onlyShowCastableSpells;
+	}
+
+	public void setOnlyShowCastableSpells(boolean onlyShowCastableSpells) {
+		this.onlyShowCastableSpells = onlyShowCastableSpells;
+	}
+
+	public String getStrPrefix() {
+		return strPrefix;
+	}
+
+	public void setStrPrefix(String strPrefix) {
+		this.strPrefix = strPrefix;
+	}
+
+	public String getStrNoSpells() {
+		return strNoSpells;
+	}
+
+	public void setStrNoSpells(String strNoSpells) {
+		this.strNoSpells = strNoSpells;
 	}
 
 }
