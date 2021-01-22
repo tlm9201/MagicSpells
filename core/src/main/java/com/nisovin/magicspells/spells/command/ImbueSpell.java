@@ -28,10 +28,10 @@ import com.nisovin.magicspells.spells.CommandSpell;
 
 public class ImbueSpell extends CommandSpell {
 
-	private static final Pattern CAST_ARG_USES_PATTERN  = Pattern.compile("[0-9]+");
+	private static final Pattern CAST_ARG_USES_PATTERN = Pattern.compile("[0-9]+");
 
-	private Set<Material> allowedItemTypes;
-	private List<Material> allowedItemMaterials;
+	private final Set<Material> allowedItemTypes;
+	private final List<Material> allowedItemMaterials;
 
 	private int maxUses;
 	private int defaultUses;
@@ -48,7 +48,7 @@ public class ImbueSpell extends CommandSpell {
 	private boolean rightClickCast;
 	private boolean allowSpecifyUses;
 	private boolean requireTeachPerm;
-	private boolean nameAndLoreHasUses;
+	private boolean nameAndLoreHaveUses;
 	private boolean chargeReagentsForSpellPerUse;
 
 	public ImbueSpell(MagicConfig config, String spellName) {
@@ -84,7 +84,7 @@ public class ImbueSpell extends CommandSpell {
 		requireTeachPerm = getConfigBoolean("require-teach-perm", true);
 		chargeReagentsForSpellPerUse = getConfigBoolean("charge-reagents-for-spell-per-use", true);
 
-		nameAndLoreHasUses = strItemName.contains("%u") || strItemLore.contains("%u");
+		nameAndLoreHaveUses = strItemName.contains("%u") || strItemLore.contains("%u");
 	}
 
 	@Override
@@ -199,10 +199,10 @@ public class ImbueSpell extends CommandSpell {
 			if (consumeItem) event.getPlayer().getEquipment().setItemInMainHand(null);
 			else {
 				Util.removeLoreData(item);
-				if (nameAndLoreHasUses) setItemNameAndLore(item, spell, 0);
+				if (nameAndLoreHaveUses) setItemNameAndLore(item, spell, 0);
 			}
 		} else {
-			if (nameAndLoreHasUses) setItemNameAndLore(item, spell, uses);
+			if (nameAndLoreHaveUses) setItemNameAndLore(item, spell, uses);
 			setImbueData(item, spell.getInternalName() + ',' + uses);
 		}
 	}
@@ -240,6 +240,138 @@ public class ImbueSpell extends CommandSpell {
 	@Override
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		return null;
+	}
+
+	public static Pattern getCastArgUsesPattern() {
+		return CAST_ARG_USES_PATTERN;
+	}
+
+	public Set<Material> getAllowedItemTypes() {
+		return allowedItemTypes;
+	}
+
+	public List<Material> getAllowedItemMaterials() {
+		return allowedItemMaterials;
+	}
+
+	public int getMaxUses() {
+		return maxUses;
+	}
+
+	public void setMaxUses(int maxUses) {
+		this.maxUses = maxUses;
+	}
+
+	public int getDefaultUses() {
+		return defaultUses;
+	}
+
+	public void setDefaultUses(int defaultUses) {
+		this.defaultUses = defaultUses;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public String getStrUsage() {
+		return strUsage;
+	}
+
+	public void setStrUsage(String strUsage) {
+		this.strUsage = strUsage;
+	}
+
+	public String getStrItemName() {
+		return strItemName;
+	}
+
+	public void setStrItemName(String strItemName) {
+		this.strItemName = strItemName;
+	}
+
+	public String getStrItemLore() {
+		return strItemLore;
+	}
+
+	public void setStrItemLore(String strItemLore) {
+		this.strItemLore = strItemLore;
+	}
+
+	public String getStrCantImbueItem() {
+		return strCantImbueItem;
+	}
+
+	public void setStrCantImbueItem(String strCantImbueItem) {
+		this.strCantImbueItem = strCantImbueItem;
+	}
+
+	public String getStrCantImbueSpell() {
+		return strCantImbueSpell;
+	}
+
+	public void setStrCantImbueSpell(String strCantImbueSpell) {
+		this.strCantImbueSpell = strCantImbueSpell;
+	}
+
+	public boolean shouldConsumeItem() {
+		return consumeItem;
+	}
+
+	public void setConsumeItem(boolean consumeItem) {
+		this.consumeItem = consumeItem;
+	}
+
+	public boolean shouldLeftClickCast() {
+		return leftClickCast;
+	}
+
+	public void setLeftClickCast(boolean leftClickCast) {
+		this.leftClickCast = leftClickCast;
+	}
+
+	public boolean shouldRightClickCast() {
+		return rightClickCast;
+	}
+
+	public void setRightClickCast(boolean rightClickCast) {
+		this.rightClickCast = rightClickCast;
+	}
+
+	public boolean shouldAllowSpecifyUses() {
+		return allowSpecifyUses;
+	}
+
+	public void setAllowSpecifyUses(boolean allowSpecifyUses) {
+		this.allowSpecifyUses = allowSpecifyUses;
+	}
+
+	public boolean shouldRequireTeachPerm() {
+		return requireTeachPerm;
+	}
+
+	public void setRequireTeachPerm(boolean requireTeachPerm) {
+		this.requireTeachPerm = requireTeachPerm;
+	}
+
+	public boolean shouldNameAndLoreHaveUses() {
+		return nameAndLoreHaveUses;
+	}
+
+	public void setNameAndLoreHaveUses(boolean nameAndLoreHasUses) {
+		this.nameAndLoreHaveUses = nameAndLoreHasUses;
+	}
+
+	public boolean shouldChargeReagentsForSpellPerUse() {
+		return chargeReagentsForSpellPerUse;
+	}
+
+	public void setChargeReagentsForSpellPerUse(boolean chargeReagentsForSpellPerUse) {
+		this.chargeReagentsForSpellPerUse = chargeReagentsForSpellPerUse;
 	}
 
 }

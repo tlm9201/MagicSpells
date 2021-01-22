@@ -108,5 +108,29 @@ public class ItemSerializeSpell extends CommandSpell {
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		return null;
 	}
+
+	public File getDataFolder() {
+		return dataFolder;
+	}
+
+	public void setDataFolder(File dataFolder) {
+		this.dataFolder = dataFolder;
+	}
+
+	public String getSerializerKey() {
+		return serializerKey;
+	}
+
+	public void setSerializerKey(String serializerKey) {
+		this.serializerKey = serializerKey;
+	}
+
+	public int getIndentation() {
+		return indentation;
+	}
+
+	public void setIndentation(int indentation) {
+		this.indentation = indentation;
+	}
 	
 }

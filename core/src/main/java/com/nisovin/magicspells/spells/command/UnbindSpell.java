@@ -20,8 +20,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class UnbindSpell extends CommandSpell {
 
-	private List<String> allowedSpellsNames;
-	private Set<Spell> allowedSpells = null;
+	private Set<Spell> allowedSpells;
 
 	private String strUsage;
 	private String strNoSpell;
@@ -33,7 +32,7 @@ public class UnbindSpell extends CommandSpell {
 	public UnbindSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		allowedSpellsNames = getConfigStringList("allowed-spells", null);
+		List<String> allowedSpellsNames = getConfigStringList("allowed-spells", null);
 		if (allowedSpellsNames != null && !allowedSpellsNames.isEmpty()) {
 			allowedSpells = new HashSet<>();
 			for (String n: allowedSpellsNames) {
@@ -126,6 +125,58 @@ public class UnbindSpell extends CommandSpell {
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		if (sender instanceof Player && !partial.contains(" ")) return tabCompleteSpellName(sender, partial);
 		return null;
+	}
+
+	public Set<Spell> getAllowedSpells() {
+		return allowedSpells;
+	}
+
+	public String getStrUsage() {
+		return strUsage;
+	}
+
+	public void setStrUsage(String strUsage) {
+		this.strUsage = strUsage;
+	}
+
+	public String getStrNoSpell() {
+		return strNoSpell;
+	}
+
+	public void setStrNoSpell(String strNoSpell) {
+		this.strNoSpell = strNoSpell;
+	}
+
+	public String getStrNotBound() {
+		return strNotBound;
+	}
+
+	public void setStrNotBound(String strNotBound) {
+		this.strNotBound = strNotBound;
+	}
+
+	public String getStrUnbindAll() {
+		return strUnbindAll;
+	}
+
+	public void setStrUnbindAll(String strUnbindAll) {
+		this.strUnbindAll = strUnbindAll;
+	}
+
+	public String getStrCantUnbind() {
+		return strCantUnbind;
+	}
+
+	public void setStrCantUnbind(String strCantUnbind) {
+		this.strCantUnbind = strCantUnbind;
+	}
+
+	public String getStrCantBindSpell() {
+		return strCantBindSpell;
+	}
+
+	public void setStrCantBindSpell(String strCantBindSpell) {
+		this.strCantBindSpell = strCantBindSpell;
 	}
 
 }

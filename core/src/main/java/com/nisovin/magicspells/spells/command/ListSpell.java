@@ -21,9 +21,9 @@ import com.nisovin.magicspells.util.PlayerNameUtils;
 
 public class ListSpell extends CommandSpell {
 
-	private List<String> spellsToHide;
+	private final List<String> spellsToHide;
 
-	private int lineLength = 60;
+	private final int lineLength = 60;
 
 	private boolean reloadGrantedSpells;
 	private boolean onlyShowCastableSpells;
@@ -31,7 +31,7 @@ public class ListSpell extends CommandSpell {
 	private String strPrefix;
 	private String strNoSpells;
 
-	private SpellFilter spellFilter;
+	private SpellFilter filter;
 
 	public ListSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -44,7 +44,7 @@ public class ListSpell extends CommandSpell {
 		strPrefix = getConfigString("str-prefix", "Known spells:");
 		strNoSpells = getConfigString("str-no-spells", "You do not know any spells.");
 
-		spellFilter = SpellFilter.fromConfig(config, "spells." + internalName + ".filter");
+		filter = SpellFilter.fromConfig(config, "spells." + internalName + ".filter");
 	}
 
 	@Override
@@ -123,7 +123,55 @@ public class ListSpell extends CommandSpell {
 		if (spell.isHelperSpell()) return false;
 		if (onlyShowCastableSpells && (!spellbook.canCast(spell) || spell instanceof PassiveSpell)) return false;
 		if (spellsToHide != null && spellsToHide.contains(spell.getInternalName())) return false;
-		return spellFilter.check(spell);
+		return filter.check(spell);
+	}
+
+	public List<String> getSpellsToHide() {
+		return spellsToHide;
+	}
+
+	public int getLineLength() {
+		return lineLength;
+	}
+
+	public boolean shouldReloadGrantedSpell() {
+		return reloadGrantedSpells;
+	}
+
+	public void setReloadGrantedSpells(boolean reloadGrantedSpells) {
+		this.reloadGrantedSpells = reloadGrantedSpells;
+	}
+
+	public boolean shouldOnlyShowCastableSpells() {
+		return onlyShowCastableSpells;
+	}
+
+	public void setOnlyShowCastableSpells(boolean onlyShowCastableSpells) {
+		this.onlyShowCastableSpells = onlyShowCastableSpells;
+	}
+
+	public String getStrPrefix() {
+		return strPrefix;
+	}
+
+	public void setStrPrefix(String strPrefix) {
+		this.strPrefix = strPrefix;
+	}
+
+	public String getStrNoSpells() {
+		return strNoSpells;
+	}
+
+	public void setStrNoSpells(String strNoSpells) {
+		this.strNoSpells = strNoSpells;
+	}
+
+	public SpellFilter getFilter() {
+		return filter;
+	}
+
+	public void setFilter(SpellFilter filter) {
+		this.filter = filter;
 	}
 
 }
