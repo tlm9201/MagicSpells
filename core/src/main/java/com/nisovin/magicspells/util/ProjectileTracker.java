@@ -148,7 +148,7 @@ public class ProjectileTracker implements Runnable {
 		// Changing the start location
 		startDirection = from.getDirection().normalize();
 		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-		startLocation.add(horizOffset.multiply(startZOffset)).getBlock().getLocation();
+		startLocation.add(horizOffset.multiply(startZOffset));
 		startLocation.add(startLocation.getDirection().multiply(startXOffset));
 		startLocation.setY(startLocation.getY() + startYOffset);
 
@@ -176,7 +176,7 @@ public class ProjectileTracker implements Runnable {
 		// Changing the start location
 		startDirection = dir.clone().normalize();
 		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-		startLocation.add(horizOffset.multiply(startZOffset)).getBlock().getLocation();
+		startLocation.add(horizOffset.multiply(startZOffset));
 		startLocation.add(startLocation.getDirection().multiply(startXOffset));
 		startLocation.setY(startLocation.getY() + startYOffset);
 
@@ -324,7 +324,7 @@ public class ProjectileTracker implements Runnable {
 			Vector dir = currentLocation.getDirection().normalize();
 			Vector horizOffset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
 			Location effectLoc = currentLocation.clone();
-			effectLoc.add(horizOffset.multiply(effectOffset.getZ())).getBlock().getLocation();
+			effectLoc.add(horizOffset.multiply(effectOffset.getZ()));
 			effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
 			effectLoc.setY(effectLoc.getY() + effectOffset.getY());
 
