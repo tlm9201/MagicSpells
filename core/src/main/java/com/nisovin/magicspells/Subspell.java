@@ -159,6 +159,7 @@ public class Subspell {
 			SpellCastEvent spellCast = spell.preCast(livingEntity, power * subPower, null);
 			if (spellCast == null) return false;
 
+			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
 			boolean success = false;
 			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
 				SpellTargetEvent spellTarget = new SpellTargetEvent(spell, livingEntity, target, power);
@@ -166,11 +167,11 @@ public class Subspell {
 
 				if (!spellTarget.isCancelled())
 					success = ((TargetedEntitySpell) spell).castAtEntity(livingEntity, target, spellCast.getPower());
-				else
-					return false;
+
+				if (!success) action = PostCastAction.ALREADY_HANDLED;
 			}
 
-			spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
+			spell.postCast(spellCast, action);
 
 			return success;
 		}
@@ -213,6 +214,7 @@ public class Subspell {
 			SpellCastEvent spellCast = spell.preCast(livingEntity, power * subPower, null);
 			if (spellCast == null) return false;
 
+			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
 			boolean success = false;
 			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
 				SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, livingEntity, target, power);
@@ -220,11 +222,11 @@ public class Subspell {
 
 				if (!spellLocation.isCancelled())
 					success = ((TargetedLocationSpell) spell).castAtLocation(livingEntity, target, spellCast.getPower());
-				else
-					return false;
+
+				if (!success) action = PostCastAction.ALREADY_HANDLED;
 			}
 
-			spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
+			spell.postCast(spellCast, action);
 
 			return success;
 		}
@@ -267,6 +269,7 @@ public class Subspell {
 			SpellCastEvent spellCast = spell.preCast(livingEntity, power * subPower, MagicSpells.NULL_ARGS);
 			if (spellCast == null) return false;
 
+			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
 			boolean success = false;
 			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
 				SpellTargetEvent spellTarget = new SpellTargetEvent(spell, livingEntity, target, power);
@@ -276,11 +279,11 @@ public class Subspell {
 
 				if (!spellLocation.isCancelled() && !spellTarget.isCancelled())
 					success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(livingEntity, from, target, spellCast.getPower());
-				else
-					return false;
+
+				if (!success) action = PostCastAction.ALREADY_HANDLED;
 			}
 
-			spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
+			spell.postCast(spellCast, action);
 
 			return success;
 		}
