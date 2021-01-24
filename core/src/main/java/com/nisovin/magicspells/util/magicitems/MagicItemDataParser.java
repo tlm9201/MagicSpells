@@ -9,13 +9,18 @@ import java.util.ArrayList;
 import java.io.IOException;
 import java.io.StringReader;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
+import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.JsonSyntaxException;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.potion.PotionType;
 import org.bukkit.enchantments.Enchantment;
 
 import com.nisovin.magicspells.util.Util;
@@ -23,6 +28,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.*;
 
 public class MagicItemDataParser {
 
@@ -43,30 +49,23 @@ public class MagicItemDataParser {
 			if (type == null) return null;
 
 			MagicItemData magicItemData = new MagicItemData();
-			magicItemData.setType(type);
+			magicItemData.setItemAttribute(TYPE, type);
+
 			return magicItemData;
 		}
 
 		args[1] = "{" + args[1];
 
 		Material type;
-		String name = null;
-		int amount = 1;
-		int durability = -1;
-		int customModelData = 0;
-		boolean unbreakable = false;
-		Color color = null;
-		PotionType potionType = PotionType.UNCRAFTABLE;
-		String title = null;
-		String author = null;
-		Map<Enchantment, Integer> enchantments = new HashMap<>();
-		List<String> lore = null;
 
 		type = Util.getMaterial(args[0].trim());
 		if (type == null) return null;
 
 		JsonReader jsonReader = new JsonReader(new StringReader(args[1]));
 		jsonReader.setLenient(true);
+
+		MagicItemData data = new MagicItemData();
+		data.setItemAttribute(TYPE, type);
 
 		try {
 			while (jsonReader.peek() != JsonToken.END_DOCUMENT) {
@@ -80,56 +79,70 @@ public class MagicItemDataParser {
 					String key = entry.getKey();
 					JsonElement value = entry.getValue();
 
-					if (key.equalsIgnoreCase("name")) name = value.getAsString();
+					switch (key.toLowerCase()) {
+						case "name":
+							data.setItemAttribute(NAME, value.getAsString());
+							break;
+						case "amount":
+							data.setItemAttribute(AMOUNT, value.getAsInt());
+							break;
+						case "durability":
+							data.setItemAttribute(DURABILITY, value.getAsInt());
+							break;
+						case "custommodeldata":
+							data.setItemAttribute(CUSTOM_MODEL_DATA, value.getAsInt());
+							break;
+						case "unbreakable":
+							data.setItemAttribute(UNBREAKABLE, value.getAsBoolean());
+							break;
+						case "color":
+							try {
+								Color color = Color.fromRGB(Integer.parseInt(value.getAsString().replace("#", ""), 16));
+								data.setItemAttribute(COLOR, color);
+							} catch (NumberFormatException e) {
+								DebugHandler.debugNumberFormat(e);
+							}
+							break;
+						case "potiontype":
+							data.setItemAttribute(POTION_TYPE, PotionEffectHandler.getPotionType(value.getAsString()));
+							break;
+						case "title":
+							data.setItemAttribute(TITLE, value.getAsString());
+							break;
+						case "author":
+							data.setItemAttribute(AUTHOR, value.getAsString());
+							break;
+						case "enchantments":
+						case "enchants":
+							if (!value.isJsonObject()) continue;
 
-					if (key.equalsIgnoreCase("amount")) amount = value.getAsInt();
+							Map<Object, Object> objectMap;
+							try {
+								objectMap = gson.fromJson(value.getAsJsonObject().toString(), HashMap.class);
 
-					if (key.equalsIgnoreCase("durability")) durability = value.getAsInt();
+								Map<Enchantment, Integer> enchantments = new HashMap<>();
+								for (Object o : objectMap.keySet()) {
+									Enchantment enchantment = EnchantmentHandler.getEnchantment(o.toString());
+									int v = (int) Double.parseDouble(objectMap.get(o).toString().trim());
+									enchantments.put(enchantment, v);
+								}
 
-					if (key.equalsIgnoreCase("custommodeldata")) customModelData = value.getAsInt();
+								data.setItemAttribute(ENCHANTMENTS, enchantments);
+							} catch (JsonSyntaxException exception) {
+								MagicSpells.error("Invalid enchantment syntax!");
+								continue;
+							}
+							break;
+						case "lore":
+							if (!value.isJsonArray()) continue;
 
-					if (key.equalsIgnoreCase("unbreakable")) unbreakable = value.getAsBoolean();
-
-					if (key.equalsIgnoreCase("color")) {
-						try {
-							color = Color.fromRGB(Integer.parseInt(value.getAsString().replace("#", ""), 16));
-						} catch (NumberFormatException e) {
-							DebugHandler.debugNumberFormat(e);
-						}
-					}
-
-					if (key.equalsIgnoreCase("potion")) potionType = PotionEffectHandler.getPotionType(value.getAsString());
-
-					if (key.equalsIgnoreCase("title")) title = value.getAsString();
-
-					if (key.equalsIgnoreCase("author")) author = value.getAsString();
-
-					if (key.equalsIgnoreCase("enchants") || key.equalsIgnoreCase("enchantments")) {
-						if (!value.isJsonObject()) continue;
-
-						Map<Object, Object> objectMap;
-						try {
-							objectMap = gson.fromJson(value.getAsJsonObject().toString(), HashMap.class);
-						} catch (JsonSyntaxException exception) {
-							MagicSpells.error("Invalid enchantment syntax!");
-							continue;
-						}
-
-						if (objectMap == null) continue;
-						for (Object o : objectMap.keySet()) {
-							Enchantment enchantment = EnchantmentHandler.getEnchantment(o.toString());
-							int v = (int) Double.parseDouble(objectMap.get(o).toString().trim());
-							enchantments.put(enchantment, v);
-						}
-					}
-
-					if (key.equalsIgnoreCase("lore")) {
-						if (!value.isJsonArray()) continue;
-						lore = new ArrayList<>();
-						JsonArray jsonArray = value.getAsJsonArray();
-						for (JsonElement elementInside : jsonArray) {
-							lore.add(elementInside.getAsString());
-						}
+							List<String> lore = new ArrayList<>();
+							JsonArray jsonArray = value.getAsJsonArray();
+							for (JsonElement elementInside : jsonArray) {
+								lore.add(elementInside.getAsString());
+							}
+							data.setItemAttribute(LORE, lore);
+							break;
 					}
 				}
 
@@ -138,21 +151,6 @@ public class MagicItemDataParser {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
-		MagicItemData data = new MagicItemData();
-
-		data.setType(type);
-		data.setName(name);
-		data.setAmount(amount);
-		data.setDurability(durability);
-		data.setCustomModelData(customModelData);
-		data.setUnbreakable(unbreakable);
-		data.setColor(color);
-		data.setPotionType(potionType);
-		data.setTitle(title);
-		data.setAuthor(author);
-		data.setEnchantments(enchantments);
-		data.setLore(lore);
 
 		return data;
 	}

@@ -6,33 +6,30 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.DURABILITY;
 
 public class DurabilityHandler {
 
-	private static final String CONFIG_NAME = "durability";
+	private static final String CONFIG_NAME = DURABILITY.toString();
 
 	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof Damageable)) return meta;
-		Damageable damageableMeta = (Damageable) meta;
-		data.setDurability(damageableMeta.getDamage());
-
-		if (!config.contains(CONFIG_NAME)) return meta;
 		if (!config.isInt(CONFIG_NAME)) return meta;
 
 		int durability = config.getInt(CONFIG_NAME);
+		((Damageable) meta).setDamage(durability);
+		data.setItemAttribute(DURABILITY, durability);
 
-		damageableMeta.setDamage(durability);
-		data.setDurability(durability);
 		return meta;
 	}
 
 	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (data == null) return meta;
 		if (!(meta instanceof Damageable)) return meta;
+		if (!data.hasItemAttribute(DURABILITY)) return meta;
 
-		int durability = data.getDurability();
-
+		int durability = (int) data.getItemAttribute(DURABILITY);
 		((Damageable) meta).setDamage(durability);
+
 		return meta;
 	}
 
@@ -42,7 +39,7 @@ public class DurabilityHandler {
 		if (!(itemStack.getItemMeta() instanceof Damageable)) return itemData;
 
 		int damage = ((Damageable) itemStack.getItemMeta()).getDamage();
-		itemData.setDurability(damage);
+		itemData.setItemAttribute(DURABILITY, damage);
 		
 		return itemData;
 	}

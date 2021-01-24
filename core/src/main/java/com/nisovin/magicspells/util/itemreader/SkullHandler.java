@@ -11,80 +11,82 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.TEXTURE;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.SIGNATURE;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.SKULL_OWNER;
 
 public class SkullHandler {
 
-	private static final String SKULL_OWNER_CONFIG_NAME = "skull-owner";
-	private static final String UUID_CONFIG_NAME = "uuid";
-	private static final String TEXTURE_CONFIG_NAME = "texture";
-	private static final String SIGNATURE_CONFIG_NAME = "signature";
+	private static final String SKULL_OWNER_CONFIG_NAME = SKULL_OWNER.toString();
+	private static final String UUID_CONFIG_NAME = ItemAttribute.UUID.toString();
+	private static final String SIGNATURE_CONFIG_NAME = SIGNATURE.toString();
+	private static final String TEXTURE_CONFIG_NAME = TEXTURE.toString();
 
 	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof SkullMeta)) return meta;
 		
 		SkullMeta skullMeta = (SkullMeta) meta;
+		OfflinePlayer offlinePlayer;
 
-		OfflinePlayer offlinePlayer = null;
+		if (config.isString(SKULL_OWNER_CONFIG_NAME)) {
+			offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(config.getString(SKULL_OWNER_CONFIG_NAME)));
 
-		if (config.contains(SKULL_OWNER_CONFIG_NAME)) {
-			offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(config.get(SKULL_OWNER_CONFIG_NAME).toString()));
 			skullMeta.setOwningPlayer(offlinePlayer);
+			data.setItemAttribute(SKULL_OWNER, offlinePlayer);
 		}
 
 		String uuid = null;
 		String texture = null;
 		String signature = null;
 
-		if (config.contains(UUID_CONFIG_NAME) && config.isString(UUID_CONFIG_NAME)) {
+		if (config.isString(UUID_CONFIG_NAME)) {
 			uuid = config.getString(UUID_CONFIG_NAME);
+			data.setItemAttribute(ItemAttribute.UUID, uuid);
 		}
-		if (config.contains(TEXTURE_CONFIG_NAME) && config.isString(TEXTURE_CONFIG_NAME)) {
+		if (config.isString(TEXTURE_CONFIG_NAME)) {
 			texture = config.getString(TEXTURE_CONFIG_NAME);
+			data.setItemAttribute(TEXTURE, texture);
 		}
-		if (config.contains(SIGNATURE_CONFIG_NAME) && config.isString(SIGNATURE_CONFIG_NAME)) {
+		if (config.isString(SIGNATURE_CONFIG_NAME)) {
 			signature = config.getString(SIGNATURE_CONFIG_NAME);
+			data.setItemAttribute(SIGNATURE, signature);
 		}
 
 		if (texture != null && skullMeta.getOwningPlayer() != null) {
 			Util.setTexture(skullMeta, texture, signature, uuid, skullMeta.getOwningPlayer());
 		}
 
-		if (data != null) {
-			data.setSkullOwner(offlinePlayer);
-			data.setUUID(uuid);
-			data.setTexture(texture);
-			data.setSignature(signature);
-		}
-
-		return skullMeta;
+		return meta;
 	}
 
 	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (data == null) return meta;
 		if (!(meta instanceof SkullMeta)) return meta;
 
 		SkullMeta skullMeta = (SkullMeta) meta;
 
-		OfflinePlayer offlinePlayer = data.getSkullOwner();
+		OfflinePlayer offlinePlayer = (OfflinePlayer) data.getItemAttribute(SKULL_OWNER);
 		if (offlinePlayer != null) skullMeta.setOwningPlayer(offlinePlayer);
 
-		String uuid = data.getUUID();
-		String texture = data.getTexture();
-		String signature = data.getSignature();
+		String uuid = (String) data.getItemAttribute(ItemAttribute.UUID);
+		String signature = (String) data.getItemAttribute(SIGNATURE);
+		String texture = (String) data.getItemAttribute(TEXTURE);
 
 		if (texture != null && skullMeta.getOwningPlayer() != null) {
 			Util.setTexture(skullMeta, texture, signature, uuid, skullMeta.getOwningPlayer());
 		}
+
 		return skullMeta;
 	}
 
 	public static MagicItemData process(ItemStack itemStack, MagicItemData data) {
 		if (data == null) return null;
 		if (itemStack == null) return data;
-		if (!(itemStack.getItemMeta() instanceof SkullMeta)) return data;
 
-		SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
-		data.setSkullOwner(meta.getOwningPlayer());
+		ItemMeta meta = itemStack.getItemMeta();
+		if (!(meta instanceof SkullMeta)) return data;
+
+		data.setItemAttribute(SKULL_OWNER, ((SkullMeta) meta).getOwningPlayer());
 		return data;
 	}
 	

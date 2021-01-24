@@ -8,22 +8,24 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.COLOR;
 
 public class LeatherArmorHandler {
 
-	private final static String CONFIG_NAME = "color";
+	private final static String CONFIG_NAME = COLOR.toString();
 
 	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof LeatherArmorMeta)) return meta;
-		if (!config.contains(CONFIG_NAME)) return meta;
-		if (!config.isSet(CONFIG_NAME)) return meta;
+		if (!config.isString(CONFIG_NAME)) return meta;
 
 		LeatherArmorMeta armorMeta = (LeatherArmorMeta) meta;
 
 		try {
-			int color = Integer.parseInt(config.get(CONFIG_NAME).toString().replace("#", ""), 16);
-			armorMeta.setColor(Color.fromRGB(color));
-			if (data != null) data.setColor(Color.fromRGB(color));
+			int color = Integer.parseInt(config.getString(CONFIG_NAME).replace("#", ""), 16);
+			Color c = Color.fromRGB(color);
+
+			armorMeta.setColor(c);
+			if (data != null) data.setItemAttribute(COLOR, c);
 		} catch (NumberFormatException e) {
 			DebugHandler.debugNumberFormat(e);
 		}
@@ -35,27 +37,27 @@ public class LeatherArmorHandler {
 		if (!(meta instanceof LeatherArmorMeta)) return meta;
 
 		LeatherArmorMeta armorMeta = (LeatherArmorMeta) meta;
+		if (!data.hasItemAttribute(COLOR)) return meta;
 
-		if (data.getColor() == null) return meta;
-
-		armorMeta.setColor(data.getColor());
+		armorMeta.setColor((Color) data.getItemAttribute(COLOR));
 		return armorMeta;
 	}
 
 	public static MagicItemData process(ItemStack itemStack, MagicItemData data) {
 		if (data == null) return null;
 		if (itemStack == null) return data;
-		if (!(itemStack.getItemMeta() instanceof LeatherArmorMeta)) return data;
-		LeatherArmorMeta meta = (LeatherArmorMeta) itemStack.getItemMeta();
 
-		Color color = meta.getColor();
+		ItemMeta meta = itemStack.getItemMeta();
+		if (!(meta instanceof LeatherArmorMeta)) return data;
+
+		Color color = ((LeatherArmorMeta) meta).getColor();
 
 		String hex = Integer.toHexString(color.getRed()).toUpperCase() +
 				Integer.toHexString(color.getGreen()).toUpperCase() +
 				Integer.toHexString(color.getBlue()).toUpperCase();
 
 		// default color is null
-		if (!hex.equals("A06540")) data.setColor(meta.getColor());
+		if (!hex.equals("A06540")) data.setItemAttribute(COLOR, color);
 		return data;
 	}
 

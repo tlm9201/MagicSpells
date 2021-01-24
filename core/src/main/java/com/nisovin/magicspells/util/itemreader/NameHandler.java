@@ -6,37 +6,42 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.*;
 
 public class NameHandler {
 
-	private static final String CONFIG_NAME = "name";
+	private static final String CONFIG_NAME = NAME.toString();
 
 	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!config.contains(CONFIG_NAME)) return meta;
 		if (!config.isString(CONFIG_NAME)) return meta;
 
-		meta.setDisplayName(Util.colorize(config.getString(CONFIG_NAME)));
-		if (data != null) data.setName(Util.decolorize(config.getString(CONFIG_NAME)));
+		String name = config.getString(CONFIG_NAME);
+		meta.setDisplayName(Util.colorize(name));
+		data.setItemAttribute(NAME, Util.decolorize(name));
+
 		return meta;
 	}
 
 	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
 		if (meta == null) return null;
 		if (data == null) return meta;
-		if (data.getName() == null) return meta;
+		if (!data.hasItemAttribute(NAME)) return meta;
 
-		meta.setDisplayName(Util.colorize(data.getName()));
+		meta.setDisplayName(Util.colorize((String) data.getItemAttribute(NAME)));
+
 		return meta;
 	}
 
 	public static MagicItemData process(ItemStack itemStack, MagicItemData itemData) {
 		if (itemData == null) return null;
 		if (itemStack == null) return itemData;
+
 		ItemMeta meta = itemStack.getItemMeta();
 		if (meta == null) return itemData;
 
-		if (!meta.getDisplayName().isEmpty()) itemData.setName(Util.decolorize(meta.getDisplayName()));
+		if (!meta.getDisplayName().isEmpty()) itemData.setItemAttribute(NAME, Util.decolorize(meta.getDisplayName()));
 		return itemData;
+
 	}
 	
 }
