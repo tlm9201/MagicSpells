@@ -4,22 +4,21 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SuspiciousStewMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.POTION_EFFECTS;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.POTION_EFFECTS;
 
 public class SuspiciousStewHandler {
 
 	private static final String CONFIG_NAME = POTION_EFFECTS.toString();
 
-	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof SuspiciousStewMeta)) return meta;
-		if (!config.isList(CONFIG_NAME)) return meta;
+	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof SuspiciousStewMeta)) return;
+		if (!config.isList(CONFIG_NAME)) return;
 
 		SuspiciousStewMeta stewMeta = (SuspiciousStewMeta) meta;
 		stewMeta.clearCustomEffects();
@@ -33,32 +32,23 @@ public class SuspiciousStewHandler {
 			stewMeta.addCustomEffect(potionEffect, true);
 			potionEffects.add(potionEffect);
 		}
-		data.setItemAttribute(POTION_EFFECTS, potionEffects);
-
-		return meta;
+		data.setAttribute(POTION_EFFECTS, potionEffects);
 	}
 
-	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof SuspiciousStewMeta)) return meta;
+	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof SuspiciousStewMeta)) return;
 
 		SuspiciousStewMeta stewMeta = (SuspiciousStewMeta) meta;
-		if (data.hasItemAttribute(POTION_EFFECTS)) {
+		if (data.hasAttribute(POTION_EFFECTS)) {
 			stewMeta.clearCustomEffects();
-			((List<PotionEffect>) data.getItemAttribute(POTION_EFFECTS)).forEach(potionEffect -> stewMeta.addCustomEffect(potionEffect, true));
+			((List<PotionEffect>) data.getAttribute(POTION_EFFECTS)).forEach(potionEffect -> stewMeta.addCustomEffect(potionEffect, true));
 		}
-
-		return meta;
 	}
 
-	public static MagicItemData process(ItemStack itemStack, MagicItemData data) {
-		if (data == null) return null;
-		if (itemStack == null) return data;
+	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof SuspiciousStewMeta)) return;
 
-		ItemMeta meta = itemStack.getItemMeta();
-		if (!(meta instanceof SuspiciousStewMeta)) return data;
-
-		data.setItemAttribute(POTION_EFFECTS, ((SuspiciousStewMeta) meta).getCustomEffects());
-		return data;
+		data.setAttribute(POTION_EFFECTS, ((SuspiciousStewMeta) meta).getCustomEffects());
 	}
 
 }

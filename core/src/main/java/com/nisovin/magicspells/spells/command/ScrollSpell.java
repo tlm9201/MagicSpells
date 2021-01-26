@@ -221,9 +221,11 @@ public class ScrollSpell extends CommandSpell {
 			lore.add(Util.colorize(strScrollSubtext.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"))));
 			meta.setLore(lore);
 		}
+
+		ItemUtil.addFakeEnchantment(meta);
+
 		item.setItemMeta(meta);
 		Util.setLoreData(item, internalName + ':' + spell.getInternalName() + (uses > 0 ? "," + uses : ""));
-		item = ItemUtil.addFakeEnchantment(item);
 		return item;
 	}
 	

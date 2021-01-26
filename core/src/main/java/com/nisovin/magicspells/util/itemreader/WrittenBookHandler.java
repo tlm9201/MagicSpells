@@ -2,16 +2,15 @@ package com.nisovin.magicspells.util.itemreader;
 
 import java.util.List;
 
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.PAGES;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.TITLE;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.AUTHOR;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.PAGES;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.TITLE;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.AUTHOR;
 
 public class WrittenBookHandler {
 
@@ -19,8 +18,8 @@ public class WrittenBookHandler {
 	private static final String PAGES_CONFIG_NAME = PAGES.toString();
 	private static final String TITLE_CONFIG_NAME = TITLE.toString();
 
-	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof BookMeta)) return meta;
+	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof BookMeta)) return;
 		
 		BookMeta bookMeta = (BookMeta) meta;
 		List<String> pages;
@@ -31,14 +30,14 @@ public class WrittenBookHandler {
 			title = Util.colorize(config.getString(TITLE_CONFIG_NAME));
 
 			bookMeta.setTitle(title);
-			data.setItemAttribute(TITLE, title);
+			data.setAttribute(TITLE, title);
 		}
 
 		if (config.isString(AUTHOR_CONFIG_NAME)) {
 			author = Util.colorize(config.getString(AUTHOR_CONFIG_NAME));
 
 			bookMeta.setAuthor(author);
-			data.setItemAttribute(AUTHOR, author);
+			data.setAttribute(AUTHOR, author);
 		}
 
 		if (config.isList(PAGES_CONFIG_NAME)) {
@@ -48,19 +47,17 @@ public class WrittenBookHandler {
 			}
 
 			bookMeta.setPages(pages);
-			data.setItemAttribute(PAGES, pages);
+			data.setAttribute(PAGES, pages);
 		}
-
-		return bookMeta;
 	}
 
-	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof BookMeta)) return meta;
+	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof BookMeta)) return;
 
 		BookMeta bookMeta = (BookMeta) meta;
-		String title = (String) data.getItemAttribute(TITLE);
-		String author = (String) data.getItemAttribute(AUTHOR);
-		List<String> pages = (List<String>) data.getItemAttribute(PAGES);
+		String title = (String) data.getAttribute(TITLE);
+		String author = (String) data.getAttribute(AUTHOR);
+		List<String> pages = (List<String>) data.getAttribute(PAGES);
 
 		if (title != null) {
 			title = Util.colorize(title);
@@ -78,21 +75,15 @@ public class WrittenBookHandler {
 			}
 			bookMeta.setPages(pages);
 		}
-
-		return bookMeta;
 	}
 
-	public static MagicItemData process(ItemStack itemStack, MagicItemData data) {
-		if (data == null) return null;
-		if (itemStack == null) return data;
-		if (!(itemStack.getItemMeta() instanceof BookMeta)) return data;
+	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof BookMeta)) return;
 
-		BookMeta meta = (BookMeta) itemStack.getItemMeta();
-		data.setItemAttribute(AUTHOR, meta.getAuthor());
-		data.setItemAttribute(TITLE, meta.getTitle());
-		if (!meta.getPages().isEmpty()) data.setItemAttribute(PAGES, meta.getPages());
-
-		return data;
+		BookMeta bookMeta = (BookMeta) meta;
+		data.setAttribute(AUTHOR, bookMeta.getAuthor());
+		data.setAttribute(TITLE, bookMeta.getTitle());
+		if (!bookMeta.getPages().isEmpty()) data.setAttribute(PAGES, bookMeta.getPages());
 	}
 
 	public static String getTitle(ItemMeta meta) {

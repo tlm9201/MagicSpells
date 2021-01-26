@@ -2,24 +2,21 @@ package com.nisovin.magicspells.util.itemreader;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Locale;
 
-import com.nisovin.magicspells.handlers.DebugHandler;
 import org.bukkit.Color;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
-
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.POTION_EFFECTS;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.POTION_TYPE;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.COLOR;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.COLOR;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.POTION_TYPE;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.POTION_EFFECTS;
 
 public class PotionHandler {
 
@@ -27,8 +24,8 @@ public class PotionHandler {
 	public static final String POTION_TYPE_CONFIG_NAME = POTION_TYPE.toString();
 	public static final String POTION_COLOR_CONFIG_NAME = "potion-color";
 
-	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof PotionMeta)) return meta;
+	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof PotionMeta)) return;
 		
 		PotionMeta potionMeta = (PotionMeta) meta;
 		
@@ -46,7 +43,7 @@ public class PotionHandler {
 				potionEffects.add(eff);
 			}
 
-			data.setItemAttribute(POTION_EFFECTS, potionEffects);
+			data.setAttribute(POTION_EFFECTS, potionEffects);
 		}
 
 		if (config.isString(POTION_COLOR_CONFIG_NAME)) {
@@ -55,7 +52,7 @@ public class PotionHandler {
 				Color c = Color.fromRGB(color);
 
 				potionMeta.setColor(c);
-				data.setItemAttribute(COLOR, c);
+				data.setAttribute(COLOR, c);
 			} catch (NumberFormatException e) {
 				DebugHandler.debugNumberFormat(e);
 			}
@@ -69,40 +66,32 @@ public class PotionHandler {
 				PotionData potionData = new PotionData(potionType);
 
 				potionMeta.setBasePotionData(potionData);
-				data.setItemAttribute(POTION_TYPE, potionType);
+				data.setAttribute(POTION_TYPE, potionType);
 			} catch (IllegalArgumentException e) {
 				DebugHandler.debugBadEnumValue(PotionType.class, potionTypeString);
 			}
 		}
-		
-		return potionMeta;
 	}
 
-	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof PotionMeta)) return meta;
+	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof PotionMeta)) return;
 
 		PotionMeta potionMeta = (PotionMeta) meta;
-		if (data.hasItemAttribute(POTION_EFFECTS)) {
+		if (data.hasAttribute(POTION_EFFECTS)) {
 			potionMeta.clearCustomEffects();
-			((List<PotionEffect>) data.getItemAttribute(POTION_EFFECTS)).forEach(potionEffect -> potionMeta.addCustomEffect(potionEffect, true));
+			((List<PotionEffect>) data.getAttribute(POTION_EFFECTS)).forEach(potionEffect -> potionMeta.addCustomEffect(potionEffect, true));
 		}
-		if (data.hasItemAttribute(COLOR)) potionMeta.setColor((Color) data.getItemAttribute(COLOR));
-		if (data.hasItemAttribute(POTION_TYPE)) potionMeta.setBasePotionData(new PotionData((PotionType) data.getItemAttribute(POTION_TYPE)));
-
-		return potionMeta;
+		if (data.hasAttribute(COLOR)) potionMeta.setColor((Color) data.getAttribute(COLOR));
+		if (data.hasAttribute(POTION_TYPE)) potionMeta.setBasePotionData(new PotionData((PotionType) data.getAttribute(POTION_TYPE)));
 	}
 
-	public static MagicItemData process(ItemStack itemStack, MagicItemData data) {
-		if (data == null) return null;
-		if (itemStack == null) return data;
-		if (!(itemStack.getItemMeta() instanceof PotionMeta)) return data;
+	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof PotionMeta)) return;
 
-		PotionMeta meta = (PotionMeta) itemStack.getItemMeta();
-		data.setItemAttribute(POTION_TYPE, meta.getBasePotionData().getType());
-		if (!meta.getCustomEffects().isEmpty()) data.setItemAttribute(POTION_EFFECTS, meta.getCustomEffects());
-		data.setItemAttribute(COLOR, meta.getColor());
-
-		return data;
+		PotionMeta potionMeta = (PotionMeta) meta;
+		data.setAttribute(POTION_TYPE, potionMeta.getBasePotionData().getType());
+		data.setAttribute(POTION_EFFECTS, potionMeta.getCustomEffects());
+		data.setAttribute(COLOR, potionMeta.getColor());
 	}
 
 	public static PotionType getPotionType(ItemMeta meta) {

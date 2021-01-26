@@ -9,13 +9,18 @@ import org.bukkit.inventory.meta.Damageable;
 
 public class ItemUtil {
 
-	public static ItemStack addFakeEnchantment(ItemStack item) {
-		ItemMeta meta = item.getItemMeta();
-		if (meta == null) return item;
+	public static void addFakeEnchantment(ItemMeta meta) {
+		if (meta == null) return;
+
 		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-		item.setItemMeta(meta);
-		item.addUnsafeEnchantment(Enchantment.FROST_WALKER, -1);
-		return item;
+		meta.addEnchant(Enchantment.FROST_WALKER, -1, true);
+	}
+
+	public static boolean hasFakeEnchantment(ItemMeta meta) {
+
+		return meta.hasItemFlag(ItemFlag.HIDE_ENCHANTS)
+			&& meta.hasEnchant(Enchantment.FROST_WALKER)
+			&& meta.getEnchantLevel(Enchantment.FROST_WALKER) == 65535;
 	}
 
 	public static boolean hasDurability(Material type) {

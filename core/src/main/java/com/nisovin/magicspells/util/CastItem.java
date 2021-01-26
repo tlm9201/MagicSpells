@@ -18,7 +18,7 @@ import com.nisovin.magicspells.util.itemreader.PotionHandler;
 import com.nisovin.magicspells.util.itemreader.DurabilityHandler;
 import com.nisovin.magicspells.util.itemreader.WrittenBookHandler;
 import com.nisovin.magicspells.util.itemreader.LeatherArmorHandler;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.*;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
 public class CastItem {
 
@@ -70,22 +70,22 @@ public class CastItem {
 		MagicItem magicItem = MagicItems.getMagicItemFromString(string);
 		if (magicItem != null && magicItem.getMagicItemData() != null) {
 			MagicItemData data = magicItem.getMagicItemData();
-			type = (Material) data.getItemAttribute(TYPE);
+			type = (Material) data.getAttribute(TYPE);
 			if (isTypeValid()) {
-				if (!MagicSpells.ignoreCastItemNames() && data.hasItemAttribute(NAME)) {
-					if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize((String) data.getItemAttribute(NAME));
-					else name = Util.colorize((String) data.getItemAttribute(NAME));
+				if (!MagicSpells.ignoreCastItemNames() && data.hasAttribute(NAME)) {
+					if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize((String) data.getAttribute(NAME));
+					else name = Util.colorize((String) data.getAttribute(NAME));
 				}
-				if (!MagicSpells.ignoreCastItemAmount()) amount = (int) data.getItemAttribute(AMOUNT);
-				if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) durability = (int) data.getItemAttribute(DURABILITY);
-				if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = (int) data.getItemAttribute(CUSTOM_MODEL_DATA);
-				if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = (boolean) data.getItemAttribute(UNBREAKABLE);
-				if (!MagicSpells.ignoreCastItemColor()) color = (Color) data.getItemAttribute(COLOR);
-				if (!MagicSpells.ignoreCastItemPotionType()) potionType = (PotionType) data.getItemAttribute(POTION_TYPE);
-				if (!MagicSpells.ignoreCastItemTitle()) title = (String) data.getItemAttribute(TITLE);
-				if (!MagicSpells.ignoreCastItemAuthor()) author = (String) data.getItemAttribute(AUTHOR);
-				if (!MagicSpells.ignoreCastItemEnchants()) enchants = (Map<Enchantment, Integer>) data.getItemAttribute(ENCHANTMENTS);
-				if (!MagicSpells.ignoreCastItemLore()) lore = (List<String>) data.getItemAttribute(LORE);
+				if (!MagicSpells.ignoreCastItemAmount()) amount = (int) data.getAttribute(AMOUNT);
+				if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) durability = (int) data.getAttribute(DURABILITY);
+				if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = (int) data.getAttribute(CUSTOM_MODEL_DATA);
+				if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = (boolean) data.getAttribute(UNBREAKABLE);
+				if (!MagicSpells.ignoreCastItemColor()) color = (Color) data.getAttribute(COLOR);
+				if (!MagicSpells.ignoreCastItemPotionType()) potionType = (PotionType) data.getAttribute(POTION_TYPE);
+				if (!MagicSpells.ignoreCastItemTitle()) title = (String) data.getAttribute(TITLE);
+				if (!MagicSpells.ignoreCastItemAuthor()) author = (String) data.getAttribute(AUTHOR);
+				if (!MagicSpells.ignoreCastItemEnchants()) enchants = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTMENTS);
+				if (!MagicSpells.ignoreCastItemLore()) lore = (List<String>) data.getAttribute(LORE);
 			}
 		}
 	}
@@ -137,18 +137,18 @@ public class CastItem {
 		if (type == null) return "";
 
 		MagicItemData data = new MagicItemData();
-		data.setItemAttribute(TYPE, type);
-		data.setItemAttribute(NAME, name);
-		data.setItemAttribute(AMOUNT, amount);
-		data.setItemAttribute(DURABILITY, durability);
-		data.setItemAttribute(CUSTOM_MODEL_DATA, customModelData);
-		data.setItemAttribute(UNBREAKABLE, unbreakable);
-		data.setItemAttribute(COLOR, color);
-		data.setItemAttribute(POTION_TYPE, potionType);
-		data.setItemAttribute(TITLE, title);
-		data.setItemAttribute(AUTHOR, author);
-		data.setItemAttribute(ENCHANTMENTS, enchants);
-		data.setItemAttribute(LORE, lore);
+		data.setAttribute(TYPE, type);
+		data.setAttribute(NAME, name);
+		data.setAttribute(AMOUNT, amount);
+		data.setAttribute(DURABILITY, durability);
+		data.setAttribute(CUSTOM_MODEL_DATA, customModelData);
+		data.setAttribute(UNBREAKABLE, unbreakable);
+		data.setAttribute(COLOR, color);
+		data.setAttribute(POTION_TYPE, potionType);
+		data.setAttribute(TITLE, title);
+		data.setAttribute(AUTHOR, author);
+		data.setAttribute(ENCHANTMENTS, enchants);
+		data.setAttribute(LORE, lore);
 
 		return data.toString();
 	}

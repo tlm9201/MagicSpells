@@ -5,12 +5,15 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Collection;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.HashMultimap;
+
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,10 +29,7 @@ import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.*;
-
-import com.google.common.collect.Multimap;
-import com.google.common.collect.HashMultimap;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
 public class MagicItems {
 
@@ -78,75 +78,74 @@ public class MagicItems {
 		ItemMeta meta = itemStack.getItemMeta();
 
 		// type
-		data.setItemAttribute(TYPE, itemStack.getType());
+		data.setAttribute(TYPE, itemStack.getType());
 
 		// name
-		data = NameHandler.process(itemStack, data);
+		NameHandler.processMagicItemData(meta, data);
 
 		// amount
-		data.setItemAttribute(AMOUNT, itemStack.getAmount());
+		data.setAttribute(AMOUNT, itemStack.getAmount());
 
 		// durability
-		if (ItemUtil.hasDurability(itemStack.getType())) data = DurabilityHandler.process(itemStack, data);
+		if (ItemUtil.hasDurability(itemStack.getType())) DurabilityHandler.processMagicItemData(meta, data);
 
 		// repairCost
-		data = RepairableHandler.process(itemStack, data);
+		RepairableHandler.processMagicItemData(meta, data);
 
 		// customModelData
-		data = CustomModelDataHandler.process(itemStack, data);
+		CustomModelDataHandler.processMagicItemData(meta, data);
 
 		// power, fireworkEffects
-		data = FireworkHandler.process(itemStack, data);
+		FireworkHandler.processMagicItemData(meta, data);
 
 		// unbreakable
-		data.setItemAttribute(UNBREAKABLE, meta.isUnbreakable());
+		data.setAttribute(UNBREAKABLE, meta.isUnbreakable());
 
 		// tooltip
 		boolean tooltip = true;
 		for (ItemFlag itemFlag : ItemFlag.values()) {
 			if (!meta.getItemFlags().contains(itemFlag)) tooltip = false;
 		}
-		data.setItemAttribute(HIDE_TOOLTIP, tooltip);
+		data.setAttribute(HIDE_TOOLTIP, tooltip);
 
 		// color
-		data = LeatherArmorHandler.process(itemStack, data);
+		LeatherArmorHandler.processMagicItemData(meta, data);
 
 		// potion, potionEffects, potionColor
-		data = PotionHandler.process(itemStack, data);
+		PotionHandler.processMagicItemData(meta, data);
 
 		// suspiciousStew
-		if (itemStack.getType().name().contains("SUSPICIOUS")) data = SuspiciousStewHandler.process(itemStack, data);
+		SuspiciousStewHandler.processMagicItemData(meta, data);
 
 		// fireworkEffect
-		data = FireworkEffectHandler.process(itemStack, data);
+		FireworkEffectHandler.processMagicItemData(meta, data);
 
 		// skullOwner
-		data = SkullHandler.process(itemStack, data);
+		SkullHandler.processMagicItemData(meta, data);
 
 		// author, title, pages
-		data = WrittenBookHandler.process(itemStack, data);
+		WrittenBookHandler.processMagicItemData(meta, data);
 
 		// enchantments
-		data.setItemAttribute(ENCHANTMENTS, meta.getEnchants());
+		Map<Enchantment, Integer> enchants = new HashMap<>(meta.getEnchants());
+		if (ItemUtil.hasFakeEnchantment(meta)) {
+			enchants.remove(Enchantment.FROST_WALKER);
+
+			data.setAttribute(FAKE_GLINT, true);
+		}
+		data.setAttribute(ENCHANTMENTS, enchants);
 
 		// attributes
-		data.setItemAttribute(ATTRIBUTES, meta.getAttributeModifiers());
+		data.setAttribute(ATTRIBUTES, meta.getAttributeModifiers());
 
 		// lore
-		data.setItemAttribute(LORE, meta.getLore());
+		data.setAttribute(LORE, meta.getLore());
 
 		// patterns
-		data = BannerHandler.process(itemStack, data);
+		BannerHandler.processMagicItemData(meta, data);
 
 		itemStackCache.put(itemStack, data);
 		return data;
-	}
-
-	public static MagicItemData getMagicItemDataFromString(String str) {
-		if (str == null) return null;
-		if (magicItems.containsKey(str)) return magicItems.get(str).getMagicItemData();
-
-		return MagicItemDataParser.parseMagicItemData(str);
 	}
 
 	public static MagicItem getMagicItemFromString(String str) {
@@ -164,86 +163,95 @@ public class MagicItems {
 	public static MagicItem getMagicItemFromData(MagicItemData data) {
 		if (data == null) return null;
 
-		Material type = (Material) data.getItemAttribute(TYPE);
+		Material type = (Material) data.getAttribute(TYPE);
 		if (type == null) return null;
 
 		ItemStack item = new ItemStack(type);
 		ItemMeta meta = item.getItemMeta();
 
-		if (data.hasItemAttribute(AMOUNT) && (int) data.getItemAttribute(AMOUNT) > 0)
-			item.setAmount((int) data.getItemAttribute(AMOUNT));
+		if (data.hasAttribute(AMOUNT)) {
+			int amount = (int) data.getAttribute(AMOUNT);
+			if (amount >= 1) item.setAmount(amount);
+		}
+
+		if (meta == null) return new MagicItem(item, data);
 
 		// Name
-		meta = NameHandler.process(meta, data);
+		NameHandler.processItemMeta(meta, data);
 
 		// Lore
-		meta = LoreHandler.process(meta, data);
+		LoreHandler.processItemMeta(meta, data);
 
 		// Custom Model Data
-		meta = CustomModelDataHandler.process(meta, data);
+		CustomModelDataHandler.processItemMeta(meta, data);
 
 		// Enchantments
-		boolean emptyEnchants = false;
-		if (data.hasItemAttribute(ENCHANTMENTS)) {
-			Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) data.getItemAttribute(ENCHANTMENTS);
+		if (data.hasAttribute(ENCHANTMENTS)) {
+			Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTMENTS);
 			for (Enchantment enchant : enchantments.keySet()) {
 				int level = enchantments.get(enchant);
 
 				if (meta instanceof EnchantmentStorageMeta) ((EnchantmentStorageMeta) meta).addStoredEnchant(enchant, level, true);
-				else if (meta != null) meta.addEnchant(enchant, level, true);
+				else meta.addEnchant(enchant, level, true);
 			}
-			if (enchantments.isEmpty()) emptyEnchants = true;
+
+
+		}
+
+		if (data.hasAttribute(FAKE_GLINT)) {
+			boolean fakeGlint = (boolean) data.getAttribute(FAKE_GLINT);
+
+			if (fakeGlint && !meta.hasEnchants()) {
+				ItemUtil.addFakeEnchantment(meta);
+			}
 		}
 
 		// Armor color
-		meta = LeatherArmorHandler.process(meta, data);
+		LeatherArmorHandler.processItemMeta(meta, data);
 
 		// Potion effects and potion color
-		meta = PotionHandler.process(meta, data);
+		PotionHandler.processItemMeta(meta, data);
 
 		// Skull owner
-		meta = SkullHandler.process(meta, data);
+		SkullHandler.processItemMeta(meta, data);
 
 		// Durability
-		meta = DurabilityHandler.process(meta, data);
+		if (ItemUtil.hasDurability(type)) DurabilityHandler.processItemMeta(meta, data);
 
 		// Repair cost
-		meta = RepairableHandler.process(meta, data);
+		RepairableHandler.processItemMeta(meta, data);
 
 		// Written book
-		meta = WrittenBookHandler.process(meta, data);
+		WrittenBookHandler.processItemMeta(meta, data);
 
 		// Banner
-		meta = BannerHandler.process(meta, data);
+		BannerHandler.processItemMeta(meta, data);
 
 		// Firework Star
-		meta = FireworkEffectHandler.process(meta, data);
+		FireworkEffectHandler.processItemMeta(meta, data);
 
 		// Firework
-		meta = FireworkHandler.process(meta, data);
+		FireworkHandler.processItemMeta(meta, data);
 
 		// Suspicious Stew
-		meta = SuspiciousStewHandler.process(meta, data);
+		SuspiciousStewHandler.processItemMeta(meta, data);
 
 		// Unbreakable
-		if (meta != null && data.hasItemAttribute(UNBREAKABLE))
-			meta.setUnbreakable((boolean) data.getItemAttribute(UNBREAKABLE));
+		if (data.hasAttribute(UNBREAKABLE))
+			meta.setUnbreakable((boolean) data.getAttribute(UNBREAKABLE));
 
 		// Hide tooltip
-		if (meta != null && data.hasItemAttribute(HIDE_TOOLTIP) && (boolean) data.getItemAttribute(HIDE_TOOLTIP))
+		if (data.hasAttribute(HIDE_TOOLTIP) && (boolean) data.getAttribute(HIDE_TOOLTIP))
 			meta.addItemFlags(ItemFlag.values());
-
-		// Empty enchant
-		if (emptyEnchants) ItemUtil.addFakeEnchantment(item);
 
 		// Set meta
 		item.setItemMeta(meta);
 
 		// Attributes
 		AttributeManager attributeManager = MagicSpells.getAttributeManager();
-		Multimap<Attribute, AttributeModifier> attributes = (Multimap<Attribute, AttributeModifier>) data.getItemAttribute(ATTRIBUTES);
+		Multimap<Attribute, AttributeModifier> attributes = (Multimap<Attribute, AttributeModifier>) data.getAttribute(ATTRIBUTES);
 		if (attributes != null) {
-			for (Attribute attribute : attributes.keys()) {
+			for (Attribute attribute : attributes.keySet()) {
 				Collection<AttributeModifier> attributeModifiers = attributes.get(attribute);
 				for (AttributeModifier modifier : attributeModifiers) {
 					attributeManager.addItemAttribute(item, attribute, modifier);
@@ -265,26 +273,40 @@ public class MagicItems {
 
 			MagicItemData itemData = new MagicItemData();
 
-			Material type = Util.getMaterial(section.getString("type"));
-			if (type == null) return null;
+			String typeString = section.getString("type");
+			Material type = Util.getMaterial(typeString);
+			if (type == null) {
+				DebugHandler.debugBadEnumValue(Material.class, typeString);
+				return null;
+			}
 
 			item = new ItemStack(type);
-			itemData.setItemAttribute(TYPE, type);
+			itemData.setAttribute(TYPE, type);
+
+			if (section.isInt("amount")) {
+				int amount = section.getInt("amount");
+
+				if (amount >= 1) {
+					item.setAmount(amount);
+					itemData.setAttribute(AMOUNT, amount);
+				}
+			}
+
 			ItemMeta meta = item.getItemMeta();
+			if (meta == null) return new MagicItem(item, itemData);
 
 			// Name
-			meta = NameHandler.process(section, meta, itemData);
+			NameHandler.process(section, meta, itemData);
 
 			// Lore
-			meta = LoreHandler.process(section, meta, itemData);
+			LoreHandler.process(section, meta, itemData);
 
 			// CustomModelData
-			meta = CustomModelDataHandler.process(section, meta, itemData);
+			CustomModelDataHandler.process(section, meta, itemData);
 
 			// Enchants
 			// <enchantmentName> <level>
-			boolean emptyEnchants = false;
-			if (section.contains("enchants") && section.isList("enchants")) {
+			if (section.isList("enchants")) {
 				List<String> enchants = section.getStringList("enchants");
 				for (String enchant : enchants) {
 
@@ -308,79 +330,87 @@ public class MagicItems {
 					else meta.addEnchant(e, level, true);
 				}
 
-				if (enchants.isEmpty()) emptyEnchants = true;
-
 				if (meta instanceof EnchantmentStorageMeta)
-					itemData.setItemAttribute(ENCHANTMENTS, ((EnchantmentStorageMeta) meta).getStoredEnchants());
+					itemData.setAttribute(ENCHANTMENTS, ((EnchantmentStorageMeta) meta).getStoredEnchants());
 				else
-					itemData.setItemAttribute(ENCHANTMENTS, meta.getEnchants());
+					itemData.setAttribute(ENCHANTMENTS, meta.getEnchants());
+			}
+
+			if (section.isBoolean("fake-glint")) {
+				boolean fakeGlint = section.getBoolean("fake-glint");
+
+				if (fakeGlint && !meta.hasEnchants()) {
+					ItemUtil.addFakeEnchantment(meta);
+					itemData.setAttribute(FAKE_GLINT, true);
+				}
 			}
 
 			// Armor color
-			meta = LeatherArmorHandler.process(section, meta, itemData);
+			LeatherArmorHandler.process(section, meta, itemData);
 
 			// Potion effects, color, type
-			meta = PotionHandler.process(section, meta, itemData);
+			PotionHandler.process(section, meta, itemData);
 
 			// Skull owner
-			meta = SkullHandler.process(section, meta, itemData);
+			SkullHandler.process(section, meta, itemData);
 
 			// Durability
-			meta = DurabilityHandler.process(section, meta, itemData);
+			if (ItemUtil.hasDurability(type)) DurabilityHandler.process(section, meta, itemData);
 
 			// Repair cost
-			meta = RepairableHandler.process(section, meta, itemData);
+			RepairableHandler.process(section, meta, itemData);
 
 			// Written book
-			meta = WrittenBookHandler.process(section, meta, itemData);
+			WrittenBookHandler.process(section, meta, itemData);
 
 			// Banner
-			meta = BannerHandler.process(section, meta, itemData);
+			BannerHandler.process(section, meta, itemData);
 
 			// Firework Star
-			meta = FireworkEffectHandler.process(section, meta, itemData);
+			FireworkEffectHandler.process(section, meta, itemData);
 
 			// Firework
-			meta = FireworkHandler.process(section, meta, itemData);
+			FireworkHandler.process(section, meta, itemData);
 
 			// Suspicious Stew
-			meta = SuspiciousStewHandler.process(section, meta, itemData);
+			SuspiciousStewHandler.process(section, meta, itemData);
 
 			// Unbreakable
-			if (section.contains("unbreakable") && section.isBoolean("unbreakable")) {
+			if (section.isBoolean("unbreakable")) {
 				boolean unbreakable = section.getBoolean("unbreakable");
 
 				meta.setUnbreakable(unbreakable);
-				itemData.setItemAttribute(UNBREAKABLE, unbreakable);
+				itemData.setAttribute(UNBREAKABLE, unbreakable);
 			}
 
-			// Hide tooltip
-			if (section.getBoolean("hide-tooltip", MagicSpells.hideMagicItemTooltips())) {
+			if (MagicSpells.hideMagicItemTooltips()) {
 				meta.addItemFlags(ItemFlag.values());
-				itemData.setItemAttribute(HIDE_TOOLTIP, true);
+				itemData.setAttribute(HIDE_TOOLTIP, true);
+			} else if (section.isBoolean("hide-tooltip")) {
+				boolean hideTooltip = section.getBoolean("hide-tooltip");
+
+				if (hideTooltip) meta.addItemFlags(ItemFlag.values());
+				itemData.setAttribute(HIDE_TOOLTIP, hideTooltip);
 			}
 
 			// Set meta
 			item.setItemMeta(meta);
 
-			// Empty enchant
-			if (emptyEnchants) ItemUtil.addFakeEnchantment(item);
-
 			// Attributes
 			//<attribute name> <value> (operation) (slot)
 			AttributeManager attributeManager = MagicSpells.getAttributeManager();
-			if (section.contains("attributes") && section.isList("attributes")) {
+			if (section.isList("attributes")) {
 				List<String> attributes = section.getStringList("attributes");
 				Multimap<Attribute, AttributeModifier> itemAttributes = HashMultimap.create();
 				for (String str : attributes) {
 					String[] args = str.split(" ");
 					if (args.length < 2) continue;
 
-					Attribute attribute = AttributeUtil.AttributeType.getAttribute(args[0]);
+					Attribute attribute = AttributeUtil.getAttribute(args[0]);
 					double value = Double.parseDouble(args[1]);
 
-					AttributeModifier.Operation operation = AttributeUtil.AttributeOperation.ADD_NUMBER.toBukkitOperation();
-					if (args.length >= 3) operation = AttributeUtil.AttributeOperation.getOperation(args[2]);
+					AttributeModifier.Operation operation = AttributeModifier.Operation.ADD_NUMBER;
+					if (args.length >= 3) operation = AttributeUtil.getOperation(args[2]);
 
 					EquipmentSlot slot = null;
 					if (args.length >= 4) {
@@ -394,7 +424,7 @@ public class MagicItems {
 					itemAttributes.put(attribute, modifier);
 				}
 
-				itemData.setItemAttribute(ATTRIBUTES, itemAttributes);
+				itemData.setAttribute(ATTRIBUTES, itemAttributes);
 			}
 
 			return new MagicItem(item, itemData);

@@ -16,7 +16,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.NAME;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.NAME;
 
 // Trigger variable of a comma separated list of items to accept
 public class RightClickItemListener extends PassiveListener {
@@ -34,8 +34,8 @@ public class RightClickItemListener extends PassiveListener {
 			MagicItemData itemData = null;
 			if (magicItem != null) itemData = magicItem.getMagicItemData();
 			if (itemData == null) continue;
-			if (itemData.hasItemAttribute(NAME))
-				itemData.setItemAttribute(NAME, Util.decolorize((String) itemData.getItemAttribute(NAME)));
+			if (itemData.hasAttribute(NAME))
+				itemData.setAttribute(NAME, Util.decolorize((String) itemData.getAttribute(NAME)));
 
 			items.add(itemData);
 		}

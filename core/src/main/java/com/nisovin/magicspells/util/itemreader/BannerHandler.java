@@ -2,25 +2,24 @@ package com.nisovin.magicspells.util.itemreader;
 
 import java.util.List;
 
-import com.nisovin.magicspells.handlers.DebugHandler;
 import org.bukkit.DyeColor;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.ItemAttribute.PATTERNS;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.PATTERNS;
 
 public class BannerHandler {
 
 	private static final String CONFIG_NAME = PATTERNS.toString();
 
-	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof BannerMeta)) return meta;
-		if (!config.isList(CONFIG_NAME)) return meta;
+	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof BannerMeta)) return;
+		if (!config.isList(CONFIG_NAME)) return;
 
 		BannerMeta bannerMeta = (BannerMeta) meta;
 
@@ -50,32 +49,22 @@ public class BannerHandler {
 			bannerMeta.addPattern(pattern);
 		}
 
-		if (!bannerMeta.getPatterns().isEmpty()) data.setItemAttribute(PATTERNS, bannerMeta.getPatterns());
-		return bannerMeta;
+		if (!bannerMeta.getPatterns().isEmpty()) data.setAttribute(PATTERNS, bannerMeta.getPatterns());
 	}
 
-	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof BannerMeta)) return meta;
-		if (!data.hasItemAttribute(PATTERNS)) return meta;
+	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof BannerMeta)) return;
+		if (!data.hasAttribute(PATTERNS)) return;
 
-		List<Pattern> patterns = (List<Pattern>) data.getItemAttribute(PATTERNS);
-		BannerMeta bannerMeta = (BannerMeta) meta;
+		List<Pattern> patterns = (List<Pattern>) data.getAttribute(PATTERNS);
 		((BannerMeta) meta).setPatterns(patterns);
-
-		return bannerMeta;
 	}
 
-	public static MagicItemData process(ItemStack itemStack, MagicItemData data) {
-		if (data == null) return null;
-		if (itemStack == null) return data;
+	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof BannerMeta)) return;
 
-		ItemMeta meta = itemStack.getItemMeta();
-		if (!(meta instanceof BannerMeta)) return data;
-
-		List<Pattern> patterns = ((BannerMeta) itemStack.getItemMeta()).getPatterns();
-		if (!patterns.isEmpty()) data.setItemAttribute(PATTERNS, patterns);
-
-		return data;
+		List<Pattern> patterns = ((BannerMeta) meta).getPatterns();
+		if (!patterns.isEmpty()) data.setAttribute(PATTERNS, patterns);
 	}
 	
 }
