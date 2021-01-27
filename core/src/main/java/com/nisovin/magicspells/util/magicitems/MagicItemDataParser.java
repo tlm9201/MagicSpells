@@ -81,6 +81,8 @@ public class MagicItemDataParser {
 		MagicItemData data = new MagicItemData();
 		data.setAttribute(TYPE, type);
 
+		if (type.isAir()) return data;
+
 		try {
 			while (jsonReader.peek() != JsonToken.END_DOCUMENT) {
 				JsonElement jsonElement = jsonElementTypeAdapter.read(jsonReader);

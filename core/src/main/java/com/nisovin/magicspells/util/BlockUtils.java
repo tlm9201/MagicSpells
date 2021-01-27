@@ -116,7 +116,7 @@ public class BlockUtils {
 	}
 
 	public static boolean isAir(Material m) {
-		return m == Material.AIR || m.name().contains("_AIR");
+		return m.isAir();
 	}
 
 	public static boolean isBed(Material m) {

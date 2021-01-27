@@ -23,7 +23,6 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ItemUtil;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.itemreader.*;
 import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
@@ -70,7 +69,7 @@ public class MagicItems {
 	}
 
 	public static MagicItemData getMagicItemDataFromItemStack(ItemStack itemStack) {
-		if (itemStack == null || BlockUtils.isAir(itemStack.getType())) return null;
+		if (itemStack == null) return null;
 
 		MagicItemData cached = itemStackCache.get(itemStack);
 		// We can do this because itemStackCache doesn't have any null values
@@ -82,11 +81,21 @@ public class MagicItems {
 		// type
 		data.setAttribute(TYPE, itemStack.getType());
 
-		// name
-		NameHandler.processMagicItemData(meta, data);
+		 if (itemStack.getType().isAir()) {
+		 	itemStackCache.put(itemStack, data);
+		 	return data;
+		 }
 
 		// amount
 		data.setAttribute(AMOUNT, itemStack.getAmount());
+
+		if (meta == null) {
+			itemStackCache.put(itemStack, data);
+			return data;
+		}
+
+		// name
+		NameHandler.processMagicItemData(meta, data);
 
 		// durability
 		if (ItemUtil.hasDurability(itemStack.getType())) DurabilityHandler.processMagicItemData(meta, data);
@@ -170,6 +179,8 @@ public class MagicItems {
 
 		ItemStack item = new ItemStack(type);
 		ItemMeta meta = item.getItemMeta();
+
+		if (type.isAir()) return new MagicItem(item, data);
 
 		if (data.hasAttribute(AMOUNT)) {
 			int amount = (int) data.getAttribute(AMOUNT);
@@ -301,6 +312,8 @@ public class MagicItems {
 
 			item = new ItemStack(type);
 			itemData.setAttribute(TYPE, type);
+
+			if (type.isAir()) return new MagicItem(item, itemData);
 
 			if (section.isInt("amount")) {
 				int amount = section.getInt("amount");
