@@ -2,6 +2,7 @@ package com.nisovin.magicspells.util.magicitems;
 
 import java.util.Map;
 import java.util.List;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Collection;
 
@@ -28,6 +29,7 @@ import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
+import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
@@ -269,7 +271,24 @@ public class MagicItems {
 
 			// See if this is managed by an alternative reader
 			ItemStack item = AlternativeReaderManager.deserialize(section);
-			if (item != null) return new MagicItem(item, getMagicItemDataFromItemStack(item));
+			if (item != null) {
+				MagicItem magicItem = new MagicItem(item, getMagicItemDataFromItemStack(item));
+
+				if (section.isList("ignored-attributes")) {
+					EnumSet<MagicItemAttribute> ignoredAttributes = magicItem.getMagicItemData().getIgnoredAttributes();
+					List<String> ignoredAttributeStrings = section.getStringList("ignored-attributes");
+
+					for (String attr : ignoredAttributeStrings) {
+						try {
+							ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+						} catch (IllegalArgumentException e) {
+							DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
+						}
+					}
+				}
+
+				return magicItem;
+			}
 
 			MagicItemData itemData = new MagicItemData();
 
@@ -425,6 +444,19 @@ public class MagicItems {
 				}
 
 				itemData.setAttribute(ATTRIBUTES, itemAttributes);
+			}
+
+			if (section.isList("ignored-attributes")) {
+				List<String> ignoredAttributeStrings = section.getStringList("ignored-attributes");
+				EnumSet<MagicItemAttribute> ignoredAttributes = itemData.getIgnoredAttributes();
+
+				for (String attr : ignoredAttributeStrings) {
+					try {
+						ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+					} catch (IllegalArgumentException e) {
+						DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
+					}
+				}
 			}
 
 			return new MagicItem(item, itemData);

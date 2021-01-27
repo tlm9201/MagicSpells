@@ -3,6 +3,7 @@ package com.nisovin.magicspells.util.magicitems;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.ArrayList;
 
@@ -40,6 +41,7 @@ import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
+import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
 public class MagicItemDataParser {
@@ -368,6 +370,20 @@ public class MagicItemDataParser {
 							}
 
 							data.setAttribute(FIREWORK_EFFECTS, fireworkEffects);
+							break;
+						case "ignoredattributes":
+							if (!value.isJsonArray()) continue;
+							EnumSet<MagicItemAttribute> ignoredAttributes = data.getIgnoredAttributes();
+							JsonArray ignoredAttributeStrings = value.getAsJsonArray();
+
+							for (JsonElement element : ignoredAttributeStrings) {
+								String ignoredAttribute = element.getAsString().toUpperCase();
+								try {
+									ignoredAttributes.add(MagicItemAttribute.valueOf(ignoredAttribute));
+								} catch (IllegalArgumentException e) {
+									DebugHandler.debugBadEnumValue(MagicItemAttribute.class, ignoredAttribute);
+								}
+							}
 							break;
 					}
 				}

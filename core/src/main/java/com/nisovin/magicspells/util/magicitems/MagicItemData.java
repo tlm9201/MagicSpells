@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Collection;
@@ -27,6 +28,7 @@ import com.nisovin.magicspells.util.AttributeUtil.AttributeModifierData;
 public class MagicItemData {
 
     private EnumMap<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
+    private EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
 
     public Object getAttribute(MagicItemAttribute attr) {
         return itemAttributes.get(attr);
@@ -45,6 +47,14 @@ public class MagicItemData {
 
     public boolean hasAttribute(MagicItemAttribute atr) {
         return itemAttributes.containsKey(atr);
+    }
+
+    public EnumSet<MagicItemAttribute> getIgnoredAttributes() {
+        return ignoredAttributes;
+    }
+
+    public void setIgnoredAttributes(EnumSet<MagicItemAttribute> ignoredAttributes) {
+        this.ignoredAttributes = ignoredAttributes;
     }
 
     private boolean hasEqualAttributes(MagicItemData other) {
@@ -83,13 +93,22 @@ public class MagicItemData {
     }
 
     public boolean matches(MagicItemData data) {
-        if (!data.itemAttributes.keySet().containsAll(itemAttributes.keySet())) return false;
+        if (this == data) return true;
 
-        for (MagicItemAttribute attr : itemAttributes.keySet()) {
-            if (attr == MagicItemAttribute.ATTRIBUTES)
+        Set<MagicItemAttribute> keysSelf = itemAttributes.keySet();
+        Set<MagicItemAttribute> keysOther = data.itemAttributes.keySet();
+
+        for (MagicItemAttribute attr : keysSelf) {
+            if (ignoredAttributes.contains(attr)) continue;
+            if (!keysOther.contains(attr)) return false;
+        }
+
+        for (MagicItemAttribute attr : keysSelf) {
+            if (ignoredAttributes.contains(attr)) continue;
+
+            if (attr == MagicItemAttribute.ATTRIBUTES) {
                 if (!hasEqualAttributes(data)) return false;
-            else
-                if (!itemAttributes.get(attr).equals(data.itemAttributes.get(attr))) return false;
+            } else if (!itemAttributes.get(attr).equals(data.itemAttributes.get(attr))) return false;
         }
 
         return true;
@@ -496,6 +515,26 @@ public class MagicItemData {
 
                 output.append('"');
                 previousEffect = true;
+            }
+
+            output.append(']');
+            previous = true;
+        }
+
+        if (!ignoredAttributes.isEmpty()) {
+            if (previous) output.append(",");
+            output.append("\"ignoredattributes\":[");
+
+            boolean previousAttribute = false;
+            for (MagicItemAttribute attr : ignoredAttributes) {
+                if (previousAttribute) output.append(',');
+
+                output
+                    .append('"')
+                    .append(attr.name())
+                    .append('"');
+
+                previousAttribute = true;
             }
 
             output.append(']');
