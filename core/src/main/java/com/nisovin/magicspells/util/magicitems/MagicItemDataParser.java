@@ -25,6 +25,8 @@ import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.FireworkEffect;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.banner.Pattern;
@@ -38,7 +40,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
-import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
@@ -126,8 +127,24 @@ public class MagicItemDataParser {
 								DebugHandler.debugNumberFormat(e);
 							}
 							break;
-						case "potiontype":
-							data.setAttribute(POTION_TYPE, PotionEffectHandler.getPotionType(value.getAsString()));
+						case "potiondata":
+							String[] potionDataArgs = value.getAsString().split(" ");
+
+							try {
+								PotionType potionType = PotionType.valueOf(potionDataArgs[0].toUpperCase());
+								boolean extended = false, upgraded = false;
+
+								if (potionDataArgs.length > 1) {
+									if (potionDataArgs[1].equalsIgnoreCase("extended")) extended = true;
+									else if (potionDataArgs[1].equalsIgnoreCase("upgraded")) upgraded = true;
+								}
+
+								PotionData potionData = new PotionData(potionType, extended, upgraded);
+
+								data.setAttribute(POTION_DATA, potionData);
+							} catch (IllegalArgumentException e) {
+								DebugHandler.debugBadEnumValue(PotionType.class, potionDataArgs[0]);
+							}
 							break;
 						case "fireworkeffect":
 							String[] effectString = value.getAsString().split(" ");

@@ -15,13 +15,13 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.COLOR;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.POTION_TYPE;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.POTION_DATA;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.POTION_EFFECTS;
 
 public class PotionHandler {
 
 	public static final String POTION_EFFECT_CONFIG_NAME = POTION_EFFECTS.toString();
-	public static final String POTION_TYPE_CONFIG_NAME = POTION_TYPE.toString();
+	public static final String POTION_DATA_CONFIG_NAME = POTION_DATA.toString();
 	public static final String POTION_COLOR_CONFIG_NAME = "potion-color";
 
 	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
@@ -57,17 +57,25 @@ public class PotionHandler {
 			}
 		}
 
+		if (config.isString(POTION_DATA_CONFIG_NAME)) {
+			String potionDataString = config.getString(POTION_DATA_CONFIG_NAME);
+			String[] args = potionDataString.split(" ");
 
-		if (config.isString(POTION_TYPE_CONFIG_NAME)) {
-			String potionTypeString = config.getString(POTION_TYPE_CONFIG_NAME).toUpperCase();
 			try {
-				PotionType potionType = PotionType.valueOf(potionTypeString);
-				PotionData potionData = new PotionData(potionType);
+				PotionType potionType = PotionType.valueOf(args[0].toUpperCase());
+				boolean extended = false, upgraded = false;
+
+				if (args.length > 1) {
+					if (args[1].equalsIgnoreCase("extended")) extended = true;
+					else if (args[1].equalsIgnoreCase("upgraded")) upgraded = true;
+				}
+
+				PotionData potionData = new PotionData(potionType, extended, upgraded);
 
 				potionMeta.setBasePotionData(potionData);
-				data.setAttribute(POTION_TYPE, potionType);
+				data.setAttribute(POTION_DATA, potionData);
 			} catch (IllegalArgumentException e) {
-				DebugHandler.debugBadEnumValue(PotionType.class, potionTypeString);
+				DebugHandler.debugBadEnumValue(PotionType.class, args[0]);
 			}
 		}
 	}
@@ -81,14 +89,14 @@ public class PotionHandler {
 			((List<PotionEffect>) data.getAttribute(POTION_EFFECTS)).forEach(potionEffect -> potionMeta.addCustomEffect(potionEffect, true));
 		}
 		if (data.hasAttribute(COLOR)) potionMeta.setColor((Color) data.getAttribute(COLOR));
-		if (data.hasAttribute(POTION_TYPE)) potionMeta.setBasePotionData(new PotionData((PotionType) data.getAttribute(POTION_TYPE)));
+		if (data.hasAttribute(POTION_DATA)) potionMeta.setBasePotionData((PotionData) data.getAttribute(POTION_DATA));
 	}
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof PotionMeta)) return;
 
 		PotionMeta potionMeta = (PotionMeta) meta;
-		data.setAttribute(POTION_TYPE, potionMeta.getBasePotionData().getType());
+		data.setAttribute(POTION_DATA, potionMeta.getBasePotionData());
 		if (potionMeta.hasCustomEffects()) data.setAttribute(POTION_EFFECTS, potionMeta.getCustomEffects());
 		if (potionMeta.hasColor()) data.setAttribute(COLOR, potionMeta.getColor());
 	}

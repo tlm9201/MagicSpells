@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -81,7 +82,7 @@ public class CastItem {
 				if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = (int) data.getAttribute(CUSTOM_MODEL_DATA);
 				if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = (boolean) data.getAttribute(UNBREAKABLE);
 				if (!MagicSpells.ignoreCastItemColor()) color = (Color) data.getAttribute(COLOR);
-				if (!MagicSpells.ignoreCastItemPotionType()) potionType = (PotionType) data.getAttribute(POTION_TYPE);
+				if (!MagicSpells.ignoreCastItemPotionType()) potionType = ((PotionData) data.getAttribute(POTION_DATA)).getType();
 				if (!MagicSpells.ignoreCastItemTitle()) title = (String) data.getAttribute(TITLE);
 				if (!MagicSpells.ignoreCastItemAuthor()) author = (String) data.getAttribute(AUTHOR);
 				if (!MagicSpells.ignoreCastItemEnchants()) enchants = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTMENTS);
@@ -144,7 +145,7 @@ public class CastItem {
 		data.setAttribute(CUSTOM_MODEL_DATA, customModelData);
 		data.setAttribute(UNBREAKABLE, unbreakable);
 		data.setAttribute(COLOR, color);
-		data.setAttribute(POTION_TYPE, potionType);
+		data.setAttribute(POTION_DATA, new PotionData(potionType));
 		data.setAttribute(TITLE, title);
 		data.setAttribute(AUTHOR, author);
 		data.setAttribute(ENCHANTMENTS, enchants);

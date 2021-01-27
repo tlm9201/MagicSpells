@@ -13,9 +13,8 @@ import com.google.common.collect.Multimap;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.FireworkEffect;
-import org.bukkit.potion.PotionType;
+import org.bukkit.potion.PotionData;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.block.banner.Pattern;
@@ -148,7 +147,7 @@ public class MagicItemData {
         UNBREAKABLE(Boolean.class),
         HIDE_TOOLTIP(Boolean.class),
         FAKE_GLINT(Boolean.class),
-        POTION_TYPE(PotionType.class),
+        POTION_DATA(PotionData.class),
         COLOR(Color.class),
         FIREWORK_EFFECT(FireworkEffect.class),
         TITLE(String.class),
@@ -289,13 +288,19 @@ public class MagicItemData {
             previous = true;
         }
 
-        if (hasAttribute(MagicItemAttribute.POTION_TYPE)) {
+        if (hasAttribute(MagicItemAttribute.POTION_DATA)) {
             if (previous) output.append(',');
 
+            PotionData potionData = (PotionData) getAttribute(MagicItemAttribute.POTION_DATA);
+
             output
-                .append("\"potiontype\":\"")
-                .append(((PotionType) getAttribute(MagicItemAttribute.POTION_TYPE)).name())
-                .append('"');
+                .append("\"potiondata\":\"")
+                .append(potionData.getType());
+
+            if (potionData.isExtended()) output.append(" extended");
+            else if (potionData.isUpgraded()) output.append(" upgraded");
+
+            output.append('"');
 
             previous = true;
         }
