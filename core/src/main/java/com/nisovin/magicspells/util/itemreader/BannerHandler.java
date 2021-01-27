@@ -49,7 +49,7 @@ public class BannerHandler {
 			bannerMeta.addPattern(pattern);
 		}
 
-		if (!bannerMeta.getPatterns().isEmpty()) data.setAttribute(PATTERNS, bannerMeta.getPatterns());
+		data.setAttribute(PATTERNS, bannerMeta.getPatterns());
 	}
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
@@ -64,7 +64,7 @@ public class BannerHandler {
 		if (!(meta instanceof BannerMeta)) return;
 
 		List<Pattern> patterns = ((BannerMeta) meta).getPatterns();
-		if (!patterns.isEmpty()) data.setAttribute(PATTERNS, patterns);
+		data.setAttribute(PATTERNS, patterns);
 	}
 	
 }
