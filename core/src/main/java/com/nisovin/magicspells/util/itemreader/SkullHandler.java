@@ -62,8 +62,10 @@ public class SkullHandler {
 
 		SkullMeta skullMeta = (SkullMeta) meta;
 
-		OfflinePlayer offlinePlayer = (OfflinePlayer) data.getAttribute(SKULL_OWNER);
-		if (offlinePlayer != null) skullMeta.setOwningPlayer(offlinePlayer);
+		if (data.hasAttribute(SKULL_OWNER)) {
+			OfflinePlayer offlinePlayer = (OfflinePlayer) data.getAttribute(SKULL_OWNER);
+			skullMeta.setOwningPlayer(offlinePlayer);
+		}
 
 		String uuid = (String) data.getAttribute(MagicItemAttribute.UUID);
 		String signature = (String) data.getAttribute(SIGNATURE);
@@ -77,7 +79,8 @@ public class SkullHandler {
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof SkullMeta)) return;
 
-		data.setAttribute(SKULL_OWNER, ((SkullMeta) meta).getOwningPlayer());
+		SkullMeta skullMeta = (SkullMeta) meta;
+		if (skullMeta.hasOwner()) data.setAttribute(SKULL_OWNER, skullMeta.getOwningPlayer());
 	}
 	
 }

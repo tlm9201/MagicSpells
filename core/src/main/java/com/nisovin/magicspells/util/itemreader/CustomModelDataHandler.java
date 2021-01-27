@@ -21,10 +21,7 @@ public class CustomModelDataHandler {
 	}
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
-		if (!data.hasAttribute(CUSTOM_MODEL_DATA)) return;
-
-		int customModelData = (int) data.getAttribute(CUSTOM_MODEL_DATA);
-		meta.setCustomModelData(customModelData);
+		if (data.hasAttribute(CUSTOM_MODEL_DATA)) meta.setCustomModelData((int) data.getAttribute(CUSTOM_MODEL_DATA));
 	}
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {

@@ -97,11 +97,10 @@ public class MagicItemDataParser {
 
 					switch (key.toLowerCase()) {
 						case "name":
-							data.setAttribute(NAME, value.getAsString());
+							data.setAttribute(NAME, Util.colorize(value.getAsString()));
 							break;
 						case "amount":
-							int amount = value.getAsInt();
-							if (amount >= 1) data.setAttribute(AMOUNT, value.getAsInt());
+							data.setAttribute(AMOUNT, value.getAsInt());
 							break;
 						case "durability":
 							data.setAttribute(DURABILITY, value.getAsInt());
@@ -173,10 +172,10 @@ public class MagicItemDataParser {
 							}
 							break;
 						case "title":
-							data.setAttribute(TITLE, value.getAsString());
+							data.setAttribute(TITLE, Util.colorize(value.getAsString()));
 							break;
 						case "author":
-							data.setAttribute(AUTHOR, value.getAsString());
+							data.setAttribute(AUTHOR, Util.colorize(value.getAsString()));
 							break;
 						case "uuid":
 							data.setAttribute(UUID, value.getAsString());
@@ -269,7 +268,7 @@ public class MagicItemDataParser {
 							List<String> lore = new ArrayList<>();
 							JsonArray jsonArray = value.getAsJsonArray();
 							for (JsonElement elementInside : jsonArray) {
-								lore.add(elementInside.getAsString());
+								lore.add(Util.colorize(elementInside.getAsString()));
 							}
 
 							data.setAttribute(LORE, lore);
@@ -280,7 +279,7 @@ public class MagicItemDataParser {
 							List<String> pages = new ArrayList<>();
 							JsonArray pageArray = value.getAsJsonArray();
 							for (JsonElement page : pageArray) {
-								pages.add(page.getAsString());
+								pages.add(Util.colorize(page.getAsString()));
 							}
 
 							data.setAttribute(PAGES, pages);
@@ -291,7 +290,7 @@ public class MagicItemDataParser {
 							List<Pattern> patterns = new ArrayList<>();
 							JsonArray patternStrings = value.getAsJsonArray();
 							for (JsonElement element : patternStrings) {
-								String patternString = element.toString();
+								String patternString = element.getAsString();
 								String[] pattern = patternString.split(" ");
 
 								if (pattern.length == 2) {

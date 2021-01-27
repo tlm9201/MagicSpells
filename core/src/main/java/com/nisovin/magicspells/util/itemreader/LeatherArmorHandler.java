@@ -32,10 +32,9 @@ public class LeatherArmorHandler {
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof LeatherArmorMeta)) return;
-
-		LeatherArmorMeta armorMeta = (LeatherArmorMeta) meta;
 		if (!data.hasAttribute(COLOR)) return;
 
+		LeatherArmorMeta armorMeta = (LeatherArmorMeta) meta;
 		armorMeta.setColor((Color) data.getAttribute(COLOR));
 	}
 

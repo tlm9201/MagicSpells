@@ -22,26 +22,23 @@ public class WrittenBookHandler {
 		if (!(meta instanceof BookMeta)) return;
 		
 		BookMeta bookMeta = (BookMeta) meta;
-		List<String> pages;
-		String author;
-		String title;
 
 		if (config.isString(TITLE_CONFIG_NAME)) {
-			title = Util.colorize(config.getString(TITLE_CONFIG_NAME));
+			String title = Util.colorize(config.getString(TITLE_CONFIG_NAME));
 
 			bookMeta.setTitle(title);
 			data.setAttribute(TITLE, title);
 		}
 
 		if (config.isString(AUTHOR_CONFIG_NAME)) {
-			author = Util.colorize(config.getString(AUTHOR_CONFIG_NAME));
+			String author = Util.colorize(config.getString(AUTHOR_CONFIG_NAME));
 
 			bookMeta.setAuthor(author);
 			data.setAttribute(AUTHOR, author);
 		}
 
 		if (config.isList(PAGES_CONFIG_NAME)) {
-			pages = config.getStringList(PAGES_CONFIG_NAME);
+			List<String> pages = config.getStringList(PAGES_CONFIG_NAME);
 			for (int i = 0; i < pages.size(); i++) {
 				pages.set(i, Util.colorize(pages.get(i)));
 			}
@@ -55,35 +52,18 @@ public class WrittenBookHandler {
 		if (!(meta instanceof BookMeta)) return;
 
 		BookMeta bookMeta = (BookMeta) meta;
-		String title = (String) data.getAttribute(TITLE);
-		String author = (String) data.getAttribute(AUTHOR);
-		List<String> pages = (List<String>) data.getAttribute(PAGES);
-
-		if (title != null) {
-			title = Util.colorize(title);
-			bookMeta.setTitle(title);
-		}
-
-		if (author != null) {
-			author = Util.colorize(author);
-			bookMeta.setAuthor(author);
-		}
-
-		if (pages != null) {
-			for (int i = 0; i < pages.size(); i++) {
-				pages.set(i, Util.colorize(pages.get(i)));
-			}
-			bookMeta.setPages(pages);
-		}
+		if (data.hasAttribute(TITLE)) bookMeta.setTitle((String) data.getAttribute(TITLE));
+		if (data.hasAttribute(AUTHOR)) bookMeta.setAuthor((String) data.getAttribute(AUTHOR));
+		if (data.hasAttribute(PAGES)) bookMeta.setPages((List<String>) data.getAttribute(PAGES));
 	}
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof BookMeta)) return;
 
 		BookMeta bookMeta = (BookMeta) meta;
-		data.setAttribute(AUTHOR, bookMeta.getAuthor());
-		data.setAttribute(TITLE, bookMeta.getTitle());
-		if (!bookMeta.getPages().isEmpty()) data.setAttribute(PAGES, bookMeta.getPages());
+		if (bookMeta.hasAuthor()) data.setAttribute(AUTHOR, bookMeta.getAuthor());
+		if (bookMeta.hasTitle()) data.setAttribute(TITLE, bookMeta.getTitle());
+		if (bookMeta.hasPages()) data.setAttribute(PAGES, bookMeta.getPages());
 	}
 
 	public static String getTitle(ItemMeta meta) {

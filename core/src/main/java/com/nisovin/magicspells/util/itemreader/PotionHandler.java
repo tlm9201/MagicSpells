@@ -35,7 +35,6 @@ public class PotionHandler {
 			List<PotionEffect> potionEffects = new ArrayList<>();
 
 			for (String potionEffect : potionEffectStrings) {
-
 				PotionEffect eff = Util.buildPotionEffect(potionEffect);
 				if (eff == null) continue;
 
@@ -90,8 +89,8 @@ public class PotionHandler {
 
 		PotionMeta potionMeta = (PotionMeta) meta;
 		data.setAttribute(POTION_TYPE, potionMeta.getBasePotionData().getType());
-		data.setAttribute(POTION_EFFECTS, potionMeta.getCustomEffects());
-		data.setAttribute(COLOR, potionMeta.getColor());
+		if (potionMeta.hasCustomEffects()) data.setAttribute(POTION_EFFECTS, potionMeta.getCustomEffects());
+		if (potionMeta.hasColor()) data.setAttribute(COLOR, potionMeta.getColor());
 	}
 
 	public static PotionType getPotionType(ItemMeta meta) {

@@ -198,7 +198,7 @@ public class MagicItemData {
 
         output.append('{');
         if (hasAttribute(MagicItemAttribute.NAME)) {
-            output.append("\"name\":\"").append((String) getAttribute(MagicItemAttribute.NAME)).append('"');
+            output.append("\"name\":\"").append(escape((String) getAttribute(MagicItemAttribute.NAME))).append('"');
             previous = true;
         }
 
@@ -307,13 +307,13 @@ public class MagicItemData {
 
         if (hasAttribute(MagicItemAttribute.TITLE)) {
             if (previous) output.append(',');
-            output.append("\"title\":\"").append((String) getAttribute(MagicItemAttribute.TITLE)).append('"');
+            output.append("\"title\":\"").append(escape((String) getAttribute(MagicItemAttribute.TITLE))).append('"');
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.AUTHOR)) {
             if (previous) output.append(',');
-            output.append("\"author\":\"").append((String) getAttribute(MagicItemAttribute.AUTHOR)).append('"');
+            output.append("\"author\":\"").append(escape((String) getAttribute(MagicItemAttribute.AUTHOR))).append('"');
             previous = true;
         }
 
@@ -418,7 +418,7 @@ public class MagicItemData {
             boolean previousPages = false;
             for (String page : pages) {
                 if (previousPages) output.append(',');
-                output.append('"').append(page).append('"');
+                output.append('"').append(escape(page)).append('"');
                 previousPages = true;
             }
 

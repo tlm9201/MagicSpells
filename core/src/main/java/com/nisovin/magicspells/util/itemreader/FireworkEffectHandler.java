@@ -76,16 +76,15 @@ public class FireworkEffectHandler {
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof FireworkEffectMeta)) return;
-		if (!data.hasAttribute(FIREWORK_EFFECT)) return;
 
-		((FireworkEffectMeta) meta).setEffect((FireworkEffect) data.getAttribute(FIREWORK_EFFECT));
+		if (data.hasAttribute(FIREWORK_EFFECT)) ((FireworkEffectMeta) meta).setEffect((FireworkEffect) data.getAttribute(FIREWORK_EFFECT));
 	}
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof FireworkEffectMeta)) return;
 
-		FireworkEffect effect = ((FireworkEffectMeta) meta).getEffect();
-		data.setAttribute(FIREWORK_EFFECT, effect);
+		FireworkEffectMeta effectMeta = (FireworkEffectMeta) meta;
+		if (effectMeta.hasEffect()) data.setAttribute(FIREWORK_EFFECT, effectMeta.getEffect());
 	}
 
 }

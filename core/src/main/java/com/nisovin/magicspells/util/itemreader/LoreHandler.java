@@ -34,13 +34,7 @@ public class LoreHandler {
 	}
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
-		if (!data.hasAttribute(LORE)) return;
-
-		List<String> lore = (List<String>) data.getAttribute(LORE);
-		for (int i = 0; i < lore.size(); i++) {
-			lore.set(i, Util.colorize(lore.get(i)));
-		}
-		meta.setLore(lore);
+		if (data.hasAttribute(LORE)) meta.setLore((List<String>) data.getAttribute(LORE));
 	}
 	
 }

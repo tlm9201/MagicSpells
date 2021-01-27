@@ -54,17 +54,14 @@ public class BannerHandler {
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof BannerMeta)) return;
-		if (!data.hasAttribute(PATTERNS)) return;
 
-		List<Pattern> patterns = (List<Pattern>) data.getAttribute(PATTERNS);
-		((BannerMeta) meta).setPatterns(patterns);
+		if (data.hasAttribute(PATTERNS)) ((BannerMeta) meta).setPatterns((List<Pattern>) data.getAttribute(PATTERNS));
 	}
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof BannerMeta)) return;
 
-		List<Pattern> patterns = ((BannerMeta) meta).getPatterns();
-		data.setAttribute(PATTERNS, patterns);
+		data.setAttribute(PATTERNS, ((BannerMeta) meta).getPatterns());
 	}
 	
 }

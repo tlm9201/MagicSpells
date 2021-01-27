@@ -86,7 +86,7 @@ public class FireworkHandler {
 
 		FireworkMeta fireworkMeta = (FireworkMeta) meta;
 		data.setAttribute(POWER, fireworkMeta.getPower());
-		data.setAttribute(FIREWORK_EFFECTS, fireworkMeta.getEffects());
+		if (fireworkMeta.hasEffects()) data.setAttribute(FIREWORK_EFFECTS, fireworkMeta.getEffects());
 	}
 
 }
