@@ -156,7 +156,7 @@ public class MagicItemData {
         UUID(String.class),
         TEXTURE(String.class),
         SIGNATURE(String.class),
-        SKULL_OWNER(OfflinePlayer.class),
+        SKULL_OWNER(String.class),
         ENCHANTMENTS(Map.class),
         LORE(List.class),
         PAGES(List.class),
@@ -198,65 +198,105 @@ public class MagicItemData {
 
         output.append('{');
         if (hasAttribute(MagicItemAttribute.NAME)) {
-            output.append("\"name\":\"").append(escape((String) getAttribute(MagicItemAttribute.NAME))).append('"');
+            output
+                .append("\"name\":\"")
+                .append(escape((String) getAttribute(MagicItemAttribute.NAME)))
+                .append('"');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.AMOUNT)) {
-            int amount = (int) getAttribute(MagicItemAttribute.AMOUNT);
-
             if (previous) output.append(',');
-            output.append("\"amount\":").append(amount);
+
+            output
+                .append("\"amount\":")
+                .append((int) getAttribute(MagicItemAttribute.AMOUNT));
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.DURABILITY)) {
             if (previous) output.append(',');
-            output.append("\"durability\":").append((int) getAttribute(MagicItemAttribute.DURABILITY));
+
+            output
+                .append("\"durability\":")
+                .append((int) getAttribute(MagicItemAttribute.DURABILITY));
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.REPAIR_COST)) {
             if (previous) output.append(',');
-            output.append("\"repaircost\":").append((int) getAttribute(MagicItemAttribute.REPAIR_COST));
+
+            output
+                .append("\"repaircost\":")
+                .append((int) getAttribute(MagicItemAttribute.REPAIR_COST));
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA)) {
             if (previous) output.append(',');
-            output.append("\"custommodeldata\":").append((int) getAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA));
+
+            output
+                .append("\"custommodeldata\":")
+                .append((int) getAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA));
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.POWER)) {
             if (previous) output.append(',');
-            output.append("\"power\":").append((int) getAttribute(MagicItemAttribute.POWER));
+
+            output
+                .append("\"power\":")
+                .append((int) getAttribute(MagicItemAttribute.POWER));
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.UNBREAKABLE)) {
             if (previous) output.append(',');
-            output.append("\"unbreakable\":").append((boolean) getAttribute(MagicItemAttribute.UNBREAKABLE));
+
+            output
+                .append("\"unbreakable\":")
+                .append((boolean) getAttribute(MagicItemAttribute.UNBREAKABLE));
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.HIDE_TOOLTIP)) {
             if (previous) output.append(',');
-            output.append("\"hidetooltip\":").append((boolean) getAttribute(MagicItemAttribute.HIDE_TOOLTIP));
+
+            output
+                .append("\"hidetooltip\":")
+                .append((boolean) getAttribute(MagicItemAttribute.HIDE_TOOLTIP));
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.COLOR)) {
             if (previous) output.append(',');
+
             Color color = (Color) getAttribute(MagicItemAttribute.COLOR);
             String hex = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-            output.append("\"color\":\"").append(hex).append('"');
+            output
+                .append("\"color\":\"")
+                .append(hex)
+                .append('"');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.POTION_TYPE)) {
             if (previous) output.append(',');
-            output.append("\"potiontype\":\"").append(((PotionType) getAttribute(MagicItemAttribute.POTION_TYPE)).name()).append('"');
+
+            output
+                .append("\"potiontype\":\"")
+                .append(((PotionType) getAttribute(MagicItemAttribute.POTION_TYPE)).name())
+                .append('"');
+
             previous = true;
         }
 
@@ -301,37 +341,67 @@ public class MagicItemData {
 
         if (hasAttribute(MagicItemAttribute.SKULL_OWNER)) {
             if (previous) output.append(',');
-            output.append("\"skullowner\":").append(((OfflinePlayer) getAttribute(MagicItemAttribute.SKULL_OWNER)).getUniqueId());
+
+            output
+                .append("\"skullowner\":\"")
+                .append((String) getAttribute(MagicItemAttribute.SKULL_OWNER))
+                .append('"');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.TITLE)) {
             if (previous) output.append(',');
-            output.append("\"title\":\"").append(escape((String) getAttribute(MagicItemAttribute.TITLE))).append('"');
+
+            output
+                .append("\"title\":\"")
+                .append(escape((String) getAttribute(MagicItemAttribute.TITLE)))
+                .append('"');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.AUTHOR)) {
             if (previous) output.append(',');
-            output.append("\"author\":\"").append(escape((String) getAttribute(MagicItemAttribute.AUTHOR))).append('"');
+
+            output
+                .append("\"author\":\"")
+                .append(escape((String) getAttribute(MagicItemAttribute.AUTHOR)))
+                .append('"');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.UUID)) {
             if (previous) output.append(',');
-            output.append("\"uuid\":").append(((String) getAttribute(MagicItemAttribute.UUID)));
+
+            output
+                .append("\"uuid\":\"")
+                .append(((String) getAttribute(MagicItemAttribute.UUID)))
+                .append('"');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.TEXTURE)) {
             if (previous) output.append(',');
-            output.append("\"texture\":").append(((String) getAttribute(MagicItemAttribute.TEXTURE)));
+
+            output
+                .append("\"texture\":\"")
+                .append(((String) getAttribute(MagicItemAttribute.TEXTURE)))
+                .append('"');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.SIGNATURE)) {
             if (previous) output.append(',');
-            output.append("\"signature\":").append(((String) getAttribute(MagicItemAttribute.SIGNATURE)));
+
+            output
+                .append("\"signature\":\"")
+                .append(((String) getAttribute(MagicItemAttribute.SIGNATURE)))
+                .append('"');
+
             previous = true;
         }
 
@@ -358,7 +428,11 @@ public class MagicItemData {
 
         if (hasAttribute(MagicItemAttribute.FAKE_GLINT)) {
             if (previous) output.append(',');
-            output.append("\"fakeglint\":").append((boolean) getAttribute(MagicItemAttribute.FAKE_GLINT));
+
+            output
+                .append("\"fakeglint\":")
+                .append((boolean) getAttribute(MagicItemAttribute.FAKE_GLINT));
+
             previous = true;
         }
         

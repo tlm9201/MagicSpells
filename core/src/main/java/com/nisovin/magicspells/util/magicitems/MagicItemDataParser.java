@@ -22,10 +22,8 @@ import com.google.gson.JsonSyntaxException;
 import com.google.common.collect.HashMultimap;
 
 import org.bukkit.Color;
-import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.FireworkEffect;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.attribute.Attribute;
@@ -161,15 +159,7 @@ public class MagicItemDataParser {
 							} else MagicSpells.error("'" + value.getAsString() + "' could not be connected to a firework effect.");
 							break;
 						case "skullowner":
-							try {
-								java.util.UUID skullOwnerUUID = java.util.UUID.fromString(value.getAsString());
-								OfflinePlayer skullOwner = Bukkit.getOfflinePlayer(skullOwnerUUID);
-
-								data.setAttribute(SKULL_OWNER, skullOwner);
-							} catch (IllegalArgumentException e) {
-								DebugHandler.debugIllegalArgumentException(e);
-								MagicSpells.error("'" + value.getAsString() + "' could not be connected to a player.");
-							}
+							data.setAttribute(SKULL_OWNER, value.getAsString());
 							break;
 						case "title":
 							data.setAttribute(TITLE, Util.colorize(value.getAsString()));
