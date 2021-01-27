@@ -16,7 +16,7 @@ public class CustomModelDataHandler {
 
 		int customModelData = config.getInt(CONFIG_NAME);
 
-		ItemUtil.setCustomModelData(meta, customModelData);
+		meta.setCustomModelData(customModelData);
 		data.setAttribute(CUSTOM_MODEL_DATA, customModelData);
 	}
 
@@ -24,11 +24,11 @@ public class CustomModelDataHandler {
 		if (!data.hasAttribute(CUSTOM_MODEL_DATA)) return;
 
 		int customModelData = (int) data.getAttribute(CUSTOM_MODEL_DATA);
-		ItemUtil.setCustomModelData(meta, customModelData);
+		meta.setCustomModelData(customModelData);
 	}
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
-		data.setAttribute(CUSTOM_MODEL_DATA, ItemUtil.getCustomModelData(meta));
+		if (meta.hasCustomModelData()) data.setAttribute(CUSTOM_MODEL_DATA, meta.getCustomModelData());
 	}
 
 }

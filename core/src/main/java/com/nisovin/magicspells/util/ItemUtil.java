@@ -59,11 +59,6 @@ public class ItemUtil {
 		return 0;
 	}
 
-	public static void setCustomModelData(ItemMeta meta, int data) {
-		if (meta == null) return;
-		meta.setCustomModelData(data);
-	}
-
 	public static Recipe createCookingRecipe(String type, NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient, float experience, int cookingTime) {
 		Recipe recipe = null;
 
