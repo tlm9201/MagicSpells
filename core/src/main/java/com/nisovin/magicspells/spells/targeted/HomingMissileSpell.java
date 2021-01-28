@@ -45,6 +45,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 	private boolean hitGround;
 	private boolean hitAirDuring;
+	private boolean stopOnHitTarget;
 	private boolean stopOnHitGround;
 	private boolean stopOnModifierFail;
 	private boolean hitAirAfterDuration;
@@ -91,6 +92,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 		hitGround = getConfigBoolean("hit-ground", false);
 		hitAirDuring = getConfigBoolean("hit-air-during", false);
+		stopOnHitTarget = getConfigBoolean("stop-on-hit-target", true);
 		stopOnHitGround = getConfigBoolean("stop-on-hit-ground", false);
 		stopOnModifierFail = getConfigBoolean("stop-on-modifier-fail", true);
 		hitAirAfterDuration = getConfigBoolean("hit-air-after-duration", false);
@@ -378,7 +380,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 					else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(caster, target.getLocation(), power);
 					if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, currentLocation, power);
 					playSpellEffects(EffectPosition.TARGET, target);
-					stop();
+					if (stopOnHitTarget) stop();
 				} else {
 					redirect();
 					power = preImpact.getPower();
