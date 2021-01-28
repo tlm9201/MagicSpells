@@ -61,9 +61,10 @@ public class PotionHandler {
 			String potionDataString = config.getString(POTION_DATA_CONFIG_NAME);
 			String[] args = potionDataString.split(" ");
 
+			boolean extended = false, upgraded = false;
+			PotionType potionType;
 			try {
-				PotionType potionType = PotionType.valueOf(args[0].toUpperCase());
-				boolean extended = false, upgraded = false;
+				potionType = PotionType.valueOf(args[0].toUpperCase());
 
 				if (args.length > 1) {
 					if (args[1].equalsIgnoreCase("extended")) extended = true;
@@ -75,7 +76,7 @@ public class PotionHandler {
 				potionMeta.setBasePotionData(potionData);
 				data.setAttribute(POTION_DATA, potionData);
 			} catch (IllegalArgumentException e) {
-				DebugHandler.debugBadEnumValue(PotionType.class, args[0]);
+				DebugHandler.debugIllegalArgumentException(e);
 			}
 		}
 	}
@@ -101,11 +102,11 @@ public class PotionHandler {
 		if (potionMeta.hasColor()) data.setAttribute(COLOR, potionMeta.getColor());
 	}
 
-	public static PotionType getPotionType(ItemMeta meta) {
+	public static PotionData getPotionData(ItemMeta meta) {
 		if (!(meta instanceof PotionMeta)) return null;
 
 		PotionMeta potionMeta = (PotionMeta) meta;
-		return potionMeta.getBasePotionData().getType();
+		return potionMeta.getBasePotionData();
 	}
 	
 }

@@ -22,6 +22,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.attribute.AttributeModifier;
 
+import com.nisovin.magicspells.util.TxtUtil;
 import com.nisovin.magicspells.util.AttributeUtil.AttributeModifierData;
 
 public class MagicItemData {
@@ -183,10 +184,6 @@ public class MagicItemData {
 
     }
 
-    private String escape(String str) {
-        return str.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"");
-    }
-
     @Override
     public String toString() {
         StringBuilder output = new StringBuilder();
@@ -199,7 +196,7 @@ public class MagicItemData {
         if (hasAttribute(MagicItemAttribute.NAME)) {
             output
                 .append("\"name\":\"")
-                .append(escape((String) getAttribute(MagicItemAttribute.NAME)))
+                .append(TxtUtil.escapeJSON((String) getAttribute(MagicItemAttribute.NAME)))
                 .append('"');
 
             previous = true;
@@ -280,6 +277,7 @@ public class MagicItemData {
 
             Color color = (Color) getAttribute(MagicItemAttribute.COLOR);
             String hex = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+
             output
                 .append("\"color\":\"")
                 .append(hex)
@@ -306,12 +304,12 @@ public class MagicItemData {
         }
 
         if (hasAttribute(MagicItemAttribute.FIREWORK_EFFECT)) {
+            if (previous) output.append(',');
+
             FireworkEffect effect = (FireworkEffect) getAttribute(MagicItemAttribute.FIREWORK_EFFECT);
 
-            if (previous) output.append(',');
-            output.append("\"fireworkeffect\":\"");
-
             output
+                .append("\"fireworkeffect\":\"")
                 .append(effect.getType())
                 .append(' ')
                 .append(effect.hasTrail())
@@ -323,8 +321,10 @@ public class MagicItemData {
                 output.append(' ');
                 for (Color color : effect.getColors()) {
                     if (previousColor) output.append(',');
+
                     String hex = String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
                     output.append(hex);
+
                     previousColor = true;
                 }
 
@@ -333,8 +333,10 @@ public class MagicItemData {
                     previousColor = false;
                     for (Color color : effect.getFadeColors()) {
                         if (previousColor) output.append(',');
+
                         String hex = String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
                         output.append(hex);
+
                         previousColor = true;
                     }
                 }
@@ -360,7 +362,7 @@ public class MagicItemData {
 
             output
                 .append("\"title\":\"")
-                .append(escape((String) getAttribute(MagicItemAttribute.TITLE)))
+                .append(TxtUtil.escapeJSON((String) getAttribute(MagicItemAttribute.TITLE)))
                 .append('"');
 
             previous = true;
@@ -371,7 +373,7 @@ public class MagicItemData {
 
             output
                 .append("\"author\":\"")
-                .append(escape((String) getAttribute(MagicItemAttribute.AUTHOR)))
+                .append(TxtUtil.escapeJSON((String) getAttribute(MagicItemAttribute.AUTHOR)))
                 .append('"');
 
             previous = true;
@@ -411,11 +413,11 @@ public class MagicItemData {
         }
 
         if (hasAttribute(MagicItemAttribute.ENCHANTMENTS)) {
-            Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) getAttribute(MagicItemAttribute.ENCHANTMENTS);
-
             if (previous) output.append(',');
-            output.append("\"enchantments\":{");
+
+            Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) getAttribute(MagicItemAttribute.ENCHANTMENTS);
             boolean previousEnchantment = false;
+            output.append("\"enchantments\":{");
             for (Enchantment enchantment : enchantments.keySet()) {
                 if (previousEnchantment) output.append(',');
 
@@ -443,73 +445,85 @@ public class MagicItemData {
         
         if (hasAttribute(MagicItemAttribute.ATTRIBUTES)) {
             if (previous) output.append(',');
-            output.append("\"attributes\":[");
 
             Multimap<Attribute, AttributeModifier> attributes = (Multimap<Attribute, AttributeModifier>) getAttribute(MagicItemAttribute.ATTRIBUTES);
             boolean previousAttribute = false;
+            output.append("\"attributes\":[");
             for (Map.Entry<Attribute, AttributeModifier> entries : attributes.entries()) {
                 if (previousAttribute) output.append(',');
 
                 AttributeModifier modifier = entries.getValue();
 
-                output.append('"');
-                output.append(modifier.getName());
-                output.append(' ');
-                output.append(modifier.getAmount());
-                output.append(' ');
-                output.append(modifier.getOperation().name().toLowerCase());
+                output
+                    .append('"')
+                    .append(modifier.getName())
+                    .append(' ')
+                    .append(modifier.getAmount())
+                    .append(' ')
+                    .append(modifier.getOperation().name().toLowerCase());
 
                 EquipmentSlot slot = modifier.getSlot();
                 if (slot != null) {
-                    output.append(' ');
-                    output.append(slot.name().toLowerCase());
+                    output
+                        .append(' ')
+                        .append(slot.name().toLowerCase());
                 }
 
                 output.append('"');
                 previousAttribute = true;
             }
-
             output.append(']');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.LORE)) {
             if (previous) output.append(',');
-            output.append("\"lore\":[");
 
             List<String> lore = (List<String>) getAttribute(MagicItemAttribute.LORE);
             boolean previousLore = false;
+            output.append("\"lore\":[");
             for (String line : lore) {
                 if (previousLore) output.append(',');
-                output.append('"').append(escape(line)).append('"');
+
+                output
+                    .append('"')
+                    .append(TxtUtil.escapeJSON(line))
+                    .append('"');
+
                 previousLore = true;
             }
-
             output.append(']');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.PAGES)) {
             if (previous) output.append(',');
-            output.append("\"pages\":[");
 
             List<String> pages = (List<String>) getAttribute(MagicItemAttribute.PAGES);
             boolean previousPages = false;
+            output.append("\"pages\":[");
             for (String page : pages) {
                 if (previousPages) output.append(',');
-                output.append('"').append(escape(page)).append('"');
+
+                output
+                    .append('"')
+                    .append(TxtUtil.escapeJSON(page))
+                    .append('"');
+
                 previousPages = true;
             }
-
             output.append(']');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.PATTERNS)) {
-            List<Pattern> patterns = (List<Pattern>) getAttribute(MagicItemAttribute.PATTERNS);
-
             if (previous) output.append(',');
+
             output.append("\"patterns\":[");
+            List<Pattern> patterns = (List<Pattern>) getAttribute(MagicItemAttribute.PATTERNS);
             boolean previousPattern = false;
             for (Pattern pattern : patterns) {
                 if (previousPattern) output.append(',');
@@ -523,16 +537,16 @@ public class MagicItemData {
 
                 previousPattern = true;
             }
-
             output.append(']');
+
             previous = true;
         }
 
         if (hasAttribute(MagicItemAttribute.POTION_EFFECTS)) {
-            List<PotionEffect> effects = (List<PotionEffect>) getAttribute(MagicItemAttribute.POTION_EFFECTS);
-
             if (previous) output.append(',');
+
             output.append("\"potioneffects\":[");
+            List<PotionEffect> effects = (List<PotionEffect>) getAttribute(MagicItemAttribute.POTION_EFFECTS);
             boolean previousEffect = false;
             for (PotionEffect effect : effects) {
                 if (previousEffect) output.append(',');
@@ -548,8 +562,8 @@ public class MagicItemData {
 
                 previousEffect = true;
             }
-
             output.append(']');
+
             previous = true;
         }
 

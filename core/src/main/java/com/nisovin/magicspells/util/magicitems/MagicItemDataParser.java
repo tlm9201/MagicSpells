@@ -143,7 +143,7 @@ public class MagicItemDataParser {
 
 								data.setAttribute(POTION_DATA, potionData);
 							} catch (IllegalArgumentException e) {
-								DebugHandler.debugBadEnumValue(PotionType.class, potionDataArgs[0]);
+								DebugHandler.debugIllegalArgumentException(e);
 							}
 							break;
 						case "fireworkeffect":
