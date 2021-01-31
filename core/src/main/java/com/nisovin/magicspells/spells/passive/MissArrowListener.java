@@ -8,8 +8,8 @@ import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -17,7 +17,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -33,10 +32,12 @@ public class MissArrowListener extends PassiveListener {
 		String[] split = var.split("\\|");
 		for (String s : split) {
 			s = s.trim();
-			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
-			MagicItemData itemData = null;
-			if (magicItem != null) itemData = magicItem.getMagicItemData();
-			if (itemData == null) continue;
+
+			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
+			if (itemData == null) {
+				MagicSpells.error("Invalid magic item '" + s + "' in missarrow trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
 
 			items.add(itemData);
 		}
@@ -58,41 +59,34 @@ public class MissArrowListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onDamage(ProjectileHitEvent event) {
-		LivingEntity attacker = getAttacker(event);
-		if (attacker == null) return;
 		if (!(event.getEntity() instanceof Arrow)) return;
 
-		String name = attacker.getName();
-		UUID id = attacker.getUniqueId();
+		LivingEntity caster = getAttacker(event);
+		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
+
+		String name = caster.getName();
+		UUID id = caster.getUniqueId();
 		
 		if (!event.getEntity().hasMetadata("mal-" + id + '-' + name)) return;
 		if (event.getEntity().getMetadata("mal-" + id + '-' + name).isEmpty()) return;
 		
 		ArrowParticle arrowParticle = (ArrowParticle) event.getEntity().getMetadata("mal-" + id + '-' + name).get(0).value();
-
 		if (arrowParticle.isHitEntity()) return;
-		if (!hasSpell(attacker)) return;
-		if (!canTrigger(attacker)) return;
-		
-		if (items.isEmpty()) {
-			passiveSpell.activate(attacker, event.getEntity().getLocation());
-			return;
+
+		if (!items.isEmpty()) {
+			EntityEquipment eq = caster.getEquipment();
+			if (eq == null) return;
+
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(eq.getItemInMainHand());
+			if (!contains(itemData)) return;
 		}
 
-		ItemStack item = attacker.getEquipment().getItemInMainHand();
-		
-		if (item == null) return;
-		if (item.getType().isAir()) return;
-
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		if (!contains(itemData)) return;
-
-		passiveSpell.activate(attacker, event.getEntity().getLocation());
+		passiveSpell.activate(caster, event.getEntity().getLocation());
 	}
 
 	private boolean contains(MagicItemData itemData) {
 		for (MagicItemData data : items) {
-			if (data.equals(itemData)) return true;
+			if (data.matches(itemData)) return true;
 		}
 		return false;
 	}
@@ -117,8 +111,8 @@ public class MissArrowListener extends PassiveListener {
 	
 	@EventHandler
 	public void shoot(ProjectileLaunchEvent event) {
-		if (event.getEntity() != null && event.getEntity().getShooter() != null
-				&& event.getEntity().getShooter() instanceof LivingEntity && event.getEntity() instanceof Arrow) {
+		if (event.getEntity().getShooter() != null && event.getEntity().getShooter() instanceof LivingEntity
+			&& event.getEntity() instanceof Arrow) {
 			LivingEntity p = (LivingEntity) event.getEntity().getShooter();
 			ArrowParticle arrowParticle = new ArrowParticle(p);
 			event.getEntity().setMetadata("mal-" + p.getUniqueId() + '-' + p.getName(), new FixedMetadataValue(MagicSpells.getInstance(), arrowParticle));

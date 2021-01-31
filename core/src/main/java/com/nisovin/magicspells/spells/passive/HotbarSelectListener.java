@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import com.nisovin.magicspells.MagicSpells;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
@@ -22,31 +23,39 @@ public class HotbarSelectListener extends PassiveListener {
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
-		MagicItemData itemData = null;
-		MagicItem magicItem = MagicItems.getMagicItemFromString(var.trim());
-		if (magicItem != null) itemData = magicItem.getMagicItemData();
-		if (itemData == null) return;
 
-		items.add(itemData);
+		String[] split = var.split("\\|");
+		for (String s : split) {
+			s = s.trim();
+
+			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
+			if (itemData == null) {
+				MagicSpells.error("Invalid magic item '" + s + "' in hotbarselect trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
+
+			items.add(itemData);
+		}
 	}
 	
 	@OverridePriority
 	@EventHandler
 	public void onPlayerScroll(PlayerItemHeldEvent event) {
-		Player player = event.getPlayer();
-		ItemStack item = player.getInventory().getItem(event.getNewSlot());
-		if (item == null || item.getType().isAir()) return;
-
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		if (itemData == null) return;
-		if (!items.isEmpty() && !contains(itemData)) return;
-
-		if (!hasSpell(player)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		if (!items.isEmpty()) {
+			ItemStack item = caster.getInventory().getItem(event.getNewSlot());
+			if (item == null) return;
+
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+			if (itemData == null || !contains(itemData)) return;
+		}
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 	private boolean contains(MagicItemData itemData) {

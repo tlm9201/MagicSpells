@@ -23,8 +23,8 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // damage causes or damaging magic items to accept
 public class GiveDamageListener extends PassiveListener {
 
-	private final Set<MagicItemData> items = new HashSet<>();
 	private final EnumSet<DamageCause> damageCauses = EnumSet.noneOf(DamageCause.class);
+	private final Set<MagicItemData> items = new HashSet<>();
 
 	@Override
 	public void initialize(String var) {
@@ -61,34 +61,21 @@ public class GiveDamageListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity caster = getAttacker(event);
-		if (caster == null) return;
-		if (!hasSpell(caster)) return;
-		if (!canTrigger(caster)) return;
+		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
 
-		LivingEntity attacked = (LivingEntity) event.getEntity();
+		if (!damageCauses.isEmpty() && !damageCauses.contains(event.getCause())) return;
 
-		if (items.isEmpty() && damageCauses.isEmpty()) {
-			boolean casted = passiveSpell.activate(caster, attacked);
-			if (cancelDefaultAction(casted)) event.setCancelled(true);
-
-			return;
-		}
-
-		if (items.isEmpty() && damageCauses.contains(event.getCause())) {
-			boolean casted = passiveSpell.activate(caster, attacked);
-			if (cancelDefaultAction(casted)) event.setCancelled(true);
-		} else {
-			if (!damageCauses.isEmpty() && !damageCauses.contains(event.getCause())) return;
-
+		if (!items.isEmpty()) {
 			EntityEquipment eq = caster.getEquipment();
 			if (eq == null) return;
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(eq.getItemInMainHand());
 			if (itemData == null || !contains(itemData)) return;
-
-			boolean casted = passiveSpell.activate(caster, attacked);
-			if (cancelDefaultAction(casted)) event.setCancelled(true);
 		}
+
+		LivingEntity attacked = (LivingEntity) event.getEntity();
+		boolean casted = passiveSpell.activate(caster, attacked);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 	
 	private LivingEntity getAttacker(EntityDamageByEntityEvent event) {
@@ -102,7 +89,7 @@ public class GiveDamageListener extends PassiveListener {
 
 	private boolean contains(MagicItemData itemData) {
 		for (MagicItemData data : items) {
-			if (data.equals(itemData)) return true;
+			if (data.matches(itemData)) return true;
 		}
 		return false;
 	}

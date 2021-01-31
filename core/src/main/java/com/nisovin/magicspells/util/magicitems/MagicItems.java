@@ -159,6 +159,13 @@ public class MagicItems {
 		return data;
 	}
 
+	public static MagicItemData getMagicItemDataFromString(String str) {
+		if (str == null) return null;
+		if (magicItems.containsKey(str)) return magicItems.get(str).getMagicItemData();
+
+		return MagicItemDataParser.parseMagicItemData(str);
+	}
+
 	public static MagicItem getMagicItemFromString(String str) {
 		if (str == null) return null;
 		if (magicItems.containsKey(str)) return magicItems.get(str);

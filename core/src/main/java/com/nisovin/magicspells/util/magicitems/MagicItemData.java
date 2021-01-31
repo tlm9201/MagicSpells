@@ -119,12 +119,13 @@ public class MagicItemData {
         if (this == o) return true;
         if (!(o instanceof MagicItemData)) return false;
 
-        return itemAttributes.equals(((MagicItemData) o).itemAttributes);
+        MagicItemData other = (MagicItemData) o;
+        return itemAttributes.equals(other.itemAttributes) && ignoredAttributes.equals(other.ignoredAttributes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(itemAttributes);
+        return Objects.hash(itemAttributes, ignoredAttributes);
     }
 
     @Override
