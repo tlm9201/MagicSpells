@@ -22,7 +22,7 @@ public class InventoryClickListener extends PassiveListener {
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
 
-		String[] splits = var.split("\\|");
+		String[] splits = var.split(" ");
 
 		if (!splits[0].equals("null")) action = InventoryAction.valueOf(splits[0].toUpperCase());
 

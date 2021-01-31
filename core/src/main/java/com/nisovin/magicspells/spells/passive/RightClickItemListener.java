@@ -16,8 +16,6 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.NAME;
-
 // Trigger variable of a pipe separated list of items to accept
 public class RightClickItemListener extends PassiveListener {
 

@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.Inventory;
@@ -11,7 +10,6 @@ import org.bukkit.inventory.EntityEquipment;
 
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
@@ -22,11 +20,8 @@ public class HasItemPreciseCondition extends Condition {
 	
 	@Override
 	public boolean initialize(String var) {
-		MagicItem magicItem = MagicItems.getMagicItemFromString(var.trim());
-		if (magicItem == null) return false;
-
-		itemData = magicItem.getMagicItemData();
-		return true;
+		itemData = MagicItems.getMagicItemDataFromString(var);
+		return itemData != null;
 	}
 
 	@Override
@@ -43,11 +38,7 @@ public class HasItemPreciseCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		Block target = location.getBlock();
-		if (target == null) return false;
-		
-		BlockState targetState = target.getState();
-		if (targetState == null) return false;
+		BlockState targetState = location.getBlock().getState();
 		return targetState instanceof InventoryHolder && check(((InventoryHolder) targetState).getInventory());
 	}
 
@@ -58,7 +49,7 @@ public class HasItemPreciseCondition extends Condition {
 		for (ItemStack itemStack : inventory.getContents()) {
 			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(itemStack);
 			if (data == null) continue;
-			if (data.equals(itemData)) found = true;
+			if (itemData.matches(data)) found = true;
 		}
 
 		return found;
@@ -71,7 +62,7 @@ public class HasItemPreciseCondition extends Condition {
 		for (ItemStack itemStack : InventoryUtil.getEquipmentItems(entityEquipment)) {
 			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(itemStack);
 			if (data == null) continue;
-			if (data.equals(itemData)) found = true;
+			if (itemData.matches(data)) found = true;
 		}
 
 		return found;
