@@ -95,7 +95,7 @@ public class InventoryUtil {
 
 	public static boolean inventoryContains(EntityEquipment entityEquipment, SpellReagents.ReagentItem item) {
 		if (entityEquipment == null) return false;
-		MagicItemData itemData = item.getMagicItem().getMagicItemData();
+		MagicItemData itemData = item.getMagicItemData();
 		if (itemData == null) return false;
 
 		int count = 0;
@@ -123,7 +123,7 @@ public class InventoryUtil {
 
 	public static boolean inventoryContains(Inventory inventory, SpellReagents.ReagentItem item) {
 		if (inventory == null) return false;
-		MagicItemData itemData = item.getMagicItem().getMagicItemData();
+		MagicItemData itemData = item.getMagicItemData();
 		if (itemData == null) return false;
 		int count = 0;
 		ItemStack[] items = inventory.getContents();

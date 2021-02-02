@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Collection;
 
-import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class SpellReagents {
 	
@@ -219,24 +219,24 @@ public class SpellReagents {
 
 	public static class ReagentItem {
 
-		private MagicItem magicItem;
+		private MagicItemData magicItemData;
 		private int amount;
 
-		public ReagentItem(MagicItem magicItem, int amount) {
-			this.magicItem = magicItem;
+		public ReagentItem(MagicItemData magicItemData, int amount) {
+			this.magicItemData = magicItemData;
 			this.amount = amount;
 		}
 
-		public MagicItem getMagicItem() {
-			return magicItem;
+		public MagicItemData getMagicItemData() {
+			return magicItemData;
 		}
 
 		public int getAmount() {
 			return amount;
 		}
 
-		public void setMagicItem(MagicItem magicItem) {
-			this.magicItem = magicItem;
+		public void setItemData(MagicItemData magicItemData) {
+			this.magicItemData = magicItemData;
 		}
 
 		public void setAmount(int amount) {
@@ -245,7 +245,7 @@ public class SpellReagents {
 
 		@Override
 		public ReagentItem clone() {
-			return new ReagentItem(magicItem, amount);
+			return new ReagentItem(magicItemData.clone(), amount);
 		}
 
 	}

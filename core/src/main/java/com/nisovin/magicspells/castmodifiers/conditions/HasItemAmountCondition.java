@@ -34,13 +34,8 @@ public class HasItemAmountCondition extends OperatorCondition {
 			return false;
 		}
 
-		try {
-			itemData = MagicItems.getMagicItemDataFromString(args[1]);
-			return itemData != null;
-		} catch (Exception e) {
-			DebugHandler.debugGeneral(e);
-			return false;
-		}
+		itemData = MagicItems.getMagicItemDataFromString(args[1]);
+		return itemData != null;
 	}
 
 	@Override

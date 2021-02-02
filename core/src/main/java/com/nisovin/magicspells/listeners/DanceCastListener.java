@@ -59,8 +59,6 @@ public class DanceCastListener implements Listener {
 
 		String path = "general.";
 
-//		MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString(path + "dance-cast-item", "MUSIC_DISC_13"));
-//		if (magicItem != null) danceCastWand = new CastItem(magicItem.getItemStack());
 		danceCastWand = new CastItem(config.getString(path + "dance-cast-item", "MUSIC_DISC_13"));
 		if (!danceCastWand.isTypeValid()) danceCastWand = null;
 

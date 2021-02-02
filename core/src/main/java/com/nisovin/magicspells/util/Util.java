@@ -324,7 +324,7 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(Inventory inventory, SpellReagents.ReagentItem item) {
-		MagicItemData itemData = item.getMagicItem().getMagicItemData();
+		MagicItemData itemData = item.getMagicItemData();
 		if (itemData == null) return false;
 
 		int amt = item.getAmount();
@@ -356,7 +356,7 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(EntityEquipment entityEquipment, SpellReagents.ReagentItem item) {
-		MagicItemData itemData = item.getMagicItem().getMagicItemData();
+		MagicItemData itemData = item.getMagicItemData();
 		if (itemData == null) return false;
 
 		int amt = item.getAmount();

@@ -3,6 +3,7 @@ package com.nisovin.magicspells;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -491,13 +492,13 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 						default:
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
 
-							MagicItem magicItem = MagicItems.getMagicItemFromString(data[0]);
-							if (magicItem == null) {
+							MagicItemData itemData = MagicItems.getMagicItemDataFromString(data[0]);
+							if (itemData == null) {
 								MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
 								continue;
 							}
 
-							reagents.addItem(new SpellReagents.ReagentItem(magicItem, amt));
+							reagents.addItem(new SpellReagents.ReagentItem(itemData, amt));
 							break;
 					}
 				} catch (Exception e) {

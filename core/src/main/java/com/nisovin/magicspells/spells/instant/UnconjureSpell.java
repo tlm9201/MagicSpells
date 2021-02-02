@@ -13,7 +13,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.handlers.DebugHandler;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
@@ -38,7 +37,7 @@ public class UnconjureSpell extends InstantSpell {
 
 		for (String itemString : itemNames) {
 			UnconjuredItem unconjuredItem = new UnconjuredItem(itemString);
-			if (unconjuredItem.magicItem == null) {
+			if (unconjuredItem.magicItemData == null) {
 				MagicSpells.error("UnconjureSpell '" + internalName + "' has an invalid magic item specified: " + itemString);
 				continue;
 			}
@@ -79,9 +78,8 @@ public class UnconjureSpell extends InstantSpell {
 	private boolean filterItems(ItemStack[] oldItems) {
 		boolean stop = false;
 		for (UnconjuredItem unconjuredItem : items) {
-			if (unconjuredItem.magicItem == null) continue;
-			MagicItemData unconjuredItemData = unconjuredItem.magicItem.getMagicItemData();
-			if (unconjuredItemData == null) continue;
+			if (unconjuredItem.magicItemData == null) continue;
+			MagicItemData unconjuredItemData = unconjuredItem.magicItemData;
 
 			// Only look for an ItemStack with specified quantity.
 			if (unconjuredItem.hasSpecialQuantity) {
@@ -123,13 +121,13 @@ public class UnconjureSpell extends InstantSpell {
 	private static class UnconjuredItem {
 
 		private boolean hasSpecialQuantity = false;
-		private MagicItem magicItem;
+		private MagicItemData magicItemData;
 		private int amount;
 
 		public UnconjuredItem(String itemString) {
 			String[] splits = itemString.split(" ");
-			MagicItem magicItem = MagicItems.getMagicItemFromString(splits[0]);
-			if (magicItem == null || splits.length == 1) return;
+			magicItemData = MagicItems.getMagicItemDataFromString(splits[0]);
+			if (magicItemData == null || splits.length == 1) return;
 
 			try {
 				amount = Integer.parseInt(splits[1]);
