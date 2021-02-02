@@ -156,14 +156,23 @@ public class Subspell {
 		}
 
 		if (mode == CastMode.FULL && livingEntity != null) {
-			boolean success = false;
 			SpellCastEvent spellCast = spell.preCast(livingEntity, power * subPower, null);
-			SpellTargetEvent spellTarget = new SpellTargetEvent(spell, livingEntity, target, power);
-			EventUtil.call(spellTarget);
-			if (!spellTarget.isCancelled() && spellCast != null && spellCast.getSpellCastState() == SpellCastState.NORMAL) {
-				success = ((TargetedEntitySpell) spell).castAtEntity(livingEntity, target, spellCast.getPower());
-				spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
+			if (spellCast == null) return false;
+
+			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
+			boolean success = false;
+			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
+				SpellTargetEvent spellTarget = new SpellTargetEvent(spell, livingEntity, target, power);
+				EventUtil.call(spellTarget);
+
+				if (!spellTarget.isCancelled())
+					success = ((TargetedEntitySpell) spell).castAtEntity(livingEntity, target, spellCast.getPower());
+
+				if (!success) action = PostCastAction.ALREADY_HANDLED;
 			}
+
+			spell.postCast(spellCast, action);
+
 			return success;
 		}
 
@@ -202,14 +211,23 @@ public class Subspell {
 		}
 
 		if (mode == CastMode.FULL && livingEntity != null) {
-			boolean success = false;
 			SpellCastEvent spellCast = spell.preCast(livingEntity, power * subPower, null);
-			SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, livingEntity, target, power);
-			EventUtil.call(spellLocation);
-			if (!spellLocation.isCancelled() && spellCast != null && spellCast.getSpellCastState() == SpellCastState.NORMAL) {
-				success = ((TargetedLocationSpell) spell).castAtLocation(livingEntity, target, spellCast.getPower());
-				spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
+			if (spellCast == null) return false;
+
+			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
+			boolean success = false;
+			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
+				SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, livingEntity, target, power);
+				EventUtil.call(spellLocation);
+
+				if (!spellLocation.isCancelled())
+					success = ((TargetedLocationSpell) spell).castAtLocation(livingEntity, target, spellCast.getPower());
+
+				if (!success) action = PostCastAction.ALREADY_HANDLED;
 			}
+
+			spell.postCast(spellCast, action);
+
 			return success;
 		}
 
@@ -248,16 +266,25 @@ public class Subspell {
 		}
 
 		if (mode == CastMode.FULL && livingEntity != null) {
-			boolean success = false;
 			SpellCastEvent spellCast = spell.preCast(livingEntity, power * subPower, MagicSpells.NULL_ARGS);
-			SpellTargetEvent spellTarget = new SpellTargetEvent(spell, livingEntity, target, power);
-			SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, livingEntity, from, power);
-			EventUtil.call(spellLocation);
-			EventUtil.call(spellTarget);
-			if (!spellLocation.isCancelled() && !spellTarget.isCancelled() && spellCast != null && spellCast.getSpellCastState() == SpellCastState.NORMAL) {
-				success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(livingEntity, from, target, spellCast.getPower());
-				spell.postCast(spellCast, PostCastAction.HANDLE_NORMALLY);
+			if (spellCast == null) return false;
+
+			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
+			boolean success = false;
+			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
+				SpellTargetEvent spellTarget = new SpellTargetEvent(spell, livingEntity, target, power);
+				SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, livingEntity, from, power);
+				EventUtil.call(spellLocation);
+				EventUtil.call(spellTarget);
+
+				if (!spellLocation.isCancelled() && !spellTarget.isCancelled())
+					success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(livingEntity, from, target, spellCast.getPower());
+
+				if (!success) action = PostCastAction.ALREADY_HANDLED;
 			}
+
+			spell.postCast(spellCast, action);
+
 			return success;
 		}
 

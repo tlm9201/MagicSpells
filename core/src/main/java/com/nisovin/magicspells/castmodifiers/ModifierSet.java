@@ -88,7 +88,10 @@ public class ModifierSet {
 	public void apply(ManaChangeEvent event) {
 		for (Modifier modifier : modifiers) {
 			boolean cont = modifier.apply(event);
-			if (!cont) break;
+			if (!cont) {
+				if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), event.getPlayer(), MagicSpells.NULL_ARGS);
+				break;
+			}
 		}
 	}
 
@@ -105,14 +108,20 @@ public class ModifierSet {
 	public void apply(MagicSpellsGenericPlayerEvent event) {
 		for (Modifier modifier : modifiers) {
 			boolean cont = modifier.apply(event);
-			if (!cont) break;
+			if (!cont) {
+				if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), event.getPlayer(), MagicSpells.NULL_ARGS);
+				break;
+			}
 		}
 	}
 
 	public void apply(SpellTargetLocationEvent event) {
 		for (Modifier modifier : modifiers) {
 			boolean cont = modifier.apply(event);
-			if (!cont) break;
+			if (!cont) {
+				if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), event.getCaster(), MagicSpells.NULL_ARGS);
+				break;
+			}
 		}
 	}
 

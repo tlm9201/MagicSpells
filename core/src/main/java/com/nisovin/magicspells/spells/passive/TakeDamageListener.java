@@ -5,24 +5,22 @@ import java.util.HashSet;
 import java.util.EnumSet;
 
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.nisovin.magicspells.util.BlockUtils;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// Optional trigger variable of a comma separated list that can contain
-// Damage causes to accept or damaging weapons to accept
+// Optional trigger variable of a pipe separated list that can contain
+// damage causes or damaging magic items to accept
 public class TakeDamageListener extends PassiveListener {
 
 	private final Set<MagicItemData> items = new HashSet<>();
@@ -35,6 +33,7 @@ public class TakeDamageListener extends PassiveListener {
 		String[] split = var.split("\\|");
 		for (String s : split) {
 			s = s.trim();
+
 			boolean isDamCause = false;
 			for (DamageCause c : DamageCause.values()) {
 				if (!s.equalsIgnoreCase(c.name())) continue;
@@ -45,10 +44,11 @@ public class TakeDamageListener extends PassiveListener {
 			}
 			if (isDamCause) continue;
 
-			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
-			MagicItemData itemData = null;
-			if (magicItem != null) itemData = magicItem.getMagicItemData();
-			if (itemData == null) continue;
+			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);;
+			if (itemData == null) {
+				MagicSpells.error("Invalid damage cause or magic item '" + s + "' in takedamage trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
 
 			items.add(itemData);
 		}
@@ -58,39 +58,37 @@ public class TakeDamageListener extends PassiveListener {
 	@EventHandler
 	public void onDamage(EntityDamageEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity)) return;
-		LivingEntity entity = (LivingEntity) event.getEntity();
+		if (!isCancelStateOk(event.isCancelled())) return;
+
+		LivingEntity caster = (LivingEntity) event.getEntity();
+		if (!hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
+
 		LivingEntity attacker = getAttacker(event);
 
-		if (!hasSpell(entity)) return;
-		if (!canTrigger(entity)) return;
-
 		if (items.isEmpty() && damageCauses.isEmpty()) {
-			if (!isCancelStateOk(event.isCancelled())) return;
-			boolean casted = passiveSpell.activate(entity, attacker);
+			boolean casted = passiveSpell.activate(caster, attacker);
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
+
 			return;
 		}
 
-		if (damageCauses.isEmpty() || damageCauses.contains(event.getCause())) {
-			if (!isCancelStateOk(event.isCancelled())) return;
-			boolean casted = passiveSpell.activate(entity, attacker);
+		if (items.isEmpty() && damageCauses.contains(event.getCause())) {
+			boolean casted = passiveSpell.activate(caster, attacker);
 			if (cancelDefaultAction(casted)) event.setCancelled(true);
-			return;
+		} else {
+			if (!damageCauses.isEmpty() && !damageCauses.contains(event.getCause())) return;
+			if (attacker == null) return;
+
+			EntityEquipment eq = attacker.getEquipment();
+			if (eq == null) return;
+
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(eq.getItemInMainHand());
+			if (itemData == null || !contains(itemData)) return;
+
+			boolean casted = passiveSpell.activate(caster, attacker);
+			if (cancelDefaultAction(casted)) event.setCancelled(true);
 		}
-		
-		if (!(attacker instanceof Player)) return;
-
-		ItemStack item = attacker.getEquipment().getItemInMainHand();
-		if (item == null) return;
-		if (BlockUtils.isAir(item)) return;
-
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		if (itemData == null) return;
-		if (!items.isEmpty() && !contains(itemData)) return;
-
-		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(entity, attacker);
-		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 	
 	private LivingEntity getAttacker(EntityDamageEvent event) {

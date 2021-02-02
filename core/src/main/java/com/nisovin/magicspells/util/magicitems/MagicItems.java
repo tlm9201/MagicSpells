@@ -8,10 +8,10 @@ import java.util.Collection;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
@@ -140,6 +140,13 @@ public class MagicItems {
 
 		itemStackCache.put(itemStack, data);
 		return data;
+	}
+
+	public static MagicItemData getMagicItemDataFromString(String str) {
+		if (str == null) return null;
+		if (magicItems.containsKey(str)) return magicItems.get(str).getMagicItemData();
+
+		return MagicItemDataParser.parseMagicItemData(str);
 	}
 
 	public static MagicItem getMagicItemFromString(String str) {
