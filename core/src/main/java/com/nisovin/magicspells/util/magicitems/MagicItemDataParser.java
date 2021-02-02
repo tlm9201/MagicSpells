@@ -16,6 +16,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonElement;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonToken;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonSyntaxException;
@@ -105,9 +106,13 @@ public class MagicItemDataParser {
 							data.setAttribute(DURABILITY, value.getAsInt());
 							break;
 						case "repaircost":
+						case "repair-cost":
+						case "repair_cost":
 							data.setAttribute(REPAIR_COST, value.getAsInt());
 							break;
 						case "custommodeldata":
+						case "custom-model-data":
+						case "custom_model_data":
 							data.setAttribute(CUSTOM_MODEL_DATA, value.getAsInt());
 							break;
 						case "power":
@@ -117,6 +122,8 @@ public class MagicItemDataParser {
 							data.setAttribute(UNBREAKABLE, value.getAsBoolean());
 							break;
 						case "hidetooltip":
+						case "hide-tooltip":
+						case "hide_tooltip":
 							data.setAttribute(HIDE_TOOLTIP, value.getAsBoolean());
 							break;
 						case "color":
@@ -128,6 +135,11 @@ public class MagicItemDataParser {
 							}
 							break;
 						case "potiondata":
+						case "potion-data":
+						case "potion_data":
+						case "potiontype":
+						case "potion-type":
+						case "potion_type":
 							String[] potionDataArgs = value.getAsString().split(" ");
 
 							try {
@@ -147,6 +159,8 @@ public class MagicItemDataParser {
 							}
 							break;
 						case "fireworkeffect":
+						case "firework-effect":
+						case "firework_effect":
 							String[] effectString = value.getAsString().split(" ");
 
 							if (effectString.length >= 4) {
@@ -176,6 +190,8 @@ public class MagicItemDataParser {
 							} else MagicSpells.error("'" + value.getAsString() + "' could not be connected to a firework effect.");
 							break;
 						case "skullowner":
+						case "skull-owner":
+						case "skull_owner":
 							data.setAttribute(SKULL_OWNER, value.getAsString());
 							break;
 						case "title":
@@ -197,9 +213,9 @@ public class MagicItemDataParser {
 						case "enchants":
 							if (!value.isJsonObject()) continue;
 
-							Map<String, Object> objectMap;
+							Map<String, Integer> objectMap;
 							try {
-								objectMap = gson.fromJson(value.getAsJsonObject().toString(), HashMap.class);
+								objectMap = gson.fromJson(value.getAsJsonObject().toString(), new TypeToken<HashMap<String, Integer>>(){}.getType());
 
 								Map<Enchantment, Integer> enchantments = new HashMap<>();
 								for (String enchantString : objectMap.keySet()) {
@@ -210,15 +226,7 @@ public class MagicItemDataParser {
 										continue;
 									}
 
-									double v;
-									try {
-										v = Double.parseDouble(objectMap.get(enchantString).toString().trim());
-									} catch (NumberFormatException e) {
-										DebugHandler.debugNumberFormat(e);
-										continue;
-									}
-
-									enchantments.put(enchantment, (int) v);
+									enchantments.put(enchantment, objectMap.get(enchantString));
 								}
 
 								if (data.hasAttribute(FAKE_GLINT)) {
@@ -227,13 +235,15 @@ public class MagicItemDataParser {
 									if (!enchantments.isEmpty() && fakeGlint) data.removeAttribute(FAKE_GLINT);
 								}
 
-								data.setAttribute(ENCHANTMENTS, enchantments);
+								if (!enchantments.isEmpty()) data.setAttribute(ENCHANTMENTS, enchantments);
 							} catch (JsonSyntaxException exception) {
 								MagicSpells.error("Invalid enchantment syntax!");
 								continue;
 							}
 							break;
 						case "fakeglint":
+						case "fake-glint":
+						case "fake_glint":
 							if (data.hasAttribute(ENCHANTMENTS)) {
 								Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTMENTS);
 								boolean fakeGlint = value.getAsBoolean();
@@ -267,7 +277,7 @@ public class MagicItemDataParser {
 								itemAttributes.put(attribute, modifier);
 							}
 
-							data.setAttribute(ATTRIBUTES, itemAttributes);
+							if (!itemAttributes.isEmpty()) data.setAttribute(ATTRIBUTES, itemAttributes);
 							break;
 						case "lore":
 							if (!value.isJsonArray()) continue;
@@ -278,7 +288,7 @@ public class MagicItemDataParser {
 								lore.add(Util.colorize(elementInside.getAsString()));
 							}
 
-							data.setAttribute(LORE, lore);
+							if (!lore.isEmpty()) data.setAttribute(LORE, lore);
 							break;
 						case "pages":
 							if (!value.isJsonArray()) continue;
@@ -289,7 +299,7 @@ public class MagicItemDataParser {
 								pages.add(Util.colorize(page.getAsString()));
 							}
 
-							data.setAttribute(PAGES, pages);
+							if (!pages.isEmpty()) data.setAttribute(PAGES, pages);
 							break;
 						case "patterns":
 							if (!value.isJsonArray()) continue;
@@ -324,9 +334,11 @@ public class MagicItemDataParser {
 								} else MagicSpells.error("'" + patternString + "' could not be connected to a pattern.");
 							}
 
-							data.setAttribute(PATTERNS, patterns);
+							if (!patterns.isEmpty()) data.setAttribute(PATTERNS, patterns);
 							break;
 						case "potioneffects":
+						case "potion-effects":
+						case "potion_effects":
 							if (!value.isJsonArray()) continue;
 
 							List<PotionEffect> potionEffects = new ArrayList<>();
@@ -340,9 +352,11 @@ public class MagicItemDataParser {
 								else MagicSpells.error("'" + potionEffectString + "' could not be connected to a potion effect.");
 							}
 
-							data.setAttribute(POTION_EFFECTS, potionEffects);
+							if (!potionEffects.isEmpty()) data.setAttribute(POTION_EFFECTS, potionEffects);
 							break;
 						case "fireworkeffects":
+						case "firework-effects":
+						case "firework_effects":
 							if (!value.isJsonArray()) continue;
 
 							List<FireworkEffect> fireworkEffects = new ArrayList<>();
@@ -377,9 +391,11 @@ public class MagicItemDataParser {
 								} else MagicSpells.error("'" + eff.getAsString() + "' could not be connected to a firework effect.");
 							}
 
-							data.setAttribute(FIREWORK_EFFECTS, fireworkEffects);
+							if (!fireworkEffects.isEmpty()) data.setAttribute(FIREWORK_EFFECTS, fireworkEffects);
 							break;
 						case "ignoredattributes":
+						case "ignored-attributes":
+						case "ignored_attributes":
 							if (!value.isJsonArray()) continue;
 							EnumSet<MagicItemAttribute> ignoredAttributes = data.getIgnoredAttributes();
 							JsonArray ignoredAttributeStrings = value.getAsJsonArray();
@@ -390,6 +406,22 @@ public class MagicItemDataParser {
 									ignoredAttributes.add(MagicItemAttribute.valueOf(ignoredAttribute));
 								} catch (IllegalArgumentException e) {
 									DebugHandler.debugBadEnumValue(MagicItemAttribute.class, ignoredAttribute);
+								}
+							}
+							break;
+						case "blacklistedattributes":
+						case "blacklisted-attributes":
+						case "blacklisted_attributes":
+							if (!value.isJsonArray()) continue;
+							EnumSet<MagicItemAttribute> blacklistedAttributes = data.getBlacklistedAttributes();
+							JsonArray blacklistedAttributeStrings = value.getAsJsonArray();
+
+							for (JsonElement element : blacklistedAttributeStrings) {
+								String blacklistedAttribute = element.getAsString().toUpperCase();
+								try {
+									blacklistedAttributes.add(MagicItemAttribute.valueOf(blacklistedAttribute));
+								} catch (IllegalArgumentException e) {
+									DebugHandler.debugBadEnumValue(MagicItemAttribute.class, blacklistedAttribute);
 								}
 							}
 							break;

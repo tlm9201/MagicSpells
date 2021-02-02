@@ -81,10 +81,10 @@ public class MagicItems {
 		// type
 		data.setAttribute(TYPE, itemStack.getType());
 
-		 if (itemStack.getType().isAir()) {
-		 	itemStackCache.put(itemStack, data);
-		 	return data;
-		 }
+		if (itemStack.getType().isAir()) {
+			itemStackCache.put(itemStack, data);
+			return data;
+		}
 
 		// amount
 		data.setAttribute(AMOUNT, itemStack.getAmount());
@@ -144,13 +144,19 @@ public class MagicItems {
 
 			data.setAttribute(FAKE_GLINT, true);
 		}
-		data.setAttribute(ENCHANTMENTS, enchants);
+		if (!enchants.isEmpty()) data.setAttribute(ENCHANTMENTS, enchants);
 
 		// attributes
-		data.setAttribute(ATTRIBUTES, meta.getAttributeModifiers());
+		if (meta.hasAttributeModifiers()) {
+			Multimap<Attribute, AttributeModifier> modifiers = meta.getAttributeModifiers();
+			if (modifiers != null && !modifiers.isEmpty()) data.setAttribute(ATTRIBUTES, meta.getAttributeModifiers());
+		}
 
 		// lore
-		data.setAttribute(LORE, meta.getLore());
+		if (meta.hasLore()) {
+			List<String> lore = meta.getLore();
+			if (lore != null && !lore.isEmpty()) data.setAttribute(LORE, lore);
+		}
 
 		// patterns
 		BannerHandler.processMagicItemData(meta, data);
@@ -305,6 +311,19 @@ public class MagicItems {
 					}
 				}
 
+				if (section.isList("blacklisted-attributes")) {
+					EnumSet<MagicItemAttribute> blacklistedAttributes = magicItem.getMagicItemData().getBlacklistedAttributes();
+					List<String> blacklistedAttributeStrings = section.getStringList("blacklisted-attributes");
+
+					for (String attr : blacklistedAttributeStrings) {
+						try {
+							blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+						} catch (IllegalArgumentException e) {
+							DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
+						}
+					}
+				}
+
 				return magicItem;
 			}
 
@@ -369,10 +388,17 @@ public class MagicItems {
 					else meta.addEnchant(e, level, true);
 				}
 
-				if (meta instanceof EnchantmentStorageMeta)
-					itemData.setAttribute(ENCHANTMENTS, ((EnchantmentStorageMeta) meta).getStoredEnchants());
-				else
-					itemData.setAttribute(ENCHANTMENTS, meta.getEnchants());
+				if (meta instanceof EnchantmentStorageMeta) {
+					EnchantmentStorageMeta storageMeta = (EnchantmentStorageMeta) meta;
+
+					if (storageMeta.hasStoredEnchants()) {
+						Map<Enchantment, Integer> enchantments = storageMeta.getStoredEnchants();
+						if (!enchantments.isEmpty()) itemData.setAttribute(ENCHANTMENTS, enchantments);
+					}
+				} else if (meta.hasEnchants()) {
+					Map<Enchantment, Integer> enchantments = meta.getEnchants();
+					if (!enchantments.isEmpty()) itemData.setAttribute(ENCHANTMENTS, enchantments);
+				}
 			}
 
 			if (section.isBoolean("fake-glint")) {
@@ -463,7 +489,7 @@ public class MagicItems {
 					itemAttributes.put(attribute, modifier);
 				}
 
-				itemData.setAttribute(ATTRIBUTES, itemAttributes);
+				if (!itemAttributes.isEmpty()) itemData.setAttribute(ATTRIBUTES, itemAttributes);
 			}
 
 			if (section.isList("ignored-attributes")) {
@@ -473,6 +499,19 @@ public class MagicItems {
 				for (String attr : ignoredAttributeStrings) {
 					try {
 						ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+					} catch (IllegalArgumentException e) {
+						DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
+					}
+				}
+			}
+
+			if (section.isList("blacklisted-attributes")) {
+				List<String> blacklistedAttributeStrings = section.getStringList("blacklisted-attributes");
+				EnumSet<MagicItemAttribute> blacklistedAttributes = itemData.getBlacklistedAttributes();
+
+				for (String attr : blacklistedAttributeStrings) {
+					try {
+						blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
 					} catch (IllegalArgumentException e) {
 						DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 					}

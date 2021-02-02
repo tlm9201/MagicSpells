@@ -65,8 +65,10 @@ public class FireworkHandler {
 				fireworkEffects.add(effect);
 			}
 
-			fireworkMeta.addEffects(fireworkEffects);
-			data.setAttribute(FIREWORK_EFFECTS, fireworkEffects);
+			if (!fireworkEffects.isEmpty()) {
+				fireworkMeta.addEffects(fireworkEffects);
+				data.setAttribute(FIREWORK_EFFECTS, fireworkEffects);
+			}
 		}
 
 		fireworkMeta.setPower(power);
@@ -86,7 +88,10 @@ public class FireworkHandler {
 
 		FireworkMeta fireworkMeta = (FireworkMeta) meta;
 		data.setAttribute(POWER, fireworkMeta.getPower());
-		if (fireworkMeta.hasEffects()) data.setAttribute(FIREWORK_EFFECTS, fireworkMeta.getEffects());
+		if (fireworkMeta.hasEffects()) {
+			List<FireworkEffect> effects = fireworkMeta.getEffects();
+			if (!effects.isEmpty()) data.setAttribute(FIREWORK_EFFECTS, fireworkMeta.getEffects());
+		}
 	}
 
 }

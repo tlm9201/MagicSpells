@@ -42,7 +42,7 @@ public class PotionHandler {
 				potionEffects.add(eff);
 			}
 
-			data.setAttribute(POTION_EFFECTS, potionEffects);
+			if (!potionEffects.isEmpty()) data.setAttribute(POTION_EFFECTS, potionEffects);
 		}
 
 		if (config.isString(POTION_COLOR_CONFIG_NAME)) {
@@ -98,7 +98,10 @@ public class PotionHandler {
 
 		PotionMeta potionMeta = (PotionMeta) meta;
 		data.setAttribute(POTION_DATA, potionMeta.getBasePotionData());
-		if (potionMeta.hasCustomEffects()) data.setAttribute(POTION_EFFECTS, potionMeta.getCustomEffects());
+		if (potionMeta.hasCustomEffects()) {
+			List<PotionEffect> effects = potionMeta.getCustomEffects();
+			if (!effects.isEmpty()) data.setAttribute(POTION_EFFECTS, effects);
+		}
 		if (potionMeta.hasColor()) data.setAttribute(COLOR, potionMeta.getColor());
 	}
 

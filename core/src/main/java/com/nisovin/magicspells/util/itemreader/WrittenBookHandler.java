@@ -43,8 +43,10 @@ public class WrittenBookHandler {
 				pages.set(i, Util.colorize(pages.get(i)));
 			}
 
-			bookMeta.setPages(pages);
-			data.setAttribute(PAGES, pages);
+			if (!pages.isEmpty()) {
+				bookMeta.setPages(pages);
+				data.setAttribute(PAGES, pages);
+			}
 		}
 	}
 
@@ -63,7 +65,10 @@ public class WrittenBookHandler {
 		BookMeta bookMeta = (BookMeta) meta;
 		if (bookMeta.hasAuthor()) data.setAttribute(AUTHOR, bookMeta.getAuthor());
 		if (bookMeta.hasTitle()) data.setAttribute(TITLE, bookMeta.getTitle());
-		if (bookMeta.hasPages()) data.setAttribute(PAGES, bookMeta.getPages());
+		if (bookMeta.hasPages()) {
+			List<String> pages = bookMeta.getPages();
+			if (!pages.isEmpty()) data.setAttribute(PAGES, pages);
+		}
 	}
 
 	public static String getTitle(ItemMeta meta) {

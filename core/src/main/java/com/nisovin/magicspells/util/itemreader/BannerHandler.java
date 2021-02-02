@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.util.itemreader;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import org.bukkit.DyeColor;
 import org.bukkit.block.banner.Pattern;
@@ -25,6 +26,7 @@ public class BannerHandler {
 
 		// patternType dyeColor
 		List<String> strPatterns = config.getStringList(CONFIG_NAME);
+		List<Pattern> patterns = new ArrayList<>();
 		for (String str : strPatterns) {
 			String[] args = str.split(" ");
 			if (args.length < 2) continue;
@@ -47,9 +49,10 @@ public class BannerHandler {
 
 			Pattern pattern = new Pattern(dyeColor, patternType);
 			bannerMeta.addPattern(pattern);
+			patterns.add(pattern);
 		}
 
-		data.setAttribute(PATTERNS, bannerMeta.getPatterns());
+		if (!patterns.isEmpty()) data.setAttribute(PATTERNS, patterns);
 	}
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
@@ -61,7 +64,8 @@ public class BannerHandler {
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof BannerMeta)) return;
 
-		data.setAttribute(PATTERNS, ((BannerMeta) meta).getPatterns());
+		List<Pattern> patterns = ((BannerMeta) meta).getPatterns();
+		if (!patterns.isEmpty()) data.setAttribute(PATTERNS, ((BannerMeta) meta).getPatterns());
 	}
 	
 }

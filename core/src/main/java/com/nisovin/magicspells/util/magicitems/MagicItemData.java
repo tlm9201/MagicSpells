@@ -28,6 +28,7 @@ import com.nisovin.magicspells.util.AttributeUtil.AttributeModifierData;
 public class MagicItemData {
 
     private EnumMap<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
+    private EnumSet<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
     private EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
 
     public Object getAttribute(MagicItemAttribute attr) {
@@ -49,6 +50,14 @@ public class MagicItemData {
         return itemAttributes.containsKey(atr);
     }
 
+    public EnumSet<MagicItemAttribute> getBlacklistedAttributes() {
+        return blacklistedAttributes;
+    }
+
+    public void setBlacklistedAttributes(EnumSet<MagicItemAttribute> blacklistedAttributes) {
+        this.blacklistedAttributes = blacklistedAttributes;
+    }
+
     public EnumSet<MagicItemAttribute> getIgnoredAttributes() {
         return ignoredAttributes;
     }
@@ -64,7 +73,7 @@ public class MagicItemData {
         Set<Attribute> keysSelf = attrSelf.keySet();
         Set<Attribute> keysOther = attrOther.keySet();
         if (!keysSelf.equals(keysOther)) return false;
-        
+
         for (Attribute attr : keysSelf) {
             Collection<AttributeModifier> modsSelf = attrSelf.get(attr);
             Collection<AttributeModifier> modsOther = attrOther.get(attr);
@@ -103,6 +112,10 @@ public class MagicItemData {
             if (!keysOther.contains(attr)) return false;
         }
 
+        for (MagicItemAttribute attr : blacklistedAttributes) {
+            if (keysOther.contains(attr)) return false;
+        }
+
         for (MagicItemAttribute attr : keysSelf) {
             if (ignoredAttributes.contains(attr)) continue;
 
@@ -120,7 +133,9 @@ public class MagicItemData {
         if (!(o instanceof MagicItemData)) return false;
 
         MagicItemData other = (MagicItemData) o;
-        return itemAttributes.equals(other.itemAttributes) && ignoredAttributes.equals(other.ignoredAttributes);
+        return itemAttributes.equals(other.itemAttributes)
+            && ignoredAttributes.equals(other.ignoredAttributes)
+            && blacklistedAttributes.equals(other.blacklistedAttributes);
     }
 
     @Override
@@ -227,7 +242,7 @@ public class MagicItemData {
             if (previous) output.append(',');
 
             output
-                .append("\"repaircost\":")
+                .append("\"repair-cost\":")
                 .append((int) getAttribute(MagicItemAttribute.REPAIR_COST));
 
             previous = true;
@@ -237,7 +252,7 @@ public class MagicItemData {
             if (previous) output.append(',');
 
             output
-                .append("\"custommodeldata\":")
+                .append("\"custom-model-data\":")
                 .append((int) getAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA));
 
             previous = true;
@@ -267,7 +282,7 @@ public class MagicItemData {
             if (previous) output.append(',');
 
             output
-                .append("\"hidetooltip\":")
+                .append("\"hide-tooltip\":")
                 .append((boolean) getAttribute(MagicItemAttribute.HIDE_TOOLTIP));
 
             previous = true;
@@ -293,7 +308,7 @@ public class MagicItemData {
             PotionData potionData = (PotionData) getAttribute(MagicItemAttribute.POTION_DATA);
 
             output
-                .append("\"potiondata\":\"")
+                .append("\"potion-data\":\"")
                 .append(potionData.getType());
 
             if (potionData.isExtended()) output.append(" extended");
@@ -310,7 +325,7 @@ public class MagicItemData {
             FireworkEffect effect = (FireworkEffect) getAttribute(MagicItemAttribute.FIREWORK_EFFECT);
 
             output
-                .append("\"fireworkeffect\":\"")
+                .append("\"firework-effect\":\"")
                 .append(effect.getType())
                 .append(' ')
                 .append(effect.hasTrail())
@@ -351,7 +366,7 @@ public class MagicItemData {
             if (previous) output.append(',');
 
             output
-                .append("\"skullowner\":\"")
+                .append("\"skull-owner\":\"")
                 .append((String) getAttribute(MagicItemAttribute.SKULL_OWNER))
                 .append('"');
 
@@ -418,7 +433,7 @@ public class MagicItemData {
 
             Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) getAttribute(MagicItemAttribute.ENCHANTMENTS);
             boolean previousEnchantment = false;
-            output.append("\"enchantments\":{");
+            output.append("\"enchants\":{");
             for (Enchantment enchantment : enchantments.keySet()) {
                 if (previousEnchantment) output.append(',');
 
@@ -438,12 +453,12 @@ public class MagicItemData {
             if (previous) output.append(',');
 
             output
-                .append("\"fakeglint\":")
+                .append("\"fake-glint\":")
                 .append((boolean) getAttribute(MagicItemAttribute.FAKE_GLINT));
 
             previous = true;
         }
-        
+
         if (hasAttribute(MagicItemAttribute.ATTRIBUTES)) {
             if (previous) output.append(',');
 
@@ -546,7 +561,7 @@ public class MagicItemData {
         if (hasAttribute(MagicItemAttribute.POTION_EFFECTS)) {
             if (previous) output.append(',');
 
-            output.append("\"potioneffects\":[");
+            output.append("\"potion-effects\":[");
             List<PotionEffect> effects = (List<PotionEffect>) getAttribute(MagicItemAttribute.POTION_EFFECTS);
             boolean previousEffect = false;
             for (PotionEffect effect : effects) {
@@ -572,7 +587,7 @@ public class MagicItemData {
             List<FireworkEffect> effects = (List<FireworkEffect>) getAttribute(MagicItemAttribute.FIREWORK_EFFECTS);
 
             if (previous) output.append(',');
-            output.append("\"fireworkeffects\":[");
+            output.append("\"firework-effects\":[");
             boolean previousEffect = false;
             for (FireworkEffect effect : effects) {
                 if (previousEffect) output.append(',');
@@ -617,10 +632,30 @@ public class MagicItemData {
 
         if (!ignoredAttributes.isEmpty()) {
             if (previous) output.append(",");
-            output.append("\"ignoredattributes\":[");
+            output.append("\"ignored-attributes\":[");
 
             boolean previousAttribute = false;
             for (MagicItemAttribute attr : ignoredAttributes) {
+                if (previousAttribute) output.append(',');
+
+                output
+                    .append('"')
+                    .append(attr.name())
+                    .append('"');
+
+                previousAttribute = true;
+            }
+
+            output.append(']');
+            previous = true;
+        }
+
+        if (!blacklistedAttributes.isEmpty()) {
+            if (previous) output.append(",");
+            output.append("\"blacklisted-attributes\":[");
+
+            boolean previousAttribute = false;
+            for (MagicItemAttribute attr : blacklistedAttributes) {
                 if (previousAttribute) output.append(',');
 
                 output

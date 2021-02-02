@@ -260,7 +260,7 @@ public class CastItem {
 			if (previous) output.append(',');
 
 			boolean previousEnchantment = false;
-			output.append("\"enchantments\":{");
+			output.append("\"enchants\":{");
 			for (Enchantment enchant : enchants.keySet()) {
 				if (previousEnchantment) output.append(',');
 

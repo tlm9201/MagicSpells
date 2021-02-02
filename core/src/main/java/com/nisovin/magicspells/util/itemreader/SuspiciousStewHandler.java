@@ -32,7 +32,7 @@ public class SuspiciousStewHandler {
 			stewMeta.addCustomEffect(potionEffect, true);
 			potionEffects.add(potionEffect);
 		}
-		data.setAttribute(POTION_EFFECTS, potionEffects);
+		if (!potionEffects.isEmpty()) data.setAttribute(POTION_EFFECTS, potionEffects);
 	}
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
@@ -49,7 +49,10 @@ public class SuspiciousStewHandler {
 		if (!(meta instanceof SuspiciousStewMeta)) return;
 
 		SuspiciousStewMeta stewMeta = (SuspiciousStewMeta) meta;
-		if (stewMeta.hasCustomEffects()) data.setAttribute(POTION_EFFECTS, stewMeta.getCustomEffects());
+		if (stewMeta.hasCustomEffects()) {
+			List<PotionEffect> effects = stewMeta.getCustomEffects();
+			if (!effects.isEmpty()) data.setAttribute(POTION_EFFECTS, effects);
+		}
 	}
 
 }
