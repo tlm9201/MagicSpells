@@ -12,7 +12,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.util.itemreader.PotionHandler;
@@ -68,9 +67,8 @@ public class CastItem {
 	}
 
 	public CastItem(String string) {
-		MagicItem magicItem = MagicItems.getMagicItemFromString(string);
-		if (magicItem != null && magicItem.getMagicItemData() != null) {
-			MagicItemData data = magicItem.getMagicItemData();
+		MagicItemData data = MagicItems.getMagicItemDataFromString(string);
+		if (data != null) {
 			type = (Material) data.getAttribute(TYPE);
 			if (isTypeValid()) {
 				if (!MagicSpells.ignoreCastItemNames() && data.hasAttribute(NAME)) {

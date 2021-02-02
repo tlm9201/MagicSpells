@@ -497,14 +497,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 								continue;
 							}
 
-							ItemStack item = magicItem.getItemStack();
-							if (item == null) {
-								MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
-								continue;
-							}
-
-							item.setAmount(amt);
-							reagents.addItem(new SpellReagents.ReagentItem(item, amt));
+							reagents.addItem(new SpellReagents.ReagentItem(magicItem, amt));
 							break;
 					}
 				} catch (Exception e) {
@@ -995,7 +988,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (!requireCastItemOnCommand || castItems == null) return true;
 		if (item == null && castItems.length == 1 && BlockUtils.isAir(castItems[0].getType())) return true;
 		for (CastItem castItem : castItems) {
-			if (castItem.equals(item)) return true;
+			if (castItem.equals(new CastItem(item))) return true;
 		}
 		return false;
 	}

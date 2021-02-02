@@ -3,12 +3,12 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
-import com.nisovin.magicspells.MagicSpells;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
@@ -59,7 +59,7 @@ public class HotbarSelectListener extends PassiveListener {
 
 	private boolean contains(MagicItemData itemData) {
 		for (MagicItemData data : items) {
-			if (data.equals(itemData)) return true;
+			if (data.matches(itemData)) return true;
 		}
 		return false;
 	}

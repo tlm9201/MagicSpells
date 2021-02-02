@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Collection;
 
-import org.bukkit.inventory.ItemStack;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
 
 public class SpellReagents {
 	
@@ -28,6 +28,7 @@ public class SpellReagents {
 		hunger = 0;
 		experience = 0;
 		levels = 0;
+		durability = 0;
 		money = 0;
 		variables = null;
 	}
@@ -42,6 +43,7 @@ public class SpellReagents {
 		hunger = other.hunger;
 		experience = other.experience;
 		levels = other.levels;
+		durability = other.durability;
 		money = other.money;
 		if (other.variables != null) {
 			variables = new HashMap<>();
@@ -217,34 +219,33 @@ public class SpellReagents {
 
 	public static class ReagentItem {
 
-		private ItemStack itemStack;
-
+		private MagicItem magicItem;
 		private int amount;
 
-		public ReagentItem(ItemStack itemStack, int amount) {
-			this.itemStack = itemStack;
+		public ReagentItem(MagicItem magicItem, int amount) {
+			this.magicItem = magicItem;
 			this.amount = amount;
 		}
 
-		public void setItemStack(ItemStack itemStack) {
-			this.itemStack = itemStack;
-		}
-
-		public void setAmount(int amount) {
-			this.amount = amount;
-		}
-
-		public ItemStack getItemStack() {
-			return itemStack;
+		public MagicItem getMagicItem() {
+			return magicItem;
 		}
 
 		public int getAmount() {
 			return amount;
 		}
 
+		public void setMagicItem(MagicItem magicItem) {
+			this.magicItem = magicItem;
+		}
+
+		public void setAmount(int amount) {
+			this.amount = amount;
+		}
+
 		@Override
 		public ReagentItem clone() {
-			return new ReagentItem(itemStack, amount);
+			return new ReagentItem(magicItem, amount);
 		}
 
 	}
