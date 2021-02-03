@@ -140,14 +140,16 @@ public class MagicItemData {
 
     @Override
     public int hashCode() {
-        return Objects.hash(itemAttributes, ignoredAttributes);
+        return Objects.hash(itemAttributes, ignoredAttributes, blacklistedAttributes);
     }
 
     @Override
     public MagicItemData clone() {
         MagicItemData data = new MagicItemData();
 
-        data.itemAttributes = new EnumMap<>(itemAttributes);
+        if (!itemAttributes.isEmpty()) data.itemAttributes.putAll(itemAttributes);
+        if (!ignoredAttributes.isEmpty()) data.ignoredAttributes.addAll(ignoredAttributes);
+        if (!blacklistedAttributes.isEmpty()) data.blacklistedAttributes.addAll(blacklistedAttributes);
 
         return data;
     }
