@@ -80,4 +80,44 @@ public class ForcepushSpell extends InstantSpell {
 		playSpellEffects(EffectPosition.CASTER, livingEntity);
 	}
 
+	public float getForce() {
+		return force;
+	}
+
+	public void setForce(float force) {
+		this.force = force;
+	}
+
+	public float getRadius() {
+		return radius;
+	}
+
+	public void setRadius(float radius) {
+		this.radius = radius;
+	}
+
+	public float getYForce() {
+		return yForce;
+	}
+
+	public void setYForce(float yForce) {
+		this.yForce = yForce;
+	}
+
+	public float getMaxYForce() {
+		return maxYForce;
+	}
+
+	public void setMaxYForce(float maxYForce) {
+		this.maxYForce = maxYForce;
+	}
+
+	public boolean shouldAddVelocityInstead() {
+		return addVelocityInstead;
+	}
+
+	public void setAddVelocityInstead(boolean addVelocityInstead) {
+		this.addVelocityInstead = addVelocityInstead;
+	}
+
 }

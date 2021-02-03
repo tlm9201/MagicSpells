@@ -14,10 +14,12 @@ public class ManaChangeEvent extends Event {
 
 	private static final HandlerList handlers = new HandlerList();
 
-	private Player player;
+	private final Player player;
+
 	private int oldAmt;
 	private int newAmt;
 	private int maxMana;
+
 	private ManaChangeReason reason;
 	
 	public ManaChangeEvent(Player player, int oldAmt, int newAmt, int maxMana, ManaChangeReason reason) {		

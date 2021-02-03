@@ -23,14 +23,14 @@ public class GateSpell extends InstantSpell {
 	private static final Pattern COORDINATE_PATTERN = Pattern.compile("^-?[0-9]+,[0-9]+,-?[0-9]+(,-?[0-9.]+,-?[0-9.]+)?$");
 
 	private String world;
-	private String coords;
+	private String coordinates;
 	private String strGateFailed;
 
 	public GateSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 		
 		world = getConfigString("world", "CURRENT");
-		coords = getConfigString("coordinates", "SPAWN");
+		coordinates = getConfigString("coordinates", "SPAWN");
 		strGateFailed = getConfigString("str-gate-failed", "Unable to teleport.");
 	}
 
@@ -50,10 +50,10 @@ public class GateSpell extends InstantSpell {
 			
 			// Get location
 			Location location = null;
-			coords = coords.replace(" ", "");
+			coordinates = coordinates.replace(" ", "");
 
-			if (RegexUtil.matches(COORDINATE_PATTERN, coords)) {
-				String[] c = coords.split(",");
+			if (RegexUtil.matches(COORDINATE_PATTERN, coordinates)) {
+				String[] c = coordinates.split(",");
 				int x = Integer.parseInt(c[0]);
 				int y = Integer.parseInt(c[1]);
 				int z = Integer.parseInt(c[2]);
@@ -67,7 +67,7 @@ public class GateSpell extends InstantSpell {
 			}
 			
 			if (location == null) {
-				switch (coords.toUpperCase()) {
+				switch (coordinates.toUpperCase()) {
 					case "SPAWN":
 						location = effectiveWorld.getSpawnLocation();
 						location = new Location(effectiveWorld, location.getX(), effectiveWorld.getHighestBlockYAt(location) + 1, location.getZ());
@@ -111,6 +111,34 @@ public class GateSpell extends InstantSpell {
 			playSpellEffects(EffectPosition.TARGET, to);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
+	}
+
+	public static Pattern getCoordinatePattern() {
+		return COORDINATE_PATTERN;
+	}
+
+	public String getWorld() {
+		return world;
+	}
+
+	public void setWorld(String world) {
+		this.world = world;
+	}
+
+	public String getCoordinates() {
+		return coordinates;
+	}
+
+	public void setCoordinates(String coordinates) {
+		this.coordinates = coordinates;
+	}
+
+	public String getStrGateFailed() {
+		return strGateFailed;
+	}
+
+	public void setStrGateFailed(String strGateFailed) {
+		this.strGateFailed = strGateFailed;
 	}
 
 }

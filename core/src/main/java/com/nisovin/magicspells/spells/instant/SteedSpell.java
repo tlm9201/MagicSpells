@@ -37,8 +37,9 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class SteedSpell extends InstantSpell {
 
-	private Map<UUID, Integer> mounted;
-	private Random random;
+	private final Map<UUID, Integer> mounted;
+
+	private final Random random;
 
 	private boolean gravity;
 	private boolean hasChest;
@@ -58,6 +59,7 @@ public class SteedSpell extends InstantSpell {
 		super(config, spellName);
 
 		mounted = new HashMap<>();
+
 		random = ThreadLocalRandom.current();
 
 		gravity = getConfigBoolean("gravity", true);
@@ -187,6 +189,74 @@ public class SteedSpell extends InstantSpell {
 		Entity vehicle = player.getVehicle();
 		vehicle.eject();
 		vehicle.remove();
+	}
+
+	public Map<UUID, Integer> getMounted() {
+		return mounted;
+	}
+
+	public boolean hasGravity() {
+		return gravity;
+	}
+
+	public void setGravity(boolean gravity) {
+		this.gravity = gravity;
+	}
+
+	public boolean hasChest() {
+		return hasChest;
+	}
+
+	public void setHasChest(boolean hasChest) {
+		this.hasChest = hasChest;
+	}
+
+	public double getJumpStrength() {
+		return jumpStrength;
+	}
+
+	public void setJumpStrength(double jumpStrength) {
+		this.jumpStrength = jumpStrength;
+	}
+
+	public String getStrAlreadyMounted() {
+		return strAlreadyMounted;
+	}
+
+	public void setStrAlreadyMounted(String strAlreadyMounted) {
+		this.strAlreadyMounted = strAlreadyMounted;
+	}
+
+	public EntityType getType() {
+		return type;
+	}
+
+	public void setType(EntityType type) {
+		this.type = type;
+	}
+
+	public Horse.Color getHorseColor() {
+		return color;
+	}
+
+	public void setHorseColor(Horse.Color color) {
+		this.color = color;
+	}
+
+	public Horse.Style getHorseStyle() {
+		return style;
+	}
+
+	public void setHorseStyle(Horse.Style style) {
+		this.style = style;
+	}
+
+	public ItemStack getArmor() {
+		return armor;
+	}
+
+	public void setArmor(ItemStack armor) {
+		this.armor = armor;
 	}
 
 }

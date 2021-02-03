@@ -7,20 +7,21 @@ import com.nisovin.magicspells.Spell;
 
 public class SpellApplyDamageEvent extends SpellEvent {
 
-	private LivingEntity target;
-	private double damage;
-	private DamageCause cause;
-	private String spellDamageType;
-	private long timestamp;
+	private final LivingEntity target;
+	private final double damage;
+	private final DamageCause cause;
+	private final long timestamp;
 	private float modifier;
 
 	public SpellApplyDamageEvent(Spell spell, LivingEntity caster, LivingEntity target, double damage, DamageCause cause, String spellDamageType) {
 		super(spell, caster);
+
 		this.target = target;
 		this.damage = damage;
 		this.cause = cause;
-		this.spellDamageType = spellDamageType;
+
 		timestamp = System.currentTimeMillis();
+
 		modifier = 1.0f;
 	}
 

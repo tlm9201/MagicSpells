@@ -24,7 +24,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class RitualSpell extends InstantSpell {
 
-	private Map<Player, ActiveRitual> activeRituals;
+	private final Map<Player, ActiveRitual> activeRituals;
 
 	private int tickInterval;
 	private int effectInterval;

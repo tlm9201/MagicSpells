@@ -1,12 +1,12 @@
 package com.nisovin.magicspells.spells.instant;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Item;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
@@ -15,17 +15,22 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.util.trackers.ItemProjectileTracker;
 
 public class ItemProjectileSpell extends InstantSpell implements TargetedLocationSpell {
 
-	private List<Item> itemList;
+	private static Set<ItemProjectileTracker> trackerSet;
+
+	private final String itemName;
+	private final String spellOnTickName;
+	private final String spellOnDelayName;
+	private final String spellOnHitEntityName;
+	private final String spellOnHitGroundName;
 
 	private ItemStack item;
 
@@ -44,18 +49,13 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 	private float vertHitRadius;
 	private float rotationOffset;
 
+	private boolean checkPlugins;
 	private boolean vertSpeedUsed;
 	private boolean stopOnHitGround;
 	private boolean stopOnHitEntity;
 	private boolean projectileHasGravity;
 
 	private Vector relativeOffset;
-
-	private String itemName;
-	private String spellOnTickName;
-	private String spellOnDelayName;
-	private String spellOnHitEntityName;
-	private String spellOnHitGroundName;
 
 	private Subspell spellOnTick;
 	private Subspell spellOnDelay;
@@ -67,7 +67,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 	public ItemProjectileSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		itemList = new ArrayList<>();
+		trackerSet = new HashSet<>();
 
 		MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString("item", "iron_sword"));
 		if (magicItem != null) item = magicItem.getItemStack();
@@ -88,6 +88,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		rotationOffset = getConfigFloat("rotation-offset", 0F);
 
 		if (vertSpeed != 0) vertSpeedUsed = true;
+		checkPlugins = getConfigBoolean("check-plugins", true);
 		stopOnHitGround = getConfigBoolean("stop-on-hit-ground", true);
 		stopOnHitEntity = getConfigBoolean("stop-on-hit-entity", true);
 		projectileHasGravity = getConfigBoolean("gravity", true);
@@ -135,24 +136,27 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 	@Override
 	public void turnOff() {
-		for (Item item : itemList) {
-			item.remove();
+		for (ItemProjectileTracker tracker : trackerSet) {
+			tracker.stop(false);
 		}
-
-		itemList.clear();
+		trackerSet.clear();
 	}
 
 	@Override
 	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			new ItemProjectile(livingEntity, livingEntity.getLocation(), power);
+			ItemProjectileTracker tracker = new ItemProjectileTracker(livingEntity, livingEntity.getLocation(), power);
+			setupTracker(tracker);
+			tracker.start();
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtLocation(LivingEntity livingEntity, Location target, float power) {
-		new ItemProjectile(livingEntity, target, power);
+		ItemProjectileTracker tracker = new ItemProjectileTracker(livingEntity, target, power);
+		setupTracker(tracker);
+		tracker.start();
 		return true;
 	}
 
@@ -161,119 +165,249 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		return false;
 	}
 
-	private class ItemProjectile implements Runnable {
+	private void setupTracker(ItemProjectileTracker tracker) {
+		tracker.setSpell(this);
 
-		private LivingEntity caster;
-		private Item entity;
-		private Vector velocity;
-		private Location startLocation;
-		private Location currentLocation;
-		private float power;
+		tracker.setItemName(itemName);
+		tracker.setItem(item);
 
-		private boolean landed = false;
-		private boolean groundSpellCasted = false;
+		tracker.setSpellDelay(spellDelay);
+		tracker.setPickupDelay(pickupDelay);
+		tracker.setRemoveDelay(removeDelay);
+		tracker.setTickInterval(tickInterval);
+		tracker.setSpellInterval(spellInterval);
+		tracker.setItemNameDelay(itemNameDelay);
+		tracker.setSpecialEffectInterval(specialEffectInterval);
 
-		private int taskId;
-		private int count = 0;
+		tracker.setSpeed(speed);
+		tracker.setYOffset(yOffset);
+		tracker.setHitRadius(hitRadius);
+		tracker.setVertSpeed(vertSpeed);
+		tracker.setVertHitRadius(vertHitRadius);
+		tracker.setRotationOffset(rotationOffset);
 
-		private ItemProjectile(LivingEntity caster, Location from, float power) {
-			this.caster = caster;
-			this.power = power;
+		tracker.setCallEvents(checkPlugins);
+		tracker.setVertSpeedUsed(vertSpeedUsed);
+		tracker.setStopOnHitGround(stopOnHitGround);
+		tracker.setStopOnHitEntity(stopOnHitEntity);
+		tracker.setProjectileHasGravity(projectileHasGravity);
 
-			startLocation = from.clone();
+		tracker.setRelativeOffset(relativeOffset);
 
-			//relativeOffset
-			Vector startDirection = from.getDirection().normalize();
-			Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-			startLocation.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
-			startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
-			startLocation.setY(startLocation.getY() + relativeOffset.getY());
+		tracker.setSpellOnTick(spellOnTick);
+		tracker.setSpellOnDelay(spellOnDelay);
+		tracker.setSpellOnHitGround(spellOnHitGround);
+		tracker.setSpellOnHitEntity(spellOnHitEntity);
 
-			currentLocation = startLocation.clone();
+		tracker.setTargetList(validTargetList);
+	}
 
-			if (vertSpeedUsed) velocity = from.getDirection().setY(0).multiply(speed).setY(vertSpeed);
-			else velocity = from.getDirection().multiply(speed);
-			Util.rotateVector(velocity, rotationOffset);
-			entity = from.getWorld().dropItem(startLocation, item.clone());
-			entity.setGravity(projectileHasGravity);
-			entity.setPickupDelay(pickupDelay);
-			entity.setVelocity(velocity);
-			itemList.add(entity);
+	public static Set<ItemProjectileTracker> getProjectileTrackers() {
+		return trackerSet;
+	}
 
-			playSpellEffects(EffectPosition.CASTER, caster);
-			playSpellEffects(EffectPosition.PROJECTILE, entity);
-			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, from, entity.getLocation(), caster, entity);
-			
-			taskId = MagicSpells.scheduleRepeatingTask(this, tickInterval, tickInterval);
+	public ItemStack getItem() {
+		return item;
+	}
 
-			MagicSpells.scheduleDelayedTask(() -> {
-				entity.setCustomName(itemName);
-				entity.setCustomNameVisible(true);
-			}, itemNameDelay);
+	public void setItem(ItemStack item) {
+		this.item = item;
+	}
 
-			MagicSpells.scheduleDelayedTask(this::stop, removeDelay);
-		}
-		
-		@Override
-		public void run() {
-			if (entity == null || !entity.isValid() || entity.isDead()) {
-				stop();
-				return;
-			}
+	public boolean shouldCheckPlugins() {
+		return checkPlugins;
+	}
 
-			count++;
+	public void setCheckPlugins(boolean checkPlugins) {
+		this.checkPlugins = checkPlugins;
+	}
 
-			currentLocation = entity.getLocation();
-			currentLocation.setDirection(entity.getVelocity());
-			if (specialEffectInterval > 0 && count % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation);
+	public int getSpellDelay() {
+		return spellDelay;
+	}
 
-			if (zoneManager.willFizzle(currentLocation, ItemProjectileSpell.this)) {
-				stop();
-				return;
-			}
+	public void setSpellDelay(int spellDelay) {
+		this.spellDelay = spellDelay;
+	}
 
-			if (count % spellInterval == 0 && spellOnTick != null && spellOnTick.isTargetedLocationSpell()) {
-				spellOnTick.castAtLocation(caster, currentLocation.clone(), power);
-			}
+	public int getPickupDelay() {
+		return pickupDelay;
+	}
 
-			for (Entity e : entity.getNearbyEntities(hitRadius, vertHitRadius, hitRadius)) {
-				if (!(e instanceof LivingEntity)) continue;
-				if (!validTargetList.canTarget(caster, e)) continue;
+	public void setPickupDelay(int pickupDelay) {
+		this.pickupDelay = pickupDelay;
+	}
 
-				SpellTargetEvent event = new SpellTargetEvent(ItemProjectileSpell.this, caster, (LivingEntity) e, power);
-				EventUtil.call(event);
-				if (!event.isCancelled()) {
-					playSpellEffects(EffectPosition.TARGET, e);
-					if (spellOnHitEntity != null) spellOnHitEntity.castAtEntity(caster, (LivingEntity) e, event.getPower());
-					if (stopOnHitEntity) stop();
-					return;
-				}
-			}
+	public int getRemoveDelay() {
+		return removeDelay;
+	}
 
-			if (entity.isOnGround()) {
-				if (spellOnHitGround != null && !groundSpellCasted) {
-					spellOnHitGround.castAtLocation(caster, entity.getLocation(), power);
-					groundSpellCasted = true;
-				}
-				if (stopOnHitGround) {
-					stop();
-					return;
-				}
-				if (!landed) MagicSpells.scheduleDelayedTask(() -> {
-					if (spellOnDelay != null) spellOnDelay.castAtLocation(caster, entity.getLocation(), power);
-					stop();
-				}, spellDelay);
-				landed = true;
-			}
-		}
+	public void setRemoveDelay(int removeDelay) {
+		this.removeDelay = removeDelay;
+	}
 
-		private void stop() {
-			boolean existed = itemList.remove(entity);
-			if (existed) playSpellEffects(EffectPosition.DELAYED, entity.getLocation());
-			entity.remove();
-			MagicSpells.cancelTask(taskId);
-		}
-		
+	public int getTickInterval() {
+		return tickInterval;
+	}
+
+	public void setTickInterval(int tickInterval) {
+		this.tickInterval = tickInterval;
+	}
+
+	public int getSpellInterval() {
+		return spellInterval;
+	}
+
+	public void setSpellInterval(int spellInterval) {
+		this.spellInterval = spellInterval;
+	}
+
+	public int getItemNameDelay() {
+		return itemNameDelay;
+	}
+
+	public void setItemNameDelay(int itemNameDelay) {
+		this.itemNameDelay = itemNameDelay;
+	}
+
+	public int getSpecialEffectInterval() {
+		return specialEffectInterval;
+	}
+
+	public void setSpecialEffectInterval(int specialEffectInterval) {
+		this.specialEffectInterval = specialEffectInterval;
+	}
+
+	public float getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(float speed) {
+		this.speed = speed;
+	}
+
+	public float getYOffset() {
+		return yOffset;
+	}
+
+	public void setYOffset(float yOffset) {
+		this.yOffset = yOffset;
+	}
+
+	public float getHitRadius() {
+		return hitRadius;
+	}
+
+	public void setHitRadius(float hitRadius) {
+		this.hitRadius = hitRadius;
+	}
+
+	public float getVertSpeed() {
+		return vertSpeed;
+	}
+
+	public void setVertSpeed(float vertSpeed) {
+		this.vertSpeed = vertSpeed;
+	}
+
+	public float getVertHitRadius() {
+		return vertHitRadius;
+	}
+
+	public void setVertHitRadius(float vertHitRadius) {
+		this.vertHitRadius = vertHitRadius;
+	}
+
+	public float getRotationOffset() {
+		return rotationOffset;
+	}
+
+	public void setRotationOffset(float rotationOffset) {
+		this.rotationOffset = rotationOffset;
+	}
+
+	public boolean isVertSpeedUsed() {
+		return vertSpeedUsed;
+	}
+
+	public void setVertSpeedUsed(boolean vertSpeedUsed) {
+		this.vertSpeedUsed = vertSpeedUsed;
+	}
+
+	public boolean shouldStopOnHitGround() {
+		return stopOnHitGround;
+	}
+
+	public void setStopOnHitGround(boolean stopOnHitGround) {
+		this.stopOnHitGround = stopOnHitGround;
+	}
+
+	public boolean shouldStopOnHitEntity() {
+		return stopOnHitEntity;
+	}
+
+	public void setStopOnHitEntity(boolean stopOnHitEntity) {
+		this.stopOnHitEntity = stopOnHitEntity;
+	}
+
+	public boolean shouldProjectileHaveGravity() {
+		return projectileHasGravity;
+	}
+
+	public void setProjectileHasGravity(boolean projectileHasGravity) {
+		this.projectileHasGravity = projectileHasGravity;
+	}
+
+	public Vector getRelativeOffset() {
+		return relativeOffset;
+	}
+
+	public void setRelativeOffset(Vector relativeOffset) {
+		this.relativeOffset = relativeOffset;
+	}
+
+	public Subspell getSpellOnTick() {
+		return spellOnTick;
+	}
+
+	public void setSpellOnTick(Subspell spellOnTick) {
+		this.spellOnTick = spellOnTick;
+	}
+
+	public Subspell getSpellOnDelay() {
+		return spellOnDelay;
+	}
+
+	public void setSpellOnDelay(Subspell spellOnDelay) {
+		this.spellOnDelay = spellOnDelay;
+	}
+
+	public Subspell getSpellOnHitEntity() {
+		return spellOnHitEntity;
+	}
+
+	public void setSpellOnHitEntity(Subspell spellOnHitEntity) {
+		this.spellOnHitEntity = spellOnHitEntity;
+	}
+
+	public Subspell getSpellOnHitGround() {
+		return spellOnHitGround;
+	}
+
+	public void setSpellOnHitGround(Subspell spellOnHitGround) {
+		this.spellOnHitGround = spellOnHitGround;
+	}
+
+	public void playEffects(EffectPosition position, Location loc) {
+		playSpellEffects(position, loc);
+	}
+
+	public void playEffects(EffectPosition position, Entity entity) {
+		playSpellEffects(position, entity);
+	}
+
+	public void playTrackingLineEffects(EffectPosition position, Location startLocation, Location location, LivingEntity caster, Projectile projectile) {
+		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
 	}
 
 }

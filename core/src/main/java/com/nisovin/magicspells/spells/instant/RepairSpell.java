@@ -35,7 +35,7 @@ public class RepairSpell extends InstantSpell {
 
 	private String[] toRepair;
 
-	private Set<Material> ignoreItems;
+	private Set<Material> ignoredItems;
 	private Set<Material> allowedItems;
 
 	public RepairSpell(MagicConfig config, String spellName) {
@@ -65,16 +65,16 @@ public class RepairSpell extends InstantSpell {
 		toRepair = new String[toRepairList.size()];
 		toRepair = toRepairList.toArray(toRepair);
 		
-		ignoreItems = EnumSet.noneOf(Material.class);
+		ignoredItems = EnumSet.noneOf(Material.class);
 		List<String> list = getConfigStringList("ignore-items", null);
 		if (list != null) {
 			for (String s : list) {
 				Material mat = Util.getMaterial(s);
 				if (mat == null) continue;
-				ignoreItems.add(mat);
+				ignoredItems.add(mat);
 			}
 		}
-		if (ignoreItems.isEmpty()) ignoreItems = null;
+		if (ignoredItems.isEmpty()) ignoredItems = null;
 		
 		allowedItems = EnumSet.noneOf(Material.class);
 		list = getConfigStringList("allowed-items", null);
@@ -186,7 +186,7 @@ public class RepairSpell extends InstantSpell {
 	private boolean isRepairable(ItemStack item) {
 		ItemMeta meta = item.getItemMeta();
 		if (!(meta instanceof Damageable)) return false;
-		if (ignoreItems != null && ignoreItems.contains(item.getType())) return false;
+		if (ignoredItems != null && ignoredItems.contains(item.getType())) return false;
 		if (allowedItems != null && !allowedItems.contains(item.getType())) return false;
 		return true;
 	}
@@ -197,6 +197,66 @@ public class RepairSpell extends InstantSpell {
 		durability -= repairAmt;
 		if (durability < 0) durability = 0;
 		return durability;
+	}
+
+	public static String getRepairSelectorKeyHeld() {
+		return REPAIR_SELECTOR_KEY_HELD;
+	}
+
+	public static String getRepairSelectorKeyHotbar() {
+		return REPAIR_SELECTOR_KEY_HOTBAR;
+	}
+
+	public static String getRepairSelectorKeyInventory() {
+		return REPAIR_SELECTOR_KEY_INVENTORY;
+	}
+
+	public static String getRepairSelectorKeyHelmet() {
+		return REPAIR_SELECTOR_KEY_HELMET;
+	}
+
+	public static String getRepairSelectorKeyChestplate() {
+		return REPAIR_SELECTOR_KEY_CHESTPLATE;
+	}
+
+	public static String getRepairSelectorKeyLeggings() {
+		return REPAIR_SELECTOR_KEY_LEGGINGS;
+	}
+
+	public static String getRepairSelectorKeyBoots() {
+		return REPAIR_SELECTOR_KEY_BOOTS;
+	}
+
+	public int getRepairAmount() {
+		return repairAmt;
+	}
+
+	public void setRepairAmount(int repairAmt) {
+		this.repairAmt = repairAmt;
+	}
+
+	public String getStrNothingToRepair() {
+		return strNothingToRepair;
+	}
+
+	public void setStrNothingToRepair(String strNothingToRepair) {
+		this.strNothingToRepair = strNothingToRepair;
+	}
+
+	public String[] getToRepair() {
+		return toRepair;
+	}
+
+	public void setToRepair(String[] toRepair) {
+		this.toRepair = toRepair;
+	}
+
+	public Set<Material> getIgnoredItems() {
+		return ignoredItems;
+	}
+
+	public Set<Material> getAllowedItems() {
+		return allowedItems;
 	}
 
 }

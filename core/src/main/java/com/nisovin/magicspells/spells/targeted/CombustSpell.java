@@ -70,7 +70,7 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 	
 	private boolean combust(LivingEntity livingEntity, final LivingEntity target, float power) {
 		if (checkPlugins && livingEntity != null) {
-			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(livingEntity, target, DamageCause.ENTITY_ATTACK, 1);
+			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(livingEntity, target, DamageCause.ENTITY_ATTACK, 1, this);
 			EventUtil.call(event);
 			if (event.isCancelled()) return false;
 		}

@@ -11,9 +11,10 @@ import com.nisovin.magicspells.spells.InstantSpell;
 
 public class CastAtMarkSpell extends InstantSpell {
 
+	private final String markSpellName;
+	private final String spellToCastName;
+
 	private String strNoMark;
-	private String markSpellName;
-	private String spellToCastName;
 
 	private MarkSpell markSpell;
 	private Subspell spellToCast;
@@ -72,6 +73,30 @@ public class CastAtMarkSpell extends InstantSpell {
 			spellToCast.castAtLocation(livingEntity, effectiveMark, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
+	}
+
+	public String getStrNoMark() {
+		return strNoMark;
+	}
+
+	public void setStrNoMark(String strNoMark) {
+		this.strNoMark = strNoMark;
+	}
+
+	public MarkSpell getMarkSpell() {
+		return markSpell;
+	}
+
+	public void setMarkSpell(MarkSpell markSpell) {
+		this.markSpell = markSpell;
+	}
+
+	public Subspell getSpellToCast() {
+		return spellToCast;
+	}
+
+	public void setSpellToCast(Subspell spellToCast) {
+		this.spellToCast = spellToCast;
 	}
 
 }

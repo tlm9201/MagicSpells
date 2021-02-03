@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.util;
+package com.nisovin.magicspells.util.trackers;
 
 import java.util.Set;
 import java.util.Map;
@@ -16,11 +16,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.util.NumberConversions;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.events.TrackerMoveEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
@@ -32,9 +33,7 @@ import io.papermc.lib.PaperLib;
 
 import de.slikey.effectlib.Effect;
 
-import org.apache.commons.math3.util.FastMath;
-
-public class ProjectileTracker implements Runnable {
+public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	private final Random rand = ThreadLocalRandom.current();
 
@@ -63,7 +62,7 @@ public class ProjectileTracker implements Runnable {
 	private Set<LivingEntity> immune;
 	private int maxHitLimit;
 	private ValidTargetChecker entitySpellChecker;
-	private ProjectileTracker tracker;
+	private ParticleProjectileTracker tracker;
 	private ParticleProjectileSpell spell;
 	private Set<Material> groundMaterials;
 	private Set<Material> disallowedGroundMaterials;
@@ -78,6 +77,7 @@ public class ProjectileTracker implements Runnable {
 	private double maxDistanceSquared;
 
 	private boolean hugSurface;
+	private boolean callEvents;
 	private boolean changePitch;
 	private boolean controllable;
 	private boolean stopOnHitGround;
@@ -131,11 +131,11 @@ public class ProjectileTracker implements Runnable {
 
 	private int ticks = 0;
 
-	public ProjectileTracker() {
+	public ParticleProjectileTracker() {
 
 	}
 
-	public ProjectileTracker(LivingEntity caster, float power) {
+	public ParticleProjectileTracker(LivingEntity caster, float power) {
 		this.caster = caster;
 		this.power = power;
 	}
@@ -156,7 +156,7 @@ public class ProjectileTracker implements Runnable {
 		currentLocation = startLocation.clone();
 		currentVelocity = from.getDirection();
 
-		init();
+		initialize();
 	}
 
 	public void startTarget(Location from, LivingEntity target) {
@@ -184,14 +184,16 @@ public class ProjectileTracker implements Runnable {
 
 		previousLocation = startLocation.clone();
 		currentLocation = startLocation.clone();
-		currentVelocity = setDirection(from, dir).getDirection();
+		currentVelocity = LocationUtil.setDirection(from, dir).getDirection();
 
-		init();
+		initialize();
 	}
 
-	private void init() {
+	@Override
+	public void initialize() {
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 		counter = 0;
+
 		if (projectileHorizOffset != 0) Util.rotateVector(currentVelocity, projectileHorizOffset);
 		if (projectileVertOffset != 0) currentVelocity.add(new Vector(0, projectileVertOffset, 0)).normalize();
 		if (projectileVertSpread > 0 || projectileHorizSpread > 0) {
@@ -200,26 +202,32 @@ public class ProjectileTracker implements Runnable {
 			float rz = -1 + rand.nextFloat() * 2;
 			currentVelocity.add(new Vector(rx * projectileHorizSpread, ry * projectileVertSpread, rz * projectileHorizSpread));
 		}
+
 		if (hugSurface) {
 			currentLocation.setY(currentLocation.getY() + heightFromSurface);
 			currentVelocity.setY(0).normalize();
 			currentLocation.setPitch(0);
 		}
+
 		if (powerAffectsVelocity) currentVelocity.multiply(power);
 		currentVelocity.multiply(projectileVelocity / ticksPerSecond);
+
 		nearBlocks = new ArrayList<>();
 		if (targetList != null) inRange = new ArrayList<>();
 		immune = new HashSet<>();
+
 		maxHitLimit = 0;
 		hitBox = new BoundingBox(currentLocation, horizontalHitRadius, verticalHitRadius);
-		setDirection(currentLocation, currentVelocity);
+		LocationUtil.setDirection(currentLocation, currentVelocity);
 		tracker = this;
+
 		if (spell != null) {
 			effectSet = spell.playEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
 			entitySet = spell.playEntityEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
 			armorStandSet = spell.playArmorStandEffectsProjectile(EffectPosition.PROJECTILE, currentLocation);
 			ParticleProjectileSpell.getProjectileTrackers().add(tracker);
 		}
+
 		taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
 	}
 
@@ -230,12 +238,12 @@ public class ProjectileTracker implements Runnable {
 		previousLocation = Util.makeFinite(previousLocation);
 
 		if (caster != null && !caster.isValid()) {
-			stop(true);
+			stop();
 			return;
 		}
 
 		if (zoneManager.willFizzle(currentLocation, spell)) {
-			stop(true);
+			stop();
 			return;
 		}
 
@@ -244,13 +252,13 @@ public class ProjectileTracker implements Runnable {
 				durationSpell.castAtLocation(caster, currentLocation, power);
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLocation);
 			}
-			stop(true);
+			stop();
 			return;
 		}
 
 		if (projectileModifiers != null && !projectileModifiers.check(caster)) {
 			if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
-			if (stopOnModifierFail) stop(true);
+			if (stopOnModifierFail) stop();
 			return;
 		}
 
@@ -258,7 +266,7 @@ public class ProjectileTracker implements Runnable {
 			currentVelocity = caster.getLocation().getDirection();
 			if (hugSurface) currentVelocity.setY(0).normalize();
 			currentVelocity.multiply(projectileVelocity / ticksPerSecond);
-			setDirection(currentLocation, currentVelocity);
+			LocationUtil.setDirection(currentLocation, currentVelocity);
 		}
 
 		currentVelocity = Util.makeFinite(currentVelocity);
@@ -269,6 +277,11 @@ public class ProjectileTracker implements Runnable {
 
 		currentLocation = Util.makeFinite(currentLocation);
 		previousLocation = Util.makeFinite(previousLocation);
+
+		if (callEvents) {
+			TrackerMoveEvent trackerMoveEvent = new TrackerMoveEvent(this, previousLocation, currentLocation);
+			EventUtil.call(trackerMoveEvent);
+		}
 
 		if (hugSurface && (currentLocation.getBlockX() != currentX || currentLocation.getBlockZ() != currentZ)) {
 			Block b = currentLocation.subtract(0, heightFromSurface, 0).getBlock();
@@ -293,7 +306,7 @@ public class ProjectileTracker implements Runnable {
 				}
 			}
 			if (!ok) {
-				stop(true);
+				stop();
 				return;
 			}
 
@@ -311,7 +324,7 @@ public class ProjectileTracker implements Runnable {
 		if (projectileHorizGravity != 0) Util.rotateVector(currentVelocity, (projectileHorizGravity / ticksPerSecond) * counter);
 
 		// Rotate effects properly
-		setDirection(currentLocation, currentVelocity);
+		LocationUtil.setDirection(currentLocation, currentVelocity);
 
 		if (effectSet != null) {
 			for (Effect effect : effectSet) {
@@ -380,7 +393,7 @@ public class ProjectileTracker implements Runnable {
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLocation);
 			}
 			if (stopOnHitGround) {
-				stop(true);
+				stop();
 				return;
 			}
 		}
@@ -390,7 +403,7 @@ public class ProjectileTracker implements Runnable {
 				airSpell.castAtLocation(caster, currentLocation.clone(), power);
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLocation);
 			}
-			stop(true);
+			stop();
 			return;
 		}
 
@@ -398,9 +411,9 @@ public class ProjectileTracker implements Runnable {
 		if (stopped) return;
 
 		if (spell == null || interactionSpells == null || interactionSpells.isEmpty()) return;
-		Set<ProjectileTracker> toRemove = new HashSet<>();
-		Set<ProjectileTracker> trackers = new HashSet<>(ParticleProjectileSpell.getProjectileTrackers());
-		for (ProjectileTracker collisionTracker : trackers) {
+		Set<ParticleProjectileTracker> toRemove = new HashSet<>();
+		Set<ParticleProjectileTracker> trackers = new HashSet<>(ParticleProjectileSpell.getProjectileTrackers());
+		for (ParticleProjectileTracker collisionTracker : trackers) {
 			if (!canInteractWith(collisionTracker)) continue;
 
 			Subspell collisionSpell = interactionSpells.get(collisionTracker.spell.getInternalName());
@@ -429,7 +442,7 @@ public class ProjectileTracker implements Runnable {
 		trackers.clear();
 	}
 
-	private boolean canInteractWith(ProjectileTracker collisionTracker) {
+	private boolean canInteractWith(ParticleProjectileTracker collisionTracker) {
 		if (collisionTracker == null) return false;
 		if (tracker == null) return false;
 		if (tracker.caster == null) return false;
@@ -442,28 +455,6 @@ public class ProjectileTracker implements Runnable {
 		return true;
 	}
 
-	private Location setDirection(Location loc, Vector v) {
-
-		final double _2PI = 2 * FastMath.PI;
-		final double x = v.getX();
-		final double z = v.getZ();
-
-		if (x == 0 && z == 0) {
-			loc.setPitch(v.getY() > 0 ? -90 : 90);
-			return loc;
-		}
-
-		double theta = FastMath.atan2(-x, z);
-		loc.setYaw((float) FastMath.toDegrees((theta + _2PI) % _2PI));
-
-		double x2 = NumberConversions.square(x);
-		double z2 = NumberConversions.square(z);
-		double xz = FastMath.sqrt(x2 + z2);
-		loc.setPitch((float) FastMath.toDegrees(FastMath.atan(-v.getY() / xz)));
-
-		return loc;
-	}
-
 	private void playIntermediateEffects(Location old, Vector movement) {
 		int divideFactor = intermediateEffects + 1;
 		Vector v = movement.clone();
@@ -473,7 +464,7 @@ public class ProjectileTracker implements Runnable {
 		v.setZ(v.getZ() / divideFactor);
 
 		for (int i = 0; i < intermediateEffects; i++) {
-			old = setDirection(old.add(v), v);
+			old = LocationUtil.setDirection(old.add(v), v);
 			if (spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, old);
 		}
 	}
@@ -487,7 +478,7 @@ public class ProjectileTracker implements Runnable {
 		v.setZ(v.getZ() / divideFactor);
 
 		for (int i = 0; i < intermediateHitboxes; i++) {
-			old = setDirection(old.add(v), v);
+			old = LocationUtil.setDirection(old.add(v), v);
 			checkHitbox(old);
 		}
 	}
@@ -550,9 +541,13 @@ public class ProjectileTracker implements Runnable {
 			immune.add(e);
 			maxHitLimit++;
 
-			if (maxEntitiesHit > 0 && maxHitLimit >= maxEntitiesHit) stop(true);
+			if (maxEntitiesHit > 0 && maxHitLimit >= maxEntitiesHit) stop();
 			break;
 		}
+	}
+
+	public void stop() {
+		stop(true);
 	}
 
 	public void stop(boolean removeTracker) {
@@ -718,11 +713,11 @@ public class ProjectileTracker implements Runnable {
 		this.entitySpellChecker = entitySpellChecker;
 	}
 
-	public ProjectileTracker getTracker() {
+	public ParticleProjectileTracker getTracker() {
 		return tracker;
 	}
 
-	public void setTracker(ProjectileTracker tracker) {
+	public void setTracker(ParticleProjectileTracker tracker) {
 		this.tracker = tracker;
 	}
 
@@ -798,7 +793,7 @@ public class ProjectileTracker implements Runnable {
 		this.maxDistanceSquared = maxDistanceSquared;
 	}
 
-	public boolean isHugSurface() {
+	public boolean shouldHugSurface() {
 		return hugSurface;
 	}
 
@@ -806,7 +801,7 @@ public class ProjectileTracker implements Runnable {
 		this.hugSurface = hugSurface;
 	}
 
-	public boolean isChangePitch() {
+	public boolean shouldChangePitch() {
 		return changePitch;
 	}
 
@@ -822,7 +817,15 @@ public class ProjectileTracker implements Runnable {
 		this.controllable = controllable;
 	}
 
-	public boolean isStopOnHitGround() {
+	public boolean shouldCallEvents() {
+		return callEvents;
+	}
+
+	public void setCallEvents(boolean callEvents) {
+		this.callEvents = callEvents;
+	}
+
+	public boolean shouldStopOnHitGround() {
 		return stopOnHitGround;
 	}
 
@@ -830,7 +833,7 @@ public class ProjectileTracker implements Runnable {
 		this.stopOnHitGround = stopOnHitGround;
 	}
 
-	public boolean isStopOnModifierFail() {
+	public boolean shouldStopOnModifierFail() {
 		return stopOnModifierFail;
 	}
 

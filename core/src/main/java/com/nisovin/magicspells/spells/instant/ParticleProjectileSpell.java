@@ -22,12 +22,13 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
+import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 
 import de.slikey.effectlib.Effect;
 
 public class ParticleProjectileSpell extends InstantSpell implements TargetedLocationSpell, TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
-	private static Set<ProjectileTracker> trackerSet;
+	private static Set<ParticleProjectileTracker> trackerSet;
 
 	private float targetYOffset;
 	private float startXOffset;
@@ -70,6 +71,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private float heightFromSurface;
 
 	private boolean controllable;
+	private boolean checkPlugins;
 	private boolean changePitch;
 	private boolean hitSelf;
 	private boolean hitGround;
@@ -191,6 +193,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		if (hugSurface) heightFromSurface = getConfigFloat("height-from-surface", 0.6F);
 
 		controllable = getConfigBoolean("controllable", false);
+		checkPlugins = getConfigBoolean("check-plugins", true);
 		changePitch = getConfigBoolean("change-pitch", true);
 		hitSelf = getConfigBoolean("hit-self", false);
 		hitGround = getConfigBoolean("hit-ground", true);
@@ -324,7 +327,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 	@Override
 	public void turnOff() {
-		for (ProjectileTracker tracker : trackerSet) {
+		for (ParticleProjectileTracker tracker : trackerSet) {
 			tracker.stop(false);
 		}
 		trackerSet.clear();
@@ -333,8 +336,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			ProjectileTracker tracker = new ProjectileTracker(caster, power);
-			setupProjectile(tracker);
+			ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power);
+			setupTracker(tracker);
 			tracker.start(caster.getLocation());
 			playSpellEffects(EffectPosition.CASTER, caster);
 		}
@@ -343,8 +346,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		ProjectileTracker tracker = new ProjectileTracker(caster, power);
-		setupProjectile(tracker);
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power);
+		setupTracker(tracker);
 		tracker.start(target);
 		playSpellEffects(EffectPosition.CASTER, caster);
 		return true;
@@ -354,8 +357,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	public boolean castAtLocation(Location target, float power) {
 		Location targetLoc = target.clone();
 		if (Float.isNaN(targetLoc.getPitch())) targetLoc.setPitch(0);
-		ProjectileTracker tracker = new ProjectileTracker(null, power);
-		setupProjectile(tracker);
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(null, power);
+		setupTracker(tracker);
 		tracker.start(target);
 		return true;
 	}
@@ -365,8 +368,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		if (!caster.getLocation().getWorld().equals(target.getLocation().getWorld())) return false;
 		Location targetLoc = from.clone();
 		if (Float.isNaN(targetLoc.getPitch())) targetLoc.setPitch(0);
-		ProjectileTracker tracker = new ProjectileTracker(caster, power);
-		setupProjectile(tracker);
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power);
+		setupTracker(tracker);
 		tracker.startTarget(from, target);
 		playSpellEffects(from, target);
 		return true;
@@ -377,8 +380,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		if (!from.getWorld().equals(target.getLocation().getWorld())) return false;
 		Location targetLoc = from.clone();
 		if (Float.isNaN(targetLoc.getPitch())) targetLoc.setPitch(0);
-		ProjectileTracker tracker = new ProjectileTracker(null, power);
-		setupProjectile(tracker);
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(null, power);
+		setupTracker(tracker);
 		tracker.startTarget(from, target);
 		playSpellEffects(from, target);
 		return true;
@@ -387,8 +390,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!caster.getLocation().getWorld().equals(target.getLocation().getWorld())) return false;
-		ProjectileTracker tracker = new ProjectileTracker(caster, power);
-		setupProjectile(tracker);
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power);
+		setupTracker(tracker);
 		tracker.startTarget(caster.getLocation(), target);
 		playSpellEffects(caster, target);
 		return true;
@@ -399,7 +402,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		return false;
 	}
 
-	public static Set<ProjectileTracker> getProjectileTrackers() {
+	public static Set<ParticleProjectileTracker> getProjectileTrackers() {
 		return trackerSet;
 	}
 
@@ -423,7 +426,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		return playSpellArmorStandEffects(position, location);
 	}
 
-	private void setupProjectile(ProjectileTracker tracker) {
+	private void setupTracker(ParticleProjectileTracker tracker) {
 		tracker.setSpell(this);
 		tracker.setStartXOffset(startXOffset);
 		tracker.setStartYOffset(startYOffset);
@@ -466,6 +469,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		tracker.setHeightFromSurface(heightFromSurface);
 
 		tracker.setControllable(controllable);
+		tracker.setCallEvents(true);
 		tracker.setChangePitch(changePitch);
 		tracker.setHitGround(hitGround);
 		tracker.setHitAirAtEnd(hitAirAtEnd);
@@ -488,6 +492,430 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		tracker.setDurationSpell(durationSpell);
 		tracker.setModifierSpell(modifierSpell);
 		tracker.setEntityLocationSpell(entityLocationSpell);
+	}
+
+	public float getTargetYOffset() {
+		return targetYOffset;
+	}
+
+	public void setTargetYOffset(float targetYOffset) {
+		this.targetYOffset = targetYOffset;
+	}
+
+	public float getStartXOffset() {
+		return startXOffset;
+	}
+
+	public void setStartXOffset(float startXOffset) {
+		this.startXOffset = startXOffset;
+	}
+
+	public float getStartYOffset() {
+		return startYOffset;
+	}
+
+	public void setStartYOffset(float startYOffset) {
+		this.startYOffset = startYOffset;
+	}
+
+	public float getStartZOffset() {
+		return startZOffset;
+	}
+
+	public void setStartZOffset(float startZOffset) {
+		this.startZOffset = startZOffset;
+	}
+
+	public Vector getRelativeOffset() {
+		return relativeOffset;
+	}
+
+	public void setRelativeOffset(Vector relativeOffset) {
+		this.relativeOffset = relativeOffset;
+	}
+
+	public Vector getEffectOffset() {
+		return effectOffset;
+	}
+
+	public void setEffectOffset(Vector effectOffset) {
+		this.effectOffset = effectOffset;
+	}
+
+	public float getAcceleration() {
+		return acceleration;
+	}
+
+	public void setAcceleration(float acceleration) {
+		this.acceleration = acceleration;
+	}
+
+	public int getAccelerationDelay() {
+		return accelerationDelay;
+	}
+
+	public void setAccelerationDelay(int accelerationDelay) {
+		this.accelerationDelay = accelerationDelay;
+	}
+
+	public float getProjectileTurn() {
+		return projectileTurn;
+	}
+
+	public void setProjectileTurn(float projectileTurn) {
+		this.projectileTurn = projectileTurn;
+	}
+
+	public float getProjectileVelocity() {
+		return projectileVelocity;
+	}
+
+	public void setProjectileVelocity(float projectileVelocity) {
+		this.projectileVelocity = projectileVelocity;
+	}
+
+	public float getProjectileVertOffset() {
+		return projectileVertOffset;
+	}
+
+	public void setProjectileVertOffset(float projectileVertOffset) {
+		this.projectileVertOffset = projectileVertOffset;
+	}
+
+	public float getProjectileVertSpread() {
+		return projectileVertSpread;
+	}
+
+	public void setProjectileVertSpread(float projectileVertSpread) {
+		this.projectileVertSpread = projectileVertSpread;
+	}
+
+	public float getProjectileHorizOffset() {
+		return projectileHorizOffset;
+	}
+
+	public void setProjectileHorizOffset(float projectileHorizOffset) {
+		this.projectileHorizOffset = projectileHorizOffset;
+	}
+
+	public float getProjectileHorizSpread() {
+		return projectileHorizSpread;
+	}
+
+	public void setProjectileHorizSpread(float projectileHorizSpread) {
+		this.projectileHorizSpread = projectileHorizSpread;
+	}
+
+	public float getProjectileVertGravity() {
+		return projectileVertGravity;
+	}
+
+	public void setProjectileVertGravity(float projectileVertGravity) {
+		this.projectileVertGravity = projectileVertGravity;
+	}
+
+	public float getProjectileHorizGravity() {
+		return projectileHorizGravity;
+	}
+
+	public void setProjectileHorizGravity(float projectileHorizGravity) {
+		this.projectileHorizGravity = projectileHorizGravity;
+	}
+
+	public int getTickInterval() {
+		return tickInterval;
+	}
+
+	public void setTickInterval(int tickInterval) {
+		this.tickInterval = tickInterval;
+	}
+
+	public float getTicksPerSecond() {
+		return ticksPerSecond;
+	}
+
+	public void setTicksPerSecond(float ticksPerSecond) {
+		this.ticksPerSecond = ticksPerSecond;
+	}
+
+	public int getSpellInterval() {
+		return spellInterval;
+	}
+
+	public void setSpellInterval(int spellInterval) {
+		this.spellInterval = spellInterval;
+	}
+
+	public int getIntermediateEffects() {
+		return intermediateEffects;
+	}
+
+	public void setIntermediateEffects(int intermediateEffects) {
+		this.intermediateEffects = intermediateEffects;
+	}
+
+	public int getSpecialEffectInterval() {
+		return specialEffectInterval;
+	}
+
+	public void setSpecialEffectInterval(int specialEffectInterval) {
+		this.specialEffectInterval = specialEffectInterval;
+	}
+
+	public int getTickSpellLimit() {
+		return tickSpellLimit;
+	}
+
+	public void setTickSpellLimit(int tickSpellLimit) {
+		this.tickSpellLimit = tickSpellLimit;
+	}
+
+	public int getIntermediateHitboxes() {
+		return intermediateHitboxes;
+	}
+
+	public void setIntermediateHitboxes(int intermediateHitboxes) {
+		this.intermediateHitboxes = intermediateHitboxes;
+	}
+
+	public int getMaxEntitiesHit() {
+		return maxEntitiesHit;
+	}
+
+	public void setMaxEntitiesHit(int maxEntitiesHit) {
+		this.maxEntitiesHit = maxEntitiesHit;
+	}
+
+	public float getVerticalHitRadius() {
+		return verticalHitRadius;
+	}
+
+	public void setVerticalHitRadius(float verticalHitRadius) {
+		this.verticalHitRadius = verticalHitRadius;
+	}
+
+	public float getHitRadius() {
+		return hitRadius;
+	}
+
+	public void setHitRadius(float hitRadius) {
+		this.hitRadius = hitRadius;
+	}
+
+	public int getGroundVerticalHitRadius() {
+		return groundVerticalHitRadius;
+	}
+
+	public void setGroundVerticalHitRadius(int groundVerticalHitRadius) {
+		this.groundVerticalHitRadius = groundVerticalHitRadius;
+	}
+
+	public int getGroundHitRadius() {
+		return groundHitRadius;
+	}
+
+	public void setGroundHitRadius(int groundHitRadius) {
+		this.groundHitRadius = groundHitRadius;
+	}
+
+	public Set<Material> getGroundMaterials() {
+		return groundMaterials;
+	}
+
+	public Set<Material> getDisallowedGroundMaterials() {
+		return disallowedGroundMaterials;
+	}
+
+	public double getMaxDuration() {
+		return maxDuration;
+	}
+
+	public void setMaxDuration(double maxDuration) {
+		this.maxDuration = maxDuration;
+	}
+
+	public double getMaxDistanceSquared() {
+		return maxDistanceSquared;
+	}
+
+	public void setMaxDistanceSquared(double maxDistanceSquared) {
+		this.maxDistanceSquared = maxDistanceSquared;
+	}
+
+	public boolean shouldHugSurface() {
+		return hugSurface;
+	}
+
+	public void setHugSurface(boolean hugSurface) {
+		this.hugSurface = hugSurface;
+	}
+
+	public float getHeightFromSurface() {
+		return heightFromSurface;
+	}
+
+	public void setHeightFromSurface(float heightFromSurface) {
+		this.heightFromSurface = heightFromSurface;
+	}
+
+	public boolean isControllable() {
+		return controllable;
+	}
+
+	public void setControllable(boolean controllable) {
+		this.controllable = controllable;
+	}
+
+	public boolean shouldCheckPlugins() {
+		return checkPlugins;
+	}
+
+	public void setCheckPlugins(boolean checkPlugins) {
+		this.checkPlugins = checkPlugins;
+	}
+
+	public boolean shouldChangePitch() {
+		return changePitch;
+	}
+
+	public void setChangePitch(boolean changePitch) {
+		this.changePitch = changePitch;
+	}
+
+	public boolean canHitGround() {
+		return hitGround;
+	}
+
+	public void setHitGround(boolean hitGround) {
+		this.hitGround = hitGround;
+	}
+
+	public boolean canHitAirAtEnd() {
+		return hitAirAtEnd;
+	}
+
+	public void setHitAirAtEnd(boolean hitAirAtEnd) {
+		this.hitAirAtEnd = hitAirAtEnd;
+	}
+
+	public boolean canHitAirDuring() {
+		return hitAirDuring;
+	}
+
+	public void setHitAirDuring(boolean hitAirDuring) {
+		this.hitAirDuring = hitAirDuring;
+	}
+
+	public boolean canHitAirAfterDuration() {
+		return hitAirAfterDuration;
+	}
+
+	public void setHitAirAfterDuration(boolean hitAirAfterDuration) {
+		this.hitAirAfterDuration = hitAirAfterDuration;
+	}
+
+	public boolean shouldStopOnHitGround() {
+		return stopOnHitGround;
+	}
+
+	public void setStopOnHitGround(boolean stopOnHitGround) {
+		this.stopOnHitGround = stopOnHitGround;
+	}
+
+	public boolean shouldStopOnModifierFail() {
+		return stopOnModifierFail;
+	}
+
+	public void setStopOnModifierFail(boolean stopOnModifierFail) {
+		this.stopOnModifierFail = stopOnModifierFail;
+	}
+
+	public boolean isCasterAllowedToInteract() {
+		return allowCasterInteract;
+	}
+
+	public void setAllowCasterInteract(boolean allowCasterInteract) {
+		this.allowCasterInteract = allowCasterInteract;
+	}
+
+	public boolean isPowerAffectedByVelocity() {
+		return powerAffectsVelocity;
+	}
+
+	public void setPowerAffectsVelocity(boolean powerAffectsVelocity) {
+		this.powerAffectsVelocity = powerAffectsVelocity;
+	}
+
+	public ModifierSet getProjectileModifiers() {
+		return projModifiers;
+	}
+
+	public Map<String, Subspell> getInteractionSpells() {
+		return interactionSpells;
+	}
+
+	public Subspell getAirSpell() {
+		return airSpell;
+	}
+
+	public void setAirSpell(Subspell airSpell) {
+		this.airSpell = airSpell;
+	}
+
+	public Subspell getTickSpell() {
+		return tickSpell;
+	}
+
+	public void setTickSpell(Subspell tickSpell) {
+		this.tickSpell = tickSpell;
+	}
+
+	public Subspell getEntitySpell() {
+		return entitySpell;
+	}
+
+	public void setEntitySpell(Subspell entitySpell) {
+		this.entitySpell = entitySpell;
+	}
+
+	public Subspell getCasterSpell() {
+		return selfSpell;
+	}
+
+	public void setCasterSpell(Subspell selfSpell) {
+		this.selfSpell = selfSpell;
+	}
+
+	public Subspell getGroundSpell() {
+		return groundSpell;
+	}
+
+	public void setGroundSpell(Subspell groundSpell) {
+		this.groundSpell = groundSpell;
+	}
+
+	public Subspell getDurationSpell() {
+		return durationSpell;
+	}
+
+	public void setDurationSpell(Subspell durationSpell) {
+		this.durationSpell = durationSpell;
+	}
+
+	public Subspell getModifierSpell() {
+		return modifierSpell;
+	}
+
+	public void setModifierSpell(Subspell modifierSpell) {
+		this.modifierSpell = modifierSpell;
+	}
+
+	public Subspell getEntityLocationSpell() {
+		return entityLocationSpell;
+	}
+
+	public void setEntityLocationSpell(Subspell entityLocationSpell) {
+		this.entityLocationSpell = entityLocationSpell;
 	}
 
 }

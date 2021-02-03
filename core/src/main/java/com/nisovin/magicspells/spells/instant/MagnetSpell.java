@@ -92,4 +92,44 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 		playSpellEffects(EffectPosition.PROJECTILE, item);
 	}
 
+	public double getRadius() {
+		return radius;
+	}
+
+	public void setRadius(double radius) {
+		this.radius = radius;
+	}
+
+	public double getVelocity() {
+		return velocity;
+	}
+
+	public void setVelocity(double velocity) {
+		this.velocity = velocity;
+	}
+
+	public boolean shouldTeleport() {
+		return teleport;
+	}
+
+	public void setTeleport(boolean teleport) {
+		this.teleport = teleport;
+	}
+
+	public boolean shouldForcePickup() {
+		return forcePickup;
+	}
+
+	public void setForcePickup(boolean forcePickup) {
+		this.forcePickup = forcePickup;
+	}
+
+	public boolean shouldRemoveItemGravity() {
+		return removeItemGravity;
+	}
+
+	public void setRemoveItemGravity(boolean removeItemGravity) {
+		this.removeItemGravity = removeItemGravity;
+	}
+
 }

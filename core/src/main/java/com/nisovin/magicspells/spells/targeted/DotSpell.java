@@ -158,7 +158,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 			double localDamage = damage * power;
 
 			if (checkPlugins) {
-				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, localDamage);
+				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, localDamage, DotSpell.this);
 				EventUtil.call(event);
 				if (event.isCancelled()) return;
 				if (!avoidDamageModification) localDamage = event.getDamage();

@@ -15,7 +15,7 @@ import com.nisovin.magicspells.handlers.EnchantmentHandler;
 
 public class EnchantSpell extends InstantSpell {
 	
-	private Map<Enchantment, Integer> enchantments;
+	private final Map<Enchantment, Integer> enchantments;
 
 	private boolean safeEnchants;
 	
@@ -62,6 +62,18 @@ public class EnchantSpell extends InstantSpell {
 			if (safeEnchants) item.addEnchantment(enchant, level);
 			else item.addUnsafeEnchantment(enchant, level);
 		}
+	}
+
+	public Map<Enchantment, Integer> getEnchantments() {
+		return enchantments;
+	}
+
+	public boolean allowUnsafeEnchants() {
+		return !safeEnchants;
+	}
+
+	public void setSafeEnchants(boolean safeEnchants) {
+		this.safeEnchants = safeEnchants;
 	}
 
 }

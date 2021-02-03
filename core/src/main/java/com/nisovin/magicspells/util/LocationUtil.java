@@ -6,8 +6,12 @@ import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.command.BlockCommandSender;
+
+import org.apache.commons.math3.util.FastMath;
 
 public class LocationUtil {
 	
@@ -145,6 +149,29 @@ public class LocationUtil {
 		if (object instanceof BlockCommandSender) return getWorld(((BlockCommandSender) object).getBlock());
 		
 		return null;
+	}
+
+	// setDirection function with fast math
+	public static Location setDirection(Location loc, Vector v) {
+
+		final double _2PI = 2 * FastMath.PI;
+		final double x = v.getX();
+		final double z = v.getZ();
+
+		if (x == 0 && z == 0) {
+			loc.setPitch(v.getY() > 0 ? -90 : 90);
+			return loc;
+		}
+
+		double theta = FastMath.atan2(-x, z);
+		loc.setYaw((float) FastMath.toDegrees((theta + _2PI) % _2PI));
+
+		double x2 = NumberConversions.square(x);
+		double z2 = NumberConversions.square(z);
+		double xz = FastMath.sqrt(x2 + z2);
+		loc.setPitch((float) FastMath.toDegrees(FastMath.atan(-v.getY() / xz)));
+
+		return loc;
 	}
 	
 }

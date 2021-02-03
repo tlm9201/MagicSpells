@@ -37,13 +37,12 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 	private Map<Entity, FallingBlockInfo> fallingBlocks;
 
 	private Material material;
-	private String materialName;
 
 	private int tntFuse;
-	private int rotationOffset;
 
 	private float yOffset;
 	private float velocity;
+	private float rotationOffset;
 	private float verticalAdjustment;
 
 	private boolean dropItem;
@@ -56,7 +55,8 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 	private boolean projectileHasGravity;
 	private boolean applySpellPowerToVelocity;
 
-	private String spellOnLandName;
+	private final String spellOnLandName;
+
 	private Subspell spellOnLand;
 
 	private int cleanTask = -1;
@@ -64,7 +64,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 	public ThrowBlockSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("block-type", "stone");
+		String materialName = getConfigString("block-type", "stone");
 		if (materialName.toLowerCase().startsWith("primedtnt:")) {
 			String[] split = materialName.split(":");
 			material = null;
@@ -74,7 +74,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			tntFuse = 0;
 		}
 
-		rotationOffset = getConfigInt("rotation-offset", 0);
+		rotationOffset = getConfigFloat("rotation-offset", 0F);
 
 		yOffset = getConfigFloat("y-offset", 0F);
 		velocity = getConfigFloat("velocity", 1);
@@ -281,7 +281,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			}
 			double damage = event.getDamage() * power;
 			if (checkPlugins && info.caster != null) {
-				MagicSpellsEntityDamageByEntityEvent evt = new MagicSpellsEntityDamageByEntityEvent(info.caster, entity, DamageCause.ENTITY_ATTACK, damage);
+				MagicSpellsEntityDamageByEntityEvent evt = new MagicSpellsEntityDamageByEntityEvent(info.caster, entity, DamageCause.ENTITY_ATTACK, damage, ThrowBlockSpell.this);
 				EventUtil.call(evt);
 				if (evt.isCancelled()) {
 					event.setCancelled(true);
@@ -348,6 +348,138 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			spellActivated = false;
 		}
 		
+	}
+
+	public Map<Entity, FallingBlockInfo> getFallingBlocks() {
+		return fallingBlocks;
+	}
+
+	public Material getMaterial() {
+		return material;
+	}
+
+	public void setMaterial(Material material) {
+		this.material = material;
+	}
+
+	public int getTntFuse() {
+		return tntFuse;
+	}
+
+	public void setTntFuse(int tntFuse) {
+		this.tntFuse = tntFuse;
+	}
+
+	public float getRotationOffset() {
+		return rotationOffset;
+	}
+
+	public void setRotationOffset(float rotationOffset) {
+		this.rotationOffset = rotationOffset;
+	}
+
+	public float getYOffset() {
+		return yOffset;
+	}
+
+	public void setYOffset(float yOffset) {
+		this.yOffset = yOffset;
+	}
+
+	public float getVelocity() {
+		return velocity;
+	}
+
+	public void setVelocity(float velocity) {
+		this.velocity = velocity;
+	}
+
+	public float getVerticalAdjustment() {
+		return verticalAdjustment;
+	}
+
+	public void setVerticalAdjustment(float verticalAdjustment) {
+		this.verticalAdjustment = verticalAdjustment;
+	}
+
+	public Subspell getSpellOnLand() {
+		return spellOnLand;
+	}
+
+	public void setSpellOnLand(Subspell spellOnLand) {
+		this.spellOnLand = spellOnLand;
+	}
+
+	public boolean shouldDropItem() {
+		return dropItem;
+	}
+
+	public void setDropItem(boolean dropItem) {
+		this.dropItem = dropItem;
+	}
+
+	public boolean shouldBlocksStick() {
+		return stickyBlocks;
+	}
+
+	public void setStickyBlocks(boolean stickyBlocks) {
+		this.stickyBlocks = stickyBlocks;
+	}
+
+	public boolean shouldCheckPlugins() {
+		return checkPlugins;
+	}
+
+	public void setCheckPlugins(boolean checkPlugins) {
+		this.checkPlugins = checkPlugins;
+	}
+
+	public boolean shouldRemoveBlocks() {
+		return removeBlocks;
+	}
+
+	public void setRemoveBlocks(boolean removeBlocks) {
+		this.removeBlocks = removeBlocks;
+	}
+
+	public boolean shouldPreventBlocks() {
+		return preventBlocks;
+	}
+
+	public void setPreventBlocks(boolean preventBlocks) {
+		this.preventBlocks = preventBlocks;
+	}
+
+	public boolean shouldCallTargetEvent() {
+		return callTargetEvent;
+	}
+
+	public void setCallTargetEvent(boolean callTargetEvent) {
+		this.callTargetEvent = callTargetEvent;
+	}
+
+	public boolean shouldEnsureSpellCast() {
+		return ensureSpellCast;
+	}
+
+	public void setEnsureSpellCast(boolean ensureSpellCast) {
+		this.ensureSpellCast = ensureSpellCast;
+	}
+
+	public boolean shouldProjectileHaveGravity() {
+		return projectileHasGravity;
+	}
+
+	public void setProjectileHasGravity(boolean projectileHasGravity) {
+		this.projectileHasGravity = projectileHasGravity;
+	}
+
+	public boolean shouldSpellPowerApplyToVelocity() {
+		return applySpellPowerToVelocity;
+	}
+
+	public void setApplySpellPowerToVelocity(boolean applySpellPowerToVelocity) {
+		this.applySpellPowerToVelocity = applySpellPowerToVelocity;
 	}
 
 }

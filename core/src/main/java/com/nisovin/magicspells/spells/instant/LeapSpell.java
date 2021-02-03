@@ -21,15 +21,16 @@ public class LeapSpell extends InstantSpell {
 
 	private final Set<UUID> jumping;
 
-	private final float rotation;
-	private final float upwardVelocity;
-	private final float forwardVelocity;
-
-	private final boolean clientOnly;
-	private final boolean cancelDamage;
-	private final boolean addVelocityInstead;
-
 	private final String landSpellName;
+
+	private float rotation;
+	private float upwardVelocity;
+	private float forwardVelocity;
+
+	private boolean clientOnly;
+	private boolean cancelDamage;
+	private boolean addVelocityInstead;
+
 	private Subspell landSpell;
 
 	public LeapSpell(MagicConfig config, String spellName) {
@@ -91,6 +92,66 @@ public class LeapSpell extends InstantSpell {
 		if (landSpell != null) landSpell.cast(livingEntity, 1F);
 		playSpellEffects(EffectPosition.TARGET, livingEntity.getLocation());
 		if (cancelDamage) event.setCancelled(true);
+	}
+
+	public Set<UUID> getJumping() {
+		return jumping;
+	}
+
+	public float getRotation() {
+		return rotation;
+	}
+
+	public void setRotation(float rotation) {
+		this.rotation = rotation;
+	}
+
+	public float getUpwardVelocity() {
+		return upwardVelocity;
+	}
+
+	public void setUpwardVelocity(float upwardVelocity) {
+		this.upwardVelocity = upwardVelocity;
+	}
+
+	public float getForwardVelocity() {
+		return forwardVelocity;
+	}
+
+	public void setForwardVelocity(float forwardVelocity) {
+		this.forwardVelocity = forwardVelocity;
+	}
+
+	public boolean isClientOnly() {
+		return clientOnly;
+	}
+
+	public void setClientOnly(boolean clientOnly) {
+		this.clientOnly = clientOnly;
+	}
+
+	public boolean shouldCancelDamage() {
+		return cancelDamage;
+	}
+
+	public void setCancelDamage(boolean cancelDamage) {
+		this.cancelDamage = cancelDamage;
+	}
+
+	public boolean shouldAddVelocityInstead() {
+		return addVelocityInstead;
+	}
+
+	public void setAddVelocityInstead(boolean addVelocityInstead) {
+		this.addVelocityInstead = addVelocityInstead;
+	}
+
+	public Subspell getLandSpell() {
+		return landSpell;
+	}
+
+	public void setLandSpell(Subspell landSpell) {
+		this.landSpell = landSpell;
 	}
 
 }

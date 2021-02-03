@@ -161,5 +161,45 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 		raw = RegexUtil.replaceAll(DISPLAY_NAME_VARIABLE_PATTERN, raw, displayName);
 		return raw;
 	}
+
+	public static Pattern getNameVariablePattern() {
+		return NAME_VARIABLE_PATTERN;
+	}
+
+	public static Pattern getDisplayNameVariablePattern() {
+		return DISPLAY_NAME_VARIABLE_PATTERN;
+	}
+
+	public int getPickupDelay() {
+		return pickupDelay;
+	}
+
+	public void setPickupDelay(int pickupDelay) {
+		this.pickupDelay = pickupDelay;
+	}
+
+	public boolean hasGravity() {
+		return gravity;
+	}
+
+	public void setGravity(boolean gravity) {
+		this.gravity = gravity;
+	}
+
+	public boolean shouldAddToInventory() {
+		return addToInventory;
+	}
+
+	public void setAddToInventory(boolean addToInventory) {
+		this.addToInventory = addToInventory;
+	}
+
+	public ItemStack getBook() {
+		return book;
+	}
+
+	public void setBook(ItemStack book) {
+		this.book = book;
+	}
 	
 }

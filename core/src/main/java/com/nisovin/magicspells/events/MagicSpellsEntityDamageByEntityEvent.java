@@ -6,14 +6,18 @@ import java.util.HashMap;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import com.nisovin.magicspells.Spell;
+
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 
 public class MagicSpellsEntityDamageByEntityEvent extends EntityDamageByEntityEvent implements IMagicSpellsCompatEvent {
-	
-	public MagicSpellsEntityDamageByEntityEvent(Entity damager, Entity damagee, DamageCause cause, double damage) {
-		//super(damager, damagee, cause, damage);
+
+	private final Spell spell;
+
+	public MagicSpellsEntityDamageByEntityEvent(Entity damager, Entity damagee, DamageCause cause, double damage, Spell spell) {
 		super(damager, damagee, cause, getModTemplate(damage), getModifierFunctionTemplate(0D));
+		this.spell = spell;
 	}
 	
 	private static Map<DamageModifier, Double> getModTemplate(double baseDamage) {
@@ -25,14 +29,11 @@ public class MagicSpellsEntityDamageByEntityEvent extends EntityDamageByEntityEv
 	}
 	
 	private static Function<Double, Double> getConstantFunction(final double value) {
-		return new Function<Double, Double>() {
-			
-			@Override
-			public Double apply(Double arg0) {
-				return value;
-			}
-			
-		};
+		return arg0 -> value;
+	}
+
+	public Spell getSpell() {
+		return spell;
 	}
 	
 }

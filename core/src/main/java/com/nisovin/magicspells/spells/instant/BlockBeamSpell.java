@@ -35,11 +35,9 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpell, TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
-	private Set<List<LivingEntity>> listSet;
+	private final Set<List<LivingEntity>> entities;
 
 	private ItemStack headItem;
-
-	private Material material;
 
 	private Vector relativeOffset;
 	private Vector targetRelativeOffset;
@@ -75,22 +73,22 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 	private Subspell endSpell;
 	private Subspell groundSpell;
 
-	private String hitSpellName;
-	private String endSpellName;
-	private String groundSpellName;
+	private final String hitSpellName;
+	private final String endSpellName;
+	private final String groundSpellName;
 
 	private NoMagicZoneManager zoneManager;
 
 	public BlockBeamSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		listSet = new HashSet<>();
+		entities = new HashSet<>();
 
 		String item = getConfigString("block-type", "stone");
 		MagicItem magicItem = MagicItems.getMagicItemFromString(item);
 		if (magicItem != null && magicItem.getItemStack() != null) headItem = magicItem.getItemStack();
 		else {
-			material = Util.getMaterial(item);
+			Material material = Util.getMaterial(item);
 			if (material != null && material.isBlock()) headItem = new ItemStack(material);
 			else MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid block-type defined!");
 		}
@@ -161,12 +159,12 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 	@Override
 	public void turnOff() {
-		for (List<LivingEntity> entityList : listSet) {
+		for (List<LivingEntity> entityList : entities) {
 			for (LivingEntity entity : entityList) {
 				entity.remove();
 			}
 		}
-		listSet.clear();
+		entities.clear();
 	}
 
 	@Override
@@ -217,6 +215,222 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 		if (target.hasMetadata("MSBlockBeam")) e.setCancelled(true);
 	}
 
+	public Vector getRelativeOffset() {
+		return relativeOffset;
+	}
+
+	public void setRelativeOffset(Vector relativeOffset) {
+		this.relativeOffset = relativeOffset;
+	}
+
+	public Vector getTargetRelativeOffset() {
+		return targetRelativeOffset;
+	}
+
+	public void setTargetRelativeOffset(Vector targetRelativeOffset) {
+		this.targetRelativeOffset = targetRelativeOffset;
+	}
+
+	public int getRemoveDelay() {
+		return removeDelay;
+	}
+
+	public void setRemoveDelay(int removeDelay) {
+		this.removeDelay = removeDelay;
+	}
+
+	public double getHealth() {
+		return health;
+	}
+
+	public void setHealth(double health) {
+		this.health = health;
+	}
+
+	public double getHitRadius() {
+		return hitRadius;
+	}
+
+	public void setHitRadius(double hitRadius) {
+		this.hitRadius = hitRadius;
+	}
+
+	public double getMaxDistance() {
+		return maxDistance;
+	}
+
+	public void setMaxDistance(double maxDistance) {
+		this.maxDistance = maxDistance;
+	}
+
+	public double getVerticalHitRadius() {
+		return verticalHitRadius;
+	}
+
+	public void setVerticalHitRadius(double verticalHitRadius) {
+		this.verticalHitRadius = verticalHitRadius;
+	}
+
+	public float getGravity() {
+		return gravity;
+	}
+
+	public void setGravity(float gravity) {
+		this.gravity = gravity;
+	}
+
+	public float getYOffset() {
+		return yOffset;
+	}
+
+	public void setYOffset(float yOffset) {
+		this.yOffset = yOffset;
+	}
+
+	public float getInterval() {
+		return interval;
+	}
+
+	public void setInterval(float interval) {
+		this.interval = interval;
+	}
+
+	public float getRotation() {
+		return rotation;
+	}
+
+	public void setRotation(float rotation) {
+		this.rotation = rotation;
+	}
+
+	public float getRotationX() {
+		return rotationX;
+	}
+
+	public void setRotationX(float rotationX) {
+		this.rotationX = rotationX;
+	}
+
+	public float getRotationY() {
+		return rotationY;
+	}
+
+	public void setRotationY(float rotationY) {
+		this.rotationY = rotationY;
+	}
+
+	public float getRotationZ() {
+		return rotationZ;
+	}
+
+	public void setRotationZ(float rotationZ) {
+		this.rotationZ = rotationZ;
+	}
+
+	public float getBeamVerticalOffset() {
+		return beamVertOffset;
+	}
+
+	public void setBeamVerticalOffset(float beamVertOffset) {
+		this.beamVertOffset = beamVertOffset;
+	}
+
+	public float getBeamHorizontalOffset() {
+		return beamHorizOffset;
+	}
+
+	public void setBeamHorizontalOffset(float beamHorizOffset) {
+		this.beamHorizOffset = beamHorizOffset;
+	}
+
+	public float getBeamSpread() {
+		return beamSpread;
+	}
+
+	public void setBeamSpread(float beamSpread) {
+		this.beamSpread = beamSpread;
+	}
+
+	public float getBeamVerticalSpread() {
+		return beamVerticalSpread;
+	}
+
+	public void setBeamVerticalSpread(float beamVerticalSpread) {
+		this.beamVerticalSpread = beamVerticalSpread;
+	}
+
+	public float getBeamHorizontalSpread() {
+		return beamHorizontalSpread;
+	}
+
+	public void setBeamHorizontalSpread(float beamHorizontalSpread) {
+		this.beamHorizontalSpread = beamHorizontalSpread;
+	}
+
+	public boolean isSmall() {
+		return small;
+	}
+
+	public void setSmall(boolean small) {
+		this.small = small;
+	}
+
+	public boolean shouldUseHpFix() {
+		return hpFix;
+	}
+
+	public void setHpFix(boolean hpFix) {
+		this.hpFix = hpFix;
+	}
+
+	public boolean shouldChangePitch() {
+		return changePitch;
+	}
+
+	public void setChangePitch(boolean changePitch) {
+		this.changePitch = changePitch;
+	}
+
+	public boolean shouldStopOnHitEntity() {
+		return stopOnHitEntity;
+	}
+
+	public void setStopOnHitEntity(boolean stopOnHitEntity) {
+		this.stopOnHitEntity = stopOnHitEntity;
+	}
+
+	public boolean shouldStopOnHitGround() {
+		return stopOnHitGround;
+	}
+
+	public void setStopOnHitGround(boolean stopOnHitGround) {
+		this.stopOnHitGround = stopOnHitGround;
+	}
+
+	public Subspell getHitSpell() {
+		return hitSpell;
+	}
+
+	public void setHitSpell(Subspell hitSpell) {
+		this.hitSpell = hitSpell;
+	}
+
+	public Subspell getEndSpell() {
+		return endSpell;
+	}
+
+	public void setEndSpell(Subspell endSpell) {
+		this.endSpell = endSpell;
+	}
+
+	public Subspell getGroundSpell() {
+		return groundSpell;
+	}
+
+	public void setGroundSpell(Subspell groundSpell) {
+		this.groundSpell = groundSpell;
+	}
+
 	private class BlockBeam {
 
 		private LivingEntity caster;
@@ -224,9 +438,10 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 		private float power;
 		private Location startLoc;
 		private Location currentLoc;
-		private Set<Entity> immune;
-		private List<LivingEntity> armorStandList;
 		private ItemStack helmet;
+
+		private final Set<Entity> immune;
+		private final List<LivingEntity> armorStandList;
 
 		private BlockBeam(LivingEntity caster, Location from, float power) {
 			this.caster = caster;
@@ -245,7 +460,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
-			helmet = new ItemStack(material);
+			helmet = headItem;
 			startLoc = from.clone();
 			if (!changePitch) startLoc.setPitch(0F);
 
@@ -378,13 +593,13 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 				if (endSpell != null) endSpell.castAtLocation(caster, currentLoc, power);
 			}
 
-			listSet.add(armorStandList);
+			entities.add(armorStandList);
 
 			MagicSpells.scheduleDelayedTask(() -> {
 				for (LivingEntity entity : armorStandList) {
 					entity.remove();
 				}
-				listSet.remove(armorStandList);
+				entities.remove(armorStandList);
 			}, removeDelay);
 		}
 

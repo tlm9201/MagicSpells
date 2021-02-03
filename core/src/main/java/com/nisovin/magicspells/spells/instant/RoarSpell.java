@@ -35,8 +35,10 @@ public class RoarSpell extends InstantSpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
+
 			int count = 0;
 			List<Entity> entities = livingEntity.getNearbyEntities(radius, radius, radius);
+
 			for (Entity entity : entities) {
 				if (!(entity instanceof LivingEntity)) continue;
 				if (entity instanceof Player) continue;
@@ -46,6 +48,7 @@ public class RoarSpell extends InstantSpell {
 				playSpellEffects(EffectPosition.TARGET, entity);
 				count++;
 			}
+
 			if (cancelIfNoTargets && count == 0) {
 				sendMessage(strNoTarget, livingEntity, args);
 				return PostCastAction.ALREADY_HANDLED;
@@ -53,6 +56,30 @@ public class RoarSpell extends InstantSpell {
 			playSpellEffects(EffectPosition.CASTER, livingEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
+	}
+
+	public float getRadius() {
+		return radius;
+	}
+
+	public void setRadius(float radius) {
+		this.radius = radius;
+	}
+
+	public String getStrNoTarget() {
+		return strNoTarget;
+	}
+
+	public void setStrNoTarget(String strNoTarget) {
+		this.strNoTarget = strNoTarget;
+	}
+
+	public boolean shouldCancelIfNoTargets() {
+		return cancelIfNoTargets;
+	}
+
+	public void setCancelIfNoTargets(boolean cancelIfNoTargets) {
+		this.cancelIfNoTargets = cancelIfNoTargets;
 	}
 
 }

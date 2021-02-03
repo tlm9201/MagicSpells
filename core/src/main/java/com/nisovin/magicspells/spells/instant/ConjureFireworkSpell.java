@@ -21,6 +21,7 @@ import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
+// REMOVE LATER - REPLACED BY CONJURESPELL
 public class ConjureFireworkSpell extends InstantSpell implements TargetedLocationSpell {
 
 	private static final Pattern COLORS_PATTERN = Pattern.compile("^[A-Fa-f0-9]{6}(,[A-Fa-f0-9]{6})*$");

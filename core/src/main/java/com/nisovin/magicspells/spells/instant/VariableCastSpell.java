@@ -10,8 +10,8 @@ import com.nisovin.magicspells.spells.InstantSpell;
 
 public class VariableCastSpell extends InstantSpell {
 
-	private final String variableName;
-	private final String strDoesntContainSpell;
+	private String variableName;
+	private String strDoesntContainSpell;
 
 	public VariableCastSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -45,6 +45,22 @@ public class VariableCastSpell extends InstantSpell {
 			toCast.cast(player, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
+	}
+
+	public String getVariableName() {
+		return variableName;
+	}
+
+	public void setVariableName(String variableName) {
+		this.variableName = variableName;
+	}
+
+	public String getStrDoesntContainSpell() {
+		return strDoesntContainSpell;
+	}
+
+	public void setStrDoesntContainSpell(String strDoesntContainSpell) {
+		this.strDoesntContainSpell = strDoesntContainSpell;
 	}
 
 }

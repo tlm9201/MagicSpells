@@ -46,7 +46,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 
 	private static ExpirationHandler expirationHandler = null;
 
-	private Random rand = ThreadLocalRandom.current();
+	private final Random rand = ThreadLocalRandom.current();
 
 	private int delay;
 	private int pickupDelay;
@@ -395,6 +395,170 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 	@Override
 	public void turnOff() {
 		expirationHandler = null;
+	}
+
+	private int getDelay() {
+		return delay;
+	}
+
+	public void setDelay(int delay) {
+		this.delay = delay;
+	}
+
+	public int getPickupDelay() {
+		return pickupDelay;
+	}
+
+	public void setPickupDelay(int pickupDelay) {
+		this.pickupDelay = pickupDelay;
+	}
+
+	public int getRequiredSlot() {
+		return requiredSlot;
+	}
+
+	public void setRequiredSlot(int requiredSlot) {
+		this.requiredSlot = requiredSlot;
+	}
+
+	public int getPreferredSlot() {
+		return preferredSlot;
+	}
+
+	public void setPreferredSlot(int preferredSlot) {
+		this.preferredSlot = preferredSlot;
+	}
+
+	public double getExpiration() {
+		return expiration;
+	}
+
+	public void setExpiration(double expiration) {
+		this.expiration = expiration;
+	}
+
+	public float getRandomVelocity() {
+		return randomVelocity;
+	}
+
+	public void setRandomVelocity(float randomVelocity) {
+		this.randomVelocity = randomVelocity;
+	}
+
+	public boolean shouldConjureInOffhand() {
+		return offhand;
+	}
+
+	public void setConjureInOffhand(boolean offhand) {
+		this.offhand = offhand;
+	}
+
+	public boolean shouldAutoEquip() {
+		return autoEquip;
+	}
+
+	public void setAutoEquip(boolean autoEquip) {
+		this.autoEquip = autoEquip;
+	}
+
+	public boolean shouldStackExisting() {
+		return stackExisting;
+	}
+
+	public void setStackExisting(boolean stackExisting) {
+		this.stackExisting = stackExisting;
+	}
+
+	public boolean shouldItemHaveGravity() {
+		return itemHasGravity;
+	}
+
+	public void setItemHasGravity(boolean itemHasGravity) {
+		this.itemHasGravity = itemHasGravity;
+	}
+
+	public boolean shouldAddToInventory() {
+		return addToInventory;
+	}
+
+	public void setAddToInventory(boolean addToInventory) {
+		this.addToInventory = addToInventory;
+	}
+
+	public boolean shouldAddToEnderChest() {
+		return addToEnderChest;
+	}
+
+	public void setAddToEnderChest(boolean addToEnderChest) {
+		this.addToEnderChest = addToEnderChest;
+	}
+
+	public boolean shouldIgnoreMaxStackSize() {
+		return ignoreMaxStackSize;
+	}
+
+	public void setIgnoreMaxStackSize(boolean ignoreMaxStackSize) {
+		this.ignoreMaxStackSize = ignoreMaxStackSize;
+	}
+
+	public boolean shouldPowerAffectChance() {
+		return powerAffectsChance;
+	}
+
+	public void setPowerAffectsChance(boolean powerAffectsChance) {
+		this.powerAffectsChance = powerAffectsChance;
+	}
+
+	public boolean shouldDropIfInventoryFull() {
+		return dropIfInventoryFull;
+	}
+
+	public void setDropIfInventoryFull(boolean dropIfInventoryFull) {
+		this.dropIfInventoryFull = dropIfInventoryFull;
+	}
+
+	public boolean shouldPowerAffectQuantity() {
+		return powerAffectsQuantity;
+	}
+
+	public void setPowerAffectsQuantity(boolean powerAffectsQuantity) {
+		this.powerAffectsQuantity = powerAffectsQuantity;
+	}
+
+	public boolean shouldForceUpdateInventory() {
+		return forceUpdateInventory;
+	}
+
+	public void setForceUpdateInventory(boolean forceUpdateInventory) {
+		this.forceUpdateInventory = forceUpdateInventory;
+	}
+
+	public boolean shouldCalculateDropsIndividually() {
+		return calculateDropsIndividually;
+	}
+
+	public void setCalculateDropsIndividually(boolean calculateDropsIndividually) {
+		this.calculateDropsIndividually = calculateDropsIndividually;
+	}
+
+	public List<String> getItemList() {
+		return itemList;
+	}
+
+	public ItemStack[] getItemTypes() {
+		return itemTypes;
+	}
+
+	public double[] getItemChances() {
+		return itemChances;
+	}
+
+	public int[] getItemMinQuantities() {
+		return itemMinQuantities;
+	}
+
+	public int[] getItemMaxQuantities() {
+		return itemMaxQuantities;
 	}
 	
 	private static class ExpirationHandler implements Listener {

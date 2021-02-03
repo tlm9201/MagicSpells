@@ -67,11 +67,51 @@ public class FlightPathSpell extends InstantSpell {
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
+	public float getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(float speed) {
+		this.speed = speed;
+	}
+
+	public float getTargetX() {
+		return targetX;
+	}
+
+	public void setTargetX(float targetX) {
+		this.targetX = targetX;
+	}
+
+	public float getTargetZ() {
+		return targetZ;
+	}
+
+	public void setTargetZ(float targetZ) {
+		this.targetZ = targetZ;
+	}
+
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
+
+	public int getCruisingAltitude() {
+		return cruisingAltitude;
+	}
+
+	public void setCruisingAltitude(int cruisingAltitude) {
+		this.cruisingAltitude = cruisingAltitude;
+	}
+
 	private class FlightHandler implements Runnable, Listener {
 
-		private Map<UUID, ActiveFlight> flights = new HashMap<>();
+		private final Map<UUID, ActiveFlight> flights = new HashMap<>();
 
-		private boolean inited = false;
+		private boolean initialized = false;
 
 		private int task = -1;
 
@@ -86,8 +126,8 @@ public class FlightPathSpell extends InstantSpell {
 		}
 
 		private void init() {
-			if (inited) return;
-			inited = true;
+			if (initialized) return;
+			initialized = true;
 			MagicSpells.registerEvents(this);
 		}
 
@@ -121,10 +161,10 @@ public class FlightPathSpell extends InstantSpell {
 
 		@Override
 		public void run() {
-			Iterator<ActiveFlight> iter = flights.values().iterator();
-			while (iter.hasNext()) {
-				ActiveFlight flight = iter.next();
-				if (flight.isDone()) iter.remove();
+			Iterator<ActiveFlight> iterator = flights.values().iterator();
+			while (iterator.hasNext()) {
+				ActiveFlight flight = iterator.next();
+				if (flight.isDone()) iterator.remove();
 				else flight.fly();
 			}
 			if (flights.isEmpty()) {

@@ -11,6 +11,7 @@ public abstract class SpellEvent extends Event implements IMagicSpellsCompatEven
 	protected static final HandlerList handlers = new HandlerList();
 
 	protected Spell spell;
+
 	protected LivingEntity caster;
 	
 	public SpellEvent(Spell spell, LivingEntity caster) {

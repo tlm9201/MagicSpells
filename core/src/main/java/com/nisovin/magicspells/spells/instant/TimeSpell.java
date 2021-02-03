@@ -49,4 +49,20 @@ public class TimeSpell extends InstantSpell implements TargetedLocationSpell {
 		for (Player p : world.getPlayers()) sendMessage(strAnnounce, p, MagicSpells.NULL_ARGS);
 	}
 
+	public int getTimeToSet() {
+		return timeToSet;
+	}
+
+	public void setTimeToSet(int timeToSet) {
+		this.timeToSet = timeToSet;
+	}
+
+	public String getStrAnnounce() {
+		return strAnnounce;
+	}
+
+	public void setStrAnnounce(String strAnnounce) {
+		this.strAnnounce = strAnnounce;
+	}
+
 }

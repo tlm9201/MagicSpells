@@ -32,13 +32,15 @@ import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 
 public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 
-	private Map<UUID, TemporaryBlockSet> blockSets;
-	private List<Material> materials;
+	private final Map<UUID, TemporaryBlockSet> blockSets;
+
+	private final List<Material> materials;
 
 	private String strNoTarget;
 
+	private final String spellOnBreakName;
+
 	private Subspell spellOnBreak;
-	private String spellOnBreakName;
 
 	private int yOffset;
 	private int distance;
@@ -57,6 +59,7 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 		super(config, spellName);
 
 		blockSets = new HashMap<>();
+
 		materials = new ArrayList<>();
 
 		strNoTarget = getConfigString("str-no-target", "Unable to create a wall.");
@@ -231,5 +234,117 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 		}
 		
 	}
-	
+
+	public Map<UUID, TemporaryBlockSet> getBlockSets() {
+		return blockSets;
+	}
+
+	public List<Material> getMaterials() {
+		return materials;
+	}
+
+	public String getStrNoTarget() {
+		return strNoTarget;
+	}
+
+	public void setStrNoTarget(String strNoTarget) {
+		this.strNoTarget = strNoTarget;
+	}
+
+	public Subspell getSpellOnBreak() {
+		return spellOnBreak;
+	}
+
+	public void setSpellOnBreak(Subspell spellOnBreak) {
+		this.spellOnBreak = spellOnBreak;
+	}
+
+	public int getYOffset() {
+		return yOffset;
+	}
+
+	public void setYOffset(int yOffset) {
+		this.yOffset = yOffset;
+	}
+
+	public int getDistance() {
+		return distance;
+	}
+
+	public void setDistance(int distance) {
+		this.distance = distance;
+	}
+
+	public int getWallWidth() {
+		return wallWidth;
+	}
+
+	public void setWallWidth(int wallWidth) {
+		this.wallWidth = wallWidth;
+	}
+
+	public int getWallDepth() {
+		return wallDepth;
+	}
+
+	public void setWallDepth(int wallDepth) {
+		this.wallDepth = wallDepth;
+	}
+
+	public int getWallHeight() {
+		return wallHeight;
+	}
+
+	public void setWallHeight(int wallHeight) {
+		this.wallHeight = wallHeight;
+	}
+
+	public int getWallDuration() {
+		return wallDuration;
+	}
+
+	public void setWallDuration(int wallDuration) {
+		this.wallDuration = wallDuration;
+	}
+
+	public boolean shouldCheckPlugins() {
+		return checkPlugins;
+	}
+
+	public void setCheckPlugins(boolean checkPlugins) {
+		this.checkPlugins = checkPlugins;
+	}
+
+	public boolean shouldPreventDrop() {
+		return preventDrops;
+	}
+
+	public void setPreventDrops(boolean preventDrops) {
+		this.preventDrops = preventDrops;
+	}
+
+	public boolean isAlwaysOnGround() {
+		return alwaysOnGround;
+	}
+
+	public void setAlwaysOnGround(boolean alwaysOnGround) {
+		this.alwaysOnGround = alwaysOnGround;
+	}
+
+	public boolean shouldPreventBreaking() {
+		return preventBreaking;
+	}
+
+	public void setPreventBreaking(boolean preventBreaking) {
+		this.preventBreaking = preventBreaking;
+	}
+
+	public boolean shouldCheckPluginsPerBlock() {
+		return checkPluginsPerBlock;
+	}
+
+	public void setCheckPluginsPerBlock(boolean checkPluginsPerBlock) {
+		this.checkPluginsPerBlock = checkPluginsPerBlock;
+	}
+
 }

@@ -18,18 +18,21 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class PhaseSpell extends InstantSpell {
 
-	private final int maxDistance;
-	private final String strCantPhase;
-
-	private final List<Material> nonPhasableBlocks;
 	private final List<Material> phasableBlocks;
+	private final List<Material> nonPhasableBlocks;
+
+	private int maxDistance;
+	private String strCantPhase;
 
 	public PhaseSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
+
 		maxDistance = getConfigInt("max-distance", 15);
 		strCantPhase = getConfigString("str-cant-phase", "Unable to find place to phase to.");
+
 		phasableBlocks = new ArrayList<>();
 		nonPhasableBlocks = new ArrayList<>();
+
 		processMaterials(phasableBlocks,"phasable-blocks");
 		processMaterials(nonPhasableBlocks,"non-phasable-blocks");
 	}
@@ -107,4 +110,29 @@ public class PhaseSpell extends InstantSpell {
 		if (phasableBlocks.isEmpty()) return !nonPhasableBlocks.contains(block.getType());
 		return phasableBlocks.contains(block.getType()) && !nonPhasableBlocks.contains(block.getType());
 	}
+
+	public List<Material> getPhasableBlocks() {
+		return phasableBlocks;
+	}
+
+	public List<Material> getNonPhasableBlocks() {
+		return nonPhasableBlocks;
+	}
+
+	public int getMaxDistance() {
+		return maxDistance;
+	}
+
+	public void setMaxDistance(int maxDistance) {
+		this.maxDistance = maxDistance;
+	}
+
+	public String getStrCantPhase() {
+		return strCantPhase;
+	}
+
+	public void setStrCantPhase(String strCantPhase) {
+		this.strCantPhase = strCantPhase;
+	}
+
 }

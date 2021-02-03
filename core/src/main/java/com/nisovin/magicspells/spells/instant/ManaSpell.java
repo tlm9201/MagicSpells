@@ -31,4 +31,12 @@ public class ManaSpell extends InstantSpell {
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
+	public int getMana() {
+		return mana;
+	}
+
+	public void setMana(int mana) {
+		this.mana = mana;
+	}
+
 }

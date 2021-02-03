@@ -29,7 +29,7 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 
 	private Map<UUID, MagicLocation> marks;
 
-	private MagicLocation defaultMark = null;
+	private MagicLocation defaultMark;
 
 	private boolean permanentMarks;
 	private boolean enableDefaultMarks;
@@ -99,6 +99,38 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 		MagicLocation loc = marks.get(getKey(event.getPlayer()));
 		if (loc != null) event.setRespawnLocation(loc.getLocation());
 		else if (enableDefaultMarks && defaultMark != null) event.setRespawnLocation(defaultMark.getLocation());
+	}
+
+	public MagicLocation getDefaultMark() {
+		return defaultMark;
+	}
+
+	public void setDefaultMark(MagicLocation defaultMark) {
+		this.defaultMark = defaultMark;
+	}
+
+	public boolean shouldMarksBePermanent() {
+		return permanentMarks;
+	}
+
+	public void setPermanentMarks(boolean permanentMarks) {
+		this.permanentMarks = permanentMarks;
+	}
+
+	public boolean areDefaultMarksEnabled() {
+		return enableDefaultMarks;
+	}
+
+	public void setEnableDefaultMarks(boolean enableDefaultMarks) {
+		this.enableDefaultMarks = enableDefaultMarks;
+	}
+
+	public boolean shouldUseAsRespawnLocation() {
+		return useAsRespawnLocation;
+	}
+
+	public void setUseAsRespawnLocation(boolean useAsRespawnLocation) {
+		this.useAsRespawnLocation = useAsRespawnLocation;
 	}
 	
 	public Map<UUID, MagicLocation> getMarks() {
