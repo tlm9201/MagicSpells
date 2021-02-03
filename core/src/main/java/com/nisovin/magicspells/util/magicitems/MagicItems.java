@@ -76,7 +76,6 @@ public class MagicItems {
 		if (cached != null) return cached;
 
 		MagicItemData data = new MagicItemData();
-		ItemMeta meta = itemStack.getItemMeta();
 
 		// type
 		data.setAttribute(TYPE, itemStack.getType());
@@ -89,6 +88,7 @@ public class MagicItems {
 		// amount
 		data.setAttribute(AMOUNT, itemStack.getAmount());
 
+		ItemMeta meta = itemStack.getItemMeta();
 		if (meta == null) {
 			itemStackCache.put(itemStack, data);
 			return data;
@@ -191,7 +191,6 @@ public class MagicItems {
 		if (type == null) return null;
 
 		ItemStack item = new ItemStack(type);
-		ItemMeta meta = item.getItemMeta();
 
 		if (type.isAir()) return new MagicItem(item, data);
 
@@ -200,6 +199,7 @@ public class MagicItems {
 			if (amount >= 1) item.setAmount(amount);
 		}
 
+		ItemMeta meta = item.getItemMeta();
 		if (meta == null) return new MagicItem(item, data);
 
 		// Name

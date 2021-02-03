@@ -40,7 +40,6 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.command.ScrollSpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
@@ -72,7 +71,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 
 	private List<String> itemList;
 
-	private MagicItem[] itemTypes;
+	private ItemStack[] itemTypes;
 
 	private double[] itemChances;
 
@@ -116,7 +115,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		if (expiration > 0 && expirationHandler == null) expirationHandler = new ExpirationHandler();
 		
 		if (itemList != null && !itemList.isEmpty()) {
-			itemTypes = new MagicItem[itemList.size()];
+			itemTypes = new ItemStack[itemList.size()];
 			itemMinQuantities = new int[itemList.size()];
 			itemMaxQuantities = new int[itemList.size()];
 			itemChances = new double[itemList.size()];
@@ -174,22 +173,17 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 						TomeSpell tomeSpell = (TomeSpell) MagicSpells.getSpellByInternalName(tomeData[1]);
 						Spell spell = MagicSpells.getSpellByInternalName(tomeData[2]);
 						int uses = tomeData.length > 3 ? Integer.parseInt(tomeData[3].trim()) : -1;
-
-						ItemStack tome = tomeSpell.createTome(spell, uses, null);
-						itemTypes[i] = new MagicItem(tome, MagicItems.getMagicItemDataFromItemStack(tome));
+						itemTypes[i] = tomeSpell.createTome(spell, uses, null);
 					} else if (strItemData.startsWith("SCROLL:")) {
 						String[] scrollData = strItemData.split(":");
 						ScrollSpell scrollSpell = (ScrollSpell) MagicSpells.getSpellByInternalName(scrollData[1]);
 						Spell spell = MagicSpells.getSpellByInternalName(scrollData[2]);
 						int uses = scrollData.length > 3 ? Integer.parseInt(scrollData[3].trim()) : -1;
-
-						ItemStack scroll = scrollSpell.createScroll(spell, uses, null);
-						itemTypes[i] = new MagicItem(scroll, MagicItems.getMagicItemDataFromItemStack(scroll));
+						itemTypes[i] = scrollSpell.createScroll(spell, uses, null);
 					} else {
 						MagicItem magicItem = MagicItems.getMagicItemFromString(strItemData);
 						if (magicItem == null) continue;
-
-						itemTypes[i] = magicItem;
+						itemTypes[i] = magicItem.getItemStack();
 					}
 
 					int minAmount = 1;
@@ -247,18 +241,14 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 	}
 	
 	private void conjureItems(Player player, float power) {
-		List<MagicItem> items = new ArrayList<>();
+		List<ItemStack> items = new ArrayList<>();
 		if (calculateDropsIndividually) individual(items, power);
 		else together(items, power);
 
 		Location loc = player.getEyeLocation().add(player.getLocation().getDirection());
 		boolean updateInv = false;
-		for (MagicItem magicItem : items) {
-			ItemStack item = magicItem.getItemStack();
+		for (ItemStack item : items) {
 			if (item == null) continue;
-
-			MagicItemData itemData = magicItem.getMagicItemData();
-			if (itemData == null) continue;
 
 			boolean added = false;
 			PlayerInventory inv = player.getInventory();
@@ -283,17 +273,14 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 				if (!added && addToInventory) {
 
 					ItemStack preferredItem = null;
-					MagicItemData magicItemData = null;
 					if (preferredSlot >= 0) {
 						preferredItem = inv.getItem(preferredSlot);
-						magicItemData = MagicItems.getMagicItemDataFromItemStack(preferredItem);
 					}
 
 					if (offhand) player.getEquipment().setItemInOffHand(item);
 					else if (requiredSlot >= 0) {
 						ItemStack old = inv.getItem(requiredSlot);
-						MagicItemData oldItemData = MagicItems.getMagicItemDataFromItemStack(old);
-						if (old != null && (oldItemData != null && itemData.matches(oldItemData))) item.setAmount(item.getAmount() + old.getAmount());
+						if (old != null && item.isSimilar(old)) item.setAmount(item.getAmount() + old.getAmount());
 						inv.setItem(requiredSlot, item);
 						added = true;
 						updateInv = true;
@@ -301,7 +288,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 						inv.setItem(preferredSlot, item);
 						added = true;
 						updateInv = true;
-					} else if (preferredSlot >= 0 && (magicItemData != null && itemData.matches(magicItemData)) && preferredItem.getAmount() + item.getAmount() < item.getType().getMaxStackSize()) {
+					} else if (preferredSlot >= 0 && item.isSimilar(preferredItem) && preferredItem.getAmount() + item.getAmount() < item.getType().getMaxStackSize()) {
 						item.setAmount(item.getAmount() + preferredItem.getAmount());
 						inv.setItem(preferredSlot, item);
 						added = true;
@@ -325,7 +312,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		playSpellEffects(EffectPosition.CASTER, player);
 	}
 	
-	private void individual(List<MagicItem> items, float power) {
+	private void individual(List<ItemStack> items, float power) {
 		for (int i = 0; i < itemTypes.length; i++) {
 			double r = rand.nextDouble() * 100;
 			if (powerAffectsChance) r = r / power;
@@ -333,7 +320,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		}
 	}
 	
-	private void together(List<MagicItem> items, float power) {
+	private void together(List<ItemStack> items, float power) {
 		double r = rand.nextDouble() * 100;
 		double m = 0;
 		for (int i = 0; i < itemTypes.length; i++) {
@@ -344,17 +331,15 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		}
 	}
 	
-	private void addItem(int i, List<MagicItem> items, float power) {
+	private void addItem(int i, List<ItemStack> items, float power) {
 		int quant = itemMinQuantities[i];
 		if (itemMaxQuantities[i] > itemMinQuantities[i]) quant = rand.nextInt(itemMaxQuantities[i] - itemMinQuantities[i]) + itemMinQuantities[i];
 		if (powerAffectsQuantity) quant = Math.round(quant * power);
 		if (quant > 0) {
-			MagicItem magicItem = itemTypes[i].clone();
-			ItemStack item = magicItem.getItemStack();
-
+			ItemStack item = itemTypes[i].clone();
 			item.setAmount(quant);
 			if (expiration > 0) expirationHandler.addExpiresLine(item, expiration);
-			items.add(magicItem);
+			items.add(item);
 		}
 	}
 
@@ -365,16 +350,16 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 	
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		List<MagicItem> items = new ArrayList<>();
+		List<ItemStack> items = new ArrayList<>();
 		if (calculateDropsIndividually) individual(items, power);
 		else together(items, power);
 
 		Location loc = target.clone();
 		if (!BlockUtils.isAir(loc.getBlock().getType())) loc.add(0, 1, 0);
 		if (!BlockUtils.isAir(loc.getBlock().getType())) loc.add(0, 1, 0);
-		for (MagicItem item : items) {
-			Item dropped = loc.getWorld().dropItem(loc, item.getItemStack());
-			dropped.setItemStack(item.getItemStack());
+		for (ItemStack item : items) {
+			Item dropped = loc.getWorld().dropItem(loc, item);
+			dropped.setItemStack(item);
 			dropped.setPickupDelay(pickupDelay);
 			if (randomVelocity > 0) {
 				Vector v = new Vector(rand.nextDouble() - 0.5, rand.nextDouble() / 2, rand.nextDouble() - 0.5);
