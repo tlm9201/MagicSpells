@@ -5,7 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
-import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.NAME;
 
 public class NameHandler {
 

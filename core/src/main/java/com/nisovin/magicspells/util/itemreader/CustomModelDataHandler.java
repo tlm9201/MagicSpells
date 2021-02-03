@@ -3,7 +3,6 @@ package com.nisovin.magicspells.util.itemreader;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.ItemUtil;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.CUSTOM_MODEL_DATA;
 

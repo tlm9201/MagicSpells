@@ -61,6 +61,9 @@ public class HasItemAmountCondition extends OperatorCondition {
 		for (ItemStack i : inventory.getContents()) {
 			if (!isSimilar(i)) continue;
 			c += i.getAmount();
+
+			if (moreThan && c > amount) return true;
+			if (lessThan && c >= amount) return false;
 		}
 
 		if (equals) return c == amount;
@@ -74,6 +77,9 @@ public class HasItemAmountCondition extends OperatorCondition {
 		for (ItemStack i : InventoryUtil.getEquipmentItems(entityEquipment)) {
 			if (!isSimilar(i)) continue;
 			c += i.getAmount();
+
+			if (moreThan && c > amount) return true;
+			if (lessThan && c >= amount) return false;
 		}
 
 		if (equals) return c == amount;

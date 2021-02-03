@@ -45,27 +45,25 @@ public class HasItemPreciseCondition extends Condition {
 	private boolean check(Inventory inventory) {
 		if (inventory == null) return false;
 
-		boolean found = false;
 		for (ItemStack itemStack : inventory.getContents()) {
 			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(itemStack);
 			if (data == null) continue;
-			if (itemData.matches(data)) found = true;
+			if (itemData.matches(data)) return true;
 		}
 
-		return found;
+		return false;
 	}
 
 	private boolean check(EntityEquipment entityEquipment) {
 		if (entityEquipment == null) return false;
 
-		boolean found = false;
 		for (ItemStack itemStack : InventoryUtil.getEquipmentItems(entityEquipment)) {
 			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(itemStack);
 			if (data == null) continue;
-			if (itemData.matches(data)) found = true;
+			if (itemData.matches(data)) return true;
 		}
 
-		return found;
+		return false;
 	}
 
 }

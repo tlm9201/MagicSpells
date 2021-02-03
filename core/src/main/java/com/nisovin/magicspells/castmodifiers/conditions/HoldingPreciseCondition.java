@@ -28,8 +28,8 @@ public class HoldingPreciseCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		EntityEquipment equip = target.getEquipment();
-		return equip != null && check(equip.getItemInMainHand());
+		EntityEquipment eq = target.getEquipment();
+		return eq != null && check(eq.getItemInMainHand());
 	}
 	
 	@Override

@@ -3,7 +3,6 @@ package com.nisovin.magicspells;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -63,6 +62,7 @@ import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;

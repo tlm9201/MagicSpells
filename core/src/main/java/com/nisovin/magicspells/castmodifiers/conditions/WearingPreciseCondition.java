@@ -26,13 +26,13 @@ public class WearingPreciseCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		EntityEquipment equip = target.getEquipment();
-		if (equip == null) return false;
+		EntityEquipment eq = target.getEquipment();
+		if (eq == null) return false;
 
-		if (check(equip.getHelmet())) return true;
-		if (check(equip.getChestplate())) return true;
-		if (check(equip.getLeggings())) return true;
-		return check(equip.getBoots());
+		if (check(eq.getHelmet())) return true;
+		if (check(eq.getChestplate())) return true;
+		if (check(eq.getLeggings())) return true;
+		return check(eq.getBoots());
 	}
 	
 	@Override
