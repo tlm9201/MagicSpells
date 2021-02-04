@@ -281,6 +281,9 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		if (callEvents) {
 			TrackerMoveEvent trackerMoveEvent = new TrackerMoveEvent(this, previousLocation, currentLocation);
 			EventUtil.call(trackerMoveEvent);
+			if (stopped) {
+				return;
+			}
 		}
 
 		if (hugSurface && (currentLocation.getBlockX() != currentX || currentLocation.getBlockZ() != currentZ)) {

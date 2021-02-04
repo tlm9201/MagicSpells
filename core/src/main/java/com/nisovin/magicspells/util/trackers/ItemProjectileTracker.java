@@ -13,6 +13,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.events.TrackerMoveEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.instant.ItemProjectileSpell;
@@ -73,6 +74,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 
 	private boolean landed = false;
 	private boolean groundSpellCasted = false;
+	private boolean stopped = false;
 
 	private int taskId;
 	private int count = 0;
@@ -143,6 +145,14 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		currentLocation = entity.getLocation();
 		currentLocation.setDirection(entity.getVelocity());
 
+		if (callEvents) {
+			TrackerMoveEvent trackerMoveEvent = new TrackerMoveEvent(this, previousLocation, currentLocation);
+			EventUtil.call(trackerMoveEvent);
+			if (stopped) {
+				return;
+			}
+		}
+
 		if (spell != null && specialEffectInterval > 0 && count % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation);
 
 		if (zoneManager.willFizzle(currentLocation, spell)) {
@@ -196,6 +206,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		}
 		entity.remove();
 		MagicSpells.cancelTask(taskId);
+		stopped = true;
 	}
 
 	public LivingEntity getCaster() {

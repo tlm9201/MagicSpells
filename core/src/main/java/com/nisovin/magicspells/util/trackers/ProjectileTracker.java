@@ -75,6 +75,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 	private int taskId;
 	private int counter = 0;
 
+	private boolean stopped = false;
+
 	public ProjectileTracker() {
 
 	}
@@ -169,6 +171,9 @@ public class ProjectileTracker implements Runnable, Tracker {
 		if (callEvents) {
 			TrackerMoveEvent trackerMoveEvent = new TrackerMoveEvent(this, previousLocation, currentLocation);
 			EventUtil.call(trackerMoveEvent);
+			if (stopped) {
+				return;
+			}
 		}
 
 		if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.castAtLocation(caster, currentLocation, power);
@@ -205,6 +210,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 		currentLocation = null;
 		if (projectile != null) projectile.remove();
 		projectile = null;
+		stopped = true;
 	}
 
 	public ProjectileSpell getSpell() {

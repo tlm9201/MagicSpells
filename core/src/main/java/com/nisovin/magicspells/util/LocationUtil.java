@@ -153,7 +153,6 @@ public class LocationUtil {
 
 	// setDirection function with fast math
 	public static Location setDirection(Location loc, Vector v) {
-
 		final double _2PI = 2 * FastMath.PI;
 		final double x = v.getX();
 		final double z = v.getZ();
