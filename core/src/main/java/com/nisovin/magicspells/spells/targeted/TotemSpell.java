@@ -46,6 +46,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private final int capPerPlayer;
 
 	private double maxDistanceSquared;
+	private final int maxDuration;
 
 	private final boolean marker;
 	private final boolean gravity;
@@ -127,6 +128,8 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		maxDistanceSquared = getConfigDouble("max-distance", 30);
 		maxDistanceSquared *= maxDistanceSquared;
+
+		maxDuration = getConfigInt("max-duration", 0);
 
 		marker = getConfigBoolean("marker", false);
 		gravity = getConfigBoolean("gravity", false);
@@ -247,8 +250,17 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	private void createTotem(LivingEntity caster, Location loc, float power) {
 		Location loc2 = loc.clone();
-		if (centerStand == true) loc2 = loc.clone().add(0.5, 0, 0.5);
-		totems.add(new Totem(caster, loc2, power));
+		if (centerStand) loc2 = loc.clone().add(0.5, 0, 0.5);
+
+		Totem totem = new Totem(caster, loc2, power);
+		totems.add(totem);
+		if (maxDuration > 0) {
+			MagicSpells.scheduleDelayedTask(() -> {
+				totem.stop();
+				totems.remove(totem);
+			}, maxDuration);
+		}
+
 		ticker.start();
 		if (caster != null) playSpellEffects(caster, loc2);
 		else playSpellEffects(EffectPosition.TARGET, loc2);
