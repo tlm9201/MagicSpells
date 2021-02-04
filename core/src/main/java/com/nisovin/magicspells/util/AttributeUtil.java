@@ -32,10 +32,10 @@ public class AttributeUtil {
 			attributeNameMap.put(attribute.name().toLowerCase(), attribute);
 
 			attributeNameMap.put(key, attribute);
-			attributeNameMap.put(key.substring(key.indexOf('.')), attribute);
+			attributeNameMap.put(key.substring(key.indexOf('.') + 1), attribute);
 
 			attributeNameMap.put(rep, attribute);
-			attributeNameMap.put(rep.substring(key.indexOf('.')), attribute);
+			attributeNameMap.put(rep.substring(key.indexOf('.') + 1), attribute);
 		}
 
 	}
