@@ -45,7 +45,7 @@ public class WrittenBookHandler {
 
 			if (!pages.isEmpty()) {
 				bookMeta.setPages(pages);
-				data.setAttribute(PAGES, pages);
+				data.setAttribute(PAGES, bookMeta.getPages());
 			}
 		}
 	}

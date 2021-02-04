@@ -25,7 +25,7 @@ public class LoreHandler {
 
 			if (!lore.isEmpty()) {
 				meta.setLore(lore);
-				data.setAttribute(LORE, lore);
+				data.setAttribute(LORE, meta.getLore());
 			}
 		} else if (config.isString(CONFIG_NAME)) {
 			List<String> lore = Collections.singletonList(Util.colorize(config.getString(CONFIG_NAME)));

@@ -16,7 +16,7 @@ public class NameHandler {
 
 		String name = Util.colorize(config.getString(CONFIG_NAME));
 		meta.setDisplayName(name);
-		data.setAttribute(NAME, name);
+		data.setAttribute(NAME, meta.getDisplayName());
 	}
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
