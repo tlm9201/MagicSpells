@@ -510,6 +510,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 			ParticleProjectileHitEvent projectileEvent = new ParticleProjectileHitEvent(caster, e, tracker, spell, power);
 			EventUtil.call(projectileEvent);
+			if (stopped) return;
 			if (projectileEvent.isCancelled()) {
 				inRange.remove(i);
 				break;
