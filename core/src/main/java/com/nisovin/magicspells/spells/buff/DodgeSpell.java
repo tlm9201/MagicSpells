@@ -18,9 +18,9 @@ import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.ProjectileTracker;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
+import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 
 import de.slikey.effectlib.util.RandomUtils;
 
@@ -105,7 +105,7 @@ public class DodgeSpell extends BuffSpell {
 		Spell spell = e.getSpell();
 		if (spell != null && !filter.check(spell)) return;
 
-		ProjectileTracker tracker = e.getTracker();
+		ParticleProjectileTracker tracker = e.getTracker();
 		if (tracker == null) return;
 		if (tracker.getCaster().equals(target)) return;
 

@@ -23,8 +23,8 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class PortalSpell extends InstantSpell {
 
-	private String firstMarkSpellName;
-	private String secondMarkSpellName;
+	private final String firstMarkSpellName;
+	private final String secondMarkSpellName;
 
 	private MarkSpell firstMark;
 	private MarkSpell secondMark;
@@ -87,13 +87,13 @@ public class PortalSpell extends InstantSpell {
 		super.initialize();
 
 		Spell spell = MagicSpells.getSpellByInternalName(firstMarkSpellName);
-		if (spell != null && spell instanceof MarkSpell) firstMark = (MarkSpell) spell;
+		if (spell instanceof MarkSpell) firstMark = (MarkSpell) spell;
 		else MagicSpells.error("PortalSpell '" + internalName + "' has an invalid mark-spell defined!");
 
 		usingSecondMarkSpell = false;
 		if (!secondMarkSpellName.isEmpty()) {
 			spell = MagicSpells.getSpellByInternalName(secondMarkSpellName);
-			if (spell != null && spell instanceof MarkSpell) {
+			if (spell instanceof MarkSpell) {
 				secondMark = (MarkSpell) spell;
 				usingSecondMarkSpell = true;
 			} else MagicSpells.error("PortalSpell '" + internalName + "' has an invalid second-mark-spell defined!");
@@ -146,6 +146,158 @@ public class PortalSpell extends InstantSpell {
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;
+	}
+
+	public MarkSpell getFirstMark() {
+		return firstMark;
+	}
+
+	public void setFirstMark(MarkSpell firstMark) {
+		this.firstMark = firstMark;
+	}
+
+	public MarkSpell getSecondMark() {
+		return secondMark;
+	}
+
+	public void setSecondMark(MarkSpell secondMark) {
+		this.secondMark = secondMark;
+	}
+
+	public SpellReagents getTeleportCost() {
+		return teleportCost;
+	}
+
+	public void setTeleportCost(SpellReagents teleportCost) {
+		this.teleportCost = teleportCost;
+	}
+
+	public int getDuration() {
+		return duration;
+	}
+
+	public void setDuration(int duration) {
+		this.duration = duration;
+	}
+
+	public int getMinDistanceSq() {
+		return minDistanceSq;
+	}
+
+	public void setMinDistanceSq(int minDistanceSq) {
+		this.minDistanceSq = minDistanceSq;
+	}
+
+	public int getMaxDistanceSq() {
+		return maxDistanceSq;
+	}
+
+	public void setMaxDistanceSq(int maxDistanceSq) {
+		this.maxDistanceSq = maxDistanceSq;
+	}
+
+	public int getEffectInterval() {
+		return effectInterval;
+	}
+
+	public void setEffectInterval(int effectInterval) {
+		this.effectInterval = effectInterval;
+	}
+
+	public int getTeleportCooldown() {
+		return teleportCooldown;
+	}
+
+	public void setTeleportCooldown(int teleportCooldown) {
+		this.teleportCooldown = teleportCooldown;
+	}
+
+	public float getVertRadius() {
+		return vertRadius;
+	}
+
+	public void setVertRadius(float vertRadius) {
+		this.vertRadius = vertRadius;
+	}
+
+	public float getHorizRadius() {
+		return horizRadius;
+	}
+
+	public void setHorizRadius(float horizRadius) {
+		this.horizRadius = horizRadius;
+	}
+
+	public boolean shouldAllowReturn() {
+		return allowReturn;
+	}
+
+	public void setAllowReturn(boolean allowReturn) {
+		this.allowReturn = allowReturn;
+	}
+
+	public boolean shouldTpOtherPlayers() {
+		return tpOtherPlayers;
+	}
+
+	public void setTpOtherPlayers(boolean tpOtherPlayers) {
+		this.tpOtherPlayers = tpOtherPlayers;
+	}
+
+	public boolean isUsingSecondMarkSpell() {
+		return usingSecondMarkSpell;
+	}
+
+	public void setUsingSecondMarkSpell(boolean usingSecondMarkSpell) {
+		this.usingSecondMarkSpell = usingSecondMarkSpell;
+	}
+
+	public boolean shouldChargeCostToTeleporter() {
+		return chargeCostToTeleporter;
+	}
+
+	public void setChargeCostToTeleporter(boolean chargeCostToTeleporter) {
+		this.chargeCostToTeleporter = chargeCostToTeleporter;
+	}
+
+	public String getStrNoMark() {
+		return strNoMark;
+	}
+
+	public void setStrNoMark(String strNoMark) {
+		this.strNoMark = strNoMark;
+	}
+
+	public String getStrTooFar() {
+		return strTooFar;
+	}
+
+	public void setStrTooFar(String strTooFar) {
+		this.strTooFar = strTooFar;
+	}
+
+	public String getStrTooClose() {
+		return strTooClose;
+	}
+
+	public void setStrTooClose(String strTooClose) {
+		this.strTooClose = strTooClose;
+	}
+
+	public String getStrTeleportCostFail() {
+		return strTeleportCostFail;
+	}
+
+	public void setStrTeleportCostFail(String strTeleportCostFail) {
+		this.strTeleportCostFail = strTeleportCostFail;
+	}
+
+	public String getStrTeleportCooldownFail() {
+		return strTeleportCooldownFail;
+	}
+
+	public void setStrTeleportCooldownFail(String strTeleportCooldownFail) {
+		this.strTeleportCooldownFail = strTeleportCooldownFail;
 	}
 
 	private class PortalLink implements Listener {

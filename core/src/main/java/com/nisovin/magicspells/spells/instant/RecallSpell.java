@@ -29,7 +29,7 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	private String strRecallFailed;
 	
 	private MarkSpell markSpell;
-	private String markSpellName;
+	private final String markSpellName;
 
 	public RecallSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -114,6 +114,70 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 		if (useBedLocation && caster instanceof Player) return ((Player) caster).getBedSpawnLocation();
 		if (markSpell == null) return null;
 		return markSpell.getEffectiveMark(caster);
+	}
+
+	public double getMaxRange() {
+		return maxRange;
+	}
+
+	public void setMaxRange(double maxRange) {
+		this.maxRange = maxRange;
+	}
+
+	public boolean shouldUseBedLocation() {
+		return useBedLocation;
+	}
+
+	public void setUseBedLocation(boolean useBedLocation) {
+		this.useBedLocation = useBedLocation;
+	}
+
+	public boolean shouldAllowCrossWorld() {
+		return allowCrossWorld;
+	}
+
+	public void setAllowCrossWorld(boolean allowCrossWorld) {
+		this.allowCrossWorld = allowCrossWorld;
+	}
+
+	public String getStrNoMark() {
+		return strNoMark;
+	}
+
+	public void setStrNoMark(String strNoMark) {
+		this.strNoMark = strNoMark;
+	}
+
+	public String getStrTooFar() {
+		return strTooFar;
+	}
+
+	public void setStrTooFar(String strTooFar) {
+		this.strTooFar = strTooFar;
+	}
+
+	public String getStrOtherWorld() {
+		return strOtherWorld;
+	}
+
+	public void setStrOtherWorld(String strOtherWorld) {
+		this.strOtherWorld = strOtherWorld;
+	}
+
+	public String getStrRecallFailed() {
+		return strRecallFailed;
+	}
+
+	public void setStrRecallFailed(String strRecallFailed) {
+		this.strRecallFailed = strRecallFailed;
+	}
+
+	public MarkSpell getMarkSpell() {
+		return markSpell;
+	}
+
+	public void setMarkSpell(MarkSpell markSpell) {
+		this.markSpell = markSpell;
 	}
 
 }

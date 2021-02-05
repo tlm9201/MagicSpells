@@ -18,11 +18,11 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
-	
-	private double radius;
 
 	private List<EntityType> entities;
-	
+
+	private double radius;
+
 	public PurgeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 		
@@ -78,6 +78,18 @@ public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
 			killed = true;
 		}
 		return killed;
+	}
+
+	public List<EntityType> getEntities() {
+		return entities;
+	}
+
+	public double getRadius() {
+		return radius;
+	}
+
+	public void setRadius(double radius) {
+		this.radius = radius;
 	}
 
 }

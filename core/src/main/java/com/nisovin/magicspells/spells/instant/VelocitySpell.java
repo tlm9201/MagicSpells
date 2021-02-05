@@ -17,9 +17,10 @@ public class VelocitySpell extends InstantSpell {
 
 	private final Set<UUID> jumping;
 
-	private final double speed;
-	private final boolean cancelDamage;
-	private final boolean addVelocityInstead;
+	private double speed;
+
+	private boolean cancelDamage;
+	private boolean addVelocityInstead;
 
 	public VelocitySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -27,6 +28,7 @@ public class VelocitySpell extends InstantSpell {
 		jumping = new HashSet<>();
 
 		speed = getConfigFloat("speed", 40) / 10F;
+
 		cancelDamage = getConfigBoolean("cancel-damage", true);
 		addVelocityInstead = getConfigBoolean("add-velocity-instead", false);
 	}
@@ -50,6 +52,34 @@ public class VelocitySpell extends InstantSpell {
 		if (!jumping.remove(livingEntity.getUniqueId())) return;
 		playSpellEffects(EffectPosition.TARGET, livingEntity.getLocation());
 		if (cancelDamage) event.setCancelled(true);
+	}
+
+	public Set<UUID> getJumping() {
+		return jumping;
+	}
+
+	public double getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(double speed) {
+		this.speed = speed;
+	}
+
+	public boolean shouldCancelDamage() {
+		return cancelDamage;
+	}
+
+	public void setCancelDamage(boolean cancelDamage) {
+		this.cancelDamage = cancelDamage;
+	}
+
+	public boolean shouldAddVelocityInstead() {
+		return addVelocityInstead;
+	}
+
+	public void setAddVelocityInstead(boolean addVelocityInstead) {
+		this.addVelocityInstead = addVelocityInstead;
 	}
 
 }

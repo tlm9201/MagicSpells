@@ -1,16 +1,14 @@
 package com.nisovin.magicspells.spells.instant;
 
+import java.util.Set;
 import java.util.List;
-import java.util.Random;
-import java.util.ArrayList;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.HashSet;
+import java.util.Iterator;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Explosive;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.EventHandler;
@@ -29,22 +27,19 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.util.trackers.ProjectileTracker;
 import com.nisovin.magicspells.util.projectile.ProjectileManager;
 import com.nisovin.magicspells.util.projectile.ProjectileManagers;
 
 public class ProjectileSpell extends InstantSpell implements TargetedLocationSpell {
 
-	private List<ProjectileMonitor> monitors;
+	private static Set<ProjectileTracker> trackerSet;
 
 	private NoMagicZoneManager zoneManager;
-
-	private Random random;
 
 	private ProjectileManager projectileManager;
 
@@ -64,16 +59,18 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private boolean gravity;
 	private boolean charged;
 	private boolean incendiary;
+	private boolean checkPlugins;
 	private boolean stopOnModifierFail;
 
 	private double maxDuration;
 
-	private String hitSpellName;
-	private String tickSpellName;
+	private final String hitSpellName;
+	private final String tickSpellName;
+	private final String groundSpellName;
+	private final String modifierSpellName;
+	private final String durationSpellName;
+
 	private String projectileName;
-	private String groundSpellName;
-	private String modifierSpellName;
-	private String durationSpellName;
 
 	private Subspell hitSpell;
 	private Subspell tickSpell;
@@ -87,9 +84,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	public ProjectileSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		monitors = new ArrayList<>();
-
-		random = ThreadLocalRandom.current();
+		trackerSet = new HashSet<>();
 
 		projectileManager = ProjectileManagers.getManager(getConfigString("projectile-type",  "arrow"));
 
@@ -109,16 +104,18 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		gravity = getConfigBoolean("gravity", true);
 		charged = getConfigBoolean("charged", false);
 		incendiary = getConfigBoolean("incendiary", false);
+		checkPlugins = getConfigBoolean("check-plugins", true);
 		stopOnModifierFail = getConfigBoolean("stop-on-modifier-fail", true);
 
 		maxDuration = getConfigDouble("max-duration", 10) * (double) TimeUtil.MILLISECONDS_PER_SECOND;
 
 		hitSpellName = getConfigString("spell", "");
 		tickSpellName = getConfigString("spell-on-tick", "");
-		projectileName = Util.colorize(getConfigString("projectile-name", ""));
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
 		durationSpellName = getConfigString("spell-after-duration", "");
+
+		projectileName = Util.colorize(getConfigString("projectile-name", ""));
 
 		projectileModifiersStrings = getConfigStringList("projectile-modifiers", null);
 	}
@@ -172,25 +169,28 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	@Override
 	public void turnOff() {
-		for (ProjectileMonitor monitor : monitors) {
-			monitor.stop();
+		for (ProjectileTracker tracker : trackerSet) {
+			tracker.stop(false);
 		}
-
-		monitors.clear();
+		trackerSet.clear();
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			new ProjectileMonitor(livingEntity, livingEntity.getLocation(), power);
-			return PostCastAction.HANDLE_NORMALLY;
+			ProjectileTracker tracker = new ProjectileTracker(caster, caster.getLocation(), power);
+			setupTracker(tracker);
+			tracker.start();
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		new ProjectileMonitor(caster, target, power);
+	public boolean castAtLocation(LivingEntity livingEntity, Location target, float power) {
+		ProjectileTracker tracker = new ProjectileTracker(livingEntity, target, power);
+		setupTracker(tracker);
+		tracker.start();
 		return true;
 	}
 
@@ -199,17 +199,59 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		return false;
 	}
 
+	private void setupTracker(ProjectileTracker tracker) {
+		tracker.setSpell(this);
+
+		tracker.setProjectileManager(projectileManager);
+		tracker.setRelativeOffset(relativeOffset);
+
+		tracker.setTickInterval(tickInterval);
+		tracker.setTickSpellInterval(tickSpellInterval);
+		tracker.setSpecialEffectInterval(specialEffectInterval);
+
+		tracker.setRotation(rotation);
+		tracker.setVelocity(velocity);
+		tracker.setHitRadius(hitRadius);
+		tracker.setVertSpread(vertSpread);
+		tracker.setHorizSpread(horizSpread);
+		tracker.setVerticalHitRadius(verticalHitRadius);
+
+		tracker.setGravity(gravity);
+		tracker.setCharged(charged);
+		tracker.setIncendiary(incendiary);
+		tracker.setCallEvents(checkPlugins);
+		tracker.setStopOnModifierFail(stopOnModifierFail);
+
+		tracker.setMaxDuration(maxDuration);
+
+		tracker.setProjectileName(projectileName);
+
+		tracker.setHitSpell(hitSpell);
+		tracker.setTickSpell(tickSpell);
+		tracker.setGroundSpell(groundSpell);
+		tracker.setModifierSpell(modifierSpell);
+		tracker.setDurationSpell(durationSpell);
+
+		tracker.setProjectileModifiers(projectileModifiers);
+
+		tracker.setTargetList(validTargetList);
+	}
+
 	@EventHandler
 	public void onEntityExplode(EntityExplodeEvent event) {
 		Entity entity = event.getEntity();
 		if (!(entity instanceof WitherSkull)) return;
 		Projectile projectile = (Projectile) entity;
-		for (ProjectileMonitor monitor : monitors) {
-			if (monitor.projectile == null) continue;
-			if (!monitor.projectile.equals(projectile)) continue;
+
+		Iterator<ProjectileTracker> iterator = trackerSet.iterator();
+		while (iterator.hasNext()) {
+			ProjectileTracker tracker = iterator.next();
+			if (tracker.getProjectile() == null) continue;
+			if (!tracker.getProjectile().equals(projectile)) continue;
 
 			event.setCancelled(true);
-			monitor.stop();
+			tracker.stop(false);
+			iterator.remove();
 			break;
 		}
 	}
@@ -223,16 +265,20 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		if (!(damagerEntity instanceof Projectile)) return;
 
 		Projectile projectile = (Projectile) damagerEntity;
-		for (ProjectileMonitor monitor : monitors) {
-			if (monitor.projectile == null) continue;
-			if (!monitor.projectile.equals(projectile)) continue;
 
-			if (hitSpell != null && hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(monitor.caster, entity, monitor.power);
-			else if (hitSpell != null && hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(monitor.caster, entity.getLocation(), monitor.power);
+		Iterator<ProjectileTracker> iterator = trackerSet.iterator();
+		while (iterator.hasNext()) {
+			ProjectileTracker tracker = iterator.next();
+			if (tracker.getProjectile() == null) continue;
+			if (!tracker.getProjectile().equals(projectile)) continue;
+
+			if (hitSpell != null && hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(tracker.getCaster(), entity, tracker.getPower());
+			else if (hitSpell != null && hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(tracker.getCaster(), entity.getLocation(), tracker.getPower());
 			playSpellEffects(EffectPosition.TARGET, entity);
 			event.setCancelled(true);
 			event.setDamage(0);
-			monitor.stop();
+			tracker.stop(false);
+			iterator.remove();
 			break;
 		}
 	}
@@ -240,10 +286,10 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	@EventHandler(ignoreCancelled = true)
 	public void onEnderTeleport(PlayerTeleportEvent event) {
 		if (event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) return;
-		for (ProjectileMonitor monitor : monitors) {
+		for (ProjectileTracker tracker : trackerSet) {
 			if (event.getTo() == null) continue;
-			if (monitor.projectile == null) continue;
-			if (!locationsEqual(monitor.projectile.getLocation(), event.getTo())) continue;
+			if (tracker.getProjectile() == null) continue;
+			if (!locationsEqual(tracker.getProjectile().getLocation(), event.getTo())) continue;
 			event.setCancelled(true);
 			return;
 		}
@@ -251,9 +297,9 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	@EventHandler(ignoreCancelled = true)
 	public void onPotionSplash(PotionSplashEvent event) {
-		for (ProjectileMonitor monitor : monitors) {
-			if (monitor.projectile == null) continue;
-			if (!monitor.projectile.equals(event.getPotion())) continue;
+		for (ProjectileTracker tracker : trackerSet) {
+			if (tracker.getProjectile() == null) continue;
+			if (!tracker.getProjectile().equals(event.getPotion())) continue;
 			event.setCancelled(true);
 			return;
 		}
@@ -262,9 +308,9 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	@EventHandler(ignoreCancelled = true)
 	public void onCreatureSpawn(CreatureSpawnEvent event) {
 		if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.EGG) return;
-		for (ProjectileMonitor monitor : monitors) {
-			if (monitor.projectile == null) continue;
-			if (!locationsEqual(monitor.projectile.getLocation(), event.getLocation())) continue;
+		for (ProjectileTracker tracker : trackerSet) {
+			if (tracker.getProjectile() == null) continue;
+			if (!locationsEqual(tracker.getProjectile().getLocation(), event.getLocation())) continue;
 			event.setCancelled(true);
 			return;
 		}
@@ -275,11 +321,14 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		Projectile projectile = e.getEntity();
 		Block block = e.getHitBlock();
 		if (block == null) return;
-		for (ProjectileMonitor monitor : monitors) {
-			if (monitor.projectile == null) continue;
-			if (!monitor.projectile.equals(projectile)) continue;
-			if (monitor.caster != null && groundSpell != null) groundSpell.castAtLocation(monitor.caster, projectile.getLocation(), monitor.power);
-			monitor.stop();
+		Iterator<ProjectileTracker> iterator = trackerSet.iterator();
+		while (iterator.hasNext()) {
+			ProjectileTracker tracker = iterator.next();
+			if (tracker.getProjectile() == null) continue;
+			if (!tracker.getProjectile().equals(projectile)) continue;
+			if (tracker.getCaster() != null && groundSpell != null) groundSpell.castAtLocation(tracker.getCaster(), projectile.getLocation(), tracker.getPower());
+			tracker.stop(false);
+			iterator.remove();
 		}
 	}
 
@@ -289,127 +338,220 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 				&& Math.abs(loc1.getZ() - loc2.getZ()) < 0.1;
 	}
 
-	private class ProjectileMonitor implements Runnable {
+	public void playEffects(EffectPosition position, Location loc) {
+		playSpellEffects(position, loc);
+	}
 
-		private Projectile projectile;
-		private Location currentLocation;
-		private Location startLocation;
-		private LivingEntity caster;
-		private Vector currentVelocity;
-		private float power;
-		private long startTime;
+	public void playEffects(EffectPosition position, Entity entity) {
+		playSpellEffects(position, entity);
+	}
 
-		private int taskId;
-		private int counter = 0;
+	public void playTrackingLineEffects(EffectPosition position, Location startLocation, Location location, LivingEntity caster, Projectile projectile) {
+		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
+	}
 
-		private ProjectileMonitor(LivingEntity caster, Location startLocation, float power) {
-			this.caster = caster;
-			this.power = power;
-			this.startLocation = startLocation;
+	public static Set<ProjectileTracker> getProjectileTrackers() {
+		return trackerSet;
+	}
 
-			initialize();
-		}
+	public NoMagicZoneManager getZoneManager() {
+		return zoneManager;
+	}
 
-		private void initialize() {
-			startTime = System.currentTimeMillis();
-			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
+	public void setZoneManager(NoMagicZoneManager zoneManager) {
+		this.zoneManager = zoneManager;
+	}
 
-			Vector startDir = startLocation.clone().getDirection().normalize();
-			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-			startLocation.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
-			startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
-			startLocation.setY(startLocation.getY() + relativeOffset.getY());
+	public ProjectileManager getProjectileManager() {
+		return projectileManager;
+	}
 
-			currentLocation = startLocation.clone();
+	public void setProjectileManager(ProjectileManager projectileManager) {
+		this.projectileManager = projectileManager;
+	}
 
-			playSpellEffects(EffectPosition.CASTER, startLocation);
+	public Vector getRelativeOffset() {
+		return relativeOffset;
+	}
 
-			projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass());
-			currentVelocity = startLocation.getDirection();
-			currentVelocity.multiply(velocity * power);
-			if (rotation != 0) Util.rotateVector(currentVelocity, rotation);
-			if (horizSpread > 0 || vertSpread > 0) {
-				float rx = -1 + random.nextFloat() * (1 + 1);
-				float ry = -1 + random.nextFloat() * (1 + 1);
-				float rz = -1 + random.nextFloat() * (1 + 1);
-				currentVelocity.add(new Vector(rx * horizSpread, ry * vertSpread, rz * horizSpread));
-			}
-			projectile.setVelocity(currentVelocity);
-			projectile.setGravity(gravity);
-			projectile.setShooter(caster);
-			if (!projectileName.isEmpty()) {
-				projectile.setCustomName(projectileName);
-				projectile.setCustomNameVisible(true);
-			}
-			if (projectile instanceof WitherSkull) ((WitherSkull) projectile).setCharged(charged);
-			if (projectile instanceof Explosive) ((Explosive) projectile).setIsIncendiary(incendiary);
+	public void setRelativeOffset(Vector relativeOffset) {
+		this.relativeOffset = relativeOffset;
+	}
 
-			playSpellEffects(EffectPosition.PROJECTILE, projectile);
-			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
-			monitors.add(this);
-		}
+	public int getTickInterval() {
+		return tickInterval;
+	}
 
-		@Override
-		public void run() {
-			if ((caster != null && !caster.isValid())) {
-				stop();
-				return;
-			}
+	public void setTickInterval(int tickInterval) {
+		this.tickInterval = tickInterval;
+	}
 
-			if (projectile == null || projectile.isDead()) {
-				stop();
-				return;
-			}
+	public int getTickSpellInterval() {
+		return tickSpellInterval;
+	}
 
-			if (zoneManager.willFizzle(currentLocation, ProjectileSpell.this)) {
-				stop();
-				return;
-			}
+	public void setTickSpellInterval(int tickSpellInterval) {
+		this.tickSpellInterval = tickSpellInterval;
+	}
 
-			if (projectileModifiers != null && caster instanceof Player && !projectileModifiers.check(caster)) {
-				if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
-				if (stopOnModifierFail) stop();
-				return;
-			}
+	public int getSpecialEffectInterval() {
+		return specialEffectInterval;
+	}
 
-			if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {
-				if (durationSpell != null) durationSpell.castAtLocation(caster, currentLocation, power);
-				stop();
-				return;
-			}
+	public void setSpecialEffectInterval(int specialEffectInterval) {
+		this.specialEffectInterval = specialEffectInterval;
+	}
 
-			currentLocation = projectile.getLocation();
-			currentLocation.setDirection(projectile.getVelocity());
+	public float getRotation() {
+		return rotation;
+	}
 
-			if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.castAtLocation(caster, currentLocation, power);
+	public void setRotation(float rotation) {
+		this.rotation = rotation;
+	}
 
-			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation);
+	public float getVelocity() {
+		return velocity;
+	}
 
-			counter++;
+	public void setVelocity(float velocity) {
+		this.velocity = velocity;
+	}
 
-			for (Entity e : projectile.getNearbyEntities(hitRadius, verticalHitRadius, hitRadius)) {
-				if (!(e instanceof LivingEntity)) continue;
-				if (!validTargetList.canTarget(caster, e)) continue;
+	public float getHitRadius() {
+		return hitRadius;
+	}
 
-				SpellTargetEvent event = new SpellTargetEvent(ProjectileSpell.this, caster, (LivingEntity) e, power);
-				EventUtil.call(event);
-				if (!event.isCancelled()) {
-					if (hitSpell != null) hitSpell.castAtEntity(caster, (LivingEntity) e, event.getPower());
-					stop();
-					return;
-				}
-			}
-		}
+	public void setHitRadius(float hitRadius) {
+		this.hitRadius = hitRadius;
+	}
 
-		private void stop() {
-			playSpellEffects(EffectPosition.DELAYED, currentLocation);
-			MagicSpells.cancelTask(taskId);
-			caster = null;
-			currentLocation = null;
-			if (projectile != null) projectile.remove();
-			projectile = null;
-		}
+	public float getVertSpread() {
+		return vertSpread;
+	}
 
+	public void setVertSpread(float vertSpread) {
+		this.vertSpread = vertSpread;
+	}
+
+	public float getHorizSpread() {
+		return horizSpread;
+	}
+
+	public void setHorizSpread(float horizSpread) {
+		this.horizSpread = horizSpread;
+	}
+
+	public float getVerticalHitRadius() {
+		return verticalHitRadius;
+	}
+
+	public void setVerticalHitRadius(float verticalHitRadius) {
+		this.verticalHitRadius = verticalHitRadius;
+	}
+
+	public boolean hasGravity() {
+		return gravity;
+	}
+
+	public void setGravity(boolean gravity) {
+		this.gravity = gravity;
+	}
+
+	public boolean isCharged() {
+		return charged;
+	}
+
+	public void setCharged(boolean charged) {
+		this.charged = charged;
+	}
+
+	public boolean isIncendiary() {
+		return incendiary;
+	}
+
+	public void setIncendiary(boolean incendiary) {
+		this.incendiary = incendiary;
+	}
+
+	public boolean shouldStopOnModifierFail() {
+		return stopOnModifierFail;
+	}
+
+	public void setStopOnModifierFail(boolean stopOnModifierFail) {
+		this.stopOnModifierFail = stopOnModifierFail;
+	}
+
+	public double getMaxDuration() {
+		return maxDuration;
+	}
+
+	public void setMaxDuration(double maxDuration) {
+		this.maxDuration = maxDuration;
+	}
+
+	public String getProjectileName() {
+		return projectileName;
+	}
+
+	public void setProjectileName(String projectileName) {
+		this.projectileName = projectileName;
+	}
+
+	public Subspell getHitSpell() {
+		return hitSpell;
+	}
+
+	public void setHitSpell(Subspell hitSpell) {
+		this.hitSpell = hitSpell;
+	}
+
+	public Subspell getTickSpell() {
+		return tickSpell;
+	}
+
+	public void setTickSpell(Subspell tickSpell) {
+		this.tickSpell = tickSpell;
+	}
+
+	public Subspell getGroundSpell() {
+		return groundSpell;
+	}
+
+	public void setGroundSpell(Subspell groundSpell) {
+		this.groundSpell = groundSpell;
+	}
+
+	public Subspell getModifierSpell() {
+		return modifierSpell;
+	}
+
+	public void setModifierSpell(Subspell modifierSpell) {
+		this.modifierSpell = modifierSpell;
+	}
+
+	public Subspell getDurationSpell() {
+		return durationSpell;
+	}
+
+	public void setDurationSpell(Subspell durationSpell) {
+		this.durationSpell = durationSpell;
+	}
+
+	public ModifierSet getProjectileModifiers() {
+		return projectileModifiers;
+	}
+
+	public void setProjectileModifiers(ModifierSet projectileModifiers) {
+		this.projectileModifiers = projectileModifiers;
+	}
+
+	public boolean shouldCheckPlugins() {
+		return checkPlugins;
+	}
+
+	public void setCheckPlugins(boolean checkPlugins) {
+		this.checkPlugins = checkPlugins;
 	}
 
 }

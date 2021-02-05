@@ -1448,7 +1448,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 				// Call damage event
 				if (targetDamageCause != null) {
-					EntityDamageByEntityEvent entityDamageEvent = new MagicSpellsEntityDamageByEntityEvent(livingEntity, target, targetDamageCause, targetDamageAmount);
+					EntityDamageByEntityEvent entityDamageEvent = new MagicSpellsEntityDamageByEntityEvent(livingEntity, target, targetDamageCause, targetDamageAmount, this);
 					EventUtil.call(entityDamageEvent);
 					if (entityDamageEvent.isCancelled()) continue;
 				}

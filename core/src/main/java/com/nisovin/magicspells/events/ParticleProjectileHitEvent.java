@@ -4,16 +4,19 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.ProjectileTracker;
+import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 
 public class ParticleProjectileHitEvent extends SpellEvent implements Cancellable {
 
 	private LivingEntity target;
-	private ProjectileTracker tracker;
+
+	private ParticleProjectileTracker tracker;
+
 	private float power;
+
 	private boolean cancelled = false;
 
-	public ParticleProjectileHitEvent(LivingEntity caster, LivingEntity target, ProjectileTracker tracker, Spell spell, float power) {
+	public ParticleProjectileHitEvent(LivingEntity caster, LivingEntity target, ParticleProjectileTracker tracker, Spell spell, float power) {
 		super(spell, caster);
 
 		this.target = target;
@@ -21,11 +24,11 @@ public class ParticleProjectileHitEvent extends SpellEvent implements Cancellabl
 		this.power = power;
 	}
 
-	public ProjectileTracker getTracker() {
+	public ParticleProjectileTracker getTracker() {
 		return tracker;
 	}
 
-	public void setTracker(ProjectileTracker tracker) {
+	public void setTracker(ParticleProjectileTracker tracker) {
 		this.tracker = tracker;
 	}
 

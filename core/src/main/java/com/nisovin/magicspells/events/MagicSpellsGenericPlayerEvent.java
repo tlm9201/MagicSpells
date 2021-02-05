@@ -10,7 +10,8 @@ public class MagicSpellsGenericPlayerEvent extends Event implements Cancellable 
 	private static final HandlerList handlers = new HandlerList();
 
 	private boolean cancelled = false;
-	private Player player;
+
+	private final Player player;
 
 	public MagicSpellsGenericPlayerEvent(Player player) {
 		this.player = player;

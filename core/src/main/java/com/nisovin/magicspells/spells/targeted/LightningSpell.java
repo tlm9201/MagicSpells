@@ -58,7 +58,7 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 					power = targetInfo.getPower();
 				}
 				if (checkPlugins) {
-					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(livingEntity, entityTarget, DamageCause.ENTITY_ATTACK, 1 + additionalDamage);
+					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(livingEntity, entityTarget, DamageCause.ENTITY_ATTACK, 1 + additionalDamage, this);
 					EventUtil.call(event);
 					if (event.isCancelled()) entityTarget = null;
 				}

@@ -14,15 +14,16 @@ import com.nisovin.magicspells.Spell.PostCastAction;
  */
 public class SpellCastedEvent extends SpellEvent {
 
-	private SpellCastState state;
-	private float cooldown;
-	private SpellReagents reagents;
-	private float power;
-	private String[] args;
-	private PostCastAction action;
+	private final SpellCastState state;
+	private final float cooldown;
+	private final SpellReagents reagents;
+	private final float power;
+	private final String[] args;
+	private final PostCastAction action;
 	
 	public SpellCastedEvent(Spell spell, LivingEntity caster, SpellCastState state, float power, String[] args, float cooldown, SpellReagents reagents, PostCastAction action) {
 		super(spell, caster);
+
 		this.state = state;
 		this.cooldown = cooldown;
 		this.reagents = reagents;

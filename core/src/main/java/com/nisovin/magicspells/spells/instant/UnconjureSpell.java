@@ -18,20 +18,23 @@ import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class UnconjureSpell extends InstantSpell {
 
-	private List<String> itemNames;
-	private List<UnconjuredItem> items;
+	private final List<String> itemNames;
+	private final List<UnconjuredItem> items;
 
 	public UnconjureSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		itemNames = getConfigStringList("items", null);
+
+		items = new ArrayList<>();
 	}
 
 	@Override
 	public void initialize() {
 		super.initialize();
-		items = new ArrayList<>();
+
 		if (itemNames == null) return;
+
 		for (String itemString : itemNames) {
 			UnconjuredItem unconjuredItem = new UnconjuredItem(itemString);
 			if (unconjuredItem.item == null) {
@@ -108,10 +111,18 @@ public class UnconjureSpell extends InstantSpell {
 		return stop;
 	}
 
+	public List<String> getItemNames() {
+		return itemNames;
+	}
+
+	public List<UnconjuredItem> getItems() {
+		return items;
+	}
+
 	private static class UnconjuredItem {
 
-		ItemStack item;
-		boolean hasSpecialQuantity = false;
+		private ItemStack item;
+		private boolean hasSpecialQuantity = false;
 
 		public UnconjuredItem(String itemString) {
 			String[] splits = itemString.split(" ");

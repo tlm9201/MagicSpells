@@ -155,15 +155,15 @@ public class DowseSpell extends InstantSpell {
 				if (foundEntity == null) {
 					sendMessage(strNotFound, player, args);
 					return PostCastAction.ALREADY_HANDLED;
-				} else {
-					if (rotatePlayer) {
-						Location l = foundEntity instanceof LivingEntity ? ((LivingEntity) foundEntity).getEyeLocation() : foundEntity.getLocation();
-						Vector v = l.subtract(player.getEyeLocation()).toVector().normalize();
-						Util.setFacing(player, v);
-					}
-					if (setCompass) player.setCompassTarget(foundEntity.getLocation());
-					if (getDistance) distance = (int) Math.round(player.getLocation().distance(foundEntity.getLocation()));
 				}
+
+				if (rotatePlayer) {
+					Location l = foundEntity instanceof LivingEntity ? ((LivingEntity) foundEntity).getEyeLocation() : foundEntity.getLocation();
+					Vector v = l.subtract(player.getEyeLocation()).toVector().normalize();
+					Util.setFacing(player, v);
+				}
+				if (setCompass) player.setCompassTarget(foundEntity.getLocation());
+				if (getDistance) distance = (int) Math.round(player.getLocation().distance(foundEntity.getLocation()));
 			}
 			
 			playSpellEffects(EffectPosition.CASTER, player);
@@ -176,7 +176,71 @@ public class DowseSpell extends InstantSpell {
 		
 		return PostCastAction.HANDLE_NORMALLY;
 	}
-	
+
+	public Material getMaterial() {
+		return material;
+	}
+
+	public void setMaterial(Material material) {
+		this.material = material;
+	}
+
+	public EntityType getEntityType() {
+		return entityType;
+	}
+
+	public void setEntityType(EntityType entityType) {
+		this.entityType = entityType;
+	}
+
+	public String getPlayerName() {
+		return playerName;
+	}
+
+	public void setPlayerName(String playerName) {
+		this.playerName = playerName;
+	}
+
+	public String getStrNotFound() {
+		return strNotFound;
+	}
+
+	public void setStrNotFound(String strNotFound) {
+		this.strNotFound = strNotFound;
+	}
+
+	public int getRadius() {
+		return radius;
+	}
+
+	public void setRadius(int radius) {
+		this.radius = radius;
+	}
+
+	public boolean shouldUpdateCompass() {
+		return setCompass;
+	}
+
+	public void setUpdateCompass(boolean setCompass) {
+		this.setCompass = setCompass;
+	}
+
+	public boolean shouldGetDistance() {
+		return getDistance;
+	}
+
+	public void setGetDistance(boolean getDistance) {
+		this.getDistance = getDistance;
+	}
+
+	public boolean shouldRotatePlayer() {
+		return rotatePlayer;
+	}
+
+	public void setRotatePlayer(boolean rotatePlayer) {
+		this.rotatePlayer = rotatePlayer;
+	}
+
 	private static class NearbyEntity implements Comparable<NearbyEntity> {
 
 		private Entity entity;

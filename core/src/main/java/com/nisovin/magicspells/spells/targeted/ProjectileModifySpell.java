@@ -16,11 +16,11 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.BoundingBox;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.ProjectileTracker;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.spells.instant.ParticleProjectileSpell;
+import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 
 public class ProjectileModifySpell extends TargetedSpell implements TargetedLocationSpell {
 
@@ -257,9 +257,9 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 
 		BoundingBox box = new BoundingBox(location, hRadius, vRadius);
 
-		Set<ProjectileTracker> trackerSet = ParticleProjectileSpell.getProjectileTrackers();
+		Set<ParticleProjectileTracker> trackerSet = ParticleProjectileSpell.getProjectileTrackers();
 
-		for (ProjectileTracker tracker : trackerSet) {
+		for (ParticleProjectileTracker tracker : trackerSet) {
 			if (tracker == null) continue;
 			if (!tracker.getCurrentLocation().getWorld().equals(location.getWorld())) continue;
 			if (!box.contains(tracker.getCurrentLocation())) continue;

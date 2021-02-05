@@ -50,10 +50,10 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	private Subspell travelSpell;
 	private Subspell groundSpell;
 
-	private String hitSpellName;
-	private String endSpellName;
-	private String travelSpellName;
-	private String groundSpellName;
+	private final String hitSpellName;
+	private final String endSpellName;
+	private final String travelSpellName;
+	private final String groundSpellName;
 
 	private NoMagicZoneManager zoneManager;
 
@@ -164,9 +164,169 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		return false;
 	}
 
+	public Vector getRelativeOffset() {
+		return relativeOffset;
+	}
+
+	public void setRelativeOffset(Vector relativeOffset) {
+		this.relativeOffset = relativeOffset;
+	}
+
+	public Vector getTargetRelativeOffset() {
+		return targetRelativeOffset;
+	}
+
+	public void setTargetRelativeOffset(Vector targetRelativeOffset) {
+		this.targetRelativeOffset = targetRelativeOffset;
+	}
+
+	public double getHitRadius() {
+		return hitRadius;
+	}
+
+	public void setHitRadius(double hitRadius) {
+		this.hitRadius = hitRadius;
+	}
+
+	public double getMaxDistance() {
+		return maxDistance;
+	}
+
+	public void setMaxDistance(double maxDistance) {
+		this.maxDistance = maxDistance;
+	}
+
+	public double getVerticalHitRadius() {
+		return verticalHitRadius;
+	}
+
+	public void setVerticalHitRadius(double verticalHitRadius) {
+		this.verticalHitRadius = verticalHitRadius;
+	}
+
+	public float getGravity() {
+		return gravity;
+	}
+
+	public void setGravity(float gravity) {
+		this.gravity = gravity;
+	}
+
+	public float getInterval() {
+		return interval;
+	}
+
+	public void setInterval(float interval) {
+		this.interval = interval;
+	}
+
+	public float getRotation() {
+		return rotation;
+	}
+
+	public void setRotation(float rotation) {
+		this.rotation = rotation;
+	}
+
+	public float getBeamVerticalOffset() {
+		return beamVertOffset;
+	}
+
+	public void setBeamVerticalOffset(float beamVertOffset) {
+		this.beamVertOffset = beamVertOffset;
+	}
+
+	public float getBeamHorizontalOffset() {
+		return beamHorizOffset;
+	}
+
+	public void setBeamHorizontalOffset(float beamHorizOffset) {
+		this.beamHorizOffset = beamHorizOffset;
+	}
+
+	public float getBeamSpread() {
+		return beamSpread;
+	}
+
+	public void setBeamSpread(float beamSpread) {
+		this.beamSpread = beamSpread;
+	}
+
+	public float getBeamVerticalSpread() {
+		return beamVerticalSpread;
+	}
+
+	public void setBeamVerticalSpread(float beamVerticalSpread) {
+		this.beamVerticalSpread = beamVerticalSpread;
+	}
+
+	public float getBeamHorizontalSpread() {
+		return beamHorizontalSpread;
+	}
+
+	public void setBeamHorizontalSpread(float beamHorizontalSpread) {
+		this.beamHorizontalSpread = beamHorizontalSpread;
+	}
+
+	public boolean shouldChangePitch() {
+		return changePitch;
+	}
+
+	public void setChangePitch(boolean changePitch) {
+		this.changePitch = changePitch;
+	}
+
+	public boolean shouldStopOnHitEntity() {
+		return stopOnHitEntity;
+	}
+
+	public void setStopOnHitEntity(boolean stopOnHitEntity) {
+		this.stopOnHitEntity = stopOnHitEntity;
+	}
+
+	public boolean shouldStopOnHitGround() {
+		return stopOnHitGround;
+	}
+
+	public void setStopOnHitGround(boolean stopOnHitGround) {
+		this.stopOnHitGround = stopOnHitGround;
+	}
+
+	public Subspell getHitSpell() {
+		return hitSpell;
+	}
+
+	public void setHitSpell(Subspell hitSpell) {
+		this.hitSpell = hitSpell;
+	}
+
+	public Subspell getEndSpell() {
+		return endSpell;
+	}
+
+	public void setEndSpell(Subspell endSpell) {
+		this.endSpell = endSpell;
+	}
+
+	public Subspell getTravelSpell() {
+		return travelSpell;
+	}
+
+	public void setTravelSpell(Subspell travelSpell) {
+		this.travelSpell = travelSpell;
+	}
+
+	public Subspell getGroundSpell() {
+		return groundSpell;
+	}
+
+	public void setGroundSpell(Subspell groundSpell) {
+		this.groundSpell = groundSpell;
+	}
+
 	private class Beam {
 
-		private Set<Entity> immune;
+		private final Set<Entity> immune;
 
 		private LivingEntity caster;
 		private LivingEntity target;

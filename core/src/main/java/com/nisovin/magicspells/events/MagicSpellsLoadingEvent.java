@@ -14,7 +14,7 @@ public class MagicSpellsLoadingEvent extends Event {
 
 	private static final HandlerList handlers = new HandlerList();
 
-	private MagicSpells plugin;
+	private final MagicSpells plugin;
 
 	public MagicSpellsLoadingEvent(MagicSpells plugin) {
 		this.plugin = plugin;

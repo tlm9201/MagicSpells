@@ -10,6 +10,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 public class FoodSpell extends InstantSpell {
 
 	private int food;
+
 	private float saturation;
 	private float maxSaturation;
 	
@@ -35,6 +36,30 @@ public class FoodSpell extends InstantSpell {
 			playSpellEffects(EffectPosition.CASTER, player);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
+	}
+
+	public int getFood() {
+		return food;
+	}
+
+	public void setFood(int food) {
+		this.food = food;
+	}
+
+	public float getSaturation() {
+		return saturation;
+	}
+
+	public void setSaturation(float saturation) {
+		this.saturation = saturation;
+	}
+
+	public float getMaxSaturation() {
+		return maxSaturation;
+	}
+
+	public void setMaxSaturation(float maxSaturation) {
+		this.maxSaturation = maxSaturation;
 	}
 
 }
