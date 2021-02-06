@@ -260,6 +260,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	public void onProjectileHit(EntityDamageByEntityEvent event) {
 		if (event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE) return;
 		if (!(event.getEntity() instanceof LivingEntity)) return;
+
 		LivingEntity entity = (LivingEntity) event.getEntity();
 		Entity damagerEntity = event.getDamager();
 		if (!(damagerEntity instanceof Projectile)) return;
@@ -272,8 +273,11 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 			if (tracker.getProjectile() == null) continue;
 			if (!tracker.getProjectile().equals(projectile)) continue;
 
-			if (hitSpell != null && hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(tracker.getCaster(), entity, tracker.getPower());
-			else if (hitSpell != null && hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(tracker.getCaster(), entity.getLocation(), tracker.getPower());
+			if (tracker.getHitSpell() != null) {
+				if (tracker.getHitSpell().isTargetedEntitySpell()) tracker.getHitSpell().castAtEntity(tracker.getCaster(), entity, tracker.getPower());
+				else if (tracker.getHitSpell().isTargetedLocationSpell()) tracker.getHitSpell().castAtLocation(tracker.getCaster(), entity.getLocation(), tracker.getPower());
+			}
+
 			playSpellEffects(EffectPosition.TARGET, entity);
 			event.setCancelled(true);
 			event.setDamage(0);
