@@ -428,11 +428,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	@Override
 	protected abstract void turnOff();
 
-	@Override
-	public boolean isBeneficialDefault() {
-		return true;
-	}
-
 	public boolean isTargeted() {
 		return targeted;
 	}
