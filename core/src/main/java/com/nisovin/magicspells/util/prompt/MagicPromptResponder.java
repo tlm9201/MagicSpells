@@ -1,10 +1,10 @@
 package com.nisovin.magicspells.util.prompt;
 
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.bukkit.conversations.Prompt;
 import org.bukkit.conversations.Conversable;
 import org.bukkit.conversations.ConversationContext;
-import org.bukkit.conversations.Prompt;
-import org.bukkit.entity.Player;
+import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
 

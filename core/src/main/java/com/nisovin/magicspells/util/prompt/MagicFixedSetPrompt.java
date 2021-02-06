@@ -1,12 +1,12 @@
 package com.nisovin.magicspells.util.prompt;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.conversations.ConversationContext;
-import org.bukkit.conversations.FixedSetPrompt;
 import org.bukkit.conversations.Prompt;
+import org.bukkit.conversations.FixedSetPrompt;
+import org.bukkit.conversations.ConversationContext;
+import org.bukkit.configuration.ConfigurationSection;
 
 public class MagicFixedSetPrompt extends FixedSetPrompt {
 
@@ -36,14 +36,11 @@ public class MagicFixedSetPrompt extends FixedSetPrompt {
 	public static MagicFixedSetPrompt fromConfigSection(ConfigurationSection section) {
 		// Get the options
 		List<String> options = section.getStringList("options");
-		if (options == null || options.isEmpty()) return null;
+		if (options.isEmpty()) return null;
+
 		MagicFixedSetPrompt ret = new MagicFixedSetPrompt(options);
-		
 		ret.responder = new MagicPromptResponder(section);
-
-		String promptText = section.getString("prompt-text", "");
-		ret.promptText = promptText;
-
+		ret.promptText = section.getString("prompt-text", "");
 		return ret;
 	}
 	
