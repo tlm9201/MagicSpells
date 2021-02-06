@@ -330,7 +330,10 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 			ProjectileTracker tracker = iterator.next();
 			if (tracker.getProjectile() == null) continue;
 			if (!tracker.getProjectile().equals(projectile)) continue;
-			if (tracker.getCaster() != null && groundSpell != null) groundSpell.castAtLocation(tracker.getCaster(), projectile.getLocation(), tracker.getPower());
+
+			if (tracker.getCaster() != null && tracker.getGroundSpell() != null) {
+				tracker.getGroundSpell().castAtLocation(tracker.getCaster(), projectile.getLocation(), tracker.getPower());
+			}
 			tracker.stop(false);
 			iterator.remove();
 		}

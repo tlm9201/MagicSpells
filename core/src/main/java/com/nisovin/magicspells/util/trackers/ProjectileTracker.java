@@ -186,11 +186,11 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 			SpellTargetEvent event = new SpellTargetEvent(spell, caster, (LivingEntity) e, power);
 			EventUtil.call(event);
-			if (!event.isCancelled()) {
-				if (hitSpell != null) hitSpell.castAtEntity(caster, (LivingEntity) e, event.getPower());
-				stop();
-				return;
-			}
+			if (event.isCancelled()) continue;
+
+			if (hitSpell != null) hitSpell.castAtEntity(caster, (LivingEntity) e, event.getPower());
+			stop();
+			return;
 		}
 	}
 
