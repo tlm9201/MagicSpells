@@ -10,20 +10,20 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class MagicPromptResponder {
 
-	boolean saveToVariable;
 	String variableName;
 	
 	public MagicPromptResponder(ConfigurationSection section) {
 		variableName = section.getString("variable-name", null);
-		saveToVariable = MagicSpells.getVariableManager().getVariable(variableName) != null;
 	}
 	
 	public Prompt acceptValidatedInput(ConversationContext paramConversationContext, String paramString) {
 		String playerName = null;
 		Conversable who = ConversationContextUtil.getConversable(paramConversationContext.getAllSessionData());
 		if (who instanceof Player) playerName = ((Player)who).getName();
-		
-		if (saveToVariable) MagicSpells.getVariableManager().set(variableName, playerName, paramString);
+
+		// Try to save response to a variable.
+		MagicSpells.getVariableManager().set(variableName, playerName, paramString);
+
 		return Prompt.END_OF_CONVERSATION;
 	}
 	
