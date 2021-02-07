@@ -1,16 +1,16 @@
 package com.nisovin.magicspells.util.prompt;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.nisovin.magicspells.MagicSpells;
+
+import org.bukkit.conversations.Prompt;
+import org.bukkit.conversations.FixedSetPrompt;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.conversations.ConversationContext;
-import org.bukkit.conversations.FixedSetPrompt;
-import org.bukkit.conversations.Prompt;
-
-import com.nisovin.magicspells.MagicSpells;
 
 public class MagicEnumSetPrompt extends FixedSetPrompt {
 
@@ -68,12 +68,8 @@ public class MagicEnumSetPrompt extends FixedSetPrompt {
 		List<String> parsedValues = getEnumValues(enumClass);
 		
 		MagicEnumSetPrompt ret = new MagicEnumSetPrompt(parsedValues);
-		
 		ret.responder = new MagicPromptResponder(section);
-
-		String promptText = section.getString("prompt-text", "");
-		ret.promptText = promptText;
-
+		ret.promptText = section.getString("prompt-text", "");
 		return ret;
 	}
 	

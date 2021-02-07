@@ -2,10 +2,10 @@ package com.nisovin.magicspells.util.prompt;
 
 import java.util.regex.Pattern;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.conversations.ConversationContext;
 import org.bukkit.conversations.Prompt;
 import org.bukkit.conversations.RegexPrompt;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.conversations.ConversationContext;
 
 public class MagicRegexPrompt extends RegexPrompt {
 	
@@ -36,13 +36,10 @@ public class MagicRegexPrompt extends RegexPrompt {
 		// Handle the regex
 		String regexp = section.getString("regexp", null);
 		if (regexp == null || regexp.isEmpty()) return null;
+
 		MagicRegexPrompt ret = new MagicRegexPrompt(regexp);
-		
 		ret.responder = new MagicPromptResponder(section);
-
-		String promptText = section.getString("prompt-text", "");
-		ret.promptText = promptText;
-
+		ret.promptText = section.getString("prompt-text", "");
 		return ret;
 	}
 

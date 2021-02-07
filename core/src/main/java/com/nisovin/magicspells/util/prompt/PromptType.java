@@ -1,10 +1,10 @@
 package com.nisovin.magicspells.util.prompt;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.conversations.Prompt;
+import org.bukkit.configuration.ConfigurationSection;
 
 public enum PromptType {
 
@@ -14,35 +14,33 @@ public enum PromptType {
 		public Prompt constructPrompt(ConfigurationSection section) {
 			return MagicRegexPrompt.fromConfigSection(section);
 		}
-		
+
 	},
-	
-	FIXED_SET_PROMOT("fixed-set") {
+	FIXED_SET_PROMPT("fixed-set") {
 
 		@Override
 		public Prompt constructPrompt(ConfigurationSection section) {
 			return MagicFixedSetPrompt.fromConfigSection(section);
 		}
-		
+
 	},
-	
 	ENUM_SET_PROMPT("enum") {
 
 		@Override
 		public Prompt constructPrompt(ConfigurationSection section) {
 			return MagicEnumSetPrompt.fromConfigSection(section);
 		}
-		
+
 		@Override
 		public void unload() {
 			MagicEnumSetPrompt.unload();
 		}
-		
+
 	}
-	
+
 	;
 	
-	private String[] labels;
+	private final String[] labels;
 	
 	private static boolean initialized = false;
 	private static Map<String, PromptType> nameMap = null;
