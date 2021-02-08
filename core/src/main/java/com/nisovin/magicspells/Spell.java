@@ -61,13 +61,12 @@ import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.spelleffects.effecttypes.*;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
-import com.nisovin.magicspells.spelleffects.effecttypes.EntityEffect;
-import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
-import com.nisovin.magicspells.spelleffects.effecttypes.ArmorStandEffect;
+import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 import de.slikey.effectlib.Effect;
@@ -99,6 +98,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected Set<CastItem> bindableItems;
 	protected Set<Material> losTransparentBlocks;
 	protected Set<EffectTracker> effectTrackerSet;
+	protected Set<AsyncEffectTracker> asyncEffectTrackerSet;
 
 	protected List<String> replaces;
 	protected List<String> precludes;
@@ -567,6 +567,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		// Graphical effects
 		String path = "spells" + '.' + internalName + '.';
 		effectTrackerSet = new HashSet<>();
+		asyncEffectTrackerSet = new HashSet<>();
 		if (!config.contains(path + "effects")) return;
 
 		effects = new EnumMap<>(EffectPosition.class);
@@ -1636,22 +1637,51 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return effectTrackerSet;
 	}
 
+	public Set<AsyncEffectTracker> getAsyncEffectTrackers() {
+		return asyncEffectTrackerSet;
+	}
+
 	protected void playSpellEffectsBuff(Entity entity, SpellEffect.SpellEffectActiveChecker checker) {
 		if (effects == null) return;
-		List<SpellEffect> effectsList = effects.get(EffectPosition.BUFF);
-		if (effectsList != null) {
-			for (SpellEffect effect : effectsList) {
+		List<SpellEffect> effectList = effects.get(EffectPosition.BUFF);
+		if (effectList != null) {
+			for (SpellEffect effect : effectList) {
 				EffectTracker tracker = effect.playEffectWhileActiveOnEntity(entity, checker);
 				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
 				effectTrackerSet.add(tracker);
 			}
 		}
-		effectsList = effects.get(EffectPosition.ORBIT);
-		if (effectsList != null) {
-			for (SpellEffect effect : effectsList) {
+
+		effectList = effects.get(EffectPosition.ORBIT);
+		if (effectList != null) {
+			for (SpellEffect effect : effectList) {
 				EffectTracker tracker = effect.playEffectWhileActiveOrbit(entity, checker);
 				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
 				effectTrackerSet.add(tracker);
+			}
+		}
+
+		effectList = effects.get(EffectPosition.BUFF_EFFECTLIB);
+		if (effectList != null) {
+			for (SpellEffect effect : effectList) {
+				if (!(effect instanceof EffectLibEffect)) continue;
+				AsyncEffectTracker tracker = effect.playEffectlibEffectWhileActiveOnEntity(entity, checker);
+				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
+				asyncEffectTrackerSet.add(tracker);
+			}
+		}
+
+		// only normal effectlib effect is allowed
+		effectList = effects.get(EffectPosition.ORBIT_EFFECTLIB);
+		if (effectList != null) {
+			for (SpellEffect effect : effectList) {
+				if (!(effect instanceof EffectLibEffect)) continue;
+				if (effect instanceof EffectLibLineEffect) continue;
+				if (effect instanceof EffectLibEntityEffect) continue;
+
+				AsyncEffectTracker tracker = effect.playEffectlibEffectWhileActiveOrbit(entity, checker);
+				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
+				asyncEffectTrackerSet.add(tracker);
 			}
 		}
 	}

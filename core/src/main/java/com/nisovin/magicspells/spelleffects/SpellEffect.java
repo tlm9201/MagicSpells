@@ -16,6 +16,8 @@ import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.trackers.BuffTracker;
 import com.nisovin.magicspells.spelleffects.trackers.OrbitTracker;
+import com.nisovin.magicspells.spelleffects.trackers.BuffEffectlibTracker;
+import com.nisovin.magicspells.spelleffects.trackers.OrbitEffectlibTracker;
 
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.util.VectorUtils;
@@ -251,6 +253,14 @@ public abstract class SpellEffect {
 			playEffect(l);
 		}
 		return null;
+	}
+
+	public BuffEffectlibTracker playEffectlibEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker) {
+		return new BuffEffectlibTracker(entity, checker, this);
+	}
+
+	public OrbitEffectlibTracker playEffectlibEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker) {
+		return new OrbitEffectlibTracker(entity, checker, this);
 	}
 	
 	public BuffTracker playEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker) {

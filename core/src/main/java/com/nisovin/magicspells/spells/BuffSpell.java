@@ -1,11 +1,10 @@
 package com.nisovin.magicspells.spells;
 
-import java.util.Set;
 import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -39,6 +38,7 @@ import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
+import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 
 public abstract class BuffSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -405,22 +405,41 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	public void stopEffects(LivingEntity livingEntity) {
-		Set<EffectTracker> trackers = new HashSet<>(getEffectTrackers());
-		for (EffectTracker tracker : trackers) {
+		Iterator<EffectTracker> trackerIterator = getEffectTrackers().iterator();
+		EffectTracker tracker;
+		while(trackerIterator.hasNext()) {
+			tracker = trackerIterator.next();
 			if (tracker.getEntity() != null && !tracker.getEntity().equals(livingEntity)) continue;
 			tracker.stop();
-			tracker.unregister();
+			trackerIterator.remove();
 		}
-		trackers.clear();
+
+		Iterator<AsyncEffectTracker> asyncTrackerIterator = getAsyncEffectTrackers().iterator();
+		AsyncEffectTracker asyncTracker;
+		while(asyncTrackerIterator.hasNext()) {
+			asyncTracker = asyncTrackerIterator.next();
+			if (asyncTracker.getEntity() != null && !asyncTracker.getEntity().equals(livingEntity)) continue;
+			asyncTracker.stop();
+			asyncTrackerIterator.remove();
+		}
 	}
 
 	public void stopAllEffects() {
-		Set<EffectTracker> trackers = new HashSet<>(getEffectTrackers());
-		getEffectTrackers().clear();
-		for (EffectTracker effectTracker : trackers) {
+		Iterator<EffectTracker> trackerIterator = getEffectTrackers().iterator();
+		EffectTracker effectTracker;
+		while(trackerIterator.hasNext()) {
+			effectTracker = trackerIterator.next();
 			effectTracker.stop();
+			trackerIterator.remove();
 		}
-		trackers.clear();
+
+		Iterator<AsyncEffectTracker> asyncTrackerIterator = getAsyncEffectTrackers().iterator();
+		AsyncEffectTracker asyncEffectTracker;
+		while(asyncTrackerIterator.hasNext()) {
+			asyncEffectTracker = asyncTrackerIterator.next();
+			asyncEffectTracker.stop();
+			asyncTrackerIterator.remove();
+		}
 	}
 
 	protected abstract void turnOffBuff(LivingEntity entity);
