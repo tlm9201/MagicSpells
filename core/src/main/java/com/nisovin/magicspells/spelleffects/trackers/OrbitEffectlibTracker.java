@@ -55,7 +55,7 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 
 	@Override
 	public void run() {
-		if (!entity.isValid() || !checker.isActive(entity) || effect == null) {
+		if (entity == null ||  !entity.isValid() || !checker.isActive(entity) || effect == null) {
 			stop();
 			return;
 		}
@@ -65,8 +65,7 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 		zAxis += effect.getOrbitZAxis();
 
 		Location loc = getLocation();
-
-		effectlibEffect.setLocation(loc);
+		effectlibEffect.setLocation(effect.applyOffsets(loc));
 	}
 
 	private Location getLocation() {
