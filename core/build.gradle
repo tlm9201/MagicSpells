@@ -26,7 +26,7 @@ dependencies {
     implementation "com.github.MilkBowl:VaultAPI:ea40092989"
     implementation "com.github.EngineHub.WorldEdit:worldedit-bukkit:d47f59e051"
     implementation "com.github.EngineHub.WorldGuard:worldguard-bukkit:0e73b50d6f"
-    implementation "LibsDisguises:LibsDisguises:10.0.21"
+    implementation "LibsDisguises:LibsDisguises:10.0.23"
     implementation "com.github.PlaceholderAPI:PlaceholderAPI:93e83efb57"
     implementation "com.github.TechFortress:GriefPrevention:47cd376610"
     implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.5.1"

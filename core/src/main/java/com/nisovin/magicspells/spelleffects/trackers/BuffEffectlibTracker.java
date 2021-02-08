@@ -20,12 +20,12 @@ public class BuffEffectlibTracker extends AsyncEffectTracker implements Runnable
 
 	@Override
 	public void run() {
-		if (!entity.isValid() || !checker.isActive(entity) || effect == null) {
+		if (entity == null || !entity.isValid() || !checker.isActive(entity) || effect == null) {
 			stop();
 			return;
 		}
 
-		effectlibEffect.setLocation(entity.getLocation());
+		effectlibEffect.setLocation(effect.applyOffsets(entity.getLocation().clone()));
 	}
 
 	@Override

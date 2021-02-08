@@ -119,16 +119,17 @@ public abstract class SpellEffect {
 	
 	protected abstract void loadFromConfig(ConfigurationSection config);
 
-	private void applyOffsets(Location loc) {
+	public Location applyOffsets(Location loc) {
 		if (offset.getX() != 0 || offset.getY() != 0 || offset.getZ() != 0) loc.add(offset);
 		if (relativeOffset.getX() != 0 || relativeOffset.getY() != 0 || relativeOffset.getZ() != 0) loc.add(VectorUtils.rotateVector(relativeOffset, loc));
 		if (zOffset != 0) {
 			Vector locDirection = loc.getDirection().normalize();
 			Vector horizOffset = new Vector(-locDirection.getZ(), 0.0, locDirection.getX()).normalize();
-			loc.add(horizOffset.multiply(zOffset)).getBlock().getLocation();
+			loc.add(horizOffset.multiply(zOffset));
 		}
 		if (heightOffset != 0) loc.setY(loc.getY() + heightOffset);
 		if (forwardOffset != 0) loc.add(loc.getDirection().setY(0).normalize().multiply(forwardOffset));
+		return loc;
 	}
 
 	/**
