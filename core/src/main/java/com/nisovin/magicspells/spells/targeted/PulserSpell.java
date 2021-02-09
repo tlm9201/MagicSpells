@@ -33,35 +33,34 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class PulserSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Map<Block, Pulser> pulsers;
+	private final Map<Block, Pulser> pulsers;
 	private Material material;
-	private String materialName;
 
-	private int yOffset;
-	private int interval;
-	private int totalPulses;
-	private int capPerPlayer;
+	private final int yOffset;
+	private final int interval;
+	private final int totalPulses;
+	private final int capPerPlayer;
 
 	private double maxDistanceSquared;
 
-	private boolean checkFace;
-	private boolean unbreakable;
-	private boolean onlyCountOnSuccess;
+	private final boolean checkFace;
+	private final boolean unbreakable;
+	private final boolean onlyCountOnSuccess;
 
-	private List<String> spellNames;
+	private final List<String> spellNames;
 	private List<TargetedLocationSpell> spells;
 
-	private String spellNameOnBreak;
+	private final String spellNameOnBreak;
 	private TargetedLocationSpell spellOnBreak;
 
-	private String strAtCap;
+	private final String strAtCap;
 
-	private PulserTicker ticker;
+	private final PulserTicker ticker;
 
 	public PulserSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("block-type", "DIAMOND_BLOCK");
+		String materialName = getConfigString("block-type", "DIAMOND_BLOCK");
 		material = Util.getMaterial(materialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("PulserSpell '" + internalName + "' has an invalid block-type defined");
@@ -247,10 +246,10 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	
 	private class Pulser {
 
-		private LivingEntity caster;
-		private Block block;
-		private Location location;
-		private float power;
+		private final LivingEntity caster;
+		private final Block block;
+		private final Location location;
+		private final float power;
 		private int pulseCount;
 		
 		private Pulser(LivingEntity caster, Block block, float power, Location from) {
