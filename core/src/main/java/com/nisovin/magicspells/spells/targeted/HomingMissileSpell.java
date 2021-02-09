@@ -24,9 +24,8 @@ import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.events.SpellPreImpactEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
-
-import de.slikey.effectlib.Effect;
 
 import io.papermc.lib.PaperLib;
 
@@ -221,7 +220,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 	private class MissileTracker implements Runnable {
 
-		Set<Effect> effectSet;
+		Set<EffectlibSpellEffect> effectSet;
 		Set<Entity> entitySet;
 		Set<ArmorStand> armorStandSet;
 
@@ -357,8 +356,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			currentLocation.setDirection(currentVelocity);
 			playMissileEffect(currentLocation);
 			if (effectSet != null) {
-				for (Effect effect : effectSet) {
-					effect.setLocation(currentLocation);
+				for (EffectlibSpellEffect spellEffect : effectSet) {
+					spellEffect.getEffect().setLocation(spellEffect.getSpellEffect().applyOffsets(currentLocation.clone()));
 				}
 			}
 
@@ -415,19 +414,22 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			playSpellEffects(EffectPosition.DELAYED, currentLocation);
 			MagicSpells.cancelTask(taskId);
 			if (effectSet != null) {
-				for (Effect effect : effectSet) {
-					effect.cancel();
+				for (EffectlibSpellEffect spellEffect : effectSet) {
+					spellEffect.getEffect().cancel();
 				}
+				effectSet.clear();
 			}
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
 					armorStand.remove();
 				}
+				armorStandSet.clear();
 			}
 			if (entitySet != null) {
 				for (Entity entity : entitySet) {
 					entity.remove();
 				}
+				entitySet.clear();
 			}
 			caster = null;
 			target = null;

@@ -22,9 +22,8 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
+import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
-
-import de.slikey.effectlib.Effect;
 
 public class ParticleProjectileSpell extends InstantSpell implements TargetedLocationSpell, TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
@@ -414,7 +413,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		playSpellEffects(position, entity);
 	}
 
-	public Set<Effect> playEffectsProjectile(EffectPosition position, Location location) {
+	public Set<EffectlibSpellEffect> playEffectsProjectile(EffectPosition position, Location location) {
 		return playSpellEffectLibEffects(position, location);
 	}
 
