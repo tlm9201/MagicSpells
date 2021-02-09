@@ -66,6 +66,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
+import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
@@ -1530,14 +1531,14 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 	}
 
-	protected Set<Effect> playSpellEffectLibEffects(EffectPosition pos, Location location) {
+	protected Set<EffectlibSpellEffect> playSpellEffectLibEffects(EffectPosition pos, Location location) {
 		if (effects == null) return null;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return null;
-		Set<Effect> spellEffects = new HashSet<>();
+		Set<EffectlibSpellEffect> spellEffects = new HashSet<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof EffectLibEffect)) continue;
-			spellEffects.add(effect.playEffectLib(location));
+			spellEffects.add(new EffectlibSpellEffect(effect.playEffectLib(location), (EffectLibEffect) effect));
 		}
 		return spellEffects;
 	}
