@@ -32,6 +32,7 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 
 	public OrbitEffectlibTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
 		super(entity, checker, effect);
+
 		currentPosition = entity.getLocation().getDirection().setY(0);
 		Util.rotateVector(currentPosition, effect.getHorizOffset());
 		orbRadius = effect.getOrbitRadius();
@@ -50,12 +51,12 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 		}
 
 		effectlibEffect = effect.playEffectLib(entity.getLocation());
-		effectlibEffect.infinite();
+		if (effectlibEffect != null) effectlibEffect.infinite();
 	}
 
 	@Override
 	public void run() {
-		if (entity == null ||  !entity.isValid() || !checker.isActive(entity) || effect == null) {
+		if (!canRun()) {
 			stop();
 			return;
 		}
@@ -88,6 +89,15 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 
 	public Effect getEffectlibEffect() {
 		return effectlibEffect;
+	}
+
+	public boolean canRun() {
+		if (entity == null) return false;
+		if (!entity.isValid()) return false;
+		if (!checker.isActive(entity)) return false;
+		if (effect == null) return false;
+		if (effectlibEffect == null) return false;
+		return true;
 	}
 
 }
