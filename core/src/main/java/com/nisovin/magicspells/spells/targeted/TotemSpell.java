@@ -20,7 +20,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 
-import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
@@ -69,10 +69,10 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private ItemStack offHand;
 
 	private final List<String> spellNames;
-	private List<TargetedLocationSpell> spells;
+	private List<Subspell> spells;
 
 	private final String spellNameOnBreak;
-	private TargetedLocationSpell spellOnBreak;
+	private Subspell spellOnBreak;
 
 	public TotemSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -157,16 +157,18 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		spells = new ArrayList<>();
 		if (spellNames != null && !spellNames.isEmpty()) {
 			for (String spellName : spellNames) {
-				Spell spell = MagicSpells.getSpellByInternalName(spellName);
-				if (!(spell instanceof TargetedLocationSpell)) continue;
-				spells.add((TargetedLocationSpell) spell);
+				Subspell spell = new Subspell(spellName);
+				if (!spell.process() || !spell.isTargetedLocationSpell()) continue;
+				spells.add(spell);
 			}
 		}
 
 		if (!spellNameOnBreak.isEmpty()) {
-			Spell spell = MagicSpells.getSpellByInternalName(spellNameOnBreak);
-			if (spell instanceof TargetedLocationSpell) spellOnBreak = (TargetedLocationSpell) spell;
-			else MagicSpells.error("TotemSpell '" + internalName + "' has an invalid spell-on-break defined");
+			spellOnBreak = new Subspell(spellNameOnBreak);
+			if (!spellOnBreak.process() || !spellOnBreak.isTargetedLocationSpell()) {
+				MagicSpells.error("TotemSpell '" + internalName + "' has an invalid spell-on-break defined");
+				spellOnBreak = null;
+			}
 		}
 
 		if (spells.isEmpty()) MagicSpells.error("TotemSpell '" + internalName + "' has no spells defined!");
@@ -356,9 +358,8 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		private boolean activate() {
 			boolean activated = false;
-			for (TargetedLocationSpell spell : spells) {
-				if (caster != null) activated = spell.castAtLocation(caster, totemLocation, power) || activated;
-				else activated = spell.castAtLocation(totemLocation, power) || activated;
+			for (Subspell spell : spells) {
+				activated = spell.castAtLocation(caster, totemLocation, power) || activated;
 			}
 
 			playSpellEffects(EffectPosition.SPECIAL, totemLocation);
@@ -376,10 +377,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			if (!totemLocation.getChunk().isLoaded()) totemLocation.getChunk().load();
 			armorStand.remove();
 			playSpellEffects(EffectPosition.DISABLED, totemLocation);
-			if (spellOnBreak != null) {
-				if (caster == null) spellOnBreak.castAtLocation(totemLocation, power);
-				else if (caster.isValid()) spellOnBreak.castAtLocation(caster, totemLocation, power);
-			}
+			if (spellOnBreak != null) spellOnBreak.castAtLocation(caster, totemLocation, power);
 		}
 
 	}
