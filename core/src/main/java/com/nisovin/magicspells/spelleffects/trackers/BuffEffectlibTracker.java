@@ -15,12 +15,12 @@ public class BuffEffectlibTracker extends AsyncEffectTracker implements Runnable
 		super(entity, checker, effect);
 
 		effectlibEffect = effect.playEffectLib(entity.getLocation());
-		effectlibEffect.infinite();
+		if (effectlibEffect != null) effectlibEffect.infinite();
 	}
 
 	@Override
 	public void run() {
-		if (entity == null || !entity.isValid() || !checker.isActive(entity) || effect == null) {
+		if (!canRun()) {
 			stop();
 			return;
 		}
@@ -36,6 +36,15 @@ public class BuffEffectlibTracker extends AsyncEffectTracker implements Runnable
 
 	public Effect getEffectlibEffect() {
 		return effectlibEffect;
+	}
+
+	public boolean canRun() {
+		if (entity == null) return false;
+		if (!entity.isValid()) return false;
+		if (!checker.isActive(entity)) return false;
+		if (effect == null) return false;
+		if (effectlibEffect == null) return false;
+		return true;
 	}
 
 }
