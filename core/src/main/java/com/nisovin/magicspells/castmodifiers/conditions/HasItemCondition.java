@@ -40,7 +40,7 @@ public class HasItemCondition extends Condition {
 			}
 			if (var.contains(":")) {
 				String[] vardata = var.split(":");
-				material = Material.matchMaterial(vardata[0], true);
+				material = Util.getMaterial(vardata[0]);
 				if (vardata[1].equals("*")) {
 					data = 0;
 					checkData = false;
@@ -49,7 +49,7 @@ public class HasItemCondition extends Condition {
 					checkData = true;
 				}
 			} else {
-				material = Material.matchMaterial(var);
+				material = Util.getMaterial(var);
 				checkData = false;
 			}
 			return true;

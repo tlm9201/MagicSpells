@@ -7,6 +7,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.event.Listener;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ItemUtil;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -213,13 +214,16 @@ public class RecipeHandler implements Listener {
         }
         Material material = null;
         try {
-            material = Material.getMaterial(materialName.toUpperCase());
+            material = Util.getMaterial(materialName);
+        } catch (IllegalArgumentException ignored) {
+
         }
-        catch (IllegalArgumentException ignored) {}
+
         if (material == null) {
             MagicSpells.error(errorMsg);
             return null;
         }
         return material;
     }
+
 }
