@@ -42,7 +42,7 @@ public class OffhandCondition extends Condition {
 				}
 				if (vardata[i].contains(":")) {
 					String[] subvardata = vardata[i].split(":");
-					ids[i] = Material.matchMaterial(subvardata[0], true);
+					ids[i] = Util.getMaterial(subvardata[0]);
 					if (subvardata[1].equals("*")) {
 						datas[i] = 0;
 						checkData[i] = false;
@@ -51,7 +51,7 @@ public class OffhandCondition extends Condition {
 						checkData[i] = true;
 					}
 				} else {
-					ids[i] = Material.matchMaterial(vardata[i]);
+					ids[i] = Util.getMaterial(vardata[i]);
 					datas[i] = 0;
 					checkData[i] = false;
 				}
