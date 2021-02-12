@@ -13,6 +13,7 @@ import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker
 
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.util.VectorUtils;
+import de.slikey.effectlib.effect.ModifiedEffect;
 
 public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnable {
 
@@ -65,8 +66,13 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 		yAxis += effect.getOrbitYAxis();
 		zAxis += effect.getOrbitZAxis();
 
-		Location loc = getLocation();
-		effectlibEffect.setLocation(effect.applyOffsets(loc));
+		Location loc = effect.applyOffsets(getLocation());
+
+		effectlibEffect.setLocation(loc);
+		if (effectlibEffect instanceof ModifiedEffect) {
+			Effect modifiedEffect = ((ModifiedEffect) effectlibEffect).getInnerEffect();
+			if (modifiedEffect != null) modifiedEffect.setLocation(loc);
+		}
 	}
 
 	private Location getLocation() {

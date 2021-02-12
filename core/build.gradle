@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     shadow group: "org.apache.commons", name: "commons-math3", version: "3.6.1"
-    shadow "com.github.Chronoken:EffectLib:56678531c1"
+    shadow "com.github.Chronoken:EffectLib:70965f2fd6"
     shadow "com.github.Xezard:XGlow:c886344de3"
     shadow "com.github.PaperMC:PaperLib:0621f6d900"
     shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"

@@ -107,7 +107,7 @@ public class ManaSystem extends ManaHandler {
 		}
 	}
 	
-	// DEBUG INFO: level 1, creating mana bar for player playername with rank rankname
+	// DEBUG INFO: level 1, creating mana bar for player playerName with rank rankName
 	private ManaBar getManaBar(Player player) {
 		ManaBar bar = manaBars.get(player.getUniqueId());
 		if (bar == null) {
@@ -120,7 +120,7 @@ public class ManaSystem extends ManaHandler {
 		return bar;
 	}
 	
-	// DEBUG INFO: level 1, updating mana bar for player playername with rank rankname
+	// DEBUG INFO: level 1, updating mana bar for player playerName with rank rankName
 	@Override
 	public void createManaBar(final Player player) {
 		boolean update = manaBars.containsKey(player.getUniqueId());
@@ -149,8 +149,8 @@ public class ManaSystem extends ManaHandler {
 		return false;
 	}
 	
-	// DEBUG INFO: level 3, fetching mana rank for playername
-	// DEBUG INFO: level 3, checking rank rankname
+	// DEBUG INFO: level 3, fetching mana rank for playerName
+	// DEBUG INFO: level 3, checking rank rankName
 	// DEBUG INFO: level 3, rank found
 	// DEBUG INFO: level 3, no rank found
 	private ManaRank getRank(Player player) {
