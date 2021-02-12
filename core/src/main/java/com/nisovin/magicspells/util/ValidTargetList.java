@@ -290,6 +290,21 @@ public class ValidTargetList {
 	public boolean canTargetNonLivingEntities() {
 		return targetNonLivingEntities;
 	}
+
+	public boolean canTargetOnlyCaster() {
+		if (targetAnimals) return false;
+		if (targetPlayers) return false;
+		if (targetMonsters) return false;
+		if (targetInvisibles) return false;
+		if (targetNonPlayers) return false;
+		if (targetNonLivingEntities) return false;
+		if (targetMounts) return false;
+		if (targetPassengers) return false;
+		if (targetCasterMount) return false;
+		if (targetCasterPassenger) return false;
+		if (targetEntityTarget) return false;
+		return targetSelf;
+	}
 	
 	@Override
 	public String toString() {

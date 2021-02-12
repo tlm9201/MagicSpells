@@ -28,13 +28,16 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 
 	public OrbitTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
 		super(entity, checker, effect);
+
 		currentPosition = entity.getLocation().getDirection().setY(0);
 		Util.rotateVector(currentPosition, effect.getHorizOffset());
 		orbRadius = effect.getOrbitRadius();
 		orbHeight = effect.getOrbitYOffset();
+
 		if (effect.getHorizExpandDelay() > 0 && effect.getHorizExpandRadius() != 0) {
 			repeatingHorizTaskId = MagicSpells.scheduleRepeatingTask(() -> orbRadius += effect.getHorizExpandRadius(), effect.getHorizExpandDelay(), effect.getHorizExpandDelay());
 		}
+
 		if (effect.getVertExpandDelay() > 0 && effect.getVertExpandRadius() != 0) {
 			repeatingVertTaskId = MagicSpells.scheduleRepeatingTask(() -> orbHeight += effect.getVertExpandRadius(), effect.getVertExpandDelay(), effect.getVertExpandDelay());
 		}

@@ -78,48 +78,58 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		return true;
 	}
 	
-	private void knockback(LivingEntity livingEntity, Location location, float basePower) {
+	private void knockback(LivingEntity caster, Location location, float basePower) {
 		if (location == null) return;
 		if (location.getWorld() == null) return;
 
 		location = location.clone().add(0D, yOffset, 0D);
+
+		if (validTargetList.canTargetOnlyCaster()) {
+			if (caster == null) return;
+			bomb(caster, caster, location, basePower);
+
+			playSpellEffects(EffectPosition.TARGET, caster);
+			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.SPECIAL, location);
+			return;
+		}
+
 		Collection<LivingEntity> entities = location.getWorld().getLivingEntities();
-
-		Vector e;
-		Vector v;
-		Vector t = location.toVector();
 		for (LivingEntity entity : entities) {
-			if (livingEntity == null && !validTargetList.canTarget(entity)) continue;
-			if (livingEntity != null && !validTargetList.canTarget(livingEntity, entity)) continue;
-			if (!entity.getLocation().getWorld().equals(location.getWorld())) continue;
-			if (entity.getLocation().distanceSquared(location) > radiusSquared) continue;
+			if (caster == null && !validTargetList.canTarget(entity)) continue;
+			if (caster != null && !validTargetList.canTarget(caster, entity)) continue;
 
-			float power = basePower;
-			if (callTargetEvents && livingEntity != null) {
-				SpellTargetEvent event = new SpellTargetEvent(this, livingEntity, entity, power);
-				EventUtil.call(event);
-				if (event.isCancelled()) continue;
-				power = event.getPower();
-			}
-
-			e = entity.getLocation().toVector();
-			v = e.subtract(t).normalize().multiply(force * power);
-
-			if (force != 0) v.setY(v.getY() * (yForce * power));
-			else v.setY(yForce * power);
-			if (v.getY() > maxYForce) v.setY(maxYForce);
-
-			v = Util.makeFinite(v);
-
-			if (addVelocityInstead) entity.setVelocity(entity.getVelocity().add(v));
-			else entity.setVelocity(v);
-
-			if (livingEntity != null) playSpellEffectsTrail(livingEntity.getLocation(), entity.getLocation());
+			bomb(caster, entity, location, basePower);
+			if (caster != null) playSpellEffectsTrail(caster.getLocation(), entity.getLocation());
 			playSpellEffects(EffectPosition.TARGET, entity);
 		}
 
 		playSpellEffects(EffectPosition.SPECIAL, location);
-		if (livingEntity != null) playSpellEffects(EffectPosition.CASTER, livingEntity);
+		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
+	}
+
+	private void bomb(LivingEntity caster, LivingEntity target, Location location, float basePower) {
+		if (!target.getLocation().getWorld().equals(location.getWorld())) return;
+		if (target.getLocation().distanceSquared(location) > radiusSquared) return;
+
+		float power = basePower;
+		if (callTargetEvents && caster != null) {
+			SpellTargetEvent event = new SpellTargetEvent(this, caster, target, power);
+			EventUtil.call(event);
+			if (event.isCancelled()) return;
+			power = event.getPower();
+		}
+
+		Vector v = target.getLocation().toVector().subtract(location.toVector()).normalize().multiply(force * power);
+
+		if (force != 0) v.setY(v.getY() * (yForce * power));
+		else v.setY(yForce * power);
+		if (v.getY() > maxYForce) v.setY(maxYForce);
+
+		v = Util.makeFinite(v);
+
+		if (addVelocityInstead) target.setVelocity(target.getVelocity().add(v));
+		else target.setVelocity(v);
 	}
 
 }

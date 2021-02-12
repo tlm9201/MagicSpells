@@ -1,8 +1,10 @@
 package com.nisovin.magicspells.spelleffects.trackers;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 
 import de.slikey.effectlib.Effect;
+import de.slikey.effectlib.effect.ModifiedEffect;
 
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
@@ -25,7 +27,13 @@ public class BuffEffectlibTracker extends AsyncEffectTracker implements Runnable
 			return;
 		}
 
-		effectlibEffect.setLocation(effect.applyOffsets(entity.getLocation().clone()));
+		Location entityLoc = effect.applyOffsets(entity.getLocation().clone());
+
+		effectlibEffect.setLocation(entityLoc);
+		if (effectlibEffect instanceof ModifiedEffect) {
+			Effect modifiedEffect = ((ModifiedEffect) effectlibEffect).getInnerEffect();
+			if (modifiedEffect != null) modifiedEffect.setLocation(entityLoc);
+		}
 	}
 
 	@Override
