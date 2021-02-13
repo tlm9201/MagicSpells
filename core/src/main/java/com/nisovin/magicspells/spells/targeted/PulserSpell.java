@@ -19,7 +19,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 
-import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
@@ -33,35 +33,34 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class PulserSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Map<Block, Pulser> pulsers;
+	private final Map<Block, Pulser> pulsers;
 	private Material material;
-	private String materialName;
 
-	private int yOffset;
-	private int interval;
-	private int totalPulses;
-	private int capPerPlayer;
+	private final int yOffset;
+	private final int interval;
+	private final int totalPulses;
+	private final int capPerPlayer;
 
 	private double maxDistanceSquared;
 
-	private boolean checkFace;
-	private boolean unbreakable;
-	private boolean onlyCountOnSuccess;
+	private final boolean checkFace;
+	private final boolean unbreakable;
+	private final boolean onlyCountOnSuccess;
 
-	private List<String> spellNames;
-	private List<TargetedLocationSpell> spells;
+	private final List<String> spellNames;
+	private List<Subspell> spells;
 
-	private String spellNameOnBreak;
-	private TargetedLocationSpell spellOnBreak;
+	private final String spellNameOnBreak;
+	private Subspell spellOnBreak;
 
-	private String strAtCap;
+	private final String strAtCap;
 
-	private PulserTicker ticker;
+	private final PulserTicker ticker;
 
 	public PulserSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("block-type", "DIAMOND_BLOCK");
+		String materialName = getConfigString("block-type", "DIAMOND_BLOCK");
 		material = Util.getMaterial(materialName);
 		if (material == null || !material.isBlock()) {
 			MagicSpells.error("PulserSpell '" + internalName + "' has an invalid block-type defined");
@@ -96,16 +95,18 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		spells = new ArrayList<>();
 		if (spellNames != null && !spellNames.isEmpty()) {
 			for (String spellName : spellNames) {
-				Spell spell = MagicSpells.getSpellByInternalName(spellName);
-				if (!(spell instanceof TargetedLocationSpell)) continue;
-				spells.add((TargetedLocationSpell) spell);
+				Subspell spell = new Subspell(spellName);
+				if (!spell.process() || !spell.isTargetedLocationSpell()) continue;
+				spells.add(spell);
 			}
 		}
 
 		if (!spellNameOnBreak.isEmpty()) {
-			Spell spell = MagicSpells.getSpellByInternalName(spellNameOnBreak);
-			if (spell instanceof TargetedLocationSpell) spellOnBreak = (TargetedLocationSpell) spell;
-			else MagicSpells.error("PulserSpell '" + internalName + "' has an invalid spell-on-break defined");
+			spellOnBreak = new Subspell(spellNameOnBreak);
+			if (!spellOnBreak.process() || !spellOnBreak.isTargetedLocationSpell()) {
+				MagicSpells.error("PulserSpell '" + internalName + "' has an invalid spell-on-break defined");
+				spellOnBreak = null;
+			}
 		}
 
 		if (spells.isEmpty()) MagicSpells.error("PulserSpell '" + internalName + "' has no spells defined!");
@@ -247,10 +248,10 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	
 	private class Pulser {
 
-		private LivingEntity caster;
-		private Block block;
-		private Location location;
-		private float power;
+		private final LivingEntity caster;
+		private final Block block;
+		private final Location location;
+		private final float power;
 		private int pulseCount;
 		
 		private Pulser(LivingEntity caster, Block block, float power, Location from) {
@@ -279,9 +280,8 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		
 		private boolean activate() {
 			boolean activated = false;
-			for (TargetedLocationSpell spell : spells) {
-				if (caster != null) activated = spell.castAtLocation(caster, location, power) || activated;
-				else activated = spell.castAtLocation(location, power) || activated;
+			for (Subspell spell : spells) {
+				activated = spell.castAtLocation(caster, location, power) || activated;
 			}
 			playSpellEffects(EffectPosition.DELAYED, location);
 			if (totalPulses > 0 && (activated || !onlyCountOnSuccess)) {
@@ -298,9 +298,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			if (!block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) block.getChunk().load();
 			block.setType(Material.AIR);
 			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation());
-			if (spellOnBreak == null) return;
-			if (caster == null) spellOnBreak.castAtLocation(location, power);
-			else if (caster.isValid()) spellOnBreak.castAtLocation(caster, location, power);
+			if (spellOnBreak != null) spellOnBreak.castAtLocation(caster, location, power);
 		}
 
 	}
