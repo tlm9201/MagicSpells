@@ -330,6 +330,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 		if (effectSet != null) {
 			for (EffectlibSpellEffect spellEffect : effectSet) {
+				if (spellEffect == null) continue;
+				if (spellEffect.getEffect() == null) continue;
 				spellEffect.getEffect().setLocation(spellEffect.getSpellEffect().applyOffsets(currentLocation.clone()));
 			}
 		}

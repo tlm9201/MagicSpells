@@ -357,6 +357,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			playMissileEffect(currentLocation);
 			if (effectSet != null) {
 				for (EffectlibSpellEffect spellEffect : effectSet) {
+					if (spellEffect == null) continue;
+					if (spellEffect.getEffect() == null) continue;
 					spellEffect.getEffect().setLocation(spellEffect.getSpellEffect().applyOffsets(currentLocation.clone()));
 				}
 			}
