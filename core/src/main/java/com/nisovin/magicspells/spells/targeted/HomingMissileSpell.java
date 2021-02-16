@@ -29,6 +29,9 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 import io.papermc.lib.PaperLib;
 
+import de.slikey.effectlib.Effect;
+import de.slikey.effectlib.effect.ModifiedEffect;
+
 public class HomingMissileSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
 	private HomingMissileSpell thisSpell;
@@ -356,10 +359,20 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			currentLocation.setDirection(currentVelocity);
 			playMissileEffect(currentLocation);
 			if (effectSet != null) {
+				Effect effect;
+				Location effectLoc;
 				for (EffectlibSpellEffect spellEffect : effectSet) {
 					if (spellEffect == null) continue;
-					if (spellEffect.getEffect() == null) continue;
-					spellEffect.getEffect().setLocation(spellEffect.getSpellEffect().applyOffsets(currentLocation.clone()));
+					effect = spellEffect.getEffect();
+					if (effect == null) continue;
+
+					effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone());
+					effect.setLocation(effectLoc);
+
+					if (effect instanceof ModifiedEffect) {
+						Effect modifiedEffect = ((ModifiedEffect) effect).getInnerEffect();
+						if (modifiedEffect != null) modifiedEffect.setLocation(effectLoc);
+					}
 				}
 			}
 
