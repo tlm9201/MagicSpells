@@ -32,6 +32,9 @@ import com.nisovin.magicspells.spells.instant.ParticleProjectileSpell;
 
 import io.papermc.lib.PaperLib;
 
+import de.slikey.effectlib.Effect;
+import de.slikey.effectlib.effect.ModifiedEffect;
+
 public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	private final Random rand = ThreadLocalRandom.current();
@@ -329,10 +332,20 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		LocationUtil.setDirection(currentLocation, currentVelocity);
 
 		if (effectSet != null) {
+			Effect effect;
+			Location effectLoc;
 			for (EffectlibSpellEffect spellEffect : effectSet) {
 				if (spellEffect == null) continue;
-				if (spellEffect.getEffect() == null) continue;
-				spellEffect.getEffect().setLocation(spellEffect.getSpellEffect().applyOffsets(currentLocation.clone()));
+				effect = spellEffect.getEffect();
+				if (effect == null) continue;
+
+				effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone());
+				effect.setLocation(effectLoc);
+
+				if (effect instanceof ModifiedEffect) {
+					Effect modifiedEffect = ((ModifiedEffect) effect).getInnerEffect();
+					if (modifiedEffect != null) modifiedEffect.setLocation(effectLoc);
+				}
 			}
 		}
 
