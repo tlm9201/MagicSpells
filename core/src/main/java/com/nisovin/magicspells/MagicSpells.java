@@ -1581,6 +1581,7 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	public void unload() {
+		loaded = false;
 		// Turn off spells
 		for (Spell spell : spells.values()) {
 			spell.turnOff();
