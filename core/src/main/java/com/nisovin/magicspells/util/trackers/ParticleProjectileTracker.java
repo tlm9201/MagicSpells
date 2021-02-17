@@ -574,6 +574,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		MagicSpells.cancelTask(taskId);
 		if (effectSet != null) {
 			for (EffectlibSpellEffect spellEffect : effectSet) {
+				if (spellEffect == null) continue;
+				if (spellEffect.getEffect() == null) continue;
 				spellEffect.getEffect().cancel();
 			}
 			effectSet.clear();
