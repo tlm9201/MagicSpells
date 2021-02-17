@@ -125,7 +125,7 @@ public class BowSpell extends Spell {
 	public void onArrowLaunch(EntityShootBowEvent event) {
 		if (event.getEntity().getType() != EntityType.PLAYER) return;
 		Player shooter = (Player) event.getEntity();
-		ItemStack inHand = shooter.getEquipment().getItemInMainHand();
+		ItemStack inHand = event.getBow();
 		if (inHand == null || inHand.getType() != Material.BOW) return;
 
 		String name = inHand.getItemMeta().getDisplayName();
@@ -202,7 +202,8 @@ public class BowSpell extends Spell {
 					return;
 				}
 
-				data.groundSpell.castAtLocation(shooter, arrow.getLocation(), data.power);
+				if (data.groundSpell.isTargetedLocationSpell()) data.groundSpell.castAtLocation(shooter, arrow.getLocation(), data.power);
+				else data.groundSpell.cast(shooter, data.power);
 
 				data.casted = true;
 				arrow.removeMetadata(METADATA_KEY, MagicSpells.plugin);
@@ -237,6 +238,7 @@ public class BowSpell extends Spell {
 			if (data.entitySpell.isTargetedEntityFromLocationSpell()) data.entitySpell.castAtEntityFromLocation(shooter, target.getLocation(), target, targetEvent.getPower());
 			else if (data.entitySpell.isTargetedLocationSpell()) data.entitySpell.castAtLocation(shooter, target.getLocation(), targetEvent.getPower());
 			else if (data.entitySpell.isTargetedEntitySpell()) data.entitySpell.castAtEntity(shooter, target, targetEvent.getPower());
+			else data.entitySpell.cast(shooter, targetEvent.getPower());
 
 			data.casted = true;
 			break;
