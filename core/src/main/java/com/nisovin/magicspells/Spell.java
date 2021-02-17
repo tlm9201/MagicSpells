@@ -168,7 +168,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected ModifierSet targetModifiers;
 	protected ModifierSet locationModifiers;
 
-	protected Spell spellOnInterrupt;
+	protected Subspell spellOnInterrupt;
 
 	protected SpellReagents reagents;
 
@@ -662,7 +662,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		registerEvents();
 
 		// Other processing
-		if (spellNameOnInterrupt != null && !spellNameOnInterrupt.isEmpty()) spellOnInterrupt = MagicSpells.getSpellByInternalName(spellNameOnInterrupt);
+		if (spellNameOnInterrupt != null && !spellNameOnInterrupt.isEmpty())
+			spellOnInterrupt = initSubspell(spellNameOnInterrupt, "Spell '" + internalName + "' has an invalid spell-on-interrupt defined!");
 	}
 
 	protected boolean configKeyExists(String key) {
@@ -2086,7 +2087,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			unregisterEvents(this);
 
 			sendMessage(strInterrupted, caster, null);
-			if (spellOnInterrupt != null) spellOnInterrupt.castSpell(caster, SpellCastState.NORMAL, spellCast.getPower(), null);
+			if (spellOnInterrupt != null) {
+				if (spellOnInterrupt.isTargetedLocationSpell()) spellOnInterrupt.castAtLocation(caster, caster.getLocation(), spellCast.getPower());
+				else spellOnInterrupt.cast(caster, spellCast.getPower());
+			}
 		}
 
 	}
@@ -2177,7 +2181,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		private void interrupt() {
 			sendMessage(strInterrupted, caster, null);
 			end();
-			if (spellOnInterrupt != null) spellOnInterrupt.castSpell(caster, SpellCastState.NORMAL, spellCast.getPower(), null);
+			if (spellOnInterrupt != null) {
+				if (spellOnInterrupt.isTargetedLocationSpell()) spellOnInterrupt.castAtLocation(caster, caster.getLocation(), spellCast.getPower());
+				else spellOnInterrupt.cast(caster, spellCast.getPower());
+			}
 		}
 
 		private void end() {
