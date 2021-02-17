@@ -237,6 +237,7 @@ public class ArmorSpell extends BuffSpell {
 			Iterator<ItemStack> drops = event.getDrops().iterator();
 			while (drops.hasNext()) {
 				ItemStack drop = drops.next();
+				if (drop == null) continue;
 				if (!drop.hasItemMeta()) continue;
 
 				ItemMeta dropMeta = drop.getItemMeta();
