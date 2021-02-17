@@ -153,11 +153,11 @@ public class CastItem {
 		StringBuilder output = new StringBuilder();
 		boolean previous = false;
 
-		output
-			.append(type.name())
-			.append("{");
+		output.append(type.name());
 
 		if (!MagicSpells.ignoreCastItemNames() && name != null) {
+			output.append("{");
+
 			output
 				.append("\"name\":\"")
 				.append(TxtUtil.escapeJSON(name))
@@ -168,6 +168,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemAmount()) {
 			if (previous) output.append(',');
+			else output.append("{");
 
 			output
 				.append("\"amount\":")
@@ -178,6 +179,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) {
 			if (previous) output.append(',');
+			else output.append("{");
 
 			output
 				.append("\"durability\":")
@@ -188,6 +190,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemCustomModelData()) {
 			if (previous) output.append(',');
+			else output.append("{");
 
 			output
 				.append("\"custommodeldata\":")
@@ -208,6 +211,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemColor() && color != null) {
 			if (previous) output.append(',');
+            else output.append("{");
 
 			String hex = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
 
@@ -221,6 +225,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemPotionType() && potionData != null) {
 			if (previous) output.append(',');
+            else output.append("{");
 
 			output
 				.append("\"potiondata\":\"")
@@ -236,6 +241,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemTitle() && title != null) {
 			if (previous) output.append(',');
+            else output.append("{");
 
 			output
 				.append("\"title\":\"")
@@ -247,6 +253,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemAuthor() && author != null) {
 			if (previous) output.append(',');
+            else output.append("{");
 
 			output
 				.append("\"author\":\"")
@@ -258,6 +265,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemEnchants() && enchants != null) {
 			if (previous) output.append(',');
+            else output.append("{");
 
 			boolean previousEnchantment = false;
 			output.append("\"enchants\":{");
@@ -279,6 +287,7 @@ public class CastItem {
 
 		if (!MagicSpells.ignoreCastItemLore() && lore != null) {
 			if (previous) output.append(',');
+            else output.append("{");
 
 			boolean previousLore = false;
 			output.append("\"lore\":[");
@@ -292,10 +301,12 @@ public class CastItem {
 
 				previousLore = true;
 			}
+
 			output.append(']');
+			previous = true;
 		}
 
-		output.append("}");
+		if (previous) output.append("}");
 
 		return output.toString();
 	}
