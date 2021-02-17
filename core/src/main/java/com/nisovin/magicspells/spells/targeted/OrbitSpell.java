@@ -21,8 +21,12 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
+import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 
 import io.papermc.lib.PaperLib;
+
+import de.slikey.effectlib.Effect;
+import de.slikey.effectlib.effect.ModifiedEffect;
 
 public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
@@ -208,6 +212,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 		private String internalName;
 
+		private Set<EffectlibSpellEffect> effectSet;
 		private Set<Entity> entitySet;
 		private Set<ArmorStand> armorStandSet;
 
@@ -260,6 +265,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			if (horizExpandDelay > 0) repeatingHorizTaskId = MagicSpells.scheduleRepeatingTask(() -> orbRadius += horizExpandRadius, horizExpandDelay, horizExpandDelay);
 			if (vertExpandDelay > 0) repeatingVertTaskId = MagicSpells.scheduleRepeatingTask(() -> orbHeight += vertExpandRadius, vertExpandDelay, vertExpandDelay);
 
+			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, targetLoc);
 			entitySet = playSpellEntityEffects(EffectPosition.PROJECTILE, targetLoc);
 			armorStandSet = playSpellArmorStandEffects(EffectPosition.PROJECTILE, targetLoc);
 
@@ -291,6 +297,24 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			}
 
 			playSpellEffects(EffectPosition.SPECIAL, loc);
+
+			if (effectSet != null) {
+				Effect effect;
+				Location effectLoc;
+				for (EffectlibSpellEffect spellEffect : effectSet) {
+					if (spellEffect == null) continue;
+					effect = spellEffect.getEffect();
+					if (effect == null) continue;
+
+					effectLoc = spellEffect.getSpellEffect().applyOffsets(loc.clone());
+					effect.setLocation(effectLoc);
+
+					if (effect instanceof ModifiedEffect) {
+						Effect modifiedEffect = ((ModifiedEffect) effect).getInnerEffect();
+						if (modifiedEffect != null) modifiedEffect.setLocation(effectLoc);
+					}
+				}
+			}
 
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
@@ -344,6 +368,12 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			MagicSpells.cancelTask(taskId);
 			MagicSpells.cancelTask(repeatingHorizTaskId);
 			MagicSpells.cancelTask(repeatingVertTaskId);
+			if (effectSet != null) {
+				for (EffectlibSpellEffect spellEffect : effectSet) {
+					spellEffect.getEffect().cancel();
+				}
+				effectSet.clear();
+			}
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
 					armorStand.remove();
