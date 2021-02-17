@@ -17,11 +17,7 @@ public class PowerCondition extends OperatorCondition implements IModifier {
 
 	@Override
 	public boolean initialize(String var) {
-		if (var.length() < 2) {
-			return false;
-		}
-
-		super.initialize(var);
+		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		try {
 			power = Float.parseFloat(var.substring(1));

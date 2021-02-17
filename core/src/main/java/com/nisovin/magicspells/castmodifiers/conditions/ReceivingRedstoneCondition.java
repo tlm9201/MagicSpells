@@ -11,11 +11,7 @@ public class ReceivingRedstoneCondition extends OperatorCondition {
 
 	@Override
 	public boolean initialize(String var) {
-		if (var.length() < 2) {
-			return false;
-		}
-
-		super.initialize(var);
+		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		try {
 			level = Integer.parseInt(var.substring(1));

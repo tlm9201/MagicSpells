@@ -12,8 +12,7 @@ public class SlotSelectedCondition extends OperatorCondition {
 
 	@Override
 	public boolean initialize(String var) {
-		if (var == null || var.length() < 2) return false;
-		if (!super.initialize(var)) return false;
+		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		try {
 			slot = Integer.parseInt(var.substring(1));

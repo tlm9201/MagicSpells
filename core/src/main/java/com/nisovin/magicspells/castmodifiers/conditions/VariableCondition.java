@@ -28,7 +28,7 @@ public class VariableCondition extends OperatorCondition {
 		else return false;
 
 		String number = var.substring(variableName.length());
-		super.initialize(number);
+		if (!super.initialize(number)) return false;
 
 		variable = variableName;
 
