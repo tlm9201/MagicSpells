@@ -8,13 +8,13 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// Optional trigger variable that is a comma separated list of items to accept
+// Optional trigger variable that is a pipe separated list of items to accept
 public class PickupItemListener extends PassiveListener {
 
 	private final Set<MagicItemData> items = new HashSet<>();
@@ -26,10 +26,12 @@ public class PickupItemListener extends PassiveListener {
 		String[] split = var.split("\\|");
 		for (String s : split) {
 			s = s.trim();
-			MagicItem magicItem = MagicItems.getMagicItemFromString(s);
-			MagicItemData itemData = null;
-			if (magicItem != null) itemData = magicItem.getMagicItemData();
-			if (itemData == null) continue;
+
+			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
+			if (itemData == null) {
+				MagicSpells.error("Invalid magic item '" + s + "' in pickupitem trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
 
 			items.add(itemData);
 		}
@@ -38,27 +40,26 @@ public class PickupItemListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onPickup(EntityPickupItemEvent event) {
-		LivingEntity entity = event.getEntity();
-		if (!hasSpell(entity)) return;
-		if (!canTrigger(entity)) return;
+		if (!isCancelStateOk(event.isCancelled())) return;
 
-		if (items.isEmpty()) {
-			if (!isCancelStateOk(event.isCancelled())) return;
-			boolean casted = passiveSpell.activate(entity);
-			if (!cancelDefaultAction(casted)) return;
-			event.setCancelled(true);
-			return;
+		LivingEntity caster = event.getEntity();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		if (!items.isEmpty()) {
+			ItemStack item = event.getItem().getItemStack();
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+			if (!contains(itemData)) return;
 		}
 
-		ItemStack item = event.getItem().getItemStack();
-		if (item == null) return;
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		if (!items.contains(itemData)) return;
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
 
-		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(entity);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.matches(itemData)) return true;
+		}
+		return false;
 	}
 
 }

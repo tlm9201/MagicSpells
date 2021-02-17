@@ -3,89 +3,117 @@ package com.nisovin.magicspells.util.itemreader;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.Util;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
+
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.TEXTURE;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.SIGNATURE;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.SKULL_OWNER;
 
 public class SkullHandler {
 
-	private static final String SKULL_OWNER_CONFIG_NAME = "skull-owner";
-	private static final String UUID_CONFIG_NAME = "uuid";
-	private static final String TEXTURE_CONFIG_NAME = "texture";
-	private static final String SIGNATURE_CONFIG_NAME = "signature";
+	private static final String SKULL_OWNER_CONFIG_NAME = SKULL_OWNER.toString();
+	private static final String UUID_CONFIG_NAME = MagicItemAttribute.UUID.toString();
+	private static final String SIGNATURE_CONFIG_NAME = SIGNATURE.toString();
+	private static final String TEXTURE_CONFIG_NAME = TEXTURE.toString();
 
-	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof SkullMeta)) return meta;
+	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof SkullMeta)) return;
 		
 		SkullMeta skullMeta = (SkullMeta) meta;
 
-		OfflinePlayer offlinePlayer = null;
+		String signature = null, skullOwner = null, texture = null;
+		UUID uuid = null;
 
-		if (config.contains(SKULL_OWNER_CONFIG_NAME)) {
-			offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(config.get(SKULL_OWNER_CONFIG_NAME).toString()));
-			skullMeta.setOwningPlayer(offlinePlayer);
+		if (config.isString(UUID_CONFIG_NAME)) {
+			String uuidString = config.getString(UUID_CONFIG_NAME);
+
+			try {
+				uuid = UUID.fromString(uuidString);
+			} catch (IllegalArgumentException e) {
+				DebugHandler.debugIllegalArgumentException(e);
+			}
+
+			data.setAttribute(MagicItemAttribute.UUID, uuid);
 		}
 
-		String uuid = null;
-		String texture = null;
-		String signature = null;
-
-		if (config.contains(UUID_CONFIG_NAME) && config.isString(UUID_CONFIG_NAME)) {
-			uuid = config.getString(UUID_CONFIG_NAME);
-		}
-		if (config.contains(TEXTURE_CONFIG_NAME) && config.isString(TEXTURE_CONFIG_NAME)) {
+		if (config.isString(TEXTURE_CONFIG_NAME)) {
 			texture = config.getString(TEXTURE_CONFIG_NAME);
+			data.setAttribute(TEXTURE, texture);
 		}
-		if (config.contains(SIGNATURE_CONFIG_NAME) && config.isString(SIGNATURE_CONFIG_NAME)) {
+
+		if (config.isString(SIGNATURE_CONFIG_NAME)) {
 			signature = config.getString(SIGNATURE_CONFIG_NAME);
+			data.setAttribute(SIGNATURE, signature);
 		}
 
-		if (texture != null && skullMeta.getOwningPlayer() != null) {
-			Util.setTexture(skullMeta, texture, signature, uuid, skullMeta.getOwningPlayer());
+		if (config.isString(SKULL_OWNER_CONFIG_NAME)) {
+			skullOwner = config.getString(SKULL_OWNER_CONFIG_NAME);
+			data.setAttribute(SKULL_OWNER, skullOwner);
 		}
 
-		if (data != null) {
-			data.setSkullOwner(offlinePlayer);
-			data.setUUID(uuid);
-			data.setTexture(texture);
-			data.setSignature(signature);
-		}
+		if ((uuid != null || skullOwner != null) && texture != null) {
+			PlayerProfile profile = Bukkit.createProfile(uuid, skullOwner);
 
-		return skullMeta;
+			profile.setProperty(new ProfileProperty("textures", texture, signature));
+			skullMeta.setPlayerProfile(profile);
+		}
 	}
 
-	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (data == null) return meta;
-		if (!(meta instanceof SkullMeta)) return meta;
+	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof SkullMeta)) return;
 
-		SkullMeta skullMeta = (SkullMeta) meta;
+		String signature = null, skullOwner = null, texture = null;
+		UUID uuid = null;
 
-		OfflinePlayer offlinePlayer = data.getSkullOwner();
-		if (offlinePlayer != null) skullMeta.setOwningPlayer(offlinePlayer);
+		if (data.hasAttribute(SKULL_OWNER)) skullOwner = (String) data.getAttribute(SKULL_OWNER);
+		if (data.hasAttribute(SIGNATURE)) signature = (String) data.getAttribute(SIGNATURE);
+		if (data.hasAttribute(TEXTURE)) texture = (String) data.getAttribute(TEXTURE);
 
-		String uuid = data.getUUID();
-		String texture = data.getTexture();
-		String signature = data.getSignature();
-
-		if (texture != null && skullMeta.getOwningPlayer() != null) {
-			Util.setTexture(skullMeta, texture, signature, uuid, skullMeta.getOwningPlayer());
+		if (data.hasAttribute(MagicItemAttribute.UUID)) {
+			try {
+				uuid = UUID.fromString((String) data.getAttribute(MagicItemAttribute.UUID));
+			} catch (IllegalArgumentException e) {
+				DebugHandler.debugIllegalArgumentException(e);
+			}
 		}
-		return skullMeta;
+
+		if ((uuid != null || skullOwner != null) && texture != null) {
+			PlayerProfile profile = Bukkit.createProfile(uuid, skullOwner);
+
+			profile.setProperty(new ProfileProperty("textures", texture, signature));
+			((SkullMeta) meta).setPlayerProfile(profile);
+		}
 	}
 
-	public static MagicItemData process(ItemStack itemStack, MagicItemData data) {
-		if (data == null) return null;
-		if (itemStack == null) return data;
-		if (!(itemStack.getItemMeta() instanceof SkullMeta)) return data;
+	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof SkullMeta)) return;
 
-		SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
-		data.setSkullOwner(meta.getOwningPlayer());
-		return data;
+		PlayerProfile profile = ((SkullMeta) meta).getPlayerProfile();
+		if (profile == null) return;
+
+		UUID id = profile.getId();
+		if (id != null) data.setAttribute(MagicItemAttribute.UUID, id.toString());
+
+		String name = profile.getName();
+		if (name != null) data.setAttribute(SKULL_OWNER, name);
+
+		if (profile.hasTextures()) {
+			for (ProfileProperty property : profile.getProperties()) {
+				if (property.getName().equals("textures")) {
+					data.setAttribute(TEXTURE, property.getValue());
+					if (property.isSigned()) data.setAttribute(SIGNATURE, property.getSignature());
+					break;
+				}
+			}
+		}
 	}
 	
 }

@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 import java.util.List;
 import java.util.UUID;
 import java.util.HashMap;
@@ -20,15 +20,15 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 
+	private Set<MagicItemData> disarmable;
 	private Map<Item, UUID> disarmedItems;
-	private Set<Material> disarmable;
 
 	private boolean dontDrop;
 	private boolean preventTheft;
@@ -40,15 +40,13 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 	public DisarmSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 		
-		List<String> disarmableMaterials = getConfigStringList("disarmable-items", null);
-		if (disarmableMaterials != null && !disarmableMaterials.isEmpty()) {
+		List<String> disarmableItems = getConfigStringList("disarmable-items", null);
+		if (disarmableItems != null && !disarmableItems.isEmpty()) {
 			disarmable = new HashSet<>();
-			for (String itemName : disarmableMaterials) {
-				MagicItem magicItem = MagicItems.getMagicItemFromString(itemName);
-				if (magicItem == null) continue;
 
-				ItemStack item = magicItem.getItemStack();
-				if (item != null) disarmable.add(item.getType());
+			for (String itemName : disarmableItems) {
+				MagicItemData data = MagicItems.getMagicItemDataFromString(itemName);
+				if (data != null) disarmable.add(data);
 			}
 		}
 
@@ -99,7 +97,13 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 	
 	private boolean disarm(LivingEntity target) {
 		final ItemStack inHand = getItemInHand(target);
-		if (disarmable != null && !disarmable.contains(inHand.getType())) return false;
+		if (inHand == null) return false;
+
+		if (disarmable != null) {
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(inHand);
+			if (itemData == null || !contains(itemData)) return false;
+		}
+
 		if (!dontDrop) {
 			setItemInHand(target, null);
 			Item item = target.getWorld().dropItemNaturally(target.getLocation(), inHand.clone());
@@ -124,6 +128,13 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 		}, disarmDuration);
 
 		return true;
+	}
+
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : disarmable) {
+			if (data.matches(itemData)) return true;
+		}
+		return false;
 	}
 	
 	private ItemStack getItemInHand(LivingEntity entity) {

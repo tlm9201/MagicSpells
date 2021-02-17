@@ -324,16 +324,16 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(Inventory inventory, SpellReagents.ReagentItem item) {
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item.getItemStack());
+		MagicItemData itemData = item.getMagicItemData();
 		if (itemData == null) return false;
 
 		int amt = item.getAmount();
 		ItemStack[] items = inventory.getContents();
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
+
 			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
-			if (magicItemData == null) continue;
-			if (!magicItemData.equals(itemData)) continue;
+			if (magicItemData == null || !itemData.matches(magicItemData)) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);
@@ -356,7 +356,7 @@ public class Util {
 	}
 
 	public static boolean removeFromInventory(EntityEquipment entityEquipment, SpellReagents.ReagentItem item) {
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item.getItemStack());
+		MagicItemData itemData = item.getMagicItemData();
 		if (itemData == null) return false;
 
 		int amt = item.getAmount();
@@ -368,9 +368,9 @@ public class Util {
 
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
+
 			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
-			if (magicItemData == null) continue;
-			if (!magicItemData.equals(itemData)) continue;
+			if (magicItemData == null || !itemData.matches(magicItemData)) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);
@@ -398,17 +398,11 @@ public class Util {
 	}
 
 	public static boolean addToInventory(Inventory inventory, ItemStack item, boolean stackExisting, boolean ignoreMaxStack) {
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-		if (itemData == null) return false;
-
 		int amt = item.getAmount();
 		ItemStack[] items = Arrays.copyOf(inventory.getContents(), inventory.getSize());
 		if (stackExisting) {
 			for (ItemStack itemStack : items) {
-				if (itemStack == null) continue;
-				MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemStack);
-				if (magicItemData == null) continue;
-				if (!magicItemData.equals(itemData)) continue;
+				if (itemStack == null || !itemStack.isSimilar(item)) continue;
 
 				if (itemStack.getAmount() + amt <= itemStack.getMaxStackSize()) {
 					itemStack.setAmount(itemStack.getAmount() + amt);

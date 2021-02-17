@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.Inventory;
@@ -12,7 +11,6 @@ import org.bukkit.inventory.EntityEquipment;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
@@ -20,9 +18,6 @@ import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 public class HasItemAmountCondition extends OperatorCondition {
 
 	private MagicItemData itemData;
-
-	private ItemStack item;
-
 	private int amount;
 	
 	@Override
@@ -39,21 +34,8 @@ public class HasItemAmountCondition extends OperatorCondition {
 			return false;
 		}
 
-		try {
-			MagicItem magicItem = MagicItems.getMagicItemFromString(args[1]);
-			if (magicItem == null) return false;
-
-			item = magicItem.getItemStack();
-			if (item == null) return false;
-
-			itemData = magicItem.getMagicItemData();
-			if (itemData == null) return false;
-		} catch (Exception e) {
-			DebugHandler.debugGeneral(e);
-			return false;
-		}
-
-		return true;
+		itemData = MagicItems.getMagicItemDataFromString(args[1]);
+		return itemData != null;
 	}
 
 	@Override
@@ -70,15 +52,8 @@ public class HasItemAmountCondition extends OperatorCondition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		Block target = location.getBlock();
-		if (target == null) return false;
-		
-		BlockState targetState = target.getState();
-		if (targetState == null) return false;
-		
-		if (targetState instanceof InventoryHolder) return check(((InventoryHolder) targetState).getInventory());
-		
-		return false;
+		BlockState targetState = location.getBlock().getState();
+		return targetState instanceof InventoryHolder && check(((InventoryHolder) targetState).getInventory());
 	}
 
 	private boolean check(Inventory inventory) {
@@ -86,6 +61,9 @@ public class HasItemAmountCondition extends OperatorCondition {
 		for (ItemStack i : inventory.getContents()) {
 			if (!isSimilar(i)) continue;
 			c += i.getAmount();
+
+			if (moreThan && c > amount) return true;
+			if (lessThan && c >= amount) return false;
 		}
 
 		if (equals) return c == amount;
@@ -99,6 +77,9 @@ public class HasItemAmountCondition extends OperatorCondition {
 		for (ItemStack i : InventoryUtil.getEquipmentItems(entityEquipment)) {
 			if (!isSimilar(i)) continue;
 			c += i.getAmount();
+
+			if (moreThan && c > amount) return true;
+			if (lessThan && c >= amount) return false;
 		}
 
 		if (equals) return c == amount;
@@ -112,9 +93,8 @@ public class HasItemAmountCondition extends OperatorCondition {
 
 		MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(item);
 		if (magicItemData == null) return false;
-		if (!magicItemData.equals(itemData)) return false;
 
-		return true;
+		return itemData.matches(magicItemData);
 	}
 
 }

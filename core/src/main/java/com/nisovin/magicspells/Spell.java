@@ -63,6 +63,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.effecttypes.*;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
@@ -492,20 +493,13 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 						default:
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
 
-							MagicItem magicItem = MagicItems.getMagicItemFromString(data[0]);
-							if (magicItem == null) {
+							MagicItemData itemData = MagicItems.getMagicItemDataFromString(data[0]);
+							if (itemData == null) {
 								MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
 								continue;
 							}
 
-							ItemStack item = magicItem.getItemStack();
-							if (item == null) {
-								MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
-								continue;
-							}
-
-							item.setAmount(amt);
-							reagents.addItem(new SpellReagents.ReagentItem(item, amt));
+							reagents.addItem(new SpellReagents.ReagentItem(itemData, amt));
 							break;
 					}
 				} catch (Exception e) {
@@ -997,7 +991,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (!requireCastItemOnCommand || castItems == null) return true;
 		if (item == null && castItems.length == 1 && BlockUtils.isAir(castItems[0].getType())) return true;
 		for (CastItem castItem : castItems) {
-			if (castItem.equals(item)) return true;
+			if (castItem.equals(new CastItem(item))) return true;
 		}
 		return false;
 	}

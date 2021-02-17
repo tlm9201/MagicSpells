@@ -28,6 +28,10 @@ public class TxtUtil {
 		}
 		return ret;
 	}
+
+	public static String escapeJSON(String str) {
+		return str.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"");
+	}
 	
 	public static List<String> tabCompleteSpellName(CommandSender sender, String partial) {
 		List<String> matches = new ArrayList<>();

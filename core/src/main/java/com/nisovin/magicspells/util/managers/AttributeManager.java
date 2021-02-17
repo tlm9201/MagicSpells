@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Collection;
 
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.attribute.AttributeModifier;
 
@@ -16,16 +16,6 @@ import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class AttributeManager {
-
-	// get attribute operation from string
-	public AttributeModifier.Operation getAttributeOperation(String str) {
-		return AttributeUtil.AttributeOperation.getOperation(str);
-	}
-
-	// get attribute from string
-	public Attribute getAttribute(String str) {
-		return AttributeUtil.AttributeType.getAttribute(str);
-	}
 
 	// add attributes to item meta
 	public ItemMeta addMetaAttribute(ItemMeta meta, Attribute attribute, AttributeModifier modifier) {
@@ -110,13 +100,13 @@ public class AttributeManager {
 
 		String attributeOperation = args[2];
 
-		Attribute attribute = getAttribute(attributeName);
+		Attribute attribute = AttributeUtil.getAttribute(attributeName);
 		if (attribute == null) {
 			MagicSpells.error("AttributeManager has an invalid attribute defined: " + attributeName);
 			return null;
 		}
 
-		AttributeModifier.Operation operation = getAttributeOperation(attributeOperation);
+		AttributeModifier.Operation operation = AttributeUtil.getOperation(attributeOperation);
 		if (operation == null) {
 			MagicSpells.error("AttributeManager has an invalid attribute operation defined: " + attributeOperation);
 			return null;

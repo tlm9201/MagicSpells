@@ -10,7 +10,6 @@ import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
@@ -28,10 +27,7 @@ public class ChestContainsCondition extends Condition {
 			String[] vars = var.split(",");
 			location = new MagicLocation(vars[0], Integer.parseInt(vars[1]), Integer.parseInt(vars[2]), Integer.parseInt(vars[3]));
 
-			MagicItem magicItem = MagicItems.getMagicItemFromString(vars[4]);
-			if (magicItem == null) return false;
-
-			itemData = magicItem.getMagicItemData();
+			itemData = MagicItems.getMagicItemDataFromString(vars[4].trim());
 			return itemData != null;
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
@@ -65,7 +61,7 @@ public class ChestContainsCondition extends Condition {
 		for (ItemStack item : items) {
 			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
 			if (data == null) continue;
-			if (data.equals(itemData)) return true;
+			if (itemData.matches(data)) return true;
 		}
 
 		return false;

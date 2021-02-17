@@ -2,22 +2,23 @@ package com.nisovin.magicspells.util;
 
 import java.util.Map;
 import java.util.List;
+import java.util.Objects;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.potion.PotionType;
+import org.bukkit.potion.PotionData;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.util.itemreader.PotionHandler;
 import com.nisovin.magicspells.util.itemreader.DurabilityHandler;
 import com.nisovin.magicspells.util.itemreader.WrittenBookHandler;
 import com.nisovin.magicspells.util.itemreader.LeatherArmorHandler;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
 public class CastItem {
 
@@ -30,7 +31,7 @@ public class CastItem {
 	private boolean unbreakable = false;
 
 	private Color color = null;
-	private PotionType potionType = null;
+	private PotionData potionData = null;
 	private String title = null;
 	private String author = null;
 
@@ -57,7 +58,7 @@ public class CastItem {
 			if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = ItemUtil.getCustomModelData(meta);
 			if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = meta.isUnbreakable();
 			if (!MagicSpells.ignoreCastItemColor()) color = LeatherArmorHandler.getColor(meta);
-			if (!MagicSpells.ignoreCastItemPotionType()) potionType = PotionHandler.getPotionType(meta);
+			if (!MagicSpells.ignoreCastItemPotionType()) potionData = PotionHandler.getPotionData(meta);
 			if (!MagicSpells.ignoreCastItemTitle()) title = WrittenBookHandler.getTitle(meta);
 			if (!MagicSpells.ignoreCastItemAuthor()) author = WrittenBookHandler.getAuthor(meta);
 			if (!MagicSpells.ignoreCastItemEnchants()) enchants = meta.getEnchants();
@@ -66,25 +67,44 @@ public class CastItem {
 	}
 
 	public CastItem(String string) {
-		MagicItem magicItem = MagicItems.getMagicItemFromString(string);
-		if (magicItem != null && magicItem.getMagicItemData() != null) {
-			MagicItemData data = magicItem.getMagicItemData();
-			type = data.getType();
+		MagicItemData data = MagicItems.getMagicItemDataFromString(string);
+		if (data != null) {
+			type = (Material) data.getAttribute(TYPE);
 			if (isTypeValid()) {
-				if (!MagicSpells.ignoreCastItemNames() && data.getName() != null) {
-					if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize(data.getName());
-					else name = Util.colorize(data.getName());
+				if (!MagicSpells.ignoreCastItemNames() && data.hasAttribute(NAME)) {
+					if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize((String) data.getAttribute(NAME));
+					else name = (String) data.getAttribute(NAME);
 				}
-				if (!MagicSpells.ignoreCastItemAmount()) amount = data.getAmount();
-				if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) durability = data.getDurability();
-				if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = data.getCustomModelData();
-				if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = data.isUnbreakable();
-				if (!MagicSpells.ignoreCastItemColor()) color = data.getColor();
-				if (!MagicSpells.ignoreCastItemPotionType()) potionType = data.getPotionType();
-				if (!MagicSpells.ignoreCastItemTitle()) title = data.getTitle();
-				if (!MagicSpells.ignoreCastItemAuthor()) author = data.getAuthor();
-				if (!MagicSpells.ignoreCastItemEnchants()) enchants = data.getEnchantments();
-				if (!MagicSpells.ignoreCastItemLore()) lore = data.getLore();
+
+				if (!MagicSpells.ignoreCastItemAmount() && data.hasAttribute(AMOUNT))
+					amount = (int) data.getAttribute(AMOUNT);
+
+				if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type) && data.hasAttribute(DURABILITY))
+					durability = (int) data.getAttribute(DURABILITY);
+
+				if (!MagicSpells.ignoreCastItemCustomModelData() && data.hasAttribute(CUSTOM_MODEL_DATA))
+					customModelData = (int) data.getAttribute(CUSTOM_MODEL_DATA);
+
+				if (!MagicSpells.ignoreCastItemBreakability() && data.hasAttribute(UNBREAKABLE))
+					unbreakable = (boolean) data.getAttribute(UNBREAKABLE);
+
+				if (!MagicSpells.ignoreCastItemColor() && data.hasAttribute(COLOR))
+					color = (Color) data.getAttribute(COLOR);
+
+				if (!MagicSpells.ignoreCastItemPotionType() && data.hasAttribute(POTION_DATA))
+					potionData = (PotionData) data.getAttribute(POTION_DATA);
+
+				if (!MagicSpells.ignoreCastItemTitle() && data.hasAttribute(TITLE))
+					title = (String) data.getAttribute(TITLE);
+
+				if (!MagicSpells.ignoreCastItemAuthor() && data.hasAttribute(AUTHOR))
+					author = (String) data.getAttribute(AUTHOR);
+
+				if (!MagicSpells.ignoreCastItemEnchants() && data.hasAttribute(ENCHANTMENTS))
+					enchants = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTMENTS);
+
+				if (!MagicSpells.ignoreCastItemLore() && data.hasAttribute(LORE))
+					lore = (List<String>) data.getAttribute(LORE);
 			}
 		}
 	}
@@ -106,49 +126,178 @@ public class CastItem {
 
 	public boolean equalsCastItem(CastItem i) {
 		if (i == null) return false;
-		if (i.type != type) return false;
-		if (i.durability != durability) return false;
-		if (!MagicSpells.ignoreCastItemNames()) return objectEquals(i.name, name);
-		if (!MagicSpells.ignoreCastItemCustomModelData()) return i.customModelData == customModelData;
-		if (!MagicSpells.ignoreCastItemBreakability()) return i.unbreakable == unbreakable;
-		if (!MagicSpells.ignoreCastItemColor()) return objectEquals(i.color, color);
-		if (!MagicSpells.ignoreCastItemPotionType()) return i.potionType == potionType;
-		if (!MagicSpells.ignoreCastItemTitle()) return objectEquals(i.title, title);
-		if (!MagicSpells.ignoreCastItemAuthor()) return objectEquals(i.author, author);
-		if (!MagicSpells.ignoreCastItemEnchants()) return objectEquals(i.enchants, enchants);
-		if (!MagicSpells.ignoreCastItemLore()) return objectEquals(i.lore, lore);
-		return true;
-	}
 
-	public boolean objectEquals(Object o, Object object) {
-		if (o == null && object == null) return true;
-		if (o == null && object != null) return false;
-		if (o != null && object == null) return false;
-		return o.equals(object);
+		return type == i.type
+			&& (MagicSpells.ignoreCastItemDurability(type) || durability == i.durability)
+			&& (MagicSpells.ignoreCastItemAmount() || amount == i.amount)
+			&& (MagicSpells.ignoreCastItemNames() || Objects.equals(name, i.name))
+			&& (MagicSpells.ignoreCastItemCustomModelData() || customModelData == i.customModelData)
+			&& (MagicSpells.ignoreCastItemBreakability() || unbreakable == i.unbreakable)
+			&& (MagicSpells.ignoreCastItemColor() || Objects.equals(color, i.color))
+			&& (MagicSpells.ignoreCastItemPotionType() || Objects.equals(potionData, i.potionData))
+			&& (MagicSpells.ignoreCastItemTitle() || Objects.equals(title, i.title))
+			&& (MagicSpells.ignoreCastItemAuthor() || Objects.equals(author, i.author))
+			&& (MagicSpells.ignoreCastItemEnchants() || Objects.equals(enchants, i.enchants))
+			&& (MagicSpells.ignoreCastItemLore() || Objects.equals(lore, i.lore));
 	}
 
 	@Override
 	public int hashCode() {
-		return toString().hashCode();
+		return Objects.hash(type, name, amount, durability, customModelData, unbreakable, color, potionData, title, author, enchants, lore);
 	}
 
 	@Override
 	public String toString() {
 		if (type == null) return "";
-		MagicItemData data = new MagicItemData();
-		data.setType(type);
-		data.setName(name);
-		data.setAmount(amount);
-		data.setDurability(durability);
-		data.setCustomModelData(customModelData);
-		data.setUnbreakable(unbreakable);
-		data.setColor(color);
-		data.setPotionType(potionType);
-		data.setTitle(title);
-		data.setAuthor(author);
-		data.setEnchantments(enchants);
-		data.setLore(lore);
-		return data.toString();
+
+		StringBuilder output = new StringBuilder();
+		boolean previous = false;
+
+		output
+			.append(type.name())
+			.append("{");
+
+		if (!MagicSpells.ignoreCastItemNames() && name != null) {
+			output
+				.append("\"name\":\"")
+				.append(TxtUtil.escapeJSON(name))
+				.append('"');
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemAmount()) {
+			if (previous) output.append(',');
+
+			output
+				.append("\"amount\":")
+				.append(amount);
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) {
+			if (previous) output.append(',');
+
+			output
+				.append("\"durability\":")
+				.append(durability);
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemCustomModelData()) {
+			if (previous) output.append(',');
+
+			output
+				.append("\"custommodeldata\":")
+				.append(customModelData);
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemBreakability()) {
+			if (previous) output.append(',');
+
+			output
+				.append("\"unbreakable\":")
+				.append(unbreakable);
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemColor() && color != null) {
+			if (previous) output.append(',');
+
+			String hex = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+
+			output
+				.append("\"color\":\"")
+				.append(hex)
+				.append('"');
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemPotionType() && potionData != null) {
+			if (previous) output.append(',');
+
+			output
+				.append("\"potiondata\":\"")
+				.append(potionData.getType());
+
+			if (potionData.isExtended()) output.append(" extended");
+			else if (potionData.isUpgraded()) output.append(" upgraded");
+
+			output.append('"');
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemTitle() && title != null) {
+			if (previous) output.append(',');
+
+			output
+				.append("\"title\":\"")
+				.append(TxtUtil.escapeJSON(title))
+				.append('"');
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemAuthor() && author != null) {
+			if (previous) output.append(',');
+
+			output
+				.append("\"author\":\"")
+				.append(TxtUtil.escapeJSON(author))
+				.append('"');
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemEnchants() && enchants != null) {
+			if (previous) output.append(',');
+
+			boolean previousEnchantment = false;
+			output.append("\"enchants\":{");
+			for (Enchantment enchant : enchants.keySet()) {
+				if (previousEnchantment) output.append(',');
+
+				output
+					.append('"')
+					.append(enchant.getKey().getKey())
+					.append("\":")
+					.append(enchants.get(enchant));
+
+				previousEnchantment = true;
+			}
+			output.append('}');
+
+			previous = true;
+		}
+
+		if (!MagicSpells.ignoreCastItemLore() && lore != null) {
+			if (previous) output.append(',');
+
+			boolean previousLore = false;
+			output.append("\"lore\":[");
+			for (String line : lore) {
+				if (previousLore) output.append(',');
+
+				output
+					.append('"')
+					.append(TxtUtil.escapeJSON(line))
+					.append('"');
+
+				previousLore = true;
+			}
+			output.append(']');
+		}
+
+		output.append("}");
+
+		return output.toString();
 	}
 
 }

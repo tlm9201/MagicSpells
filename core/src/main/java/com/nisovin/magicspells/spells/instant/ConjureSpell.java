@@ -40,7 +40,6 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.command.ScrollSpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
@@ -249,8 +248,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		Location loc = player.getEyeLocation().add(player.getLocation().getDirection());
 		boolean updateInv = false;
 		for (ItemStack item : items) {
-			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-			if (itemData == null) continue;
+			if (item == null) continue;
 
 			boolean added = false;
 			PlayerInventory inv = player.getInventory();
@@ -275,17 +273,14 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 				if (!added && addToInventory) {
 
 					ItemStack preferredItem = null;
-					MagicItemData magicItemData = null;
 					if (preferredSlot >= 0) {
 						preferredItem = inv.getItem(preferredSlot);
-						magicItemData = MagicItems.getMagicItemDataFromItemStack(preferredItem);
 					}
 
 					if (offhand) player.getEquipment().setItemInOffHand(item);
 					else if (requiredSlot >= 0) {
 						ItemStack old = inv.getItem(requiredSlot);
-						MagicItemData oldItemData = MagicItems.getMagicItemDataFromItemStack(old);
-						if (old != null && (oldItemData != null && oldItemData.equals(itemData))) item.setAmount(item.getAmount() + old.getAmount());
+						if (old != null && item.isSimilar(old)) item.setAmount(item.getAmount() + old.getAmount());
 						inv.setItem(requiredSlot, item);
 						added = true;
 						updateInv = true;
@@ -293,12 +288,12 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 						inv.setItem(preferredSlot, item);
 						added = true;
 						updateInv = true;
-					} else if (preferredSlot >= 0 && (magicItemData != null && magicItemData.equals(itemData)) && preferredItem.getAmount() + item.getAmount() < item.getType().getMaxStackSize()) {
+					} else if (preferredSlot >= 0 && item.isSimilar(preferredItem) && preferredItem.getAmount() + item.getAmount() < item.getType().getMaxStackSize()) {
 						item.setAmount(item.getAmount() + preferredItem.getAmount());
 						inv.setItem(preferredSlot, item);
 						added = true;
 						updateInv = true;
-					} else if (!added) {
+					} else {
 						added = Util.addToInventory(inv, item, stackExisting, ignoreMaxStackSize);
 						if (added) updateInv = true;
 					}
@@ -599,7 +594,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		@EventHandler(priority = EventPriority.LOWEST)
 		private void onRightClick(PlayerInteractEvent event) {
 			if (!event.hasItem()) return;
-			ItemStack item = event.getPlayer().getEquipment().getItemInMainHand();
+			ItemStack item = event.getItem();
 			ExpirationResult result = updateExpiresLineIfNeeded(item);
 			if (result == ExpirationResult.EXPIRED) {
 				event.getPlayer().getEquipment().setItemInMainHand(null);

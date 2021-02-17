@@ -6,7 +6,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EntityEquipment;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
@@ -17,23 +16,20 @@ public class HoldingPreciseCondition extends Condition {
 	
 	@Override
 	public boolean initialize(String var) {
-		MagicItem magicItem = MagicItems.getMagicItemFromString(var.trim());
-		if (magicItem == null) return false;
-
-		itemData = magicItem.getMagicItemData();
-		return true;
+		itemData = MagicItems.getMagicItemDataFromString(var);
+		return itemData != null;
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		ItemStack item = livingEntity.getEquipment().getItemInMainHand();
-		return check(item);
+		EntityEquipment eq = livingEntity.getEquipment();
+		return eq != null && check(eq.getItemInMainHand());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		EntityEquipment equip = target.getEquipment();
-		return equip != null && check(equip.getItemInMainHand());
+		EntityEquipment eq = target.getEquipment();
+		return eq != null && check(eq.getItemInMainHand());
 	}
 	
 	@Override
@@ -45,7 +41,7 @@ public class HoldingPreciseCondition extends Condition {
 		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
 		if (data == null) return false;
 
-		return data.equals(itemData);
+		return itemData.matches(data);
 	}
 
 }

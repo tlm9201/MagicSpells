@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.configuration.ConfigurationSection;
@@ -13,23 +12,24 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.POWER;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.FIREWORK_EFFECTS;
 
 public class FireworkHandler {
 
-	private static final String FIREWORK_EFFECTS_CONFIG_NAME = "firework-effects";
-	private static final String POWER_CONFIG_NAME = "power";
+	private static final String FIREWORK_EFFECTS_CONFIG_NAME = FIREWORK_EFFECTS.toString();
+	private static final String POWER_CONFIG_NAME = POWER.toString();
 
-	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof FireworkMeta)) return meta;
-		if (!config.contains(FIREWORK_EFFECTS_CONFIG_NAME)) return meta;
-		if (!config.isList(FIREWORK_EFFECTS_CONFIG_NAME)) return meta;
+	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof FireworkMeta)) return;
+		if (!config.isList(FIREWORK_EFFECTS_CONFIG_NAME)) return;
 
 		FireworkMeta fireworkMeta = (FireworkMeta) meta;
 
 		int power = 0;
-		if (config.contains(POWER_CONFIG_NAME) && config.isInt(POWER_CONFIG_NAME)) power = config.getInt(POWER_CONFIG_NAME);
+		if (config.isInt(POWER_CONFIG_NAME)) power = config.getInt(POWER_CONFIG_NAME);
 
-		if (config.contains(FIREWORK_EFFECTS_CONFIG_NAME) && config.isList(FIREWORK_EFFECTS_CONFIG_NAME)) {
+		if (config.isList(FIREWORK_EFFECTS_CONFIG_NAME)) {
 			List<String> argList = config.getStringList(FIREWORK_EFFECTS_CONFIG_NAME);
 
 			List<FireworkEffect> fireworkEffects = new ArrayList<>();
@@ -44,7 +44,7 @@ public class FireworkHandler {
 				try {
 					fireworkType = FireworkEffect.Type.valueOf(type.toUpperCase());
 				} catch (IllegalArgumentException e) {
-					DebugHandler.debugIllegalArgumentException(e);
+					DebugHandler.debugBadEnumValue(FireworkEffect.Type.class, type.toUpperCase());
 				}
 				if (fireworkType == null) continue;
 
@@ -53,10 +53,6 @@ public class FireworkHandler {
 
 				Color[] colors = Util.getColorsFromString(args[3]);
 				Color[] fadeColors = Util.getColorsFromString(args[4]);
-
-				// colors cant be null
-				if (colors == null) continue;
-				if (fadeColors == null) fadeColors = new Color[0];
 
 				FireworkEffect effect = FireworkEffect.builder()
 						.flicker(flicker)
@@ -69,38 +65,33 @@ public class FireworkHandler {
 				fireworkEffects.add(effect);
 			}
 
-			fireworkMeta.addEffects(fireworkEffects);
-			data.setFireworkEffects(fireworkEffects);
+			if (!fireworkEffects.isEmpty()) {
+				fireworkMeta.addEffects(fireworkEffects);
+				data.setAttribute(FIREWORK_EFFECTS, fireworkEffects);
+			}
 		}
 
 		fireworkMeta.setPower(power);
-		data.setPower(power);
-
-		return fireworkMeta;
+		data.setAttribute(POWER, power);
 	}
 
-	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (data == null) return meta;
-		if (!(meta instanceof FireworkMeta)) return meta;
+	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof FireworkMeta)) return;
 
 		FireworkMeta fireworkMeta = (FireworkMeta) meta;
-		fireworkMeta.setPower(data.getPower());
-
-		if (data.getFireworkEffect() == null) return fireworkMeta;
-
-		fireworkMeta.addEffects(data.getFireworkEffects());
-		return fireworkMeta;
+		if (data.hasAttribute(POWER)) fireworkMeta.setPower((int) data.getAttribute(POWER));
+		if (data.hasAttribute(FIREWORK_EFFECTS)) fireworkMeta.addEffects((List<FireworkEffect>) data.getAttribute(FIREWORK_EFFECTS));
 	}
 
-	public static MagicItemData process(ItemStack itemStack, MagicItemData data) {
-		if (data == null) return null;
-		if (itemStack == null) return data;
-		if (!(itemStack.getItemMeta() instanceof FireworkMeta)) return data;
+	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof FireworkMeta)) return;
 
-		FireworkMeta meta = (FireworkMeta) itemStack.getItemMeta();
-		data.setPower(meta.getPower());
-		data.setFireworkEffects(meta.getEffects());
-		return data;
+		FireworkMeta fireworkMeta = (FireworkMeta) meta;
+		data.setAttribute(POWER, fireworkMeta.getPower());
+		if (fireworkMeta.hasEffects()) {
+			List<FireworkEffect> effects = fireworkMeta.getEffects();
+			if (!effects.isEmpty()) data.setAttribute(FIREWORK_EFFECTS, fireworkMeta.getEffects());
+		}
 	}
 
 }

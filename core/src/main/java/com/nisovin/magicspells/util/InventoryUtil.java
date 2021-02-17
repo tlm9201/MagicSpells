@@ -95,7 +95,7 @@ public class InventoryUtil {
 
 	public static boolean inventoryContains(EntityEquipment entityEquipment, SpellReagents.ReagentItem item) {
 		if (entityEquipment == null) return false;
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item.getItemStack());
+		MagicItemData itemData = item.getMagicItemData();
 		if (itemData == null) return false;
 
 		int count = 0;
@@ -110,10 +110,12 @@ public class InventoryUtil {
 		equipment[5] = offHand;
 
 		for (ItemStack itemInside : equipment) {
+			if (itemInside == null) continue;
+
 			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemInside);
 			if (magicItemData == null) continue;
-			if (itemInside == null) continue;
-			if (magicItemData.equals(itemData)) count += itemInside.getAmount();
+
+			if (itemData.matches(magicItemData)) count += itemInside.getAmount();
 			if (count >= item.getAmount()) return true;
 		}
 		return false;
@@ -121,15 +123,17 @@ public class InventoryUtil {
 
 	public static boolean inventoryContains(Inventory inventory, SpellReagents.ReagentItem item) {
 		if (inventory == null) return false;
-		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item.getItemStack());
+		MagicItemData itemData = item.getMagicItemData();
 		if (itemData == null) return false;
 		int count = 0;
 		ItemStack[] items = inventory.getContents();
 		for (ItemStack itemStack : items) {
 			if (itemStack == null) continue;
+
 			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemStack);
 			if (magicItemData == null) continue;
-			if (magicItemData.equals(itemData)) count += itemStack.getAmount();
+
+			if (itemData.matches(magicItemData)) count += itemStack.getAmount();
 			if (count >= item.getAmount()) return true;
 		}
 		return false;

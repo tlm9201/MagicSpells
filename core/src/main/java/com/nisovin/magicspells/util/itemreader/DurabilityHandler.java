@@ -1,50 +1,36 @@
 package com.nisovin.magicspells.util.itemreader;
 
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.DURABILITY;
 
 public class DurabilityHandler {
 
-	private static final String CONFIG_NAME = "durability";
+	private static final String CONFIG_NAME = DURABILITY.toString();
 
-	public static ItemMeta process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof Damageable)) return meta;
-		Damageable damageableMeta = (Damageable) meta;
-		data.setDurability(damageableMeta.getDamage());
-
-		if (!config.contains(CONFIG_NAME)) return meta;
-		if (!config.isInt(CONFIG_NAME)) return meta;
+	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof Damageable)) return;
+		if (!config.isInt(CONFIG_NAME)) return;
 
 		int durability = config.getInt(CONFIG_NAME);
-
-		damageableMeta.setDamage(durability);
-		data.setDurability(durability);
-		return meta;
-	}
-
-	public static ItemMeta process(ItemMeta meta, MagicItemData data) {
-		if (data == null) return meta;
-		if (!(meta instanceof Damageable)) return meta;
-
-		int durability = data.getDurability();
-
 		((Damageable) meta).setDamage(durability);
-		return meta;
+		data.setAttribute(DURABILITY, durability);
 	}
 
-	public static MagicItemData process(ItemStack itemStack, MagicItemData itemData) {
-		if (itemData == null) return null;
-		if (itemStack == null) return itemData;
-		if (!(itemStack.getItemMeta() instanceof Damageable)) return itemData;
+	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof Damageable)) return;
 
-		int damage = ((Damageable) itemStack.getItemMeta()).getDamage();
-		itemData.setDurability(damage);
-		
-		return itemData;
+		if (data.hasAttribute(DURABILITY)) ((Damageable) meta).setDamage((int) data.getAttribute(DURABILITY));
+	}
+
+	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
+		if (!(meta instanceof Damageable)) return;
+
+		Damageable damageableMeta = (Damageable) meta;
+		if (damageableMeta.hasDamage()) data.setAttribute(DURABILITY, damageableMeta.getDamage());
 	}
 
 	public static int getDurability(ItemMeta meta) {

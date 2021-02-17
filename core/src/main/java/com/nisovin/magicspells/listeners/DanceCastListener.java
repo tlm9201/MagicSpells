@@ -23,8 +23,6 @@ import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.Spell.SpellCastResult;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
-import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class DanceCastListener implements Listener {
 	
@@ -61,8 +59,8 @@ public class DanceCastListener implements Listener {
 
 		String path = "general.";
 
-		MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString(path + "dance-cast-item", "MUSIC_DISC_13"));
-		if (magicItem != null) danceCastWand = new CastItem(magicItem.getItemStack());
+		danceCastWand = new CastItem(config.getString(path + "dance-cast-item", "MUSIC_DISC_13"));
+		if (!danceCastWand.isTypeValid()) danceCastWand = null;
 
 		duration = config.getInt(path + "dance-cast-duration", 200);
 		dynamicCasting = config.getBoolean(path + "dance-cast-dynamic", false);
@@ -121,7 +119,7 @@ public class DanceCastListener implements Listener {
 	public void onInteract(PlayerInteractEvent event) {
 		if (!event.hasItem()) return;
 		if (danceCastWand == null) return;
-		if (!danceCastWand.equals(event.getItem())) return;
+		if (!danceCastWand.equals(new CastItem(event.getItem()))) return;
 		
 		Action action = event.getAction();
 		Player player = event.getPlayer();
