@@ -370,6 +370,8 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			MagicSpells.cancelTask(repeatingVertTaskId);
 			if (effectSet != null) {
 				for (EffectlibSpellEffect spellEffect : effectSet) {
+					if (spellEffect == null) continue;
+					if (spellEffect.getEffect() == null) continue;
 					spellEffect.getEffect().cancel();
 				}
 				effectSet.clear();
