@@ -183,6 +183,8 @@ public class MagicSpells extends JavaPlugin {
 	private String soundFailOnCooldown;
 	private String soundFailMissingReagents;
 
+	private boolean loaded = false;
+
 	@Override
 	public void onEnable() {
 		load();
@@ -574,6 +576,7 @@ public class MagicSpells extends JavaPlugin {
 
 		// Call loaded event
 		pm.callEvent(new MagicSpellsLoadedEvent(this));
+		loaded = true;
 
 		log("MagicSpells loading complete!");
 	}
@@ -819,6 +822,10 @@ public class MagicSpells extends JavaPlugin {
 		plugin.effectManager.cancel(true);
 		plugin.effectManager.dispose();
 		plugin.effectManager = null;
+	}
+
+	public static boolean isLoaded() {
+		return plugin.loaded;
 	}
 
 	/**
