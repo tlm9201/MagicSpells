@@ -57,7 +57,7 @@ public class RightClickItemListener extends PassiveListener {
 			if (itemData == null || !contains(itemData)) return;
 		}
 
-		boolean casted = passiveSpell.activate(event.getPlayer());
+		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
