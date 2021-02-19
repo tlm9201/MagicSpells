@@ -50,6 +50,7 @@ public class BowSpell extends Spell {
 
 	private boolean cancelShot;
 	private boolean useBowForce;
+	private boolean removeArrow;
 	private boolean cancelShotOnFail;
 
 	private float minimumForce;
@@ -76,6 +77,7 @@ public class BowSpell extends Spell {
 
 		cancelShot = getConfigBoolean("cancel-shot", true);
 		useBowForce = getConfigBoolean("use-bow-force", true);
+		removeArrow = getConfigBoolean("remove-arrow", false);
 		cancelShotOnFail = getConfigBoolean("cancel-shot-on-fail", true);
 
 		minimumForce = getConfigFloat("minimum-force", 0F);
@@ -210,7 +212,7 @@ public class BowSpell extends Spell {
 			}, 0);
 			break;
 		}
-		arrow.remove();
+		if (removeArrow) arrow.remove();
 	}
 
 	@EventHandler(ignoreCancelled=true)
@@ -244,7 +246,7 @@ public class BowSpell extends Spell {
 			break;
 		}
 		arrow.removeMetadata(METADATA_KEY, MagicSpells.plugin);
-		arrow.remove();
+		if (removeArrow) arrow.remove();
 	}
 
 	private static class ArrowData {
