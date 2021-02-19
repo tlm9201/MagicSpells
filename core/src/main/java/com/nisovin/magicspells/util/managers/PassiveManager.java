@@ -99,6 +99,7 @@ public class PassiveManager {
 		addListener("offhandswap", OffhandSwapListener.class);
 		addListener("pickupitem", PickupItemListener.class);
 		addListener("playeranimate", PlayerAnimationListener.class);
+		addListener("playermove", PlayerMoveListener.class);
 		addListener("potioneffect", PotionEffectListener.class);
 		addListener("quit", QuitListener.class);
 		addListener("resourcepack", ResourcePackListener.class);
