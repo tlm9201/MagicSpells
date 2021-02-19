@@ -63,7 +63,7 @@ public class CrippleSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (caster != null) playSpellEffects(caster, target);
 		else playSpellEffects(EffectPosition.TARGET, target);
 		
-		if (useSlownessEffect) target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Math.round(duration * power), strength), true);
+		if (useSlownessEffect) target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Math.round(duration * power), strength));
 		if (applyPortalCooldown && target.getPortalCooldown() < (int) (portalCooldown * power)) target.setPortalCooldown((int) (portalCooldown * power));
 	}
 
