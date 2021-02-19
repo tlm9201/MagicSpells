@@ -31,7 +31,7 @@ public class EntitySelectSpell extends TargetedSpell {
 			if (targetInfo == null || targetInfo.getTarget() == null) return noTarget(livingEntity);
 			
 			targets.put(livingEntity.getUniqueId(), new WeakReference<>(targetInfo.getTarget()));
-			sendMessages(livingEntity, targetInfo.getTarget());
+			sendMessages(livingEntity, targetInfo.getTarget(), args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

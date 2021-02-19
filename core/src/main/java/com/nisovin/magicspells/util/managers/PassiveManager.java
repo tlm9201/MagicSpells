@@ -93,6 +93,7 @@ public class PassiveManager {
 		addListener("leavebed", LeaveBedListener.class);
 		addListener("leftclickblockcoord", LeftClickBlockCoordListener.class);
 		addListener("leftclickblocktype", LeftClickBlockTypeListener.class);
+		addListener("leftclickitem", LeftClickBlockTypeListener.class);
 		addListener("magicspellsloaded", MagicSpellsLoadedListener.class);
 		addListener("missarrow", MissArrowListener.class);
 		addListener("offhandswap", OffhandSwapListener.class);

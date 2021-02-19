@@ -58,7 +58,7 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
 			if (target == null) return noTarget(livingEntity);
 			chain(livingEntity, livingEntity.getLocation(), target.getTarget(), target.getPower());
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

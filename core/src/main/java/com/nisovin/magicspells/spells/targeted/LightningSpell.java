@@ -85,7 +85,7 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 				lightning(target.getLocation());
 				playSpellEffects(livingEntity, target.getLocation());
 				if (entityTarget != null) {
-					sendMessages(livingEntity, entityTarget);
+					sendMessages(livingEntity, entityTarget, args);
 					return PostCastAction.NO_MESSAGES;
 				}
 			} else return noTarget(livingEntity);

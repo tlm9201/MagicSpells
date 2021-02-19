@@ -569,20 +569,29 @@ public class VariableManager {
 		if (mod == null) return 0 + "";
 		if (playerToMod == null) return 0 + "";
 
-		double amount = mod.getValue(caster, target);
-		if (amount == 0 && mod.isConstantValue()) {
-			reset(var, playerToMod);
-			return amount + "";
-		}
-
 		VariableMod.Operation op = mod.getOperation();
+
 		if (op.equals(VariableMod.Operation.SET) && (variable instanceof PlayerStringVariable || variable instanceof GlobalStringVariable)) {
-			set(var, playerToMod, mod.getValue());
-			return mod.getValue();
+			String value = mod.getStringValue(caster, target);
+
+			if (value.equals(variable.getDefaultStringValue())) {
+				reset(var, playerToMod);
+			} else {
+				set(var, playerToMod, value);
+			}
+
+			return value;
 		}
 
-		set(var, playerToMod.getName(), op.applyTo(variable.getValue(playerToMod), amount));
-		return amount + "";
+		double value = op.applyTo(variable.getValue(playerToMod), mod.getValue(caster, target));
+
+		if (value == variable.getDefaultValue()) {
+			reset(var, playerToMod);
+		} else {
+			set(var, playerToMod, value);
+		}
+
+		return Double.toString(value);
 	}
 
 }

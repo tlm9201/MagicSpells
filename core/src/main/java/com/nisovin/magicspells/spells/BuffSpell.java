@@ -198,7 +198,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		PostCastAction action = activate(livingEntity, target, power, args, state == SpellCastState.NORMAL);
 		if (targeted && action == PostCastAction.HANDLE_NORMALLY) {
-			sendMessages(livingEntity, target);
+			sendMessages(livingEntity, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}
 

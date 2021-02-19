@@ -38,7 +38,7 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 
 			applyAttributes(target.getTarget());
 			playSpellEffects(livingEntity, target.getTarget());
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

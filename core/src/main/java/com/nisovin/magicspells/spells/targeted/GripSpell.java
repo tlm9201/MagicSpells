@@ -46,7 +46,7 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			if (target == null) return noTarget(livingEntity);
 			if (!grip(livingEntity.getLocation(), target.getTarget())) return noTarget(livingEntity, strCantGrip);
 
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

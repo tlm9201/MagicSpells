@@ -121,7 +121,7 @@ public class BindSpell extends CommandSpell {
 			spellbook.addCastItem(spell, castItem);
 			spellbook.save();
 			MagicSpells.debug(3, "    Bind successful.");
-			sendMessage(formatMessage(strCastSelf, "%s", spell.getName()), player, args);
+			sendMessage(strCastSelf, player, args, "%s", spell.getName());
 			playSpellEffects(EffectPosition.CASTER, player);
 			return PostCastAction.NO_MESSAGES;
 		}

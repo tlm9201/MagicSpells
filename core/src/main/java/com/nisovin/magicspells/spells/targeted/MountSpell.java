@@ -38,7 +38,7 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (targetInfo == null) return noTarget(livingEntity);
 			LivingEntity target = targetInfo.getTarget();
 			if (target == null) return noTarget(livingEntity);
-			mount(livingEntity, target);
+			mount(livingEntity, target, args);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
@@ -46,7 +46,7 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		mount(caster, target);
+		mount(caster, target, null);
 		return true;
 	}
 
@@ -55,7 +55,7 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 		return false;
 	}
 
-	private void mount(LivingEntity caster, LivingEntity target) {
+	private void mount(LivingEntity caster, LivingEntity target, String[] args) {
 		if (caster == null || target == null) return;
 
 		if (reverse) {
@@ -68,7 +68,7 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 				LivingEntity finalTarget = target;
 				MagicSpells.scheduleDelayedTask(() -> caster.removePassenger(finalTarget), duration);
 			}
-			sendMessages(caster, target);
+			sendMessages(caster, target, args);
 			return;
 		}
 
@@ -100,7 +100,7 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 			LivingEntity finalTarget1 = target;
 			MagicSpells.scheduleDelayedTask(() -> finalTarget1.removePassenger(caster), duration);
 		}
-		sendMessages(caster, target);
+		sendMessages(caster, target, args);
 	}
 
 	@EventHandler

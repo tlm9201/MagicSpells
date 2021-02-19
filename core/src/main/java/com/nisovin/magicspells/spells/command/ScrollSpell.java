@@ -164,7 +164,7 @@ public class ScrollSpell extends CommandSpell {
 			inHand = createScroll(spell, uses, inHand);
 			player.getEquipment().setItemInMainHand(inHand);
 			
-			sendMessage(formatMessage(strCastSelf, "%s", spell.getName()), player, args);
+			sendMessage(strCastSelf, player, args, "%s", spell.getName());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -302,7 +302,7 @@ public class ScrollSpell extends CommandSpell {
 			}
 		}
 
-		sendMessage(formatMessage(strOnUse, "%s", spell.getName(), "%u", uses >= 0 ? uses + "" : "many"), player, MagicSpells.NULL_ARGS);
+		sendMessage(strOnUse, player, MagicSpells.NULL_ARGS, "%s", spell.getName(), "%u", uses >= 0 ? uses + "" : "many");
 	}
 	
 	@EventHandler

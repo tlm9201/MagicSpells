@@ -21,9 +21,7 @@ public class PlayerStringVariable extends PlayerVariable {
 	
 	@Override
 	public String getStringValue(String player) {
-		String ret = data.get(player);
-		if (ret == null) ret = defaultStringValue;
-		return ret;
+		return data.getOrDefault(player, defaultStringValue);
 	}
 	
 	@Override

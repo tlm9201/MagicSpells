@@ -57,7 +57,7 @@ public class RegrowSpell extends TargetedSpell implements TargetedEntitySpell {
 			boolean done = grow((Sheep) target.getTarget());
 			if (!done) return noTarget(livingEntity);
 
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

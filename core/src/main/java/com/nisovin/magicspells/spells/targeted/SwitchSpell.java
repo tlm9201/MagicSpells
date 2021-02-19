@@ -27,7 +27,7 @@ public class SwitchSpell extends TargetedSpell implements TargetedEntitySpell {
 			
 			playSpellEffects(player, target.getTarget());
 			switchPlaces(player, target.getTarget());
-			sendMessages(player, target.getTarget());
+			sendMessages(player, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

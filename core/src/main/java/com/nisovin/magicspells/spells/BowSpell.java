@@ -142,19 +142,19 @@ public class BowSpell extends Spell {
 		if (!spellbook.canCast(this)) return;
 
 		if (onCooldown(shooter)) {
-			MagicSpells.sendMessage(formatMessage(strOnCooldown, "%c", Math.round(getCooldown(shooter)) + ""), shooter, null);
+			sendMessage(strOnCooldown, shooter, null, "%c", Math.round(getCooldown(shooter)) + "");
 			event.setCancelled(cancelShotOnFail);
 			return;
 		}
 
 		if (!hasReagents(shooter)) {
-			MagicSpells.sendMessage(strMissingReagents, shooter, null);
+			sendMessage(strMissingReagents, shooter, null);
 			event.setCancelled(cancelShotOnFail);
 			return;
 		}
 
 		if (modifiers != null && !modifiers.check(shooter)) {
-			MagicSpells.sendMessage(strModifierFailed, shooter, null);
+			sendMessage(strModifierFailed, shooter, null);
 			event.setCancelled(cancelShotOnFail);
 			return;
 		}

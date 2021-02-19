@@ -76,7 +76,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 			else {
 				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
 				if (targetInfo == null) return noTarget(livingEntity);
-				sendMessages(livingEntity, targetInfo.getTarget());
+				sendMessages(livingEntity, targetInfo.getTarget(), args);
 				new Rewinder(livingEntity, targetInfo.getTarget(), power);
 			}
 			playSpellEffects(EffectPosition.CASTER, livingEntity);
@@ -87,7 +87,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public boolean castAtEntity(LivingEntity player, LivingEntity livingEntity, float v) {
 		new Rewinder(player, livingEntity, v);
-		sendMessages(player, livingEntity);
+		sendMessages(player, livingEntity, null);
 		playSpellEffects(EffectPosition.CASTER, player);
 		playSpellEffects(EffectPosition.TARGET, livingEntity);
 		playSpellEffectsTrail(player.getLocation(), livingEntity.getLocation());

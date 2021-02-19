@@ -187,7 +187,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power, checker);
 			if (target == null) return noTarget(livingEntity);
 			new MissileTracker(livingEntity, target.getTarget(), target.getPower());
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

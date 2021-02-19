@@ -38,7 +38,7 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 			if (target == null) return noTarget(caster);
 			if (!teleport(caster, target.getTarget())) return noTarget(caster, strCantTeleport);
 
-			sendMessages(caster, target.getTarget());
+			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

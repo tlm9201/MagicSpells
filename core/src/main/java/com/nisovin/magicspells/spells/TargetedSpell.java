@@ -57,40 +57,26 @@ public abstract class TargetedSpell extends InstantSpell {
 		}
 	}
 	
-	protected void sendMessages(LivingEntity caster, LivingEntity target) {
+	protected void sendMessages(LivingEntity caster, LivingEntity target, String[] args) {
 		if (!(caster instanceof Player)) return;
 		String targetName = getTargetName(target);
 		Player playerTarget = null;
 		if (target instanceof Player) playerTarget = (Player) target;
-		sendMessage(prepareMessage(strCastSelf, (Player) caster, targetName, playerTarget), caster, MagicSpells.NULL_ARGS);
-		if (playerTarget != null) sendMessage(prepareMessage(strCastTarget, (Player) caster, targetName, playerTarget), playerTarget, MagicSpells.NULL_ARGS);
-		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, (Player) caster, targetName, playerTarget), broadcastRange, MagicSpells.NULL_ARGS);
+
+		sendMessage(prepareMessage(strCastSelf, (Player) caster, playerTarget), caster, args,
+			"%a", caster.getName(), "%t", targetName);
+
+		if (playerTarget != null)
+			sendMessage(prepareMessage(strCastTarget, (Player) caster, playerTarget), playerTarget, args,
+				"%a", caster.getName(), "%t", targetName);
+
+		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, (Player) caster, playerTarget), broadcastRange, args);
 	}
 	
-	private String prepareMessage(String message, Player caster, String targetName, Player playerTarget) {
+	private String prepareMessage(String message, Player caster, Player playerTarget) {
 		if (message == null || message.isEmpty()) return message;
-		message = message.replace("%a", caster.getName());
-		message = message.replace("%t", targetName);
-		if (playerTarget != null && MagicSpells.getVariableManager() != null && message.contains("%targetvar")) {
-			Matcher matcher = chatVarTargetMatchPattern.matcher(message);
-			while (matcher.find()) {
-				String varText = matcher.group();
-				String[] varData = varText.substring(5, varText.length() - 1).split(":");
-				String val = MagicSpells.getVariableManager().getStringValue(varData[0], playerTarget);
-				String sval = varData.length == 1 ? TxtUtil.getStringNumber(val, -1) : TxtUtil.getStringNumber(val, Integer.parseInt(varData[1]));
-				message = message.replace(varText, sval);
-			}
-		}
-		if (MagicSpells.getVariableManager() != null && message.contains("%castervar")) {
-			Matcher matcher = chatVarCasterMatchPattern.matcher(message);
-			while (matcher.find()) {
-				String varText = matcher.group();
-				String[] varData = varText.substring(5, varText.length() - 1).split(":");
-				String val = MagicSpells.getVariableManager().getStringValue(varData[0], caster);
-				String sval = varData.length == 1 ? TxtUtil.getStringNumber(val, -1) : TxtUtil.getStringNumber(val, Integer.parseInt(varData[1]));
-				message = message.replace(varText, sval);
-			}
-		}
+
+		message = MagicSpells.doTargetedVariableReplacements(caster, playerTarget, message);
 
 		return message;
 	}

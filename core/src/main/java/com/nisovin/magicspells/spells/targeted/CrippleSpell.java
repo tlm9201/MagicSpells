@@ -37,7 +37,7 @@ public class CrippleSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (target == null) return noTarget(livingEntity);
 
 			cripple(livingEntity, target.getTarget(), power);
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

@@ -140,7 +140,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				if (target == null) return noTarget(livingEntity);
 				new OrbitTracker(livingEntity, target.getTarget(), target.getPower());
 				playSpellEffects(livingEntity, target.getTarget());
-				sendMessages(livingEntity, target.getTarget());
+				sendMessages(livingEntity, target.getTarget(), args);
 				return PostCastAction.NO_MESSAGES;
 			}
 

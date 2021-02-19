@@ -75,7 +75,7 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 			power = targetInfo.getPower();
 			
 			createTomb(target, power);
-			sendMessages(livingEntity, target);
+			sendMessages(livingEntity, target, args);
 			playSpellEffects(livingEntity, target);
 			return PostCastAction.NO_MESSAGES;
 		}

@@ -104,7 +104,7 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 
 			boolean drained = drain(livingEntity, target.getTarget(), target.getPower());
 			if (!drained) return noTarget(livingEntity);
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

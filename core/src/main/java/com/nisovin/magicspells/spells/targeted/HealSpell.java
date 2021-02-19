@@ -53,7 +53,7 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (cancelIfFull && target.getHealth() == Util.getMaxHealth(target)) return noTarget(livingEntity, formatMessage(strMaxHealth, "%t", getTargetName(target)));
 			boolean healed = heal(livingEntity, target, power);
 			if (!healed) return noTarget(livingEntity);
-			sendMessages(livingEntity, target);
+			sendMessages(livingEntity, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

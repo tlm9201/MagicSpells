@@ -46,7 +46,7 @@ public class ShadowstepSpell extends TargetedSpell implements TargetedEntitySpel
 
 			boolean done = shadowstep(livingEntity, target.getTarget());
 			if (!done) return noTarget(livingEntity, strNoLandingSpot);
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

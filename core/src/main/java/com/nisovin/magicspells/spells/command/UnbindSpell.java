@@ -109,7 +109,7 @@ public class UnbindSpell extends CommandSpell {
 			}
 
 			spellbook.save();
-			sendMessage(formatMessage(strCastSelf, "%s", spell.getName()), player, args);
+			sendMessage(strCastSelf, player, args, "%s", spell.getName());
 			playSpellEffects(EffectPosition.CASTER, player);
 			return PostCastAction.NO_MESSAGES;
 		}

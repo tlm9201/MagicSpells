@@ -71,7 +71,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 			if (targeted) playSpellEffects(livingEntity, target);
 			else playSpellEffects(EffectPosition.CASTER, livingEntity);
 
-			sendMessages(livingEntity, target);
+			sendMessages(livingEntity, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}		
 		return PostCastAction.HANDLE_NORMALLY;

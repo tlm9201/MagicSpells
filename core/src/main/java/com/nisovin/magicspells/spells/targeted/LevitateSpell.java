@@ -97,7 +97,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 			if (target == null) return noTarget(livingEntity);
 			
 			levitate(livingEntity, target.getTarget());
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

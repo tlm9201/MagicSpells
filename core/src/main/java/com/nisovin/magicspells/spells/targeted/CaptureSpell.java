@@ -54,7 +54,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 			boolean ok = capture(livingEntity, target.getTarget(), target.getPower());
 			if (!ok) return noTarget(livingEntity);
 
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

@@ -108,13 +108,13 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 			if (requireAcceptance) {
 				pendingSummons.put(target, landLoc);
 				pendingTimes.put(target, System.currentTimeMillis());
-				sendMessage(formatMessage(strSummonPending, "%a", ((Player) caster).getDisplayName()), target, args);
+				sendMessage(strSummonPending, target, args, "%a", ((Player) caster).getDisplayName());
 			} else {
 				target.teleport(landLoc);
-				sendMessage(formatMessage(strSummonAccepted, "%a", ((Player) caster).getDisplayName()), target, args);
+				sendMessage(strSummonAccepted, target, args, "%a", ((Player) caster).getDisplayName());
 			}
 			
-			sendMessages(caster, target);
+			sendMessages(caster, target, args);
 			return PostCastAction.NO_MESSAGES;
 			
 		}
