@@ -19,57 +19,57 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // Trigger variable of a pipe separated list of items to accept
 public class LeftClickItemListener extends PassiveListener {
 
-    private final Set<MagicItemData> items = new HashSet<>();
+	private final Set<MagicItemData> items = new HashSet<>();
 
-    @Override
-    public void initialize(String var) {
-        if (var == null || var.isEmpty()) return;
+	@Override
+	public void initialize(String var) {
+		if (var == null || var.isEmpty()) return;
 
-        String[] split = var.split("\\|");
-        for (String s : split) {
-            s = s.trim();
+		String[] split = var.split("\\|");
+		for (String s : split) {
+			s = s.trim();
 
-            MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
-            if (itemData == null) {
-                MagicSpells.error("Invalid magic item '" + s + "' in leftclickitem trigger on passive spell '" + passiveSpell.getInternalName() + "'");
-                continue;
-            }
+			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
+			if (itemData == null) {
+				MagicSpells.error("Invalid magic item '" + s + "' in leftclickitem trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
 
-            items.add(itemData);
-        }
-    }
+			items.add(itemData);
+		}
+	}
 
-    @OverridePriority
-    @EventHandler
-    public void onLeftClick(PlayerInteractEvent event) {
-        if (event.getAction() != Action.LEFT_CLICK_AIR && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
-        if (!isCancelStateOk(isCancelled(event))) return;
-        if (!event.hasItem()) return;
+	@OverridePriority
+	@EventHandler
+	public void onLeftClick(PlayerInteractEvent event) {
+		if (event.getAction() != Action.LEFT_CLICK_AIR && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+		if (!isCancelStateOk(isCancelled(event))) return;
+		if (!event.hasItem()) return;
 
-        Player caster = event.getPlayer();
-        if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
+		Player caster = event.getPlayer();
+		if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
 
-        if (!items.isEmpty()) {
-            ItemStack item = event.getItem();
-            if (item == null) return;
+		if (!items.isEmpty()) {
+			ItemStack item = event.getItem();
+			if (item == null) return;
 
-            MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-            if (itemData == null || !contains(itemData)) return;
-        }
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+			if (itemData == null || !contains(itemData)) return;
+		}
 
-        boolean casted = passiveSpell.activate(caster);
-        if (cancelDefaultAction(casted)) event.setCancelled(true);
-    }
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
 
-    private boolean contains(MagicItemData itemData) {
-        for (MagicItemData data : items) {
-            if (data.matches(itemData)) return true;
-        }
-        return false;
-    }
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.matches(itemData)) return true;
+		}
+		return false;
+	}
 
-    private boolean isCancelled(PlayerInteractEvent event) {
-        return event.useInteractedBlock() == Event.Result.DENY && event.useItemInHand() == Event.Result.DENY;
-    }
+	private boolean isCancelled(PlayerInteractEvent event) {
+		return event.useInteractedBlock() == Event.Result.DENY && event.useItemInHand() == Event.Result.DENY;
+	}
 
 }

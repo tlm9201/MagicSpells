@@ -17,49 +17,49 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // Trigger variable of a pipe separated list of items to accept
 public class PlayerAnimationListener extends PassiveListener {
 
-    private final Set<MagicItemData> items = new HashSet<>();
+	private final Set<MagicItemData> items = new HashSet<>();
 
-    @Override
-    public void initialize(String var) {
-        if (var == null || var.isEmpty()) return;
+	@Override
+	public void initialize(String var) {
+		if (var == null || var.isEmpty()) return;
 
-        String[] split = var.split("\\|");
-        for (String s : split) {
-            s = s.trim();
+		String[] split = var.split("\\|");
+		for (String s : split) {
+			s = s.trim();
 
-            MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
-            if (itemData == null) {
-                MagicSpells.error("Invalid magic item '" + s + "' in playeranimate trigger on passive spell '" + passiveSpell.getInternalName() + "'");
-                continue;
-            }
+			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
+			if (itemData == null) {
+				MagicSpells.error("Invalid magic item '" + s + "' in playeranimate trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
 
-            items.add(itemData);
-        }
-    }
+			items.add(itemData);
+		}
+	}
 
-    @OverridePriority
-    @EventHandler
-    public void onAnimate(PlayerAnimationEvent event) {
-        if (!isCancelStateOk(event.isCancelled())) return;
+	@OverridePriority
+	@EventHandler
+	public void onAnimate(PlayerAnimationEvent event) {
+		if (!isCancelStateOk(event.isCancelled())) return;
 
-        Player caster = event.getPlayer();
-        if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
+		Player caster = event.getPlayer();
+		if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
 
-        if (!items.isEmpty()) {
-            ItemStack item = caster.getInventory().getItemInMainHand();
-            MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-            if (itemData == null || !contains(itemData)) return;
-        }
+		if (!items.isEmpty()) {
+			ItemStack item = caster.getInventory().getItemInMainHand();
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+			if (itemData == null || !contains(itemData)) return;
+		}
 
-        boolean casted = passiveSpell.activate(caster);
-        if (cancelDefaultAction(casted)) event.setCancelled(true);
-    }
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
 
-    private boolean contains(MagicItemData itemData) {
-        for (MagicItemData data : items) {
-            if (data.matches(itemData)) return true;
-        }
-        return false;
-    }
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.matches(itemData)) return true;
+		}
+		return false;
+	}
 
 }
