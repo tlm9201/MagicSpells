@@ -3,11 +3,11 @@ package com.nisovin.magicspells;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-import com.nisovin.magicspells.spells.TargetedSpell;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.Spell.SpellCastResult;
