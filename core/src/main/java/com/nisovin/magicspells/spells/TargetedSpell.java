@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spells;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.Effect;
@@ -10,7 +9,6 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TxtUtil;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.ValidTargetChecker;
@@ -57,20 +55,24 @@ public abstract class TargetedSpell extends InstantSpell {
 		}
 	}
 	
-	protected void sendMessages(LivingEntity caster, LivingEntity target, String[] args) {
-		if (!(caster instanceof Player)) return;
+	public void sendMessages(LivingEntity caster, LivingEntity target, String[] args) {
+		String casterName = getTargetName(caster);
+		Player playerCaster = null;
+		if (caster instanceof Player) playerCaster = (Player) caster;
+
 		String targetName = getTargetName(target);
 		Player playerTarget = null;
 		if (target instanceof Player) playerTarget = (Player) target;
 
-		sendMessage(prepareMessage(strCastSelf, (Player) caster, playerTarget), caster, args,
-			"%a", caster.getName(), "%t", targetName);
+		if (playerCaster != null)
+			sendMessage(prepareMessage(strCastSelf, playerCaster, playerTarget), caster, args,
+				"%a", casterName, "%t", targetName);
 
 		if (playerTarget != null)
-			sendMessage(prepareMessage(strCastTarget, (Player) caster, playerTarget), playerTarget, args,
-				"%a", caster.getName(), "%t", targetName);
+			sendMessage(prepareMessage(strCastTarget, playerCaster, playerTarget), target, args,
+				"%a", casterName, "%t", targetName);
 
-		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, (Player) caster, playerTarget), broadcastRange, args);
+		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, playerCaster, playerTarget), broadcastRange, args);
 	}
 	
 	private String prepareMessage(String message, Player caster, Player playerTarget) {
