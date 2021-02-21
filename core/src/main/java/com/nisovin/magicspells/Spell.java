@@ -1763,6 +1763,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		MagicSpells.sendMessage(message, livingEntity, args);
 	}
 
+	protected void sendMessage(String message, LivingEntity livingEntity) {
+		MagicSpells.sendMessage(message, livingEntity, null);
+	}
+
 	/**
 	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
 	 * @param message the message to send
