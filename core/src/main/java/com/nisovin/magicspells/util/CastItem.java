@@ -100,8 +100,8 @@ public class CastItem {
 				if (!MagicSpells.ignoreCastItemAuthor() && data.hasAttribute(AUTHOR))
 					author = (String) data.getAttribute(AUTHOR);
 
-				if (!MagicSpells.ignoreCastItemEnchants() && data.hasAttribute(ENCHANTMENTS))
-					enchants = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTMENTS);
+				if (!MagicSpells.ignoreCastItemEnchants() && data.hasAttribute(ENCHANTS))
+					enchants = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTS);
 
 				if (!MagicSpells.ignoreCastItemLore() && data.hasAttribute(LORE))
 					lore = (List<String>) data.getAttribute(LORE);

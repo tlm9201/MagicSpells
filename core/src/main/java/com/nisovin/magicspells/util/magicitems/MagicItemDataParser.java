@@ -235,7 +235,7 @@ public class MagicItemDataParser {
 									if (!enchantments.isEmpty() && fakeGlint) data.removeAttribute(FAKE_GLINT);
 								}
 
-								if (!enchantments.isEmpty()) data.setAttribute(ENCHANTMENTS, enchantments);
+								if (!enchantments.isEmpty()) data.setAttribute(ENCHANTS, enchantments);
 							} catch (JsonSyntaxException exception) {
 								MagicSpells.error("Invalid enchantment syntax!");
 								continue;
@@ -244,8 +244,8 @@ public class MagicItemDataParser {
 						case "fakeglint":
 						case "fake-glint":
 						case "fake_glint":
-							if (data.hasAttribute(ENCHANTMENTS)) {
-								Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTMENTS);
+							if (data.hasAttribute(ENCHANTS)) {
+								Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTS);
 								boolean fakeGlint = value.getAsBoolean();
 
 								if (enchantments.isEmpty() && fakeGlint) data.setAttribute(FAKE_GLINT, true);

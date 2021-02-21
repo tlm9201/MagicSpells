@@ -175,7 +175,7 @@ public class MagicItemData {
         TEXTURE(String.class),
         SIGNATURE(String.class),
         SKULL_OWNER(String.class),
-        ENCHANTMENTS(Map.class),
+        ENCHANTS(Map.class),
         LORE(List.class),
         PAGES(List.class),
         POTION_EFFECTS(List.class),
@@ -447,11 +447,11 @@ public class MagicItemData {
             previous = true;
         }
 
-        if (hasAttribute(MagicItemAttribute.ENCHANTMENTS)) {
+        if (hasAttribute(MagicItemAttribute.ENCHANTS)) {
             if (previous) output.append(',');
             else output.append('{');
 
-            Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) getAttribute(MagicItemAttribute.ENCHANTMENTS);
+            Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) getAttribute(MagicItemAttribute.ENCHANTS);
             boolean previousEnchantment = false;
             output.append("\"enchants\":{");
             for (Enchantment enchantment : enchantments.keySet()) {
