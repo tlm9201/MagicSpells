@@ -54,6 +54,10 @@ public abstract class TargetedSpell extends InstantSpell {
 			MagicSpells.error("Spell '" + internalName + "' has an invalid spell-on-fail defined!");
 		}
 	}
+
+	public void sendMessages(LivingEntity caster, LivingEntity target) {
+		sendMessages(caster, target, null);
+	}
 	
 	public void sendMessages(LivingEntity caster, LivingEntity target, String[] args) {
 		String casterName = getTargetName(caster);
