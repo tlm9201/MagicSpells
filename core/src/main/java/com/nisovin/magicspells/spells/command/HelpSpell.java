@@ -50,9 +50,9 @@ public class HelpSpell extends CommandSpell {
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
-			sendMessage(formatMessage(strDescLine, "%s", spell.getName(), "%d", spell.getDescription()), player, args);
+			sendMessage(strDescLine, player, args, "%s", spell.getName(), "%d", spell.getDescription());
 			if (spell.getCostStr() != null && !spell.getCostStr().isEmpty()) {
-				sendMessage(formatMessage(strCostLine, "%c", spell.getCostStr()), player, args);
+				sendMessage(strCostLine, player, args, "%c", spell.getCostStr());
 			}
 		}
 		return PostCastAction.HANDLE_NORMALLY;

@@ -1259,7 +1259,7 @@ public class MagicSpells extends JavaPlugin {
 	 * @return the formatted string
 	 */
 	public static String formatMessage(String message, String... replacements) {
-		if (message == null) return null;
+		if (message == null || replacements == null || replacements.length == 0) return message;
 
 		String msg = message;
 		for (int i = 0; i < replacements.length; i += 2) {
@@ -1281,11 +1281,35 @@ public class MagicSpells extends JavaPlugin {
 	 * @param replacements the replacements to be made, in pairs
 	 */
 	public static void sendMessageAndFormat(Player player, String message, String... replacements) {
-		sendMessage(formatMessage(message, replacements), player, null);
+		sendMessageAndFormat(message, player, null, replacements);
+	}
+
+	/**
+	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
+	 * @param message the message to send
+	 * @param livingEntity the player to send the message to
+	 * @param args the arguments of associated spell cast
+	 * @param replacements the replacements to be made, in pairs
+	 */
+	public static void sendMessageAndFormat(String message, LivingEntity livingEntity, String[] args, String... replacements) {
+		if (!(livingEntity instanceof Player)) return;
+		if (message == null || message.isEmpty()) return;
+
+		//Do var replacements
+		message = doArgumentAndVariableSubstitution(message, (Player) livingEntity, args);
+
+		//Format
+		message = formatMessage(message, replacements);
+
+		//Send messages
+		for (String msg : message.split("\n")) {
+			if (msg.isEmpty()) continue;
+			livingEntity.sendMessage(Util.colorize(getTextColor() + msg));
+		}
 	}
 
 	public static void sendMessage(Player player, String message) {
-		sendMessage(message, player, null);
+		sendMessageAndFormat(message, player, null);
 	}
 
 	/**
@@ -1294,67 +1318,102 @@ public class MagicSpells extends JavaPlugin {
 	 * @param message the message to send
 	 */
 	public static void sendMessage(String message, LivingEntity livingEntity, String[] args) {
-		if (!(livingEntity instanceof Player)) return;
-		if (message != null && !message.isEmpty()) {
-			// Do var replacements
-			message = doArgumentAndVariableSubstitution(message, (Player) livingEntity, args);
-			// Send messages
-			for (String msg : message.split("\n")) {
-				if (msg.isEmpty()) continue;
-				livingEntity.sendMessage(Util.colorize(getTextColor() + msg));
-			}
-		}
+		sendMessageAndFormat(message, livingEntity, args);
 	}
 
-	private static final Pattern chatVarMatchPattern = Pattern.compile("%var:[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern chatVarMatchPattern = Pattern.compile("%var:(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doSubjectVariableReplacements(Player player, String string) {
-		if (string != null && plugin.variableManager != null && string.contains("%var")) {
-			Matcher matcher = chatVarMatchPattern.matcher(string);
-			while (matcher.find()) {
-				String varText = matcher.group();
-				String[] varData = varText.substring(5, varText.length() - 1).split(":");
-				String val = plugin.variableManager.getStringValue(varData[0], player);
-				String sval = varData.length == 1 ? TxtUtil.getStringNumber(val, -1) : TxtUtil.getStringNumber(val, Integer.parseInt(varData[1]));
-				string = string.replace(varText, sval);
+		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
+
+		Matcher matcher = chatVarMatchPattern.matcher(string);
+		StringBuffer buf = new StringBuffer();
+
+		while (matcher.find()) {
+			String varName = matcher.group(1), place = matcher.group(2);
+
+			String value;
+			if (place != null) {
+				double amount = plugin.variableManager.getValue(varName, player);
+				value = TxtUtil.getStringNumber(amount, Integer.parseInt(place));
+			} else {
+				value = plugin.variableManager.getStringValue(varName, player);
 			}
+
+			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
 		}
-		return string;
+
+		return matcher.appendTail(buf).toString();
 	}
 
-	private static final Pattern chatPlayerVarMatchPattern = Pattern.compile("%playervar:" + RegexUtil.USERNAME_REGEXP + ":[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern chatPlayerVarMatchPattern = Pattern.compile("%playervar:(" + RegexUtil.USERNAME_REGEXP + "):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doVariableReplacements(Player player, String string) {
 		string = doSubjectVariableReplacements(player, string);
-		if (string != null && plugin.variableManager != null && string.contains("%playervar")) {
-			Matcher matcher = chatPlayerVarMatchPattern.matcher(string);
-			while (matcher.find()) {
-				String varText = matcher.group();
-				String[] varData = varText.substring(11, varText.length() - 1).split(":");
-				String variableOwnerName = varData[0];
-				String val = plugin.variableManager.getStringValue(varData[1], variableOwnerName);
-				String sval = varData.length == 2 ? TxtUtil.getStringNumber(val, -1) : TxtUtil.getStringNumber(val, Integer.parseInt(varData[2]));
-				string = string.replace(varText, sval);
+		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
+
+		Matcher matcher = chatPlayerVarMatchPattern.matcher(string);
+		StringBuffer buf = new StringBuffer();
+
+		while (matcher.find()) {
+			String variableOwnerName = matcher.group(1), varName = matcher.group(2), place = matcher.group(3);
+
+			String value;
+			if (place != null) {
+				double amount = plugin.variableManager.getValue(varName, variableOwnerName);
+				value = TxtUtil.getStringNumber(amount, Integer.parseInt(place));
+			} else {
+				value = plugin.variableManager.getStringValue(varName, variableOwnerName);
 			}
+
+			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
 		}
-		return string;
+
+		return matcher.appendTail(buf).toString();
+	}
+
+	private static final Pattern chatTargetedVarMatchPattern = Pattern.compile("%(castervar|targetvar):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	public static String doTargetedVariableReplacements(Player caster, Player target, String string) {
+		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
+
+		Matcher matcher = chatTargetedVarMatchPattern.matcher(string);
+		StringBuffer buf = new StringBuffer();
+		Player varOwner;
+
+		while (matcher.find()) {
+			varOwner = matcher.group(1).equalsIgnoreCase("targetvar") ? target : caster;
+			if (varOwner == null) continue;
+
+			String varName = matcher.group(2), place = matcher.group(3), value;
+			if (place != null) {
+				double amount = plugin.variableManager.getValue(varName, varOwner);
+				value = TxtUtil.getStringNumber(amount, Integer.parseInt(place));
+			} else {
+				value = plugin.variableManager.getStringValue(varName, varOwner);
+			}
+
+			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
+		}
+
+		return matcher.appendTail(buf).toString();
 	}
 
 	//%arg:(index):defaultValue%
-	private static final Pattern argumentSubstitutionPattern = Pattern.compile("%arg:[0-9]+:[0-9a-zA-Z_]+%");
+	private static final Pattern argumentSubstitutionPattern = Pattern.compile("%arg:(\\d+):(\\w+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doArgumentSubstitution(String string, String[] args) {
-		if (string != null && string.contains("%arg")) {
-			Matcher matcher = argumentSubstitutionPattern.matcher(string);
-			while (matcher.find()) {
-				String argText = matcher.group();
-				String[] argData = argText.substring(5, argText.length() - 1).split(":");
-				int argIndex = Integer.parseInt(argData[0]) - 1;
-				String newValue;
-				if (args != null && argIndex < args.length) newValue = args[argIndex];
-				else newValue = argData[1];
+		if (string == null || string.isEmpty()) return string;
 
-				string = string.replace(argText, newValue);
-			}
+		Matcher matcher = argumentSubstitutionPattern.matcher(string);
+		StringBuffer buf = new StringBuffer();
+
+		while (matcher.find()) {
+			int argIndex = Integer.parseInt(matcher.group(1)) - 1;
+
+			String newValue = matcher.group(2);
+			if (args != null && argIndex >= 0 && argIndex < args.length) newValue = args[argIndex];
+
+			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(newValue));
 		}
-		return string;
+
+		return matcher.appendTail(buf).toString();
 	}
 
 	public static String doArgumentAndVariableSubstitution(String string, Player player, String[] args) {

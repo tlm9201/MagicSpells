@@ -47,7 +47,7 @@ public class ForcetossSpell extends TargetedSpell implements TargetedEntitySpell
 			if (targetInfo == null) return noTarget(livingEntity);
 
 			toss(livingEntity, targetInfo.getTarget(), targetInfo.getPower());
-			sendMessages(livingEntity, targetInfo.getTarget());
+			sendMessages(livingEntity, targetInfo.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

@@ -4,11 +4,11 @@ import java.util.regex.Pattern;
 import java.util.function.BinaryOperator;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.apache.commons.math3.util.FastMath;
+
 import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.MagicSpells;
-
-import org.apache.commons.math3.util.FastMath;
 
 public class VariableMod {
 	
@@ -58,16 +58,16 @@ public class VariableMod {
 		}
 		
 	}
-	
+
+	private static final Pattern OPERATION_MATCHER = Pattern.compile("^[=+*/^%?]");
+
 	private VariableOwner variableOwner = VariableOwner.CASTER;
 	private String modifyingVariableName = null;
+	private double constantModifier;
+	private boolean negate = false;
 	private String value;
 	private Operation op;
-	private double constantModifier;
-	private static final Pattern OPERATION_MATCHER = Pattern.compile("^[=+*/^%?]");
-	
-	private boolean negate = false;
-	
+
 	public VariableMod(String data) {
 		op = Operation.fromPrefix(data);
 		data = OPERATION_MATCHER.matcher(data).replaceFirst("");
@@ -104,6 +104,11 @@ public class VariableMod {
 	public double getValue(Player caster, Player target, double baseValue) {
 		double secondValue = getValue(caster, target);
 		return getOperation().applyTo(baseValue, secondValue);
+	}
+
+	public String getStringValue(Player caster, Player target) {
+		String ret = MagicSpells.doTargetedVariableReplacements(caster, target, value);
+		return MagicSpells.doVariableReplacements(caster, ret);
 	}
 
 	public String getValue() {

@@ -71,7 +71,7 @@ public class StunSpell extends TargetedSpell implements TargetedEntitySpell {
 			power = targetInfo.getPower();
 
 			stunLivingEntity(caster, target, Math.round(duration * power));
-			sendMessages(caster, target);
+			sendMessages(caster, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

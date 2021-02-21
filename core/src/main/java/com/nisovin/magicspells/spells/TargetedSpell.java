@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spells;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.Effect;
@@ -10,7 +9,6 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TxtUtil;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.ValidTargetChecker;
@@ -57,40 +55,30 @@ public abstract class TargetedSpell extends InstantSpell {
 		}
 	}
 	
-	protected void sendMessages(LivingEntity caster, LivingEntity target) {
-		if (!(caster instanceof Player)) return;
+	public void sendMessages(LivingEntity caster, LivingEntity target, String[] args) {
+		String casterName = getTargetName(caster);
+		Player playerCaster = null;
+		if (caster instanceof Player) playerCaster = (Player) caster;
+
 		String targetName = getTargetName(target);
 		Player playerTarget = null;
 		if (target instanceof Player) playerTarget = (Player) target;
-		sendMessage(prepareMessage(strCastSelf, (Player) caster, targetName, playerTarget), caster, MagicSpells.NULL_ARGS);
-		if (playerTarget != null) sendMessage(prepareMessage(strCastTarget, (Player) caster, targetName, playerTarget), playerTarget, MagicSpells.NULL_ARGS);
-		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, (Player) caster, targetName, playerTarget), broadcastRange, MagicSpells.NULL_ARGS);
+
+		if (playerCaster != null)
+			sendMessage(prepareMessage(strCastSelf, playerCaster, playerTarget), caster, args,
+				"%a", casterName, "%t", targetName);
+
+		if (playerTarget != null)
+			sendMessage(prepareMessage(strCastTarget, playerCaster, playerTarget), target, args,
+				"%a", casterName, "%t", targetName);
+
+		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, playerCaster, playerTarget), broadcastRange, args);
 	}
 	
-	private String prepareMessage(String message, Player caster, String targetName, Player playerTarget) {
+	private String prepareMessage(String message, Player caster, Player playerTarget) {
 		if (message == null || message.isEmpty()) return message;
-		message = message.replace("%a", caster.getName());
-		message = message.replace("%t", targetName);
-		if (playerTarget != null && MagicSpells.getVariableManager() != null && message.contains("%targetvar")) {
-			Matcher matcher = chatVarTargetMatchPattern.matcher(message);
-			while (matcher.find()) {
-				String varText = matcher.group();
-				String[] varData = varText.substring(5, varText.length() - 1).split(":");
-				String val = MagicSpells.getVariableManager().getStringValue(varData[0], playerTarget);
-				String sval = varData.length == 1 ? TxtUtil.getStringNumber(val, -1) : TxtUtil.getStringNumber(val, Integer.parseInt(varData[1]));
-				message = message.replace(varText, sval);
-			}
-		}
-		if (MagicSpells.getVariableManager() != null && message.contains("%castervar")) {
-			Matcher matcher = chatVarCasterMatchPattern.matcher(message);
-			while (matcher.find()) {
-				String varText = matcher.group();
-				String[] varData = varText.substring(5, varText.length() - 1).split(":");
-				String val = MagicSpells.getVariableManager().getStringValue(varData[0], caster);
-				String sval = varData.length == 1 ? TxtUtil.getStringNumber(val, -1) : TxtUtil.getStringNumber(val, Integer.parseInt(varData[1]));
-				message = message.replace(varText, sval);
-			}
-		}
+
+		message = MagicSpells.doTargetedVariableReplacements(caster, playerTarget, message);
 
 		return message;
 	}

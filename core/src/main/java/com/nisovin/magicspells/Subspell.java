@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.Spell.SpellCastResult;
@@ -168,7 +169,12 @@ public class Subspell {
 				if (!spellTarget.isCancelled())
 					success = ((TargetedEntitySpell) spell).castAtEntity(livingEntity, target, spellCast.getPower());
 
-				if (!success) action = PostCastAction.ALREADY_HANDLED;
+				if (success) {
+					if (spell instanceof TargetedSpell) {
+						action = PostCastAction.NO_MESSAGES;
+						((TargetedSpell) spell).sendMessages(livingEntity, target, null);
+					}
+				} else action = PostCastAction.ALREADY_HANDLED;
 			}
 
 			spell.postCast(spellCast, action);
@@ -280,7 +286,12 @@ public class Subspell {
 				if (!spellLocation.isCancelled() && !spellTarget.isCancelled())
 					success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(livingEntity, from, target, spellCast.getPower());
 
-				if (!success) action = PostCastAction.ALREADY_HANDLED;
+				if (success) {
+					if (spell instanceof TargetedSpell) {
+						action = PostCastAction.NO_MESSAGES;
+						((TargetedSpell) spell).sendMessages(livingEntity, target, null);
+					}
+				} else action = PostCastAction.ALREADY_HANDLED;
 			}
 
 			spell.postCast(spellCast, action);

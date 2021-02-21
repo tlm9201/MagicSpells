@@ -71,7 +71,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 			if (targeted) playSpellEffects(livingEntity, target);
 			else playSpellEffects(EffectPosition.CASTER, livingEntity);
 
-			sendMessages(livingEntity, target);
+			sendMessages(livingEntity, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}		
 		return PostCastAction.HANDLE_NORMALLY;
@@ -109,7 +109,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 		if (effect.getType() == PotionEffectType.POISON) cause = DamageCause.POISON;
 		else if (effect.getType() == PotionEffectType.WITHER) cause = DamageCause.WITHER;
 		if (cause != null) EventUtil.call(new SpellApplyDamageEvent(this, caster, target, effect.getAmplifier(), cause, ""));
-		target.addPotionEffect(effect, true);
+		target.addPotionEffect(effect);
 	}
 
 }

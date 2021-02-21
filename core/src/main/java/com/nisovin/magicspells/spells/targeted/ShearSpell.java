@@ -70,7 +70,7 @@ public class ShearSpell extends TargetedSpell implements TargetedEntitySpell {
 			boolean done = shear((Sheep) target.getTarget());
 			if (!done) return noTarget(livingEntity);
 
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

@@ -155,22 +155,22 @@ public class TomeSpell extends CommandSpell {
 		if (spellbook == null) return;
 		
 		if (spellbook.hasSpell(spell)) {
-			sendMessage(formatMessage(strAlreadyKnown, "%s", spell.getName()), event.getPlayer(), MagicSpells.NULL_ARGS);
+			sendMessage(strAlreadyKnown, event.getPlayer(), MagicSpells.NULL_ARGS, "%s", spell.getName());
 			return;
 		}
 		if (!spellbook.canLearn(spell)) {
-			sendMessage(formatMessage(strCantLearn, "%s", spell.getName()), event.getPlayer(), MagicSpells.NULL_ARGS);
+			sendMessage(strCantLearn, event.getPlayer(), MagicSpells.NULL_ARGS, "%s", spell.getName());
 			return;
 		}
 		SpellLearnEvent learnEvent = new SpellLearnEvent(spell, event.getPlayer(), LearnSource.TOME, event.getPlayer().getEquipment().getItemInMainHand());
 		EventUtil.call(learnEvent);
 		if (learnEvent.isCancelled()) {
-			sendMessage(formatMessage(strCantLearn, "%s", spell.getName()), event.getPlayer(), MagicSpells.NULL_ARGS);
+			sendMessage(strCantLearn, event.getPlayer(), MagicSpells.NULL_ARGS, "%s", spell.getName());
 			return;
 		}
 		spellbook.addSpell(spell);
 		spellbook.save();
-		sendMessage(formatMessage(strLearned, "%s", spell.getName()), event.getPlayer(), MagicSpells.NULL_ARGS);
+		sendMessage(strLearned, event.getPlayer(), MagicSpells.NULL_ARGS, "%s", spell.getName());
 		if (cancelReadOnLearn) event.setCancelled(true);
 
 		if (uses > 0) {

@@ -198,7 +198,10 @@ public class RitualSpell extends InstantSpell {
 
 			if (interrupted) {
 				stop(strRitualInterrupted);
-				if (spellOnInterrupt != null && caster.isValid()) spellOnInterrupt.castSpell(caster, SpellCastState.NORMAL, power, MagicSpells.NULL_ARGS);
+				if (spellOnInterrupt != null && caster.isValid()) {
+					if (spellOnInterrupt.isTargetedLocationSpell()) spellOnInterrupt.castAtLocation(caster, caster.getLocation(), power);
+					else spellOnInterrupt.cast(caster, power);
+				}
 			}
 			
 			if (duration >= ritualDuration) {

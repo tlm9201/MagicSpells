@@ -16,12 +16,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.entity.EntityTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
@@ -62,6 +63,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	protected boolean castWithItem;
 	protected boolean castByCommand;
 	protected boolean cancelOnJoin;
+	protected boolean cancelOnMove;
 	protected boolean cancelOnDeath;
 	protected boolean cancelOnLogout;
 	protected boolean cancelOnTeleport;
@@ -108,6 +110,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		castWithItem = getConfigBoolean("can-cast-with-item", true);
 		castByCommand = getConfigBoolean("can-cast-by-command", true);
 		cancelOnJoin = getConfigBoolean("cancel-on-join", false);
+		cancelOnMove = getConfigBoolean("cancel-on-move", false);
 		cancelOnDeath = getConfigBoolean("cancel-on-death", false);
 		cancelOnLogout = getConfigBoolean("cancel-on-logout", false);
 		cancelOnTeleport = getConfigBoolean("cancel-on-teleport", false);
@@ -138,6 +141,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		if (cancelOnSpellCast) registerEvents(new SpellCastListener());
 		if (cancelOnLogout) registerEvents(new PlayerQuitListener());
 		if (cancelOnJoin) registerEvents(new PlayerJoinListener());
+		if (cancelOnMove) registerEvents(new PlayerMoveListener());
 		registerEvents(new EntityDeathListener());
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) useCounter = new HashMap<>();
@@ -198,7 +202,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		PostCastAction action = activate(livingEntity, target, power, args, state == SpellCastState.NORMAL);
 		if (targeted && action == PostCastAction.HANDLE_NORMALLY) {
-			sendMessages(livingEntity, target);
+			sendMessages(livingEntity, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}
 
@@ -614,6 +618,22 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		public void onJoin(PlayerJoinEvent event) {
 			LivingEntity player = getWhoToCancel(event.getPlayer());
 			if (player == null) return;
+			turnOff(player);
+		}
+
+	}
+
+	public class PlayerMoveListener implements Listener {
+
+		private static final double MOTION_TOLERANCE = 0.1;
+
+		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+		public void onMove(PlayerMoveEvent event) {
+			LivingEntity player = getWhoToCancel(event.getPlayer());
+			if (player == null) return;
+
+			if (LocationUtil.distanceLessThan(event.getFrom(), event.getTo(), MOTION_TOLERANCE)) return;
+
 			turnOff(player);
 		}
 

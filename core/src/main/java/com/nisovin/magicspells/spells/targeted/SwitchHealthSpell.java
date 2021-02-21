@@ -29,7 +29,7 @@ public class SwitchHealthSpell extends TargetedSpell implements TargetedEntitySp
 			boolean ok = switchHealth(caster, target.getTarget());
 			if (!ok) return noTarget(caster);
 
-			sendMessages(caster, target.getTarget());
+			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

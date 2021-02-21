@@ -168,7 +168,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected ModifierSet targetModifiers;
 	protected ModifierSet locationModifiers;
 
-	protected Spell spellOnInterrupt;
+	protected Subspell spellOnInterrupt;
 
 	protected SpellReagents reagents;
 
@@ -517,7 +517,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			variableModsCast = LinkedListMultimap.create();
 			for (String s : varModsCast) {
 				try {
-					String[] data = s.split(" ");
+					String[] data = s.split(" ", 2);
 					String var = data[0];
 					VariableMod varMod = new VariableMod(data[1]);
 					variableModsCast.put(var, varMod);
@@ -530,7 +530,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			variableModsCasted = LinkedListMultimap.create();
 			for (String s : varModsCasted) {
 				try {
-					String[] data = s.split(" ");
+					String[] data = s.split(" ", 2);
 					String var = data[0];
 					VariableMod varMod = new VariableMod(data[1]);
 					variableModsCasted.put(var, varMod);
@@ -543,7 +543,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			variableModsTarget = LinkedListMultimap.create();
 			for (String s : varModsTarget) {
 				try {
-					String[] data = s.split(" ");
+					String[] data = s.split(" ", 2);
 					String var = data[0];
 					VariableMod varMod = new VariableMod(data[1]);
 					variableModsTarget.put(var, varMod);
@@ -662,7 +662,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		registerEvents();
 
 		// Other processing
-		if (spellNameOnInterrupt != null && !spellNameOnInterrupt.isEmpty()) spellOnInterrupt = MagicSpells.getSpellByInternalName(spellNameOnInterrupt);
+		if (spellNameOnInterrupt != null && !spellNameOnInterrupt.isEmpty())
+			spellOnInterrupt = initSubspell(spellNameOnInterrupt, "Spell '" + internalName + "' has an invalid spell-on-interrupt defined!");
 	}
 
 	protected boolean configKeyExists(String key) {
@@ -887,9 +888,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (action.sendMessages()) sendMessages(livingEntity, spellCast.getSpellArgs());
 				if (experience > 0 && livingEntity instanceof Player) ((Player) livingEntity).giveExp(experience);
 			} else if (state == SpellCastState.ON_COOLDOWN) {
-				String message = formatMessage(strOnCooldown, "%c", Math.round(getCooldown(livingEntity)) + "");
-				message = formatMessage(message, "%s", spellCast.getSpell().getName());
-				MagicSpells.sendMessage(message, livingEntity, spellCast.getSpellArgs());
+				MagicSpells.sendMessageAndFormat(strOnCooldown, livingEntity, spellCast.getSpellArgs(),
+					"%c", Math.round(getCooldown(livingEntity)) + "", "%s", spellCast.getSpell().getName());
 				playSpellEffects(EffectPosition.COOLDOWN, livingEntity);
 				if (soundOnCooldown != null && livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), soundOnCooldown, 1F, 1F);
 			} else if (state == SpellCastState.MISSING_REAGENTS) {
@@ -911,7 +911,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	// TODO can this safely be made varargs?
 	public void sendMessages(LivingEntity livingEntity, String[] args) {
-		sendMessage(formatMessage(strCastSelf, "%a", livingEntity.getName()), livingEntity, args);
+		sendMessage(strCastSelf, livingEntity, args, "%a", livingEntity.getName());
 		sendMessageNear(livingEntity, formatMessage(strCastOthers, "%a", livingEntity.getName()));
 	}
 
@@ -1747,7 +1747,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param replacements the replacements to be made, in pairs
 	 */
 	protected void sendMessage(LivingEntity livingEntity, String message, String... replacements) {
-		sendMessage(formatMessage(message, replacements), livingEntity, null);
+		sendMessage(message, livingEntity, null, replacements);
 	}
 
 	protected void sendMessage(LivingEntity livingEntity, String message) {
@@ -1761,6 +1761,17 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	protected void sendMessage(String message, LivingEntity livingEntity, String[] args) {
 		MagicSpells.sendMessage(message, livingEntity, args);
+	}
+
+	/**
+	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
+	 * @param message the message to send
+	 * @param livingEntity the player to send the message to
+	 * @param args the arguments of associated spell cast
+	 * @param replacements the replacements to be made, in pairs
+	 */
+	protected void sendMessage(String message, LivingEntity livingEntity, String[] args, String... replacements) {
+		MagicSpells.sendMessageAndFormat(message, livingEntity, args, replacements);
 	}
 
 	/**
@@ -2086,7 +2097,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			unregisterEvents(this);
 
 			sendMessage(strInterrupted, caster, null);
-			if (spellOnInterrupt != null) spellOnInterrupt.castSpell(caster, SpellCastState.NORMAL, spellCast.getPower(), null);
+			if (spellOnInterrupt != null) {
+				if (spellOnInterrupt.isTargetedLocationSpell()) spellOnInterrupt.castAtLocation(caster, caster.getLocation(), spellCast.getPower());
+				else spellOnInterrupt.cast(caster, spellCast.getPower());
+			}
 		}
 
 	}
@@ -2177,7 +2191,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		private void interrupt() {
 			sendMessage(strInterrupted, caster, null);
 			end();
-			if (spellOnInterrupt != null) spellOnInterrupt.castSpell(caster, SpellCastState.NORMAL, spellCast.getPower(), null);
+			if (spellOnInterrupt != null) {
+				if (spellOnInterrupt.isTargetedLocationSpell()) spellOnInterrupt.castAtLocation(caster, caster.getLocation(), spellCast.getPower());
+				else spellOnInterrupt.cast(caster, spellCast.getPower());
+			}
 		}
 
 		private void end() {

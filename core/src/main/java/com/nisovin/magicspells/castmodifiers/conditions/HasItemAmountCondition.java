@@ -25,7 +25,7 @@ public class HasItemAmountCondition extends OperatorCondition {
 		String[] args = var.split(";");
 		if (args.length < 2) return false;
 
-		super.initialize(var);
+		if (!super.initialize(var)) return false;
 
 		try {
 			amount = Integer.parseInt(args[0].substring(1));

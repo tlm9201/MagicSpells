@@ -64,7 +64,7 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (targetInfo == null) return noTarget(livingEntity);
 			LivingEntity target = targetInfo.getTarget();
 
-			sendMessages(livingEntity, target);
+			sendMessages(livingEntity, target, args);
 			glow(livingEntity, target, targetInfo.getPower());
 			return PostCastAction.NO_MESSAGES;
 		}

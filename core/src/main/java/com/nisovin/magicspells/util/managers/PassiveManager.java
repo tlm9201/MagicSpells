@@ -93,10 +93,13 @@ public class PassiveManager {
 		addListener("leavebed", LeaveBedListener.class);
 		addListener("leftclickblockcoord", LeftClickBlockCoordListener.class);
 		addListener("leftclickblocktype", LeftClickBlockTypeListener.class);
+		addListener("leftclickitem", LeftClickItemListener.class);
 		addListener("magicspellsloaded", MagicSpellsLoadedListener.class);
 		addListener("missarrow", MissArrowListener.class);
 		addListener("offhandswap", OffhandSwapListener.class);
 		addListener("pickupitem", PickupItemListener.class);
+		addListener("playeranimate", PlayerAnimationListener.class);
+		addListener("playermove", PlayerMoveListener.class);
 		addListener("potioneffect", PotionEffectListener.class);
 		addListener("quit", QuitListener.class);
 		addListener("resourcepack", ResourcePackListener.class);

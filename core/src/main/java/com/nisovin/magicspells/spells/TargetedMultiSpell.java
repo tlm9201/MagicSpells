@@ -107,7 +107,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 			if (!somethingWasDone) return noTarget(livingEntity);
 			
 			if (entTarget != null) {
-				sendMessages(livingEntity, entTarget);
+				sendMessages(livingEntity, entTarget, args);
 				return PostCastAction.NO_MESSAGES;
 			}
 		}

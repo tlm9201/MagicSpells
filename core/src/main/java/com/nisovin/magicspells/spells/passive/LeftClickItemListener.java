@@ -17,10 +17,10 @@ import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Trigger variable of a pipe separated list of items to accept
-public class RightClickItemListener extends PassiveListener {
+public class LeftClickItemListener extends PassiveListener {
 
 	private final Set<MagicItemData> items = new HashSet<>();
-	
+
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
@@ -31,18 +31,18 @@ public class RightClickItemListener extends PassiveListener {
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
 			if (itemData == null) {
-				MagicSpells.error("Invalid magic item '" + s + "' in rightclickitem trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				MagicSpells.error("Invalid magic item '" + s + "' in leftclickitem trigger on passive spell '" + passiveSpell.getInternalName() + "'");
 				continue;
 			}
 
 			items.add(itemData);
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
-	public void onRightClick(PlayerInteractEvent event) {
-		if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+	public void onLeftClick(PlayerInteractEvent event) {
+		if (event.getAction() != Action.LEFT_CLICK_AIR && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
 		if (!isCancelStateOk(isCancelled(event))) return;
 		if (!event.hasItem()) return;
 

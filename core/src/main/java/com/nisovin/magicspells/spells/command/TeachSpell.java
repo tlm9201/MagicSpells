@@ -86,8 +86,8 @@ public class TeachSpell extends CommandSpell {
 			}
 			targetSpellbook.addSpell(spell);
 			targetSpellbook.save();
-			sendMessage(formatMessage(strCastTarget, "%a", player.getDisplayName(), "%s", spell.getName(), "%t", target.getDisplayName()), target, args);
-			sendMessage(formatMessage(strCastSelf, "%a", player.getDisplayName(), "%s", spell.getName(), "%t", target.getDisplayName()), player, args);
+			sendMessage(strCastTarget, target, args, "%a", player.getDisplayName(), "%s", spell.getName(), "%t", target.getDisplayName());
+			sendMessage(strCastSelf, player, args, "%a", player.getDisplayName(), "%s", spell.getName(), "%t", target.getDisplayName());
 			playSpellEffects(player, target);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -126,7 +126,7 @@ public class TeachSpell extends CommandSpell {
 		}
 		targetSpellbook.addSpell(spell);
 		targetSpellbook.save();
-		sendMessage(formatMessage(strCastTarget, "%a", getConsoleName(), "%s", spell.getName(), "%t", players.get(0).getDisplayName()), players.get(0), args);
+		sendMessage(strCastTarget, players.get(0), args, "%a", getConsoleName(), "%s", spell.getName(), "%t", players.get(0).getDisplayName());
 		sender.sendMessage(formatMessage(strCastSelf, "%a", getConsoleName(), "%s", spell.getName(), "%t", players.get(0).getDisplayName()));
 		return true;
 	}

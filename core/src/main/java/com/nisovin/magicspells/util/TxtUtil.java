@@ -30,7 +30,11 @@ public class TxtUtil {
 	}
 
 	public static String escapeJSON(String str) {
-		return str.replaceAll("\\\\", "\\\\\\\\").replaceAll("\"", "\\\\\"");
+		return str.replaceAll("[\"\\\\]", "\\\\$0");
+	}
+
+	public static String escapeMatcher(String str) {
+		return str.replaceAll("[$\\\\]", "\\\\$0");
 	}
 	
 	public static List<String> tabCompleteSpellName(CommandSender sender, String partial) {

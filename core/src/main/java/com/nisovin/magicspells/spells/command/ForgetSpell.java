@@ -101,11 +101,11 @@ public class ForgetSpell extends CommandSpell {
 				targetSpellbook.removeSpell(spell);
 				targetSpellbook.save();
 				if (!player.equals(target)) {
-					sendMessage(formatMessage(strCastTarget, "%a", player.getDisplayName(), "%s", spell.getName(), "%t", target.getDisplayName()), target, args);
-					sendMessage(formatMessage(strCastSelf, "%a", player.getDisplayName(), "%s", spell.getName(), "%t", target.getDisplayName()), player, args);
+					sendMessage(strCastTarget, target, args, "%a", player.getDisplayName(), "%s", spell.getName(), "%t", target.getDisplayName());
+					sendMessage(strCastSelf, player, args, "%a", player.getDisplayName(), "%s", spell.getName(), "%t", target.getDisplayName());
 					playSpellEffects(player, target);
 				} else {
-					sendMessage(formatMessage(strCastSelfTarget, "%s", spell.getName()), player, args);
+					sendMessage(strCastSelfTarget, player, args, "%s", spell.getName());
 					playSpellEffects(EffectPosition.CASTER, player);
 				}
 				return PostCastAction.NO_MESSAGES;
@@ -115,7 +115,7 @@ public class ForgetSpell extends CommandSpell {
 			targetSpellbook.save();
 
 			if (!player.equals(target)) {
-				sendMessage(formatMessage(strResetTarget, "%t", target.getDisplayName()), player, args);
+				sendMessage(strResetTarget, player, args, "%t", target.getDisplayName());
 				playSpellEffects(player, target);
 			} else {
 				sendMessage(strResetSelf, player, args);
@@ -159,7 +159,7 @@ public class ForgetSpell extends CommandSpell {
 		if (!all) {
 			targetSpellbook.removeSpell(spell);
 			targetSpellbook.save();
-			sendMessage(formatMessage(strCastTarget, "%a", getConsoleName(), "%s", spell.getName(), "%t", target.getDisplayName()), target, args);
+			sendMessage(strCastTarget, target, args, "%a", getConsoleName(), "%s", spell.getName(), "%t", target.getDisplayName());
 			sender.sendMessage(formatMessage(strCastSelf, "%a", getConsoleName(), "%s", spell.getName(), "%t", target.getDisplayName()));
 		} else {
 			targetSpellbook.removeAllSpells();

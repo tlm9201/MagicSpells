@@ -42,7 +42,7 @@ public class GlobalStringVariable extends Variable {
 
 	@Override
 	public void reset(String player) {
-		value = "";
+		value = defaultStringValue;
 	}
 
 }

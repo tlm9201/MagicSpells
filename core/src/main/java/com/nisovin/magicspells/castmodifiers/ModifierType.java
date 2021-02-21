@@ -5,16 +5,13 @@ import java.util.HashMap;
 
 import org.bukkit.entity.Player;
 
-import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.Variable;
-import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.ManaChangeEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
-import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.util.VariableMod.VariableOwner;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
@@ -313,13 +310,19 @@ public enum ModifierType {
 		
 	},
 	
-	CAST(true, false, false, false, "cast") {
-		
+	CAST(true, false, false, true, "cast") {
+
+		class CustomData {
+
+			public Subspell spell;
+
+		}
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell != null) spell.cast(event.getCaster(), event.getPower(), event.getSpellArgs());
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) data.spell.cast(event.getCaster(), event.getPower());
 			}
 			return true;
 		}
@@ -327,8 +330,8 @@ public enum ModifierType {
 		@Override
 		public boolean apply(ManaChangeEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell != null) spell.cast(event.getPlayer(), 1F, null);
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) data.spell.cast(event.getPlayer(), 1f);
 			}
 			return true;
 		}
@@ -336,8 +339,11 @@ public enum ModifierType {
 		@Override
 		public boolean apply(SpellTargetEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell != null) spell.cast(event.getCaster(), 1F, null);
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) {
+					if (data.spell.isTargetedEntitySpell()) data.spell.castAtEntity(event.getCaster(), event.getTarget(), event.getPower());
+					else data.spell.cast(event.getCaster(), event.getPower());
+				}
 			}
 			return true;
 		}
@@ -345,8 +351,11 @@ public enum ModifierType {
 		@Override
 		public boolean apply(SpellTargetLocationEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell instanceof TargetedLocationSpell) ((TargetedLocationSpell) spell).castAtLocation(event.getCaster(), event.getTargetLocation(), 1F);
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) {
+					if (data.spell.isTargetedLocationSpell()) data.spell.castAtLocation(event.getCaster(), event.getTargetLocation(), event.getPower());
+					else data.spell.cast(event.getCaster(), event.getPower());
+				}
 			}
 			return true;
 		}
@@ -354,21 +363,37 @@ public enum ModifierType {
 		@Override
 		public boolean apply(MagicSpellsGenericPlayerEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell != null) spell.cast(event.getPlayer(), 1F, null);
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) data.spell.cast(event.getPlayer(), 1f);
 			}
 			return true;
 		}
-		
+
+		@Override
+		public Object buildCustomActionData(String text) {
+			CustomData data = new CustomData();
+
+			Subspell spell = new Subspell(text);
+			if (spell.process()) data.spell = spell;
+
+			return data;
+		}
+
 	},
 	
-	CAST_INSTEAD(true, false, false, false, "castinstead") {
-		
+	CAST_INSTEAD(true, false, false, true, "castinstead") {
+
+		class CustomData {
+
+			public Subspell spell;
+
+		}
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell != null) spell.cast(event.getCaster(), event.getPower(), event.getSpellArgs());
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) data.spell.cast(event.getCaster(), event.getPower());
 				event.setCancelled(true);
 			}
 			return true;
@@ -377,9 +402,8 @@ public enum ModifierType {
 		@Override
 		public boolean apply(ManaChangeEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell != null) spell.cast(event.getPlayer(), 1F, null);
-
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) data.spell.cast(event.getPlayer(), 1f);
 			}
 			return true;
 		}
@@ -387,10 +411,10 @@ public enum ModifierType {
 		@Override
 		public boolean apply(SpellTargetEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell != null) {
-					if (spell instanceof TargetedEntitySpell) ((TargetedEntitySpell) spell).castAtEntity(event.getCaster(), event.getTarget(), 1F);
-					else spell.castSpell(event.getCaster(), SpellCastState.NORMAL, 1F, null);
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) {
+					if (data.spell.isTargetedEntitySpell()) data.spell.castAtEntity(event.getCaster(), event.getTarget(), event.getPower());
+					else data.spell.cast(event.getCaster(), event.getPower());
 				}
 			}
 			return true;
@@ -399,11 +423,12 @@ public enum ModifierType {
 		@Override
 		public boolean apply(SpellTargetLocationEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell instanceof TargetedLocationSpell) {
-					((TargetedLocationSpell) spell).castAtLocation(event.getCaster(), event.getTargetLocation(), 1F);
-					event.setCancelled(true);
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) {
+					if (data.spell.isTargetedLocationSpell()) data.spell.castAtLocation(event.getCaster(), event.getTargetLocation(), event.getPower());
+					else data.spell.cast(event.getCaster(), event.getPower());
 				}
+				event.setCancelled(true);
 			}
 			return true;
 		}
@@ -411,12 +436,22 @@ public enum ModifierType {
 		@Override
 		public boolean apply(MagicSpellsGenericPlayerEvent event, boolean check, String modifierVar, float modifierVarFloat, int modifierVarInt, Object customData) {
 			if (check) {
-				Spell spell = MagicSpells.getSpellByInternalName(modifierVar);
-				if (spell != null) spell.cast(event.getPlayer(), 1F, null);
+				CustomData data = (CustomData) customData;
+				if (data.spell != null) data.spell.cast(event.getPlayer(), 1f);
 			}
 			return true;
 		}
-		
+
+		@Override
+		public Object buildCustomActionData(String text) {
+			CustomData data = new CustomData();
+
+			Subspell spell = new Subspell(text);
+			if (spell.process()) data.spell = spell;
+
+			return data;
+		}
+
 	},
 	
 	

@@ -22,8 +22,7 @@ public class PlayerVariable extends Variable {
 
 	@Override
 	public double getValue(String player) {
-		if (map.containsKey(player)) return map.get(player);
-		return defaultValue;
+		return map.getOrDefault(player, defaultValue);
 	}
 
 	@Override

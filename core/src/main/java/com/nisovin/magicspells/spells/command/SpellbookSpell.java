@@ -138,7 +138,7 @@ public class SpellbookSpell extends CommandSpell {
 			else bookUses.add(Integer.parseInt(args[1]));
 
 			saveSpellbooks();
-			sendMessage(formatMessage(strCastSelf, "%s", spell.getName()), player, args);
+			sendMessage(strCastSelf, player, args, "%s", spell.getName());
 			playSpellEffects(player, target.getLocation());
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -183,22 +183,22 @@ public class SpellbookSpell extends CommandSpell {
 			return;
 		}
 		if (!spellbook.canLearn(spell)) {
-			sendMessage(formatMessage(strCantLearn, "%s", spell.getName()), player, MagicSpells.NULL_ARGS);
+			sendMessage(strCantLearn, player, MagicSpells.NULL_ARGS, "%s", spell.getName());
 			return;
 		}
 		if (spellbook.hasSpell(spell)) {
-			sendMessage(formatMessage(strAlreadyKnown, "%s", spell.getName()), player, MagicSpells.NULL_ARGS);
+			sendMessage(strAlreadyKnown, player, MagicSpells.NULL_ARGS, "%s", spell.getName());
 			return;
 		}
 		SpellLearnEvent learnEvent = new SpellLearnEvent(spell, player, LearnSource.SPELLBOOK, event.getClickedBlock());
 		EventUtil.call(learnEvent);
 		if (learnEvent.isCancelled()) {
-			sendMessage(formatMessage(strCantLearn, "%s", spell.getName()), player, MagicSpells.NULL_ARGS);
+			sendMessage(strCantLearn, player, MagicSpells.NULL_ARGS, "%s", spell.getName());
 			return;
 		}
 		spellbook.addSpell(spell);
 		spellbook.save();
-		sendMessage(formatMessage(strLearned, "%s", spell.getName()), player, MagicSpells.NULL_ARGS);
+		sendMessage(strLearned, player, MagicSpells.NULL_ARGS, "%s", spell.getName());
 		playSpellEffects(EffectPosition.DELAYED, player);
 
 		int uses = bookUses.get(i);

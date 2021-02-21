@@ -249,7 +249,7 @@ public class PassiveSpell extends Spell {
 
 		if (state != SpellCastState.NORMAL && sendFailureMessages) {
 			if (state == SpellCastState.ON_COOLDOWN) {
-				MagicSpells.sendMessage(formatMessage(strOnCooldown, "%c", Math.round(getCooldown(caster)) + ""), caster, null);
+				sendMessage(strOnCooldown, caster, null, "%c", Math.round(getCooldown(caster)) + "");
 				return false;
 			}
 

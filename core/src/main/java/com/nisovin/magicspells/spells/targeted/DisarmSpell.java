@@ -73,7 +73,7 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (!disarmed) return noTarget(livingEntity, strInvalidItem);
 
 			playSpellEffects(livingEntity, realTarget);
-			sendMessages(livingEntity, realTarget);
+			sendMessages(livingEntity, realTarget, args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

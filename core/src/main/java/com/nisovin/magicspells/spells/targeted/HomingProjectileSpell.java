@@ -169,7 +169,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
 			if (targetInfo == null) return noTarget(livingEntity);
 			new HomingProjectileMonitor(livingEntity, targetInfo.getTarget(), targetInfo.getPower());
-			sendMessages(livingEntity, targetInfo.getTarget());
+			sendMessages(livingEntity, targetInfo.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

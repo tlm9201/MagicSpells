@@ -61,7 +61,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 			else done = causePain(livingEntity, target.getTarget(), target.getPower());
 			if (!done) return noTarget(livingEntity);
 			
-			sendMessages(livingEntity, target.getTarget());
+			sendMessages(livingEntity, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
