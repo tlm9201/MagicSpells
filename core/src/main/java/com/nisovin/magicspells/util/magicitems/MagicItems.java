@@ -304,7 +304,7 @@ public class MagicItems {
 
 					for (String attr : ignoredAttributeStrings) {
 						try {
-							ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+							ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase().replace("-", "_")));
 						} catch (IllegalArgumentException e) {
 							DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 						}
@@ -317,7 +317,7 @@ public class MagicItems {
 
 					for (String attr : blacklistedAttributeStrings) {
 						try {
-							blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+							blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase().replace("-", "_")));
 						} catch (IllegalArgumentException e) {
 							DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 						}
@@ -498,7 +498,7 @@ public class MagicItems {
 
 				for (String attr : ignoredAttributeStrings) {
 					try {
-						ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+						ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase().replace("-", "_")));
 					} catch (IllegalArgumentException e) {
 						DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 					}
@@ -511,7 +511,7 @@ public class MagicItems {
 
 				for (String attr : blacklistedAttributeStrings) {
 					try {
-						blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+						blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase().replace("-", "_")));
 					} catch (IllegalArgumentException e) {
 						DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 					}
