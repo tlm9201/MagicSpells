@@ -68,7 +68,7 @@ public class SpellSelectedCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(livingEntity);
+		return check(target);
 	}
 
 	@Override
