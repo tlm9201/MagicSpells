@@ -47,6 +47,7 @@ public class ConditionManager {
 
 	private void initialize() {
 		addCondition("advancement", AdvancementCondition.class);
+		addCondition("data", DataCondition.class);
 		addCondition("displayname", DisplayNameCondition.class);
 		addCondition("hoveringwith", HoveringWithCondition.class);
 		addCondition("day", DayCondition.class);
@@ -138,6 +139,7 @@ public class ConditionManager {
 		addCondition("targeting", TargetingCondition.class);
 		addCondition("power", PowerCondition.class);
 		addCondition("spelltag", SpellTagCondition.class);
+		addCondition("spellselected", SpellSelectedCondition.class);
 		addCondition("beneficial", SpellBeneficialCondition.class);
 		addCondition("customname", CustomNameCondition.class);
 		addCondition("customnamevisible", CustomNameVisibleCondition.class);
