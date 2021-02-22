@@ -37,7 +37,7 @@ public class FireworkHandler {
 			// <type> <trail> <flicker> <colors>(,) <fadeColors>(,)
 			for (String str : argList) {
 				String[] args = str.split(" ");
-				if (args.length < 5) continue;
+				if (args.length != 4 && args.length != 5) continue;
 
 				String type = args[0];
 				FireworkEffect.Type fireworkType = null;
@@ -52,7 +52,10 @@ public class FireworkHandler {
 				boolean flicker = Boolean.parseBoolean(args[2]);
 
 				Color[] colors = Util.getColorsFromString(args[3]);
-				Color[] fadeColors = Util.getColorsFromString(args[4]);
+
+				Color[] fadeColors;
+				if (args.length == 5) fadeColors = Util.getColorsFromString(args[4]);
+				else fadeColors = new Color[0];
 
 				FireworkEffect effect = FireworkEffect.builder()
 						.flicker(flicker)

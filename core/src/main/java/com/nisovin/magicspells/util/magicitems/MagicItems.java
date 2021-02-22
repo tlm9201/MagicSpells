@@ -144,7 +144,7 @@ public class MagicItems {
 
 			data.setAttribute(FAKE_GLINT, true);
 		}
-		if (!enchants.isEmpty()) data.setAttribute(ENCHANTMENTS, enchants);
+		if (!enchants.isEmpty()) data.setAttribute(ENCHANTS, enchants);
 
 		// attributes
 		if (meta.hasAttributeModifiers()) {
@@ -212,8 +212,8 @@ public class MagicItems {
 		CustomModelDataHandler.processItemMeta(meta, data);
 
 		// Enchantments
-		if (data.hasAttribute(ENCHANTMENTS)) {
-			Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTMENTS);
+		if (data.hasAttribute(ENCHANTS)) {
+			Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTS);
 			for (Enchantment enchant : enchantments.keySet()) {
 				int level = enchantments.get(enchant);
 
@@ -304,7 +304,7 @@ public class MagicItems {
 
 					for (String attr : ignoredAttributeStrings) {
 						try {
-							ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+							ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase().replace("-", "_")));
 						} catch (IllegalArgumentException e) {
 							DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 						}
@@ -317,7 +317,7 @@ public class MagicItems {
 
 					for (String attr : blacklistedAttributeStrings) {
 						try {
-							blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+							blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase().replace("-", "_")));
 						} catch (IllegalArgumentException e) {
 							DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 						}
@@ -393,11 +393,11 @@ public class MagicItems {
 
 					if (storageMeta.hasStoredEnchants()) {
 						Map<Enchantment, Integer> enchantments = storageMeta.getStoredEnchants();
-						if (!enchantments.isEmpty()) itemData.setAttribute(ENCHANTMENTS, enchantments);
+						if (!enchantments.isEmpty()) itemData.setAttribute(ENCHANTS, enchantments);
 					}
 				} else if (meta.hasEnchants()) {
 					Map<Enchantment, Integer> enchantments = meta.getEnchants();
-					if (!enchantments.isEmpty()) itemData.setAttribute(ENCHANTMENTS, enchantments);
+					if (!enchantments.isEmpty()) itemData.setAttribute(ENCHANTS, enchantments);
 				}
 			}
 
@@ -498,7 +498,7 @@ public class MagicItems {
 
 				for (String attr : ignoredAttributeStrings) {
 					try {
-						ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+						ignoredAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase().replace("-", "_")));
 					} catch (IllegalArgumentException e) {
 						DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 					}
@@ -511,7 +511,7 @@ public class MagicItems {
 
 				for (String attr : blacklistedAttributeStrings) {
 					try {
-						blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase()));
+						blacklistedAttributes.add(MagicItemAttribute.valueOf(attr.toUpperCase().replace("-", "_")));
 					} catch (IllegalArgumentException e) {
 						DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
 					}

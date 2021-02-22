@@ -42,6 +42,7 @@ import com.nisovin.magicspells.listeners.*;
 import com.nisovin.magicspells.util.managers.*;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
+import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.commands.MagicCommand;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -56,6 +57,8 @@ import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
+import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
+import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
 import de.slikey.effectlib.EffectManager;
 
@@ -1331,12 +1334,21 @@ public class MagicSpells extends JavaPlugin {
 		while (matcher.find()) {
 			String varName = matcher.group(1), place = matcher.group(2);
 
+			Variable variable = plugin.variableManager.getVariable(varName);
+			if (variable == null) {
+				matcher.appendReplacement(buf, "0");
+				continue;
+			}
+
 			String value;
 			if (place != null) {
-				double amount = plugin.variableManager.getValue(varName, player);
-				value = TxtUtil.getStringNumber(amount, Integer.parseInt(place));
+				if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable) {
+					value = TxtUtil.getStringNumber(variable.getStringValue(player), Integer.parseInt(place));
+				} else {
+					value = TxtUtil.getStringNumber(variable.getValue(player), Integer.parseInt(place));
+				}
 			} else {
-				value = plugin.variableManager.getStringValue(varName, player);
+				value = variable.getStringValue(player);
 			}
 
 			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
@@ -1356,12 +1368,21 @@ public class MagicSpells extends JavaPlugin {
 		while (matcher.find()) {
 			String variableOwnerName = matcher.group(1), varName = matcher.group(2), place = matcher.group(3);
 
+			Variable variable = plugin.variableManager.getVariable(varName);
+			if (variable == null) {
+				matcher.appendReplacement(buf, "0");
+				continue;
+			}
+
 			String value;
 			if (place != null) {
-				double amount = plugin.variableManager.getValue(varName, variableOwnerName);
-				value = TxtUtil.getStringNumber(amount, Integer.parseInt(place));
+				if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable) {
+					value = TxtUtil.getStringNumber(variable.getStringValue(variableOwnerName), Integer.parseInt(place));
+				} else {
+					value = TxtUtil.getStringNumber(variable.getValue(variableOwnerName), Integer.parseInt(place));
+				}
 			} else {
-				value = plugin.variableManager.getStringValue(varName, variableOwnerName);
+				value = variable.getStringValue(variableOwnerName);
 			}
 
 			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
@@ -1379,15 +1400,25 @@ public class MagicSpells extends JavaPlugin {
 		Player varOwner;
 
 		while (matcher.find()) {
+			String varName = matcher.group(2);
+			Variable variable = plugin.variableManager.getVariable(varName);
+			if (variable == null) {
+				matcher.appendReplacement(buf, "0");
+				continue;
+			}
+
 			varOwner = matcher.group(1).equalsIgnoreCase("targetvar") ? target : caster;
 			if (varOwner == null) continue;
 
-			String varName = matcher.group(2), place = matcher.group(3), value;
+			String value, place = matcher.group(3);
 			if (place != null) {
-				double amount = plugin.variableManager.getValue(varName, varOwner);
-				value = TxtUtil.getStringNumber(amount, Integer.parseInt(place));
+				if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable) {
+					value = TxtUtil.getStringNumber(variable.getStringValue(varOwner), Integer.parseInt(place));
+				} else {
+					value = TxtUtil.getStringNumber(variable.getValue(varOwner), Integer.parseInt(place));
+				}
 			} else {
-				value = plugin.variableManager.getStringValue(varName, varOwner);
+				value = variable.getStringValue(varOwner);
 			}
 
 			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
