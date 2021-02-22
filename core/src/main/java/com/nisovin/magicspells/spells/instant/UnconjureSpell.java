@@ -15,6 +15,7 @@ import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 
 public class UnconjureSpell extends InstantSpell {
 
@@ -127,7 +128,12 @@ public class UnconjureSpell extends InstantSpell {
 		public UnconjuredItem(String itemString) {
 			String[] splits = itemString.split(" ");
 			magicItemData = MagicItems.getMagicItemDataFromString(splits[0]);
-			if (magicItemData == null || splits.length == 1) return;
+			if (magicItemData == null) return;
+
+			magicItemData = magicItemData.clone();
+			magicItemData.getIgnoredAttributes().add(MagicItemAttribute.AMOUNT);
+
+			if (splits.length == 1) return;
 
 			try {
 				amount = Integer.parseInt(splits[1]);
