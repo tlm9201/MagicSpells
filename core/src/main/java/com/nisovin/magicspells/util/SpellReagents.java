@@ -225,7 +225,7 @@ public class SpellReagents {
 
 		public ReagentItem(MagicItemData magicItemData, int amount) {
 			this.magicItemData = magicItemData.clone();
-			magicItemData.getIgnoredAttributes().add(MagicItemAttribute.AMOUNT);
+			this.magicItemData.getIgnoredAttributes().add(MagicItemAttribute.AMOUNT);
 
 			this.amount = amount;
 		}
