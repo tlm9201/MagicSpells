@@ -15,39 +15,39 @@ import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.CastItem;
 
-public class RightClickListener implements Listener {
+public class LeftClickListener implements Listener {
 
-	private final Map<CastItem, Spell> rightClickCastItems = new HashMap<>();
+	private final Map<CastItem, Spell> leftClickCastItems = new HashMap<>();
 	private final Map<String, Long> lastCast = new HashMap<>();
-	
-	public RightClickListener() {
+
+	public LeftClickListener() {
 		for (Spell spell : MagicSpells.getSpells().values()) {
-			CastItem[] items = spell.getRightClickCastItems();
+			CastItem[] items = spell.getLeftClickCastItems();
 			if (items.length == 0) continue;
 
 			for (CastItem item : items) {
 				if (item == null) continue;
 
-				Spell old = rightClickCastItems.put(item, spell);
+				Spell old = leftClickCastItems.put(item, spell);
 				if (old != null)
-					MagicSpells.error("The spell '" + spell.getInternalName() + "' has same right-click-cast-item as '" + old.getInternalName() + "'!");
+					MagicSpells.error("The spell '" + spell.getInternalName() + "' has same left-click-cast-item as '" + old.getInternalName() + "'!");
 			}
 		}
 	}
-	
-	public boolean hasRightClickCastItems() {
-		return !rightClickCastItems.isEmpty();
+
+	public boolean hasLeftClickCastItems() {
+		return !leftClickCastItems.isEmpty();
 	}
-	
+
 	@EventHandler
-	public void onRightClick(final PlayerInteractEvent event) {
-		if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+	public void onLeftClick(final PlayerInteractEvent event) {
+		if (event.getAction() != Action.LEFT_CLICK_AIR && event.getAction() != Action.LEFT_CLICK_BLOCK) return;
 		if (!event.hasItem()) return;
 
 		ItemStack item = event.getItem();
 		if (item == null) return;
 
-		final Spell spell = rightClickCastItems.get(new CastItem(item));
+		final Spell spell = leftClickCastItems.get(new CastItem(item));
 		if (spell == null) return;
 
 		Player player = event.getPlayer();
@@ -60,9 +60,8 @@ public class RightClickListener implements Listener {
 			if (lastCastTime != null && lastCastTime + MagicSpells.getGlobalCooldown() > System.currentTimeMillis()) return;
 			lastCast.put(player.getName(), System.currentTimeMillis());
 		}
-			
+
 		MagicSpells.scheduleDelayedTask(() -> spell.cast(player), 0);
-		event.setCancelled(true);
 	}
-	
+
 }
