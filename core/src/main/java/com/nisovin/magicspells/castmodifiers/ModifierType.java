@@ -396,7 +396,7 @@ public enum ModifierType {
 				if (data.spell != null) data.spell.cast(event.getCaster(), event.getPower());
 				event.setCancelled(true);
 			}
-			return true;
+			return !check;
 		}
 
 		@Override
@@ -405,7 +405,7 @@ public enum ModifierType {
 				CustomData data = (CustomData) customData;
 				if (data.spell != null) data.spell.cast(event.getPlayer(), 1f);
 			}
-			return true;
+			return !check;
 		}
 
 		@Override
@@ -417,7 +417,7 @@ public enum ModifierType {
 					else data.spell.cast(event.getCaster(), event.getPower());
 				}
 			}
-			return true;
+			return !check;
 		}
 
 		@Override
@@ -430,7 +430,7 @@ public enum ModifierType {
 				}
 				event.setCancelled(true);
 			}
-			return true;
+			return !check;
 		}
 
 		@Override
@@ -439,7 +439,7 @@ public enum ModifierType {
 				CustomData data = (CustomData) customData;
 				if (data.spell != null) data.spell.cast(event.getPlayer(), 1f);
 			}
-			return true;
+			return !check;
 		}
 
 		@Override
