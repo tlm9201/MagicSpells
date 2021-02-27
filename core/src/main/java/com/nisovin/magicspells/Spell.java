@@ -135,6 +135,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected CastItem[] castItems;
 	protected CastItem[] consumeCastItems;
+	protected CastItem[] leftClickCastItems;
 	protected CastItem[] rightClickCastItems;
 
 	protected String[] aliases;
@@ -228,6 +229,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			if (sItems == null) sItems = new ArrayList<>();
 			castItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid cast item specified: %i");
 		} else castItems = new CastItem[0];
+
+		if (config.contains(path + "left-click-cast-item")) {
+			String[] sItems = config.getString(path + "left-click-cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
+			leftClickCastItems = setupCastItems(sItems, "Spell '" + internalName + "' has an invalid left click cast item specified: %i");
+		} else if (config.contains(path + "left-click-cast-items")) {
+			List<String> sItems = config.getStringList(path + "left-click-cast-items", null);
+			if (sItems == null) sItems = new ArrayList<>();
+			leftClickCastItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid left click cast item listed: %i");
+		} else leftClickCastItems = new CastItem[0];
 
 		if (config.contains(path + "right-click-cast-item")) {
 			String[] sItems = config.getString(path + "right-click-cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
@@ -1848,6 +1858,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public CastItem[] getCastItems() {
 		return castItems;
+	}
+
+	public CastItem[] getLeftClickCastItems() {
+		return leftClickCastItems;
 	}
 
 	public CastItem[] getRightClickCastItems() {

@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
@@ -11,15 +10,13 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class ChanceCondition extends Condition {
 
-	private int chance;
-	private Random random;
-	
+	private double chance;
+
 	@Override
 	public boolean initialize(String var) {
-		random = ThreadLocalRandom.current();
 		try {
-			chance = Integer.parseInt(var);
-			return chance >= 1 && chance <= 100;
+			chance = Double.parseDouble(var) / 100;
+			return chance >= 0 && chance <= 1;
 		} catch (NumberFormatException e) {
 			DebugHandler.debugNumberFormat(e);
 			return false;
@@ -28,7 +25,7 @@ public class ChanceCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return random.nextInt(100) < chance;
+		return chance != 0 && (chance == 1 || ThreadLocalRandom.current().nextDouble() < chance);
 	}
 
 	@Override
