@@ -262,8 +262,8 @@ public class BowSpell extends Spell {
 				break;
 			}
 
-			if (remove) proj.remove();
 			proj.removeMetadata(METADATA_KEY, MagicSpells.plugin);
+			if (remove) proj.remove();
 		}
 
 		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -312,8 +312,8 @@ public class BowSpell extends Spell {
 				break;
 			}
 
-			if (remove) damager.remove();
 			damager.removeMetadata(METADATA_KEY, MagicSpells.plugin);
+			if (remove) damager.remove();
 		}
 
 	}
