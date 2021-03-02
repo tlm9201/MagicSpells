@@ -132,6 +132,7 @@ public class CastListener implements Listener {
 	@EventHandler
 	public void onPlayerShootBow(EntityShootBowEvent event) {
 		if (!(event.getEntity() instanceof Player)) return;
+		if (event.getHand() == EquipmentSlot.OFF_HAND && !MagicSpells.castBoundBowSpellsFromOffhand()) return;
 
 		Player player = (Player) event.getEntity();
 		ItemStack bow = event.getBow();

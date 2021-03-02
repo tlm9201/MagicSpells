@@ -145,6 +145,7 @@ public class MagicSpells extends JavaPlugin {
 	private boolean castWithRightClick;
 	private boolean reverseBowCycleButtons;
 	private boolean bowCycleSpellsSneaking;
+	private boolean castBoundBowSpellsFromOffhand;
 	private boolean allowCycleToNoSpell;
 
 	private boolean checkScoreboardTeams;
@@ -262,6 +263,7 @@ public class MagicSpells extends JavaPlugin {
 		separatePlayerSpellsPerWorld = config.getBoolean(path + "separate-player-spells-per-world", false);
 		allowCycleToNoSpell = config.getBoolean(path + "allow-cycle-to-no-spell", false);
 		reverseBowCycleButtons = config.getBoolean(path + "reverse-bow-cycle-buttons", false);
+		castBoundBowSpellsFromOffhand = config.getBoolean(path + "cast-bound-bow-spells-from-offhand", false);
 		bowCycleSpellsSneaking = config.getBoolean(path + "bow-cycle-spells-sneaking", false);
 		alwaysShowMessageOnCycle = config.getBoolean(path + "always-show-message-on-cycle", false);
 		onlyCycleToCastableSpells = config.getBoolean(path + "only-cycle-to-castable-spells", true);
@@ -983,6 +985,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static boolean canBowCycleSpellsSneaking() {
 		return plugin.bowCycleSpellsSneaking;
+	}
+
+	public static boolean castBoundBowSpellsFromOffhand() {
+		return plugin.castBoundBowSpellsFromOffhand;
 	}
 
 	public static boolean tabCompleteInternalNames() {
