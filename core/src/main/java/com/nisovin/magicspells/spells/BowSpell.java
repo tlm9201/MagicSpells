@@ -14,6 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -54,6 +55,7 @@ public class BowSpell extends Spell {
 
 	private boolean canBind;
 	private boolean cancelShot;
+	private boolean denyOffhand;
 	private boolean removeArrow;
 	private boolean requireBind;
 	private boolean useBowForce;
@@ -89,6 +91,7 @@ public class BowSpell extends Spell {
 
 		canBind = getConfigBoolean("can-bind", false);
 		cancelShot = getConfigBoolean("cancel-shot", true);
+		denyOffhand = getConfigBoolean("deny-offhand", false);
 		removeArrow = getConfigBoolean("remove-arrow", false);
 		requireBind = getConfigBoolean("require-bind", false);
 		useBowForce = getConfigBoolean("use-bow-force", true);
@@ -148,6 +151,7 @@ public class BowSpell extends Spell {
 	public void handleBowCast(EntityShootBowEvent event) {
 		if (!cancelShot && event.isCancelled()) return;
 		if (!(event.getProjectile() instanceof Arrow)) return;
+		if (denyOffhand && event.getHand() == EquipmentSlot.OFF_HAND) return;
 
 		LivingEntity caster = event.getEntity();
 		if (!triggerList.canTarget(caster, true)) return;
