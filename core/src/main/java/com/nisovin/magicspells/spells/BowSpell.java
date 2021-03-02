@@ -154,7 +154,7 @@ public class BowSpell extends Spell {
 		if (minimumForce != 0 && force < minimumForce) return;
 		if (maximumForce != 0 && force > maximumForce) return;
 
-		SpellCastEvent castEvent = preCast(caster, 1f, null);
+		SpellCastEvent castEvent = preCast(caster, useBowForce ? event.getForce() : 1f, null);
 		if (castEvent == null) {
 			if (cancelShotOnFail) event.setCancelled(true);
 			return;
