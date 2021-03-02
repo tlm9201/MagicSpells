@@ -91,7 +91,7 @@ public class BowSpell extends Spell {
 		cancelShotOnFail = getConfigBoolean("cancel-shot-on-fail", true);
 
 		minimumForce = getConfigFloat("minimum-force", 0F);
-		maximumForce = getConfigFloat("maximum-force", 0F);
+		maximumForce = getConfigFloat("maximum-force", 1F);
 
 		if (minimumForce < 0F) minimumForce = 0F;
 		else if (minimumForce > 1F) minimumForce = 1F;
@@ -150,11 +150,10 @@ public class BowSpell extends Spell {
 		if (disallowedBowNames != null && disallowedBowNames.contains(name)) return;
 		if (bowName != null && !bowName.isEmpty() && !bowName.equals(name)) return;
 
-		float force = (float) (FastMath.floor(event.getForce() * 100F) / 100F);
-		if (minimumForce != 0 && force < minimumForce) return;
-		if (maximumForce != 0 && force > maximumForce) return;
+		float force = event.getForce();
+		if (force < minimumForce || force > maximumForce) return;
 
-		SpellCastEvent castEvent = preCast(caster, useBowForce ? event.getForce() : 1f, null);
+		SpellCastEvent castEvent = preCast(caster, useBowForce ? force : 1f, null);
 		if (castEvent == null) {
 			if (cancelShotOnFail) event.setCancelled(true);
 			return;
