@@ -3,12 +3,11 @@ package com.nisovin.magicspells.spells;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.apache.commons.math3.util.FastMath;
-
 import org.bukkit.Material;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -37,6 +36,7 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 public class BowSpell extends Spell {
 
 	private static final String METADATA_KEY = "MSBowSpell";
+	private static HitListener hitListener;
 
 	private List<String> bowNames;
 	private List<String> disallowedBowNames;
@@ -52,9 +52,11 @@ public class BowSpell extends Spell {
 	private Subspell spellOnHitEntity;
 	private Subspell spellOnHitGround;
 
+	private boolean canBind;
 	private boolean cancelShot;
-	private boolean useBowForce;
 	private boolean removeArrow;
+	private boolean requireBind;
+	private boolean useBowForce;
 	private boolean cancelShotOnFail;
 
 	private float minimumForce;
@@ -85,9 +87,11 @@ public class BowSpell extends Spell {
 		spellOnHitEntityName = getConfigString("spell-on-hit-entity", "");
 		spellOnHitGroundName = getConfigString("spell-on-hit-ground", "");
 
+		canBind = getConfigBoolean("can-bind", false);
 		cancelShot = getConfigBoolean("cancel-shot", true);
-		useBowForce = getConfigBoolean("use-bow-force", true);
 		removeArrow = getConfigBoolean("remove-arrow", false);
+		requireBind = getConfigBoolean("require-bind", false);
+		useBowForce = getConfigBoolean("use-bow-force", true);
 		cancelShotOnFail = getConfigBoolean("cancel-shot-on-fail", true);
 
 		minimumForce = getConfigFloat("minimum-force", 0F);
@@ -106,11 +110,20 @@ public class BowSpell extends Spell {
 		spellOnShoot = initSubspell(spellOnShootName, "BowSpell '" + internalName + "' has an invalid spell defined!");
 		spellOnHitEntity = initSubspell(spellOnHitEntityName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
 		spellOnHitGround = initSubspell(spellOnHitGroundName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
+
+		if (hitListener == null) {
+			hitListener = new HitListener();
+			registerEvents(hitListener);
+		}
+
+		if (!requireBind) registerEvents(new ShootListener());
 	}
 
 	@Override
 	public void turnOff() {
 		super.turnOff();
+
+		hitListener = null;
 	}
 
 	@Override
@@ -120,7 +133,7 @@ public class BowSpell extends Spell {
 
 	@Override
 	public boolean canCastWithItem() {
-		return false;
+		return canBind;
 	}
 
 	@Override
@@ -128,8 +141,11 @@ public class BowSpell extends Spell {
 		return false;
 	}
 
-	@EventHandler
-	public void onArrowLaunch(EntityShootBowEvent event) {
+	public boolean isBindRequired() {
+		return requireBind;
+	}
+
+	public void handleBowCast(EntityShootBowEvent event) {
 		if (!cancelShot && event.isCancelled()) return;
 		if (!(event.getProjectile() instanceof Arrow)) return;
 
@@ -138,8 +154,7 @@ public class BowSpell extends Spell {
 
 		if (caster instanceof Player) {
 			Spellbook spellbook = MagicSpells.getSpellbook((Player) caster);
-			if (!spellbook.hasSpell(this)) return;
-			if (!spellbook.canCast(this)) return;
+			if (!spellbook.hasSpell(this) || !spellbook.canCast(this)) return;
 		}
 
 		ItemStack inHand = event.getBow();
@@ -194,104 +209,123 @@ public class BowSpell extends Spell {
 		postCast(castEvent, PostCastAction.HANDLE_NORMALLY);
 	}
 
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void onArrowHitGround(ProjectileHitEvent event) {
-		if (event.getHitBlock() == null) return;
+	public class ShootListener implements Listener {
 
-		Projectile proj = event.getEntity();
-		if (!proj.hasMetadata(METADATA_KEY)) return;
-
-		List<MetadataValue> metas = proj.getMetadata(METADATA_KEY);
-		for (MetadataValue meta : metas) {
-			if (!MagicSpells.plugin.equals(meta.getOwningPlugin())) continue;
-
-			ProjectileSource shooter = proj.getShooter();
-			if (!(shooter instanceof LivingEntity)) break;
-			LivingEntity caster = (LivingEntity) shooter;
-
-			List<ArrowData> arrowDataList = (List<ArrowData>) meta.value();
-			if (arrowDataList == null || arrowDataList.isEmpty()) break;
-
-			for (ArrowData data : arrowDataList) {
-				if (data.groundSpell == null) continue;
-
-				SpellTargetLocationEvent targetLocationEvent = new SpellTargetLocationEvent(data.spell, caster, proj.getLocation(), data.power);
-				EventUtil.call(targetLocationEvent);
-				if (targetLocationEvent.isCancelled()) {
-					break;
-				}
-
-				if (data.groundSpell.isTargetedLocationSpell())
-					data.groundSpell.castAtLocation(caster, targetLocationEvent.getTargetLocation(), targetLocationEvent.getPower());
-				else data.groundSpell.cast(caster, targetLocationEvent.getPower());
-			}
-
-			break;
+		@EventHandler
+		public void onArrowLaunch(EntityShootBowEvent event) {
+			handleBowCast(event);
 		}
 
-		proj.removeMetadata(METADATA_KEY, MagicSpells.plugin);
-		if (removeArrow) proj.remove();
 	}
 
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onArrowHitEntity(EntityDamageByEntityEvent event) {
-		Entity damager = event.getDamager();
-		if (!(damager instanceof Arrow)) return;
-		if (!damager.hasMetadata(METADATA_KEY)) return;
+	public static class HitListener implements Listener {
 
-		List<MetadataValue> metas = damager.getMetadata(METADATA_KEY);
-		for (MetadataValue meta : metas) {
-			if (!MagicSpells.plugin.equals(meta.getOwningPlugin())) continue;
+		@EventHandler(priority = EventPriority.MONITOR)
+		public void onArrowHitGround(ProjectileHitEvent event) {
+			if (event.getHitBlock() == null) return;
 
-			Entity damaged = event.getEntity();
-			if (!(damaged instanceof LivingEntity)) break;
-			LivingEntity target = (LivingEntity) damaged;
+			Projectile proj = event.getEntity();
+			if (!proj.hasMetadata(METADATA_KEY)) return;
 
-			ProjectileSource shooter = ((Arrow) damager).getShooter();
-			if (!(shooter instanceof LivingEntity)) break;
-			LivingEntity caster = (LivingEntity) shooter;
+			List<MetadataValue> metas = proj.getMetadata(METADATA_KEY);
+			boolean remove = false;
+			for (MetadataValue meta : metas) {
+				if (!MagicSpells.plugin.equals(meta.getOwningPlugin())) continue;
 
-			List<ArrowData> arrowDataList = (List<ArrowData>) meta.value();
-			if (arrowDataList == null || arrowDataList.isEmpty()) break;
+				ProjectileSource shooter = proj.getShooter();
+				if (!(shooter instanceof LivingEntity)) break;
+				LivingEntity caster = (LivingEntity) shooter;
 
-			for (ArrowData data : arrowDataList) {
-				if (data.entitySpell == null) continue;
+				List<ArrowData> arrowDataList = (List<ArrowData>) meta.value();
+				if (arrowDataList == null || arrowDataList.isEmpty()) break;
 
-				SpellTargetEvent targetEvent = new SpellTargetEvent(this, caster, target, data.power);
-				EventUtil.call(targetEvent);
-				if (targetEvent.isCancelled()) {
-					continue;
+				for (ArrowData data : arrowDataList) {
+					if (data.groundSpell == null) continue;
+
+					SpellTargetLocationEvent targetLocationEvent = new SpellTargetLocationEvent(data.bowSpell, caster, proj.getLocation(), data.power);
+					EventUtil.call(targetLocationEvent);
+					if (targetLocationEvent.isCancelled()) {
+						break;
+					}
+
+					if (data.groundSpell.isTargetedLocationSpell())
+						data.groundSpell.castAtLocation(caster, targetLocationEvent.getTargetLocation(), targetLocationEvent.getPower());
+					else data.groundSpell.cast(caster, targetLocationEvent.getPower());
+
+					if (data.bowSpell.removeArrow) remove = true;
 				}
-				target = targetEvent.getTarget();
 
-				if (data.entitySpell.isTargetedEntityFromLocationSpell())
-					data.entitySpell.castAtEntityFromLocation(caster, caster.getLocation(), target, targetEvent.getPower());
-				else if (data.entitySpell.isTargetedLocationSpell())
-					data.entitySpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
-				else if (data.entitySpell.isTargetedEntitySpell())
-					data.entitySpell.castAtEntity(caster, target, targetEvent.getPower());
-				else data.entitySpell.cast(caster, targetEvent.getPower());
+				break;
 			}
 
-			break;
+			if (remove) proj.remove();
+			proj.removeMetadata(METADATA_KEY, MagicSpells.plugin);
 		}
 
-		damager.removeMetadata(METADATA_KEY, MagicSpells.plugin);
-		if (removeArrow) damager.remove();
+		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+		public void onArrowHitEntity(EntityDamageByEntityEvent event) {
+			Entity damager = event.getDamager();
+			if (!(damager instanceof Arrow)) return;
+			if (!damager.hasMetadata(METADATA_KEY)) return;
+
+			List<MetadataValue> metas = damager.getMetadata(METADATA_KEY);
+			boolean remove = false;
+			for (MetadataValue meta : metas) {
+				if (!MagicSpells.plugin.equals(meta.getOwningPlugin())) continue;
+
+				Entity damaged = event.getEntity();
+				if (!(damaged instanceof LivingEntity)) break;
+				LivingEntity target = (LivingEntity) damaged;
+
+				ProjectileSource shooter = ((Arrow) damager).getShooter();
+				if (!(shooter instanceof LivingEntity)) break;
+				LivingEntity caster = (LivingEntity) shooter;
+
+				List<ArrowData> arrowDataList = (List<ArrowData>) meta.value();
+				if (arrowDataList == null || arrowDataList.isEmpty()) break;
+
+				for (ArrowData data : arrowDataList) {
+					if (data.entitySpell == null) continue;
+
+					SpellTargetEvent targetEvent = new SpellTargetEvent(data.bowSpell, caster, target, data.power);
+					EventUtil.call(targetEvent);
+					if (targetEvent.isCancelled()) {
+						continue;
+					}
+					target = targetEvent.getTarget();
+
+					if (data.entitySpell.isTargetedEntityFromLocationSpell())
+						data.entitySpell.castAtEntityFromLocation(caster, caster.getLocation(), target, targetEvent.getPower());
+					else if (data.entitySpell.isTargetedLocationSpell())
+						data.entitySpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
+					else if (data.entitySpell.isTargetedEntitySpell())
+						data.entitySpell.castAtEntity(caster, target, targetEvent.getPower());
+					else data.entitySpell.cast(caster, targetEvent.getPower());
+
+					if (data.bowSpell.removeArrow) remove = true;
+				}
+
+				break;
+			}
+
+			if (remove) damager.remove();
+			damager.removeMetadata(METADATA_KEY, MagicSpells.plugin);
+		}
+
 	}
 
 	private static class ArrowData {
 
 		private final Subspell entitySpell;
 		private final Subspell groundSpell;
-		private final Spell spell;
+		private final BowSpell bowSpell;
 		private final float power;
 
-		ArrowData(float power, Subspell entitySpell, Subspell groundSpell, Spell spell) {
+		ArrowData(float power, Subspell entitySpell, Subspell groundSpell, BowSpell bowSpell) {
 			this.power = power;
 			this.entitySpell = entitySpell;
 			this.groundSpell = groundSpell;
-			this.spell = spell;
+			this.bowSpell = bowSpell;
 		}
 
 	}
