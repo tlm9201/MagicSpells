@@ -213,7 +213,7 @@ public class BowSpell extends Spell {
 		postCast(castEvent, PostCastAction.HANDLE_NORMALLY);
 	}
 
-	public class ShootListener implements Listener {
+	private class ShootListener implements Listener {
 
 		@EventHandler
 		public void onArrowLaunch(EntityShootBowEvent event) {
@@ -222,7 +222,7 @@ public class BowSpell extends Spell {
 
 	}
 
-	public static class HitListener implements Listener {
+	private static class HitListener implements Listener {
 
 		@EventHandler(priority = EventPriority.MONITOR)
 		public void onArrowHitGround(ProjectileHitEvent event) {
