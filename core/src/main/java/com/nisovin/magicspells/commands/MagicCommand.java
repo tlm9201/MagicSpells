@@ -12,6 +12,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.command.ConsoleCommandSender;
@@ -263,6 +264,27 @@ public class MagicCommand extends BaseCommand {
 		MagicSpells.disposeEffectlib();
 		MagicSpells.setupEffectlib();
 		issuer.sendMessage(MagicSpells.getTextColor() + "Effectlib reloaded.");
+	}
+
+	@Subcommand("taskinfo")
+	@Description("Displays information about tasks.")
+	@HelpPermission(permission = Perm.COMMAND_TASKINFO)
+	public static void onTask(CommandIssuer issuer) {
+		if (!MagicSpells.isLoaded()) return;
+		if (noPermission(issuer.getIssuer(), Perm.COMMAND_TASKINFO)) return;
+
+		List<BukkitTask> tasks = Bukkit.getScheduler().getPendingTasks();
+		List<BukkitTask> msTasks = new ArrayList<>();
+		for (BukkitTask task : tasks) {
+			if (task == null) continue;
+			if (!task.getOwner().equals(MagicSpells.getInstance())) continue;
+			msTasks.add(task);
+		}
+
+		issuer.sendMessage(MagicSpells.getTextColor() + "EffectLib effects - " + MagicSpells.getEffectManager().getEffects().size());
+		issuer.sendMessage(MagicSpells.getTextColor() + "MagicSpells: \n" +
+				MagicSpells.getTextColor() + " * All tasks - " + msTasks.size() + "\n" +
+				MagicSpells.getTextColor() + " * Non effectlib tasks - " + (msTasks.size() - MagicSpells.getEffectManager().getEffects().size()));
 	}
 
 	@Subcommand("resetcd")

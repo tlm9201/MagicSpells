@@ -7,6 +7,7 @@ enable-error-logging: true
 enable-profiling: false
 text-color: 3
 broadcast-range: 20
+effect-swipe-interval: 300
 ops-have-all-spells: true
 default-all-perms-false: false
 ignore-grant-perms: false
