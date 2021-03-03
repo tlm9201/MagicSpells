@@ -20,6 +20,7 @@ import org.bukkit.event.player.PlayerAnimationEvent;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.spells.BowSpell;
 import com.nisovin.magicspells.util.BlockUtils;
 
 public class CastListener implements Listener {
@@ -131,29 +132,50 @@ public class CastListener implements Listener {
 	@EventHandler
 	public void onPlayerShootBow(EntityShootBowEvent event) {
 		if (!(event.getEntity() instanceof Player)) return;
+		if (event.getHand() == EquipmentSlot.OFF_HAND && !MagicSpells.castBoundBowSpellsFromOffhand()) return;
+
 		Player player = (Player) event.getEntity();
-		castSpell(player);
+		ItemStack bow = event.getBow();
+		if (bow == null) return;
+
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		Spell spell = spellbook.getActiveSpell(bow);
+
+		if (spell instanceof BowSpell) {
+			BowSpell bowSpell = (BowSpell) spell;
+
+			if (bowSpell.canCastWithItem() && bowSpell.isBindRequired() && checkGlobalCooldown(player, spell))
+				bowSpell.handleBowCast(event);
+		} else castSpell(player, spell);
+
 		event.getProjectile().setMetadata("bow-draw-strength", new FixedMetadataValue(plugin, event.getForce()));
 	}
 
 	private void castSpell(Player player) {
-		ItemStack inHand = player.getEquipment().getItemInMainHand();
-		if (!MagicSpells.canCastWithFist() && (inHand == null || BlockUtils.isAir(inHand.getType()))) return;
+		ItemStack inHand = player.getInventory().getItemInMainHand();
+		if (!MagicSpells.canCastWithFist() && BlockUtils.isAir(inHand)) return;
 
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		if (spellbook == null) return;
-
 		Spell spell = spellbook.getActiveSpell(inHand);
-		if (spell == null) return;
-		if (!spell.canCastWithItem()) return;
 
-		// First check global cooldown
-		if (MagicSpells.getGlobalCooldown() > 0 && !spell.isIgnoringGlobalCooldown()) {
-			if (noCastUntil.containsKey(player.getName()) && noCastUntil.get(player.getName()) > System.currentTimeMillis()) return;
-			noCastUntil.put(player.getName(), System.currentTimeMillis() + MagicSpells.getGlobalCooldown());
-		}
+		castSpell(player, spell);
+	}
+
+	private void castSpell(Player player, Spell spell) {
+		if (spell == null || !spell.canCastWithItem()) return;
+		if (!checkGlobalCooldown(player, spell)) return;
+
 		// Cast spell
 		spell.cast(player);
+	}
+
+	private boolean checkGlobalCooldown(Player player, Spell spell) {
+		if (MagicSpells.getGlobalCooldown() > 0 && !spell.isIgnoringGlobalCooldown()) {
+			if (noCastUntil.containsKey(player.getName()) && noCastUntil.get(player.getName()) > System.currentTimeMillis()) return false;
+			noCastUntil.put(player.getName(), System.currentTimeMillis() + MagicSpells.getGlobalCooldown());
+		}
+
+		return true;
 	}
 
 	private void showIcon(Player player, int slot, ItemStack icon) {
