@@ -182,7 +182,7 @@ public class BowSpell extends Spell {
 			if (!event.isCancelled()) {
 				Entity projectile = event.getProjectile();
 
-				ArrowData arrowData = new ArrowData(castEvent.getPower(), spellOnHitEntity, spellOnHitGround, this);
+				ArrowData arrowData = new ArrowData(this, castEvent.getPower());
 				List<ArrowData> arrowDataList = null;
 				if (projectile.hasMetadata(METADATA_KEY)) {
 					List<MetadataValue> metas = projectile.getMetadata(METADATA_KEY);
@@ -243,7 +243,8 @@ public class BowSpell extends Spell {
 				if (arrowDataList == null || arrowDataList.isEmpty()) break;
 
 				for (ArrowData data : arrowDataList) {
-					if (data.groundSpell == null) continue;
+					Subspell groundSpell = data.bowSpell.spellOnHitGround;
+					if (groundSpell == null) continue;
 
 					SpellTargetLocationEvent targetLocationEvent = new SpellTargetLocationEvent(data.bowSpell, caster, proj.getLocation(), data.power);
 					EventUtil.call(targetLocationEvent);
@@ -251,9 +252,9 @@ public class BowSpell extends Spell {
 						break;
 					}
 
-					if (data.groundSpell.isTargetedLocationSpell())
-						data.groundSpell.castAtLocation(caster, targetLocationEvent.getTargetLocation(), targetLocationEvent.getPower());
-					else data.groundSpell.cast(caster, targetLocationEvent.getPower());
+					if (groundSpell.isTargetedLocationSpell())
+						groundSpell.castAtLocation(caster, targetLocationEvent.getTargetLocation(), targetLocationEvent.getPower());
+					else groundSpell.cast(caster, targetLocationEvent.getPower());
 
 					if (data.bowSpell.removeArrow) remove = true;
 				}
@@ -288,7 +289,8 @@ public class BowSpell extends Spell {
 				if (arrowDataList == null || arrowDataList.isEmpty()) break;
 
 				for (ArrowData data : arrowDataList) {
-					if (data.entitySpell == null) continue;
+					Subspell entitySpell = data.bowSpell.spellOnHitEntity;
+					if (entitySpell == null) continue;
 
 					SpellTargetEvent targetEvent = new SpellTargetEvent(data.bowSpell, caster, target, data.power);
 					EventUtil.call(targetEvent);
@@ -297,13 +299,13 @@ public class BowSpell extends Spell {
 					}
 					target = targetEvent.getTarget();
 
-					if (data.entitySpell.isTargetedEntityFromLocationSpell())
-						data.entitySpell.castAtEntityFromLocation(caster, caster.getLocation(), target, targetEvent.getPower());
-					else if (data.entitySpell.isTargetedLocationSpell())
-						data.entitySpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
-					else if (data.entitySpell.isTargetedEntitySpell())
-						data.entitySpell.castAtEntity(caster, target, targetEvent.getPower());
-					else data.entitySpell.cast(caster, targetEvent.getPower());
+					if (entitySpell.isTargetedEntityFromLocationSpell())
+						entitySpell.castAtEntityFromLocation(caster, caster.getLocation(), target, targetEvent.getPower());
+					else if (entitySpell.isTargetedLocationSpell())
+						entitySpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
+					else if (entitySpell.isTargetedEntitySpell())
+						entitySpell.castAtEntity(caster, target, targetEvent.getPower());
+					else entitySpell.cast(caster, targetEvent.getPower());
 
 					if (data.bowSpell.removeArrow) remove = true;
 				}
@@ -319,16 +321,12 @@ public class BowSpell extends Spell {
 
 	private static class ArrowData {
 
-		private final Subspell entitySpell;
-		private final Subspell groundSpell;
 		private final BowSpell bowSpell;
 		private final float power;
 
-		ArrowData(float power, Subspell entitySpell, Subspell groundSpell, BowSpell bowSpell) {
-			this.power = power;
-			this.entitySpell = entitySpell;
-			this.groundSpell = groundSpell;
+		ArrowData(BowSpell bowSpell, float power) {
 			this.bowSpell = bowSpell;
+			this.power = power;
 		}
 
 	}
