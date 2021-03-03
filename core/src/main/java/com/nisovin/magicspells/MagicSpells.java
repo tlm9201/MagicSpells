@@ -28,6 +28,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -60,6 +61,7 @@ import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
+import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.EffectManager;
 
 public class MagicSpells extends JavaPlugin {
@@ -167,6 +169,7 @@ public class MagicSpells extends JavaPlugin {
 	private int globalRadius;
 	private int globalCooldown;
 	private int broadcastRange;
+	private int effectSwipeInterval;
 
 	private long lastReloadTime = 0;
 
@@ -188,6 +191,8 @@ public class MagicSpells extends JavaPlugin {
 	private String soundFailMissingReagents;
 
 	private boolean loaded = false;
+
+	private BukkitTask effectSwipeTask;
 
 	@Override
 	public void onEnable() {
@@ -252,6 +257,7 @@ public class MagicSpells extends JavaPlugin {
 		enableProfiling = config.getBoolean(path + "enable-profiling", false);
 		textColor = ChatColor.getByChar(config.getString(path + "text-color", ChatColor.DARK_AQUA.getChar() + ""));
 		broadcastRange = config.getInt(path + "broadcast-range", 20);
+		effectSwipeInterval = config.getInt(path + "effect-swipe-interval", 300);
 
 		opsHaveAllSpells = config.getBoolean(path + "ops-have-all-spells", true);
 		defaultAllPermsFalse = config.getBoolean(path + "default-all-perms-false", false);
@@ -449,6 +455,7 @@ public class MagicSpells extends JavaPlugin {
 		addPermission(pm, "command.util.saveskin", PermissionDefault.OP);
 		addPermission(pm, "command.profilereport", PermissionDefault.OP);
 		addPermission(pm, "command.debug", PermissionDefault.OP);
+		addPermission(pm, "command.taskinfo", PermissionDefault.OP);
 		addPermission(pm, "command.magicxp", PermissionDefault.OP);
 		addPermission(pm, "command.cast.power", PermissionDefault.OP);
 		addPermission(pm, "command.cast.self", PermissionDefault.TRUE);
@@ -585,6 +592,20 @@ public class MagicSpells extends JavaPlugin {
 		// Call loaded event
 		pm.callEvent(new MagicSpellsLoadedEvent(this));
 		loaded = true;
+
+		// timer that clears finished effectlib effects
+		if (effectSwipeInterval > 0) {
+			effectSwipeTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+				Iterator<Map.Entry<Effect, BukkitTask>> iterator = MagicSpells.getEffectManager().getEffects().entrySet().iterator();
+				while (iterator.hasNext()) {
+					Map.Entry<Effect, BukkitTask> next = iterator.next();
+					BukkitTask task = next.getValue();
+					if (!task.isCancelled()) task.cancel();
+					iterator.remove();
+				}
+
+			}, effectSwipeInterval * 20L, effectSwipeInterval * 20L);
+		}
 
 		log("MagicSpells loading complete!");
 	}
@@ -1025,6 +1046,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static int getGlobalCooldown() {
 		return plugin.globalCooldown;
+	}
+
+	public static int getEffectSwipeInterval() {
+		return plugin.effectSwipeInterval;
 	}
 
 	public static void setDebug(boolean debug) {
@@ -1740,36 +1765,48 @@ public class MagicSpells extends JavaPlugin {
 			profilingRuns.clear();
 			profilingRuns = null;
 		}
+
 		if (profilingTotalTime != null) {
 			profilingTotalTime.clear();
 			profilingTotalTime = null;
 		}
+
 		if (magicXpHandler != null) {
 			magicXpHandler.saveAll();
 			magicXpHandler = null;
 		}
+
 		if (manaHandler != null) {
 			manaHandler.turnOff();
 			manaHandler = null;
 		}
+
 		if (zoneManager != null) {
 			zoneManager.turnOff();
 			zoneManager = null;
 		}
+
 		if (magicLogger != null) {
 			magicLogger.disable();
 			magicLogger = null;
 		}
+
 		if (variableManager != null) {
 			variableManager.disable();
 			variableManager = null;
 		}
+
 		if (bossBarManager != null) {
 			bossBarManager.turnOff();
 			bossBarManager = null;
 		}
+
 		if (volatileCodeHandle != null) {
 			volatileCodeHandle = null;
+		}
+
+		if (effectSwipeTask != null && !effectSwipeTask.isCancelled()) {
+			effectSwipeTask.cancel();
 		}
 
 		config = null;
