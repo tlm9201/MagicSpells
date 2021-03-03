@@ -53,7 +53,6 @@ public class BowSpell extends Spell {
 	private Subspell spellOnHitEntity;
 	private Subspell spellOnHitGround;
 
-	private boolean canBind;
 	private boolean cancelShot;
 	private boolean denyOffhand;
 	private boolean removeArrow;
@@ -89,7 +88,7 @@ public class BowSpell extends Spell {
 		spellOnHitEntityName = getConfigString("spell-on-hit-entity", "");
 		spellOnHitGroundName = getConfigString("spell-on-hit-ground", "");
 
-		canBind = getConfigBoolean("can-bind", false);
+		bindable = getConfigBoolean("bindable", false);
 		cancelShot = getConfigBoolean("cancel-shot", true);
 		denyOffhand = getConfigBoolean("deny-offhand", false);
 		removeArrow = getConfigBoolean("remove-arrow", false);
@@ -136,7 +135,7 @@ public class BowSpell extends Spell {
 
 	@Override
 	public boolean canCastWithItem() {
-		return canBind;
+		return bindable;
 	}
 
 	@Override
