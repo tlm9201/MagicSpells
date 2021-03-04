@@ -169,7 +169,6 @@ public class MagicSpells extends JavaPlugin {
 	private int globalRadius;
 	private int globalCooldown;
 	private int broadcastRange;
-	private int effectSwipeInterval;
 
 	private long lastReloadTime = 0;
 
@@ -191,8 +190,6 @@ public class MagicSpells extends JavaPlugin {
 	private String soundFailMissingReagents;
 
 	private boolean loaded = false;
-
-	private BukkitTask effectSwipeTask;
 
 	@Override
 	public void onEnable() {
@@ -257,7 +254,6 @@ public class MagicSpells extends JavaPlugin {
 		enableProfiling = config.getBoolean(path + "enable-profiling", false);
 		textColor = ChatColor.getByChar(config.getString(path + "text-color", ChatColor.DARK_AQUA.getChar() + ""));
 		broadcastRange = config.getInt(path + "broadcast-range", 20);
-		effectSwipeInterval = config.getInt(path + "effect-swipe-interval", 300);
 
 		opsHaveAllSpells = config.getBoolean(path + "ops-have-all-spells", true);
 		defaultAllPermsFalse = config.getBoolean(path + "default-all-perms-false", false);
@@ -592,22 +588,6 @@ public class MagicSpells extends JavaPlugin {
 		// Call loaded event
 		pm.callEvent(new MagicSpellsLoadedEvent(this));
 		loaded = true;
-
-		// timer that clears finished effectlib effects
-		if (effectSwipeInterval > 0) {
-			effectSwipeTask = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-				Iterator<Map.Entry<Effect, BukkitTask>> iterator = MagicSpells.getEffectManager().getEffects().entrySet().iterator();
-				while (iterator.hasNext()) {
-					Map.Entry<Effect, BukkitTask> next = iterator.next();
-					Effect effect = next.getKey();
-					if (effect != null && !effect.isDone()) continue;
-					BukkitTask task = next.getValue();
-					if (!task.isCancelled()) task.cancel();
-					iterator.remove();
-				}
-
-			}, effectSwipeInterval * 20L, effectSwipeInterval * 20L);
-		}
 
 		log("MagicSpells loading complete!");
 	}
@@ -1048,10 +1028,6 @@ public class MagicSpells extends JavaPlugin {
 
 	public static int getGlobalCooldown() {
 		return plugin.globalCooldown;
-	}
-
-	public static int getEffectSwipeInterval() {
-		return plugin.effectSwipeInterval;
 	}
 
 	public static void setDebug(boolean debug) {
@@ -1805,10 +1781,6 @@ public class MagicSpells extends JavaPlugin {
 
 		if (volatileCodeHandle != null) {
 			volatileCodeHandle = null;
-		}
-
-		if (effectSwipeTask != null && !effectSwipeTask.isCancelled()) {
-			effectSwipeTask.cancel();
 		}
 
 		config = null;
