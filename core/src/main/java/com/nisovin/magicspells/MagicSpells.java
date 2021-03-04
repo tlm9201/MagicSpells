@@ -599,6 +599,8 @@ public class MagicSpells extends JavaPlugin {
 				Iterator<Map.Entry<Effect, BukkitTask>> iterator = MagicSpells.getEffectManager().getEffects().entrySet().iterator();
 				while (iterator.hasNext()) {
 					Map.Entry<Effect, BukkitTask> next = iterator.next();
+					Effect effect = next.getKey();
+					if (effect != null && !effect.isDone()) continue;
 					BukkitTask task = next.getValue();
 					if (!task.isCancelled()) task.cancel();
 					iterator.remove();
