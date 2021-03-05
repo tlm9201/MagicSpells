@@ -28,7 +28,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -61,7 +60,6 @@ import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
-import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.EffectManager;
 
 public class MagicSpells extends JavaPlugin {
