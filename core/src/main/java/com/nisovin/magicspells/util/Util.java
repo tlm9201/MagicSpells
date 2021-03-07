@@ -684,7 +684,8 @@ public class Util {
 	}
 
 	public static void setSkin(Player player, String skin, String signature) {
-		setTexture(player.getPlayerProfile(), skin, signature);
+		PlayerProfile profile = setTexture(player.getPlayerProfile(), skin, signature);
+		player.setPlayerProfile(profile);
 	}
 
 	public static void setTexture(SkullMeta meta, String texture, String signature, String uuid, OfflinePlayer offlinePlayer) {
