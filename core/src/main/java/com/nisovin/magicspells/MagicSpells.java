@@ -1361,7 +1361,7 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(player);
 			}
 
-			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
+			matcher.appendReplacement(buf, Matcher.quoteReplacement(value));
 		}
 
 		return matcher.appendTail(buf).toString();
@@ -1395,7 +1395,7 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(variableOwnerName);
 			}
 
-			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
+			matcher.appendReplacement(buf, Matcher.quoteReplacement(value));
 		}
 
 		return matcher.appendTail(buf).toString();
@@ -1431,7 +1431,7 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(varOwner);
 			}
 
-			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(value));
+			matcher.appendReplacement(buf, Matcher.quoteReplacement(value));
 		}
 
 		return matcher.appendTail(buf).toString();
@@ -1451,7 +1451,7 @@ public class MagicSpells extends JavaPlugin {
 			String newValue = matcher.group(2);
 			if (args != null && argIndex >= 0 && argIndex < args.length) newValue = args[argIndex];
 
-			matcher.appendReplacement(buf, TxtUtil.escapeMatcher(newValue));
+			matcher.appendReplacement(buf, Matcher.quoteReplacement(newValue));
 		}
 
 		return matcher.appendTail(buf).toString();
