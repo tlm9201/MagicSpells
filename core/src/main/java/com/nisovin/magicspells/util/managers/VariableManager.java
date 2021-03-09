@@ -585,7 +585,7 @@ public class VariableManager {
 
 		double value = op.applyTo(variable.getValue(playerToMod), mod.getValue(caster, target));
 
-		if (value == variable.getDefaultValue()) {
+		if (value == variable.getDefaultValue() && !(variable instanceof MetaVariable)) {
 			reset(var, playerToMod);
 		} else {
 			set(var, playerToMod, value);
