@@ -286,14 +286,18 @@ public class VariableManager {
 
 	public void set(String variable, String player, double amount) {
 		Variable var = variables.get(variable);
-		if (var == null) return;
-		var.set(player, amount);
-		updateBossBar(var, player);
-		updateExpBar(var, player);
-		if (!var.isPermanent()) return;
-		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player);
-		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
-		else if (var instanceof GlobalStringVariable) dirtyGlobalVars = true;
+		set(var, player, amount);
+	}
+
+	public void set(Variable variable, String player, double amount) {
+		if (variable == null) return;
+		variable.set(player, amount);
+		updateBossBar(variable, player);
+		updateExpBar(variable, player);
+		if (!variable.isPermanent()) return;
+		if (variable instanceof PlayerVariable) dirtyPlayerVars.add(player);
+		else if (variable instanceof GlobalVariable) dirtyGlobalVars = true;
+		else if (variable instanceof GlobalStringVariable) dirtyGlobalVars = true;
 	}
 
 	public void set(String variable, Player player, String amount) {
@@ -302,14 +306,18 @@ public class VariableManager {
 
 	public void set(String variable, String player, String amount) {
 		Variable var = variables.get(variable);
-		if (var == null) return;
-		var.parseAndSet(player, amount);
-		updateBossBar(var, player);
-		updateExpBar(var, player);
-		if (!var.isPermanent()) return;
-		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player);
-		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
-		else if (var instanceof GlobalStringVariable) dirtyGlobalVars = true;
+		set(var, player, amount);
+	}
+
+	public void set(Variable variable, String player, String amount) {
+		if (variable == null) return;
+		variable.parseAndSet(player, amount);
+		updateBossBar(variable, player);
+		updateExpBar(variable, player);
+		if (!variable.isPermanent()) return;
+		if (variable instanceof PlayerVariable) dirtyPlayerVars.add(player);
+		else if (variable instanceof GlobalVariable) dirtyGlobalVars = true;
+		else if (variable instanceof GlobalStringVariable) dirtyGlobalVars = true;
 	}
 
 	public double getValue(String variable, Player player) {
@@ -342,14 +350,18 @@ public class VariableManager {
 
 	public void reset(String variable, Player player) {
 		Variable var = variables.get(variable);
-		if (var == null) return;
-		var.reset(player);
-		updateBossBar(var, player != null ? player.getName() : "");
-		updateExpBar(var, player != null ? player.getName() : "");
-		if (!var.isPermanent()) return;
-		if (var instanceof PlayerVariable) dirtyPlayerVars.add(player != null ? player.getName() : "");
-		else if (var instanceof GlobalVariable) dirtyGlobalVars = true;
-		else if (var instanceof GlobalStringVariable) dirtyGlobalVars = true;
+		reset(var, player);
+	}
+
+	public void reset(Variable variable, Player player) {
+		if (variable == null) return;
+		variable.reset(player);
+		updateBossBar(variable, player != null ? player.getName() : "");
+		updateExpBar(variable, player != null ? player.getName() : "");
+		if (!variable.isPermanent()) return;
+		if (variable instanceof PlayerVariable) dirtyPlayerVars.add(player != null ? player.getName() : "");
+		else if (variable instanceof GlobalVariable) dirtyGlobalVars = true;
+		else if (variable instanceof GlobalStringVariable) dirtyGlobalVars = true;
 	}
 
 	public void updateBossBar(Variable var, String player) {
@@ -564,10 +576,11 @@ public class VariableManager {
 	}
 
 	public String processVariableMods(String var, VariableMod mod, Player playerToMod, Player caster, Player target) {
-		Variable variable = getVariable(var);
-		if (variable == null) return 0 + "";
 		if (mod == null) return 0 + "";
 		if (playerToMod == null) return 0 + "";
+
+		Variable variable = getVariable(var);
+		if (variable == null) return 0 + "";
 
 		VariableMod.Operation op = mod.getOperation();
 
@@ -575,9 +588,9 @@ public class VariableManager {
 			String value = mod.getStringValue(caster, target);
 
 			if (value.equals(variable.getDefaultStringValue())) {
-				reset(var, playerToMod);
+				reset(variable, playerToMod);
 			} else {
-				set(var, playerToMod, value);
+				set(variable, playerToMod.getName(), value);
 			}
 
 			return value;
@@ -585,10 +598,10 @@ public class VariableManager {
 
 		double value = op.applyTo(variable.getValue(playerToMod), mod.getValue(caster, target));
 
-		if (value == variable.getDefaultValue()) {
-			reset(var, playerToMod);
+		if (value == variable.getDefaultValue() && !(variable instanceof MetaVariable)) {
+			reset(variable, playerToMod);
 		} else {
-			set(var, playerToMod, value);
+			set(variable, playerToMod.getName(), value);
 		}
 
 		return Double.toString(value);
