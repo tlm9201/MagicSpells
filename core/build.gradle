@@ -4,7 +4,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    mavenLocal()
     maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
     maven { url "https://repo.md-5.net/content/repositories/releases/" }
     maven { url "https://papermc.io/repo/repository/maven-public/" }
@@ -24,8 +23,8 @@ dependencies {
     implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.6.0"
 
     implementation "com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT"
-    implementation "org.spigotmc:spigot:1.16.5-R0.1-SNAPSHOT"
-    //implementation ":spigot-1.16.5"
+    //implementation "org.spigotmc:spigot:1.16.5-R0.1-SNAPSHOT"
+    implementation ":spigot-1.16.5"
 
     //implementation "com.github.libraryaddict:LibsDisguises:10.0.24"
     implementation "com.github.Updated-NoCheatPlus:NoCheatPlus:master-SNAPSHOT"
