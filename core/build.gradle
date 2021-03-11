@@ -43,7 +43,7 @@ shadowJar {
     relocate("kotlin", "com.nisovin.magicspells.shaded.kotlin")
     relocate("co.aikar.commands", "com.nisovin.magicspells.shaded.acf")
     relocate("co.aikar.locales", "com.nisovin.magicspells.shaded.locales")
-    archiveClassifier = null
+    archiveClassifier.set("")
 }
 
 compileKotlin {
@@ -61,7 +61,8 @@ compileTestKotlin {
 
 publishing {
     publications {
-        maven(MavenPublication) {
+        mavenJava(MavenPublication) {
+            artifactId = "magicspells"
             groupId = "com.nisovin.magicspells"
             from components.java
         }
