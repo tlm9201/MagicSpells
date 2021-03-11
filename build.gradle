@@ -38,7 +38,7 @@ class MSConfig {
   String libDir = "lib"
 
   // Resource retrieving
-  def resourceNcpUrl = "https://ci.md-5.net/job/NoCheatPlus/lastSuccessfulBuild/artifact/target/NoCheatPlus.jar"
+  //def resourceNcpUrl = "https://ci.md-5.net/job/NoCheatPlus/lastSuccessfulBuild/artifact/target/NoCheatPlus.jar"
 
 }
 
@@ -56,7 +56,7 @@ def magicspellsGetResources() {
   File libFolder = project.file(project.ext.magicspellsData.libDir)
 
   // Get NoCheatPlus
-  downloadFile(new File(libFolder, "NoCheatPlus.jar"), new URL(project.ext.magicspellsData.resourceNcpUrl))
+  //downloadFile(new File(libFolder, "NoCheatPlus.jar"), new URL(project.ext.magicspellsData.resourceNcpUrl))
 
   println "Finished running the get resources phase"
 }

@@ -1,3 +1,4 @@
+/*
 package com.nisovin.magicspells.factions;
 
 import java.util.Map;
@@ -64,3 +65,4 @@ public class MagicSpellsFactions extends MassivePlugin {
 	}
 	
 }
+*/

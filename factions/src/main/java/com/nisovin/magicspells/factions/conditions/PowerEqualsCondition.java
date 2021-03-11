@@ -1,3 +1,4 @@
+/*
 package com.nisovin.magicspells.factions.conditions;
 
 import org.bukkit.Location;
@@ -38,3 +39,4 @@ public class PowerEqualsCondition extends Condition {
 	}
 
 }
+*/

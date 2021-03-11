@@ -7,10 +7,12 @@ import java.util.Set;
 
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.util.compat.EventUtil;
+import com.palmergames.bukkit.towny.TownyUniverse;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -22,7 +24,6 @@ import com.nisovin.magicspells.spells.TargetedSpell;
 import com.palmergames.bukkit.towny.Towny;
 import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
 import com.palmergames.bukkit.towny.object.Coord;
-import com.palmergames.bukkit.towny.object.TownyUniverse;
 import com.palmergames.bukkit.towny.object.TownyWorld;
 import com.palmergames.bukkit.towny.utils.CombatUtil;
 
@@ -69,7 +70,7 @@ public class MagicSpellsTowny extends JavaPlugin implements Listener {
 		if (event.getCaster() == null) return;
 		boolean friendlySpell = false;
 		if (event.getSpell() instanceof TargetedSpell && event.getSpell().isBeneficial()) friendlySpell = true;
-		if (!friendlySpell && CombatUtil.preventDamageCall(towny, event.getCaster(), event.getTarget())) {
+		if (!friendlySpell && CombatUtil.preventDamageCall(towny, event.getCaster(), event.getTarget(), EntityDamageEvent.DamageCause.MAGIC)) {
 			event.setCancelled(true);
 		} else if (friendlySpell && event.getTarget() instanceof Player && !CombatUtil.isAlly(event.getCaster().getName(), event.getTarget().getName())) {
 			event.setCancelled(true);
@@ -80,7 +81,7 @@ public class MagicSpellsTowny extends JavaPlugin implements Listener {
 	public void onSpellCast(SpellCastEvent event) {
 		if (disallowedInTowns.contains(event.getSpell())) {
 			try {
-				TownyWorld world = TownyUniverse.getDataSource().getWorld(event.getCaster().getWorld().getName());
+				TownyWorld world = TownyUniverse.getInstance().getDataSource().getWorld(event.getCaster().getWorld().getName());
 				if (world != null && world.isUsingTowny()) {
 					Coord coord = Coord.parseCoord(event.getCaster());
 					if (world.getTownBlock(coord) != null) {

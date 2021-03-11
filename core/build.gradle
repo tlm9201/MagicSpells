@@ -1,35 +1,39 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.4.0'
+    id "org.jetbrains.kotlin.jvm" version "1.4.30"
 }
 
 repositories {
+    mavenCentral()
+    mavenLocal()
     maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
     maven { url "https://repo.md-5.net/content/repositories/releases/" }
     maven { url "https://papermc.io/repo/repository/maven-public/" }
     maven { url "https://repo.aikar.co/content/groups/aikar/" }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
 }
 
 dependencies {
     shadow group: "org.apache.commons", name: "commons-math3", version: "3.6.1"
-    shadow "com.github.Chronoken:EffectLib:0f2248f6a9"
+    shadow "com.github.Chronoken:EffectLib:master-SNAPSHOT"
     shadow "com.github.Xezard:XGlow:c886344de3"
-    shadow "com.github.PaperMC:PaperLib:0621f6d900"
+    shadow "com.github.PaperMC:PaperLib:master-SNAPSHOT"
     shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"
     shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    implementation "com.destroystokyo.paper:paper-api:1.16.4-R0.1-SNAPSHOT"
-    implementation ":spigot-1.16.4"
-    implementation ":spigot-1.16.2"
-    implementation ":spigot-1.16.1"
-    implementation ":spigot-1.15"
-    implementation ":NoCheatPlus"
-    implementation "com.github.MilkBowl:VaultAPI:ea40092989"
-    implementation "com.github.EngineHub.WorldEdit:worldedit-bukkit:d47f59e051"
-    implementation "com.github.EngineHub.WorldGuard:worldguard-bukkit:0e73b50d6f"
-    implementation "LibsDisguises:LibsDisguises:10.0.23"
-    implementation "com.github.PlaceholderAPI:PlaceholderAPI:93e83efb57"
-    implementation "com.github.TechFortress:GriefPrevention:47cd376610"
-    implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.5.1"
+    implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.6.0"
+
+    implementation "com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT"
+    implementation "org.spigotmc:spigot:1.16.5-R0.1-SNAPSHOT"
+    //implementation ":spigot-1.16.5"
+
+    //implementation "com.github.libraryaddict:LibsDisguises:10.0.24"
+    implementation "com.github.Updated-NoCheatPlus:NoCheatPlus:master-SNAPSHOT"
+    implementation "com.github.MilkBowl:VaultAPI:master-SNAPSHOT"
+    implementation "com.github.EngineHub:WorldEdit:9a5ef70858"
+    implementation "com.github.EngineHub:WorldGuard:528ba32a93"
+    implementation "com.github.PlaceholderAPI:PlaceholderAPI:c2ab9f5b85"
+    implementation "com.github.TechFortress:GriefPrevention:master-SNAPSHOT"
 }
 
 shadowJar {

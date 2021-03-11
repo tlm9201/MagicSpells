@@ -1,3 +1,4 @@
+/*
 package com.nisovin.magicspells.factions;
 
 import java.util.HashMap;
@@ -27,3 +28,4 @@ public class FactionsConditions {
 	}
 	
 }
+*/
