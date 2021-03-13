@@ -206,7 +206,6 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (fire) target.setFireTicks(0);
 
 		for (PotionEffectType type : potionEffectTypes) {
-			target.addPotionEffect(new PotionEffect(type, 0, 0, true));
 			target.removePotionEffect(type);
 		}
 
