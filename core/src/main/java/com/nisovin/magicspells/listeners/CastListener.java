@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -128,6 +129,9 @@ public class CastListener implements Listener {
 	public void onPlayerAnimation(PlayerAnimationEvent event) {
 		if (MagicSpells.isCastingOnAnimate()) {
 			Player player = event.getPlayer();
+
+			InventoryType type = player.getOpenInventory().getType();
+			if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) return;
 
 			if (MagicSpells.areBowCycleButtonsReversed()) {
 				ItemStack inHand = player.getInventory().getItemInMainHand();
