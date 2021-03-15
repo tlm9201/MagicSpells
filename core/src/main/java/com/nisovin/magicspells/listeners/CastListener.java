@@ -44,18 +44,40 @@ public class CastListener implements Listener {
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			Material m = event.getClickedBlock().getType();
 			if (BlockUtils.isWoodDoor(m) ||
+					BlockUtils.isWoodFenceGate(m) ||
 					BlockUtils.isWoodTrapdoor(m) ||
+					BlockUtils.isShulkerBox(m) ||
 					BlockUtils.isWoodButton(m) ||
 					BlockUtils.isBed(m) ||
-					m == Material.CRAFTING_TABLE ||
+					m == Material.ANVIL ||
+					m == Material.BARREL ||
+					m == Material.BEACON ||
+					m == Material.BLAST_FURNACE ||
+					m == Material.BREWING_STAND ||
+					m == Material.CARTOGRAPHY_TABLE ||
 					m == Material.CHEST ||
-					m == Material.TRAPPED_CHEST ||
+					m == Material.CHIPPED_ANVIL ||
+					m == Material.COMPARATOR ||
+					m == Material.CRAFTING_TABLE ||
+					m == Material.DAYLIGHT_DETECTOR ||
+					m == Material.DAMAGED_ANVIL ||
+					m == Material.DISPENSER ||
+					m == Material.DROPPER ||
+					m == Material.ENCHANTING_TABLE ||
 					m == Material.ENDER_CHEST ||
 					m == Material.FURNACE ||
+					m == Material.GRINDSTONE ||
 					m == Material.HOPPER ||
 					m == Material.LEVER ||
+					m == Material.LOOM ||
+					m == Material.NOTE_BLOCK ||
+					m == Material.POLISHED_BLACKSTONE_BUTTON ||
+					m == Material.REPEATER ||
+					m == Material.SMITHING_TABLE ||
+					m == Material.SMOKER ||
+					m == Material.STONECUTTER ||
 					m == Material.STONE_BUTTON ||
-					m == Material.ENCHANTING_TABLE) {
+					m == Material.TRAPPED_CHEST) {
 				noInteract = true;
 			} else if (event.hasItem() && event.getItem().getType().isBlock()) {
 				noInteract = true;
