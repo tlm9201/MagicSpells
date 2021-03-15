@@ -77,13 +77,13 @@ public class CastListener implements Listener {
 		}
 
 		if (isEventCycleAction(event) && (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)) {
-			ItemStack inHand = player.getEquipment().getItemInMainHand();
+			ItemStack inHand = player.getInventory().getItemInMainHand();
 			
-			if (inHand != null && isBow(inHand.getType())) {
+			if (isBow(inHand.getType())) {
 				if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) return;
 			}
 			
-			if ((inHand != null && !BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
+			if ((!BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
 				// Cycle spell
 				Spell spell;
 				if (!player.isSneaking()) spell = MagicSpells.getSpellbook(player).nextSpell(inHand);
@@ -126,7 +126,16 @@ public class CastListener implements Listener {
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerAnimation(PlayerAnimationEvent event) {
-		if (MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
+		if (MagicSpells.isCastingOnAnimate()) {
+			Player player = event.getPlayer();
+
+			if (MagicSpells.areBowCycleButtonsReversed()) {
+				ItemStack inHand = player.getInventory().getItemInMainHand();
+				if (isBow(inHand.getType())) return;
+			}
+
+			castSpell(player);
+		}
 	}
 	
 	@EventHandler
