@@ -103,7 +103,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		if (!spellNameOnBreak.isEmpty()) {
 			spellOnBreak = new Subspell(spellNameOnBreak);
-			if (!spellOnBreak.process() || !spellOnBreak.isTargetedLocationSpell()) {
+			if (!spellOnBreak.process()) {
 				MagicSpells.error("PulserSpell '" + internalName + "' has an invalid spell-on-break defined");
 				spellOnBreak = null;
 			}
@@ -298,7 +298,10 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			if (!block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) block.getChunk().load();
 			block.setType(Material.AIR);
 			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation());
-			if (spellOnBreak != null) spellOnBreak.castAtLocation(caster, location, power);
+			if (spellOnBreak != null) {
+				if (spellOnBreak.isTargetedLocationSpell()) spellOnBreak.castAtLocation(caster, location, power);
+				else spellOnBreak.cast(caster, power);
+			}
 		}
 
 	}
