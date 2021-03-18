@@ -1,8 +1,9 @@
 dependencies {
     implementation project(":core")
-    implementation ":spigot-1.12"
-    implementation "com.github.MilkBowl:VaultAPI:68f14eca20"
+    implementation "com.github.MilkBowl:VaultAPI:master-SNAPSHOT"
+    implementation "com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT"
 }
+
 jar {
     archiveFileName = "MagicSpellsShop.jar"
 }

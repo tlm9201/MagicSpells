@@ -6,9 +6,9 @@ import java.util.regex.Pattern;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.type.WallSign;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -97,8 +97,8 @@ public class MagicSpellsShop extends JavaPlugin implements Listener {
 		// Check for right-click on sign
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		Block block = event.getClickedBlock();
-		if (block.getType() != Material.WALL_SIGN && block.getType() != Material.SIGN_POST) return;
-		
+		if (!(block.getBlockData() instanceof WallSign)) return;
+
 		// Get shop sign
 		Sign sign = (Sign)block.getState();
 		String[] lines = sign.getLines();		
@@ -265,11 +265,9 @@ public class MagicSpellsShop extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
 		if (event.isCancelled()) return;
-		
-		Material mat = event.getBlock().getType();
-		if (mat != Material.WALL_SIGN && mat != Material.SIGN_POST) return;
-		
-		Sign sign = (Sign)event.getBlock().getState();
+		if (!(event.getBlock().getBlockData() instanceof WallSign)) return;
+
+		Sign sign = (Sign) event.getBlock().getState();
 		String line = sign.getLine(0);
 		if (!isShopSignFirstLine(line)) return;
 		if (!Perm.CREATESIGNSHOP.has(event.getPlayer())) event.setCancelled(true);

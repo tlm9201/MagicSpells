@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import net.milkbowl.vault.economy.Economy;
 
@@ -61,13 +62,12 @@ public class CurrencyHandler {
 		if (c == null) return false;
 		if (c.equalsIgnoreCase("vault") && this.economy != null) return this.economy.has(player.getName(), amount);
 		if (c.equalsIgnoreCase("levels")) return player.getLevel() >= (int)amount;
-		if (c.equalsIgnoreCase("experience") || c.equalsIgnoreCase("xp")) return ExperienceUtils.hasExp(player, (int)amount);
-		if (RegexUtil.matches(PATTERN_CURRENCY_ITEM_BASIC, c)) return inventoryContains(player.getInventory(), new ItemStack(Integer.parseInt(c), (int)amount));
+		if (c.equalsIgnoreCase("experience") || c.equalsIgnoreCase("xp")) return ExperienceUtils.hasExp(player, (int) amount);
+		if (RegexUtil.matches(PATTERN_CURRENCY_ITEM_BASIC, c)) return inventoryContains(player.getInventory(), new ItemStack(Util.getMaterial(c), (int) amount));
 		if (RegexUtil.matches(PATTERN_CURRENCY_ITEM_ADVANCED, c)) {
 			String[] s = c.split(":");
-			int type = Integer.parseInt(s[0]);
 			short data = Short.parseShort(s[1]);
-			return inventoryContains(player.getInventory(), new ItemStack(type, (int)amount, data));
+			return inventoryContains(player.getInventory(), new ItemStack(Util.getMaterial(s[0]), (int) amount, data));
 		}
 		return false;
 	}
@@ -88,13 +88,12 @@ public class CurrencyHandler {
 		} else if (c.equalsIgnoreCase("experience") || c.equalsIgnoreCase("xp")) {
 			ExperienceUtils.changeExp(player, -(int)amount);
 		} else if (RegexUtil.matches(PATTERN_CURRENCY_ITEM_BASIC, c)) {
-			removeFromInventory(player.getInventory(), new ItemStack(Integer.parseInt(c), (int)amount));
+			removeFromInventory(player.getInventory(), new ItemStack(Util.getMaterial(c), (int) amount));
 			player.updateInventory();
 		} else if (RegexUtil.matches(PATTERN_CURRENCY_ITEM_ADVANCED, c)) {
 			String[] s = c.split(":");
-			int type = Integer.parseInt(s[0]);
 			short data = Short.parseShort(s[1]);
-			removeFromInventory(player.getInventory(), new ItemStack(type, (int)amount, data));
+			removeFromInventory(player.getInventory(), new ItemStack(Util.getMaterial(s[0]), (int) amount, data));
 			player.updateInventory();
 		}
 	}
