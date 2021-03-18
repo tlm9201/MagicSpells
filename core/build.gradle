@@ -26,7 +26,7 @@ dependencies {
     //implementation "org.spigotmc:spigot:1.16.5-R0.1-SNAPSHOT"
     implementation ":spigot-1.16.5"
 
-    //implementation "com.github.libraryaddict:LibsDisguises:10.0.24"
+    implementation "com.github.libraryaddict:LibsDisguises:master-SNAPSHOT"
     implementation "com.github.Updated-NoCheatPlus:NoCheatPlus:master-SNAPSHOT"
     implementation "com.github.MilkBowl:VaultAPI:master-SNAPSHOT"
     implementation "com.github.EngineHub:WorldEdit:9a5ef70858"

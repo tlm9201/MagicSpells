@@ -1,4 +1,3 @@
-/*
 package com.nisovin.magicspells.spells.buff.ext;
 
 import java.util.Set;
@@ -166,4 +165,3 @@ public class DisguiseSpell extends BuffSpell {
 	}
 
 }
-*/
