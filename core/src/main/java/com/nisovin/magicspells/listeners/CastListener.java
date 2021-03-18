@@ -12,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -43,18 +44,40 @@ public class CastListener implements Listener {
 		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			Material m = event.getClickedBlock().getType();
 			if (BlockUtils.isWoodDoor(m) ||
+					BlockUtils.isWoodFenceGate(m) ||
 					BlockUtils.isWoodTrapdoor(m) ||
+					BlockUtils.isShulkerBox(m) ||
 					BlockUtils.isWoodButton(m) ||
 					BlockUtils.isBed(m) ||
-					m == Material.CRAFTING_TABLE ||
+					m == Material.ANVIL ||
+					m == Material.BARREL ||
+					m == Material.BEACON ||
+					m == Material.BLAST_FURNACE ||
+					m == Material.BREWING_STAND ||
+					m == Material.CARTOGRAPHY_TABLE ||
 					m == Material.CHEST ||
-					m == Material.TRAPPED_CHEST ||
+					m == Material.CHIPPED_ANVIL ||
+					m == Material.COMPARATOR ||
+					m == Material.CRAFTING_TABLE ||
+					m == Material.DAYLIGHT_DETECTOR ||
+					m == Material.DAMAGED_ANVIL ||
+					m == Material.DISPENSER ||
+					m == Material.DROPPER ||
+					m == Material.ENCHANTING_TABLE ||
 					m == Material.ENDER_CHEST ||
 					m == Material.FURNACE ||
+					m == Material.GRINDSTONE ||
 					m == Material.HOPPER ||
 					m == Material.LEVER ||
+					m == Material.LOOM ||
+					m == Material.NOTE_BLOCK ||
+					m == Material.POLISHED_BLACKSTONE_BUTTON ||
+					m == Material.REPEATER ||
+					m == Material.SMITHING_TABLE ||
+					m == Material.SMOKER ||
+					m == Material.STONECUTTER ||
 					m == Material.STONE_BUTTON ||
-					m == Material.ENCHANTING_TABLE) {
+					m == Material.TRAPPED_CHEST) {
 				noInteract = true;
 			} else if (event.hasItem() && event.getItem().getType().isBlock()) {
 				noInteract = true;
@@ -77,13 +100,13 @@ public class CastListener implements Listener {
 		}
 
 		if (isEventCycleAction(event) && (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)) {
-			ItemStack inHand = player.getEquipment().getItemInMainHand();
+			ItemStack inHand = player.getInventory().getItemInMainHand();
 			
-			if (inHand != null && isBow(inHand.getType())) {
+			if (isBow(inHand.getType())) {
 				if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) return;
 			}
 			
-			if ((inHand != null && !BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
+			if ((!BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
 				// Cycle spell
 				Spell spell;
 				if (!player.isSneaking()) spell = MagicSpells.getSpellbook(player).nextSpell(inHand);
@@ -126,7 +149,19 @@ public class CastListener implements Listener {
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerAnimation(PlayerAnimationEvent event) {
-		if (MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
+		if (MagicSpells.isCastingOnAnimate()) {
+			Player player = event.getPlayer();
+
+			InventoryType type = player.getOpenInventory().getType();
+			if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) return;
+
+			if (MagicSpells.areBowCycleButtonsReversed()) {
+				ItemStack inHand = player.getInventory().getItemInMainHand();
+				if (isBow(inHand.getType())) return;
+			}
+
+			castSpell(player);
+		}
 	}
 	
 	@EventHandler

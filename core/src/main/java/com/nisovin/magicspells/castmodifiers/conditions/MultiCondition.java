@@ -93,7 +93,19 @@ public class MultiCondition extends Condition implements IModifier {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		int pass = 0;
+		int fail = 0;
+		for (Modifier m : modifiers) {
+			boolean check = m.check(livingEntity);
+			if (check) pass++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, livingEntity, null);
+			}
+			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
+		}
+		return passCondition.hasPassed(pass, fail);
 	}
 
 	@Override
@@ -101,9 +113,13 @@ public class MultiCondition extends Condition implements IModifier {
 		int pass = 0;
 		int fail = 0;
 		for (Modifier m : modifiers) {
-			boolean check = m.check(target);
+			boolean check = m.check(livingEntity, target);
 			if (check) pass++;
-			else fail++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, livingEntity, null);
+			}
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
 		return passCondition.hasPassed(pass, fail);
@@ -111,7 +127,19 @@ public class MultiCondition extends Condition implements IModifier {
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		return false;
+		int pass = 0;
+		int fail = 0;
+		for (Modifier m : modifiers) {
+			boolean check = m.check(livingEntity, location);
+			if (check) pass++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, livingEntity, null);
+			}
+			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
+		}
+		return passCondition.hasPassed(pass, fail);
 	}
 
 	@Override
@@ -121,8 +149,11 @@ public class MultiCondition extends Condition implements IModifier {
 		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
 			if (check) pass++;
-			else fail++;
-
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), null);
+			}
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
 		return passCondition.hasPassed(pass, fail);
@@ -135,7 +166,11 @@ public class MultiCondition extends Condition implements IModifier {
 		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
 			if (check) pass++;
-			else fail++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, event.getPlayer(), null);
+			}
 
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
@@ -149,7 +184,11 @@ public class MultiCondition extends Condition implements IModifier {
 		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
 			if (check) pass++;
-			else fail++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), null);
+			}
 
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
@@ -163,7 +202,11 @@ public class MultiCondition extends Condition implements IModifier {
 		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
 			if (check) pass++;
-			else fail++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), null);
+			}
 
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
@@ -177,7 +220,11 @@ public class MultiCondition extends Condition implements IModifier {
 		for (Modifier m : modifiers) {
 			boolean check = m.apply(event);
 			if (check) pass++;
-			else fail++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, event.getPlayer(), null);
+			}
 
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
@@ -211,7 +258,19 @@ public class MultiCondition extends Condition implements IModifier {
 				return passes == 0;
 			}
 		},
-		
+
+		NONE {
+			@Override
+			public boolean hasPassed(int passes, int fails) {
+				return passes == 0;
+			}
+
+			@Override
+			public boolean shouldContinue(int passes, int fails) {
+				return passes == 0;
+			}
+		},
+
 		XOR {
 
 			@Override

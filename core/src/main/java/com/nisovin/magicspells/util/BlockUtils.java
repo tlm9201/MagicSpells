@@ -131,6 +131,8 @@ public class BlockUtils {
 			case SPRUCE_DOOR:
 			case DARK_OAK_DOOR:
 			case BIRCH_DOOR:
+			case CRIMSON_DOOR:
+			case WARPED_DOOR:
 				return true;
 		}
 		return false;
@@ -144,6 +146,8 @@ public class BlockUtils {
 			case SPRUCE_BUTTON:
 			case DARK_OAK_BUTTON:
 			case BIRCH_BUTTON:
+			case CRIMSON_BUTTON:
+			case WARPED_BUTTON:
 				return true;
 		}
 		return false;
@@ -157,6 +161,8 @@ public class BlockUtils {
 			case SPRUCE_PRESSURE_PLATE:
 			case DARK_OAK_PRESSURE_PLATE:
 			case BIRCH_PRESSURE_PLATE:
+			case CRIMSON_PRESSURE_PLATE:
+			case WARPED_PRESSURE_PLATE:
 				return true;
 		}
 		return false;
@@ -170,6 +176,49 @@ public class BlockUtils {
 			case SPRUCE_TRAPDOOR:
 			case BIRCH_TRAPDOOR:
 			case DARK_OAK_TRAPDOOR:
+			case CRIMSON_TRAPDOOR:
+			case WARPED_TRAPDOOR:
+				return true;
+		}
+		return false;
+	}
+
+	public static boolean isWoodFenceGate(Material m) {
+		switch (m) {
+			case OAK_FENCE_GATE:
+			case ACACIA_FENCE_GATE:
+			case JUNGLE_FENCE_GATE:
+			case SPRUCE_FENCE_GATE:
+			case BIRCH_FENCE_GATE:
+			case DARK_OAK_FENCE_GATE:
+			case CRIMSON_FENCE_GATE:
+			case WARPED_FENCE_GATE:
+				return true;
+		}
+		return false;
+	}
+
+	public static boolean isShulkerBox(Material m) {
+		switch (m) {
+			case BLACK_SHULKER_BOX:
+			case BLUE_SHULKER_BOX:
+			case BROWN_SHULKER_BOX:
+			case CYAN_SHULKER_BOX:
+			case GRAY_SHULKER_BOX:
+			case GREEN_SHULKER_BOX:
+			case LIGHT_BLUE_SHULKER_BOX:
+			case LIGHT_GRAY_SHULKER_BOX:
+			case LIME_SHULKER_BOX:
+			case MAGENTA_SHULKER_BOX:
+			case ORANGE_SHULKER_BOX:
+			case PINK_SHULKER_BOX:
+			case PURPLE_SHULKER_BOX:
+			case RED_SHULKER_BOX:
+			case SHULKER_BOX:
+			case SHULKER_SHELL:
+			case SHULKER_SPAWN_EGG:
+			case WHITE_SHULKER_BOX:
+			case YELLOW_SHULKER_BOX:
 				return true;
 		}
 		return false;
