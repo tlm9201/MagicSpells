@@ -18,7 +18,7 @@ public class AngleCondition extends OperatorCondition {
 		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		try {
-			angle = Double.parseDouble(var.substring(1));
+			angle = FastMath.toRadians(Double.parseDouble(var.substring(1)));
 			return true;
 		} catch (NumberFormatException e) {
 			DebugHandler.debugNumberFormat(e);
@@ -33,17 +33,26 @@ public class AngleCondition extends OperatorCondition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		Vector dir = livingEntity.getLocation().toVector().subtract(target.getLocation().toVector());
-		Vector facing = target.getLocation().getDirection();
+		Location casterLocation = livingEntity.getLocation();
 
-		double degrees = FastMath.round(FastMath.toDegrees(FastMath.abs(dir.angle(facing))));
+		Vector targetVector = target.getLocation().toVector();
+		Vector casterVector = casterLocation.toVector();
+		Vector facing = casterLocation.getDirection();
 
+		float degrees = targetVector.subtract(casterVector).angle(facing);
 		return checkAngle(degrees);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		return false;
+		Location casterLocation = livingEntity.getLocation();
+
+		Vector casterVector = casterLocation.toVector();
+		Vector facing = casterLocation.getDirection();
+		Vector targetVector = location.toVector();
+
+		float degrees = targetVector.subtract(casterVector).angle(facing);
+		return checkAngle(degrees);
 	}
 
 	private boolean checkAngle(double degrees) {
