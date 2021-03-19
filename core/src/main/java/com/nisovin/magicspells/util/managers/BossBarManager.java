@@ -40,7 +40,7 @@ public class BossBarManager {
 		// Check if the bar exists.
 		Bar finalBar = null;
 		for (Bar bar : bars) {
-			if (bar.player.equals(player) && bar.namespaceKey.equals(namespaceKey)) {
+			if (bar.player.getUniqueId().equals(player.getUniqueId()) && bar.namespaceKey.equals(namespaceKey)) {
 				finalBar = bar;
 				break;
 			}
