@@ -366,7 +366,6 @@ public class VariableManager {
 
 	public void updateBossBar(Variable var, String player) {
 		if (var == null) return;
-		if (!var.isDisplayedOnExpBar()) return;
 		if (var.getBossBarTitle() == null) return;
 		if (player == null || player.isEmpty()) return;
 		if (var instanceof GlobalVariable || var instanceof GlobalStringVariable) {
