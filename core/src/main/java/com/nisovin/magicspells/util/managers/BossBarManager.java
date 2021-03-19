@@ -40,7 +40,7 @@ public class BossBarManager {
 		// Check if the bar exists.
 		Bar finalBar = null;
 		for (Bar bar : bars) {
-			if (bar.player.getUniqueId().equals(player.getUniqueId()) && bar.namespaceKey.equals(namespaceKey)) {
+			if (bar.player.equals(player.getUniqueId()) && bar.namespaceKey.equals(namespaceKey)) {
 				finalBar = bar;
 				break;
 			}
@@ -61,14 +61,16 @@ public class BossBarManager {
 
 	public class Bar {
 
-		final BossBar bossbar;
-		final Player player;
 		final String namespaceKey;
+		final BossBar bossbar;
+		final UUID player;
 
 		public Bar(BossBar bossbar, Player player, String namespaceKey) {
 			this.bossbar = bossbar;
-			this.player = player;
 			this.namespaceKey = namespaceKey;
+			this.player = player.getUniqueId();
+
+			bossbar.addPlayer(player);
 		}
 
 		public void set(String title, double progress, BarStyle style, BarColor color) {
@@ -76,7 +78,6 @@ public class BossBarManager {
 			bossbar.setStyle(style);
 			bossbar.setColor(color);
 			bossbar.setProgress(progress);
-			bossbar.addPlayer(player);
 		}
 
 		public void addFlag(BarFlag flag) {
