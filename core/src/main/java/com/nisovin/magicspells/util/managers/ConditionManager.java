@@ -79,6 +79,7 @@ public class ConditionManager {
 		addCondition("wearinginslot", WearingInSlotCondition.class);
 		addCondition("holding", HoldingCondition.class);
 		addCondition("offhand", OffhandCondition.class);
+		addCondition("offhandprecise", OffHandPreciseCondition.class);
 		addCondition("durability", DurabilityCondition.class);
 		addCondition("hasitem", HasItemCondition.class);
 		addCondition("hasitemamount", HasItemAmountCondition.class);
