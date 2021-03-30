@@ -301,10 +301,10 @@ public class BowSpell extends Spell {
 
 					if (entitySpell.isTargetedEntityFromLocationSpell())
 						entitySpell.castAtEntityFromLocation(caster, caster.getLocation(), target, targetEvent.getPower());
-					else if (entitySpell.isTargetedLocationSpell())
-						entitySpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
 					else if (entitySpell.isTargetedEntitySpell())
 						entitySpell.castAtEntity(caster, target, targetEvent.getPower());
+					else if (entitySpell.isTargetedLocationSpell())
+						entitySpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
 					else entitySpell.cast(caster, targetEvent.getPower());
 
 					if (data.bowSpell.removeArrow) remove = true;
