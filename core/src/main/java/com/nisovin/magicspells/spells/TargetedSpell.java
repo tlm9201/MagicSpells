@@ -76,7 +76,8 @@ public abstract class TargetedSpell extends InstantSpell {
 			sendMessage(prepareMessage(strCastTarget, playerCaster, playerTarget), target, args,
 				"%a", casterName, "%t", targetName);
 
-		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, playerCaster, playerTarget), broadcastRange, args);
+		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, playerCaster, playerTarget), broadcastRange, args,
+			"%a", casterName, "%t", targetName);
 	}
 	
 	private String prepareMessage(String message, Player caster, Player playerTarget) {

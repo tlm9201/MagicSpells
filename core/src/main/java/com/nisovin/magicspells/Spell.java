@@ -1797,7 +1797,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		sendMessageNear(livingEntity, null, message, broadcastRange, MagicSpells.NULL_ARGS);
 	}
 
-	// TODO can this safely be made varargs?
 	/**
 	 * Sends a message to all players near the specified player, within the specified broadcast range.
 	 * @param livingEntity the "center" living entity used to find nearby players
@@ -1805,20 +1804,30 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param range the broadcast range
 	 */
 	protected void sendMessageNear(LivingEntity livingEntity, Player ignore, String message, int range, String[] args) {
+		sendMessageNear(livingEntity, ignore, message, range, args, (String[]) null);
+	}
+
+	/**
+	 * Sends a message to all players near the specified player, within the specified broadcast range.
+	 * @param livingEntity the "center" living entity used to find nearby players
+	 * @param ignore player to ignore when sending messages
+	 * @param message the message to send
+	 * @param range the broadcast range
+	 * @param args cast arguments
+	 * @param replacements replacements to be done on message
+	 */
+	protected void sendMessageNear(LivingEntity livingEntity, Player ignore, String message, int range, String[] args, String... replacements) {
 		if (message == null) return;
 		if (message.isEmpty()) return;
 		if (Perm.SILENT.has(livingEntity)) return;
 
 		int rangeDoubled = range << 1;
-		List<Entity> entities = livingEntity.getNearbyEntities(rangeDoubled, rangeDoubled, rangeDoubled);
-		for (Entity entity : entities) {
-			if (!(entity instanceof Player)) continue;
-			if (entity == livingEntity) continue;
-			if (entity == ignore) continue;
-			for (String msg : message.split("\n")) {
-				if (msg.isEmpty()) continue;
-				entity.sendMessage(Util.colorize(MagicSpells.getTextColor() + msg));
-			}
+		Collection<Player> players = livingEntity.getLocation().getNearbyPlayers(rangeDoubled);
+		for (Player player : players) {
+			if (player == livingEntity) continue;
+			if (player == ignore) continue;
+
+			sendMessage(message, player, args, replacements);
 		}
 	}
 
