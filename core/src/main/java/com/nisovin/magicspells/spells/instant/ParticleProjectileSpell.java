@@ -42,6 +42,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private float projectileVelocity;
 	private float projectileVertOffset;
 	private float projectileHorizOffset;
+	private float verticalRotation;
+	private float horizontalRotation;
 	private float projectileVertSpread;
 	private float projectileHorizSpread;
 	private float projectileVertGravity;
@@ -138,6 +140,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		projectileVelocity = getConfigFloat("projectile-velocity", 10F);
 		projectileVertOffset = getConfigFloat("projectile-vert-offset", 0F);
 		projectileHorizOffset = getConfigFloat("projectile-horiz-offset", 0F);
+		verticalRotation = getConfigFloat("vertical-rotation", 0F);
+		horizontalRotation = getConfigFloat("horizontal-rotation", 0F);
 		float projectileGravity = getConfigFloat("projectile-gravity", 0F);
 		projectileVertGravity = getConfigFloat("projectile-vert-gravity", projectileGravity);
 		projectileHorizGravity = getConfigFloat("projectile-horiz-gravity", 0F);
@@ -438,6 +442,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 		tracker.setProjectileTurn(projectileTurn);
 		tracker.setProjectileVelocity(projectileVelocity);
+		tracker.setVerticalRotation(verticalRotation);
+		tracker.setHorizontalRotation(horizontalRotation);
 		tracker.setProjectileVertOffset(projectileVertOffset);
 		tracker.setProjectileHorizOffset(projectileHorizOffset);
 		tracker.setProjectileVertGravity(projectileVertGravity);
@@ -571,6 +577,22 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 	public void setProjectileVelocity(float projectileVelocity) {
 		this.projectileVelocity = projectileVelocity;
+	}
+
+	public void setVerticalRotation(float verticalRotation) {
+		this.verticalRotation = verticalRotation;
+	}
+
+	public float getVerticalRotation() {
+		return verticalRotation;
+	}
+
+	public void setHorizontalRotation(float horizontalRotation) {
+		this.horizontalRotation = horizontalRotation;
+	}
+
+	public float getHorizontalRotation() {
+		return horizontalRotation;
 	}
 
 	public float getProjectileVertOffset() {

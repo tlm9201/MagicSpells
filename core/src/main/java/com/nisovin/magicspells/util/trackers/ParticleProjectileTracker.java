@@ -32,6 +32,8 @@ import com.nisovin.magicspells.spells.instant.ParticleProjectileSpell;
 
 import io.papermc.lib.PaperLib;
 
+import org.apache.commons.math3.util.FastMath;
+
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
 
@@ -104,6 +106,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	private float projectileTurn;
 	private float projectileVelocity;
+	private float verticalRotation;
+	private float horizontalRotation;
 	private float projectileVertOffset;
 	private float projectileVertSpread;
 	private float projectileHorizOffset;
@@ -195,6 +199,15 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	public void initialize() {
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 		counter = 0;
+
+		Vector dir = currentVelocity.clone().normalize();
+		Vector dirNormalized = dir.clone().normalize();
+
+		Vector angleZ = new Vector(-dirNormalized.getZ(), 0D, dirNormalized.getX()).normalize();
+		Vector angleY = dir.clone().rotateAroundAxis(angleZ, FastMath.toRadians(-90)).normalize();
+
+		if (verticalRotation != 0) currentVelocity.rotateAroundAxis(angleZ, FastMath.toRadians(verticalRotation));
+		if (horizontalRotation != 0) currentVelocity.rotateAroundAxis(angleY, FastMath.toRadians(horizontalRotation));
 
 		if (projectileHorizOffset != 0) Util.rotateVector(currentVelocity, projectileHorizOffset);
 		if (projectileVertOffset != 0) currentVelocity.add(new Vector(0, projectileVertOffset, 0)).normalize();
@@ -934,6 +947,22 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	public void setProjectileVelocity(float projectileVelocity) {
 		this.projectileVelocity = projectileVelocity;
+	}
+
+	public void setVerticalRotation(float verticalRotation) {
+		this.verticalRotation = verticalRotation;
+	}
+
+	public float getVerticalRotation() {
+		return verticalRotation;
+	}
+
+	public void setHorizontalRotation(float horizontalRotation) {
+		this.horizontalRotation = horizontalRotation;
+	}
+
+	public float getHorizontalRotation() {
+		return horizontalRotation;
 	}
 
 	public float getProjectileVertOffset() {
