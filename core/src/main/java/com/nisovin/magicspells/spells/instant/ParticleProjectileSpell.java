@@ -25,6 +25,8 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 
+import org.apache.commons.math3.util.FastMath;
+
 public class ParticleProjectileSpell extends InstantSpell implements TargetedLocationSpell, TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
 	private static Set<ParticleProjectileTracker> trackerSet;
@@ -42,8 +44,9 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private float projectileVelocity;
 	private float projectileVertOffset;
 	private float projectileHorizOffset;
-	private float verticalRotation;
-	private float horizontalRotation;
+	private double verticalRotation;
+	private double horizontalRotation;
+	private double xRotation;
 	private float projectileVertSpread;
 	private float projectileHorizSpread;
 	private float projectileVertGravity;
@@ -142,6 +145,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		projectileHorizOffset = getConfigFloat("projectile-horiz-offset", 0F);
 		verticalRotation = getConfigFloat("vertical-rotation", 0F);
 		horizontalRotation = getConfigFloat("horizontal-rotation", 0F);
+		xRotation = getConfigFloat("x-rotation", 0F);
 		float projectileGravity = getConfigFloat("projectile-gravity", 0F);
 		projectileVertGravity = getConfigFloat("projectile-vert-gravity", projectileGravity);
 		projectileHorizGravity = getConfigFloat("projectile-horiz-gravity", 0F);
@@ -442,8 +446,9 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 		tracker.setProjectileTurn(projectileTurn);
 		tracker.setProjectileVelocity(projectileVelocity);
-		tracker.setVerticalRotation(verticalRotation);
-		tracker.setHorizontalRotation(horizontalRotation);
+		tracker.setVerticalRotation(FastMath.toRadians(verticalRotation));
+		tracker.setHorizontalRotation(FastMath.toRadians(horizontalRotation));
+		tracker.setXRotation(FastMath.toRadians(xRotation));
 		tracker.setProjectileVertOffset(projectileVertOffset);
 		tracker.setProjectileHorizOffset(projectileHorizOffset);
 		tracker.setProjectileVertGravity(projectileVertGravity);
@@ -583,16 +588,24 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		this.verticalRotation = verticalRotation;
 	}
 
-	public float getVerticalRotation() {
+	public double getVerticalRotation() {
 		return verticalRotation;
 	}
 
-	public void setHorizontalRotation(float horizontalRotation) {
+	public void setHorizontalRotation(double horizontalRotation) {
 		this.horizontalRotation = horizontalRotation;
 	}
 
-	public float getHorizontalRotation() {
+	public double getHorizontalRotation() {
 		return horizontalRotation;
+	}
+
+	public void setXRotation(double xRotation) {
+		this.xRotation = xRotation;
+	}
+
+	public double getXRotation() {
+		return xRotation;
 	}
 
 	public float getProjectileVertOffset() {

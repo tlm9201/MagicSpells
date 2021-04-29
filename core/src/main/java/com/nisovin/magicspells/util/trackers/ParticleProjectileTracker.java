@@ -106,8 +106,9 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	private float projectileTurn;
 	private float projectileVelocity;
-	private float verticalRotation;
-	private float horizontalRotation;
+	private double verticalRotation;
+	private double horizontalRotation;
+	private double xRotation;
 	private float projectileVertOffset;
 	private float projectileVertSpread;
 	private float projectileHorizOffset;
@@ -136,6 +137,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private Subspell entityLocationSpell;
 
 	private int ticks = 0;
+
+	private static final double ANGLE_Y = FastMath.toRadians(-90);
 
 	public ParticleProjectileTracker() {
 
@@ -204,10 +207,12 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		Vector dirNormalized = dir.clone().normalize();
 
 		Vector angleZ = new Vector(-dirNormalized.getZ(), 0D, dirNormalized.getX()).normalize();
-		Vector angleY = dir.clone().rotateAroundAxis(angleZ, FastMath.toRadians(-90)).normalize();
+		Vector angleY = dir.clone().rotateAroundAxis(angleZ, ANGLE_Y).normalize();
+		Vector angleX = dir.clone();
 
-		if (verticalRotation != 0) currentVelocity.rotateAroundAxis(angleZ, FastMath.toRadians(verticalRotation));
-		if (horizontalRotation != 0) currentVelocity.rotateAroundAxis(angleY, FastMath.toRadians(horizontalRotation));
+		if (verticalRotation != 0) currentVelocity.rotateAroundAxis(angleZ, verticalRotation);
+		if (horizontalRotation != 0) currentVelocity.rotateAroundAxis(angleY, horizontalRotation);
+		if (xRotation != 0) currentVelocity.rotateAroundAxis(angleX, xRotation);
 
 		if (projectileHorizOffset != 0) Util.rotateVector(currentVelocity, projectileHorizOffset);
 		if (projectileVertOffset != 0) currentVelocity.add(new Vector(0, projectileVertOffset, 0)).normalize();
@@ -949,20 +954,28 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		this.projectileVelocity = projectileVelocity;
 	}
 
-	public void setVerticalRotation(float verticalRotation) {
+	public void setVerticalRotation(double verticalRotation) {
 		this.verticalRotation = verticalRotation;
 	}
 
-	public float getVerticalRotation() {
+	public double getVerticalRotation() {
 		return verticalRotation;
 	}
 
-	public void setHorizontalRotation(float horizontalRotation) {
+	public void setHorizontalRotation(double horizontalRotation) {
 		this.horizontalRotation = horizontalRotation;
 	}
 
-	public float getHorizontalRotation() {
+	public double getHorizontalRotation() {
 		return horizontalRotation;
+	}
+
+	public void setXRotation(double xRotation) {
+		this.xRotation = xRotation;
+	}
+
+	public double getXRotation() {
+		return xRotation;
 	}
 
 	public float getProjectileVertOffset() {
