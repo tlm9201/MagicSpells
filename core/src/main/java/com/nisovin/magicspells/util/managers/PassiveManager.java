@@ -78,6 +78,7 @@ public class PassiveManager {
 		addListener("dropitem", DropItemListener.class);
 		addListener("enterbed", EnterBedListener.class);
 		addListener("fataldamage", FatalDamageListener.class);
+		addListener("fish", FishListener.class);
 		addListener("gamemodechange", GameModeChangeListener.class);
 		addListener("givedamage", GiveDamageListener.class);
 		addListener("hitarrow", HitArrowListener.class);

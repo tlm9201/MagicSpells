@@ -9,88 +9,55 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerFishEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// Trigger variable is optional
-// If not specified, it triggers in all forms
-// The trigger variable may be a comma separated list containing any of the following
-// ground, fish, fail, <entity type>
+// Trigger variable can optionally include a comma-separated list of
+// fish event states and entity types
 public class FishListener extends PassiveListener {
 
+	private final EnumSet<PlayerFishEvent.State> states = EnumSet.noneOf(PlayerFishEvent.State.class);
 	private final EnumSet<EntityType> types = EnumSet.noneOf(EntityType.class);
 
-	private final EnumSet<PlayerFishEvent.State> states = EnumSet.noneOf(PlayerFishEvent.State.class);
-	
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
 
-		String[] split = var.replace(" ", "").toUpperCase().split(",");
-		for (String s : split) {
-			switch (s.toLowerCase()) {
-				case "in_ground":
-				case "ground":
-					states.add(PlayerFishEvent.State.IN_GROUND);
-					break;
-				case "caught_fish":
-				case "fish":
-					states.add(PlayerFishEvent.State.CAUGHT_FISH);
-					break;
-				case "failed_attempt":
-				case "failed":
-				case "fail":
-					states.add(PlayerFishEvent.State.FAILED_ATTEMPT);
-					break;
-				default:
-					EntityType type = MobUtil.getEntityType(s);
-					if (type == null) return;
-					types.add(type);
-					break;
+		String[] data = var.replace(" ", "").toUpperCase().split(",");
+		for (String val : data) {
+			try {
+				states.add(PlayerFishEvent.State.valueOf(val.toUpperCase()));
+			} catch (IllegalArgumentException e) {
+				EntityType type = MobUtil.getEntityType(val);
+				if (type == null) {
+					MagicSpells.error("Invalid fish event state or entity type '" + val
+						+ "' in fish trigger on passive spell '" + passiveSpell.getName() + "'");
+					continue;
+				}
+
+				types.add(type);
 			}
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onFish(PlayerFishEvent event) {
-		PlayerFishEvent.State state = event.getState();
-		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
+		if (!isCancelStateOk(event.isCancelled())) return;
 
-		Entity entity = event.getCaught();
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
 
-		if (states.isEmpty()) {
-			if (!isCancelStateOk(event.isCancelled())) return;
-			boolean casted = passiveSpell.activate(player, entity instanceof LivingEntity ? (LivingEntity) entity : null);
-			if (!cancelDefaultAction(casted)) return;
-			event.setCancelled(true);
+		if (!states.isEmpty() && !states.contains(event.getState())) return;
 
-			return;
-		}
+		Entity caught = event.getCaught();
+		if (!types.isEmpty() && (caught == null || !types.contains(caught.getType()))) return;
 
-		if (!states.contains(state) && types.isEmpty()) return;
-		boolean casted;
-		switch (state) {
-			case IN_GROUND:
-			case CAUGHT_FISH:
-			case FAILED_ATTEMPT:
-				if (!states.contains(state)) return;
-				if (!isCancelStateOk(event.isCancelled())) return;
-				casted = passiveSpell.activate(player, event.getHook().getLocation());
-				if (!cancelDefaultAction(casted)) return;
-				event.setCancelled(true);
-				break;
-			case CAUGHT_ENTITY:
-				if (entity == null) return;
-				if (!types.contains(entity.getType())) return;
-				if (!isCancelStateOk(event.isCancelled())) return;
-				casted = passiveSpell.activate(player, entity instanceof LivingEntity ? (LivingEntity) entity : null);
-				if (!cancelDefaultAction(casted)) return;
-				event.setCancelled(true);
-				break;
-		}
+		boolean casted = caught instanceof LivingEntity ? passiveSpell.activate(caster, (LivingEntity) caught) :
+			passiveSpell.activate(caster, event.getHook().getLocation());
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
-	
+
 }
