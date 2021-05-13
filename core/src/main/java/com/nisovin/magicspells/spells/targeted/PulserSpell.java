@@ -150,6 +150,19 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		if (capPerPlayer > 0) {
+			int count = 0;
+			for (Pulser pulser : pulsers.values()) {
+				if (!pulser.caster.equals(caster)) continue;
+
+				count++;
+				if (count >= capPerPlayer) {
+					sendMessage(strAtCap, caster);
+					return false;
+				}
+			}
+		}
+
 		Block block = target.getBlock();
 		if (yOffset > 0) block = block.getRelative(BlockFace.UP, yOffset);
 		else if (yOffset < 0) block = block.getRelative(BlockFace.DOWN, yOffset);
