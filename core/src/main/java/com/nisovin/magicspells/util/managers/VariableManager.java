@@ -127,6 +127,9 @@ public class VariableManager {
 		addMetaVariableType("timestamp_minutes", new TimestampMinutesVariable());
 		addMetaVariableType("timestamp_seconds", new TimestampSecondsVariable());
 		addMetaVariableType("timestamp_milliseconds", new TimestampMillisecondsVariable());
+		addMetaVariableType("mana", new ManaVariable());
+		addMetaVariableType("max_mana", new MaxManaVariable());
+		addMetaVariableType("mana_regen", new ManaRegenVariable());
 
 		// meta variable attribute types
 		addMetaVariableType("attribute_generic_max_health_base", new AttributeBaseValueVariable("GENERIC_MAX_HEALTH"));
