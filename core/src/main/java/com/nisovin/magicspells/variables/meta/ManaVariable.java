@@ -10,26 +10,26 @@ import com.nisovin.magicspells.variables.variabletypes.MetaVariable;
 
 public class ManaVariable extends MetaVariable {
 
-    @Override
-    public double getValue(String player) {
-        ManaHandler handler = MagicSpells.getManaHandler();
-        if (handler == null) return 0d;
+	@Override
+	public double getValue(String player) {
+		ManaHandler handler = MagicSpells.getManaHandler();
+		if (handler == null) return 0d;
 
-        Player p = PlayerNameUtils.getPlayerExact(player);
-        if (p == null) return 0d;
+		Player p = PlayerNameUtils.getPlayerExact(player);
+		if (p == null) return 0d;
 
-        return handler.getMana(p);
-    }
+		return handler.getMana(p);
+	}
 
-    @Override
-    public void set(String player, double amount) {
-        ManaHandler handler = MagicSpells.getManaHandler();
-        if (handler == null) return;
+	@Override
+	public void set(String player, double amount) {
+		ManaHandler handler = MagicSpells.getManaHandler();
+		if (handler == null) return;
 
-        Player p = PlayerNameUtils.getPlayerExact(player);
-        if (p == null) return;
+		Player p = PlayerNameUtils.getPlayerExact(player);
+		if (p == null) return;
 
-        handler.setMana(p, (int) amount, ManaChangeReason.OTHER);
-    }
+		handler.setMana(p, (int) amount, ManaChangeReason.OTHER);
+	}
 
 }
