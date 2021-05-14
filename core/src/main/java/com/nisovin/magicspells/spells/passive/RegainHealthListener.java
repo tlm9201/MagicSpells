@@ -23,7 +23,7 @@ public class RegainHealthListener extends PassiveListener {
 		String[] data = var.split(",");
 		for (String datum : data) {
 			try {
-				reasons.add(RegainReason.valueOf(datum));
+				reasons.add(RegainReason.valueOf(datum.toUpperCase()));
 			} catch (IllegalArgumentException e) {
 				MagicSpells.error("Invalid health regain reason '" + datum + "' in regainhealth trigger on passive spell '"
 					+ passiveSpell.getName() + "'");

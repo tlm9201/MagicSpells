@@ -22,7 +22,7 @@ public class ManaChangeListener extends PassiveListener {
 		String[] data = var.split(",");
 		for (String datum : data) {
 			try {
-				reasons.add(ManaChangeReason.valueOf(datum));
+				reasons.add(ManaChangeReason.valueOf(datum.toUpperCase()));
 			} catch (IllegalArgumentException e) {
 				MagicSpells.error("Invalid mana change reason '" + datum + "' in manachange trigger on passive spell '"
 					+ passiveSpell.getName() + "'");

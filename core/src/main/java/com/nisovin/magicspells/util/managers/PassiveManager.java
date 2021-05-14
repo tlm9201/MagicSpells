@@ -40,7 +40,7 @@ public class PassiveManager {
 		if (clazz == null) return null;
 
 		try {
-			return clazz.newInstance();
+			return clazz.getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 			return null;
@@ -79,6 +79,7 @@ public class PassiveManager {
 		addListener("enterbed", EnterBedListener.class);
 		addListener("fataldamage", FatalDamageListener.class);
 		addListener("fish", FishListener.class);
+		addListener("foodlevelchange", FoodLevelChangeListener.class);
 		addListener("gamemodechange", GameModeChangeListener.class);
 		addListener("givedamage", GiveDamageListener.class);
 		addListener("hitarrow", HitArrowListener.class);
