@@ -40,7 +40,7 @@ public class PassiveManager {
 		if (clazz == null) return null;
 
 		try {
-			return clazz.newInstance();
+			return clazz.getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 			return null;
@@ -79,6 +79,7 @@ public class PassiveManager {
 		addListener("enterbed", EnterBedListener.class);
 		addListener("fataldamage", FatalDamageListener.class);
 		addListener("fish", FishListener.class);
+		addListener("foodlevelchange", FoodLevelChangeListener.class);
 		addListener("gamemodechange", GameModeChangeListener.class);
 		addListener("givedamage", GiveDamageListener.class);
 		addListener("hitarrow", HitArrowListener.class);
@@ -96,6 +97,7 @@ public class PassiveManager {
 		addListener("leftclickblocktype", LeftClickBlockTypeListener.class);
 		addListener("leftclickitem", LeftClickItemListener.class);
 		addListener("magicspellsloaded", MagicSpellsLoadedListener.class);
+		addListener("manachange", ManaChangeListener.class);
 		addListener("missarrow", MissArrowListener.class);
 		addListener("offhandswap", OffhandSwapListener.class);
 		addListener("pickupitem", PickupItemListener.class);
@@ -103,6 +105,7 @@ public class PassiveManager {
 		addListener("playermove", PlayerMoveListener.class);
 		addListener("potioneffect", PotionEffectListener.class);
 		addListener("quit", QuitListener.class);
+		addListener("regainhealth", RegainHealthListener.class);
 		addListener("resourcepack", ResourcePackListener.class);
 		addListener("respawn", RespawnListener.class);
 		addListener("rightclickblockcoord", RightClickBlockCoordListener.class);
