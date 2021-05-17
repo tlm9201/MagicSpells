@@ -30,7 +30,7 @@ public class Subspell {
 	private String spellName;
 	private CastMode mode = CastMode.PARTIAL;
 
-	private int delay = 0;
+	private int delay = -1;
 	private float subPower = 1F;
 	private double chance = -1D;
 	
@@ -115,7 +115,7 @@ public class Subspell {
 	
 	public PostCastAction cast(final LivingEntity livingEntity, final float power) {
 		if ((chance > 0 && chance < 1) && random.nextDouble() > chance) return PostCastAction.ALREADY_HANDLED;
-		if (delay <= 0) return castReal(livingEntity, power);
+		if (delay < 0) return castReal(livingEntity, power);
 		MagicSpells.scheduleDelayedTask(() -> castReal(livingEntity, power), delay);
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -140,7 +140,7 @@ public class Subspell {
 	}
 	
 	public boolean castAtEntity(final LivingEntity livingEntity, final LivingEntity target, final float power) {
-		if (delay <= 0) return castAtEntityReal(livingEntity, target, power);
+		if (delay < 0) return castAtEntityReal(livingEntity, target, power);
 		MagicSpells.scheduleDelayedTask(() -> castAtEntityReal(livingEntity, target, power), delay);
 		return true;
 	}
@@ -203,7 +203,7 @@ public class Subspell {
 	}
 	
 	public boolean castAtLocation(final LivingEntity livingEntity, final Location target, final float power) {
-		if (delay <= 0) return castAtLocationReal(livingEntity, target, power);
+		if (delay < 0) return castAtLocationReal(livingEntity, target, power);
 		MagicSpells.scheduleDelayedTask(() -> castAtLocationReal(livingEntity, target, power), delay);
 		return true;
 	}
@@ -258,7 +258,7 @@ public class Subspell {
 	}
 	
 	public boolean castAtEntityFromLocation(final LivingEntity livingEntity, final Location from, final LivingEntity target, final float power) {
-		if (delay <= 0) return castAtEntityFromLocationReal(livingEntity, from, target, power);
+		if (delay < 0) return castAtEntityFromLocationReal(livingEntity, from, target, power);
 		MagicSpells.scheduleDelayedTask(() -> castAtEntityFromLocationReal(livingEntity, from, target, power), delay);
 		return true;
 	}
