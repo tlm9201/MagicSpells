@@ -3,13 +3,14 @@ package com.nisovin.magicspells.spells.targeted.ext;
 import java.util.*;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
-import ru.xezard.glow.data.glow.Glow;
+import org.inventivetalent.glow.GlowAPI;
 
-import org.apache.commons.lang.RandomStringUtils;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.LinkedListMultimap;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
@@ -18,54 +19,51 @@ import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
-// NOTE: ProtocolLib is required for this spell class.
+/*
+	NOTE: ProtocolLib and GlowAPI are required for this spell class.
+	GlowAPI: https://github.com/metalshark/GlowAPI/
+*/
 public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final Map<UUID, Glow> glowingEntities;
+	private final Multimap<UUID, UUID> glowing;
+	private final Set<UUID> glowingUnpaired;
 
 	private final boolean toggle;
 	private final int duration;
 	private final boolean clientSide;
-	private final boolean async;
-	private final int updatePeriod;
-	private final List<ChatColor> colors;
+	private final boolean visibleToTarget;
+	private GlowAPI.Color color;
 
 	public GlowSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		glowingEntities = new HashMap<>();
+		glowing = LinkedListMultimap.create();
+		glowingUnpaired = new HashSet<>();
 
 		toggle = getConfigBoolean("toggle", false);
 		duration = getConfigInt("duration", 0);
 		clientSide = getConfigBoolean("client-side", false);
-		async = getConfigBoolean("async", true);
-		updatePeriod = getConfigInt("update-period", 0);
+		visibleToTarget = getConfigBoolean("visible-to-target", false);
 
-		colors = new ArrayList<>();
-		List<String> colorNames = getConfigStringList("colors", null);
-		if (colorNames == null || colorNames.isEmpty()) {
-			colorNames = new ArrayList<>();
-			colorNames.add(getConfigString("color", "white"));
+		String colorName = getConfigString("color", "");
+		try {
+			color = GlowAPI.Color.valueOf(colorName.toUpperCase());
 		}
-		for (String colorName : colorNames) {
-			colorName = colorName.trim().replaceAll(" ", "_").toUpperCase();
-			try {
-				colors.add(ChatColor.valueOf(colorName));
-			} catch (IllegalArgumentException e) {
-				MagicSpells.log("GlowSpell '" + internalName + "' has an invalid color defined': " + colorName);
-			}
+		catch (IllegalArgumentException ignored) {
+			color = GlowAPI.Color.WHITE;
+			MagicSpells.log("GlowSpell '" + internalName + "' has an invalid color defined': " + colorName);
 		}
-
 	}
 
 	@Override
 	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
-			if (targetInfo == null) return noTarget(livingEntity);
+			Player caster = (Player) livingEntity;
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			if (targetInfo == null) return noTarget(caster);
 			LivingEntity target = targetInfo.getTarget();
 
-			sendMessages(livingEntity, target, args);
-			glow(livingEntity, target, targetInfo.getPower());
+			sendMessages(caster, target, args);
+			glow(caster, target, targetInfo.getPower());
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -74,7 +72,7 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		glow(caster, target, power);
+		glow(caster instanceof Player ? (Player) caster : null, target, power);
 		return true;
 	}
 
@@ -87,51 +85,59 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public void turnOff() {
-		glowingEntities.values().forEach(Glow::destroy);
-		glowingEntities.clear();
+		for (Map.Entry<UUID, UUID> entry : new HashSet<>(glowing.entries())) {
+			Player player = Bukkit.getPlayer(entry.getKey());
+			if (player == null) continue;
+			Entity entity = Bukkit.getEntity(entry.getValue());
+			if (entity == null) continue;
+			removeGlow(player, entity);
+		}
+		for (UUID uuid : new HashSet<>(glowingUnpaired)) {
+			Entity entity = Bukkit.getEntity(uuid);
+			if (entity == null) continue;
+			removeGlow(null, entity);
+		}
 	}
 
 	private boolean isGlowing(LivingEntity entity) {
-		return glowingEntities.containsKey(entity.getUniqueId());
+		UUID uuid = entity.getUniqueId();
+		return glowing.containsValue(uuid) || glowingUnpaired.contains(uuid);
 	}
 
-	private void glow(LivingEntity caster, LivingEntity target, float power) {
+	private void glow(Player caster, LivingEntity target, float power) {
 		int duration = Math.round(this.duration * power);
 		UUID uuid = target.getUniqueId();
 
 		// Handle reapply and toggle.
 		if (isGlowing(target)) {
-			glowingEntities.remove(uuid).destroy();
+			removeGlow(caster, target);
 			if (toggle) return;
 		}
 
-		Glow glow = Glow.builder()
-				.plugin(MagicSpells.getInstance())
-				// We should name the team something random, but within name length bounds.
-				.name(RandomStringUtils.random(16, true, true))
-				// From config
-				.asyncAnimation(async)
-				.updatePeriod(updatePeriod)
-				.animatedColor(colors)
-				.build();
-		glow.addHolders(target);
-		if (clientSide && caster instanceof Player) glow.display((Player) caster);
-		else glow.display(Bukkit.getOnlinePlayers());
-
-		glowingEntities.put(uuid, glow);
-		if (duration > 0) {
-			MagicSpells.scheduleDelayedTask(() -> {
-				// Safeguard
-				if (glow.getViewers().isEmpty()) return;
-				glow.destroy();
-				glowingEntities.remove(uuid);
-			}, duration);
-		}
+		GlowAPI.setGlowing(target, color, getWatchers(caster, target));
+		if (caster == null) glowingUnpaired.add(uuid);
+		else glowing.put(caster.getUniqueId(), uuid);
+		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> removeGlow(caster, target), duration);
 
 		// Play effects.
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster == null) playSpellEffects(EffectPosition.TARGET, target);
+		else playSpellEffects(caster, target);
 		playSpellEffectsBuff(target, entity -> entity instanceof LivingEntity && isGlowing((LivingEntity) entity));
+	}
+
+	private void removeGlow(Player caster, Entity target) {
+		GlowAPI.setGlowing(target, false, getWatchers(caster, target));
+		UUID uuid = target.getUniqueId();
+		if (caster == null) glowingUnpaired.remove(uuid);
+		else glowing.remove(caster.getUniqueId(), uuid);
+	}
+
+	private Collection<Player> getWatchers(Player caster, Entity target) {
+		List<Player> watchers = new ArrayList<>();
+		if (clientSide) watchers.addAll(Bukkit.getOnlinePlayers());
+		else if (caster != null) watchers.add(caster);
+		if (visibleToTarget && target instanceof Player) watchers.add((Player) target);
+		return watchers;
 	}
 
 }
