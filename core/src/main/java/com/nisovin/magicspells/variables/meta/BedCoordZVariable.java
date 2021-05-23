@@ -11,8 +11,11 @@ public class BedCoordZVariable extends MetaVariable {
 	@Override
 	public double getValue(String player) {
 		Player p = PlayerNameUtils.getPlayerExact(player);
-		if (p != null) return p.getBedSpawnLocation().getZ();
-		return 0D;
+		if (p == null) return 0D;
+
+		Location bedSpawnLocation = p.getBedSpawnLocation();
+		if (bedSpawnLocation != null) return bedSpawnLocation.getZ();
+		return p.getWorld().getSpawnLocation().getZ();
 	}
 	
 	@Override
@@ -21,6 +24,7 @@ public class BedCoordZVariable extends MetaVariable {
 		if (p == null) return;
 
 		Location to = p.getBedSpawnLocation();
+		if (to == null) return;
 		to.setZ(amount);
 		p.setBedSpawnLocation(to, true);
 	}
