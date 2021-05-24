@@ -17,7 +17,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class KillListener extends PassiveListener {
 
 	private final EnumSet<EntityType> types = EnumSet.noneOf(EntityType.class);
-	
+
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
@@ -30,17 +30,18 @@ public class KillListener extends PassiveListener {
 			types.add(type);
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onDeath(EntityDeathEvent event) {
+		if (!isCancelStateOk(event.isCancelled())) return;
+
 		LivingEntity killer = event.getEntity().getKiller();
-		if (killer == null) return;
-		if (!hasSpell(killer)) return;
-		if (!canTrigger(killer)) return;
+		if (killer == null || !hasSpell(killer) || !canTrigger(killer)) return;
 		if (!types.isEmpty() && !types.contains(event.getEntityType())) return;
 
-		passiveSpell.activate(killer, event.getEntity());
+		boolean casted = passiveSpell.activate(killer, event.getEntity());
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
-	
+
 }
