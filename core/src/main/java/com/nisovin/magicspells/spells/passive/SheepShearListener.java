@@ -47,7 +47,7 @@ public class SheepShearListener extends PassiveListener {
 		Sheep target = (Sheep) event.getEntity();
 		if (!dyeColors.isEmpty() && !dyeColors.contains(target.getColor())) return;
 
-		boolean casted = passiveSpell.activate(caster);
+		boolean casted = passiveSpell.activate(caster, target);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
