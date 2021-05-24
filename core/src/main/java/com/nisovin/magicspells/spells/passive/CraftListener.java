@@ -25,7 +25,7 @@ public class CraftListener extends PassiveListener {
 		for (String s : var.split("\\|")) {
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
 			if (itemData == null) {
-				MagicSpells.error("Invalid damage cause or magic item '" + s + "' in craft trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				MagicSpells.error("Invalid magic item '" + s + "' in craft trigger on passive spell '" + passiveSpell.getInternalName() + "'");
 				continue;
 			}
 
