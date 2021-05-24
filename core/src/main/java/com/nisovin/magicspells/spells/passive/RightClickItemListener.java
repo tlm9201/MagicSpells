@@ -20,7 +20,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class RightClickItemListener extends PassiveListener {
 
 	private final Set<MagicItemData> items = new HashSet<>();
-	
+
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
@@ -38,7 +38,7 @@ public class RightClickItemListener extends PassiveListener {
 			items.add(itemData);
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event) {
