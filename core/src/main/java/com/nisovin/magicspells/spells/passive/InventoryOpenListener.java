@@ -28,12 +28,16 @@ public class InventoryOpenListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent event) {
-		HumanEntity player = event.getPlayer();
+		if (!isCancelStateOk(event.isCancelled())) return;
+
 		String inventoryName = event.getView().getTitle();
 		if (!inventoryNames.isEmpty() && !inventoryNames.contains(inventoryName)) return;
 
-		if (!hasSpell(player)) return;
-		passiveSpell.activate(player);
+		HumanEntity player = event.getPlayer();
+		if (!hasSpell(player) || !canTrigger(player)) return;
+
+		boolean casted = passiveSpell.activate(player);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }
