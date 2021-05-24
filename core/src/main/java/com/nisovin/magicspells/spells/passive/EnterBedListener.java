@@ -14,16 +14,17 @@ public class EnterBedListener extends PassiveListener {
 	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onDeath(PlayerBedEnterEvent event) {
-		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
+
+		Player player = event.getPlayer();
+		if (!hasSpell(player) || !canTrigger(player)) return;
+
 		boolean casted = passiveSpell.activate(player);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
-	
+
 }
