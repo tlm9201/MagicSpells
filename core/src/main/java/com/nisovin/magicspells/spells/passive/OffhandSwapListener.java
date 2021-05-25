@@ -13,17 +13,17 @@ public class OffhandSwapListener extends PassiveListener {
 	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onSwap(PlayerSwapHandItemsEvent event) {
-		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
-		
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }

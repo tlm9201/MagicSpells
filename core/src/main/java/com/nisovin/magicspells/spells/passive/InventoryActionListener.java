@@ -2,12 +2,12 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -24,8 +24,8 @@ public class InventoryActionListener extends PassiveListener {
 			try {
 				InventoryAction action = InventoryAction.valueOf(s.toUpperCase());
 				actions.add(action);
-			} catch (Exception e) {
-				// ignored
+			} catch (IllegalArgumentException e) {
+				MagicSpells.error("Invalid inventory action '" + s + "' in inventory trigger on passive spell '" + passiveSpell.getInternalName() + "'");
 			}
 		}
 	}
@@ -33,35 +33,31 @@ public class InventoryActionListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onInventoryOpen(InventoryOpenEvent event) {
-		if (!actions.isEmpty() && !actions.contains(InventoryAction.OPEN)) return;
-		HumanEntity humanEntity = event.getPlayer();
-		if (!(humanEntity instanceof Player)) return;
-		Player player = (Player) humanEntity;
-
-		if (!hasSpell(player)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+
+		if (!actions.isEmpty() && !actions.contains(InventoryAction.OPEN)) return;
+
+		HumanEntity caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 	@OverridePriority
 	@EventHandler
 	public void onInventoryClose(InventoryCloseEvent event) {
 		if (!actions.isEmpty() && !actions.contains(InventoryAction.CLOSE)) return;
-		HumanEntity humanEntity = event.getPlayer();
-		if (!(humanEntity instanceof Player)) return;
-		Player player = (Player) humanEntity;
-		if (!hasSpell(player)) return;
 
-		passiveSpell.activate(player);
+		HumanEntity caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		passiveSpell.activate(caster);
 	}
 
 	private enum InventoryAction {
 
 		OPEN,
-
 		CLOSE
 
 	}
