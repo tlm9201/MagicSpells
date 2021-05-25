@@ -9,6 +9,9 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
+import com.nisovin.magicspells.events.BuffEndEvent;
+import com.nisovin.magicspells.events.BuffStartEvent;
+import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 
 public class BuffManager {
@@ -32,6 +35,7 @@ public class BuffManager {
 		buffs.add(spell);
 
 		monitor.run();
+		EventUtil.call(new BuffStartEvent(entity, spell));
 	}
 
 	public void removeBuff(LivingEntity entity, BuffSpell spell) {
@@ -39,6 +43,7 @@ public class BuffManager {
 		if (buffs == null) return;
 		buffs.remove(spell);
 		if (buffs.isEmpty()) activeBuffs.remove(entity);
+		EventUtil.call(new BuffEndEvent(entity, spell));
 	}
 
 	public Map<LivingEntity, Set<BuffSpell>> getActiveBuffs() {
