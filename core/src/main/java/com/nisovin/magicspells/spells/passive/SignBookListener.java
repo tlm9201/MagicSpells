@@ -1,8 +1,9 @@
 package com.nisovin.magicspells.spells.passive;
 
+import java.util.Set;
 import java.util.List;
 import java.util.Arrays;
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,7 +18,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // If specified, it should be a comma separated list of page text to trigger on
 public class SignBookListener extends PassiveListener {
 
-	private final List<String> text = new ArrayList<>();
+	private final Set<String> text = new HashSet<>();
 
 	@Override
 	public void initialize(String var) {
@@ -30,20 +31,27 @@ public class SignBookListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onBookEdit(PlayerEditBookEvent event) {
+		if (isCancelStateOk(event.isCancelled())) return;
+
 		Player player = event.getPlayer();
+		if (!hasSpell(player) || !canTrigger(player)) return;
+
 		BookMeta meta = event.getNewBookMeta();
 		if (!meta.hasAuthor()) return;
-		if (!hasSpell(player)) return;
 
 		if (text.isEmpty()) {
-			passiveSpell.activate(player);
+			boolean casted = passiveSpell.activate(player);
+			if (cancelDefaultAction(casted)) event.setCancelled(true);
 			return;
 		}
 
-		for (int i = 1; i <= meta.getPageCount(); i++) {
-			if (!text.contains(meta.getPage(i))) continue;
-			passiveSpell.activate(player);
-			return;
+		List<String> pages = meta.getPages();
+		for (String page : pages) {
+			if (text.contains(page)) {
+				boolean casted = passiveSpell.activate(player);
+				if (cancelDefaultAction(casted)) event.setCancelled(true);
+				return;
+			}
 		}
 	}
 
