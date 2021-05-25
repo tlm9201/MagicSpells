@@ -19,15 +19,14 @@ public class StopGlideListener extends PassiveListener {
 	@EventHandler
 	public void onGlide(EntityToggleGlideEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity)) return;
-		LivingEntity entity = (LivingEntity) event.getEntity();
-		if (event.isGliding()) return;
-		if (!hasSpell(entity)) return;
-		if (!canTrigger(entity)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(entity);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+		if (event.isGliding()) return;
+
+		LivingEntity caster = (LivingEntity) event.getEntity();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }
