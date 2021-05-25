@@ -53,7 +53,7 @@ public class GiveDamageListener extends PassiveListener {
 			items.add(itemData);
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onDamage(EntityDamageByEntityEvent event) {
@@ -77,7 +77,7 @@ public class GiveDamageListener extends PassiveListener {
 		boolean casted = passiveSpell.activate(caster, attacked);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
-	
+
 	private LivingEntity getAttacker(EntityDamageByEntityEvent event) {
 		Entity e = event.getDamager();
 		if (e instanceof LivingEntity) return (LivingEntity) e;

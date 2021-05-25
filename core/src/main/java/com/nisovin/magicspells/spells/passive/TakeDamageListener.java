@@ -77,7 +77,7 @@ public class TakeDamageListener extends PassiveListener {
 		boolean casted = passiveSpell.activate(caster, attacker);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
-	
+
 	private LivingEntity getAttacker(EntityDamageEvent event) {
 		if (!(event instanceof EntityDamageByEntityEvent)) return null;
 		Entity e = ((EntityDamageByEntityEvent) event).getDamager();
