@@ -55,20 +55,20 @@ public class SpellCastedListener extends PassiveListener {
 
 		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onSpellCast(SpellCastedEvent event) {
-		LivingEntity caster = event.getCaster();
 		if (event.getSpellCastState() != SpellCastState.NORMAL) return;
 		if (event.getPostCastAction() == PostCastAction.ALREADY_HANDLED) return;
-		if (!hasSpell(caster)) return;
-		if (!canTrigger(caster)) return;
+
+		LivingEntity caster = event.getCaster();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
 
 		Spell spell = event.getSpell();
+		if (spell.equals(passiveSpell)) return;
 		if (filter != null && !filter.check(spell)) return;
 
-		if (spell.equals(passiveSpell)) return;
 		passiveSpell.activate(caster);
 	}
 
