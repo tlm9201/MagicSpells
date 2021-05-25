@@ -9,23 +9,22 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // No trigger variable is used here
 public class StartSprintListener extends PassiveListener {
-	
+
 	@Override
 	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onSprint(PlayerToggleSprintEvent event) {
-		Player player = event.getPlayer();
-		if (!event.isSprinting()) return;
-		if (!hasSpell(player)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+
+		Player caster = event.getPlayer();
+		if (!event.isSprinting() || !hasSpell(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }
