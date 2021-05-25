@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 import org.bukkit.World;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
@@ -31,19 +31,19 @@ public class WorldChangeListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onWorldChange(PlayerTeleportEvent event) {
+		if (!isCancelStateOk(event.isCancelled())) return;
+
 		World worldFrom = event.getFrom().getWorld();
 		if (worldFrom == null) return;
 
-		Location locTo = event.getTo();
-		if (locTo == null) return;
-
-		World worldTo = locTo.getWorld();
-		if (worldTo == null) return;
-		if (worldFrom.equals(worldTo)) return;
+		World worldTo = event.getTo().getWorld();
+		if (worldTo == null || worldFrom.equals(worldTo)) return;
 
 		if (!worldNames.isEmpty() && !worldNames.contains(worldTo.getName())) return;
-		if (!hasSpell(event.getPlayer())) return;
-		if (!isCancelStateOk(event.isCancelled())) return;
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
