@@ -18,14 +18,14 @@ public class StopSprintListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onSprint(PlayerToggleSprintEvent event) {
-		Player player = event.getPlayer();
-		if (event.isSprinting()) return;
-		if (!hasSpell(player)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+		if (event.isSprinting()) return;
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }
