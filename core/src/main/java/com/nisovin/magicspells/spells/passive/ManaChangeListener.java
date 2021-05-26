@@ -24,8 +24,7 @@ public class ManaChangeListener extends PassiveListener {
 			try {
 				reasons.add(ManaChangeReason.valueOf(datum.toUpperCase()));
 			} catch (IllegalArgumentException e) {
-				MagicSpells.error("Invalid mana change reason '" + datum + "' in manachange trigger on passive spell '"
-					+ passiveSpell.getName() + "'");
+				MagicSpells.error("Invalid mana change reason '" + datum + "' in manachange trigger on passive spell '" + passiveSpell.getName() + "'");
 			}
 		}
 	}
@@ -33,10 +32,11 @@ public class ManaChangeListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onManaChange(ManaChangeEvent event) {
+		if (!reasons.isEmpty() && !reasons.contains(event.getReason())) return;
+
 		Player caster = event.getPlayer();
 		if (!canTrigger(caster) || !hasSpell(caster)) return;
 
-		if (!reasons.isEmpty() && !reasons.contains(event.getReason())) return;
 		passiveSpell.activate(caster);
 	}
 

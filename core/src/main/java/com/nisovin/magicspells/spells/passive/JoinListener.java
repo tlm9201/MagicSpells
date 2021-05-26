@@ -14,13 +14,14 @@ public class JoinListener extends PassiveListener {
 	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
-		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
-		passiveSpell.activate(player);
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		passiveSpell.activate(caster);
 	}
 
 }

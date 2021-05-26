@@ -20,10 +20,10 @@ public class ShootListener extends PassiveListener {
 	public void onShoot(final EntityShootBowEvent event) {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
-		LivingEntity shooter = event.getEntity();
-		if (!hasSpell(shooter) || !canTrigger(shooter)) return;
+		LivingEntity caster = event.getEntity();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
 
-		boolean casted = passiveSpell.activate(shooter, event.getForce());
+		boolean casted = passiveSpell.activate(caster, event.getForce());
 		if (cancelDefaultAction(casted)) {
 			event.setCancelled(true);
 			event.getProjectile().remove();

@@ -29,29 +29,19 @@ public class BlockBreakListener extends PassiveListener {
 			materials.add(m);
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
-		Player player = event.getPlayer();
-		Block block = event.getBlock();
-
-		if (!hasSpell(player)) return;
-
-		// all blocks if its empty
-		if (materials.isEmpty()) {
-			if (!isCancelStateOk(event.isCancelled())) return;
-			boolean casted = passiveSpell.activate(player, block.getLocation().add(0.5, 0.5, 0.5));
-			if (cancelDefaultAction(casted)) event.setCancelled(true);
-
-			return;
-		}
-
-		// check if block type is valid
-		if (!materials.contains(block.getType())) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player, event.getBlock().getLocation().add(0.5, 0.5, 0.5));
+
+		Player player = event.getPlayer();
+		if (!hasSpell(player) || !canTrigger(player)) return;
+
+		Block block = event.getBlock();
+		if (!materials.isEmpty() && !materials.contains(block.getType())) return;
+
+		boolean casted = passiveSpell.activate(player, block.getLocation().add(0.5, 0.5, 0.5));
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 
 	}

@@ -16,7 +16,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class BlockPlaceListener extends PassiveListener {
 
 	private final EnumSet<Material> materials = EnumSet.noneOf(Material.class);
-	
+
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
@@ -29,27 +29,19 @@ public class BlockPlaceListener extends PassiveListener {
 			materials.add(m);
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) {
-		Player player = event.getPlayer();
-		Block block = event.getBlock();
-		if (!hasSpell(player)) return;
-
-		// all blocks if its empty
-		if (materials.isEmpty()) {
-			if (!isCancelStateOk(event.isCancelled())) return;
-			boolean casted = passiveSpell.activate(player, block.getLocation().add(0.5, 0.5, 0.5));
-			if (cancelDefaultAction(casted)) event.setCancelled(true);
-			return;
-		}
-
-		// check if block type is valid
-		if (!materials.contains(block.getType())) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player, event.getBlock().getLocation().add(0.5, 0.5, 0.5));
+
+		Player player = event.getPlayer();
+		if (!hasSpell(player) || !canTrigger(player)) return;
+
+		Block block = event.getBlock();
+		if (!materials.isEmpty() && !materials.contains(block.getType())) return;
+
+		boolean casted = passiveSpell.activate(player, block.getLocation().add(0.5, 0.5, 0.5));
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 

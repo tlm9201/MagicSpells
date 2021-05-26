@@ -25,8 +25,7 @@ public class RegainHealthListener extends PassiveListener {
 			try {
 				reasons.add(RegainReason.valueOf(datum.toUpperCase()));
 			} catch (IllegalArgumentException e) {
-				MagicSpells.error("Invalid health regain reason '" + datum + "' in regainhealth trigger on passive spell '"
-					+ passiveSpell.getName() + "'");
+				MagicSpells.error("Invalid health regain reason '" + datum + "' in regainhealth trigger on passive spell '" + passiveSpell.getName() + "'");
 			}
 		}
 	}
