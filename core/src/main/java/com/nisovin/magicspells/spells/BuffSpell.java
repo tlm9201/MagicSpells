@@ -263,7 +263,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 			float dur = duration;
 			if (powerAffectsDuration) dur *= power;
-			durationEndTime.put(livingEntity.getUniqueId(), System.currentTimeMillis() + Math.round(dur * TimeUtil.MILLISECONDS_PER_SECOND));
+			setDuration(livingEntity, dur);
 
 			MagicSpells.scheduleDelayedTask(() -> {
 				if (isExpired(livingEntity)) turnOff(livingEntity);
@@ -274,6 +274,11 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		BuffManager manager = MagicSpells.getBuffManager();
 		if (manager != null) manager.addBuff(livingEntity, this);
+	}
+
+	public void setDuration(LivingEntity livingEntity, float duration) {
+		long endTime = System.currentTimeMillis() + Math.round(duration * TimeUtil.MILLISECONDS_PER_SECOND);
+		durationEndTime.put(livingEntity.getUniqueId(), endTime);
 	}
 
 	public float getDuration(LivingEntity livingEntity) {
