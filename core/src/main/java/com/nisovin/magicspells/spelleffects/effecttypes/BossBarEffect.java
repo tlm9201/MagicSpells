@@ -38,6 +38,11 @@ public class BossBarEffect extends SpellEffect {
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		namespaceKey = config.getString("namespace-key");
+
+		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
+			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
+		}
+
 		remove = config.getBoolean("remove", false);
 		if (remove) return;
 
@@ -48,10 +53,6 @@ public class BossBarEffect extends SpellEffect {
 		maxValue = config.getDouble("max-value", 100);
 		maxVar = config.getString("max-variable", "");
 		visible = config.getBoolean("visible", true);
-
-		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
-			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
-		}
 
 		try {
 			barColor = BarColor.valueOf(color.toUpperCase());
