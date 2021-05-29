@@ -31,13 +31,11 @@ public class SignBookListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onBookEdit(PlayerEditBookEvent event) {
-		if (isCancelStateOk(event.isCancelled())) return;
+		if (!isCancelStateOk(event.isCancelled())) return;
+		if (!event.isSigning()) return;
 
 		Player player = event.getPlayer();
 		if (!hasSpell(player) || !canTrigger(player)) return;
-
-		BookMeta meta = event.getNewBookMeta();
-		if (!meta.hasAuthor()) return;
 
 		if (text.isEmpty()) {
 			boolean casted = passiveSpell.activate(player);
@@ -45,6 +43,7 @@ public class SignBookListener extends PassiveListener {
 			return;
 		}
 
+		BookMeta meta = event.getNewBookMeta();
 		List<String> pages = meta.getPages();
 		for (String page : pages) {
 			if (text.contains(page)) {
