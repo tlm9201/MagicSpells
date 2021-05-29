@@ -31,7 +31,7 @@ public class RightClickBlockCoordListener extends PassiveListener {
 				int y = Integer.parseInt(data[2]);
 				int z = Integer.parseInt(data[3]);
 				magicLocation = new MagicLocation(world, x, y, z);
-			} catch (NumberFormatException e) {
+			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
 				MagicSpells.error("Invalid coords on rightclickblockcoord trigger for spell '" + passiveSpell.getInternalName() + "'");
 			}
 		}
