@@ -19,10 +19,10 @@ public class RespawnListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
-		final Player caster = event.getPlayer();
+		Player caster = event.getPlayer();
 		if (!hasSpell(caster) || !canTrigger(caster)) return;
 
-		MagicSpells.scheduleDelayedTask(() -> passiveSpell.activate(caster), 1);
+		passiveSpell.activate(caster);
 	}
 
 }
