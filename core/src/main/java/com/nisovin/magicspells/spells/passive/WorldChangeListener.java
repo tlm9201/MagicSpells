@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -22,7 +23,10 @@ public class WorldChangeListener extends PassiveListener {
 
 		for (String worldName : var.split(",")) {
 			World world = Bukkit.getWorld(worldName);
-			if (world == null) continue;
+			if (world == null) {
+				MagicSpells.error("Invalid world '" + worldName + "' in worldchange trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
 
 			worldNames.add(worldName);
 		}
