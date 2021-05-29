@@ -38,7 +38,6 @@ public class BossBarEffect extends SpellEffect {
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		namespaceKey = config.getString("namespace-key");
-
 		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
 			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
 		}
