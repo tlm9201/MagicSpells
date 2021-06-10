@@ -36,22 +36,28 @@ public class BossBarManager {
 	}
 
 	public Bar getBar(Player player, String namespaceKey) {
+		return getBar(player, namespaceKey, true);
+	}
+
+	public Bar getBar(Player player, String namespaceKey, boolean create) {
 		if (namespaceKey == null || namespaceKey.isEmpty()) namespaceKey = NAMESPACE_KEY_DEFAULT;
-		// Check if the bar exists.
-		Bar finalBar = null;
+
+		// Return bar if it already exists.
 		for (Bar bar : bars) {
 			if (bar.player.equals(player.getUniqueId()) && bar.namespaceKey.equals(namespaceKey)) {
-				finalBar = bar;
-				break;
+				return bar;
 			}
 		}
-		// If it doesn't, create it.
-		if (finalBar == null) {
+
+		// Create bar if specified.
+		Bar bar = null;
+		if (create) {
 			BossBar bossBar = Bukkit.createBossBar(createNamespaceKey(namespaceKey), "", BarColor.WHITE, BarStyle.SOLID);
-			finalBar = new Bar(bossBar, player, namespaceKey);
-			bars.add(finalBar);
+			bar = new Bar(bossBar, player, namespaceKey);
+			bars.add(bar);
 		}
-		return finalBar;
+
+		return bar;
 	}
 
 	public void turnOff() {
@@ -78,6 +84,11 @@ public class BossBarManager {
 			bossbar.setStyle(style);
 			bossbar.setColor(color);
 			bossbar.setProgress(progress);
+		}
+
+		public void set(String title, double progress, BarStyle style, BarColor color, boolean visible) {
+			set(title, progress, style, color);
+			bossbar.setVisible(visible);
 		}
 
 		public void addFlag(BarFlag flag) {

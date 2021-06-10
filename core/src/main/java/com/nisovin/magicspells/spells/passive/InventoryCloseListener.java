@@ -28,12 +28,12 @@ public class InventoryCloseListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onInventoryClose(InventoryCloseEvent event) {
-		HumanEntity player = event.getPlayer();
-		String inventoryName = event.getView().getTitle();
-		if (!inventoryNames.isEmpty() && !inventoryNames.contains(inventoryName)) return;
+		if (!inventoryNames.isEmpty() && !inventoryNames.contains(event.getView().getTitle())) return;
 
-		if (!hasSpell(player)) return;
-		passiveSpell.activate(player);
+		HumanEntity caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		passiveSpell.activate(caster);
 	}
 
 }

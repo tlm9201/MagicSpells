@@ -19,13 +19,9 @@ public class MagicSpellsLoadedListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onLoaded(MagicSpellsLoadedEvent e) {
-		for (World world : Bukkit.getWorlds()) {
-			for (LivingEntity livingEntity : world.getLivingEntities()) {
-				if (!canTrigger(livingEntity)) continue;
-				if (!hasSpell(livingEntity)) continue;
-				passiveSpell.activate(livingEntity);
-			}
-		}
+		for (World world : Bukkit.getWorlds())
+			for (LivingEntity livingEntity : world.getLivingEntities())
+				if (hasSpell(livingEntity) && canTrigger(livingEntity)) passiveSpell.activate(livingEntity);
 	}
 
 }

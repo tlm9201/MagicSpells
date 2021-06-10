@@ -35,12 +35,12 @@ public class JumpListener extends PassiveListener {
 		handleEvent(event.getPlayer(), event);
 	}
 
-	private void handleEvent(LivingEntity entity, Cancellable event) {
-		if (!hasSpell(entity)) return;
+	private void handleEvent(LivingEntity caster, Cancellable event) {
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(entity);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }

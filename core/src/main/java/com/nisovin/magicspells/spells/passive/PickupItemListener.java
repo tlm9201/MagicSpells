@@ -18,7 +18,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class PickupItemListener extends PassiveListener {
 
 	private final Set<MagicItemData> items = new HashSet<>();
-	
+
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
@@ -36,7 +36,7 @@ public class PickupItemListener extends PassiveListener {
 			items.add(itemData);
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onPickup(EntityPickupItemEvent event) {
@@ -48,7 +48,7 @@ public class PickupItemListener extends PassiveListener {
 		if (!items.isEmpty()) {
 			ItemStack item = event.getItem().getItemStack();
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
-			if (!contains(itemData)) return;
+			if (itemData == null || !contains(itemData)) return;
 		}
 
 		boolean casted = passiveSpell.activate(caster);

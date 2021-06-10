@@ -53,7 +53,7 @@ public class TicksListener extends PassiveListener {
 			}
 		}
 	}
-	
+
 	@Override
 	public void turnOff() {
 		ticker.turnOff();
@@ -88,7 +88,7 @@ public class TicksListener extends PassiveListener {
 		if (!canTrigger((LivingEntity) entity)) return;
 		ticker.add((LivingEntity) entity);
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
@@ -97,7 +97,7 @@ public class TicksListener extends PassiveListener {
 		if (!canTrigger(player)) return;
 		ticker.add(player);
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
@@ -105,7 +105,7 @@ public class TicksListener extends PassiveListener {
 		if (!canTrigger(player)) return;
 		ticker.remove(player);
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event) {
@@ -113,7 +113,7 @@ public class TicksListener extends PassiveListener {
 		if (!canTrigger(player)) return;
 		ticker.remove(player);
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
@@ -122,7 +122,7 @@ public class TicksListener extends PassiveListener {
 		if (!canTrigger(player)) return;
 		ticker.add(player);
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onLearn(SpellLearnEvent event) {
@@ -131,7 +131,7 @@ public class TicksListener extends PassiveListener {
 		if (!spell.getInternalName().equals(passiveSpell.getInternalName())) return;
 		ticker.add(event.getLearner());
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onForget(SpellForgetEvent event) {
@@ -140,7 +140,7 @@ public class TicksListener extends PassiveListener {
 		if (!spell.getInternalName().equals(passiveSpell.getInternalName())) return;
 		ticker.remove(event.getForgetter());
 	}
-	
+
 	private static class Ticker implements Runnable {
 
 		private final Collection<LivingEntity> entities;
@@ -149,14 +149,14 @@ public class TicksListener extends PassiveListener {
 
 		private final int taskId;
 		private final String profilingKey;
-		
+
 		public Ticker(PassiveSpell passiveSpell, int interval) {
 			this.passiveSpell = passiveSpell;
 			taskId = MagicSpells.scheduleRepeatingTask(this, interval, interval);
 			profilingKey = MagicSpells.profilingEnabled() ? "PassiveTick:" + interval : null;
 			entities = new ArrayList<>();
 		}
-		
+
 		public void add(LivingEntity livingEntity) {
 			entities.add(livingEntity);
 		}
@@ -179,11 +179,11 @@ public class TicksListener extends PassiveListener {
 
 			if (profilingKey != null) MagicSpells.addProfile(profilingKey, System.nanoTime() - start);
 		}
-		
+
 		public void turnOff() {
 			MagicSpells.cancelTask(taskId);
 		}
-		
+
 	}
-	
+
 }

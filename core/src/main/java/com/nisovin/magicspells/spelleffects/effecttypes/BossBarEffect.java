@@ -31,21 +31,27 @@ public class BossBarEffect extends SpellEffect {
 	private int duration;
 	private double progress;
 
+	private boolean remove;
+	private boolean visible;
 	private boolean broadcast;
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		namespaceKey = config.getString("namespace-key");
+		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
+			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
+		}
+
+		remove = config.getBoolean("remove", false);
+		if (remove) return;
+
 		title = config.getString("title", "");
 		color = config.getString("color", "red");
 		style = config.getString("style", "solid");
 		strVar = config.getString("variable", "");
 		maxValue = config.getDouble("max-value", 100);
 		maxVar = config.getString("max-variable", "");
-
-		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
-			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
-		}
+		visible = config.getBoolean("visible", true);
 
 		try {
 			barColor = BarColor.valueOf(color.toUpperCase());
@@ -72,7 +78,9 @@ public class BossBarEffect extends SpellEffect {
 	@Override
 	public void initializeModifiers() {
 		super.initializeModifiers();
-		
+
+		if (remove) return;
+
 		variable = MagicSpells.getVariableManager().getVariable(strVar);
 		if (variable == null && !strVar.isEmpty()) {
 			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
@@ -93,31 +101,23 @@ public class BossBarEffect extends SpellEffect {
 	}
 
 	private void createBar(Player player) {
-		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey);
-		String newTitle = Util.doVarReplacementAndColorize(player, title);
-		if (maxVariable == null) {
-			// Not doing max variable replacement
-			if (variable == null) bar.set(newTitle, progress, barStyle, barColor);
-			else {
-				double diff = variable.getValue(player) / maxValue;
-				if (diff >= 0 && diff <= 1) bar.set(newTitle, diff, barStyle, barColor);
-			}
-		} else {
-			// Doing max variable replacement
-			if (variable == null) {
-				double diff = progress / maxVariable.getValue(player);
-				if (diff >= 0 && diff <= 1) bar.set(newTitle, diff, barStyle, barColor);
-			} else {
-				// Doing double replacement!
-				double diff = variable.getValue(player) / maxVariable.getValue(player);
-				if (maxVariable.getValue(player) <= variable.getValue(player)) {
-					bar.set(newTitle, 1, barStyle, barColor);
-				}
-				if (maxVariable.getValue(player) > variable.getValue(player)) {
-					if (diff >= 0 && diff <= 1) bar.set(newTitle, diff, barStyle, barColor);
-				}
-			}
+		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey, !remove);
+		if (remove) {
+			if (bar != null) bar.remove();
+			return;
 		}
+
+		double progress = this.progress;
+		if (variable != null) {
+			progress = variable.getValue(player) / (maxVariable == null ? maxValue : maxVariable.getValue(player));
+
+			if (progress < 0d) progress = 0d;
+			if (progress > 1d) progress = 1d;
+		}
+
+		String title = Util.doVarReplacementAndColorize(player, this.title);
+		bar.set(title, progress, barStyle, barColor, visible);
+
 		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
 	}
 

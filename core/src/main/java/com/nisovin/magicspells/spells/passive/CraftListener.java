@@ -3,59 +3,64 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.inventory.CraftItemEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 public class CraftListener extends PassiveListener {
 
-	private final Set<ItemStack> items = new HashSet<>();
+	private final Set<MagicItemData> items = new HashSet<>();
 
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
 
-		for (String itemString : var.split(",")) {
-			MagicItem magicItem = MagicItems.getMagicItemFromString(itemString.trim());
-			if (magicItem == null) continue;
+		for (String s : var.split("\\|")) {
+			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
+			if (itemData == null) {
+				MagicSpells.error("Invalid magic item '" + s + "' in craft trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
 
-			ItemStack item = magicItem.getItemStack();
-			if (item == null) continue;
+			itemData = itemData.clone();
+			itemData.getIgnoredAttributes().add(MagicItemData.MagicItemAttribute.AMOUNT);
 
-			items.add(item);
+			items.add(itemData);
 		}
 	}
 
 	@OverridePriority
 	@EventHandler
 	public void onCraft(CraftItemEvent event) {
-		ItemStack item = event.getCurrentItem();
-		if (item == null || item.getType().isAir()) return;
+		if (!isCancelStateOk(event.isCancelled())) return;
 
-		Player player = (Player) event.getWhoClicked();
-		if (!hasSpell(player)) return;
+		HumanEntity caster = event.getWhoClicked();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
 
-		// all items
-		if (items.isEmpty()) {
-			if (!isCancelStateOk(event.isCancelled())) return;
-			boolean casted = passiveSpell.activate(player);
-			if (cancelDefaultAction(casted)) event.setCancelled(true);
+		if (!items.isEmpty()) {
+			ItemStack item = event.getCurrentItem();
+			if (item == null) return;
 
-			return;
+			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+			if (itemData == null || !contains(itemData)) return;
 		}
 
-		// doesn't contain the item
-		if (!items.contains(item)) return;
-
-		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
+		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
+
+	private boolean contains(MagicItemData itemData) {
+		for (MagicItemData data : items) {
+			if (data.matches(itemData)) return true;
+		}
+		return false;
 	}
 
 }

@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -18,30 +19,30 @@ public class GameModeChangeListener extends PassiveListener {
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
 
-		GameMode gameMode;
-		try {
-			gameMode = GameMode.valueOf(var.toUpperCase());
-			gameModes.add(gameMode);
-		} catch (Exception e) {
-			// ignored
+		String[] split = var.split(",");
+		for (String s : split) {
+			s = s.trim();
+
+			try {
+				GameMode mode = GameMode.valueOf(s.toUpperCase());
+				gameModes.add(mode);
+			} catch (IllegalArgumentException e) {
+				MagicSpells.error("Invalid game mode '" + s + "' in gamemodechange trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+			}
 		}
 	}
 
 	@OverridePriority
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
-		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
+		if (!isCancelStateOk(event.isCancelled())) return;
 
-		if (gameModes.isEmpty()) {
-			boolean casted = passiveSpell.activate(player);
-			if (cancelDefaultAction(casted)) event.setCancelled(true);
-			return;
-		}
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
 
-		if (!gameModes.contains(event.getNewGameMode())) return;
+		if (!gameModes.isEmpty() && !gameModes.contains(event.getNewGameMode())) return;
 
-		boolean casted = passiveSpell.activate(player);
+		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 

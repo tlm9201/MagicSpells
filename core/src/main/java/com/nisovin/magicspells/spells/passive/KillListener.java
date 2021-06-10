@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDeathEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -17,7 +18,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class KillListener extends PassiveListener {
 
 	private final EnumSet<EntityType> types = EnumSet.noneOf(EntityType.class);
-	
+
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
@@ -25,22 +26,26 @@ public class KillListener extends PassiveListener {
 		String[] split = var.replace(" ", "").split(",");
 		for (String s : split) {
 			EntityType type = MobUtil.getEntityType(s);
-			if (type == null) continue;
+			if (type == null) {
+				MagicSpells.error("Invalid entity type '" + s + "' in kill trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				continue;
+			}
 
 			types.add(type);
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onDeath(EntityDeathEvent event) {
-		LivingEntity killer = event.getEntity().getKiller();
-		if (killer == null) return;
-		if (!hasSpell(killer)) return;
-		if (!canTrigger(killer)) return;
+		if (!isCancelStateOk(event.isCancelled())) return;
 		if (!types.isEmpty() && !types.contains(event.getEntityType())) return;
 
-		passiveSpell.activate(killer, event.getEntity());
+		LivingEntity caster = event.getEntity().getKiller();
+		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster, event.getEntity());
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
-	
+
 }

@@ -19,17 +19,15 @@ public class FatalDamageListener extends PassiveListener {
 	@EventHandler
 	void onDamage(EntityDamageEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity)) return;
-		LivingEntity entity = (LivingEntity) event.getEntity();
-
-		if (event.getFinalDamage() < entity.getHealth()) return;
-		if (!canTrigger(entity)) return;
-		if (!hasSpell(entity)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(entity);
-		if (!cancelDefaultAction(casted)) return;
 
-		event.setCancelled(true);
+		LivingEntity caster = (LivingEntity) event.getEntity();
+
+		if (event.getFinalDamage() < caster.getHealth()) return;
+		if (!canTrigger(caster) || !hasSpell(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
-	
+
 }

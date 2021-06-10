@@ -3,9 +3,11 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.EnumSet;
 
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
+import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.util.Util;
@@ -25,7 +27,7 @@ public class RightClickBlockTypeListener extends PassiveListener {
 			s = s.trim();
 			Material m = Util.getMaterial(s);
 			if (m == null) {
-				MagicSpells.error("Invalid type on rightClickBlockType trigger '" + var + "' on passive spell '" + passiveSpell.getInternalName() + "'");
+				MagicSpells.error("Invalid block type on rightclickblocktype trigger '" + var + "' on passive spell '" + passiveSpell.getInternalName() + "'");
 				continue;
 			}
 
@@ -37,13 +39,18 @@ public class RightClickBlockTypeListener extends PassiveListener {
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event) {
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-		if (!materials.isEmpty() && !materials.contains(event.getClickedBlock().getType())) return;
-
-		if (!hasSpell(event.getPlayer())) return;
 		if (!isCancelStateOk(isCancelled(event))) return;
-		boolean casted = passiveSpell.activate(event.getPlayer(), event.getClickedBlock().getLocation().add(0.5, 0.5, 0.5));
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		Block block = event.getClickedBlock();
+		if (block == null) return;
+
+		if (!materials.isEmpty() && !materials.contains(block.getType())) return;
+
+		boolean casted = passiveSpell.activate(event.getPlayer(), block.getLocation().add(0.5, 0.5, 0.5));
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 	private boolean isCancelled(PlayerInteractEvent event) {

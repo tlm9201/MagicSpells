@@ -12,16 +12,17 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class RespawnListener extends PassiveListener {
 
 	@Override
-	public void initialize( String var) {
+	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
-		final Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
-		MagicSpells.scheduleDelayedTask(() -> passiveSpell.activate(player), 1);
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		passiveSpell.activate(caster);
 	}
 
 }

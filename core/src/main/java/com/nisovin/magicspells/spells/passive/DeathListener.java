@@ -14,13 +14,13 @@ public class DeathListener extends PassiveListener {
 	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onDeath(EntityDeathEvent event) {
 		LivingEntity entity = event.getEntity();
-		if (!canTrigger(entity)) return;
-		if (!hasSpell(entity)) return;
+		if (!hasSpell(entity) || !canTrigger(entity)) return;
+
 		passiveSpell.activate(entity);
 	}
 

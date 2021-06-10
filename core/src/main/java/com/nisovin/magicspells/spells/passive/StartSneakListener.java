@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
@@ -8,7 +9,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // No trigger variable is currently used
 public class StartSneakListener extends PassiveListener {
-		
+
 	@Override
 	public void initialize(String var) {
 
@@ -17,10 +18,12 @@ public class StartSneakListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onSneak(PlayerToggleSneakEvent event) {
-		if (!event.isSneaking()) return;
-		if (!hasSpell(event.getPlayer())) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
+		if (!event.isSneaking()) return;
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
+
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

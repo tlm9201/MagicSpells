@@ -9,23 +9,23 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // No trigger variable is currently used
 public class StartFlyListener extends PassiveListener {
-	
+
 	@Override
 	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onFly(PlayerToggleFlightEvent event) {
-		Player player = event.getPlayer();
-		if (!event.isFlying()) return;
-		if (!hasSpell(player)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+		if (!event.isFlying()) return;
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }

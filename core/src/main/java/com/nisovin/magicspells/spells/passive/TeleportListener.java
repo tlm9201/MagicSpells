@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -14,31 +15,45 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class TeleportListener extends PassiveListener {
 
 	private final EnumSet<TeleportCause> teleportCauses = EnumSet.noneOf(TeleportCause.class);
-	
+
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
 
-		String[] split = var.replace(" ", "").split(",");
+		String[] split = var.split(",");
 		for (String s : split) {
-			s = s.trim().replace("_", "");
-			for (TeleportCause cause : TeleportCause.values()) {
-				if (!cause.name().replace("_", "").equalsIgnoreCase(s)) continue;
+			try {
+				TeleportCause cause = TeleportCause.valueOf(s.trim().toUpperCase());
 				teleportCauses.add(cause);
-				break;
+			} catch (IllegalArgumentException e) {
+				// Keep to support old usage
+				String compat = s.replace("_", "");
+				boolean found = false;
+
+				for (TeleportCause cause : TeleportCause.values()) {
+					if (!cause.name().replace("_", "").equals(compat)) continue;
+					teleportCauses.add(cause);
+					found = true;
+					break;
+				}
+
+				if (!found)
+					MagicSpells.error("Invalid teleport cause '" + s + "' in teleport trigger on passive spell '" + passiveSpell.getInternalName() + "'");
 			}
 		}
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onTeleport(PlayerTeleportEvent event) {
-		if (!teleportCauses.isEmpty() && !teleportCauses.contains(event.getCause())) return;
-		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
+
+		if (!teleportCauses.isEmpty() && !teleportCauses.contains(event.getCause())) return;
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 

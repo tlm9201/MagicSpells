@@ -65,19 +65,22 @@ public class TakeDamageListener extends PassiveListener {
 
 		if (!damageCauses.isEmpty() && !damageCauses.contains(event.getCause())) return;
 
+		LivingEntity attacker = getAttacker(event);
+
 		if (!items.isEmpty()) {
-			EntityEquipment eq = caster.getEquipment();
+			if (attacker == null) return;
+
+			EntityEquipment eq = attacker.getEquipment();
 			if (eq == null) return;
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(eq.getItemInMainHand());
 			if (itemData == null || !contains(itemData)) return;
 		}
 
-		LivingEntity attacker = getAttacker(event);
 		boolean casted = passiveSpell.activate(caster, attacker);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
-	
+
 	private LivingEntity getAttacker(EntityDamageEvent event) {
 		if (!(event instanceof EntityDamageByEntityEvent)) return null;
 		Entity e = ((EntityDamageByEntityEvent) event).getDamager();

@@ -52,16 +52,17 @@ public class SpellTargetedListener extends PassiveListener {
 
 		filter = new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onSpellTarget(SpellTargetEvent event) {
+		if (!isCancelStateOk(event.isCancelled())) return;
+
 		LivingEntity target = event.getTarget();
-		if (!hasSpell(target)) return;
-		if (!canTrigger(target)) return;
+		if (!hasSpell(target) || !canTrigger(target)) return;
+
 		if (filter != null && !filter.check(event.getSpell())) return;
 
-		if (!isCancelStateOk(event.isCancelled())) return;
 		boolean casted = passiveSpell.activate(target, event.getCaster());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}

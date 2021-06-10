@@ -9,25 +9,24 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // No trigger variable is currently used
 public class StartSwimListener extends PassiveListener {
-	
+
 	@Override
 	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onSwim(EntityToggleSwimEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity)) return;
-		LivingEntity entity = (LivingEntity) event.getEntity();
-		if (!event.isSwimming()) return;
-		if (!hasSpell(entity)) return;
-		if (!canTrigger(entity)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(entity);
-		if (!cancelDefaultAction(casted)) return;
-		event.setCancelled(true);
+		if (!event.isSwimming()) return;
+
+		LivingEntity caster = (LivingEntity) event.getEntity();
+		if (!hasSpell(caster) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }

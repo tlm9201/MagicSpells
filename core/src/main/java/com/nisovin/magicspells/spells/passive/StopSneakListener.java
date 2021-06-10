@@ -17,12 +17,13 @@ public class StopSneakListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onSneak(PlayerToggleSneakEvent event) {
-		Player player = event.getPlayer();
-		if (event.isSneaking()) return;
-		if (!hasSpell(player)) return;
-
 		if (!isCancelStateOk(event.isCancelled())) return;
-		boolean casted = passiveSpell.activate(player);
+		if (event.isSneaking()) return;
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(caster)) return;
+
+		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 

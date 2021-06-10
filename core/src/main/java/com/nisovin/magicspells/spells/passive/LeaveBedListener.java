@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 
@@ -13,12 +14,17 @@ public class LeaveBedListener extends PassiveListener {
 	public void initialize(String var) {
 
 	}
-	
+
 	@OverridePriority
 	@EventHandler
 	public void onDeath(PlayerBedLeaveEvent event) {
-		if (!hasSpell(event.getPlayer())) return;
-		passiveSpell.activate(event.getPlayer());
+		if (!isCancelStateOk(event.isCancelled())) return;
+
+		Player caster = event.getPlayer();
+		if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
+
+		boolean casted = passiveSpell.activate(event.getPlayer());
+		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
 }

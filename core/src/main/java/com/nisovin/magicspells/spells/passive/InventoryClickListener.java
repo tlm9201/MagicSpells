@@ -14,9 +14,9 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 public class InventoryClickListener extends PassiveListener {
 
-	MagicItemData itemCurrent = null;
-	MagicItemData itemCursor = null;
-	InventoryAction action = null;
+	private MagicItemData itemCurrent = null;
+	private MagicItemData itemCursor = null;
+	private InventoryAction action = null;
 
 	@Override
 	public void initialize(String var) {
@@ -24,7 +24,13 @@ public class InventoryClickListener extends PassiveListener {
 
 		String[] splits = var.split(" ");
 
-		if (!splits[0].equals("null")) action = InventoryAction.valueOf(splits[0].toUpperCase());
+		if (!splits[0].equals("null")) {
+			try {
+				action = InventoryAction.valueOf(splits[0].toUpperCase());
+			} catch (IllegalArgumentException e) {
+				MagicSpells.error("Invalid inventory action '" + splits[0] + "' in inventoryclick trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+			}
+		}
 
 		if (splits.length > 1 && !splits[1].isEmpty() && !splits[1].equals("null")) {
 			itemCurrent = MagicItems.getMagicItemDataFromString(splits[1]);
