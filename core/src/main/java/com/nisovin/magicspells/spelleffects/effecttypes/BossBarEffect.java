@@ -42,6 +42,8 @@ public class BossBarEffect extends SpellEffect {
 			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
 		}
 
+		broadcast = config.getBoolean("broadcast", false);
+
 		remove = config.getBoolean("remove", false);
 		if (remove) return;
 
@@ -71,8 +73,6 @@ public class BossBarEffect extends SpellEffect {
 		progress = config.getDouble("progress", 1);
 		if (progress > 1) progress = 1;
 		if (progress < 0) progress = 0;
-
-		broadcast = config.getBoolean("broadcast", false);
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity) {
-		if (barStyle == null || barColor == null) return null;
+		if (!remove && (barStyle == null || barColor == null)) return null;
 		if (broadcast) Util.forEachPlayerOnline(this::createBar);
 		else if (entity instanceof Player) createBar((Player) entity);
 		return null;
