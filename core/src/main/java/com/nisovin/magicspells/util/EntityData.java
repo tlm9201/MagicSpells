@@ -632,7 +632,17 @@ public class EntityData {
 		startLoc.add(startLoc.getDirection().clone().multiply(relativeOffset.getX()));
 		startLoc.setY(startLoc.getY() + relativeOffset.getY());
 		
-		Entity entity = startLoc.getWorld().spawnEntity(startLoc, entityType);
+		Entity entity;
+		switch (entityType) {
+			case FALLING_BLOCK:
+				entity = startLoc.getWorld().spawnFallingBlock(startLoc, material.createBlockData());
+				break;
+			case DROPPED_ITEM:
+				entity = startLoc.getWorld().dropItem(startLoc, new ItemStack(material));
+				break;
+			default:
+				entity = startLoc.getWorld().spawnEntity(startLoc, entityType);
+		}
 
 		if (entity instanceof Ageable) {
 			if (isBaby()) ((Ageable) entity).setBaby();
