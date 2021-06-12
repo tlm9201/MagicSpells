@@ -187,7 +187,8 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 			if (locTarget != null) return spell.castAtLocation(caster, locTarget, power);
 		}
 
-		return spell.cast(caster, power) == PostCastAction.HANDLE_NORMALLY;
+		PostCastAction action = spell.cast(caster, power);
+		return action == PostCastAction.HANDLE_NORMALLY || action == PostCastAction.NO_MESSAGES;
 	}
 	
 	private static class Action {
