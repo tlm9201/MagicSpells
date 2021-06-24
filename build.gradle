@@ -97,10 +97,10 @@ subprojects {
     maven { url "https://maven.sk89q.com/repo/" }
   }
 
-  it.version = "4.0-Beta-9"
+  it.version = "4.0-Beta-10"
   
   processResources {
-    expand(["version": "4.0-Beta-9"])
+    expand(["version": "4.0-Beta-10"])
   }
 
   shadowJar {
