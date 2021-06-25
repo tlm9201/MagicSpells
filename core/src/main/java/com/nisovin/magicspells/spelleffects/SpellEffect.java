@@ -120,6 +120,10 @@ public abstract class SpellEffect {
 	protected abstract void loadFromConfig(ConfigurationSection config);
 
 	public Location applyOffsets(Location loc) {
+		return applyOffsets(loc, offset, relativeOffset, zOffset, heightOffset, forwardOffset);
+	}
+
+	public Location applyOffsets(Location loc, Vector offset, Vector relativeOffset, double zOffset, double heightOffset, double forwardOffset) {
 		if (offset.getX() != 0 || offset.getY() != 0 || offset.getZ() != 0) loc.add(offset);
 		if (relativeOffset.getX() != 0 || relativeOffset.getY() != 0 || relativeOffset.getZ() != 0) loc.add(VectorUtils.rotateVector(relativeOffset, loc));
 		if (zOffset != 0) {

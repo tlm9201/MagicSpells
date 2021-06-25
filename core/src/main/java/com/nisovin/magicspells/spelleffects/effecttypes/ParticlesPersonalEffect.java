@@ -1,20 +1,20 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.Particle.DustOptions;
+import org.bukkit.Vibration.Destination;
+import org.bukkit.Particle.DustTransition;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ColorUtil;
+import com.nisovin.magicspells.util.ConfigReaderUtil;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 import de.slikey.effectlib.util.VectorUtils;
@@ -32,8 +32,17 @@ public class ParticlesPersonalEffect extends SpellEffect {
 
 	private float dustSize;
 	private String colorHex;
+	private String toColorHex;
 	private Color dustColor;
+	private Color toDustColor;
 	private DustOptions dustOptions;
+	private DustTransition dustTransition;
+
+	private int arrivalTime;
+	private Vibration vibrationOptions;
+	private Destination vibrationDestination;
+	private Vector vibrationOffset;
+	private Vector vibrationRelativeOffset;
 
 	private int count;
 	private float speed;
@@ -45,6 +54,8 @@ public class ParticlesPersonalEffect extends SpellEffect {
 	private boolean item = false;
 	private boolean dust = false;
 	private boolean block = false;
+	private boolean vibration = false;
+	private boolean transitionDust = false;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -66,8 +77,16 @@ public class ParticlesPersonalEffect extends SpellEffect {
 
 		dustSize = (float) config.getDouble("size", 1);
 		colorHex = config.getString("color", "FF0000");
+		toColorHex = config.getString("to-color", "000000");
 		dustColor = ColorUtil.getColorFromHexString(colorHex);
+		toDustColor = ColorUtil.getColorFromHexString(toColorHex);
+
+		arrivalTime = config.getInt("arrival-time", 10);
+		vibrationOffset = ConfigReaderUtil.readVector(config.getString("vibration-offset", "0,0,0"));
+		vibrationRelativeOffset = ConfigReaderUtil.readVector(config.getString("vibration-relative-offset", "0,0,0"));
+
 		if (dustColor != null) dustOptions = new DustOptions(dustColor, dustSize);
+		if (dustColor != null && toDustColor != null) dustTransition = new DustTransition(dustColor, toDustColor, dustSize);
 
 		if ((particle == Particle.BLOCK_CRACK || particle == Particle.BLOCK_DUST || particle == Particle.FALLING_DUST) && material != null && material.isBlock()) {
 			block = true;
@@ -79,6 +98,12 @@ public class ParticlesPersonalEffect extends SpellEffect {
 			none = false;
 		} else if (particle == Particle.REDSTONE && dustOptions != null) {
 			dust = true;
+			none = false;
+		}  else if (particle == Particle.DUST_COLOR_TRANSITION && dustTransition != null) {
+			transitionDust = true;
+			none = false;
+		} else if (particle == Particle.VIBRATION && arrivalTime >= 0) {
+			vibration = true;
 			none = false;
 		}
 
@@ -97,6 +122,11 @@ public class ParticlesPersonalEffect extends SpellEffect {
 		if (particle == Particle.REDSTONE && dustColor == null) {
 			particle = null;
 			MagicSpells.error("Wrong color defined! '" + colorHex + "'");
+		}
+
+		if (particle == Particle.DUST_COLOR_TRANSITION && dustTransition == null) {
+			particle = null;
+			MagicSpells.error("Wrong transition colors defined! '" + colorHex + "', '" + toColorHex + "'");
 		}
 	}
 
@@ -120,7 +150,13 @@ public class ParticlesPersonalEffect extends SpellEffect {
 		if (block) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, blockData);
 		else if (item) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, itemStack);
 		else if (dust) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, dustOptions);
+		else if (transitionDust) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, dustTransition);
 		else if (none) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed);
+		else if (vibration) {
+			vibrationDestination = new Vibration.Destination.BlockDestination(applyOffsets(loc.clone(), vibrationOffset, vibrationRelativeOffset, 0D, 0D, 0D));
+			vibrationOptions = new Vibration(loc, vibrationDestination, arrivalTime);
+			((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, vibrationOptions);
+		}
 
 		return null;
 	}
