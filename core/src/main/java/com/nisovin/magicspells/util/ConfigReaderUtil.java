@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.util;
 
+import org.bukkit.util.Vector;
+
 import org.bukkit.conversations.Prompt;
 import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.configuration.ConfigurationSection;
@@ -8,6 +10,16 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.prompt.PromptType;
 
 public class ConfigReaderUtil {
+
+	public static Vector readVector(String key, String defaultValue) {
+		if (key == null || key.isEmpty()) key = defaultValue;
+		return readVector(key);
+	}
+
+	public static Vector readVector(String key) {
+		String[] vecStrings = key.trim().split(",");
+		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
+	}
 
 	public static MagicLocation readLocation(ConfigurationSection section, String path) {
 		return readLocation(section, path, "world,0,0,0");

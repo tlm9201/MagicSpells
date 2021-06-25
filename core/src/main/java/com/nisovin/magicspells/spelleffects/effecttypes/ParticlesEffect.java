@@ -1,17 +1,17 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Location;
+import org.bukkit.*;
+import org.bukkit.Particle.*;
+import org.bukkit.util.Vector;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.Particle.DustOptions;
+import org.bukkit.Vibration.Destination;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ColorUtil;
+import com.nisovin.magicspells.util.ConfigReaderUtil;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class ParticlesEffect extends SpellEffect {
@@ -27,8 +27,17 @@ public class ParticlesEffect extends SpellEffect {
 
 	private float dustSize;
 	private String colorHex;
+	private String toColorHex;
 	private Color dustColor;
+	private Color toDustColor;
 	private DustOptions dustOptions;
+	private DustTransition dustTransitionOptions;
+
+	private int arrivalTime;
+	private Vibration vibrationOptions;
+	private Destination vibrationDestination;
+	private Vector vibrationOffset;
+	private Vector vibrationRelativeOffset;
 
 	private int count;
 	private float speed;
@@ -40,6 +49,8 @@ public class ParticlesEffect extends SpellEffect {
 	private boolean item = false;
 	private boolean dust = false;
 	private boolean block = false;
+	private boolean vibration = false;
+	private boolean transitionDust = false;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -61,8 +72,16 @@ public class ParticlesEffect extends SpellEffect {
 
 		dustSize = (float) config.getDouble("size", 1);
 		colorHex = config.getString("color", "FF0000");
+		toColorHex = config.getString("to-color", "000000");
 		dustColor = ColorUtil.getColorFromHexString(colorHex);
+		toDustColor = ColorUtil.getColorFromHexString(toColorHex);
+
+		arrivalTime = config.getInt("arrival-time", -1);
+		vibrationOffset = ConfigReaderUtil.readVector(config.getString("vibration-offset", "0,0,0"));
+		vibrationRelativeOffset = ConfigReaderUtil.readVector(config.getString("vibration-relative-offset", "0,0,0"));
+
 		if (dustColor != null) dustOptions = new DustOptions(dustColor, dustSize);
+		if (dustColor != null && toDustColor != null) dustTransitionOptions = new DustTransition(dustColor, toDustColor, dustSize);
 
 		if ((particle == Particle.BLOCK_CRACK || particle == Particle.BLOCK_DUST || particle == Particle.FALLING_DUST) && material != null && material.isBlock()) {
 			block = true;
@@ -74,6 +93,12 @@ public class ParticlesEffect extends SpellEffect {
 			none = false;
 		} else if (particle == Particle.REDSTONE && dustOptions != null) {
 			dust = true;
+			none = false;
+		}  else if (particle == Particle.DUST_COLOR_TRANSITION && dustTransitionOptions != null) {
+			transitionDust = true;
+			none = false;
+		} else if (particle == Particle.VIBRATION && arrivalTime >= 0) {
+			vibration = true;
 			none = false;
 		}
 
@@ -93,6 +118,11 @@ public class ParticlesEffect extends SpellEffect {
 			particle = null;
 			MagicSpells.error("Wrong color defined! '" + colorHex + "'");
 		}
+
+		if (particle == Particle.DUST_COLOR_TRANSITION && dustTransitionOptions == null) {
+			particle = null;
+			MagicSpells.error("Wrong transition colors defined! '" + colorHex + "', '" + toColorHex + "'");
+		}
 	}
 
 	@Override
@@ -102,7 +132,13 @@ public class ParticlesEffect extends SpellEffect {
 		if (block) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, blockData);
 		else if (item) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, itemStack);
 		else if (dust) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, dustOptions);
+		else if (transitionDust) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, dustTransitionOptions);
 		else if (none) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed);
+		else if (vibration) {
+			vibrationDestination = new Destination.BlockDestination(applyOffsets(location.clone(), vibrationOffset, vibrationRelativeOffset, 0D, 0D, 0D));
+			vibrationOptions = new Vibration(location, vibrationDestination, arrivalTime);
+			location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, vibrationOptions);
+		}
 
 		return null;
 	}
