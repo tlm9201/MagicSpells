@@ -35,8 +35,6 @@ class VolatileCode1_17_R1: VolatileCodeHandle {
 
     private var entityFallingBlockFallHurtAmountField: Field? = null
     private var entityFallingBlockFallHurtMaxField: Field? = null
-    private var craftMetaSkullClass: Class<*>? = null
-    private var craftMetaSkullProfileField: Field? = null
     private var entityLivingPotionEffectColor: DataWatcherObject<Int>? = null
 
     init {
@@ -46,10 +44,6 @@ class VolatileCode1_17_R1: VolatileCodeHandle {
 
             this.entityFallingBlockFallHurtMaxField = EntityFallingBlock::class.java.getDeclaredField("aq")
             this.entityFallingBlockFallHurtMaxField!!.isAccessible = true
-
-            this.craftMetaSkullClass = Class.forName("org.bukkit.craftbukkit.v1_17_R1.inventory.CraftMetaSkull")
-            this.craftMetaSkullProfileField = this.craftMetaSkullClass!!.getDeclaredField("profile")
-            this.craftMetaSkullProfileField!!.isAccessible = true
 
             val entityLivingPotionEffectColorField = EntityLiving::class.java.getDeclaredField("bK")
             entityLivingPotionEffectColorField.isAccessible = true;
