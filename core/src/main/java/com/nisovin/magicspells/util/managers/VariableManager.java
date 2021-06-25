@@ -396,13 +396,13 @@ public class VariableManager {
 		if (player == null || player.isEmpty()) return;
 		if (var instanceof GlobalVariable) {
 			double pct = var.getValue("") / var.getMaxValue();
-			Util.forEachPlayerOnline(p -> MagicSpells.getVolatileCodeHandler().setExperienceBar(p, (int) var.getValue(""), (float) pct));
+			Util.forEachPlayerOnline(p -> p.sendExperienceChange((float) pct, (int) var.getValue("")));
 			return;
 		}
 		if (var instanceof PlayerVariable) {
 			Player p = PlayerNameUtils.getPlayerExact(player);
 			if (p == null) return;
-			MagicSpells.getVolatileCodeHandler().setExperienceBar(p, (int) var.getValue(p), (float) (var.getValue(p) / var.getMaxValue()));
+			p.sendExperienceChange((float) (var.getValue(p) / var.getMaxValue()), (int) var.getValue(p));
 		}
 	}
 
@@ -566,7 +566,7 @@ public class VariableManager {
 	public void loadExpBar(Player player) {
 		for (Variable var : variables.values()) {
 			if (!var.isDisplayedOnExpBar()) continue;
-			MagicSpells.getVolatileCodeHandler().setExperienceBar(player, (int) var.getValue(player), (float) (var.getValue(player) / var.getMaxValue()));
+			player.sendExperienceChange((float) (var.getValue(player) / var.getMaxValue()), (int) var.getValue(player));
 			break;
 		}
 	}

@@ -4,6 +4,7 @@ import java.util.*;
 
 import co.aikar.commands.ACFUtil;
 
+import com.nisovin.magicspells.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -288,7 +289,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			}
 			// Select and finalise item to display.
 			ItemStack item = (option.item != null ? option.item : option.items.get(Util.getRandomInt(option.items.size()))).clone();
-			item = MagicSpells.getVolatileCodeHandler().setNBTString(item, "menuOption", option.menuOptionName);
+			item = ItemUtil.setPersistentString(item, "menuOption", option.menuOptionName);
 			item = translateItem(opener, args, item);
 
 			int quantity;
@@ -355,7 +356,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	private String castSpells(Player player, ItemStack item, ClickType click) {
 		// Outside inventory.
 		if (item == null) return stayOpenNonOption ? "ignore" : "close";
-		String key = MagicSpells.getVolatileCodeHandler().getNBTString(item, "menuOption");
+		String key = ItemUtil.getPersistentString(item, "menuOption");
 		// Probably a filler or air.
 		if (key == null || key.isEmpty() || !options.containsKey(key)) return stayOpenNonOption ? "ignore" : "close";
 		MenuOption option = options.get(key);

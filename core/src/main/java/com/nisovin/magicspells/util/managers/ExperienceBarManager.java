@@ -23,7 +23,7 @@ public class ExperienceBarManager {
 			if (player.getOpenInventory().getType() == InventoryType.ENCHANTING) return;
 			if (percent < 0F) percent = 0F;
 			if (percent > 1F) percent = 1F;
-			MagicSpells.getVolatileCodeHandler().setExperienceBar(player, level, percent);
+			player.sendExperienceChange(percent, level);
 		}
 	}
 	

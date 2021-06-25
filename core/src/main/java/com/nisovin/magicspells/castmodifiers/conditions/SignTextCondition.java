@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import com.nisovin.magicspells.util.Util;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.block.Block;
@@ -28,7 +29,7 @@ public class SignTextCondition extends Condition {
 
 			for (int i = 0; i < sign.length; i++) {
 				String replaced = sign[i].replaceAll("__", " ");
-				text[i] = MagicSpells.getVolatileCodeHandler().colorize(replaced);
+				text[i] = Util.colorize(replaced);
 			}
 
 			return true;

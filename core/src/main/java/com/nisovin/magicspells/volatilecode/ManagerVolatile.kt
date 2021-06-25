@@ -12,13 +12,11 @@ object ManagerVolatile {
             val volatileCode = Class.forName("com.nisovin.magicspells.volatilecode.$nmsPackage.VolatileCode${nmsPackage.replace("v", "")}")
 
             MagicSpells.log("Found volatile code handler for $nmsPackage.")
-            var volatileCodeHandle = volatileCode.getDeclaredConstructor().newInstance() as VolatileCodeHandle;
-            return volatileCodeHandle
+            return volatileCode.getDeclaredConstructor().newInstance() as VolatileCodeHandle;
         } catch (ex: Exception) {
             // No volatile code handler found
         }
 
         return VolatileCodeDisabled()
     }
-
 }

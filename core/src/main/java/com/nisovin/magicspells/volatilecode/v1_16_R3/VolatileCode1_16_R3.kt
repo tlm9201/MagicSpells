@@ -93,10 +93,6 @@ class VolatileCode1_16_R3: VolatileCodeHandle {
         return event.isCancelled
     }
 
-    override fun setExperienceBar(player: Player, level: Int, percent: Float) {
-        player.sendExperienceChange(percent, level)
-    }
-
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
         val efb = (block as CraftFallingBlock).handle
         try {
@@ -140,30 +136,6 @@ class VolatileCode1_16_R3: VolatileCodeHandle {
         (player as CraftPlayer).handle.playerConnection.sendPacket(packet)
     }
 
-    override fun colorize(message: String?): String? {
-        val matcher = ColorUtil.HEX_PATTERN.matcher(org.bukkit.ChatColor.translateAlternateColorCodes('&', message!!))
-        val buffer = StringBuffer()
-        while (matcher.find()) {
-            try {
-                matcher.appendReplacement(buffer, ChatColor.of(matcher.group(1).toUpperCase()).toString())
-            } catch (exception: IllegalArgumentException) {
-                // ignored
-            }
-        }
-        return matcher.appendTail(buffer).toString()
-    }
-
-    override fun setNBTString(item: ItemStack, key: String, value: String): ItemStack {
-        val meta = if (item.hasItemMeta()) item.itemMeta else Bukkit.getItemFactory().getItemMeta(item.type)
-        meta?.persistentDataContainer?.set(NamespacedKey(MagicSpells.plugin, key), PersistentDataType.STRING, value)
-        item.itemMeta = meta
-        return item
-    }
-
-    override fun getNBTString(item: ItemStack, key: String): String? {
-        return item.itemMeta?.persistentDataContainer?.get(NamespacedKey(MagicSpells.plugin, key), PersistentDataType.STRING)
-    }
-
     override fun setInventoryTitle(player: Player, title: String) {
         val entityPlayer = (player as CraftPlayer).handle
         val container = entityPlayer.activeContainer
@@ -171,10 +143,5 @@ class VolatileCode1_16_R3: VolatileCodeHandle {
         entityPlayer.playerConnection.sendPacket(packet)
         entityPlayer.updateInventory(container)
     }
-
-    override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe {
-        return SmithingRecipe(namespaceKey, result, RecipeChoice.MaterialChoice(base), RecipeChoice.MaterialChoice(addition))
-    }
-
 }
 */
