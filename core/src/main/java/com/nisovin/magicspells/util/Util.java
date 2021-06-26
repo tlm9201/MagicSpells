@@ -8,6 +8,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -651,7 +652,16 @@ public class Util {
 	}
 
 	public static String colorize(String string) {
-		return MagicSpells.getVolatileCodeHandler().colorize(string);
+		Matcher matcher = ColorUtil.HEX_PATTERN.matcher(org.bukkit.ChatColor.translateAlternateColorCodes('&', string));
+		StringBuffer buffer = new StringBuffer();
+		while (matcher.find()) {
+			try {
+				matcher.appendReplacement(buffer, net.md_5.bungee.api.ChatColor.of(matcher.group(1).toUpperCase()).toString());
+			} catch (IllegalArgumentException ex) {
+				// ignored
+			}
+		}
+		return matcher.appendTail(buffer).toString();
 	}
 
 	public static String decolorize(String string) {

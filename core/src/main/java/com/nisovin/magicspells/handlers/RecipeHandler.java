@@ -183,7 +183,7 @@ public class RecipeHandler implements Listener {
         if (base == null) return null;
         Material addition = getMaterial(config.getString("base"), "Recipe '" + config.getName() + "' has an invalid 'addition' defined.");
         if (addition == null) return null;
-        Recipe recipe = MagicSpells.getVolatileCodeHandler().createSmithingRecipe(namespaceKey, result, base, addition);
+        Recipe recipe = new SmithingRecipe(namespaceKey, result, new RecipeChoice.MaterialChoice(base), new RecipeChoice.MaterialChoice(addition));
         if (recipe == null) MagicSpells.error("Recipe type 'stonecutting' on recipe '" + config.getName() + "' is unsupported on this version of spigot.");
         return recipe;
     }

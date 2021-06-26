@@ -1,11 +1,13 @@
 package com.nisovin.magicspells.util;
 
+import com.nisovin.magicspells.MagicSpells;
 import org.bukkit.Material;
 import org.bukkit.inventory.*;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.persistence.PersistentDataType;
 
 public class ItemUtil {
 
@@ -79,4 +81,13 @@ public class ItemUtil {
 		return recipe;
 	}
 
+	public static String getPersistentString(ItemStack itemStack, String key) {
+		return itemStack.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(MagicSpells.getInstance(), key), PersistentDataType.STRING);
+	}
+
+	public static ItemStack setPersistentString(ItemStack itemStack, String key, String value) {
+		ItemMeta meta = itemStack.getItemMeta();
+		meta.getPersistentDataContainer().set(new NamespacedKey(MagicSpells.getInstance(), key), PersistentDataType.STRING, value);
+		return itemStack;
+	}
 }

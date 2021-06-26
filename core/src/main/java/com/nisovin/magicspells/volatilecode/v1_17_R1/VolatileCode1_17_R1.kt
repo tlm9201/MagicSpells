@@ -3,15 +3,11 @@ package com.nisovin.magicspells.volatilecode.v1_17_R1
 import java.lang.reflect.Field
 
 import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.entity.*
-import org.bukkit.inventory.*
+import org.bukkit.Location
 import org.bukkit.util.Vector
-import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.craftbukkit.v1_17_R1.entity.*
-import org.bukkit.persistence.PersistentDataType
 import org.bukkit.craftbukkit.v1_17_R1.CraftWorld
 import org.bukkit.event.entity.ExplosionPrimeEvent
 import org.bukkit.craftbukkit.v1_17_R1.CraftServer
@@ -19,22 +15,19 @@ import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack
 
 import com.nisovin.magicspells.util.*
 import com.nisovin.magicspells.MagicSpells
-import com.nisovin.magicspells.util.ColorUtil
 import com.nisovin.magicspells.util.compat.EventUtil
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 
-import net.md_5.bungee.api.ChatColor
-import net.minecraft.network.chat.ChatMessage
-import net.minecraft.network.protocol.game.*
-import net.minecraft.network.syncher.DataWatcherObject
-
-import net.minecraft.server.*
-import net.minecraft.world.entity.EntityLiving
-import net.minecraft.world.entity.EntityTypes
-import net.minecraft.world.entity.boss.enderdragon.EntityEnderDragon
-import net.minecraft.world.entity.item.EntityFallingBlock
-import net.minecraft.world.entity.item.EntityTNTPrimed
 import net.minecraft.world.phys.Vec3D
+import net.minecraft.network.protocol.game.*
+import net.minecraft.network.chat.ChatMessage
+import net.minecraft.world.entity.EntityTypes
+import net.minecraft.world.entity.EntityLiving
+import net.minecraft.world.item.alchemy.PotionUtil
+import net.minecraft.network.syncher.DataWatcherObject
+import net.minecraft.world.entity.item.EntityTNTPrimed
+import net.minecraft.world.entity.item.EntityFallingBlock
+import net.minecraft.world.entity.boss.enderdragon.EntityEnderDragon
 
 private typealias nmsItemStack = net.minecraft.world.item.ItemStack
 
@@ -42,23 +35,17 @@ class VolatileCode1_17_R1: VolatileCodeHandle {
 
     private var entityFallingBlockFallHurtAmountField: Field? = null
     private var entityFallingBlockFallHurtMaxField: Field? = null
-    private var craftMetaSkullClass: Class<*>? = null
-    private var craftMetaSkullProfileField: Field? = null
     private var entityLivingPotionEffectColor: DataWatcherObject<Int>? = null
 
     init {
         try {
-            this.entityFallingBlockFallHurtAmountField = EntityFallingBlock::class.java.getDeclaredField("fallHurtAmount")
+            this.entityFallingBlockFallHurtAmountField = EntityFallingBlock::class.java.getDeclaredField("ar")
             this.entityFallingBlockFallHurtAmountField!!.isAccessible = true
 
-            this.entityFallingBlockFallHurtMaxField = EntityFallingBlock::class.java.getDeclaredField("fallHurtMax")
+            this.entityFallingBlockFallHurtMaxField = EntityFallingBlock::class.java.getDeclaredField("aq")
             this.entityFallingBlockFallHurtMaxField!!.isAccessible = true
 
-            this.craftMetaSkullClass = Class.forName("org.bukkit.craftbukkit.v1_17_R1.inventory.CraftMetaSkull")
-            this.craftMetaSkullProfileField = this.craftMetaSkullClass!!.getDeclaredField("profile")
-            this.craftMetaSkullProfileField!!.isAccessible = true
-
-            val entityLivingPotionEffectColorField = EntityLiving::class.java.getDeclaredField("f")
+            val entityLivingPotionEffectColorField = EntityLiving::class.java.getDeclaredField("bK")
             entityLivingPotionEffectColorField.isAccessible = true;
             this.entityLivingPotionEffectColor = entityLivingPotionEffectColorField.get(null) as DataWatcherObject<Int>
         } catch (e: Exception) {
@@ -68,29 +55,29 @@ class VolatileCode1_17_R1: VolatileCodeHandle {
     }
 
     override fun addPotionGraphicalEffect(entity: LivingEntity, color: Int, duration: Int) {
-        /*val livingEntity = (entity as CraftLivingEntity).handle;
+        val livingEntity = (entity as CraftLivingEntity).handle;
         val dataWatcher = livingEntity.dataWatcher;
         dataWatcher.set(entityLivingPotionEffectColor, color)
         if (duration > 0) {
             MagicSpells.scheduleDelayedTask({
                 var c = 0
                 if (livingEntity.effects.isNotEmpty()) {
-                    c = PotionUtil.a(livingEntity.effects.values)
+                    c = PotionUtil.a(livingEntity.effects)
                 }
                 dataWatcher.set(entityLivingPotionEffectColor, c)
             }, duration)
-        } */
+        }
     }
 
     override fun sendFakeSlotUpdate(player: Player, slot: Int, item: ItemStack?) {
-        /*val nmsItem: nmsItemStack?
+        val nmsItem: nmsItemStack?
         if (item != null) {
             nmsItem = CraftItemStack.asNMSCopy(item)
         } else {
             nmsItem = null
         }
         val packet = PacketPlayOutSetSlot(0, slot.toShort() + 36, nmsItem!!)
-        (player as CraftPlayer).handle.playerConnection.sendPacket(packet) */
+        (player as CraftPlayer).handle.b.sendPacket(packet)
     }
 
     override fun simulateTnt(target: Location, source: LivingEntity, explosionSize: Float, fire: Boolean): Boolean {
@@ -99,10 +86,6 @@ class VolatileCode1_17_R1: VolatileCodeHandle {
         val event = ExplosionPrimeEvent(c, explosionSize, fire)
         EventUtil.call(event)
         return event.isCancelled
-    }
-
-    override fun setExperienceBar(player: Player, level: Int, percent: Float) {
-        player.sendExperienceChange(percent, level)
     }
 
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
@@ -118,7 +101,7 @@ class VolatileCode1_17_R1: VolatileCodeHandle {
     }
 
     override fun playDragonDeathEffect(location: Location) {
-        /*val dragon = EntityEnderDragon(EntityTypes.v, (location.world as CraftWorld).handle)
+        val dragon = EntityEnderDragon(EntityTypes.v, (location.world as CraftWorld).handle)
         dragon.setPositionRotation(location.x, location.y, location.z, location.yaw, 0f)
 
         val packet24 = PacketPlayOutSpawnEntityLiving(dragon)
@@ -130,58 +113,29 @@ class VolatileCode1_17_R1: VolatileCodeHandle {
         for (player in location.world!!.players) {
             if (!box.contains(player)) continue
             players.add(player)
-            (player as CraftPlayer).handle.playerConnection.sendPacket(packet24)
-            player.handle.playerConnection.sendPacket(packet38)
+            (player as CraftPlayer).handle.b.sendPacket(packet24)
+            player.handle.b.sendPacket(packet38)
         }
 
         MagicSpells.scheduleDelayedTask({
             for (player in players) {
                 if (player.isValid) {
-                    (player as CraftPlayer).handle.playerConnection.sendPacket(packet29)
+                    (player as CraftPlayer).handle.b.sendPacket(packet29)
                 }
             }
-        }, 250)*/
+        }, 250)
     }
 
     override fun setClientVelocity(player: Player, velocity: Vector) {
-        /*val packet = PacketPlayOutEntityVelocity(player.entityId, Vec3D(velocity.x, velocity.y, velocity.z))
-        (player as CraftPlayer).handle.playerConnection.sendPacket(packet)*/
-    }
-
-    override fun colorize(message: String?): String? {
-        val matcher = ColorUtil.HEX_PATTERN.matcher(org.bukkit.ChatColor.translateAlternateColorCodes('&', message!!))
-        val buffer = StringBuffer()
-        while (matcher.find()) {
-            try {
-                matcher.appendReplacement(buffer, ChatColor.of(matcher.group(1).uppercase()).toString())
-            } catch (exception: IllegalArgumentException) {
-                // ignored
-            }
-        }
-        return matcher.appendTail(buffer).toString()
-    }
-
-    override fun setNBTString(item: ItemStack, key: String, value: String): ItemStack {
-        val meta = if (item.hasItemMeta()) item.itemMeta else Bukkit.getItemFactory().getItemMeta(item.type)
-        meta?.persistentDataContainer?.set(NamespacedKey(MagicSpells.plugin, key), PersistentDataType.STRING, value)
-        item.itemMeta = meta
-        return item
-    }
-
-    override fun getNBTString(item: ItemStack, key: String): String? {
-        return item.itemMeta?.persistentDataContainer?.get(NamespacedKey(MagicSpells.plugin, key), PersistentDataType.STRING)
+        val packet = PacketPlayOutEntityVelocity(player.entityId, Vec3D(velocity.x, velocity.y, velocity.z))
+        (player as CraftPlayer).handle.b.sendPacket(packet)
     }
 
     override fun setInventoryTitle(player: Player, title: String) {
-        /*val entityPlayer = (player as CraftPlayer).handle
-        val container = entityPlayer.activeContainer
-        val packet = PacketPlayOutOpenWindow(container.windowId, container.type, ChatMessage(title))
-        entityPlayer.playerConnection.sendPacket(packet)
-        entityPlayer.updateInventory(container)*/
+        val entityPlayer = (player as CraftPlayer).handle
+        val container = entityPlayer.bV
+        val packet = PacketPlayOutOpenWindow(container.j, container.type, ChatMessage(title))
+        entityPlayer.b.sendPacket(packet)
+        player.updateInventory()
     }
-
-    override fun createSmithingRecipe(namespaceKey: NamespacedKey, result: ItemStack, base: Material, addition: Material): Recipe {
-        return SmithingRecipe(namespaceKey, result, RecipeChoice.MaterialChoice(base), RecipeChoice.MaterialChoice(addition))
-    }
-
 }
