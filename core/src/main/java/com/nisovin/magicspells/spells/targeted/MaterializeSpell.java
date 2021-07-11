@@ -148,9 +148,9 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			Player player = (Player) livingEntity;
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			Player player = (Player) caster;
 			List<Block> lastTwo;
 			try {
 				lastTwo = getLastTwoTargetedBlocks(player, power);
@@ -179,8 +179,8 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			//This is the top-left edge of the shape array
 			Location patternStart = against.getLocation();
 
-			patternStart.setX(against.getX() - Math.ceil(rowSize/2));
-			patternStart.setZ(against.getZ() - Math.ceil(columnSize/2));
+			patternStart.setX(against.getX() - Math.ceil(rowSize / 2));
+			patternStart.setZ(against.getZ() - Math.ceil(columnSize / 2));
 
 			//spawnBlock is the current position in the loop where it will spawn the block
 			Location spawnBlock = patternStart;

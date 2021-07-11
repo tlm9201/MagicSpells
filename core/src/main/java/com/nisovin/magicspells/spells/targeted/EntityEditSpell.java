@@ -31,14 +31,14 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
-			if (target == null) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			if (target == null) return noTarget(caster);
 
 			applyAttributes(target.getTarget());
-			playSpellEffects(livingEntity, target.getTarget());
-			sendMessages(livingEntity, target.getTarget(), args);
+			playSpellEffects(caster, target.getTarget());
+			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

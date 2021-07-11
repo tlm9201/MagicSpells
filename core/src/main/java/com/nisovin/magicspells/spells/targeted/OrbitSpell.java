@@ -133,20 +133,20 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
-				if (target == null) return noTarget(livingEntity);
-				new OrbitTracker(livingEntity, target.getTarget(), target.getPower());
-				playSpellEffects(livingEntity, target.getTarget());
-				sendMessages(livingEntity, target.getTarget(), args);
+				TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+				if (target == null) return noTarget(caster);
+				new OrbitTracker(caster, target.getTarget(), target.getPower());
+				playSpellEffects(caster, target.getTarget());
+				sendMessages(caster, target.getTarget(), args);
 				return PostCastAction.NO_MESSAGES;
 			}
 
-			Block block = getTargetedBlock(livingEntity, power);
+			Block block = getTargetedBlock(caster, power);
 			if (block != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, block.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, block.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) block = null;
 				else {
@@ -155,9 +155,9 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 			}
 
-			if (block == null) return noTarget(livingEntity);
+			if (block == null) return noTarget(caster);
 
-			new OrbitTracker(livingEntity, block.getLocation().add(0.5, 0, 0.5), power);
+			new OrbitTracker(caster, block.getLocation().add(0.5, 0, 0.5), power);
 			return PostCastAction.HANDLE_NORMALLY;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

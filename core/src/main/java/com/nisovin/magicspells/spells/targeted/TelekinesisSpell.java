@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.HashSet;
 
+import com.nisovin.magicspells.util.Util;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -31,23 +32,11 @@ public class TelekinesisSpell extends TargetedSpell implements TargetedLocationS
 		losTransparentBlocks = new HashSet<>(losTransparentBlocks);
 		losTransparentBlocks.remove(Material.LEVER);
 
-		losTransparentBlocks.remove(Material.OAK_BUTTON);
-		losTransparentBlocks.remove(Material.BIRCH_BUTTON);
-		losTransparentBlocks.remove(Material.STONE_BUTTON);
-		losTransparentBlocks.remove(Material.ACACIA_BUTTON);
-		losTransparentBlocks.remove(Material.JUNGLE_BUTTON);
-		losTransparentBlocks.remove(Material.SPRUCE_BUTTON);
-		losTransparentBlocks.remove(Material.DARK_OAK_BUTTON);
-
-		losTransparentBlocks.remove(Material.OAK_PRESSURE_PLATE);
-		losTransparentBlocks.remove(Material.BIRCH_PRESSURE_PLATE);
-		losTransparentBlocks.remove(Material.STONE_PRESSURE_PLATE);
-		losTransparentBlocks.remove(Material.ACACIA_PRESSURE_PLATE);
-		losTransparentBlocks.remove(Material.JUNGLE_PRESSURE_PLATE);
-		losTransparentBlocks.remove(Material.SPRUCE_PRESSURE_PLATE);
-		losTransparentBlocks.remove(Material.DARK_OAK_PRESSURE_PLATE);
-		losTransparentBlocks.remove(Material.HEAVY_WEIGHTED_PRESSURE_PLATE);
-		losTransparentBlocks.remove(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
+		for (Material material : Material.values()) {
+			if (!material.name().toUpperCase().contains("PRESSURE_PLATE")
+					&& !material.name().toUpperCase().contains("BUTTON")) continue;
+			losTransparentBlocks.remove(material);
+		}
 	}
 	
 	@Override

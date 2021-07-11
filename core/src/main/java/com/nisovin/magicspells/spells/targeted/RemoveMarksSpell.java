@@ -52,16 +52,16 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location loc = null;
-			if (pointBlank) loc = livingEntity.getLocation();
+			if (pointBlank) loc = caster.getLocation();
 			else {
-				Block b = getTargetedBlock(livingEntity, power);
+				Block b = getTargetedBlock(caster, power);
 				if (b != null && !BlockUtils.isAir(b.getType())) loc = b.getLocation();
 			}
-			if (loc == null) return noTarget(livingEntity);
-			removeMarks(livingEntity, loc, power);
+			if (loc == null) return noTarget(caster);
+			removeMarks(caster, loc, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

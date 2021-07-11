@@ -34,7 +34,7 @@ public class ResetSpell extends CommandSpell {
 	// Arg format should be <player[,player[,player...]]>|all
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 		
 		}

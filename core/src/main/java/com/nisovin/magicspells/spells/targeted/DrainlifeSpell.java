@@ -97,14 +97,14 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
-			if (target == null) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			if (target == null) return noTarget(caster);
 
-			boolean drained = drain(livingEntity, target.getTarget(), target.getPower());
-			if (!drained) return noTarget(livingEntity);
-			sendMessages(livingEntity, target.getTarget(), args);
+			boolean drained = drain(caster, target.getTarget(), target.getPower());
+			if (!drained) return noTarget(caster);
+			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -137,7 +137,7 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 		if (target instanceof Player) pl = (Player) target;
 
 		switch (takeType) {
-			case STR_HEALTH:
+			case STR_HEALTH -> {
 				if (pl != null && checkPlugins) {
 					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(livingEntity, pl, damageType, take, this);
 					EventUtil.call(event);
@@ -145,11 +145,9 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 					if (!avoidDamageModification) take = event.getDamage();
 					livingEntity.setLastDamageCause(event);
 				}
-
 				SpellApplyDamageEvent event = new SpellApplyDamageEvent(this, livingEntity, target, take, damageType, spellDamageType);
 				EventUtil.call(event);
 				take = event.getFinalDamage();
-
 				if (ignoreArmor) {
 					double health = target.getHealth();
 					if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
@@ -160,27 +158,26 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 					target.setHealth(health);
 					target.playEffect(EntityEffect.HURT);
 				} else target.damage(take, livingEntity);
-
-				break;
-			case STR_MANA:
+			}
+			case STR_MANA -> {
 				if (pl == null) break;
 				boolean removed = MagicSpells.getManaHandler().removeMana(pl, (int) Math.round(take), ManaChangeReason.OTHER);
 				if (!removed) give = 0;
-				break;
-			case STR_HUNGER:
+			}
+			case STR_HUNGER -> {
 				if (pl == null) break;
 				int food = pl.getFoodLevel();
 				if (give > food) give = food;
 				food -= take;
 				if (food < MIN_FOOD_LEVEL) food = MIN_FOOD_LEVEL;
 				pl.setFoodLevel(food);
-				break;
-			case STR_EXPERIENCE:
+			}
+			case STR_EXPERIENCE -> {
 				if (pl == null) break;
 				int exp = ExperienceUtils.getCurrentExp(pl);
 				if (give > exp) give = exp;
 				ExperienceUtils.changeExp(pl, (int) Math.round(-take));
-				break;
+			}
 		}
 		
 		if (instant) {
@@ -195,25 +192,25 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 	
 	private void giveToCaster(LivingEntity caster, double give) {
 		switch (giveType) {
-			case STR_HEALTH:
+			case STR_HEALTH -> {
 				double h = caster.getHealth() + give;
 				if (h > Util.getMaxHealth(caster)) h = Util.getMaxHealth(caster);
 				caster.setHealth(h);
-				break;
-			case STR_MANA:
+			}
+			case STR_MANA -> {
 				if (caster instanceof Player) MagicSpells.getManaHandler().addMana((Player) caster, (int) give, ManaChangeReason.OTHER);
-				break;
-			case STR_HUNGER:
+			}
+			case STR_HUNGER -> {
 				if (caster instanceof Player) {
 					int food = ((Player) caster).getFoodLevel();
 					food += give;
 					if (food > MAX_FOOD_LEVEL) food = MAX_FOOD_LEVEL;
 					((Player) caster).setFoodLevel(food);
 				}
-				break;
-			case STR_EXPERIENCE:
+			}
+			case STR_EXPERIENCE -> {
 				if (caster instanceof Player) ExperienceUtils.changeExp((Player) caster, (int) give);
-				break;
+			}
 		}
 	}
 

@@ -101,32 +101,32 @@ public class PortalSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Location loc = firstMark.getEffectiveMark(livingEntity);
+			Location loc = firstMark.getEffectiveMark(caster);
 			Location locSecond;
 			if (loc == null) {
-				sendMessage(strNoMark, livingEntity, args);
+				sendMessage(strNoMark, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
 			if (usingSecondMarkSpell) {
-				locSecond = secondMark.getEffectiveMark(livingEntity);
+				locSecond = secondMark.getEffectiveMark(caster);
 				if (locSecond == null) {
-					sendMessage(strNoMark, livingEntity, args);
+					sendMessage(strNoMark, caster, args);
 					return PostCastAction.ALREADY_HANDLED;
 				}
-			} else locSecond = livingEntity.getLocation();
+			} else locSecond = caster.getLocation();
 
 			double distanceSq = 0;
 			if (maxDistanceSq > 0) {
 				if (!loc.getWorld().equals(locSecond.getWorld())) {
-					sendMessage(strTooFar, livingEntity, args);
+					sendMessage(strTooFar, caster, args);
 					return PostCastAction.ALREADY_HANDLED;
 				} else {
 					distanceSq = locSecond.distanceSquared(loc);
 					if (distanceSq > maxDistanceSq) {
-						sendMessage(strTooFar, livingEntity, args);
+						sendMessage(strTooFar, caster, args);
 						return PostCastAction.ALREADY_HANDLED;
 					}
 				}
@@ -135,14 +135,14 @@ public class PortalSpell extends InstantSpell {
 				if (loc.getWorld().equals(locSecond.getWorld())) {
 					if (distanceSq == 0) distanceSq = locSecond.distanceSquared(loc);
 					if (distanceSq < minDistanceSq) {
-						sendMessage(strTooClose, livingEntity, args);
+						sendMessage(strTooClose, caster, args);
 						return PostCastAction.ALREADY_HANDLED;
 					}
 				}
 			}
 
-			new PortalLink(this, livingEntity, loc, locSecond);
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			new PortalLink(this, caster, loc, locSecond);
+			playSpellEffects(EffectPosition.CASTER, caster);
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;

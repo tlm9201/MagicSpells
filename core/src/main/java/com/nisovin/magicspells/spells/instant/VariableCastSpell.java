@@ -30,9 +30,9 @@ public class VariableCastSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			Player player = (Player) livingEntity;
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			Player player = (Player) caster;
 
 			if (variableName == null) return PostCastAction.HANDLE_NORMALLY;
 			String value = MagicSpells.getVariableManager().getVariable(variableName).getStringValue(player);

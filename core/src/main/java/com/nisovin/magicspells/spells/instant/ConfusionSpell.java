@@ -27,9 +27,9 @@ public class ConfusionSpell extends InstantSpell implements TargetedLocationSpel
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			confuse(livingEntity, livingEntity.getLocation(), power);
+			confuse(caster, caster.getLocation(), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

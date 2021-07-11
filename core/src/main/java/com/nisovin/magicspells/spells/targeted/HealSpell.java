@@ -44,16 +44,16 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power, checker);
-			if (targetInfo == null) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, checker);
+			if (targetInfo == null) return noTarget(caster);
 			LivingEntity target = targetInfo.getTarget();
 			power = targetInfo.getPower();
-			if (cancelIfFull && target.getHealth() == Util.getMaxHealth(target)) return noTarget(livingEntity, formatMessage(strMaxHealth, "%t", getTargetName(target)));
-			boolean healed = heal(livingEntity, target, power);
-			if (!healed) return noTarget(livingEntity);
-			sendMessages(livingEntity, target, args);
+			if (cancelIfFull && target.getHealth() == Util.getMaxHealth(target)) return noTarget(caster, formatMessage(strMaxHealth, "%t", getTargetName(target)));
+			boolean healed = heal(caster, target, power);
+			if (!healed) return noTarget(caster);
+			sendMessages(caster, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -79,10 +79,9 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 	private boolean heal(LivingEntity livingEntity, LivingEntity target, float power) {
 		double health = target.getHealth();
 		double amount;
+
 		if (healPercent == 0) amount = healAmount * power;
-		else {
-			amount = (Util.getMaxHealth(livingEntity) - health) * (healPercent/100F);
-		}
+		else amount = (Util.getMaxHealth(livingEntity) - health) * (healPercent / 100F);
 
 		if (checkPlugins) {
 			MagicSpellsEntityRegainHealthEvent event = new MagicSpellsEntityRegainHealthEvent(target, amount, RegainReason.CUSTOM);

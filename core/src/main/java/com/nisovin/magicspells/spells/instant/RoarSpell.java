@@ -33,27 +33,27 @@ public class RoarSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 
 			int count = 0;
-			List<Entity> entities = livingEntity.getNearbyEntities(radius, radius, radius);
+			List<Entity> entities = caster.getNearbyEntities(radius, radius, radius);
 
 			for (Entity entity : entities) {
 				if (!(entity instanceof LivingEntity)) continue;
 				if (entity instanceof Player) continue;
-				if (!validTargetList.canTarget(livingEntity, entity)) continue;
-				MobUtil.setTarget((LivingEntity) entity, livingEntity);
-				playSpellEffectsTrail(livingEntity.getLocation(), entity.getLocation());
+				if (!validTargetList.canTarget(caster, entity)) continue;
+				MobUtil.setTarget((LivingEntity) entity, caster);
+				playSpellEffectsTrail(caster.getLocation(), entity.getLocation());
 				playSpellEffects(EffectPosition.TARGET, entity);
 				count++;
 			}
 
 			if (cancelIfNoTargets && count == 0) {
-				sendMessage(strNoTarget, livingEntity, args);
+				sendMessage(strNoTarget, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

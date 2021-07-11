@@ -80,9 +80,9 @@ public class RitualSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (spellToCast == null || !(livingEntity instanceof Player)) return PostCastAction.ALREADY_HANDLED;
-		Player player = (Player) livingEntity;
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (spellToCast == null || !(caster instanceof Player)) return PostCastAction.ALREADY_HANDLED;
+		Player player = (Player) caster;
 		if (activeRituals.containsKey(player)) {
 			ActiveRitual channel = activeRituals.remove(player);
 			channel.stop(strRitualInterrupted);

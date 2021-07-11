@@ -38,6 +38,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	private boolean pointBlank;
 	private boolean circleShape;
 	private boolean useProximity;
+	private boolean passTargeting;
 	private boolean failIfNoTargets;
 	private boolean reverseProximity;
 	private boolean spellSourceInCenter;
@@ -56,6 +57,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		pointBlank = getConfigBoolean("point-blank", true);
 		circleShape = getConfigBoolean("circle-shape", false);
 		useProximity = getConfigBoolean("use-proximity", false);
+		passTargeting = getConfigBoolean("pass-targeting", true);
 		failIfNoTargets = getConfigBoolean("fail-if-no-targets", true);
 		reverseProximity = getConfigBoolean("reverse-proximity", false);
 		spellSourceInCenter = getConfigBoolean("spell-source-in-center", false);
@@ -233,9 +235,9 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 	private void castSpells(LivingEntity caster, Location location, LivingEntity target, float power) {
 		for (Subspell spell : spells) {
-			if (spellSourceInCenter && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(caster, location, target, power);
-			else if (caster != null && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(caster, caster.getLocation(), target, power);
-			else if (spell.isTargetedEntitySpell()) spell.castAtEntity(caster, target, power);
+			if (spellSourceInCenter && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(caster, location, target, power, passTargeting);
+			else if (caster != null && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(caster, caster.getLocation(), target, power, passTargeting);
+			else if (spell.isTargetedEntitySpell()) spell.castAtEntity(caster, target, power, passTargeting);
 			else if (spell.isTargetedLocationSpell()) spell.castAtLocation(caster, target.getLocation(), power);
 		}
 	}

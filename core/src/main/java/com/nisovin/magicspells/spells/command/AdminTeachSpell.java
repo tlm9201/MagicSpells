@@ -30,7 +30,7 @@ public class AdminTeachSpell extends CommandSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

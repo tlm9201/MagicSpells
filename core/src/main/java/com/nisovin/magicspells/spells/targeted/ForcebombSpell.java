@@ -47,11 +47,11 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block block = getTargetedBlock(livingEntity, power);
+			Block block = getTargetedBlock(caster, power);
 			if (block != null && !BlockUtils.isAir(block.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, block.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, block.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) block = null;
 				else {
@@ -60,8 +60,8 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 				}
 			}
 
-			if (block == null || BlockUtils.isAir(block.getType())) return noTarget(livingEntity);
-			knockback(livingEntity, block.getLocation().add(0.5, 0, 0.5), power);
+			if (block == null || BlockUtils.isAir(block.getType())) return noTarget(caster);
+			knockback(caster, block.getLocation().add(0.5, 0, 0.5), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

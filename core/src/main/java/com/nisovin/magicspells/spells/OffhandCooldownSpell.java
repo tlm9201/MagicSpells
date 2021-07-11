@@ -74,9 +74,9 @@ public class OffhandCooldownSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			players.add((Player) livingEntity);
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			players.add((Player) caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

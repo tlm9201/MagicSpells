@@ -62,18 +62,18 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
-			if (target == null) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			if (target == null) return noTarget(caster);
 			
 			LivingEntity realTarget = target.getTarget();
 			
 			boolean disarmed = disarm(realTarget);
-			if (!disarmed) return noTarget(livingEntity, strInvalidItem);
+			if (!disarmed) return noTarget(caster, strInvalidItem);
 
-			playSpellEffects(livingEntity, realTarget);
-			sendMessages(livingEntity, realTarget, args);
+			playSpellEffects(caster, realTarget);
+			sendMessages(caster, realTarget, args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

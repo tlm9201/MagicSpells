@@ -228,68 +228,77 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location loc = null;
 			LivingEntity target = null;
-			
-			if (location.equalsIgnoreCase("focus")) {
-				loc = getRandomLocationFrom(livingEntity.getLocation(), 3);
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
-				if (targetInfo == null) return noTarget(livingEntity);
-				target = targetInfo.getTarget();
-				power = targetInfo.getPower();
-			} else if (location.equalsIgnoreCase("target")) {
-				Block block = getTargetedBlock(livingEntity, power);
-				if (block != null && block.getType() != Material.AIR) {
-					if (BlockUtils.isPathable(block)) loc = block.getLocation();
-					else if (BlockUtils.isPathable(block.getRelative(BlockFace.UP))) loc = block.getLocation().add(0, 1, 0);
+
+			switch (location.toLowerCase()) {
+				case "focus" -> {
+					loc = getRandomLocationFrom(caster.getLocation(), 3);
+					TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+					if (targetInfo == null) return noTarget(caster);
+					target = targetInfo.getTarget();
+					power = targetInfo.getPower();
 				}
-			} else if (location.equalsIgnoreCase("caster")) loc = livingEntity.getLocation();
-			else if (location.equalsIgnoreCase("random")) loc = getRandomLocationFrom(livingEntity.getLocation(), getRange(power));
-			else if (location.startsWith("casteroffset:")) {
-				String[] split = location.split(":");
-				float y = Float.parseFloat(split[1]);
-				loc = livingEntity.getLocation().add(0, y, 0);
-				loc.setPitch(0);
+				case "target" -> {
+					Block block = getTargetedBlock(caster, power);
+					if (block != null && block.getType() != Material.AIR) {
+						if (BlockUtils.isPathable(block)) loc = block.getLocation();
+						else if (BlockUtils.isPathable(block.getRelative(BlockFace.UP))) loc = block.getLocation().add(0, 1, 0);
+					}
+				}
+				case "caster" -> loc = caster.getLocation();
+				case "random" -> loc = getRandomLocationFrom(caster.getLocation(), getRange(power));
+				case "casteroffset" -> {
+					String[] split = location.split(":");
+					float y = Float.parseFloat(split[1]);
+					loc = caster.getLocation().add(0, y, 0);
+					loc.setPitch(0);
+				}
 			}
 			
-			if (loc == null) return noTarget(livingEntity);
-			spawnMob(livingEntity, livingEntity.getLocation(), loc, target, power);
+			if (loc == null) return noTarget(caster);
+			spawnMob(caster, caster.getLocation(), loc, target, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		if (location.equalsIgnoreCase("target")) spawnMob(caster, caster.getLocation(), target, null, power);
-		else if (location.equalsIgnoreCase("caster")) spawnMob(caster, caster.getLocation(), caster.getLocation(), null, power);
-		else if (location.equalsIgnoreCase("random")) {
-			Location loc = getRandomLocationFrom(target, getRange(power));
-			if (loc != null) spawnMob(caster, caster.getLocation(), loc, null, power);
-		} else if (location.startsWith("offset:")) {
-			String[] split = location.split(":");
-			float y = Float.parseFloat(split[1]);
-			Location loc = target.clone().add(0, y, 0);
-			loc.setPitch(0);
-			spawnMob(caster, caster.getLocation(), loc, null, power);
+		switch (location.toLowerCase()) {
+			case "target" -> spawnMob(caster, caster.getLocation(), target, null, power);
+			case "caster" -> spawnMob(caster, caster.getLocation(), caster.getLocation(), null, power);
+			case "random" -> {
+				Location loc = getRandomLocationFrom(target, getRange(power));
+				if (loc != null) spawnMob(caster, caster.getLocation(), loc, null, power);
+			}
+			case "offset" -> {
+				String[] split = location.split(":");
+				float y = Float.parseFloat(split[1]);
+				Location loc = target.clone().add(0, y, 0);
+				loc.setPitch(0);
+				spawnMob(caster, caster.getLocation(), loc, null, power);
+			}
 		}
 		return true;
 	}
 	
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		if (location.equalsIgnoreCase("target")) spawnMob(null, target, target, null, power);
-		else if (location.equalsIgnoreCase("caster")) spawnMob(null, target, target, null, power);
-		else if (location.equalsIgnoreCase("random")) {
-			Location loc = getRandomLocationFrom(target, getRange(power));
-			if (loc != null) spawnMob(null, target, loc, null, power);
-		} else if (location.startsWith("offset:")) {
-			String[] split = location.split(":");
-			float y = Float.parseFloat(split[1]);
-			Location loc = target.clone().add(0, y, 0);
-			loc.setPitch(0);
-			spawnMob(null, target, loc, null, power);
+		switch (location.toLowerCase()) {
+			case "target", "caster" -> spawnMob(null, target, target, null, power);
+			case "random" -> {
+				Location loc = getRandomLocationFrom(target, getRange(power));
+				if (loc != null) spawnMob(null, target, loc, null, power);
+			}
+			case "offset" -> {
+				String[] split = location.split(":");
+				float y = Float.parseFloat(split[1]);
+				Location loc = target.clone().add(0, y, 0);
+				loc.setPitch(0);
+				spawnMob(null, target, loc, null, power);
+			}
 		}
 		return true;
 	}

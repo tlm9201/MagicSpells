@@ -220,21 +220,21 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location loc = null;
-			if (pointBlank) loc = livingEntity.getLocation();
+			if (pointBlank) loc = caster.getLocation();
 			else {
 				try {
-					Block block = getTargetedBlock(livingEntity, power);
+					Block block = getTargetedBlock(caster, power);
 					if (block != null && !BlockUtils.isAir(block.getType())) loc = block.getLocation();
 				} catch (IllegalStateException e) {
 					loc = null;
 				}
 			}
-			if (loc == null) return noTarget(livingEntity);
+			if (loc == null) return noTarget(caster);
 
-			modify(livingEntity, loc);
+			modify(caster, loc);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

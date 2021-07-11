@@ -61,27 +61,13 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 		String vType = getConfigString("velocity-type", "none");
 
 		switch (vType) {
-			case "up":
-				velocityType = VelocityType.UP;
-				break;
-			case "random":
-				velocityType = VelocityType.RANDOM;
-				break;
-			case "randomup":
-				velocityType = VelocityType.RANDOMUP;
-				break;
-			case "down":
-				velocityType = VelocityType.DOWN;
-				break;
-			case "toward":
-				velocityType = VelocityType.TOWARD;
-				break;
-			case "away":
-				velocityType = VelocityType.AWAY;
-				break;
-			default:
-				velocityType = VelocityType.NONE;
-				break;
+			case "up" -> velocityType = VelocityType.UP;
+			case "random" -> velocityType = VelocityType.RANDOM;
+			case "randomup", "random_up" -> velocityType = VelocityType.RANDOM_UP;
+			case "down" -> velocityType = VelocityType.DOWN;
+			case "toward" -> velocityType = VelocityType.TOWARD;
+			case "away" -> velocityType = VelocityType.AWAY;
+			default -> velocityType = VelocityType.NONE;
 		}
 
 		fallingBlocks = new HashSet<>();
@@ -116,19 +102,19 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block b = getTargetedBlock(livingEntity, power);
+			Block b = getTargetedBlock(caster, power);
 			if (b != null && !BlockUtils.isAir(b.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, b.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, b.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) b = null;
 				else b = event.getTargetLocation().getBlock();
 			}
 			if (b != null && !BlockUtils.isAir(b.getType())) {
 				Location loc = b.getLocation().add(0.5, 0.5, 0.5);
-				doIt(livingEntity, livingEntity.getLocation(), loc);
-				playSpellEffects(livingEntity, loc);
+				doIt(caster, caster.getLocation(), loc);
+				playSpellEffects(caster, loc);
 			}
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -213,7 +199,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 			} else if (velocityType == VelocityType.RANDOM) {
 				v = new Vector(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
 				v.normalize().multiply(velocity);
-			} else if (velocityType == VelocityType.RANDOMUP) {
+			} else if (velocityType == VelocityType.RANDOM_UP) {
 				v = new Vector(Math.random() - 0.5, Math.random() / 2, Math.random() - 0.5);
 				v.normalize().multiply(velocity);
 				fb.setVelocity(v);
@@ -231,7 +217,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 
 	}
 
-	class FallingBlockListener implements Listener {
+	private class FallingBlockListener implements Listener {
 
 		@EventHandler
 		public void onBlockLand(EntityChangeBlockEvent event) {
@@ -246,7 +232,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 		NONE,
 		UP,
 		RANDOM,
-		RANDOMUP,
+		RANDOM_UP,
 		DOWN,
 		TOWARD,
 		AWAY

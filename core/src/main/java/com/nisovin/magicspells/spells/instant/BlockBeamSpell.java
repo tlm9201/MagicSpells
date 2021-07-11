@@ -168,9 +168,9 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			new BlockBeam(livingEntity, livingEntity.getLocation(), power);
+			new BlockBeam(caster, caster.getLocation(), power);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;

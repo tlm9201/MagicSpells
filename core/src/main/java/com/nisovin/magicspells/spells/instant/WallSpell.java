@@ -112,15 +112,15 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			if (materials == null || materials.isEmpty()) return PostCastAction.ALREADY_HANDLED;
-			Block target = getTargetedBlock(livingEntity, distance > 0 && distance < 15 ? distance : 3);
+			Block target = getTargetedBlock(caster, distance > 0 && distance < 15 ? distance : 3);
 			if (target == null || !BlockUtils.isAir(target.getType())) {
-				sendMessage(strNoTarget, livingEntity, args);
+				sendMessage(strNoTarget, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
-			makeWall(livingEntity, target.getLocation(), livingEntity.getLocation().getDirection(), power);
+			makeWall(caster, target.getLocation(), caster.getLocation().getDirection(), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

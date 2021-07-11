@@ -87,14 +87,14 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block target = pasteAtCaster ? livingEntity.getLocation().getBlock() : getTargetedBlock(livingEntity, power);
-			if (target == null) return noTarget(livingEntity);
+			Block target = pasteAtCaster ? caster.getLocation().getBlock() : getTargetedBlock(caster, power);
+			if (target == null) return noTarget(caster);
 			Location loc = target.getLocation();
 			loc.add(0, yOffset, 0);
 			boolean ok = castAtLocation(loc, power);
-			if (!ok) return noTarget(livingEntity);
+			if (!ok) return noTarget(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

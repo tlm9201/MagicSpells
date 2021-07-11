@@ -158,26 +158,26 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location locToSpawn = null;
 
 			if (canTargetEntities) {
-				TargetInfo<LivingEntity> targetEntityInfo = getTargetedEntity(livingEntity, power);
+				TargetInfo<LivingEntity> targetEntityInfo = getTargetedEntity(caster, power);
 				if (targetEntityInfo != null && targetEntityInfo.getTarget() != null) locToSpawn = targetEntityInfo.getTarget().getLocation();
 			}
 
 			if (canTargetLocation && locToSpawn == null) {
-				Block targetBlock = getTargetedBlock(livingEntity, power);
+				Block targetBlock = getTargetedBlock(caster, power);
 				if (targetBlock != null) locToSpawn = targetBlock.getLocation().add(0.5, 1, 0.5);
 			}
 
-			if (locToSpawn == null) return noTarget(livingEntity);
+			if (locToSpawn == null) return noTarget(caster);
 
-			locToSpawn.setDirection(livingEntity.getLocation().getDirection());
+			locToSpawn.setDirection(caster.getLocation().getDirection());
 
 			AreaEffectCloud cloud = spawnCloud(locToSpawn);
-			cloud.setSource(livingEntity);
+			cloud.setSource(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

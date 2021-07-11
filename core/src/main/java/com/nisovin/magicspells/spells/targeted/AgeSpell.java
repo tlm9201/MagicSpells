@@ -23,11 +23,11 @@ public class AgeSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetEntityInfo = getTargetedEntity(livingEntity, power);
-			if (targetEntityInfo == null || targetEntityInfo.getTarget() == null) return noTarget(livingEntity);
-			if (!(targetEntityInfo.getTarget() instanceof Ageable)) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> targetEntityInfo = getTargetedEntity(caster, power);
+			if (targetEntityInfo == null || targetEntityInfo.getTarget() == null) return noTarget(caster);
+			if (!(targetEntityInfo.getTarget() instanceof Ageable)) return noTarget(caster);
 
 			Ageable a = (Ageable) targetEntityInfo.getTarget();
 			applyAgeChanges(a);

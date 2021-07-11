@@ -40,12 +40,12 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			List<Item> items = getNearbyItems(livingEntity.getLocation(), radius * power);
-			magnet(livingEntity.getLocation(), items, power);
+			List<Item> items = getNearbyItems(caster.getLocation(), radius * power);
+			magnet(caster.getLocation(), items, power);
 		}
-		playSpellEffects(EffectPosition.CASTER, livingEntity);
+		playSpellEffects(EffectPosition.CASTER, caster);
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

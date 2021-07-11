@@ -36,12 +36,12 @@ public class SlotSelectSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(livingEntity, power);
-			if (targetInfo == null) return noTarget(livingEntity);
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power);
+			if (targetInfo == null) return noTarget(caster);
 			Player target = targetInfo.getTarget();
-			if (target == null) return noTarget(livingEntity);
+			if (target == null) return noTarget(caster);
 			slotChange(target);
 		}
 		return PostCastAction.HANDLE_NORMALLY;

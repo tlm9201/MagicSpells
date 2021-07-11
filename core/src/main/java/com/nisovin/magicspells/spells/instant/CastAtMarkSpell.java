@@ -62,15 +62,15 @@ public class CastAtMarkSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (!initialized) return PostCastAction.HANDLE_NORMALLY;
 		if (state == SpellCastState.NORMAL) {
-			Location effectiveMark = markSpell.getEffectiveMark(livingEntity);
+			Location effectiveMark = markSpell.getEffectiveMark(caster);
 			if (effectiveMark == null) {
-				sendMessage(livingEntity, strNoMark);
+				sendMessage(caster, strNoMark);
 				return PostCastAction.HANDLE_NORMALLY;
 			}
-			spellToCast.castAtLocation(livingEntity, effectiveMark, power);
+			spellToCast.castAtLocation(caster, effectiveMark, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

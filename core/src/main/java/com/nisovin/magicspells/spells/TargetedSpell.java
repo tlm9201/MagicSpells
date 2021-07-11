@@ -15,8 +15,8 @@ import com.nisovin.magicspells.util.ValidTargetChecker;
 
 public abstract class TargetedSpell extends InstantSpell {
 
-	static private Pattern chatVarCasterMatchPattern = Pattern.compile("%castervar:[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-	static private Pattern chatVarTargetMatchPattern = Pattern.compile("%targetvar:[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern chatVarCasterMatchPattern = Pattern.compile("%castervar:[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern chatVarTargetMatchPattern = chatVarCasterMatchPattern;
 
 	protected boolean targetSelf;
 	protected boolean alwaysActivate;
@@ -123,7 +123,7 @@ public abstract class TargetedSpell extends InstantSpell {
 	 * This should be called if a target should not be found. It sends the no target message
 	 * and returns the appropriate return value.
 	 * @param livingEntity the casting living entity
-	 * @return the appropriate PostcastAction value
+	 * @return the appropriate PostCastAction value
 	 */
 	protected PostCastAction noTarget(LivingEntity livingEntity) {
 		return noTarget(livingEntity, strNoTarget);
@@ -134,7 +134,7 @@ public abstract class TargetedSpell extends InstantSpell {
 	 * and returns the appropriate return value.
 	 * @param livingEntity the casting living entity
 	 * @param message the message to send
-	 * @return
+	 * @return the appropriate PostCastAction value
 	 */
 	protected PostCastAction noTarget(LivingEntity livingEntity, String message) {
 		fizzle(livingEntity);
