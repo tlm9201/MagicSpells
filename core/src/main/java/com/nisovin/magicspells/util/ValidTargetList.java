@@ -308,7 +308,6 @@ public class ValidTargetList {
 
 	@Override
 	public ValidTargetList clone() {
-		//ValidTargetList list = new ValidTargetList(spell, targetList);
 		return new ValidTargetList(spell, targetList);
 	}
 	
