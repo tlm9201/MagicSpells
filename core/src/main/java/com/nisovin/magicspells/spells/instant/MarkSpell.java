@@ -67,11 +67,11 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			marks.put(getKey(livingEntity), new MagicLocation(livingEntity.getLocation()));
+			marks.put(getKey(caster), new MagicLocation(caster.getLocation()));
 			if (permanentMarks) saveMarks();
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

@@ -47,14 +47,14 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power, getValidTargetChecker());
-			if (target == null) return noTarget(livingEntity);
-			boolean ok = capture(livingEntity, target.getTarget(), target.getPower());
-			if (!ok) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, getValidTargetChecker());
+			if (target == null) return noTarget(caster);
+			boolean ok = capture(caster, target.getTarget(), target.getPower());
+			if (!ok) return noTarget(caster);
 
-			sendMessages(livingEntity, target.getTarget(), args);
+			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

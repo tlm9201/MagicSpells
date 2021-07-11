@@ -863,14 +863,14 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	// DEBUG INFO: level 3, args argsvalue
 	PostCastAction handleCast(SpellCastEvent spellCast) {
 		long start = System.nanoTime();
-		LivingEntity livingEntity = spellCast.getCaster();
+		LivingEntity caster = spellCast.getCaster();
 		SpellCastState state = spellCast.getSpellCastState();
 		String[] args = spellCast.getSpellArgs();
 		float power = spellCast.getPower();
 		debug(3, "    Power: " + power);
 		debug(3, "    Cooldown: " + cooldown);
 		if (MagicSpells.isDebug() && args != null && args.length > 0) debug(3, "    Args: {" + Util.arrayJoin(args, ',') + '}');
-		PostCastAction action = castSpell(livingEntity, state, power, args);
+		PostCastAction action = castSpell(caster, state, power, args);
 		if (MagicSpells.hasProfilingEnabled()) {
 			Long total = MagicSpells.getProfilingTotalTime().get(profilingKey);
 			if (total == null) total = (long) 0;
@@ -889,33 +889,33 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	// DEBUG INFO: level 3, post cast action actionName
 	protected void postCast(SpellCastEvent spellCast, PostCastAction action) {
 		debug(3, "    Post-cast action: " + action);
-		LivingEntity livingEntity = spellCast.getCaster();
+		LivingEntity caster = spellCast.getCaster();
 		SpellCastState state = spellCast.getSpellCastState();
 		if (action != null && action != PostCastAction.ALREADY_HANDLED) {
 			if (state == SpellCastState.NORMAL) {
-				if (action.setCooldown()) setCooldown(livingEntity, spellCast.getCooldown());
-				if (action.chargeReagents()) removeReagents(livingEntity, spellCast.getReagents());
-				if (action.sendMessages()) sendMessages(livingEntity, spellCast.getSpellArgs());
-				if (experience > 0 && livingEntity instanceof Player) ((Player) livingEntity).giveExp(experience);
+				if (action.setCooldown()) setCooldown(caster, spellCast.getCooldown());
+				if (action.chargeReagents()) removeReagents(caster, spellCast.getReagents());
+				if (action.sendMessages()) sendMessages(caster, spellCast.getSpellArgs());
+				if (experience > 0 && caster instanceof Player) ((Player) caster).giveExp(experience);
 			} else if (state == SpellCastState.ON_COOLDOWN) {
-				MagicSpells.sendMessageAndFormat(strOnCooldown, livingEntity, spellCast.getSpellArgs(),
-					"%c", Math.round(getCooldown(livingEntity)) + "", "%s", spellCast.getSpell().getName());
-				playSpellEffects(EffectPosition.COOLDOWN, livingEntity);
-				if (soundOnCooldown != null && livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), soundOnCooldown, 1F, 1F);
+				MagicSpells.sendMessageAndFormat(strOnCooldown, caster, spellCast.getSpellArgs(),
+					"%c", Math.round(getCooldown(caster)) + "", "%s", spellCast.getSpell().getName());
+				playSpellEffects(EffectPosition.COOLDOWN, caster);
+				if (soundOnCooldown != null && caster instanceof Player) ((Player) caster).playSound(caster.getLocation(), soundOnCooldown, 1F, 1F);
 			} else if (state == SpellCastState.MISSING_REAGENTS) {
-				MagicSpells.sendMessage(strMissingReagents, livingEntity, spellCast.getSpellArgs());
-				playSpellEffects(EffectPosition.MISSING_REAGENTS, livingEntity);
-				if (MagicSpells.showStrCostOnMissingReagents() && strCost != null && !strCost.isEmpty()) MagicSpells.sendMessage("    (" + strCost + ')', livingEntity, spellCast.getSpellArgs());
-				if (soundMissingReagents != null && livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), soundMissingReagents, 1F, 1F);
+				MagicSpells.sendMessage(strMissingReagents, caster, spellCast.getSpellArgs());
+				playSpellEffects(EffectPosition.MISSING_REAGENTS, caster);
+				if (MagicSpells.showStrCostOnMissingReagents() && strCost != null && !strCost.isEmpty()) MagicSpells.sendMessage("    (" + strCost + ')', caster, spellCast.getSpellArgs());
+				if (soundMissingReagents != null && caster instanceof Player) ((Player) caster).playSound(caster.getLocation(), soundMissingReagents, 1F, 1F);
 			} else if (state == SpellCastState.CANT_CAST) {
-				MagicSpells.sendMessage(strCantCast, livingEntity, spellCast.getSpellArgs());
+				MagicSpells.sendMessage(strCantCast, caster, spellCast.getSpellArgs());
 			} else if (state == SpellCastState.NO_MAGIC_ZONE) {
-				MagicSpells.getNoMagicZoneManager().sendNoMagicMessage(livingEntity, this);
+				MagicSpells.getNoMagicZoneManager().sendNoMagicMessage(caster, this);
 			} else if (state == SpellCastState.WRONG_WORLD) {
-				MagicSpells.sendMessage(strWrongWorld, livingEntity, spellCast.getSpellArgs());
+				MagicSpells.sendMessage(strWrongWorld, caster, spellCast.getSpellArgs());
 			}
 		}
-		SpellCastedEvent event = new SpellCastedEvent(this, livingEntity, state, spellCast.getPower(), spellCast.getSpellArgs(), cooldown, reagents, action);
+		SpellCastedEvent event = new SpellCastedEvent(this, caster, state, spellCast.getPower(), spellCast.getSpellArgs(), cooldown, reagents, action);
 		EventUtil.call(event);
 	}
 
@@ -933,13 +933,13 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	// TODO can this safely be made varargs?
 	/**
 	 * This method is called when a player casts a spell, either by command, with a wand item, or otherwise.
-	 * @param livingEntity the living entity casting the spell
+	 * @param caster the living entity casting the spell
 	 * @param state the state of the spell cast (normal, on cooldown, missing reagents, etc)
 	 * @param power the power multiplier the spell should be cast with (1.0 is normal)
 	 * @param args the spell arguments, if cast by command
 	 * @return the action to take after the spell is processed
 	 */
-	public abstract PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args);
+	public abstract PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args);
 
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		return null;
@@ -1951,6 +1951,14 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public Multimap<String, VariableMod> getVariableModsTarget() {
 		return variableModsTarget;
+	}
+
+	public ValidTargetList getValidTargetList() {
+		return validTargetList;
+	}
+
+	public void setValidTargetList(ValidTargetList validTargetList) {
+		this.validTargetList = validTargetList;
 	}
 
 	void setCooldownManually(UUID uuid, long nextCast) {

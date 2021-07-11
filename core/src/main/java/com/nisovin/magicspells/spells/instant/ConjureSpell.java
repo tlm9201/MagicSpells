@@ -230,11 +230,11 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (itemTypes == null) return PostCastAction.ALREADY_HANDLED;
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			if (delay >= 0) MagicSpells.scheduleDelayedTask(() -> conjureItems((Player) livingEntity, power), delay);
-			else conjureItems((Player) livingEntity, power);
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			if (delay >= 0) MagicSpells.scheduleDelayedTask(() -> conjureItems((Player) caster, power), delay);
+			else conjureItems((Player) caster, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 		

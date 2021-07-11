@@ -61,16 +61,16 @@ public class ShearSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
 			if (target == null) return PostCastAction.ALREADY_HANDLED;
 			if (!(target.getTarget() instanceof Sheep)) return PostCastAction.ALREADY_HANDLED;
 
 			boolean done = shear((Sheep) target.getTarget());
-			if (!done) return noTarget(livingEntity);
+			if (!done) return noTarget(caster);
 
-			sendMessages(livingEntity, target.getTarget(), args);
+			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

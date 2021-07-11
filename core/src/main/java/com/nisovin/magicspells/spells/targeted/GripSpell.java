@@ -40,13 +40,13 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
-			if (target == null) return noTarget(livingEntity);
-			if (!grip(livingEntity.getLocation(), target.getTarget())) return noTarget(livingEntity, strCantGrip);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			if (target == null) return noTarget(caster);
+			if (!grip(caster.getLocation(), target.getTarget())) return noTarget(caster, strCantGrip);
 
-			sendMessages(livingEntity, target.getTarget(), args);
+			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

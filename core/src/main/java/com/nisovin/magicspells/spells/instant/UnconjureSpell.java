@@ -47,9 +47,9 @@ public class UnconjureSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			Player player = (Player) livingEntity;
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			Player player = (Player) caster;
 			PlayerInventory inventory = player.getInventory();
 
 			ItemStack[] contents = new ItemStack[1];

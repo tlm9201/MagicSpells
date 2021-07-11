@@ -13,9 +13,9 @@ public class CraftSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			((Player) livingEntity).openWorkbench(null, true);
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			((Player) caster).openWorkbench(null, true);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

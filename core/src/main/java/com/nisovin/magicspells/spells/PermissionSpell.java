@@ -22,12 +22,12 @@ public class PermissionSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && duration > 0 && permissionNodes != null) {
 			for (String node : permissionNodes) {
-				livingEntity.addAttachment(MagicSpells.plugin, node, true, duration);
+				caster.addAttachment(MagicSpells.plugin, node, true, duration);
 			}
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

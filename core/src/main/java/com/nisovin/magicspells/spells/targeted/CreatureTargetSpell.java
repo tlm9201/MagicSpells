@@ -35,9 +35,9 @@ public class CreatureTargetSpell extends TargetedSpell implements TargetedEntity
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			castSpells(livingEntity, power);
+			castSpells(caster, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

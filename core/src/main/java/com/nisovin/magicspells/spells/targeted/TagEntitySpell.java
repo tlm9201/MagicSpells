@@ -26,14 +26,14 @@ public class TagEntitySpell extends TargetedSpell implements TargetedEntitySpell
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
-			if (targetInfo == null) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			if (targetInfo == null) return noTarget(caster);
 			LivingEntity target = targetInfo.getTarget();
-			if (target == null) return noTarget(livingEntity);
-			tag(livingEntity, target);
-			playSpellEffects(livingEntity, target);
+			if (target == null) return noTarget(caster);
+			tag(caster, target);
+			playSpellEffects(caster, target);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
@@ -59,20 +59,13 @@ public class TagEntitySpell extends TargetedSpell implements TargetedEntitySpell
 			varTag = MagicSpells.doVariableReplacements((Player) caster, varTag);
 		}
 		switch (operation) {
-			case "add":
-			case "insert":
-				target.addScoreboardTag(varTag);
-				break;
-			case "remove":
-			case "take":
-				target.removeScoreboardTag(varTag);
-				break;
-			case "clear":
+			case "add", "insert" -> target.addScoreboardTag(varTag);
+			case "remove", "take" -> target.removeScoreboardTag(varTag);
+			case "clear" -> {
 				Set<String> tags = new HashSet<>(target.getScoreboardTags());
 				tags.forEach(target::removeScoreboardTag);
-				break;
-			default:
-				MagicSpells.error("TagEntitySpell '" + internalName + "' has an invalid operation defined!");
+			}
+			default -> MagicSpells.error("TagEntitySpell '" + internalName + "' has an invalid operation defined!");
 		}
 	}
 

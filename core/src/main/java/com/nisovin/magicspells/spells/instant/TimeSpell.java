@@ -24,9 +24,9 @@ public class TimeSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			World world = livingEntity.getWorld();
+			World world = caster.getWorld();
 			setTime(world);
 		}
 		return PostCastAction.HANDLE_NORMALLY;

@@ -27,14 +27,14 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			int range = getRange(power);
 			if (range <= 0) range = 25;
 			if (range > 125) range = 125;
 			BlockIterator iter; 
 			try {
-				iter = new BlockIterator(livingEntity, range > 0 && range <= 125 ? range : 125);
+				iter = new BlockIterator(caster, range > 0 && range <= 125 ? range : 125);
 			} catch (IllegalStateException e) {
 				iter = null;
 			}
@@ -54,7 +54,7 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 				}
 			}
 
-			if (found == null) return noTarget(livingEntity, strCantBlink);
+			if (found == null) return noTarget(caster, strCantBlink);
 
 			Location loc = null;
 			if (!passThroughCeiling && found.getRelative(0, -1, 0).equals(prev)) {
@@ -71,22 +71,22 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 				loc = prev.getLocation();
 			}
 			if (loc != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, loc, power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, loc, power);
 				EventUtil.call(event);
 
 				if (event.isCancelled()) loc = null;
 				else loc = event.getTargetLocation();
 			}
 
-			if (loc == null) return noTarget(livingEntity, strCantBlink);
+			if (loc == null) return noTarget(caster, strCantBlink);
 
 			loc.setX(loc.getX() + 0.5);
 			loc.setZ(loc.getZ() + 0.5);
-			loc.setPitch(livingEntity.getLocation().getPitch());
-			loc.setYaw(livingEntity.getLocation().getYaw());
+			loc.setPitch(caster.getLocation().getPitch());
+			loc.setYaw(caster.getLocation().getYaw());
 
-			playSpellEffects(livingEntity, loc);
-			livingEntity.teleport(loc);
+			playSpellEffects(caster, loc);
+			caster.teleport(loc);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

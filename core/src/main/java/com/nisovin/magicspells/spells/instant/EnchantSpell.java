@@ -42,12 +42,12 @@ public class EnchantSpell extends InstantSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			ItemStack targetItem = livingEntity.getEquipment().getItemInMainHand();
+			ItemStack targetItem = caster.getEquipment().getItemInMainHand();
 			if (targetItem == null) return PostCastAction.ALREADY_HANDLED;
 			enchant(targetItem);
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

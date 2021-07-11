@@ -34,13 +34,13 @@ public class VelocitySpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Vector v = livingEntity.getEyeLocation().getDirection().normalize().multiply(speed * power);
-			if (addVelocityInstead) livingEntity.setVelocity(livingEntity.getVelocity().add(v));
-			else livingEntity.setVelocity(v);
-			jumping.add(livingEntity.getUniqueId());
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			Vector v = caster.getEyeLocation().getDirection().normalize().multiply(speed * power);
+			if (addVelocityInstead) caster.setVelocity(caster.getVelocity().add(v));
+			else caster.setVelocity(v);
+			jumping.add(caster.getUniqueId());
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

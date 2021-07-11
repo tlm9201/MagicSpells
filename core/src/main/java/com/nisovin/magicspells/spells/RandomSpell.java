@@ -59,23 +59,23 @@ public class RandomSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			RandomOptionSet set = options;
 			if (checkIndividualCooldowns || checkIndividualModifiers) {
 				set = new RandomOptionSet();
 				for (SpellOption o : options.randomOptionSetOptions) {
-					if (checkIndividualCooldowns && o.spell.getSpell().onCooldown(livingEntity)) continue;
+					if (checkIndividualCooldowns && o.spell.getSpell().onCooldown(caster)) continue;
 					if (checkIndividualModifiers) {
 						ModifierSet modifiers = o.spell.getSpell().getModifiers();
-						if (modifiers != null && livingEntity instanceof Player && !modifiers.check((Player) livingEntity)) continue;
+						if (modifiers != null && caster instanceof Player && !modifiers.check((Player) caster)) continue;
 					}
 					set.add(o);
 				}
 			}
 			if (!set.randomOptionSetOptions.isEmpty()) {
 				Subspell spell = set.choose();
-				if (spell != null) return spell.cast(livingEntity, power);
+				if (spell != null) return spell.cast(caster, power);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			return PostCastAction.ALREADY_HANDLED;

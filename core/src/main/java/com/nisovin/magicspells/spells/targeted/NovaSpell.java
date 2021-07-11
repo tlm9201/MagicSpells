@@ -106,13 +106,13 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState spellCastState, float power, String[] strings) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState spellCastState, float power, String[] strings) {
 		if (spellCastState == SpellCastState.NORMAL) {
 			Location loc;
-			if (pointBlank) loc = livingEntity.getLocation();
-			else loc = getTargetedBlock(livingEntity, power).getLocation();
+			if (pointBlank) loc = caster.getLocation();
+			else loc = getTargetedBlock(caster, power).getLocation();
 			
-			createNova(livingEntity, loc, power);
+			createNova(caster, loc, power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

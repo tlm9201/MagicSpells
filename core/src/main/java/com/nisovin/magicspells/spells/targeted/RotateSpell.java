@@ -37,12 +37,12 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
-			if (target == null) return noTarget(livingEntity);
-			spin(livingEntity, target.getTarget());
-			playSpellEffects(livingEntity, target.getTarget());
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			if (target == null) return noTarget(caster);
+			spin(caster, target.getTarget());
+			playSpellEffects(caster, target.getTarget());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -96,22 +96,18 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 		Location loc;
 		switch (face) {
-			case "target":
-				caster.teleport(changeDirection(casterLoc, targetLoc));
-				break;
-			case "caster":
-				target.teleport(changeDirection(targetLoc, casterLoc));
-				break;
-			case "away-from-caster":
+			case "target" -> caster.teleport(changeDirection(casterLoc, targetLoc));
+			case "caster" -> target.teleport(changeDirection(targetLoc, casterLoc));
+			case "away-from-caster" -> {
 				loc = changeDirection(targetLoc, casterLoc);
 				loc.setYaw(loc.getYaw() + 180);
 				target.teleport(loc);
-				break;
-			case "away-from-target":
+			}
+			case "away-from-target" -> {
 				loc = changeDirection(casterLoc, targetLoc);
 				loc.setYaw(loc.getYaw() + 180);
 				caster.teleport(loc);
-				break;
+			}
 		}
 
 	}

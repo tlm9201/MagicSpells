@@ -25,13 +25,13 @@ public class EntitySelectSpell extends TargetedSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
-			if (targetInfo == null || targetInfo.getTarget() == null) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			if (targetInfo == null || targetInfo.getTarget() == null) return noTarget(caster);
 			
-			targets.put(livingEntity.getUniqueId(), new WeakReference<>(targetInfo.getTarget()));
-			sendMessages(livingEntity, targetInfo.getTarget(), args);
+			targets.put(caster.getUniqueId(), new WeakReference<>(targetInfo.getTarget()));
+			sendMessages(caster, targetInfo.getTarget(), args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

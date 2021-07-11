@@ -73,15 +73,15 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			List<Block> blocks = getLastTwoTargetedBlocks(livingEntity, power);
-			if (blocks.size() != 2) return noTarget(livingEntity);
-			if (!blocks.get(1).getType().isSolid()) return noTarget(livingEntity);
+			List<Block> blocks = getLastTwoTargetedBlocks(caster, power);
+			if (blocks.size() != 2) return noTarget(caster);
+			if (!blocks.get(1).getType().isSolid()) return noTarget(caster);
 
 			Block target = blocks.get(0);
-			boolean ok = bomb(livingEntity, target.getLocation(), power);
-			if (!ok) return noTarget(livingEntity);
+			boolean ok = bomb(caster, target.getLocation(), power);
+			if (!ok) return noTarget(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

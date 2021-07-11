@@ -43,13 +43,13 @@ public class SlimeSizeSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
-			if (targetInfo == null) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			if (targetInfo == null) return noTarget(caster);
 
 			LivingEntity targetEntity = targetInfo.getTarget();
-			setSize(livingEntity, targetEntity);
+			setSize(caster, targetEntity);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

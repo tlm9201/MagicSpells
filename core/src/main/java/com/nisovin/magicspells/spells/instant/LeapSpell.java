@@ -65,21 +65,21 @@ public class LeapSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Vector v = livingEntity.getLocation().getDirection();
+			Vector v = caster.getLocation().getDirection();
 			v.setY(0).normalize().multiply(forwardVelocity * power).setY(upwardVelocity * power);
 			if (rotation != 0) Util.rotateVector(v, rotation);
 			v = Util.makeFinite(v);
 
-			if (clientOnly && livingEntity instanceof Player) MagicSpells.getVolatileCodeHandler().setClientVelocity((Player) livingEntity, v);
+			if (clientOnly && caster instanceof Player) MagicSpells.getVolatileCodeHandler().setClientVelocity((Player) caster, v);
 			else {
-				if (addVelocityInstead) livingEntity.setVelocity(livingEntity.getVelocity().add(v));
-				else livingEntity.setVelocity(v);
+				if (addVelocityInstead) caster.setVelocity(caster.getVelocity().add(v));
+				else caster.setVelocity(v);
 			}
 
-			jumping.add(livingEntity.getUniqueId());
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			jumping.add(caster.getUniqueId());
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

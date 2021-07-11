@@ -73,22 +73,22 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location locTarget = null;
 			LivingEntity entTarget = null;
 			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> info = getTargetedEntity(livingEntity, power);
+				TargetInfo<LivingEntity> info = getTargetedEntity(caster, power);
 				if (info != null) {
 					entTarget = info.getTarget();
 					power = info.getPower();
 				}
 			} else if (pointBlank) {
-				locTarget = livingEntity.getLocation();
+				locTarget = caster.getLocation();
 			} else {
 				Block b;
 				try {
-					b = getTargetedBlock(livingEntity, power);
+					b = getTargetedBlock(caster, power);
 					if (b != null && !BlockUtils.isAir(b.getType())) {
 						locTarget = b.getLocation();
 						locTarget.add(0.5, 0, 0.5);
@@ -97,17 +97,17 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 					DebugHandler.debugIllegalState(e);
 				}
 			}
-			if (locTarget == null && entTarget == null) return noTarget(livingEntity);
+			if (locTarget == null && entTarget == null) return noTarget(caster);
 			if (locTarget != null) {
 				locTarget.setY(locTarget.getY() + yOffset);
-				locTarget.setDirection(livingEntity.getLocation().getDirection());
+				locTarget.setDirection(caster.getLocation().getDirection());
 			}
 			
-			boolean somethingWasDone = runSpells(livingEntity, entTarget, locTarget, power);
-			if (!somethingWasDone) return noTarget(livingEntity);
+			boolean somethingWasDone = runSpells(caster, entTarget, locTarget, power);
+			if (!somethingWasDone) return noTarget(caster);
 			
 			if (entTarget != null) {
-				sendMessages(livingEntity, entTarget, args);
+				sendMessages(caster, entTarget, args);
 				return PostCastAction.NO_MESSAGES;
 			}
 		}

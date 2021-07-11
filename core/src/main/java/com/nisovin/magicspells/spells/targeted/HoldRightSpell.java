@@ -61,27 +61,27 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			CastData data = casting.get(livingEntity.getUniqueId());
-			if (data != null && data.isValid(livingEntity)) {
-				data.cast(livingEntity);
+			CastData data = casting.get(caster.getUniqueId());
+			if (data != null && data.isValid(caster)) {
+				data.cast(caster);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
 			if (targetEntity) {
-				TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
+				TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
 				if (target != null) data = new CastData(target.getTarget(), target.getPower());
-				else return noTarget(livingEntity);
+				else return noTarget(caster);
 			} else if (targetLocation) {
-				Block block = getTargetedBlock(livingEntity, power);
+				Block block = getTargetedBlock(caster, power);
 				if (block != null && block.getType() != Material.AIR) data = new CastData(block.getLocation().add(0.5, 0.5, 0.5), power);
-				else return noTarget(livingEntity);
+				else return noTarget(caster);
 			} else data = new CastData(power);
 
 			if (data != null) {
-				data.cast(livingEntity);
-				casting.put(livingEntity.getUniqueId(), data);
+				data.cast(caster);
+				casting.put(caster.getUniqueId(), data);
 			}
 		}
 		return PostCastAction.HANDLE_NORMALLY;

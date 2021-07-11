@@ -58,18 +58,18 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Block target;
 			try {
-				target = getTargetedBlock(livingEntity, power);
+				target = getTargetedBlock(caster, power);
 			} catch (IllegalStateException e) {
 				DebugHandler.debugIllegalState(e);
 				target = null;
 			}
 
 			if (target != null && !BlockUtils.isAir(target.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, target.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) target = null;
 				else {
@@ -78,9 +78,9 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 				}
 			}
 
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(livingEntity);
-			boolean exploded = explode(livingEntity, target.getLocation(), power);
-			if (!exploded && !ignoreCanceled) return noTarget(livingEntity);
+			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster);
+			boolean exploded = explode(caster, target.getLocation(), power);
+			if (!exploded && !ignoreCanceled) return noTarget(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

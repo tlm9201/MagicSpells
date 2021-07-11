@@ -49,13 +49,13 @@ public class LocationSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location loc = location.getLocation();
 			if (loc == null) return PostCastAction.ALREADY_HANDLED;
 
-			if (spellToCast != null) spellToCast.castAtLocation(livingEntity, loc, power);
-			playSpellEffects(livingEntity, loc);
+			if (spellToCast != null) spellToCast.castAtLocation(caster, loc, power);
+			playSpellEffects(caster, loc);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

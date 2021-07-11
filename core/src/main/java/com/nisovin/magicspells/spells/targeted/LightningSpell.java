@@ -47,34 +47,34 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Block target;
 			LivingEntity entityTarget = null;
 			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
 				if (targetInfo != null) {
 					entityTarget = targetInfo.getTarget();
 					power = targetInfo.getPower();
 				}
 				if (checkPlugins) {
-					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(livingEntity, entityTarget, DamageCause.ENTITY_ATTACK, 1 + additionalDamage, this);
+					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, entityTarget, DamageCause.ENTITY_ATTACK, 1 + additionalDamage, this);
 					EventUtil.call(event);
 					if (event.isCancelled()) entityTarget = null;
 				}
 				if (entityTarget != null) {
 					target = entityTarget.getLocation().getBlock();
-					if (additionalDamage > 0) entityTarget.damage(additionalDamage * power, livingEntity);
-				} else return noTarget(livingEntity);
+					if (additionalDamage > 0) entityTarget.damage(additionalDamage * power, caster);
+				} else return noTarget(caster);
 			} else {
 				try {
-					target = getTargetedBlock(livingEntity, power);
+					target = getTargetedBlock(caster, power);
 				} catch (IllegalStateException e) {
 					DebugHandler.debugIllegalState(e);
 					target = null;
 				}
 				if (target != null) {
-					SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, target.getLocation(), power);
+					SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
 					EventUtil.call(event);
 					if (event.isCancelled()) {
 						target = null;
@@ -83,12 +83,12 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 			}
 			if (target != null) {
 				lightning(target.getLocation());
-				playSpellEffects(livingEntity, target.getLocation());
+				playSpellEffects(caster, target.getLocation());
 				if (entityTarget != null) {
-					sendMessages(livingEntity, entityTarget, args);
+					sendMessages(caster, entityTarget, args);
 					return PostCastAction.NO_MESSAGES;
 				}
-			} else return noTarget(livingEntity);
+			} else return noTarget(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

@@ -120,13 +120,13 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Vector v = getVector(livingEntity.getLocation(), power);
-			Location l = livingEntity.getEyeLocation().add(v);
+			Vector v = getVector(caster.getLocation(), power);
+			Location l = caster.getEyeLocation().add(v);
 			l.add(0, yOffset, 0);
-			spawnFallingBlock(livingEntity, power, l, v);
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			spawnFallingBlock(caster, power, l, v);
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

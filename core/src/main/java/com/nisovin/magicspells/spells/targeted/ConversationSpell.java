@@ -23,10 +23,10 @@ public class ConversationSpell extends TargetedSpell implements TargetedEntitySp
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(livingEntity, power);
-			if (targetInfo == null || targetInfo.getTarget() == null) return noTarget(livingEntity);
+			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power);
+			if (targetInfo == null || targetInfo.getTarget() == null) return noTarget(caster);
 
 			conversate(targetInfo.getTarget());
 			return PostCastAction.HANDLE_NORMALLY;

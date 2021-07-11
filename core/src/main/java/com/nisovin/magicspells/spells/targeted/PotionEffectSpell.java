@@ -51,27 +51,27 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			LivingEntity target = null;
 			if (targeted) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
+				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
 				if (targetInfo != null) {
 					target = targetInfo.getTarget();
 					power = targetInfo.getPower();
 				}
-			} else target = livingEntity;
+			} else target = caster;
 
-			if (target == null) return noTarget(livingEntity);
+			if (target == null) return noTarget(caster);
 
 			int dur = spellPowerAffectsDuration ? Math.round(duration * power) : duration;
 			int str = spellPowerAffectsStrength ? Math.round(strength * power) : strength;
 			
-			applyPotionEffect(livingEntity, target, new PotionEffect(type, dur, str, ambient, !hidden));
-			if (targeted) playSpellEffects(livingEntity, target);
-			else playSpellEffects(EffectPosition.CASTER, livingEntity);
+			applyPotionEffect(caster, target, new PotionEffect(type, dur, str, ambient, !hidden));
+			if (targeted) playSpellEffects(caster, target);
+			else playSpellEffects(EffectPosition.CASTER, caster);
 
-			sendMessages(livingEntity, target, args);
+			sendMessages(caster, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}		
 		return PostCastAction.HANDLE_NORMALLY;

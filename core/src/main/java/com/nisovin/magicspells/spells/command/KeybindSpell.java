@@ -91,9 +91,9 @@ public class KeybindSpell extends CommandSpell {
 	}
 	
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player) {
-			Player player = (Player) livingEntity;
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player) {
+			Player player = (Player) caster;
 			if (args.length != 1) {
 				player.sendMessage("Invalid args.");
 				return PostCastAction.ALREADY_HANDLED;

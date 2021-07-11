@@ -110,20 +110,20 @@ public class SteedSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			if (livingEntity.getVehicle() != null) {
-				sendMessage(strAlreadyMounted, livingEntity, args);
+			if (caster.getVehicle() != null) {
+				sendMessage(strAlreadyMounted, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
-			Entity entity = livingEntity.getWorld().spawnEntity(livingEntity.getLocation(), type);
+			Entity entity = caster.getWorld().spawnEntity(caster.getLocation(), type);
 			entity.setGravity(gravity);
 
 			if (entity instanceof AbstractHorse) {
 				((AbstractHorse) entity).setAdult();
 				((AbstractHorse) entity).setTamed(true);
-				if (livingEntity instanceof AnimalTamer) ((AbstractHorse) entity).setOwner((AnimalTamer) livingEntity);
+				if (caster instanceof AnimalTamer) ((AbstractHorse) entity).setOwner((AnimalTamer) caster);
 				((AbstractHorse) entity).setJumpStrength(jumpStrength);
 				((AbstractHorse) entity).getInventory().setSaddle(new ItemStack(Material.SADDLE));
 
@@ -138,9 +138,9 @@ public class SteedSpell extends InstantSpell {
 				}
 			}
 
-			entity.addPassenger(livingEntity);
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
-			mounted.put(livingEntity.getUniqueId(), entity.getEntityId());
+			entity.addPassenger(caster);
+			playSpellEffects(EffectPosition.CASTER, caster);
+			mounted.put(caster.getUniqueId(), entity.getEntityId());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

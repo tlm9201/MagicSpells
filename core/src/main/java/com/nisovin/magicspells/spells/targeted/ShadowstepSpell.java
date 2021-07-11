@@ -39,14 +39,14 @@ public class ShadowstepSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power);
-			if (target == null) return noTarget(livingEntity);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			if (target == null) return noTarget(caster);
 
-			boolean done = shadowstep(livingEntity, target.getTarget());
-			if (!done) return noTarget(livingEntity, strNoLandingSpot);
-			sendMessages(livingEntity, target.getTarget(), args);
+			boolean done = shadowstep(caster, target.getTarget());
+			if (!done) return noTarget(caster, strNoLandingSpot);
+			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

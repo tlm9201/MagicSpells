@@ -70,16 +70,16 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			if (targetSelf) new Rewinder(livingEntity, livingEntity, power);
+			if (targetSelf) new Rewinder(caster, caster, power);
 			else {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(livingEntity, power);
-				if (targetInfo == null) return noTarget(livingEntity);
-				sendMessages(livingEntity, targetInfo.getTarget(), args);
-				new Rewinder(livingEntity, targetInfo.getTarget(), power);
+				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+				if (targetInfo == null) return noTarget(caster);
+				sendMessages(caster, targetInfo.getTarget(), args);
+				new Rewinder(caster, targetInfo.getTarget(), power);
 			}
-			playSpellEffects(EffectPosition.CASTER, livingEntity);
+			playSpellEffects(EffectPosition.CASTER, caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

@@ -50,14 +50,14 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Block block;
-			if (targeted) block = getTargetedBlock(livingEntity, power);
-			else block = livingEntity.getLocation().subtract(0, 1, 0).getBlock();
+			if (targeted) block = getTargetedBlock(caster, power);
+			else block = caster.getLocation().subtract(0, 1, 0).getBlock();
 
 			if (block != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, livingEntity, block.getLocation(), power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, block.getLocation(), power);
 				EventUtil.call(event);
 				if (event.isCancelled()) block = null;
 				else {
@@ -68,10 +68,10 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 
 			if (block != null) {
 				boolean farmed = farm(block, Math.round(radius * power));
-				if (!farmed) return noTarget(livingEntity);
-				playSpellEffects(EffectPosition.CASTER, livingEntity);
+				if (!farmed) return noTarget(caster);
+				playSpellEffects(EffectPosition.CASTER, caster);
 				if (targeted) playSpellEffects(EffectPosition.TARGET, block.getLocation());
-			} else return noTarget(livingEntity);
+			} else return noTarget(caster);
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;

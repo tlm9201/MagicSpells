@@ -132,11 +132,11 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block target = pointBlank ? livingEntity.getLocation().getBlock() : getTargetedBlock(livingEntity, power);
-			if (target == null) return noTarget(livingEntity);
-			replace(livingEntity, target.getLocation(), power);
+			Block target = pointBlank ? caster.getLocation().getBlock() : getTargetedBlock(caster, power);
+			if (target == null) return noTarget(caster);
+			replace(caster, target.getLocation(), power);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
