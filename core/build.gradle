@@ -20,10 +20,10 @@ dependencies {
     shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"
     shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
-    implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.6.0"
+    implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.7.0"
 
-    implementation "io.papermc.paper:paper-api:1.17-R0.1-SNAPSHOT"
-    implementation "org.spigotmc:spigot:1.17-R0.1-SNAPSHOT"
+    implementation "io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT"
+    implementation "org.spigotmc:spigot:1.17.1-R0.1-SNAPSHOT"
 
     implementation "com.github.libraryaddict:LibsDisguises:master-SNAPSHOT"
     implementation "com.github.Updated-NoCheatPlus:NoCheatPlus:master-SNAPSHOT"

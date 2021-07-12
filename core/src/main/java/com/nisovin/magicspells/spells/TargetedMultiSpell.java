@@ -32,6 +32,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 
 	private boolean pointBlank;
 	private boolean stopOnFail;
+	private boolean passTargeting;
 	private boolean requireEntityTarget;
 	private boolean castRandomSpellInstead;
 
@@ -47,6 +48,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 
 		pointBlank = getConfigBoolean("point-blank", false);
 		stopOnFail = getConfigBoolean("stop-on-fail", true);
+		passTargeting = getConfigBoolean("pass-targeting", true);
 		requireEntityTarget = getConfigBoolean("require-entity-target", false);
 		castRandomSpellInstead = getConfigBoolean("cast-random-spell-instead", false);
 	}
@@ -179,7 +181,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 	
 	private boolean castTargetedSpell(Subspell spell, LivingEntity caster, LivingEntity entTarget, Location locTarget, float power) {
 		if (spell.isTargetedEntitySpell() && entTarget != null) {
-			return spell.castAtEntity(caster, entTarget, power);
+			return spell.castAtEntity(caster, entTarget, power, passTargeting);
 		}
 
 		if (spell.isTargetedLocationSpell()) {
