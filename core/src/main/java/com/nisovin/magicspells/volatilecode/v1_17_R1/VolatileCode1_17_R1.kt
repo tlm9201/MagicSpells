@@ -76,7 +76,7 @@ class VolatileCode1_17_R1: VolatileCodeHandle {
         } else {
             nmsItem = null
         }
-        val packet = PacketPlayOutSetSlot(0, slot.toShort() + 36, nmsItem!!)
+        val packet = PacketPlayOutSetSlot(0, 0, slot.toShort() + 36, nmsItem!!)
         (player as CraftPlayer).handle.b.sendPacket(packet)
     }
 
