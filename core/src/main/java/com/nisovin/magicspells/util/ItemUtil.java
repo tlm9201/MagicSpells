@@ -88,6 +88,8 @@ public class ItemUtil {
 	public static ItemStack setPersistentString(ItemStack itemStack, String key, String value) {
 		ItemMeta meta = itemStack.getItemMeta();
 		meta.getPersistentDataContainer().set(new NamespacedKey(MagicSpells.getInstance(), key), PersistentDataType.STRING, value);
+		itemStack.setItemMeta(meta);
 		return itemStack;
 	}
+
 }
