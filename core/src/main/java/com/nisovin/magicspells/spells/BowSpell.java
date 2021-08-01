@@ -161,7 +161,7 @@ public class BowSpell extends Spell {
 		}
 
 		ItemStack inHand = event.getBow();
-		if (inHand == null || inHand.getType() != Material.BOW) return;
+		if (inHand == null || (inHand.getType() != Material.BOW && inHand.getType() != Material.CROSSBOW)) return;
 
 		String name = inHand.getItemMeta().getDisplayName();
 		if (bowNames != null && !bowNames.contains(name)) return;
@@ -319,15 +319,7 @@ public class BowSpell extends Spell {
 
 	}
 
-	private static class ArrowData {
-
-		private final BowSpell bowSpell;
-		private final float power;
-
-		ArrowData(BowSpell bowSpell, float power) {
-			this.bowSpell = bowSpell;
-			this.power = power;
-		}
+	private record ArrowData(BowSpell bowSpell, float power) {
 
 	}
 
