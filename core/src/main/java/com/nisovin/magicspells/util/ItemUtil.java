@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.util;
 
-import com.nisovin.magicspells.MagicSpells;
 import org.bukkit.Material;
 import org.bukkit.inventory.*;
 import org.bukkit.NamespacedKey;
@@ -8,6 +7,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.persistence.PersistentDataType;
+
+import com.nisovin.magicspells.MagicSpells;
 
 public class ItemUtil {
 
