@@ -57,6 +57,9 @@ import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
+import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
+import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
+import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
@@ -117,6 +120,7 @@ public class MagicSpells extends JavaPlugin {
 	private boolean debugNull;
 	private boolean debugNumberFormat;
 	private boolean tabCompleteInternalNames;
+	private boolean terminateEffectlibInstances;
 
 	private boolean enableProfiling;
 	private boolean enableErrorLogging;
@@ -167,6 +171,7 @@ public class MagicSpells extends JavaPlugin {
 	private int globalRadius;
 	private int globalCooldown;
 	private int broadcastRange;
+	private int effectlibInstanceLimit;
 
 	private long lastReloadTime = 0;
 
@@ -247,11 +252,13 @@ public class MagicSpells extends JavaPlugin {
 		debugLevel = config.getInt(path + "debug-level", 3);
 
 		tabCompleteInternalNames = config.getBoolean(path + "tab-complete-internal-names", false);
+		terminateEffectlibInstances = config.getBoolean(path + "terminate-effectlib-instances", true);
 
 		enableErrorLogging = config.getBoolean(path + "enable-error-logging", true);
 		enableProfiling = config.getBoolean(path + "enable-profiling", false);
 		textColor = ChatColor.getByChar(config.getString(path + "text-color", ChatColor.DARK_AQUA.getChar() + ""));
 		broadcastRange = config.getInt(path + "broadcast-range", 20);
+		effectlibInstanceLimit = config.getInt(path + "effectlib-instance-limit", 20000);
 
 		opsHaveAllSpells = config.getBoolean(path + "ops-have-all-spells", true);
 		defaultAllPermsFalse = config.getBoolean(path + "default-all-perms-false", false);
@@ -833,6 +840,22 @@ public class MagicSpells extends JavaPlugin {
 		plugin.effectManager = null;
 	}
 
+	public static void resetEffectlib() {
+		for (Spell s : MagicSpells.getSpells().values()) {
+			Set<EffectTracker> effectTrackers = s.getEffectTrackers();
+			for (EffectTracker tracker : effectTrackers) {
+				if (!(tracker.getEffect() instanceof EffectLibEffect)) continue;
+				tracker.stop();
+			}
+
+			Set<AsyncEffectTracker> asyncEffectTrackers = s.getAsyncEffectTrackers();
+			for (AsyncEffectTracker tracker : asyncEffectTrackers) {
+				if (!(tracker.getEffect() instanceof EffectLibEffect)) continue;
+				tracker.stop();
+			}
+		}
+	}
+
 	public static boolean isLoaded() {
 		return plugin.loaded;
 	}
@@ -996,6 +1019,10 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.tabCompleteInternalNames;
 	}
 
+	public static boolean shouldTerminateEffectlibEffects() {
+		return plugin.terminateEffectlibInstances;
+	}
+
 	public static boolean isCastingOnAnimate() {
 		return plugin.castOnAnimate;
 	}
@@ -1014,6 +1041,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static int getBroadcastRange() {
 		return plugin.broadcastRange;
+	}
+
+	public static int getEffectlibInstanceLimit() {
+		return plugin.effectlibInstanceLimit;
 	}
 
 	public static int getSpellIconSlot() {
