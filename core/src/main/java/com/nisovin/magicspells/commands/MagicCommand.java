@@ -6,11 +6,6 @@ import java.io.Writer;
 import java.io.FileWriter;
 import java.util.regex.Pattern;
 
-import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
-import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
-import com.nisovin.magicspells.spelleffects.trackers.BuffEffectlibTracker;
-import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
-import com.nisovin.magicspells.spelleffects.trackers.OrbitEffectlibTracker;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -266,21 +261,7 @@ public class MagicCommand extends BaseCommand {
 	public static void onReloadEffectLib(CommandIssuer issuer) {
 		if (!MagicSpells.isLoaded()) return;
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD_EFFECTLIB)) return;
-		for (Spell s : MagicSpells.getSpells().values()) {
-			Set<EffectTracker> effectTrackers = s.getEffectTrackers();
-			for (EffectTracker tracker : effectTrackers) {
-				if (!(tracker.getEffect() instanceof EffectLibEffect)) continue;
-				tracker.stop();
-			}
-
-			Set<AsyncEffectTracker> asyncEffectTrackers = s.getAsyncEffectTrackers();
-			for (AsyncEffectTracker tracker : asyncEffectTrackers) {
-				if (!(tracker.getEffect() instanceof EffectLibEffect)) continue;
-				tracker.stop();
-			}
-		}
-		MagicSpells.disposeEffectlib();
-		MagicSpells.setupEffectlib();
+		MagicSpells.resetEffectlib();
 		issuer.sendMessage(MagicSpells.getTextColor() + "Effectlib reloaded.");
 	}
 
