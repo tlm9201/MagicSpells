@@ -854,8 +854,6 @@ public class MagicSpells extends JavaPlugin {
 				tracker.stop();
 			}
 		}
-		MagicSpells.disposeEffectlib();
-		MagicSpells.setupEffectlib();
 	}
 
 	public static boolean isLoaded() {
