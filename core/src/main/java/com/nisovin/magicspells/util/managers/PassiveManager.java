@@ -77,6 +77,7 @@ public class PassiveManager {
 		addListener("death", DeathListener.class);
 		addListener("dropitem", DropItemListener.class);
 		addListener("enterbed", EnterBedListener.class);
+		addListener("dismount", DismountListener.class);
 		addListener("fataldamage", FatalDamageListener.class);
 		addListener("fish", FishListener.class);
 		addListener("foodlevelchange", FoodLevelChangeListener.class);
