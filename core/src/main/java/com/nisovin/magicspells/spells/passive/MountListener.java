@@ -23,7 +23,7 @@ public class MountListener extends PassiveListener {
 		for (String s : split) {
 			EntityType type = MobUtil.getEntityType(s);
 			if (type == null) {
-				MagicSpells.error("Invalid entity type '" + s + "' in dismount trigger on passive spell '" + passiveSpell.getInternalName() + "'");
+				MagicSpells.error("Invalid entity type '" + s + "' in mount trigger on passive spell '" + passiveSpell.getInternalName() + "'");
 				continue;
 			}
 
