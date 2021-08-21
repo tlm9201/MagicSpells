@@ -33,7 +33,7 @@ public class MountListener extends PassiveListener {
 
 	@OverridePriority
 	@EventHandler
-	public void onDismount(EntityMountEvent event) {
+	public void onMount(EntityMountEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity)) return;
 		if (!isCancelStateOk(event.isCancelled())) return;
 		if (!types.isEmpty() && !types.contains(event.getMount().getType())) return;
