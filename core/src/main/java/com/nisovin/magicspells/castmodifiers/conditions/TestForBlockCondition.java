@@ -1,11 +1,10 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.BlockInfo;
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -13,8 +12,8 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 public class TestForBlockCondition extends Condition {
 
 	private MagicLocation location;
-	private BlockInfo blockInfo;
-	
+	private BlockData blockData;
+
 	@Override
 	public boolean initialize(String var) {
 		try {
@@ -22,9 +21,9 @@ public class TestForBlockCondition extends Condition {
 			String[] locs = vars[0].split(",");
 
 			location = new MagicLocation(locs[0], Integer.parseInt(locs[1]), Integer.parseInt(locs[2]), Integer.parseInt(locs[3]));
-			blockInfo = Util.getBlockInfo(vars[1]);
+			blockData = Bukkit.createBlockData(vars[1]);
 
-			return blockInfo.getMaterial() != null && blockInfo.getMaterial().isBlock();
+			return blockData.getMaterial().isBlock();
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 			return false;
@@ -47,8 +46,7 @@ public class TestForBlockCondition extends Condition {
 	}
 
 	public boolean testForBlock() {
-		Block b = location.getLocation().getBlock();
-		return location != null && blockInfo.getMaterial() == b.getType() && blockInfo.blockDataMatches(b.getBlockData());
+		return location != null && location.getLocation().getBlock().getBlockData().matches(blockData);
 	}
 
 }
