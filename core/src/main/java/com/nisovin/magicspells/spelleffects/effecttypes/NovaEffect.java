@@ -177,14 +177,14 @@ public class NovaEffect extends SpellEffect {
 					if (Math.abs(x - bx) != tick && Math.abs(z - bz) != tick) continue;
 
 					Block b = center.getWorld().getBlockAt(x, y, z);
-					if (BlockUtils.isAir(b.getType()) || b.getType() == Material.TALL_GRASS) {
+					if (BlockUtils.isPathable(b) && !BlockUtils.isLiquid(b)) {
 						Block under = b.getRelative(BlockFace.DOWN);
-						if (BlockUtils.isAir(under.getType()) || under.getType() == Material.TALL_GRASS) b = under;
-					} else if (BlockUtils.isAir(b.getRelative(BlockFace.UP).getType()) || b.getRelative(BlockFace.UP).getType() == Material.TALL_GRASS) {
+						if (BlockUtils.isPathable(under) && !BlockUtils.isLiquid(under)) b = under;
+					} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !BlockUtils.isLiquid(b.getRelative(BlockFace.UP))) {
 						b = b.getRelative(BlockFace.UP);
 					}
 
-					if (!BlockUtils.isAir(b.getType()) && b.getType() != Material.TALL_GRASS) continue;
+					if (!BlockUtils.isPathable(b) || BlockUtils.isLiquid(b)) continue;
 
 					if (blocks.contains(b)) continue;
 					for (Player p : nearby) {
@@ -272,14 +272,14 @@ public class NovaEffect extends SpellEffect {
 
 			if (startRadius == 0 && tick == 0) {
 				b = centerLocation.getWorld().getBlockAt(centerLocation);
-				if (BlockUtils.isAir(b.getType()) || b.getType() == Material.TALL_GRASS) {
+				if (BlockUtils.isPathable(b) && !BlockUtils.isLiquid(b)) {
 					Block under = b.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isAir(under.getType()) || under.getType() == Material.TALL_GRASS) b = under;
-				} else if (BlockUtils.isAir(b.getRelative(BlockFace.UP).getType()) || b.getRelative(BlockFace.UP).getType() == Material.TALL_GRASS) {
+					if (BlockUtils.isPathable(under) && !BlockUtils.isLiquid(under)) b = under;
+				} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !BlockUtils.isLiquid(b.getRelative(BlockFace.UP))) {
 					b = b.getRelative(BlockFace.UP);
 				}
 
-				if (!BlockUtils.isAir(b.getType()) && b.getType() != Material.TALL_GRASS) return;
+				if (!BlockUtils.isPathable(b) || BlockUtils.isLiquid(b)) return;
 
 				if (blocks.contains(b)) return;
 				for (Player p : nearby) {
@@ -306,14 +306,14 @@ public class NovaEffect extends SpellEffect {
 				b = center.getWorld().getBlockAt(centerLocation.add(v));
 				centerLocation.subtract(v);
 
-				if (BlockUtils.isAir(b.getType()) || b.getType() == Material.TALL_GRASS) {
+				if (BlockUtils.isPathable(b) && !BlockUtils.isLiquid(b)) {
 					Block under = b.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isAir(under.getType()) || under.getType() == Material.TALL_GRASS) b = under;
-				} else if (BlockUtils.isAir(b.getRelative(BlockFace.UP).getType()) || b.getRelative(BlockFace.UP).getType() == Material.TALL_GRASS) {
+					if (BlockUtils.isPathable(under) && !BlockUtils.isLiquid(under)) b = under;
+				} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !BlockUtils.isLiquid(b.getRelative(BlockFace.UP))) {
 					b = b.getRelative(BlockFace.UP);
 				}
 
-				if (!BlockUtils.isAir(b.getType()) && b.getType() != Material.TALL_GRASS) continue;
+				if (!BlockUtils.isPathable(b) || BlockUtils.isLiquid(b)) continue;
 
 				if (blocks.contains(b)) continue;
 				for (Player p : nearby) {
