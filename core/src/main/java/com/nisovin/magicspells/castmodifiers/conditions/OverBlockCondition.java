@@ -1,9 +1,7 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import java.util.Set;
-import java.util.List;
 import java.util.HashSet;
-import java.util.ArrayList;
 
 import org.bukkit.Material;
 import org.bukkit.Location;
@@ -13,21 +11,20 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.BlockInfo;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OverBlockCondition extends Condition {
 
 	private int depth;
-	private String blocks;
 
-	//Block Data
-	private Set<Material> types;
-	private List<Material> mats;
+	private Set<BlockInfo> blockInfoSet;
 
 	@Override
 	public boolean initialize(String var) {
 		//Lets TRY and catch some formatting mistakes for this modifier.
+		String blocks;
 		try {
 			String[] variable = var.split(";",2);
 			blocks = variable[0];
@@ -47,47 +44,47 @@ public class OverBlockCondition extends Condition {
 		}
 
 		//We need to parse a list of the blocks required and check if they are valid.
-		types = new HashSet<>();
-		mats = new ArrayList<>();
+		blockInfoSet = new HashSet<>();
 		String[] split = blocks.split(",");
 
 		for (String s : split) {
-			Material mat = Util.getMaterial(s);
-			if (mat == null || !mat.isBlock()) return false;
-			types.add(mat);
-			mats.add(mat);
+			BlockInfo bInfo = Util.getBlockInfo(s);
+			if (bInfo.getMaterial() == null || !bInfo.getMaterial().isBlock()) return false;
+			blockInfoSet.add(bInfo);
 		}
 		return true;
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return overBlock(livingEntity.getLocation());
 	}
 
-	//If target-modifiers are use, lets check based on the target's location.
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return overBlock(target.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		//The first time around, we look at the block right underneath the player.
+		return overBlock(location);
+	}
+
+	private boolean overBlock(Location location) {
 		Block block = location.clone().subtract(0, 1, 0).getBlock();
 
-		//Alright, lets loop until we reach out depth value.
-		//If at any point the block we detect is one of the blocks from our list, we are good to go.
 		for (int i = 0; i < depth; i++) {
-			//Compares the material of the block to the list of blocks.
-			if (types.contains(block.getType())) {
-				for (Material m : mats) {
-					//If it is true, stops the loop and returns true;
-					if (m.equals(block.getType())) return true;
+
+			for (BlockInfo blockInfo : blockInfoSet) {
+				Material m = blockInfo.getMaterial();
+
+				if (m != block.getType() && !blockInfo.blockDataMatches(block.getBlockData())) {
+					block = block.getRelative(BlockFace.DOWN);
+					continue;
 				}
+
+				return true;
 			}
-			//Uses position of the next block under
-			block = block.getRelative(BlockFace.DOWN);
 		}
 		return false;
 	}

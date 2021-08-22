@@ -19,6 +19,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.BlockInfo;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.SpellAnimation;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
@@ -27,10 +28,9 @@ public class NovaEffect extends SpellEffect {
 
 	private Random random;
 
-	private List<Material> materials;
+	private List<BlockInfo> blockInfoList;
 
-	private Material material;
-	private String materialName;
+	private BlockInfo blockInfo;
 
 	private double range;
 
@@ -53,25 +53,25 @@ public class NovaEffect extends SpellEffect {
 
 		List<String> materialList = config.getStringList("types");
 		if (!materialList.isEmpty()) {
-			materials = new ArrayList<>();
-			Material material;
+			blockInfoList = new ArrayList<>();
+			BlockInfo block;
 
 			for (String str : materialList) {
-				material = Util.getMaterial(str);
-				if (material == null || !material.isBlock()) {
-					MagicSpells.error("Wrong nova type defined! '" + str + "'");
+				block = Util.getBlockInfo(str);
+				if (block.getMaterial() == null || !block.getMaterial().isBlock()) {
+					MagicSpells.error("Wrong nova type defined: '" + str + "'");
 					continue;
 				}
-				materials.add(material);
+				blockInfoList.add(block);
 			}
 		}
 
-		materialName = config.getString("type", "fire");
-		material = Util.getMaterial(materialName);
+		String blockName = config.getString("type", "fire");
+		blockInfo = Util.getBlockInfo(blockName);
 
-		if (material == null || !material.isBlock()) {
-			material = null;
-			MagicSpells.error("Wrong nova type defined! '" + materialName + "'");
+		if (blockInfo.getMaterial() == null || !blockInfo.getMaterial().isBlock()) {
+			blockInfo = null;
+			MagicSpells.error("Wrong nova type defined: '" + blockName + "'");
 		}
 
 		range = Math.max(config.getDouble("range", 20), 1);
@@ -93,7 +93,7 @@ public class NovaEffect extends SpellEffect {
 
 	@Override
 	public Runnable playEffectLocation(Location location) {
-		if (material == null) return null;
+		if (blockInfo == null) return null;
 
 		// Get nearby players
 		Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, range, range, range);
@@ -105,11 +105,11 @@ public class NovaEffect extends SpellEffect {
 
 		// Start animation
 		if (circleShape) {
-			if (materials != null && !materials.isEmpty()) new NovaAnimationCircle(nearby, location.getBlock(), materials, radius, expandInterval, expandingRadiusChange);
-			else new NovaAnimationCircle(nearby, location.getBlock(), material, radius, expandInterval, expandingRadiusChange);
+			if (blockInfoList != null && !blockInfoList.isEmpty()) new NovaAnimationCircle(nearby, location.getBlock(), blockInfoList, radius, expandInterval, expandingRadiusChange);
+			else new NovaAnimationCircle(nearby, location.getBlock(), blockInfo, radius, expandInterval, expandingRadiusChange);
 		} else {
-			if (materials != null && !materials.isEmpty()) new NovaAnimationSquare(nearby, location.getBlock(), materials, radius, expandInterval, expandingRadiusChange);
-			else new NovaAnimationSquare(nearby, location.getBlock(), material, radius, expandInterval, expandingRadiusChange);
+			if (blockInfoList != null && !blockInfoList.isEmpty()) new NovaAnimationSquare(nearby, location.getBlock(), blockInfoList, radius, expandInterval, expandingRadiusChange);
+			else new NovaAnimationSquare(nearby, location.getBlock(), blockInfo, radius, expandInterval, expandingRadiusChange);
 		}
 		return null;
 	}
@@ -119,26 +119,26 @@ public class NovaEffect extends SpellEffect {
 		List<Player> nearby;
 		Set<Block> blocks;
 		Block center;
-		Material matNova;
-		List<Material> materialList;
+		BlockInfo blockInfo;
+		List<BlockInfo> blockInfoList;
 		int radiusNova;
 		int radiusChange;
 
-		public NovaAnimationSquare(List<Player> nearby, Block center, Material mat, int radius, int tickInterval, int activeRadiusChange) {
+		public NovaAnimationSquare(List<Player> nearby, Block center, BlockInfo blockInfo, int radius, int tickInterval, int activeRadiusChange) {
 			super(tickInterval, true);
 			this.nearby = nearby;
 			this.center = center;
-			this.matNova = mat;
+			this.blockInfo = blockInfo;
 			this.radiusNova = radius;
 			this.blocks = new HashSet<>();
 			this.radiusChange = activeRadiusChange;
 		}
 
-		public NovaAnimationSquare(List<Player> nearby, Block center, List<Material> materialList, int radius, int tickInterval, int activeRadiusChange) {
+		public NovaAnimationSquare(List<Player> nearby, Block center, List<BlockInfo> blockInfoList, int radius, int tickInterval, int activeRadiusChange) {
 			super(tickInterval, true);
 			this.nearby = nearby;
 			this.center = center;
-			this.materialList = materialList;
+			this.blockInfoList = blockInfoList;
 			this.radiusNova = radius;
 			this.blocks = new HashSet<>();
 			this.radiusChange = activeRadiusChange;
@@ -170,6 +170,8 @@ public class NovaEffect extends SpellEffect {
 			int bz = center.getZ();
 			y += tick * heightPerTick;
 
+			BlockInfo bInfo;
+
 			for (int x = bx - tick; x <= bx + tick; x++) {
 				for (int z = bz - tick; z <= bz + tick; z++) {
 					if (Math.abs(x - bx) != tick && Math.abs(z - bz) != tick) continue;
@@ -186,8 +188,12 @@ public class NovaEffect extends SpellEffect {
 
 					if (blocks.contains(b)) continue;
 					for (Player p : nearby) {
-						if (materialList != null && !materialList.isEmpty()) p.sendBlockChange(b.getLocation(), materialList.get(random.nextInt(materialList.size())).createBlockData());
-						else if (matNova != null) p.sendBlockChange(b.getLocation(), matNova.createBlockData());
+						if (blockInfoList != null && !blockInfoList.isEmpty()) {
+							bInfo = blockInfoList.get(random.nextInt(blockInfoList.size()));
+							p.sendBlockChange(b.getLocation(), bInfo.getMaterial().createBlockData(bInfo.getBlockDataString()));
+						} else if (blockInfo != null) {
+							p.sendBlockChange(b.getLocation(), blockInfo.getMaterial().createBlockData(blockInfo.getBlockDataString()));
+						}
 					}
 					blocks.add(b);
 				}
@@ -212,26 +218,26 @@ public class NovaEffect extends SpellEffect {
 		List<Player> nearby;
 		Set<Block> blocks;
 		Block center;
-		Material matNova;
-		List<Material> materialList;
+		BlockInfo blockInfo;
+		List<BlockInfo> blockInfoList;
 		int radiusNova;
 		int radiusChange;
 
-		public NovaAnimationCircle(List<Player> nearby, Block center, Material mat, int radius, int tickInterval, int activeRadiusChange) {
+		public NovaAnimationCircle(List<Player> nearby, Block center, BlockInfo blockInfo, int radius, int tickInterval, int activeRadiusChange) {
 			super(tickInterval, true);
 			this.nearby = nearby;
 			this.center = center;
-			this.matNova = mat;
+			this.blockInfo = blockInfo;
 			this.radiusNova = radius;
 			this.blocks = new HashSet<>();
 			this.radiusChange = activeRadiusChange;
 		}
 
-		public NovaAnimationCircle(List<Player> nearby, Block center, List<Material> materialList, int radius, int tickInterval, int activeRadiusChange) {
+		public NovaAnimationCircle(List<Player> nearby, Block center, List<BlockInfo> blockInfoList, int radius, int tickInterval, int activeRadiusChange) {
 			super(tickInterval, true);
 			this.nearby = nearby;
 			this.center = center;
-			this.materialList = materialList;
+			this.blockInfoList = blockInfoList;
 			this.radiusNova = radius;
 			this.blocks = new HashSet<>();
 			this.radiusChange = activeRadiusChange;
@@ -262,6 +268,8 @@ public class NovaEffect extends SpellEffect {
 			centerLocation.add(0.5, tick * heightPerTick, 0.5);
 			Block b;
 
+			BlockInfo bInfo;
+
 			if (startRadius == 0 && tick == 0) {
 				b = centerLocation.getWorld().getBlockAt(centerLocation);
 				if (BlockUtils.isAir(b.getType()) || b.getType() == Material.TALL_GRASS) {
@@ -275,8 +283,12 @@ public class NovaEffect extends SpellEffect {
 
 				if (blocks.contains(b)) return;
 				for (Player p : nearby) {
-					if (materialList != null && !materialList.isEmpty()) p.sendBlockChange(b.getLocation(), materialList.get(random.nextInt(materialList.size())).createBlockData());
-					else if (matNova != null) p.sendBlockChange(b.getLocation(), matNova.createBlockData());
+					if (blockInfoList != null && !blockInfoList.isEmpty()) {
+						bInfo = blockInfoList.get(random.nextInt(blockInfoList.size()));
+						p.sendBlockChange(b.getLocation(), bInfo.getMaterial().createBlockData(bInfo.getBlockDataString()));
+					} else if (blockInfo != null) {
+						p.sendBlockChange(b.getLocation(), blockInfo.getMaterial().createBlockData(blockInfo.getBlockDataString()));
+					}
 				}
 				blocks.add(b);
 			}
@@ -305,8 +317,12 @@ public class NovaEffect extends SpellEffect {
 
 				if (blocks.contains(b)) continue;
 				for (Player p : nearby) {
-					if (materialList != null && !materialList.isEmpty()) p.sendBlockChange(b.getLocation(), materialList.get(random.nextInt(materialList.size())).createBlockData());
-					else if (matNova != null) p.sendBlockChange(b.getLocation(), matNova.createBlockData());
+					if (blockInfoList != null && !blockInfoList.isEmpty()) {
+						bInfo = blockInfoList.get(random.nextInt(blockInfoList.size()));
+						p.sendBlockChange(b.getLocation(), bInfo.getMaterial().createBlockData(bInfo.getBlockDataString()));
+					} else if (blockInfo != null) {
+						p.sendBlockChange(b.getLocation(), blockInfo.getMaterial().createBlockData(blockInfo.getBlockDataString()));
+					}
 				}
 				blocks.add(b);
 			}

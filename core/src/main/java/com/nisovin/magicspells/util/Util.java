@@ -23,6 +23,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -43,10 +44,40 @@ import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class Util {
 
-	private static Random random = ThreadLocalRandom.current();
+	private static final Random random = ThreadLocalRandom.current();
 
 	public static int getRandomInt(int bound) {
 		return random.nextInt(bound);
+	}
+
+	// blockName[blockData=data]
+	public static BlockInfo getBlockInfo(String name) {
+		name = name.toUpperCase();
+
+		BlockInfo blockInfo;
+		Material material;
+
+		String[] split = name.split("\\[");
+
+		// no block data
+		if (split.length == 1) {
+			blockInfo = new BlockInfo();
+
+			material = Material.getMaterial(name);
+			if (material == null) material = Material.matchMaterial(name);
+			blockInfo.setMaterial(material);
+
+			return blockInfo;
+		}
+
+		String materialName = split[0];
+		String dataName = "[" + split[1].toLowerCase();
+
+		material = Material.getMaterial(materialName);
+		if (material == null) material = Material.matchMaterial(materialName);
+		BlockData blockData = material != null ? material.createBlockData(dataName) : null;
+
+		return new BlockInfo(material, blockData, dataName);
 	}
 
 	public static Material getMaterial(String name) {
@@ -509,7 +540,7 @@ public class Util {
 		}
 	}
 
-	private static Map<String, String> uniqueIds = new HashMap<>();
+	private static final Map<String, String> uniqueIds = new HashMap<>();
 
 	public static String getUniqueId(Player player) {
 		String uid = player.getUniqueId().toString().replace("-", "");
@@ -728,4 +759,5 @@ public class Util {
 		}
 		return nearestEntity;
 	}
+
 }
