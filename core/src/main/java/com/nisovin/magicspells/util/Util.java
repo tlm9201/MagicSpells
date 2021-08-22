@@ -50,36 +50,6 @@ public class Util {
 		return random.nextInt(bound);
 	}
 
-	// blockName[blockData=data]
-	public static BlockInfo getBlockInfo(String name) {
-		name = name.toUpperCase();
-
-		BlockInfo blockInfo;
-		Material material;
-
-		String[] split = name.split("\\[");
-
-		// no block data
-		if (split.length == 1) {
-			blockInfo = new BlockInfo();
-
-			material = Material.getMaterial(name);
-			if (material == null) material = Material.matchMaterial(name);
-			blockInfo.setMaterial(material);
-
-			return blockInfo;
-		}
-
-		String materialName = split[0];
-		String dataName = "[" + split[1].toLowerCase();
-
-		material = Material.getMaterial(materialName);
-		if (material == null) material = Material.matchMaterial(materialName);
-		BlockData blockData = material != null ? material.createBlockData(dataName) : null;
-
-		return new BlockInfo(material, blockData, dataName);
-	}
-
 	public static Material getMaterial(String name) {
 		name = name.toUpperCase();
 		Material material = Material.getMaterial(name);
