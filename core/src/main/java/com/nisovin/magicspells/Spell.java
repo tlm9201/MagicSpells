@@ -626,17 +626,17 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		// Modifiers
 		if (modifierStrings != null && !modifierStrings.isEmpty()) {
 			debug(2, "Adding modifiers to " + internalName + " spell");
-			modifiers = new ModifierSet(modifierStrings);
+			modifiers = new ModifierSet(modifierStrings, this);
 			modifierStrings = null;
 		}
 		if (targetModifierStrings != null && !targetModifierStrings.isEmpty()) {
 			debug(2, "Adding target modifiers to " + internalName + " spell");
-			targetModifiers = new ModifierSet(targetModifierStrings);
+			targetModifiers = new ModifierSet(targetModifierStrings, this);
 			targetModifierStrings = null;
 		}
 		if (locationModifierStrings != null && !locationModifierStrings.isEmpty()) {
 			debug(2, "Adding location modifiers to " + internalName + " spell");
-			locationModifiers = new ModifierSet(locationModifierStrings);
+			locationModifiers = new ModifierSet(locationModifierStrings, this);
 			locationModifierStrings = null;
 		}
 
@@ -646,7 +646,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 				List<SpellEffect> spellEffects = effects.get(position);
 				if (spellEffects == null || spellEffects.isEmpty()) continue;
-				spellEffects.forEach(SpellEffect::initializeModifiers);
+				spellEffects.forEach(spellEffect -> spellEffect.initializeModifiers(this));
 			}
 		}
 	}
