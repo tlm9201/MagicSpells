@@ -81,7 +81,7 @@ public class NovaEffect extends SpellEffect {
 			MagicSpells.error("Wrong nova type defined: '" + blockName + "'");
 		}
 
-		if (!blockData.getMaterial().isBlock()) {
+		if (blockData != null && !blockData.getMaterial().isBlock()) {
 			blockData = null;
 			MagicSpells.error("Wrong nova type defined: '" + blockName + "'");
 		}
