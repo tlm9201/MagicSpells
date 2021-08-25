@@ -57,7 +57,7 @@ public class NovaEffect extends SpellEffect {
 			for (String str : materialList) {
 				BlockData data;
 				try {
-					data = Bukkit.createBlockData(str);
+					data = Bukkit.createBlockData(str.toLowerCase());
 				} catch (IllegalArgumentException e) {
 					MagicSpells.error("Wrong nova type defined: '" + str + "'");
 					continue;
@@ -75,7 +75,7 @@ public class NovaEffect extends SpellEffect {
 		String blockName = config.getString("type", "fire");
 
 		try {
-			blockData = Bukkit.createBlockData(blockName);
+			blockData = Bukkit.createBlockData(blockName.toLowerCase());
 		} catch (IllegalArgumentException e) {
 			blockData = null;
 			MagicSpells.error("Wrong nova type defined: '" + blockName + "'");
