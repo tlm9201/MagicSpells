@@ -19,7 +19,7 @@ public class LookingAtBlockCondition extends Condition {
 		String[] split = var.split(",(?![^\\[]*])");
 
 		try {
-			blockData = Bukkit.createBlockData(split[0].trim());
+			blockData = Bukkit.createBlockData(split[0].trim().toLowerCase());
 		} catch (IllegalArgumentException e) {
 			return false;
 		}

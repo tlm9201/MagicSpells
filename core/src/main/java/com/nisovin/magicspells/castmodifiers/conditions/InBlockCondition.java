@@ -25,7 +25,7 @@ public class InBlockCondition extends Condition {
 			for (String s : split) {
 				BlockData data;
 				try {
-					data = Bukkit.createBlockData(s.trim());
+					data = Bukkit.createBlockData(s.trim().toLowerCase());
 				} catch (IllegalArgumentException e) {
 					return false;
 				}
@@ -39,7 +39,7 @@ public class InBlockCondition extends Condition {
 		}
 
 		try {
-			blockData = Bukkit.createBlockData(var.trim());
+			blockData = Bukkit.createBlockData(var.trim().toLowerCase());
 		} catch (IllegalArgumentException e) {
 			return false;
 		}

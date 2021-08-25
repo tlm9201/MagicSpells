@@ -21,7 +21,7 @@ public class TestForBlockCondition extends Condition {
 			String[] locs = vars[0].split(",");
 
 			location = new MagicLocation(locs[0], Integer.parseInt(locs[1]), Integer.parseInt(locs[2]), Integer.parseInt(locs[3]));
-			blockData = Bukkit.createBlockData(vars[1]);
+			blockData = Bukkit.createBlockData(vars[1].toLowerCase());
 
 			return blockData.getMaterial().isBlock();
 		} catch (Exception e) {

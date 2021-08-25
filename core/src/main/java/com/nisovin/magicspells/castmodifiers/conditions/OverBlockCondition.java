@@ -34,7 +34,7 @@ public class OverBlockCondition extends Condition {
 		for (String split : args[0].split(",(?![^\\[]*])")) {
 			BlockData data;
 			try {
-				data = Bukkit.createBlockData(split.trim());
+				data = Bukkit.createBlockData(split.trim().toLowerCase());
 			} catch (IllegalArgumentException e) {
 				return false;
 			}
