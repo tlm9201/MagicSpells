@@ -60,11 +60,13 @@ public class Modifier implements IModifier {
 		if (type == null && data.length > 2) {
 			boolean init = condition.initialize(data[1]);
 			if (!init) return false;
-
 			type = getTypeByName(data[2]);
 			if (data.length > 3) modifierVar = data[3];
 		} else if (data.length > 2) {
 			modifierVar = data[2];
+		} else {
+			boolean init = condition.initialize("");
+			if (!init) return false;
 		}
 
 		// Check type
