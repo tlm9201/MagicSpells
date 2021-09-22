@@ -85,7 +85,7 @@ public class VariableMod {
 			if (data.contains(":")) {
 				// Then there is an explicit statement of who's variable it is
 				String[] dataSplits = data.split(":");
-				if (dataSplits[0].toLowerCase().equals("target")) variableOwner = VariableOwner.TARGET;
+				if (dataSplits[0].equalsIgnoreCase("target")) variableOwner = VariableOwner.TARGET;
 				varName = dataSplits[1];
 			}
 			modifyingVariableName = varName;
