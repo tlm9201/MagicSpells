@@ -110,7 +110,7 @@ public class ImbueSpell extends CommandSpell {
 			}
 			
 			// Check for already imbued
-			if (ItemUtil.getPersistentString(inHand, key) != null) {
+			if (DataUtil.getString(inHand, key) != null) {
 				sendMessage(strCantImbueItem, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
@@ -147,7 +147,7 @@ public class ImbueSpell extends CommandSpell {
 			}
 			
 			setItemNameAndLore(inHand, spell, uses);
-			ItemUtil.setPersistentString(inHand, key, spell.getInternalName() + ',' + uses);
+			DataUtil.setString(inHand, key, spell.getInternalName() + ',' + uses);
 			player.getInventory().setItemInMainHand(inHand);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -177,14 +177,14 @@ public class ImbueSpell extends CommandSpell {
 		}
 		if (!allowed) return;
 		
-		String imbueData = ItemUtil.getPersistentString(item, key);
+		String imbueData = DataUtil.getString(item, key);
 		if (imbueData == null || imbueData.isEmpty()) return;
 		String[] data = imbueData.split(",");
 		Spell spell = MagicSpells.getSpellByInternalName(data[0]);
 		int uses = Integer.parseInt(data[1]);
 
 		if (spell == null || uses <= 0) {
-			ItemUtil.removePersistentString(item, key);
+			DataUtil.remove(item, key);
 			return;
 		}
 
@@ -193,12 +193,12 @@ public class ImbueSpell extends CommandSpell {
 		if (uses <= 0) {
 			if (consumeItem) event.getPlayer().getInventory().setItemInMainHand(null);
 			else {
-				ItemUtil.removePersistentString(item, key);
+				DataUtil.remove(item, key);
 				if (nameAndLoreHaveUses) setItemNameAndLore(item, spell, 0);
 			}
 		} else {
 			if (nameAndLoreHaveUses) setItemNameAndLore(item, spell, uses);
-			ItemUtil.setPersistentString(item, key, spell.getInternalName() + ',' + uses);
+			DataUtil.setString(item, key, spell.getInternalName() + ',' + uses);
 		}
 	}
 	

@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.DataUtil;
 import com.nisovin.magicspells.util.ItemUtil;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -94,7 +95,7 @@ public class TomeSpell extends CommandSpell {
 				sendMessage(strNoBook, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
-			if (!allowOverwrite && ItemUtil.getPersistentString(item, key) != null) {
+			if (!allowOverwrite && DataUtil.getString(item, key) != null) {
 				sendMessage(strAlreadyHasSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
@@ -126,7 +127,7 @@ public class TomeSpell extends CommandSpell {
 			bookMeta.setTitle(getName() + ": " + spell.getName());
 			item.setItemMeta(bookMeta);
 		}
-		ItemUtil.setPersistentString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
+		DataUtil.setString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
 		return item;
 	}
 	
@@ -138,7 +139,7 @@ public class TomeSpell extends CommandSpell {
 		if (item == null) return;
 		if (item.getType() != Material.WRITTEN_BOOK) return;
 		
-		String spellData = ItemUtil.getPersistentString(item, key);
+		String spellData = DataUtil.getString(item, key);
 		if (spellData == null || spellData.isEmpty()) return;
 		
 		String[] data = spellData.split(",");
@@ -169,8 +170,8 @@ public class TomeSpell extends CommandSpell {
 
 		if (uses > 0) {
 			uses--;
-			if (uses > 0) ItemUtil.setPersistentString(item, key, data[0] + "," + uses);
-			else ItemUtil.removePersistentString(item, key);
+			if (uses > 0) DataUtil.setString(item, key, data[0] + "," + uses);
+			else DataUtil.remove(item, key);
 
 		}
 		if (uses <= 0 && consumeBook) event.getPlayer().getInventory().setItemInMainHand(null);

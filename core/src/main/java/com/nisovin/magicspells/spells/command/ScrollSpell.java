@@ -21,13 +21,9 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.ItemUtil;
-import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.spells.CommandSpell;
 
 public class ScrollSpell extends CommandSpell {
@@ -224,7 +220,7 @@ public class ScrollSpell extends CommandSpell {
 
 		ItemUtil.addFakeEnchantment(meta);
 		item.setItemMeta(meta);
-		ItemUtil.setPersistentString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
+		DataUtil.setString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
 		return item;
 	}
 	
@@ -253,7 +249,7 @@ public class ScrollSpell extends CommandSpell {
 		}
 		
 		// Get scroll data (spell and uses)
-		String scrollDataString = ItemUtil.getPersistentString(inHand, key);
+		String scrollDataString = DataUtil.getString(inHand, key);
 		if (scrollDataString == null || scrollDataString.isEmpty()) return;
 		String[] scrollData = scrollDataString.split(",");
 		Spell spell = MagicSpells.getSpellByInternalName(scrollData[0]);

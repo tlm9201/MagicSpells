@@ -6,9 +6,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.persistence.PersistentDataType;
-
-import com.nisovin.magicspells.MagicSpells;
 
 public class ItemUtil {
 
@@ -77,26 +74,6 @@ public class ItemUtil {
 		StonecuttingRecipe recipe = new StonecuttingRecipe(namespaceKey, result, ingredient);
 		recipe.setGroup(group);
 		return recipe;
-	}
-
-	private static NamespacedKey createKey(String key) {
-		return new NamespacedKey(MagicSpells.getInstance(), key);
-	}
-
-	public static String getPersistentString(ItemStack item, String key) {
-		return item.getItemMeta().getPersistentDataContainer().get(createKey(key), PersistentDataType.STRING);
-	}
-
-	public static void setPersistentString(ItemStack item, String key, String value) {
-		ItemMeta meta = item.getItemMeta();
-		meta.getPersistentDataContainer().set(createKey(key), PersistentDataType.STRING, value);
-		item.setItemMeta(meta);
-	}
-
-	public static void removePersistentString(ItemStack item, String key) {
-		ItemMeta meta = item.getItemMeta();
-		meta.getPersistentDataContainer().remove(createKey(key));
-		item.setItemMeta(meta);
 	}
 
 }

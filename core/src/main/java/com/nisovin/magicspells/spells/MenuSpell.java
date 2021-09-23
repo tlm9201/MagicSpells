@@ -18,15 +18,10 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.ItemUtil;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.variables.Variable;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -289,7 +284,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			}
 			// Select and finalise item to display.
 			ItemStack item = (option.item != null ? option.item : option.items.get(Util.getRandomInt(option.items.size()))).clone();
-			ItemUtil.setPersistentString(item, "menuOption", option.menuOptionName);
+			DataUtil.setString(item, "menuOption", option.menuOptionName);
 			item = translateItem(opener, args, item);
 
 			int quantity;
@@ -356,7 +351,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	private String castSpells(Player player, ItemStack item, ClickType click) {
 		// Outside inventory.
 		if (item == null) return stayOpenNonOption ? "ignore" : "close";
-		String key = ItemUtil.getPersistentString(item, "menuOption");
+		String key = DataUtil.getString(item, "menuOption");
 		// Probably a filler or air.
 		if (key == null || key.isEmpty() || !options.containsKey(key)) return stayOpenNonOption ? "ignore" : "close";
 		MenuOption option = options.get(key);
