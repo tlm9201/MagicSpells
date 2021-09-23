@@ -166,6 +166,7 @@ public class MagicSpells extends JavaPlugin {
 	private boolean cooldownsPersistThroughReload;
 	private boolean allowAnticheatIntegrations;
 
+	private int debugLevelOriginal;
 	private int debugLevel;
 	private int spellIconSlot;
 	private int globalRadius;
@@ -249,7 +250,8 @@ public class MagicSpells extends JavaPlugin {
 		debug = config.getBoolean(path + "debug", false);
 		debugNull = config.getBoolean(path + "debug-null", true);
 		debugNumberFormat = config.getBoolean(path + "debug-number-format", true);
-		debugLevel = config.getInt(path + "debug-level", 3);
+		debugLevelOriginal = config.getInt(path + "debug-level", 3);
+		debugLevel = debugLevelOriginal;
 
 		tabCompleteInternalNames = config.getBoolean(path + "tab-complete-internal-names", false);
 		terminateEffectlibInstances = config.getBoolean(path + "terminate-effectlib-instances", true);
@@ -1059,8 +1061,16 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.globalCooldown;
 	}
 
+	public static int getDebugLevelOriginal() {
+		return plugin.debugLevelOriginal;
+	}
+
 	public static void setDebug(boolean debug) {
 		plugin.debug = debug;
+	}
+
+	public static void setDebugLevel(int level) {
+		plugin.debugLevel = level;
 	}
 
 	public static boolean hasProfilingEnabled() {
