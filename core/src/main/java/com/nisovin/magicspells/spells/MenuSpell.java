@@ -4,7 +4,6 @@ import java.util.*;
 
 import co.aikar.commands.ACFUtil;
 
-import com.nisovin.magicspells.util.ItemUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -22,6 +21,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.ItemUtil;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -289,7 +289,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			}
 			// Select and finalise item to display.
 			ItemStack item = (option.item != null ? option.item : option.items.get(Util.getRandomInt(option.items.size()))).clone();
-			item = ItemUtil.setPersistentString(item, "menuOption", option.menuOptionName);
+			ItemUtil.setPersistentString(item, "menuOption", option.menuOptionName);
 			item = translateItem(opener, args, item);
 
 			int quantity;

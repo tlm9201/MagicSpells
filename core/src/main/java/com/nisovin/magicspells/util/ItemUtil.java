@@ -14,13 +14,11 @@ public class ItemUtil {
 
 	public static void addFakeEnchantment(ItemMeta meta) {
 		if (meta == null) return;
-
 		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 		meta.addEnchant(Enchantment.FROST_WALKER, -1, true);
 	}
 
 	public static boolean hasFakeEnchantment(ItemMeta meta) {
-
 		return meta.hasItemFlag(ItemFlag.HIDE_ENCHANTS)
 			&& meta.hasEnchant(Enchantment.FROST_WALKER)
 			&& meta.getEnchantLevel(Enchantment.FROST_WALKER) == 65535;
@@ -63,16 +61,15 @@ public class ItemUtil {
 	}
 
 	public static Recipe createCookingRecipe(String type, NamespacedKey namespaceKey, String group, ItemStack result, Material ingredient, float experience, int cookingTime) {
-		Recipe recipe = null;
+		CookingRecipe<?> recipe = null;
 
 		switch (type.toLowerCase()) {
-			case "smoking": recipe = new SmokingRecipe(namespaceKey, result, ingredient, experience, cookingTime);
-			case "campfire": recipe = new CampfireRecipe(namespaceKey, result, ingredient, experience, cookingTime);
-			case "blasting": recipe = new BlastingRecipe(namespaceKey, result, ingredient, experience, cookingTime);
+			case "smoking" -> recipe = new SmokingRecipe(namespaceKey, result, ingredient, experience, cookingTime);
+			case "campfire" -> recipe = new CampfireRecipe(namespaceKey, result, ingredient, experience, cookingTime);
+			case "blasting" -> recipe = new BlastingRecipe(namespaceKey, result, ingredient, experience, cookingTime);
 		}
 
-		if (recipe instanceof CookingRecipe) ((CookingRecipe) recipe).setGroup(group);
-
+		if (recipe != null) recipe.setGroup(group);
 		return recipe;
 	}
 
@@ -82,15 +79,24 @@ public class ItemUtil {
 		return recipe;
 	}
 
-	public static String getPersistentString(ItemStack itemStack, String key) {
-		return itemStack.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(MagicSpells.getInstance(), key), PersistentDataType.STRING);
+	private static NamespacedKey createKey(String key) {
+		return new NamespacedKey(MagicSpells.getInstance(), key);
 	}
 
-	public static ItemStack setPersistentString(ItemStack itemStack, String key, String value) {
-		ItemMeta meta = itemStack.getItemMeta();
-		meta.getPersistentDataContainer().set(new NamespacedKey(MagicSpells.getInstance(), key), PersistentDataType.STRING, value);
-		itemStack.setItemMeta(meta);
-		return itemStack;
+	public static String getPersistentString(ItemStack item, String key) {
+		return item.getItemMeta().getPersistentDataContainer().get(createKey(key), PersistentDataType.STRING);
+	}
+
+	public static void setPersistentString(ItemStack item, String key, String value) {
+		ItemMeta meta = item.getItemMeta();
+		meta.getPersistentDataContainer().set(createKey(key), PersistentDataType.STRING, value);
+		item.setItemMeta(meta);
+	}
+
+	public static void removePersistentString(ItemStack item, String key) {
+		ItemMeta meta = item.getItemMeta();
+		meta.getPersistentDataContainer().remove(createKey(key));
+		item.setItemMeta(meta);
 	}
 
 }

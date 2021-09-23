@@ -32,6 +32,7 @@ import com.nisovin.magicspells.spells.CommandSpell;
 
 public class ScrollSpell extends CommandSpell {
 
+	private static final String key = "scroll_data";
 	private static final Pattern CAST_ARGUMENT_USE_COUNT_PATTERN = Pattern.compile("^-?[0-9]+$");
 	private static final Pattern SCROLL_DATA_USES_PATTERN = Pattern.compile("^[0-9]+$");
 
@@ -124,14 +125,13 @@ public class ScrollSpell extends CommandSpell {
 
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player) {
-			Player player = (Player) caster;
+		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
 			if (args == null || args.length == 0) {
 				sendMessage(strUsage, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
-			ItemStack inHand = player.getEquipment().getItemInMainHand();
+			ItemStack inHand = player.getInventory().getItemInMainHand();
 			if (inHand.getAmount() != 1 || itemType != inHand.getType()) {
 				sendMessage(strUsage, player, args);
 				return PostCastAction.ALREADY_HANDLED;
@@ -139,7 +139,7 @@ public class ScrollSpell extends CommandSpell {
 			
 			Spell spell = MagicSpells.getSpellByInGameName(args[0]);
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			if (spell == null || spellbook == null || !spellbook.hasSpell(spell)) {
+			if (spell == null || !spellbook.hasSpell(spell)) {
 				sendMessage(strNoSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;			
 			}
@@ -162,7 +162,7 @@ public class ScrollSpell extends CommandSpell {
 			}
 			
 			inHand = createScroll(spell, uses, inHand);
-			player.getEquipment().setItemInMainHand(inHand);
+			player.getInventory().setItemInMainHand(inHand);
 			
 			sendMessage(strCastSelf, player, args, "%s", spell.getName());
 			return PostCastAction.NO_MESSAGES;
@@ -223,9 +223,8 @@ public class ScrollSpell extends CommandSpell {
 		}
 
 		ItemUtil.addFakeEnchantment(meta);
-
 		item.setItemMeta(meta);
-		Util.setLoreData(item, internalName + ':' + spell.getInternalName() + (uses > 0 ? "," + uses : ""));
+		ItemUtil.setPersistentString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
 		return item;
 	}
 	
@@ -236,17 +235,11 @@ public class ScrollSpell extends CommandSpell {
 		return null;
 	}
 	
-	private String getSpellDataFromScroll(ItemStack item) {
-		String loreData = Util.getLoreData(item);
-		if (loreData != null && loreData.startsWith(internalName + ':')) return loreData.replace(internalName + ':', "");
-		return null;
-	}
-	
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		if (!actionAllowedForCast(event.getAction())) return;
 		Player player = event.getPlayer();
-		ItemStack inHand = player.getEquipment().getItemInMainHand();
+		ItemStack inHand = player.getInventory().getItemInMainHand();
 		if (itemType != inHand.getType() || inHand.getAmount() > 1) return;
 		
 		// Check for predefined scroll
@@ -255,12 +248,12 @@ public class ScrollSpell extends CommandSpell {
 			if (spell != null) {
 				int uses = predefinedScrollUses.get(ItemUtil.getDurability(inHand));
 				inHand = createScroll(spell, uses, inHand);
-				player.getEquipment().setItemInMainHand(inHand);
+				player.getInventory().setItemInMainHand(inHand);
 			}
 		}
 		
 		// Get scroll data (spell and uses)
-		String scrollDataString = getSpellDataFromScroll(inHand);
+		String scrollDataString = ItemUtil.getPersistentString(inHand, key);
 		if (scrollDataString == null || scrollDataString.isEmpty()) return;
 		String[] scrollData = scrollDataString.split(",");
 		Spell spell = MagicSpells.getSpellByInternalName(scrollData[0]);
@@ -293,12 +286,12 @@ public class ScrollSpell extends CommandSpell {
 			uses -= 1;
 			if (uses > 0) {
 				inHand = createScroll(spell, uses, inHand);
-				if (textContainsUses) player.getEquipment().setItemInMainHand(inHand);
+				if (textContainsUses) player.getInventory().setItemInMainHand(inHand);
 			} else {
 				if (removeScrollWhenDepleted) {
-					player.getEquipment().setItemInMainHand(null);
+					player.getInventory().setItemInMainHand(null);
 					event.setCancelled(true);
-				} else player.getEquipment().setItemInMainHand(new ItemStack(itemType));
+				} else player.getInventory().setItemInMainHand(new ItemStack(itemType));
 			}
 		}
 
@@ -330,16 +323,11 @@ public class ScrollSpell extends CommandSpell {
 	}
 	
 	private boolean actionAllowedForCast(Action action) {
-		switch (action) {
-			case RIGHT_CLICK_AIR:
-			case RIGHT_CLICK_BLOCK:
-				return rightClickCast;
-			case LEFT_CLICK_AIR:
-			case LEFT_CLICK_BLOCK:
-				return leftClickCast;
-			default:
-				return false;
-		}
+		return switch (action) {
+			case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> rightClickCast;
+			case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> leftClickCast;
+			default -> false;
+		};
 	}
 
 	public static Pattern getCastArgumentUseCountPattern() {
