@@ -14,7 +14,7 @@ import com.nisovin.magicspells.handlers.DebugHandler;
 
 public class ResourcePackSpell extends TargetedSpell {
 
-	private static final int HASH_LENGTH = 20;
+	private static final int HASH_LENGTH = 40;
 
 	private final String url;
 	private final boolean required;
