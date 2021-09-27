@@ -86,7 +86,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 			}
 			
 			// Check location
-			if (landLoc == null || !BlockUtils.isSafeToStand(landLoc.clone())) {
+			if (!BlockUtils.isSafeToStand(landLoc.clone())) {
 				sendMessage(strUsage, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
@@ -98,7 +98,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 				if (target != null && !target.getName().equalsIgnoreCase(targetName)) target = null;
 			} else {
 				List<Player> players = Bukkit.getServer().matchPlayer(targetName);
-				if (players != null && players.size() == 1) {
+				if (players.size() == 1) {
 					target = players.get(0);
 				}
 			}
@@ -113,7 +113,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 				target.teleport(landLoc);
 				sendMessage(strSummonAccepted, target, args, "%a", ((Player) caster).getDisplayName());
 			}
-			
+
 			sendMessages(caster, target, args);
 			return PostCastAction.NO_MESSAGES;
 			

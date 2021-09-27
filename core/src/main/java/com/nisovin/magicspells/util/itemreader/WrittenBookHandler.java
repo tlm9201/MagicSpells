@@ -19,9 +19,7 @@ public class WrittenBookHandler {
 	private static final String TITLE_CONFIG_NAME = TITLE.toString();
 
 	public static void process(ConfigurationSection config, ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof BookMeta)) return;
-		
-		BookMeta bookMeta = (BookMeta) meta;
+		if (!(meta instanceof BookMeta bookMeta)) return;
 
 		if (config.isString(TITLE_CONFIG_NAME)) {
 			String title = Util.colorize(config.getString(TITLE_CONFIG_NAME));
@@ -51,18 +49,16 @@ public class WrittenBookHandler {
 	}
 
 	public static void processItemMeta(ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof BookMeta)) return;
+		if (!(meta instanceof BookMeta bookMeta)) return;
 
-		BookMeta bookMeta = (BookMeta) meta;
 		if (data.hasAttribute(TITLE)) bookMeta.setTitle((String) data.getAttribute(TITLE));
 		if (data.hasAttribute(AUTHOR)) bookMeta.setAuthor((String) data.getAttribute(AUTHOR));
 		if (data.hasAttribute(PAGES)) bookMeta.setPages((List<String>) data.getAttribute(PAGES));
 	}
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
-		if (!(meta instanceof BookMeta)) return;
+		if (!(meta instanceof BookMeta bookMeta)) return;
 
-		BookMeta bookMeta = (BookMeta) meta;
 		if (bookMeta.hasAuthor()) data.setAttribute(AUTHOR, bookMeta.getAuthor());
 		if (bookMeta.hasTitle()) data.setAttribute(TITLE, bookMeta.getTitle());
 		if (bookMeta.hasPages()) {

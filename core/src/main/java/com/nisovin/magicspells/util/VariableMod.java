@@ -39,22 +39,15 @@ public class VariableMod {
 		
 		static Operation fromPrefix(String s) {
 			char c = s.charAt(0);
-			switch (c) {
-				case '=':
-					return SET;
-				case '*':
-					return MULTIPLY;
-				case '/':
-					return DIVIDE;
-				case '^':
-					return POWER;
-				case '%':
-					return MODULO;
-				case '?':
-					return RANDOM;
-				default:
-					return ADD;
-			}
+			return switch (c) {
+				case '=' -> SET;
+				case '*' -> MULTIPLY;
+				case '/' -> DIVIDE;
+				case '^' -> POWER;
+				case '%' -> MODULO;
+				case '?' -> RANDOM;
+				default -> ADD;
+			};
 		}
 		
 	}

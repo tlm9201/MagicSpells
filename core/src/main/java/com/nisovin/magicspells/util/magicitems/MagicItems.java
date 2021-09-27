@@ -388,8 +388,7 @@ public class MagicItems {
 					else meta.addEnchant(e, level, true);
 				}
 
-				if (meta instanceof EnchantmentStorageMeta) {
-					EnchantmentStorageMeta storageMeta = (EnchantmentStorageMeta) meta;
+				if (meta instanceof EnchantmentStorageMeta storageMeta) {
 
 					if (storageMeta.hasStoredEnchants()) {
 						Map<Enchantment, Integer> enchantments = storageMeta.getStoredEnchants();

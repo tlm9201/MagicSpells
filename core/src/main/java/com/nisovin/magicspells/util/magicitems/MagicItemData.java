@@ -130,9 +130,7 @@ public class MagicItemData {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof MagicItemData)) return false;
-
-        MagicItemData other = (MagicItemData) o;
+        if (!(o instanceof MagicItemData other)) return false;
         return itemAttributes.equals(other.itemAttributes)
             && ignoredAttributes.equals(other.ignoredAttributes)
             && blacklistedAttributes.equals(other.blacklistedAttributes);

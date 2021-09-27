@@ -51,8 +51,7 @@ public class ForgetSpell extends CommandSpell {
 	
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player) {
-			Player player = (Player) caster;
+		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
 			if (args == null || args.length == 0 || args.length > 2) {
 				sendMessage(strUsage, player, args);
 				return PostCastAction.ALREADY_HANDLED;
@@ -91,7 +90,7 @@ public class ForgetSpell extends CommandSpell {
 			}
 			
 			Spellbook targetSpellbook = MagicSpells.getSpellbook(target);
-			if (targetSpellbook == null || (!all && !targetSpellbook.hasSpell(spell))) {
+			if (!all && !targetSpellbook.hasSpell(spell)) {
 				sendMessage(strDoesntKnow, player, args);
 				return PostCastAction.ALREADY_HANDLED;
 			} 
@@ -148,7 +147,7 @@ public class ForgetSpell extends CommandSpell {
 		}
 
 		Spellbook targetSpellbook = MagicSpells.getSpellbook(target);
-		if (targetSpellbook == null || (!all && !targetSpellbook.hasSpell(spell))) {
+		if (!all && !targetSpellbook.hasSpell(spell)) {
 			sender.sendMessage(strDoesntKnow);
 			return false;
 		}

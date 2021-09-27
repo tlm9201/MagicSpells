@@ -119,8 +119,8 @@ public class CastItem {
 
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof CastItem) return equalsCastItem((CastItem) o);
-		if (o instanceof ItemStack) return equalsCastItem(new CastItem((ItemStack) o));
+		if (o instanceof CastItem item) return equalsCastItem(item);
+		if (o instanceof ItemStack item) return equalsCastItem(new CastItem(item));
 		return false;
 	}
 

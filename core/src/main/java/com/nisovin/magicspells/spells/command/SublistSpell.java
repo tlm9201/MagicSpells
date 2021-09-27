@@ -45,8 +45,7 @@ public class SublistSpell extends CommandSpell {
 
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player) {
-			Player player = (Player) caster;
+		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			String extra = "";
 			if (args != null && args.length > 0 && spellbook.hasAdvancedPerm("list")) {
@@ -56,8 +55,8 @@ public class SublistSpell extends CommandSpell {
 					extra = '(' + p.getDisplayName() + ") ";
 				}
 			}
-			if (spellbook != null && reloadGrantedSpells) spellbook.addGrantedSpells();
-			if (spellbook == null || spellbook.getSpells().isEmpty()) {
+			if (reloadGrantedSpells) spellbook.addGrantedSpells();
+			if (spellbook.getSpells().isEmpty()) {
 				sendMessage(strNoSpells, player, args);
 				return PostCastAction.HANDLE_NORMALLY;
 			}

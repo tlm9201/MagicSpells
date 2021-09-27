@@ -242,7 +242,7 @@ public class Util {
 
 		if (!building.isEmpty()) list.add(building);
 
-		return list.toArray(new String[list.size()]);
+		return list.toArray(new String[0]);
 	}
 
 	public static String[] splitParams(String string) {

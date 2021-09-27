@@ -208,11 +208,8 @@ public class ArmorSpell extends BuffSpell {
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 		public void onEntityDamage(EntityDamageEvent event) {
 			Entity entity = event.getEntity();
-			if (!(entity instanceof LivingEntity)) return;
-
-			LivingEntity livingEntity = (LivingEntity) entity;
+			if (!(entity instanceof LivingEntity livingEntity)) return;
 			if (!isActive(livingEntity)) return;
-
 			if (livingEntity.getNoDamageTicks() >= 10) return;
 			addUseAndChargeCost(livingEntity);
 		}
@@ -220,14 +217,9 @@ public class ArmorSpell extends BuffSpell {
 		@EventHandler(ignoreCancelled=true)
 		public void onInventoryClick(InventoryClickEvent event) {
 			if (event.getSlotType() != SlotType.ARMOR) return;
-
 			HumanEntity entity = event.getWhoClicked();
-
-			if (!(entity instanceof Player)) return;
-
-			Player p = (Player)entity;
+			if (!(entity instanceof Player p)) return;
 			if (!isActive(p)) return;
-
 			event.setCancelled(true);
 		}
 

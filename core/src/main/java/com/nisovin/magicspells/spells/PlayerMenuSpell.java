@@ -83,22 +83,22 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	public void initializeModifiers() {
 		super.initializeModifiers();
 
-		if (playerModifiersStrings != null && !playerModifiersStrings.isEmpty()) {
-			playerModifiers = new ModifierSet(playerModifiersStrings, this);
-		}
+		if (playerModifiersStrings == null || playerModifiersStrings.isEmpty()) return;
+		playerModifiers = new ModifierSet(playerModifiersStrings, this);
 	}
 
 	@Override
 	public void initialize() {
 		super.initialize();
 
-		spellOffline = initSubspell(spellOfflineName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-offline defined!");
-		spellRange = initSubspell(spellRangeName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-range defined!");
-		spellOnLeft = initSubspell(spellOnLeftName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-left defined!");
-		spellOnRight = initSubspell(spellOnRightName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-right defined!");
-		spellOnMiddle = initSubspell(spellOnMiddleName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-middle defined!");
-		spellOnSneakLeft = initSubspell(spellOnSneakLeftName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-sneak-left defined!");
-		spellOnSneakRight = initSubspell(spellOnSneakRightName, "PlayerMenuSpell '" + internalName + "' has an invalid spell-on-sneak-right defined!");
+		String error = "PlayerMenuSpell '" + internalName + "' has an invalid ";
+		spellOffline = initSubspell(spellOfflineName, error + "spell-offline defined!");
+		spellRange = initSubspell(spellRangeName, error + "spell-range defined!");
+		spellOnLeft = initSubspell(spellOnLeftName, error + "spell-on-left defined!");
+		spellOnRight = initSubspell(spellOnRightName, error + "spell-on-right defined!");
+		spellOnMiddle = initSubspell(spellOnMiddleName, error + "spell-on-middle defined!");
+		spellOnSneakLeft = initSubspell(spellOnSneakLeftName, error + "spell-on-sneak-left defined!");
+		spellOnSneakRight = initSubspell(spellOnSneakRightName, error + "spell-on-sneak-right defined!");
 
 		spellPower = new HashMap<>();
 	}
@@ -117,15 +117,15 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		openDelay((Player) target, power);
+		if (!(target instanceof Player player)) return false;
+		openDelay(player, power);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		openDelay((Player) target, power);
+		if (!(target instanceof Player player)) return false;
+		openDelay(player, power);
 		return true;
 	}
 
@@ -231,11 +231,11 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 			return;
 		}
 		switch (event.getClick()) {
-			case LEFT: processClickSpell(spellOnLeft, player, targetPlayer, power); break;
-			case RIGHT: processClickSpell(spellOnRight, player, targetPlayer, power); break;
-			case MIDDLE: processClickSpell(spellOnMiddle, player, targetPlayer, power); break;
-			case SHIFT_LEFT: processClickSpell(spellOnSneakLeft, player, targetPlayer, power); break;
-			case SHIFT_RIGHT: processClickSpell(spellOnSneakRight, player, targetPlayer, power); break;
+			case LEFT -> processClickSpell(spellOnLeft, player, targetPlayer, power);
+			case RIGHT -> processClickSpell(spellOnRight, player, targetPlayer, power);
+			case MIDDLE -> processClickSpell(spellOnMiddle, player, targetPlayer, power);
+			case SHIFT_LEFT -> processClickSpell(spellOnSneakLeft, player, targetPlayer, power);
+			case SHIFT_RIGHT -> processClickSpell(spellOnSneakRight, player, targetPlayer, power);
 		}
 		if (variableTarget != null && !variableTarget.isEmpty() && MagicSpells.getVariableManager().getVariable(variableTarget) != null) {
 			MagicSpells.getVariableManager().set(variableTarget, player, target.getName());
