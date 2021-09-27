@@ -43,9 +43,9 @@ import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class Util {
 
@@ -601,7 +601,9 @@ public class Util {
 				.deserialize(input);
 		input = getStringFromComponent(component);
 		// Parse the actual MiniMessage.
-		return MiniMessage.get().parse(input);
+		component = MiniMessage.get().parse(input);
+		// Remove italics if they aren't present. Otherwise, item name and lore will render italic text.
+		return component.decoration(TextDecoration.ITALIC, component.hasDecoration(TextDecoration.ITALIC));
 	}
 
 	public static Component getMiniMessageWithVars(Player player, String input) {
