@@ -125,8 +125,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			option.spellName = getConfigString(path + "spell", "");
 			option.spellRightName = getConfigString(path + "spell-right", "");
 			option.spellMiddleName = getConfigString(path + "spell-middle", "");
-			option.spellSneakRightName = getConfigString(path + "spell-sneak-left", "");
-			option.spellSneakLeftName = getConfigString(path + "spell-sneak-right", "");
+			option.spellSneakLeftName = getConfigString(path + "spell-sneak-left", "");
+			option.spellSneakRightName = getConfigString(path + "spell-sneak-right", "");
 			option.power = getConfigFloat(path + "power", 1);
 			option.modifierList = getConfigStringList(path + "modifiers", null);
 			option.stayOpen = getConfigBoolean(path + "stay-open", false);
