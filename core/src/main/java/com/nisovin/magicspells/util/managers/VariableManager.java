@@ -4,6 +4,7 @@ import java.util.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
+import java.nio.charset.StandardCharsets;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -427,7 +428,7 @@ public class VariableManager {
 		}
 
 		try {
-			Scanner scanner = new Scanner(file);
+			Scanner scanner = new Scanner(file, StandardCharsets.UTF_8);
 			while (scanner.hasNext()) {
 				String line = scanner.nextLine().trim();
 				if (!line.isEmpty()) {
@@ -466,7 +467,7 @@ public class VariableManager {
 
 		BufferedWriter writer = null;
 		try {
-			writer = new BufferedWriter(new FileWriter(file, false));
+			writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8, false));
 			for (String line : lines) {
 				writer.write(line);
 				writer.newLine();
@@ -500,7 +501,7 @@ public class VariableManager {
 		}
 
 		try {
-			Scanner scanner = new Scanner(file);
+			Scanner scanner = new Scanner(file, StandardCharsets.UTF_8);
 			while (scanner.hasNext()) {
 				String line = scanner.nextLine().trim();
 				if (!line.isEmpty()) {
@@ -540,7 +541,7 @@ public class VariableManager {
 
 		BufferedWriter writer = null;
 		try {
-			writer = new BufferedWriter(new FileWriter(file, false));
+			writer = new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8, false));
 			for (String line : lines) {
 				writer.write(line);
 				writer.newLine();
