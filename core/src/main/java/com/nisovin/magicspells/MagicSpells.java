@@ -15,6 +15,10 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.MalformedURLException;
 
+import de.slikey.effectlib.EffectManager;
+
+import org.jetbrains.annotations.NotNull;
+
 import co.aikar.commands.PaperCommandManager;
 
 import org.bukkit.Bukkit;
@@ -62,8 +66,6 @@ import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
-
-import de.slikey.effectlib.EffectManager;
 
 public class MagicSpells extends JavaPlugin {
 
@@ -166,6 +168,7 @@ public class MagicSpells extends JavaPlugin {
 	private boolean cooldownsPersistThroughReload;
 	private boolean allowAnticheatIntegrations;
 
+	private int debugLevelOriginal;
 	private int debugLevel;
 	private int spellIconSlot;
 	private int globalRadius;
@@ -249,7 +252,8 @@ public class MagicSpells extends JavaPlugin {
 		debug = config.getBoolean(path + "debug", false);
 		debugNull = config.getBoolean(path + "debug-null", true);
 		debugNumberFormat = config.getBoolean(path + "debug-number-format", true);
-		debugLevel = config.getInt(path + "debug-level", 3);
+		debugLevelOriginal = config.getInt(path + "debug-level", 3);
+		debugLevel = debugLevelOriginal;
 
 		tabCompleteInternalNames = config.getBoolean(path + "tab-complete-internal-names", false);
 		terminateEffectlibInstances = config.getBoolean(path + "terminate-effectlib-instances", true);
@@ -543,7 +547,7 @@ public class MagicSpells extends JavaPlugin {
 		registerEvents(new MagicPlayerListener(this));
 		registerEvents(new MagicSpellListener(this));
 		registerEvents(new CastListener(this));
-		if (!incantations.isEmpty()) registerEvents(new MagicChatListener(this));
+		if (!incantations.isEmpty()) registerEvents(new MagicChatListener());
 
 		LeftClickListener leftClickListener = new LeftClickListener();
 		if (leftClickListener.hasLeftClickCastItems()) registerEvents(leftClickListener);
@@ -551,7 +555,7 @@ public class MagicSpells extends JavaPlugin {
 		RightClickListener rightClickListener = new RightClickListener();
 		if (rightClickListener.hasRightClickCastItems()) registerEvents(rightClickListener);
 
-		ConsumeListener consumeListener = new ConsumeListener(this);
+		ConsumeListener consumeListener = new ConsumeListener();
 		if (consumeListener.hasConsumeCastItems()) registerEvents(consumeListener);
 		if (config.getBoolean(path + "enable-dance-casting", true)) new DanceCastListener(this, config);
 
@@ -1059,8 +1063,16 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.globalCooldown;
 	}
 
+	public static int getDebugLevelOriginal() {
+		return plugin.debugLevelOriginal;
+	}
+
 	public static void setDebug(boolean debug) {
 		plugin.debug = debug;
+	}
+
+	public static void setDebugLevel(int level) {
+		plugin.debugLevel = level;
 	}
 
 	public static boolean hasProfilingEnabled() {
@@ -1348,7 +1360,7 @@ public class MagicSpells extends JavaPlugin {
 		//Send messages
 		for (String msg : message.split("\n")) {
 			if (msg.isEmpty()) continue;
-			livingEntity.sendMessage(Util.colorize(getTextColor() + msg));
+			livingEntity.sendMessage(Util.getMiniMessage(getTextColor() + msg));
 		}
 	}
 
@@ -1525,7 +1537,7 @@ public class MagicSpells extends JavaPlugin {
 				final String eventKey = plugin.enableProfiling ? "Event:" + listener.getClass().getName().replace("com.nisovin.magicspells.", "") + '.' + method.getName() + '(' + eventClass.getSimpleName() + ')' : null;
 
 				@Override
-				public void execute(Listener listener, Event event) {
+				public void execute(@NotNull Listener listener, @NotNull Event event) {
 					try {
 						if (!eventClass.isAssignableFrom(event.getClass())) return;
 						long start = System.nanoTime();
@@ -1699,7 +1711,7 @@ public class MagicSpells extends JavaPlugin {
 
 		Spellbook spellbook = getSpellbook(player);
 
-		if (spellbook == null || spellbook.hasSpell(spell) || !spellbook.canLearn(spell)) return false;
+		if (spellbook.hasSpell(spell) || !spellbook.canLearn(spell)) return false;
 
 		// Call event
 		SpellLearnEvent event = new SpellLearnEvent(spell, player, LearnSource.OTHER, null);

@@ -1,5 +1,7 @@
 package com.nisovin.magicspells;
 
+import net.kyori.adventure.text.Component;
+
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -293,7 +295,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					spellIcon.setAmount(0);
 					if (!iconStr.contains("|")) {
 						ItemMeta iconMeta = spellIcon.getItemMeta();
-						iconMeta.setDisplayName(MagicSpells.getTextColor() + name);
+						iconMeta.displayName(Component.text(MagicSpells.getTextColor() + name));
 						spellIcon.setItemMeta(iconMeta);
 					}
 				}
@@ -361,9 +363,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					minCooldown = min;
 					maxCooldown = max;
 				}
-			} catch (NumberFormatException ex) {
-
-			}
+			} catch (NumberFormatException ignored) {}
 		}
 
 		serverCooldown = (float) config.getDouble(path + "server-cooldown", 0);
@@ -469,48 +469,44 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					float money = 1;
 
 					switch (data[0].toLowerCase()) {
-						case "health":
+						case "health" -> {
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
 							reagents.setHealth(amt);
-							break;
-						case "mana":
+						}
+						case "mana" -> {
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
 							reagents.setMana(amt);
-							break;
-						case "hunger":
+						}
+						case "hunger" -> {
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
 							reagents.setHunger(amt);
-							break;
-						case "experience":
+						}
+						case "experience" -> {
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
 							reagents.setExperience(amt);
-							break;
-						case "levels":
+						}
+						case "levels" -> {
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
 							reagents.setLevels(amt);
-							break;
-						case "durability":
+						}
+						case "durability" -> {
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
 							reagents.setDurability(amt);
-							break;
-						case "money":
+						}
+						case "money" -> {
 							if (data.length > 1) money = Float.parseFloat(data[1]);
 							reagents.setMoney(money);
-							break;
-						case "variable":
-							reagents.addVariable(data[1], Double.parseDouble(data[2]));
-							break;
-						default:
+						}
+						case "variable" -> reagents.addVariable(data[1], Double.parseDouble(data[2]));
+						default -> {
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
-
 							MagicItemData itemData = MagicItems.getMagicItemDataFromString(data[0]);
 							if (itemData == null) {
 								MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
 								continue;
 							}
-
 							reagents.addItem(new SpellReagents.ReagentItem(itemData, amt));
-							break;
+						}
 					}
 				} catch (Exception e) {
 					// FIXME this should not be a means of breaking
@@ -590,7 +586,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 
 			String positionName = section.getString("position", "");
-			if (positionName == null || positionName.isEmpty()) {
+			if (positionName.isEmpty()) {
 				MagicSpells.error("Spell effect '" + key + "' on spell '" + internalName + "' does not contain a 'position' value.");
 				continue;
 			}
@@ -602,7 +598,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 
 			String effectType = section.getString("effect", "");
-			if (effectType == null || effectType.isEmpty()) {
+			if (effectType.isEmpty()) {
 				MagicSpells.error("Spell effect '" + key + "' on spell '" + internalName + "' does not contain an 'effect' value.");
 				continue;
 			}
@@ -896,17 +892,17 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (action.setCooldown()) setCooldown(caster, spellCast.getCooldown());
 				if (action.chargeReagents()) removeReagents(caster, spellCast.getReagents());
 				if (action.sendMessages()) sendMessages(caster, spellCast.getSpellArgs());
-				if (experience > 0 && caster instanceof Player) ((Player) caster).giveExp(experience);
+				if (experience > 0 && caster instanceof Player player) player.giveExp(experience);
 			} else if (state == SpellCastState.ON_COOLDOWN) {
 				MagicSpells.sendMessageAndFormat(strOnCooldown, caster, spellCast.getSpellArgs(),
 					"%c", Math.round(getCooldown(caster)) + "", "%s", spellCast.getSpell().getName());
 				playSpellEffects(EffectPosition.COOLDOWN, caster);
-				if (soundOnCooldown != null && caster instanceof Player) ((Player) caster).playSound(caster.getLocation(), soundOnCooldown, 1F, 1F);
+				if (soundOnCooldown != null && caster instanceof Player player) player.playSound(caster.getLocation(), soundOnCooldown, 1F, 1F);
 			} else if (state == SpellCastState.MISSING_REAGENTS) {
 				MagicSpells.sendMessage(strMissingReagents, caster, spellCast.getSpellArgs());
 				playSpellEffects(EffectPosition.MISSING_REAGENTS, caster);
 				if (MagicSpells.showStrCostOnMissingReagents() && strCost != null && !strCost.isEmpty()) MagicSpells.sendMessage("    (" + strCost + ')', caster, spellCast.getSpellArgs());
-				if (soundMissingReagents != null && caster instanceof Player) ((Player) caster).playSound(caster.getLocation(), soundMissingReagents, 1F, 1F);
+				if (soundMissingReagents != null && caster instanceof Player player) player.playSound(caster.getLocation(), soundMissingReagents, 1F, 1F);
 			} else if (state == SpellCastState.CANT_CAST) {
 				MagicSpells.sendMessage(strCantCast, caster, spellCast.getSpellArgs());
 			} else if (state == SpellCastState.NO_MAGIC_ZONE) {
@@ -952,7 +948,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			String name = p.getName();
 			if (!name.toLowerCase().startsWith(partial)) continue;
-			if (sender.isOp() || !(sender instanceof Player) || ((Player) sender).canSee(p)) matches.add(name);
+			if (sender.isOp() || !(sender instanceof Player player) || player.canSee(p)) matches.add(name);
 		}
 		if (!matches.isEmpty()) return matches;
 		return null;
@@ -1094,7 +1090,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					playSpellEffects(EffectPosition.CHARGE_USE, livingEntity);
 					if (rechargeSound == null) return;
 					if (rechargeSound.isEmpty()) return;
-					if (livingEntity instanceof Player) ((Player) livingEntity).playSound(livingEntity.getLocation(), rechargeSound, 1.0F, 1.0F);
+					if (livingEntity instanceof Player player) player.playSound(livingEntity.getLocation(), rechargeSound, 1.0F, 1.0F);
 				}, Math.round(TimeUtil.TICKS_PER_SECOND * cd));
 			}
 
@@ -1144,23 +1140,23 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (Perm.NO_REAGENTS.has(livingEntity)) return true;
 
 		// player reagents
-		if (livingEntity instanceof Player) {
+		if (livingEntity instanceof Player player) {
 			// Mana costs
-			if (manaCost > 0 && (MagicSpells.getManaHandler() == null || !MagicSpells.getManaHandler().hasMana((Player) livingEntity, manaCost))) return false;
+			if (manaCost > 0 && (MagicSpells.getManaHandler() == null || !MagicSpells.getManaHandler().hasMana(player, manaCost))) return false;
 
 			// Hunger costs
-			if (hungerCost > 0 && ((Player) livingEntity).getFoodLevel() < hungerCost) return false;
+			if (hungerCost > 0 && player.getFoodLevel() < hungerCost) return false;
 
 			// Experience costs
-			if (experienceCost > 0 && !ExperienceUtils.hasExp((Player) livingEntity, experienceCost)) return false;
+			if (experienceCost > 0 && !ExperienceUtils.hasExp(player, experienceCost)) return false;
 
 			// Level costs
-			if (levelsCost > 0 && ((Player) livingEntity).getLevel() < levelsCost) return false;
+			if (levelsCost > 0 && player.getLevel() < levelsCost) return false;
 
 			// Money costs
 			if (moneyCost > 0) {
 				MoneyHandler moneyHandler = MagicSpells.getMoneyHandler();
-				if (moneyHandler == null || !moneyHandler.hasMoney((Player) livingEntity, moneyCost)) {
+				if (moneyHandler == null || !moneyHandler.hasMoney(player, moneyCost)) {
 					return false;
 				}
 			}
@@ -1171,7 +1167,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (varMan == null) return false;
 				for (Map.Entry<String, Double> var : variables.entrySet()) {
 					double val = var.getValue();
-					if (val > 0 && varMan.getValue(var.getKey(), (Player) livingEntity) < val) return false;
+					if (val > 0 && varMan.getValue(var.getKey(), player) < val) return false;
 				}
 			}
 		}
@@ -1182,19 +1178,20 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		// Durabilty costs
 		if (durabilityCost > 0) {
 			// Durability cost is charged from the main hand item
-			ItemStack inHand = livingEntity.getEquipment().getItemInMainHand();
-			if (inHand == null) return false;
-			if (!(inHand.getItemMeta() instanceof Damageable)) return false;
-			if (((Damageable) inHand.getItemMeta()).getDamage() >= inHand.getType().getMaxDurability()) return false;
+			EntityEquipment equipment = livingEntity.getEquipment();
+			if (equipment == null) return false;
+			ItemStack inHand = equipment.getItemInMainHand();
+			if (!(inHand.getItemMeta() instanceof Damageable damageable)) return false;
+			if (damageable.getDamage() >= inHand.getType().getMaxDurability()) return false;
 		}
 
 		// Item costs
 		if (reagents != null) {
-			if (livingEntity instanceof Player) {
-				Inventory playerInventory = ((Player) livingEntity).getInventory();
+			if (livingEntity instanceof Player player) {
+				Inventory inventory = player.getInventory();
 				for (SpellReagents.ReagentItem item : reagents) {
 					if (item == null) continue;
-					if (InventoryUtil.inventoryContains(playerInventory, item)) continue;
+					if (InventoryUtil.inventoryContains(inventory, item)) continue;
 					return false;
 				}
 			} else {
@@ -1248,42 +1245,42 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (reagents != null) {
 			for (SpellReagents.ReagentItem item : reagents) {
 				if (item == null) continue;
-				if (livingEntity instanceof Player) Util.removeFromInventory(((Player) livingEntity).getInventory(), item);
+				if (livingEntity instanceof Player player) Util.removeFromInventory(player.getInventory(), item);
 				else if (livingEntity.getEquipment() != null) Util.removeFromInventory(livingEntity.getEquipment(), item);
 			}
 		}
 
-		if (livingEntity instanceof Player) {
-			if (manaCost != 0) MagicSpells.getManaHandler().addMana((Player) livingEntity, -manaCost, ManaChangeReason.SPELL_COST);
+		if (livingEntity instanceof Player player) {
+			if (manaCost != 0) MagicSpells.getManaHandler().addMana(player, -manaCost, ManaChangeReason.SPELL_COST);
 
 			if (hungerCost != 0) {
-				int f = ((Player) livingEntity).getFoodLevel() - hungerCost;
+				int f = player.getFoodLevel() - hungerCost;
 				if (f < 0) f = 0;
 				if (f > 20) f = 20;
-				((Player) livingEntity).setFoodLevel(f);
+				player.setFoodLevel(f);
 			}
 
-			if (experienceCost != 0) ExperienceUtils.changeExp((Player) livingEntity, -experienceCost);
+			if (experienceCost != 0) ExperienceUtils.changeExp(player, -experienceCost);
 
 			if (moneyCost != 0) {
 				MoneyHandler moneyHandler = MagicSpells.getMoneyHandler();
 				if (moneyHandler != null) {
-					if (moneyCost > 0) moneyHandler.removeMoney((Player) livingEntity, moneyCost);
-					else moneyHandler.addMoney((Player) livingEntity, moneyCost);
+					if (moneyCost > 0) moneyHandler.removeMoney(player, moneyCost);
+					else moneyHandler.addMoney(player, moneyCost);
 				}
 			}
 
 			if (levelsCost != 0) {
-				int lvl = ((Player) livingEntity).getLevel() - levelsCost;
+				int lvl = player.getLevel() - levelsCost;
 				if (lvl < 0) lvl = 0;
-				((Player) livingEntity).setLevel(lvl);
+				player.setLevel(lvl);
 			}
 
 			if (variables != null) {
 				VariableManager varMan = MagicSpells.getVariableManager();
 				if (varMan != null) {
 					for (Map.Entry<String, Double> var : variables.entrySet()) {
-						varMan.set(var.getKey(), (Player) livingEntity, varMan.getValue(var.getKey(), (Player) livingEntity) - var.getValue());
+						varMan.set(var.getKey(), player, varMan.getValue(var.getKey(), player) - var.getValue());
 					}
 				}
 			}
@@ -1296,16 +1293,17 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			livingEntity.setHealth(h);
 		}
 
-		if (durabilityCost != 0) {
-			ItemStack inHand = livingEntity.getEquipment().getItemInMainHand();
-			if (inHand != null && inHand.getItemMeta() instanceof Damageable && inHand.getType().getMaxDurability() > 0) {
-				short newDura = (short) (((Damageable) inHand.getItemMeta()).getDamage() + durabilityCost);
+		EntityEquipment equipment = livingEntity.getEquipment();
+		if (durabilityCost != 0 && equipment != null) {
+			ItemStack inHand = equipment.getItemInMainHand();
+			if (inHand.getItemMeta() instanceof Damageable damageable && inHand.getType().getMaxDurability() > 0) {
+				short newDura = (short) (damageable.getDamage() + durabilityCost);
 				if (newDura < 0) newDura = 0;
 				if (newDura >= inHand.getType().getMaxDurability()) {
 					livingEntity.getEquipment().setItemInMainHand(null);
 				} else {
 					ItemMeta meta = inHand.getItemMeta();
-					((Damageable) meta).setDamage(newDura);
+					damageable.setDamage(newDura);
 					inHand.setItemMeta(meta);
 				}
 			}
@@ -1516,9 +1514,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		for (SpellEffect effect : effectsList) {
 			Runnable canceler = effect.playEffect(entity);
 			if (canceler == null) continue;
-			if (!(entity instanceof Player)) continue;
-			Player p = (Player) entity;
-			Map<EffectPosition, List<Runnable>> runnablesMap = callbacks.get(p.getUniqueId().toString());
+			if (!(entity instanceof Player player)) continue;
+			Map<EffectPosition, List<Runnable>> runnablesMap = callbacks.get(player.getUniqueId().toString());
 			if (runnablesMap == null) continue;
 			List<Runnable> runnables = runnablesMap.get(pos);
 			if (runnables == null) continue;
@@ -1622,12 +1619,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		List<Runnable> cancelers = callbacks.get(uuid).get(pos);
 		while (!cancelers.isEmpty()) {
 			Runnable c = cancelers.iterator().next();
-			if (c instanceof Effect) {
-				Effect eff = (Effect)c;
-				eff.cancel();
-			} else {
-				c.run();
-			}
+			if (c instanceof Effect eff) eff.cancel();
+			else c.run();
 			cancelers.remove(c);
 		}
 	}
