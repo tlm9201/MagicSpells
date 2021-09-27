@@ -593,8 +593,13 @@ public class Util {
 		// Let's handle MS color patterns. Replace ampersand with section (§).
 		input = colorize(input);
 		// Translate legacy section (§) to Adventure colors.
-		Component component = LegacyComponentSerializer.legacySection().deserialize(input);
-		input = PlainTextComponentSerializer.plainText().serialize(component);
+		Component component = LegacyComponentSerializer.builder()
+				.hexColors()
+				.useUnusualXRepeatedCharacterHexFormat()
+				.character(ChatColor.COLOR_CHAR)
+				.build()
+				.deserialize(input);
+		input = getStringFromComponent(component);
 		// Parse the actual MiniMessage.
 		return MiniMessage.get().parse(input);
 	}
