@@ -12,6 +12,7 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -204,13 +205,10 @@ public class VariableManager {
 			if (scoreName != null && scorePos != null) {
 				String objName = "MSV_" + var;
 				if (objName.length() > 16) objName = objName.substring(0, 16);
-				objective = Bukkit.getScoreboardManager().getMainScoreboard().getObjective(objName);
-				if (objective != null) {
-					objective.unregister();
-					objective = null;
-				}
-				objective = Bukkit.getScoreboardManager().getMainScoreboard().registerNewObjective(objName, objName, objName);
-				objective.setDisplayName(Util.colorize(scoreName));
+				Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
+				objective = scoreboard.getObjective(objName);
+				if (objective != null) objective.unregister();
+				objective = scoreboard.registerNewObjective(objName, "dummy", Util.getMiniMessage(scoreName));
 				if (scorePos.equalsIgnoreCase("nameplate")) objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 				else if (scorePos.equalsIgnoreCase("playerlist")) objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 				else objective.setDisplaySlot(DisplaySlot.SIDEBAR);

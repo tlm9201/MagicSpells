@@ -1,6 +1,9 @@
 package com.nisovin.magicspells.util.itemreader;
 
 import java.util.List;
+import java.util.ArrayList;
+
+import net.kyori.adventure.text.Component;
 
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -36,15 +39,14 @@ public class WrittenBookHandler {
 		}
 
 		if (config.isList(PAGES_CONFIG_NAME)) {
-			List<String> pages = config.getStringList(PAGES_CONFIG_NAME);
-			for (int i = 0; i < pages.size(); i++) {
-				pages.set(i, Util.colorize(pages.get(i)));
+			List<Component> pages = new ArrayList<>();
+			for (String page : config.getStringList(PAGES_CONFIG_NAME)) {
+				pages.add(Util.getMiniMessage(page));
 			}
 
-			if (!pages.isEmpty()) {
-				bookMeta.setPages(pages);
-				data.setAttribute(PAGES, bookMeta.getPages());
-			}
+			if (pages.isEmpty()) return;
+			bookMeta.pages(pages);
+			data.setAttribute(PAGES, pages);
 		}
 	}
 
@@ -53,7 +55,7 @@ public class WrittenBookHandler {
 
 		if (data.hasAttribute(TITLE)) bookMeta.setTitle((String) data.getAttribute(TITLE));
 		if (data.hasAttribute(AUTHOR)) bookMeta.setAuthor((String) data.getAttribute(AUTHOR));
-		if (data.hasAttribute(PAGES)) bookMeta.setPages((List<String>) data.getAttribute(PAGES));
+		if (data.hasAttribute(PAGES)) bookMeta.pages((List<Component>) data.getAttribute(PAGES));
 	}
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
@@ -62,7 +64,7 @@ public class WrittenBookHandler {
 		if (bookMeta.hasAuthor()) data.setAttribute(AUTHOR, bookMeta.getAuthor());
 		if (bookMeta.hasTitle()) data.setAttribute(TITLE, bookMeta.getTitle());
 		if (bookMeta.hasPages()) {
-			List<String> pages = bookMeta.getPages();
+			List<Component> pages = bookMeta.pages();
 			if (!pages.isEmpty()) data.setAttribute(PAGES, pages);
 		}
 	}

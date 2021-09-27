@@ -4,6 +4,8 @@ import java.util.*;
 
 import co.aikar.commands.ACFUtil;
 
+import net.kyori.adventure.text.Component;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -254,7 +256,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		if (requireEntityTarget && entityTarget != null) castEntityTarget.put(opener.getUniqueId(), entityTarget);
 		if (requireLocationTarget && locTarget != null) castLocTarget.put(opener.getUniqueId(), locTarget);
 
-		Inventory inv = Bukkit.createInventory(opener, size, internalName);
+
+		Inventory inv = Bukkit.createInventory(opener, size, Component.text(internalName));
 		applyOptionsToInventory(opener, inv, args);
 		opener.openInventory(inv);
 		Util.setInventoryTitle(opener, title);
@@ -302,17 +305,23 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		}
 	}
 
+	private Component translateRawComponent(Component component, Player player, String[] args) {
+		String text = Util.getStringFromComponent(component);
+		text = MagicSpells.doArgumentAndVariableSubstitution(text, player, args);
+		return Util.getMiniMessage(text);
+	}
+
 	private ItemStack translateItem(Player opener, String[] args, ItemStack item) {
 		ItemStack newItem = item.clone();
 		ItemMeta meta = newItem.getItemMeta();
 		if (meta == null) return newItem;
-		meta.setDisplayName(Util.colorize(MagicSpells.doArgumentAndVariableSubstitution(meta.getDisplayName(), opener, args)));
-		List<String> lore = meta.getLore();
+		meta.displayName(translateRawComponent(meta.displayName(), opener, args));
+		List<Component> lore = meta.lore();
 		if (lore != null) {
 			for (int i = 0; i < lore.size(); i++) {
-				lore.set(i, Util.colorize(MagicSpells.doArgumentAndVariableSubstitution(lore.get(i), opener, args)));
+				lore.set(i, translateRawComponent(lore.get(i), opener, args));
 			}
-			meta.setLore(lore);
+			meta.lore(lore);
 		}
 		newItem.setItemMeta(meta);
 		return newItem;
@@ -321,7 +330,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@EventHandler
 	public void onInvClick(InventoryClickEvent event) {
 		Player player = (Player) event.getWhoClicked();
-		if (!event.getView().getTitle().equals(internalName)) return;
+		if (!Util.getStringFromComponent(event.getView().title()).equals(internalName)) return;
 		event.setCancelled(true);
 
 		String closeState = castSpells(player, event.getCurrentItem(), event.getClick());
@@ -337,7 +346,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			return;
 		}
 		// Reopen.
-		Inventory newInv = Bukkit.createInventory(player, event.getView().getTopInventory().getSize(), internalName);
+		Inventory newInv = Bukkit.createInventory(player, event.getView().getTopInventory().getSize(), Component.text(internalName));
 		applyOptionsToInventory(player, newInv, MagicSpells.NULL_ARGS);
 		player.openInventory(newInv);
 		Util.setInventoryTitle(player, title);

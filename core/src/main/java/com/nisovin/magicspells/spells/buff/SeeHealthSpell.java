@@ -105,7 +105,7 @@ public class SeeHealthSpell extends BuffSpell {
 			sb.append(symbol.repeat(barSize - remain));
 		}
 
-		player.sendActionBar(sb.toString());
+		player.sendActionBar(Util.getMiniMessage(sb.toString()));
 	}
 
 	public static String getColors() {

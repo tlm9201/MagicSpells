@@ -1,5 +1,7 @@
 package com.nisovin.magicspells;
 
+import net.kyori.adventure.text.Component;
+
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -293,7 +295,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					spellIcon.setAmount(0);
 					if (!iconStr.contains("|")) {
 						ItemMeta iconMeta = spellIcon.getItemMeta();
-						iconMeta.setDisplayName(MagicSpells.getTextColor() + name);
+						iconMeta.displayName(Component.text(MagicSpells.getTextColor() + name));
 						spellIcon.setItemMeta(iconMeta);
 					}
 				}

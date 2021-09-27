@@ -212,8 +212,14 @@ public class ImbueSpell extends CommandSpell {
 	
 	private void setItemNameAndLore(ItemStack item, Spell spell, int uses) {
 		ItemMeta meta = item.getItemMeta();
-		if (!strItemName.isEmpty()) meta.setDisplayName(strItemName.replace("%s", spell.getName()).replace("%u", uses+""));
-		if (!strItemLore.isEmpty()) meta.setLore(Collections.singletonList(strItemLore.replace("%s", spell.getName()).replace("%u", uses + "")));
+		if (!strItemName.isEmpty()) {
+			String displayName = strItemName.replace("%s", spell.getName()).replace("%u", uses+"");
+			meta.displayName(Util.getMiniMessage(displayName));
+		}
+		if (!strItemLore.isEmpty()) {
+			String lore = strItemLore.replace("%s", spell.getName()).replace("%u", uses + "");
+			meta.lore(Collections.singletonList(Util.getMiniMessage(lore)));
+		}
 		item.setItemMeta(meta);
 	}
 

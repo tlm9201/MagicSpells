@@ -1,10 +1,9 @@
 package com.nisovin.magicspells.spells.command;
 
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.regex.Pattern;
+
+import net.kyori.adventure.text.Component;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -211,11 +210,11 @@ public class ScrollSpell extends CommandSpell {
 		ItemMeta meta = item.getItemMeta();
 		if (meta instanceof Damageable) ((Damageable) meta).setDamage(0);
 
-		meta.setDisplayName(Util.colorize(strScrollName.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"))));
+		String displayName = strScrollName.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"));
+		meta.displayName(Util.getMiniMessage(displayName));
 		if (strScrollSubtext != null && !strScrollSubtext.isEmpty()) {
-			List<String> lore = new ArrayList<>();
-			lore.add(Util.colorize(strScrollSubtext.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"))));
-			meta.setLore(lore);
+			Component lore = Util.getMiniMessage(strScrollSubtext.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many")));
+			meta.lore(Collections.singletonList(lore));
 		}
 
 		ItemUtil.addFakeEnchantment(meta);

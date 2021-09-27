@@ -1360,7 +1360,7 @@ public class MagicSpells extends JavaPlugin {
 		//Send messages
 		for (String msg : message.split("\n")) {
 			if (msg.isEmpty()) continue;
-			livingEntity.sendMessage(Util.colorize(getTextColor() + msg));
+			livingEntity.sendMessage(Util.getMiniMessage(getTextColor() + msg));
 		}
 	}
 

@@ -42,6 +42,11 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+
 public class Util {
 
 	private static final Random random = ThreadLocalRandom.current();
@@ -582,6 +587,24 @@ public class Util {
 	public static Vector getVector(String str) {
 		String[] vecStrings = str.split(",");
 		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
+	}
+
+	public static Component getMiniMessage(String input) {
+		// Let's handle MS color patterns. Replace ampersand with section (§).
+		input = colorize(input);
+		// Translate legacy section (§) to Adventure colors.
+		Component component = LegacyComponentSerializer.legacySection().deserialize(input);
+		input = PlainTextComponentSerializer.plainText().serialize(component);
+		// Parse the actual MiniMessage.
+		return MiniMessage.get().parse(input);
+	}
+
+	public static Component getMiniMessageWithVars(Player player, String input) {
+		return getMiniMessage(MagicSpells.doVariableReplacements(player, input));
+	}
+
+	public static String getStringFromComponent(Component component) {
+		return component == null ? "" : MiniMessage.get().serialize(component);
 	}
 
 	public static String colorize(String string) {

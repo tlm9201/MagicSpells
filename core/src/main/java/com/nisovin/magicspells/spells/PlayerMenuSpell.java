@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells;
 
 import java.util.*;
 
+import net.kyori.adventure.text.Component;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -144,10 +146,10 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		else open(opener);
 	}
 
-	private String translate(Player player, Player target, String string) {
+	private Component translate(Player player, Player target, String string) {
 		if (target != null) string = string.replaceAll("%t", target.getName());
 		string = string.replaceAll("%a", player.getName());
-		return Util.doVarReplacementAndColorize(player, string);
+		return Util.getMiniMessageWithVars(player, string);
 	}
 
 	private void processClickSpell(Subspell subspell, Player caster, Player target, float power) {
@@ -166,7 +168,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		if (radius > 0) players.removeIf(player -> opener.getLocation().distance(player.getLocation()) > radius);
 
 		int size = (int) Math.ceil((players.size()+1) / 9.0) * 9;
-		Inventory inv = Bukkit.createInventory(opener, size, internalName);
+		Inventory inv = Bukkit.createInventory(opener, size, Component.text(internalName));
 
 		for (int i = 0; i < players.size(); i++) {
 			ItemStack head = new ItemStack(Material.PLAYER_HEAD);
@@ -174,13 +176,13 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 			SkullMeta skullMeta = (SkullMeta) itemMeta;
 			if (skullMeta == null) continue;
 			skullMeta.setOwningPlayer(players.get(i));
-			itemMeta.setDisplayName(translate(opener, players.get(i), skullName));
+			itemMeta.displayName(translate(opener, players.get(i), skullName));
 			if (skullLore != null) {
-				List<String> lore = new ArrayList<>();
+				List<Component> lore = new ArrayList<>();
 				for (String loreLine : skullLore) {
 					lore.add(translate(opener, players.get(i), loreLine));
 				}
-				itemMeta.setLore(lore);
+				itemMeta.lore(lore);
 			}
 			head.setItemMeta(skullMeta);
 			inv.setItem(i, head);
@@ -197,7 +199,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	@EventHandler
 	public void onItemClick(InventoryClickEvent event) {
 		Player player = (Player) event.getWhoClicked();
-		if (!event.getView().getTitle().equals(internalName)) return;
+		if (!Util.getStringFromComponent(event.getView().title()).equals(internalName)) return;
 		event.setCancelled(true);
 		ItemStack item = event.getCurrentItem();
 		if (item == null) return;
@@ -207,7 +209,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		OfflinePlayer target = skullMeta.getOwningPlayer();
 		float power = spellPower.containsKey(player.getUniqueId()) ?  spellPower.get(player.getUniqueId()) : 1;
 		if (target == null || !target.isOnline()) {
-			itemMeta.setDisplayName(translate(player, null, skullNameOffline));
+			itemMeta.displayName(translate(player, null, skullNameOffline));
 			if (spellOffline != null) spellOffline.cast(player, power);
 			if (stayOpen) item.setItemMeta(itemMeta);
 			else {
@@ -216,12 +218,12 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 			}
 			return;
 		} else {
-			itemMeta.setDisplayName(translate(player, (Player) target, skullName));
+			itemMeta.displayName(translate(player, (Player) target, skullName));
 			item.setItemMeta(itemMeta);
 		}
 		Player targetPlayer = (Player) target;
 		if (radius > 0  && targetPlayer.getLocation().distance(player.getLocation()) > radius) {
-			itemMeta.setDisplayName(translate(player, targetPlayer, skullNameRadius));
+			itemMeta.displayName(translate(player, targetPlayer, skullNameRadius));
 			if (spellRange != null) spellRange.cast(player, power);
 			if (stayOpen) item.setItemMeta(itemMeta);
 			else {

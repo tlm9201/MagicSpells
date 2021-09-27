@@ -127,8 +127,9 @@ public class TeachSpell extends CommandSpell {
 		}
 		targetSpellbook.addSpell(spell);
 		targetSpellbook.save();
-		sendMessage(strCastTarget, players.get(0), args, "%a", getConsoleName(), "%s", spell.getName(), "%t", players.get(0).getDisplayName());
-		sender.sendMessage(formatMessage(strCastSelf, "%a", getConsoleName(), "%s", spell.getName(), "%t", players.get(0).getDisplayName()));
+		String displayName = Util.getStringFromComponent(players.get(0).displayName());
+		sendMessage(strCastTarget, players.get(0), args, "%a", getConsoleName(), "%s", spell.getName(), "%t", displayName);
+		sender.sendMessage(formatMessage(strCastSelf, "%a", getConsoleName(), "%s", spell.getName(), "%t", displayName));
 		return true;
 	}
 	

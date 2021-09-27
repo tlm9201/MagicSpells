@@ -10,6 +10,7 @@ import org.bukkit.command.ConsoleCommandSender;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellFilter;
@@ -56,7 +57,7 @@ public class ListSpell extends CommandSpell {
 				Player p = PlayerNameUtils.getPlayer(args[0]);
 				if (p != null) {
 					spellbook = MagicSpells.getSpellbook(p);
-					extra = '(' + p.getDisplayName() + ") ";
+					extra = '(' + Util.getStringFromComponent(p.displayName()) + ") ";
 				}
 			}
 

@@ -53,7 +53,7 @@ public class ConjureFireworkSpell extends InstantSpell implements TargetedLocati
 		FireworkMeta meta = (FireworkMeta) firework.getItemMeta();
 		
 		meta.setPower(flight);
-		if (!fireworkName.isEmpty()) meta.setDisplayName(Util.colorize(fireworkName));
+		if (!fireworkName.isEmpty()) meta.displayName(Util.getMiniMessage(fireworkName));
 		
 		List<String> fireworkEffects = getConfigStringList("firework-effects", null);
 		if (fireworkEffects != null && !fireworkEffects.isEmpty()) {
