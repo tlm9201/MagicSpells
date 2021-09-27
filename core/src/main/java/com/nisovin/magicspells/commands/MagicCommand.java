@@ -59,9 +59,14 @@ public class MagicCommand extends BaseCommand {
 			return spells;
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("owned_spells", context -> {
+			Set<Spell> spells = new HashSet<>();
 			Player player = context.getPlayer();
-			if (player == null) return Collections.emptyList();
-			return getSpellNames(MagicSpells.getSpellbook(player).getSpells());
+			Spellbook spellbook = MagicSpells.getSpellbook(player);
+			for (Spell spell : MagicSpells.getSpellsOrdered()) {
+				if (!spellbook.hasSpell(spell)) continue;
+				spells.add(spell);
+			}
+			return getSpellNames(spells);
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("players+", context -> {
 			Set<String> players = new HashSet<>();
