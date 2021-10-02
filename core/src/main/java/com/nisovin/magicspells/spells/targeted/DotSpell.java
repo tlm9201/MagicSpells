@@ -191,6 +191,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 			}
 
 			playSpellEffects(EffectPosition.DELAYED, target);
+			target.setNoDamageTicks(0);
 		}
 
 		private void cancel() {
