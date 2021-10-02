@@ -1,11 +1,8 @@
 package com.nisovin.magicspells.volatilecode;
 
 import org.bukkit.entity.*;
-import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
 
 public interface VolatileCodeHandle {

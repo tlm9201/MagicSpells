@@ -145,7 +145,7 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation().add(0.5, 0.5, 0.5));
 		}
 		
-		blocks.removeAll(entomb);
+		entomb.forEach(blocks::remove);
 	}
 	
 	@EventHandler

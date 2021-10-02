@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -263,7 +264,7 @@ public class ManaSystem extends ManaHandler {
 	}
 
 	private void showManaOnActionBar(Player player, ManaBar bar) {
-		player.sendActionBar(getManaMessage(bar));
+		player.sendActionBar(Util.getMiniMessage(getManaMessage(bar)));
 	}
 	
 	private void showManaOnExperienceBar(Player player, ManaBar bar) {

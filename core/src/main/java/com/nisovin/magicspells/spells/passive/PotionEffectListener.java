@@ -69,29 +69,25 @@ public class PotionEffectListener extends PassiveListener {
 
 	@EventHandler
 	public void onPotionEffect(EntityPotionEffectEvent event) {
-		if (!(event.getEntity() instanceof LivingEntity)) return;
+		if (!(event.getEntity() instanceof LivingEntity entity)) return;
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		if (!actions.contains(event.getAction()) || !causes.contains(event.getCause())) return;
 
-		LivingEntity entity = (LivingEntity) event.getEntity();
 		if (!hasSpell(entity) || !canTrigger(entity)) return;
 
 		PotionEffectType type = null;
 		PotionEffect effect;
 		switch (event.getAction()) { //The effect used by the event is referenced differently based on the action, so unfortunately this is needed
-			case ADDED:
+			case ADDED -> {
 				effect = event.getNewEffect();
 				if (effect != null) type = effect.getType();
-				break;
-			case CHANGED:
-				type = event.getModifiedType();
-				break;
-			case REMOVED:
-			case CLEARED:
+			}
+			case CHANGED -> type = event.getModifiedType();
+			case REMOVED, CLEARED -> {
 				effect = event.getOldEffect();
 				if (effect != null) type = effect.getType();
-				break;
+			}
 		}
 
 		if (type == null || !types.contains(type)) return;

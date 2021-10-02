@@ -33,7 +33,7 @@ public class InventoryUtil {
 		ItemStack[] contents = inv.getContents();
 		String inventoryType = inv.getType().name();
 		int size = inv.getSize();
-		String title = view.getTitle();
+		String title = Util.getStringFromComponent(view.title());
 		
 		// A map of slot to itemstack
 		Map<Object, Object> serializedContents = createContentsMap(contents);
@@ -62,8 +62,8 @@ public class InventoryUtil {
 		int inventorySize = (Integer) serialized.get(SERIALIZATION_KEY_SIZE);
 		String title = (String) serialized.get(SERIALIZATION_KEY_TITLE);
 		Inventory ret;
-		if (strInventoryType.equals(InventoryType.CHEST.name())) ret = Bukkit.createInventory(null, inventorySize, title);
-		else ret = Bukkit.createInventory(null, InventoryType.valueOf(strInventoryType), title);
+		if (strInventoryType.equals(InventoryType.CHEST.name())) ret = Bukkit.createInventory(null, inventorySize, Util.getMiniMessage(title));
+		else ret = Bukkit.createInventory(null, InventoryType.valueOf(strInventoryType), Util.getMiniMessage(title));
 
 		// Handle the item contents
 		Map<Object, Object> serializedItems = (Map<Object, Object>) serialized.get(SERIALIZATION_KEY_CONTENTS);

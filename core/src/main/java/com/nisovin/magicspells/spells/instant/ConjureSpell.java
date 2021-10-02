@@ -5,6 +5,8 @@ import java.util.Random;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
+import net.kyori.adventure.text.Component;
+
 import org.bukkit.Location;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
@@ -558,7 +560,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 	
 	private static class ExpirationHandler implements Listener {
 		
-		private final String expPrefix =  ChatColor.BLACK.toString() + ChatColor.MAGIC.toString() + "MSExp:";
+		private final String expPrefix =  ChatColor.BLACK + ChatColor.MAGIC.toString() + "MSExp:";
 		
 		private ExpirationHandler() {
 			MagicSpells.registerEvents(this);
@@ -566,14 +568,14 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 
 		private void addExpiresLine(ItemStack item, double expireHours) {
 			ItemMeta meta = item.getItemMeta();
-			List<String> lore;
-			if (meta.hasLore()) lore = new ArrayList<>(meta.getLore());
-			else lore = new ArrayList<>();
+			List<Component> lore = null;
+			if (meta.hasLore()) lore = meta.lore();
+			if (lore == null) lore = new ArrayList<>();
 
 			long expiresAt = System.currentTimeMillis() + (long) (expireHours * TimeUtil.MILLISECONDS_PER_HOUR);
-			lore.add(getExpiresText(expiresAt));
-			lore.add(expPrefix + expiresAt);
-			meta.setLore(lore);
+			lore.add(Util.getMiniMessage(getExpiresText(expiresAt)));
+			lore.add(Util.getMiniMessage(expPrefix + expiresAt));
+			meta.lore(lore);
 			item.setItemMeta(meta);
 		}
 		
@@ -649,17 +651,17 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 			ItemMeta meta = item.getItemMeta();
 			if (!meta.hasLore()) return ExpirationResult.NO_UPDATE;
 
-			List<String> lore = new ArrayList<>(meta.getLore());
-			if (lore.size() < 2) return ExpirationResult.NO_UPDATE;
+			List<Component> lore = meta.lore();
+			if (lore == null || lore.size() < 2) return ExpirationResult.NO_UPDATE;
 
-			String lastLine = lore.get(lore.size() - 1);
+			String lastLine = Util.getStringFromComponent(lore.get(lore.size() -1));
 			if (!lastLine.startsWith(expPrefix)) return ExpirationResult.NO_UPDATE;
 
 			long expiresAt = Long.parseLong(lastLine.replace(expPrefix, ""));
 			if (expiresAt < System.currentTimeMillis()) return ExpirationResult.EXPIRED;
 
-			lore.set(lore.size() - 2, getExpiresText(expiresAt));
-			meta.setLore(lore);
+			lore.set(lore.size() - 2, Util.getMiniMessage(getExpiresText(expiresAt)));
+			meta.lore(lore);
 			item.setItemMeta(meta);
 			return ExpirationResult.UPDATE;
 		}

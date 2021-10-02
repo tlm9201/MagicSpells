@@ -97,11 +97,8 @@ public class MagicLocation {
 	
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof MagicLocation) {
-			MagicLocation loc = (MagicLocation) o;
-			return loc.world.equals(world) && loc.x == x && loc.y == y && loc.z == z && loc.yaw == yaw && loc.pitch == pitch;
-		} else if (o instanceof Location) {
-			Location loc = (Location) o;
+		if (o instanceof MagicLocation loc) return loc.world.equals(world) && loc.x == x && loc.y == y && loc.z == z && loc.yaw == yaw && loc.pitch == pitch;
+		else if (o instanceof Location loc) {
 			if (!LocationUtil.isSameWorld(loc, world)) return false;
 			if (loc.getX() != x) return false;
 			if (loc.getY() != y) return false;
