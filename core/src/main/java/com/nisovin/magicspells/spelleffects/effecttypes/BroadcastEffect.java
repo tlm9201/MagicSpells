@@ -40,9 +40,10 @@ public class BroadcastEffect extends SpellEffect {
 			return null;
 		}
 		String msg = message;
-		if (entity instanceof Player) {
-			msg = msg.replace("%a", ((Player) entity).getDisplayName())
-					.replace("%t", ((Player) entity).getDisplayName())
+		if (entity instanceof Player player) {
+			String displayName = Util.getStringFromComponent(player.displayName());
+			msg = msg.replace("%a", displayName)
+					.replace("%t", displayName)
 					.replace("%n", entity.getName());
 		}
 		broadcast(entity == null ? null : entity.getLocation(), msg);

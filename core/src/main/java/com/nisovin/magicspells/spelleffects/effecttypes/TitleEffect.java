@@ -1,44 +1,53 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
+import java.time.Duration;
+
+import net.kyori.adventure.title.Title;
+import net.kyori.adventure.text.Component;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class TitleEffect extends SpellEffect {
 
 	private String title;
 	private String subtitle;
-
-	private int stay;
-	private int fadeIn;
-	private int fadeOut;
-
+	private Title.Times times;
 	private boolean broadcast;
+
+	private static Duration milisOfTicks(int ticks) {
+		return Duration.ofMillis(TimeUtil.MILLISECONDS_PER_SECOND * (ticks / TimeUtil.TICKS_PER_SECOND));
+	}
 	
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		title = config.getString("title", "");
 		subtitle = config.getString("subtitle", "");
-		stay = config.getInt("stay", 40);
-		fadeIn = config.getInt("fade-in", 10);
-		fadeOut = config.getInt("fade-out", 10);
+
+		int fadeIn = config.getInt("fade-in", 10);
+		int stay = config.getInt("stay", 40);
+		int fadeOut = config.getInt("fade-out", 10);
+		times = Title.Times.of(milisOfTicks(fadeIn), milisOfTicks(stay), milisOfTicks(fadeOut));
+
 		broadcast = config.getBoolean("broadcast", false);
 	}
 	
 	@Override
 	protected Runnable playEffectEntity(Entity entity) {
 		if (broadcast) Util.forEachPlayerOnline(this::send);
-		else if (entity instanceof Player) send((Player) entity);
+		else if (entity instanceof Player player) send(player);
 		return null;
 	}
 	
 	private void send(Player player) {
-		String titleMsg = title.isEmpty() ? "" : Util.doVarReplacementAndColorize(player, title);
-		String subtitleMsg = subtitle.isEmpty() ? "" : Util.doVarReplacementAndColorize(player, subtitle);
-		player.sendTitle(titleMsg, subtitleMsg, fadeIn, stay, fadeOut);
+		Component titleComponent = Util.getMiniMessageWithVars(player, title);
+		Component subtitleComponent = Util.getMiniMessageWithVars(player, subtitle);
+		player.showTitle(Title.title(titleComponent, subtitleComponent, times));
 	}
 
 }

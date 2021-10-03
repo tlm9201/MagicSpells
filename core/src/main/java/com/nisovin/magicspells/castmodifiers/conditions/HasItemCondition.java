@@ -9,10 +9,11 @@ import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import com.nisovin.magicspells.util.Util;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.meta.Damageable;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -20,9 +21,8 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 public class HasItemCondition extends Condition {
 
 	private Material material;
-	private short data;
+	private short durability;
 	private String name;
-	private boolean checkData;
 	private boolean checkName;
 
 	@Override
@@ -41,16 +41,9 @@ public class HasItemCondition extends Condition {
 			if (var.contains(":")) {
 				String[] vardata = var.split(":");
 				material = Util.getMaterial(vardata[0]);
-				if (vardata[1].equals("*")) {
-					data = 0;
-					checkData = false;
-				} else {
-					data = Short.parseShort(vardata[1]);
-					checkData = true;
-				}
+				durability = vardata[1].equals("*") ? 0 : Short.parseShort(vardata[1]);
 			} else {
 				material = Util.getMaterial(var);
-				checkData = false;
 			}
 			return true;
 		} catch (Exception e) {
@@ -74,25 +67,22 @@ public class HasItemCondition extends Condition {
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		Block target = location.getBlock();
-		if (target == null) return false;
-		
 		BlockState targetState = target.getState();
-		if (targetState == null) return false;
-		return targetState instanceof InventoryHolder && check(((InventoryHolder) targetState).getInventory());
+		return targetState instanceof InventoryHolder holder && check((holder).getInventory());
 	}
 
 	private boolean check(Inventory inventory) {
 		if (inventory == null) return false;
-		if (checkData || checkName) {
+		if (checkName) {
 			for (ItemStack item : inventory.getContents()) {
 				if (item == null) continue;
 				String thisname = null;
 				try {
-					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = item.getItemMeta().getDisplayName();
+					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = Util.getStringFromComponent(item.getItemMeta().displayName());
 				} catch (Exception e) {
 					DebugHandler.debugGeneral(e);
 				}
-				if (item.getType() == material && (!checkData || item.getDurability() == data) && (!checkName || Objects.equals(thisname, name))) return true;
+				if (item.getType() == material && (item instanceof Damageable damageable && damageable.getDamage() == durability) && (!checkName || Objects.equals(thisname, name))) return true;
 			}
 
 			return false;
@@ -105,16 +95,16 @@ public class HasItemCondition extends Condition {
 		if (entityEquipment == null) return false;
 		ItemStack[] items = InventoryUtil.getEquipmentItems(entityEquipment);
 
-		if (checkData || checkName) {
+		if (checkName) {
 			for (ItemStack item : items) {
 				if (item == null) continue;
-				String name = null;
+				String thisname = null;
 				try {
-					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) name = item.getItemMeta().getDisplayName();
+					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = Util.getStringFromComponent(item.getItemMeta().displayName());
 				} catch (Exception e) {
 					DebugHandler.debugGeneral(e);
 				}
-				if (item.getType() == material && (!checkData || item.getDurability() == data) && (!checkName || Objects.equals(name, name))) return true;
+				if (item.getType() == material && (item instanceof Damageable damageable && damageable.getDamage() == durability) && (!checkName || Objects.equals(name, thisname))) return true;
 			}
 
 			return false;

@@ -252,9 +252,7 @@ public class DowseSpell extends InstantSpell {
 		
 		@Override
 		public int compareTo(NearbyEntity e) {
-			if (e.distanceSquared < this.distanceSquared) return -1;
-			if (e.distanceSquared > this.distanceSquared) return 1;
-			return 0;
+			return Double.compare(e.distanceSquared, this.distanceSquared);
 		}
 		
 	}

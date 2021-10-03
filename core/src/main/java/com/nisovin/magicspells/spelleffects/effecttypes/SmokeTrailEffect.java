@@ -29,7 +29,7 @@ public class SmokeTrailEffect extends SpellEffect {
 	}
 	
 	// Thanks to DrBowe for sharing the code
-	private class SmokeStreamEffect implements Runnable {
+	private static class SmokeStreamEffect implements Runnable {
 		
 		private Location startLoc;
 		private Location endLoc;

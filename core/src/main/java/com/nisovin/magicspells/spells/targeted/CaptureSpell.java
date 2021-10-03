@@ -9,6 +9,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
@@ -92,11 +94,11 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (itemName != null || itemLore != null) {
 			if (entityName == null) entityName = "unknown";
 			ItemMeta meta = item.getItemMeta();
-			if (itemName != null) meta.setDisplayName(itemName.replace("%name%", entityName));
+			if (itemName != null) meta.displayName(Util.getMiniMessage(itemName.replace("%name%", entityName)));
 			if (itemLore != null) {
-				List<String> lore = new ArrayList<>();
-				for (String l : itemLore) lore.add(l.replace("%name%", entityName));
-				meta.setLore(lore);
+				List<Component> lore = new ArrayList<>();
+				for (String l : itemLore) lore.add(Util.getMiniMessage(l.replace("%name%", entityName)));
+				meta.lore(lore);
 			}
 
 			item.setItemMeta(meta);

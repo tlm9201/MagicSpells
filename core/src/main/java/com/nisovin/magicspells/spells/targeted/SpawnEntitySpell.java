@@ -433,7 +433,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		if (useCasterName && caster != null) {
-			if (caster instanceof Player) entity.setCustomName(((Player) caster).getDisplayName());
+			if (caster instanceof Player player) entity.setCustomName(Util.getStringFromComponent(player.displayName()));
 			else entity.setCustomName(caster.getName());
 			entity.setCustomNameVisible(true);
 		} else if (nameplateText != null && !nameplateText.isEmpty()) {
@@ -510,8 +510,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				if (e == caster) continue;
 				if (e == ignore) continue;
 				
-				if (e instanceof Player) {
-					Player p = (Player)e;
+				if (e instanceof Player p) {
 					GameMode gamemode = p.getGameMode();
 					if (gamemode == GameMode.CREATIVE || gamemode == GameMode.SPECTATOR) continue;
 				}

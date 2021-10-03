@@ -541,7 +541,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 				if (!small) armorStand = currentLoc.getWorld().spawn(currentLoc.clone().subtract(0, 1.7, 0), ArmorStand.class);
 				else armorStand = currentLoc.getWorld().spawn(currentLoc.clone().subtract(0, 0.9, 0), ArmorStand.class);
 
-				armorStand.setHelmet(helmet);
+				armorStand.getEquipment().setHelmet(helmet);
 				armorStand.setGravity(false);
 				armorStand.setVisible(false);
 				armorStand.setCollidable(false);
@@ -554,7 +554,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 					armorStand.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(health);
 					armorStand.setHealth(health);
 				}
-				if (small) armorStand.setSmall(small);
+				armorStand.setSmall(small);
 				armorStandList.add(armorStand);
 
 				playSpellEffects(EffectPosition.SPECIAL, currentLoc);

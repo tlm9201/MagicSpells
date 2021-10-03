@@ -590,6 +590,7 @@ public class Util {
 	}
 
 	public static Component getMiniMessage(String input) {
+		if (input.isEmpty()) return Component.text("");
 		// Let's handle MS color patterns. Replace ampersand with section (§).
 		input = colorize(input);
 		// Translate legacy section (§) to Adventure colors.
@@ -607,6 +608,7 @@ public class Util {
 	}
 
 	public static Component getMiniMessageWithVars(Player player, String input) {
+		if (input.isEmpty()) return Component.text("");
 		return getMiniMessage(MagicSpells.doVariableReplacements(player, input));
 	}
 
@@ -615,6 +617,7 @@ public class Util {
 	}
 
 	public static String colorize(String string) {
+		if (string.isEmpty()) return "";
 		Matcher matcher = ColorUtil.HEX_PATTERN.matcher(ChatColor.translateAlternateColorCodes('&', string));
 		StringBuilder buffer = new StringBuilder();
 		while (matcher.find()) {
@@ -626,10 +629,12 @@ public class Util {
 	}
 
 	public static String decolorize(String string) {
+		if (string.isEmpty()) return "";
 		return ChatColor.stripColor(colorize(string));
 	}
 
 	public static String doVarReplacementAndColorize(Player player, String string) {
+		if (string.isEmpty()) return "";
 		return colorize(MagicSpells.doVariableReplacements(player, string));
 	}
 
