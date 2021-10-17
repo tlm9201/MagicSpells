@@ -1310,6 +1310,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 	}
 
+	public EnumMap<EffectPosition, List<SpellEffect>> getEffects() {
+		return effects;
+	}
+
 	protected int getRange(float power) {
 		return spellPowerAffectsRange ? Math.round(range * power) : range;
 	}

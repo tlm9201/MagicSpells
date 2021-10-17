@@ -106,6 +106,7 @@ public class PassiveManager {
 		addListener("pickupitem", PickupItemListener.class);
 		addListener("playeranimate", PlayerAnimationListener.class);
 		addListener("playermove", PlayerMoveListener.class);
+		addListener("playermovetoblock", PlayerMoveToBlockListener.class);
 		addListener("potioneffect", PotionEffectListener.class);
 		addListener("quit", QuitListener.class);
 		addListener("regainhealth", RegainHealthListener.class);
