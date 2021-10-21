@@ -176,7 +176,7 @@ public class CastItem {
 
 			output
 				.append("\"name\":\"")
-				.append(TxtUtil.escapeJSON(name))
+				.append(TxtUtil.escapeJSON(Util.getLegacyFromMiniMessage(name)))
 				.append('"');
 
 			previous = true;
@@ -312,7 +312,7 @@ public class CastItem {
 
 				output
 					.append('"')
-					.append(TxtUtil.escapeJSON(line))
+					.append(TxtUtil.escapeJSON(Util.getLegacyFromMiniMessage(line)))
 					.append('"');
 
 				previousLore = true;
