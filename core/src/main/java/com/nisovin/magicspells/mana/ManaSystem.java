@@ -1,12 +1,6 @@
 package com.nisovin.magicspells.mana;
 
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
-import java.util.UUID;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.ArrayList;
+import java.util.*;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -307,16 +301,19 @@ public class ManaSystem extends ManaHandler {
 
 		@Override
 		public void run() {
-			for (ManaBar bar : manaBars.values()) {
-				if (!bar.getManaRank().equals(rank)) continue;
+			Iterator<ManaBar> manaBarIterator = manaBars.values().iterator();
+			ManaBar manaBar;
+			Player player;
+			while(manaBarIterator.hasNext()) {
+				manaBar = manaBarIterator.next();
+				if (!manaBar.getManaRank().equals(rank)) continue;
 
-				boolean r = bar.regenerate();
-				if (!r) continue;
+				if (!manaBar.regenerate()) continue;
 
-				Player p = bar.getPlayer();
-				if (p == null) continue;
+				player = manaBar.getPlayer();
+				if (player == null) continue;
 
-				showMana(p, showManaOnRegen);
+				showMana(player, showManaOnRegen);
 			}
 		}
 		
