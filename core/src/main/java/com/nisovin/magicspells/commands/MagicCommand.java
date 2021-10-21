@@ -63,6 +63,7 @@ public class MagicCommand extends BaseCommand {
 			Player player = context.getPlayer();
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			for (Spell spell : MagicSpells.getSpellsOrdered()) {
+				if (spell.isHelperSpell()) continue;
 				if (!spellbook.hasSpell(spell)) continue;
 				spells.add(spell);
 			}
