@@ -589,6 +589,11 @@ public class Util {
 		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
 	}
 
+	public static String getLegacyFromMiniMessage(String input) {
+		if (input.isEmpty()) return "";
+		return LegacyComponentSerializer.legacySection().serialize(getMiniMessage(input));
+	}
+
 	public static Component getMiniMessage(String input) {
 		if (input.isEmpty()) return Component.text("");
 		// Let's handle MS color patterns. Replace ampersand with section (§).
