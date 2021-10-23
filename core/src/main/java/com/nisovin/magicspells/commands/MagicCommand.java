@@ -28,6 +28,7 @@ import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -64,6 +65,7 @@ public class MagicCommand extends BaseCommand {
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			for (Spell spell : MagicSpells.getSpellsOrdered()) {
 				if (spell.isHelperSpell()) continue;
+				if (spell instanceof PassiveSpell) continue;
 				if (!spellbook.hasSpell(spell)) continue;
 				spells.add(spell);
 			}
