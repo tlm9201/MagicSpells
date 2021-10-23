@@ -14,12 +14,12 @@ public class SpellReagents {
 	
 	private Set<ReagentItem> items;
 	private int mana;
-	private int health;
 	private int hunger;
 	private int experience;
 	private int levels;
 	private int durability;
 	private float money;
+	private double health;
 	private Map<String, Double> variables;
 	
 	public SpellReagents() {
@@ -87,11 +87,11 @@ public class SpellReagents {
 		mana = newMana;
 	}
 	
-	public int getHealth() {
+	public double getHealth() {
 		return health;
 	}
 	
-	public void setHealth(int newHealth) {
+	public void setHealth(double newHealth) {
 		health = newHealth;
 	}
 	
