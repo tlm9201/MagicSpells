@@ -81,6 +81,11 @@ public class BindSpell extends CommandSpell {
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
+			if (spell.isHelperSpell()) {
+				sendMessage(strNoSpell, player, args);
+				return PostCastAction.ALREADY_HANDLED;
+			}
+
 			if (!spellbook.hasSpell(spell)) {
 				sendMessage(strNoSpell, player, args);
 				return PostCastAction.ALREADY_HANDLED;
