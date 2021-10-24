@@ -470,8 +470,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 					switch (data[0].toLowerCase()) {
 						case "health" -> {
-							if (data.length > 1) amt = Integer.parseInt(data[1]);
-							reagents.setHealth(amt);
+							if (data.length > 1) reagents.setHealth(Double.parseDouble(data[1]));
 						}
 						case "mana" -> {
 							if (data.length > 1) amt = Integer.parseInt(data[1]);
@@ -1135,7 +1134,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param manaCost the mana cost
 	 * @return true if the player has all the reagents, false otherwise
 	 */
-	private boolean hasReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents, int healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
+	private boolean hasReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents, double healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
 		// Is the livingEntity exempt from reagent costs?
 		if (Perm.NO_REAGENTS.has(livingEntity)) return true;
 
@@ -1239,7 +1238,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param healthCost the health to remove
 	 * @param manaCost the mana to remove
 	 */
-	private void removeReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents, int healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
+	private void removeReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents, double healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
 		if (Perm.NO_REAGENTS.has(livingEntity)) return;
 
 		if (reagents != null) {
