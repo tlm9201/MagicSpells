@@ -89,8 +89,7 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 	private void magnet(Location origin, Item item, float power) {
 		if (removeItemGravity) item.setGravity(false);
 		if (teleport) item.teleport(origin);
-		else
-			item.setVelocity(origin.toVector().subtract(item.getLocation().toVector()).normalize().multiply(velocity * power));
+		else item.setVelocity(origin.toVector().subtract(item.getLocation().toVector()).normalize().multiply(velocity * power));
 		playSpellEffects(EffectPosition.PROJECTILE, item);
 	}
 
