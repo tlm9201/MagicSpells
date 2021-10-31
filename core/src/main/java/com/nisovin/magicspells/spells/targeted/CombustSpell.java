@@ -25,7 +25,7 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 	private Map<UUID, CombustData> combusting;
 
 	private int fireTicks;
-	private int fireTickDamage;
+	private double fireTickDamage;
 
 	private boolean checkPlugins;
 	private boolean preventImmunity;
@@ -34,7 +34,7 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 		super(config, spellName);
 		
 		fireTicks = getConfigInt("fire-ticks", 100);
-		fireTickDamage = getConfigInt("fire-tick-damage", 1);
+		fireTickDamage = getConfigDouble("fire-tick-damage", 1);
 
 		checkPlugins = getConfigBoolean("check-plugins", true);
 		preventImmunity = getConfigBoolean("prevent-immunity", true);
@@ -100,7 +100,7 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 		CombustData data = combusting.get(entity.getUniqueId());
 		if (data == null) return;
 		
-		event.setDamage(Math.round(fireTickDamage * data.power));
+		event.setDamage(fireTickDamage * data.power);
 		if (preventImmunity) MagicSpells.scheduleDelayedTask(() -> ((LivingEntity) entity).setNoDamageTicks(0), 0);
 	}
 
