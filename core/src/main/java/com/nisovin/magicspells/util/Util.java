@@ -589,9 +589,14 @@ public class Util {
 		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
 	}
 
+	public static String getLegacyFromComponent(Component component) {
+		if (component == null) return "";
+		return LegacyComponentSerializer.legacySection().serialize(component);
+	}
+
 	public static String getLegacyFromMiniMessage(String input) {
 		if (input.isEmpty()) return "";
-		return LegacyComponentSerializer.legacySection().serialize(getMiniMessage(input));
+		return getLegacyFromComponent(getMiniMessage(input));
 	}
 
 	public static Component getMiniMessage(String input) {
