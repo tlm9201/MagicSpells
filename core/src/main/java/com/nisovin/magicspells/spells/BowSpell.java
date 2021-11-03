@@ -14,6 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.projectiles.ProjectileSource;
@@ -162,8 +163,9 @@ public class BowSpell extends Spell {
 
 		ItemStack inHand = event.getBow();
 		if (inHand == null || (inHand.getType() != Material.BOW && inHand.getType() != Material.CROSSBOW)) return;
+		ItemMeta itemMeta = inHand.getItemMeta();
 
-		String name = Util.getStringFromComponent(inHand.displayName());
+		String name = Util.getLegacyFromComponent(itemMeta.displayName());
 		if (bowNames != null && !bowNames.contains(name)) return;
 		if (disallowedBowNames != null && disallowedBowNames.contains(name)) return;
 		if (bowName != null && !bowName.isEmpty() && !bowName.equals(name)) return;
