@@ -278,7 +278,7 @@ public class ManaSystem extends ManaHandler {
 	}
 
 	@Override
-	public void turnOff() {
+	public void disable() {
 		ranks.clear();
 		manaBars.clear();
 

@@ -60,7 +60,7 @@ public class BossBarManager {
 		return bar;
 	}
 
-	public void turnOff() {
+	public void disable() {
 		bars.forEach(Bar::deleteBossbar);
 		bars.clear();
 	}

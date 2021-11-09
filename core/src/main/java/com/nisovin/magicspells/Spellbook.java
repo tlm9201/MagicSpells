@@ -1,45 +1,26 @@
 package com.nisovin.magicspells;
 
-import java.util.Set;
-import java.util.Map;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-
-import org.bukkit.World;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.inventory.ItemStack;
 
-import java.nio.charset.StandardCharsets;
-
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.events.SpellSelectionChangedEvent;
-import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
 public class Spellbook {
-
-	private MagicSpells plugin;
 
 	private Player player;
 	private String playerName;
 	private String uniqueId;
 
-	private Set<Spell> allSpells = new TreeSet<>() {
+	private final Set<Spell> spells = new TreeSet<>() {
 
 		private static final long serialVersionUID = 1L;
 
@@ -67,15 +48,14 @@ public class Spellbook {
 
 	};
 
+	private final Set<String> cantLearn = new HashSet<>();
+
 	private final Map<CastItem, List<Spell>> itemSpells = new HashMap<>();
 	private final Map<CastItem, Integer> activeSpells = new HashMap<>();
 	private final Map<Spell, Set<CastItem>> customBindings = new HashMap<>();
 	private final Map<Plugin, Set<Spell>> temporarySpells = new HashMap<>();
-	private final Set<String> cantLearn = new HashSet<>();
 
-	// DEBUG INFO: level 1, loaded player spell list (player)
-	public Spellbook(Player player, MagicSpells plugin) {
-		this.plugin = plugin;
+	public Spellbook(Player player) {
 		this.player = player;
 		playerName = player.getName();
 		uniqueId = Util.getUniqueId(player);
@@ -85,31 +65,27 @@ public class Spellbook {
 	}
 
 	public void destroy() {
-		allSpells.clear();
+		spells.clear();
+		cantLearn.clear();
 		itemSpells.clear();
 		activeSpells.clear();
 		customBindings.clear();
 		temporarySpells.clear();
-		cantLearn.clear();
+
 		player = null;
 		playerName = null;
 	}
 
 	public void load() {
-		load(player.getWorld());
-	}
-
-	// DEBUG INFO: level 2, "op, granting all spells"
-	public void load(World playerWorld) {
-		// Load spells from file
-		loadFromFile(playerWorld);
+		MagicSpells.debug("  Loading data for player '" + player.getName() + "'...");
+		MagicSpells.getStorageHandler().load(this);
 
 		// Give all spells to ops, or if ignoring grant perms
 		if ((MagicSpells.ignoreGrantPerms() && MagicSpells.ignoreGrantPermsFakeValue()) || (player.isOp() && MagicSpells.grantOpsAllSpells())) {
-			MagicSpells.debug(2, "  Op, granting all spells...");
+			MagicSpells.debug("  ...is Op, granting all spells...");
 			for (Spell spell : MagicSpells.getSpellsOrdered()) {
 				if (spell.isHelperSpell()) continue;
-				if (!allSpells.contains(spell)) addSpell(spell);
+				if (!spells.contains(spell)) addSpell(spell);
 			}
 		}
 
@@ -122,71 +98,26 @@ public class Spellbook {
 			if (spells.size() == 1 && !MagicSpells.canCycleToNoSpell()) activeSpells.put(i, 0);
 			else Collections.sort(spells);
 		}
+
+		MagicSpells.debug("  ...done");
 	}
 
-	// DEBUG INFO: level 2, loading spells from player file
-	private void loadFromFile(World playerWorld) {
-		try {
-			MagicSpells.debug(2, "  Loading spells from player file...");
-			File file;
-			if (MagicSpells.arePlayerSpellsSeparatedPerWorld()) {
-				File folder = new File(plugin.getDataFolder(), "spellbooks" + File.separator + player.getWorld().getName());
-				if (!folder.exists()) folder.mkdir();
-
-				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + playerWorld.getName() + File.separator + uniqueId + ".txt");
-				if (!file.exists()) {
-					File file2 = new File(plugin.getDataFolder(), "spellbooks" + File.separator + playerWorld.getName() + File.separator + playerName.toLowerCase() + ".txt");
-					if (file2.exists()) file2.renameTo(file);
-				}
-			} else {
-				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + uniqueId + ".txt");
-				if (!file.exists()) {
-					File file2 = new File(plugin.getDataFolder(), "spellbooks" + File.separator + playerName.toLowerCase() + ".txt");
-					if (file2.exists()) file2.renameTo(file);
-				}
-			}
-
-			if (!file.exists()) return;
-
-			Scanner scanner = new Scanner(file, StandardCharsets.UTF_8);
-			while (scanner.hasNext()) {
-				String line = scanner.nextLine();
-				if (line.isEmpty()) continue;
-				if (!line.contains(":")) {
-					Spell spell = MagicSpells.getSpellByInternalName(line);
-					if (spell != null) addSpell(spell);
-					continue;
-				}
-				String[] data = line.split(":", 2);
-				Spell spell = MagicSpells.getSpellByInternalName(data[0]);
-				if (spell == null) continue;
-
-				List<CastItem> items = new ArrayList<>();
-				String[] s = data[1].split(MagicItemDataParser.DATA_REGEX);
-				for (String value : s) {
-					try {
-						CastItem castItem = new CastItem(value);
-						items.add(castItem);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
-				addSpell(spell, items.toArray(new CastItem[0]));
-			}
-			scanner.close();
-
-		} catch (Exception e) {
-			DebugHandler.debugGeneral(e);
-		}
+	public void save() {
+		MagicSpells.getStorageHandler().save(this);
 	}
 
-	// DEBUG INFO: level 2, adding granted spells
-	// DEBUG INFO: level 3, checking spell <internal name>
+	public void reload() {
+		MagicSpells.debug(1, "Reloading data for player '" + playerName + "'...");
+		removeAllSpells();
+		MagicSpells.getStorageHandler().load(this);
+		MagicSpells.debug(1, "...done");
+	}
+
 	public void addGrantedSpells() {
-		MagicSpells.debug(2, "  Adding granted spells...");
+		MagicSpells.debug( "  Adding granted spells...");
 		boolean added = false;
 		for (Spell spell : MagicSpells.getSpellsOrdered()) {
-			MagicSpells.debug(3, "    Checking spell " + spell.getInternalName() + "...");
+			MagicSpells.debug(3, "    ...checking spell '" + spell.getInternalName() + "'...");
 			if (spell.isHelperSpell()) continue;
 			if (hasSpell(spell, false)) continue;
 			if (spell.isAlwaysGranted() || Perm.GRANT.has(player, spell)) {
@@ -197,45 +128,40 @@ public class Spellbook {
 		if (added) save();
 	}
 
-	// DEBUG INFO: level 2, cannot learn spell because helper
-	// DEBUG INFO: level 2, cannot learn because precludes
-	// DEBUG INFO: level 2, cannot learn because prereq not meet
-	// DEBUG INFO: level 2, cannot learn insufficient magic xp
-	// DEBUG INFO: level 2, checking learn permissions
 	public boolean canLearn(Spell spell) {
 		if (spell.isHelperSpell()) {
-			MagicSpells.debug("Cannot learn " + spell.getName() + " because it is a helper spell");
+			MagicSpells.debug("Cannot learn spell '" + spell.getName() + "' because it is a helper spell.");
 			return false;
 		}
 
 		if (cantLearn.contains(spell.getInternalName().toLowerCase())) {
-			MagicSpells.debug("Cannot learn " + spell.getName() + " because another spell precludes it.");
+			MagicSpells.debug("Cannot learn spell '" + spell.getName() + "' because another spell precludes it.");
 			return false;
 		}
 
-		if (spell.prerequisites != null) {
-			for (String spellName : spell.prerequisites) {
+		if (spell.getPrerequisites() != null) {
+			for (String spellName : spell.getPrerequisites()) {
 				Spell sp = MagicSpells.getSpellByInternalName(spellName);
 				if (sp == null || !hasSpell(sp)) {
-					MagicSpells.debug("Cannot learn " + spell.getName() + " because the prerequisite of " + spellName + " has not been satisfied");
+					MagicSpells.debug("Cannot learn " + spell.getName() + " because the prerequisite of " + spellName + " has not been satisfied.");
 					return false;
 				}
 			}
 		}
 
-		if (spell.xpRequired != null) {
+		if (spell.getXpRequired() != null) {
 			MagicXpHandler handler = MagicSpells.getMagicXpHandler();
 			if (handler != null) {
-				for (String school : spell.xpRequired.keySet()) {
-					if (handler.getXp(player, school) < spell.xpRequired.get(school)) {
-						MagicSpells.debug("Cannot learn " + spell.getName() + " because the target does not have enough magic xp");
+				for (String school : spell.getXpRequired().keySet()) {
+					if (handler.getXp(player, school) < spell.getXpRequired().get(school)) {
+						MagicSpells.debug("Cannot learn spell '" + spell.getName() + "' because the target does not have enough magic xp.");
 						return false;
 					}
 				}
 			}
 		}
 
-		MagicSpells.debug("Checking learn permissions for " + player.getName());
+		MagicSpells.debug("Checking learn permissions for player '" + player.getName() + "'.");
 		return Perm.LEARN.has(player, spell);
 	}
 
@@ -259,24 +185,95 @@ public class Spellbook {
 		return null;
 	}
 
-	public Set<Spell> getSpells() {
-		return allSpells;
+	public void addSpell(Spell spell) {
+		addSpell(spell, (CastItem[]) null);
 	}
 
-	public Map<CastItem, List<Spell>> getItemSpells() {
-		return itemSpells;
+	public void addSpell(Spell spell, CastItem castItem) {
+		addSpell(spell, new CastItem[] {castItem});
 	}
 
-	public Map<CastItem, Integer> getActiveSpells() {
-		return activeSpells;
+	public void addSpell(Spell spell, CastItem[] castItems) {
+		if (spell == null) return;
+		MagicSpells.debug(3, "    Added spell '" + spell.getInternalName() + "'.");
+		spells.add(spell);
+		if (spell.canCastWithItem()) {
+			CastItem[] items = spell.getCastItems();
+			if (castItems != null && castItems.length > 0) {
+				items = castItems;
+				Set<CastItem> set = new HashSet<>();
+				for (CastItem item : items) {
+					if (item == null) continue;
+					set.add(item);
+				}
+				customBindings.put(spell, set);
+			} else if (MagicSpells.ignoreDefaultBindings()) return;
+
+			for (CastItem item : items) {
+				MagicSpells.debug(3, "        Cast item: " + item + (castItems != null ? " (custom)" : " (default)"));
+				if (item == null) continue;
+				List<Spell> temp = itemSpells.get(item);
+				if (temp != null) {
+					temp.add(spell);
+					continue;
+				}
+				temp = new ArrayList<>();
+				temp.add(spell);
+				itemSpells.put(item, temp);
+				activeSpells.put(item, MagicSpells.canCycleToNoSpell() ? -1 : 0);
+			}
+		}
+		// Remove any spells that this spell replaces
+		if (spell.getReplaces() != null) {
+			for (String spellName : spell.getReplaces()) {
+				Spell sp = MagicSpells.getSpellByInternalName(spellName);
+				if (sp == null) continue;
+				MagicSpells.debug(3, "        Removing replaced spell '" + sp.getInternalName() + "'.");
+				removeSpell(sp);
+			}
+		}
+		// Prevent learning of spells this spell precludes
+		if (spell.getPrecludes() != null) {
+			for (String s : spell.getPrecludes()) {
+				cantLearn.add(s.toLowerCase());
+			}
+		}
 	}
 
-	public Map<Spell, Set<CastItem>> getCustomBindings() {
-		return customBindings;
+	public void removeSpell(Spell spell) {
+		if (spell instanceof BuffSpell buffSpell) buffSpell.turnOff(player);
+		CastItem[] items = spell.getCastItems();
+		if (customBindings.containsKey(spell)) items = customBindings.remove(spell).toArray(new CastItem[]{});
+		for (CastItem item : items) {
+			if (item == null) continue;
+			List<Spell> temp = itemSpells.get(item);
+			if (temp == null) continue;
+			temp.remove(spell);
+			if (temp.isEmpty()) {
+				itemSpells.remove(item);
+				activeSpells.remove(item);
+				continue;
+			}
+			activeSpells.put(item, -1);
+		}
+		spells.remove(spell);
 	}
 
-	public Map<Plugin, Set<Spell>> getTemporarySpells() {
-		return temporarySpells;
+	public boolean hasSpell(Spell spell) {
+		return hasSpell(spell, true);
+	}
+
+	public boolean hasSpell(Spell spell, boolean checkGranted) {
+		if (MagicSpells.ignoreGrantPerms() && MagicSpells.ignoreGrantPermsFakeValue()) return true;
+		if (spells.contains(spell)) return true;
+
+		if (checkGranted && !MagicSpells.ignoreGrantPerms() && Perm.GRANT.has(player, spell)) {
+			MagicSpells.debug("Adding granted spell '" + spell.getName() + "' for player '" + player.getName() + "'.");
+			addSpell(spell);
+			save();
+			return true;
+		}
+		return MagicSpells.tempGrantPermsEnabled() && Perm.TEMPGRANT.has(player, spell);
 	}
 
 	protected CastItem getCastItemForCycling(ItemStack item) {
@@ -331,6 +328,7 @@ public class Spellbook {
 	protected Spell prevSpell(CastItem castItem) {
 		Integer i = activeSpells.get(castItem); // Get the index of the active spell for the cast item
 		if (i == null) return null;
+
 		List<Spell> spells = itemSpells.get(castItem); // Get all the spells for the cast item
 		if (spells.size() > 1 || i.equals(-1) || MagicSpells.canCycleToNoSpell()) {
 			int count = 0;
@@ -368,106 +366,11 @@ public class Spellbook {
 		return null;
 	}
 
-	public boolean hasSpell(Spell spell) {
-		return hasSpell(spell, true);
-	}
-
-	// DEBUG INFO: level 2, adding granted spell for player, spell
-	public boolean hasSpell(Spell spell, boolean checkGranted) {
-		if (MagicSpells.ignoreGrantPerms() && MagicSpells.ignoreGrantPermsFakeValue()) return true;
-		boolean has = allSpells.contains(spell);
-		if (has) return true;
-		if (checkGranted && !MagicSpells.ignoreGrantPerms() && Perm.GRANT.has(player, spell)) {
-			MagicSpells.debug(2, "Adding granted spell for " + player.getName() + ": " + spell.getName());
-			addSpell(spell);
-			save();
-			return true;
-		}
-		return MagicSpells.tempGrantPermsEnabled() && Perm.TEMPGRANT.has(player, spell);
-	}
-
-	public void addSpell(Spell spell) {
-		addSpell(spell, (CastItem[]) null);
-	}
-
-	public void addSpell(Spell spell, CastItem castItem) {
-		addSpell(spell, new CastItem[] {castItem});
-	}
-
-	// DEBUG INFO: level 3, added spell, internalname
-	// DEBUG INFO: level 3, cast item item, custom|default
-	// DEBUG INFO: level 3, removing replaced spell, internalname
-	public void addSpell(Spell spell, CastItem[] castItems) {
-		if (spell == null) return;
-		MagicSpells.debug(3, "    Added spell: " + spell.getInternalName());
-		allSpells.add(spell);
-		if (spell.canCastWithItem()) {
-			CastItem[] items = spell.getCastItems();
-			if (castItems != null && castItems.length > 0) {
-				items = castItems;
-				Set<CastItem> set = new HashSet<>();
-				for (CastItem item : items) {
-					if (item == null) continue;
-					set.add(item);
-				}
-				customBindings.put(spell, set);
-			} else if (MagicSpells.ignoreDefaultBindings()) return;
-
-			for (CastItem item : items) {
-				MagicSpells.debug(3, "        Cast item: " + item + (castItems != null ? " (custom)" : " (default)"));
-				if (item == null) continue;
-				List<Spell> temp = itemSpells.get(item);
-				if (temp != null) {
-					temp.add(spell);
-					continue;
-				}
-				temp = new ArrayList<>();
-				temp.add(spell);
-				itemSpells.put(item, temp);
-				activeSpells.put(item, MagicSpells.canCycleToNoSpell() ? -1 : 0);
-			}
-		}
-		// Remove any spells that this spell replaces
-		if (spell.replaces != null) {
-			for (String spellName : spell.replaces) {
-				Spell sp = MagicSpells.getSpellByInternalName(spellName);
-				if (sp == null) continue;
-				MagicSpells.debug(3, "        Removing replaced spell: " + sp.getInternalName());
-				removeSpell(sp);
-			}
-		}
-		// Prevent learning of spells this spell precludes
-		if (spell.precludes != null) {
-			for (String s : spell.precludes) {
-				cantLearn.add(s.toLowerCase());
-			}
-		}
-	}
-
-	public void removeSpell(Spell spell) {
-		if (spell instanceof BuffSpell buffSpell) buffSpell.turnOff(player);
-		CastItem[] items = spell.getCastItems();
-		if (customBindings.containsKey(spell)) items = customBindings.remove(spell).toArray(new CastItem[]{});
-		for (CastItem item : items) {
-			if (item == null) continue;
-			List<Spell> temp = itemSpells.get(item);
-			if (temp == null) continue;
-			temp.remove(spell);
-			if (temp.isEmpty()) {
-				itemSpells.remove(item);
-				activeSpells.remove(item);
-				continue;
-			}
-			activeSpells.put(item, -1);
-		}
-		allSpells.remove(spell);
-	}
-
 	public void addTemporarySpell(Spell spell, Plugin plugin) {
 		if (hasSpell(spell)) return;
 		addSpell(spell);
 		Set<Spell> temps = temporarySpells.computeIfAbsent(plugin, pl -> new HashSet<>());
-		if (temps == null) throw new IllegalStateException("temporary spells should not contain a null value!");
+		if (temps == null) throw new IllegalStateException("temporarySpells should not contain a null value!");
 		temps.add(spell);
 	}
 
@@ -479,7 +382,7 @@ public class Spellbook {
 		}
 	}
 
-	private boolean isTemporary(Spell spell) {
+	public boolean isTemporary(Spell spell) {
 		for (Set<Spell> temps : temporarySpells.values()) {
 			if (temps.contains(spell)) return true;
 		}
@@ -532,75 +435,50 @@ public class Spellbook {
 	}
 
 	public void removeAllSpells() {
-		for (Spell spell : allSpells) {
+		for (Spell spell : spells) {
 			if (!(spell instanceof BuffSpell buffSpell)) continue;
 			buffSpell.turnOff(player);
 		}
-		allSpells.clear();
+
+		spells.clear();
 		itemSpells.clear();
 		activeSpells.clear();
 		customBindings.clear();
 	}
 
-	// DEBUG INFO: level 1, reloading player spell list, playername
-	public void reload() {
-		MagicSpells.debug(1, "Reloading player spell list: " + playerName);
-		removeAllSpells();
-		load();
+	public Player getPlayer() {
+		return player;
 	}
 
-	// DEBUG INFO: level 2, saved spellbook file, playername
-	public void save() {
-		try {
-			File file;
-			if (MagicSpells.arePlayerSpellsSeparatedPerWorld()) {
-				File folder = new File(plugin.getDataFolder(), "spellbooks" + File.separator + player.getWorld().getName());
-				if (!folder.exists()) folder.mkdirs();
-				File oldFile = new File(plugin.getDataFolder(), "spellbooks" + File.separator + player.getWorld().getName() + File.separator + playerName + ".txt");
-				if (oldFile.exists()) oldFile.delete();
-				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + player.getWorld().getName() + File.separator + uniqueId + ".txt");
-			} else {
-				File oldFile = new File(plugin.getDataFolder(), "spellbooks" + File.separator + playerName + ".txt");
-				if (oldFile.exists()) oldFile.delete();
-				file = new File(plugin.getDataFolder(), "spellbooks" + File.separator + uniqueId + ".txt");
-			}
+	public Set<Spell> getSpells() {
+		return spells;
+	}
 
-			OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8);
-			for (Spell spell : allSpells) {
-				if (isTemporary(spell)) continue;
-				writer.append(spell.getInternalName());
-				if (customBindings.containsKey(spell)) {
-					Set<CastItem> items = customBindings.get(spell);
-					StringBuilder s = new StringBuilder();
-					for (CastItem item : items) {
-						s.append((s.length() == 0) ? "" : "|").append(item);
-					}
+	public Set<String> getCantLearn() {
+		return cantLearn;
+	}
 
-					// when you unbind the item and it has no binds left, restore the original cast item
-					CastItem castItem = (CastItem) items.toArray()[0];
-					if (items.size() == 1 && castItem.getType() == null) {
-						writer.write("\n");
-						continue;
-					}
-					writer.append(":").append(s.toString());
-				}
-				writer.write("\n");
-			}
+	public Map<CastItem, List<Spell>> getItemSpells() {
+		return itemSpells;
+	}
 
-			writer.flush();
-			writer.close();
-			MagicSpells.debug(2, "Saved spellbook file: " + playerName.toLowerCase());
-		} catch (Exception e) {
-			plugin.getServer().getLogger().severe("Error saving player spellbook: " + playerName);
-			e.printStackTrace();
-		}
+	public Map<CastItem, Integer> getActiveSpells() {
+		return activeSpells;
+	}
+
+	public Map<Spell, Set<CastItem>> getCustomBindings() {
+		return customBindings;
+	}
+
+	public Map<Plugin, Set<Spell>> getTemporarySpells() {
+		return temporarySpells;
 	}
 
 	@Override
 	public String toString() {
 		return "Spellbook:[playerName=" + playerName
 				+ ",uniqueId=" + uniqueId
-				+ ",allSpells=" + allSpells
+				+ ",spells=" + spells
 				+ ",itemSpells=" + itemSpells
 				+ ",activeSpells=" + activeSpells
 				+ ",customBindings=" + customBindings

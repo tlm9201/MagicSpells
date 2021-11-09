@@ -40,6 +40,6 @@ public abstract class ManaHandler {
 		return null;
 	}
 	
-	public abstract void turnOff();
+	public abstract void disable();
 	
 }

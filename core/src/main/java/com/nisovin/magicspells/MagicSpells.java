@@ -50,6 +50,8 @@ import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.commands.MagicCommand;
 import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.storage.TXTFileStorage;
+import com.nisovin.magicspells.storage.StorageHandler;
 import com.nisovin.magicspells.util.prompt.PromptType;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
@@ -100,6 +102,7 @@ public class MagicSpells extends JavaPlugin {
 	private ManaHandler manaHandler;
 	private MoneyHandler moneyHandler;
 	private MagicXpHandler magicXpHandler;
+	private StorageHandler storageHandler;
 	private VolatileCodeHandle volatileCodeHandle;
 
 	private BuffManager buffManager;
@@ -498,9 +501,15 @@ public class MagicSpells extends JavaPlugin {
 		}
 		log("...done");
 
+		// Load player data using a storage handler
+		log("Initializing storage handler...");
+		storageHandler = new TXTFileStorage(plugin);
+		storageHandler.initialize();
+		log("...done");
+
 		// Load online player spellbooks
 		log("Loading online player spellbooks...");
-		Util.forEachPlayerOnline(p -> spellbooks.put(p.getName(), new Spellbook(p, this)));
+		Util.forEachPlayerOnline(p -> spellbooks.put(p.getName(), new Spellbook(p)));
 		log("...done");
 
 		// Load saved cooldowns
@@ -905,7 +914,7 @@ public class MagicSpells extends JavaPlugin {
 	 * @return the player's spellbook
 	 */
 	public static Spellbook getSpellbook(Player player) {
-		Spellbook spellbook = plugin.spellbooks.computeIfAbsent(player.getName(), playerName -> new Spellbook(player, plugin));
+		Spellbook spellbook = plugin.spellbooks.computeIfAbsent(player.getName(), playerName -> new Spellbook(player));
 		if (spellbook == null) throw new IllegalStateException();
 		return spellbook;
 	}
@@ -1255,6 +1264,10 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.magicXpHandler;
 	}
 
+	public static StorageHandler getStorageHandler() {
+		return plugin.storageHandler;
+	}
+
 	public static VariableManager getVariableManager() {
 		return plugin.variableManager;
 	}
@@ -1304,8 +1317,17 @@ public class MagicSpells extends JavaPlugin {
 	 * @param handler the mana handler
 	 */
 	public static void setManaHandler(ManaHandler handler) {
-		plugin.manaHandler.turnOff();
+		plugin.manaHandler.disable();
 		plugin.manaHandler = handler;
+	}
+
+	/**
+	 * Sets the storage handler, which handles data storage.
+	 * @param handler the storage handler
+	 */
+	public static void setStorageHandler(StorageHandler handler) {
+		plugin.storageHandler.disable();
+		plugin.storageHandler = handler;
 	}
 
 	/**
@@ -1740,7 +1762,7 @@ public class MagicSpells extends JavaPlugin {
 			File file = new File(getDataFolder(), "cooldowns.txt");
 			if (file.exists()) file.delete();
 			try {
-				FileWriter writer = new FileWriter(file);
+				Writer writer = new FileWriter(file);
 				for (Spell spell : spells.values()) {
 					Map<UUID, Long> cooldowns = spell.getCooldowns();
 					for (UUID id : cooldowns.keySet()) {
@@ -1796,12 +1818,12 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		if (manaHandler != null) {
-			manaHandler.turnOff();
+			manaHandler.disable();
 			manaHandler = null;
 		}
 
 		if (zoneManager != null) {
-			zoneManager.turnOff();
+			zoneManager.disable();
 			zoneManager = null;
 		}
 
@@ -1816,12 +1838,17 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		if (bossBarManager != null) {
-			bossBarManager.turnOff();
+			bossBarManager.disable();
 			bossBarManager = null;
 		}
 
 		if (volatileCodeHandle != null) {
 			volatileCodeHandle = null;
+		}
+
+		if (storageHandler != null) {
+			storageHandler.disable();
+			storageHandler = null;
 		}
 
 		config = null;

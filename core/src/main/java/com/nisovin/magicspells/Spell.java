@@ -1897,6 +1897,18 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return strWrongCastItem;
 	}
 
+	public List<String> getPrecludes() {
+		return precludes;
+	}
+
+	public List<String> getReplaces() {
+		return replaces;
+	}
+
+	public List<String> getPrerequisites() {
+		return prerequisites;
+	}
+
 	public final boolean isBeneficial() {
 		return beneficial;
 	}
