@@ -39,7 +39,7 @@ public class Spellbook {
 	private String playerName;
 	private String uniqueId;
 
-	private TreeSet<Spell> allSpells = new TreeSet<>() {
+	private Set<Spell> allSpells = new TreeSet<>() {
 
 		private static final long serialVersionUID = 1L;
 
