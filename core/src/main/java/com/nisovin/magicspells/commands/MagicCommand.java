@@ -248,7 +248,7 @@ public class MagicCommand extends BaseCommand {
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD_SPELLBOOK)) return;
 			Player player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
 			if (player == null) return;
-			MagicSpells.getSpellbooks().put(player.getName(), new Spellbook(player, plugin));
+			MagicSpells.getSpellbooks().put(player.getName(), new Spellbook(player));
 			issuer.sendMessage(MagicSpells.getTextColor() + TxtUtil.getPossessiveName(player.getName()) + " spellbook has been reloaded.");
 		}
 	}
