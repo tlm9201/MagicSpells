@@ -126,6 +126,7 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 				receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse, (Player) target);
 				if (!receivedValue.equalsIgnoreCase(expectedValue) && !expectedValue.contains("any")) return;
 				receivedValue += parseTo;
+				receivedValue = MagicSpells.getVariableManager().getStringValue(parseToVariable, (Player) target) + receivedValue;
 				MagicSpells.getVariableManager().set(parseToVariable, (Player) target, receivedValue);
 			}
 			case "regex", "regexp" -> {
