@@ -612,7 +612,7 @@ public class Util {
 				.deserialize(input);
 		input = getStringFromComponent(component);
 		// Parse the actual MiniMessage.
-		component = MiniMessage.get().parse(input);
+		component = MiniMessage.miniMessage().parse(input);
 		// Remove italics if they aren't present. Otherwise, item name and lore will render italic text.
 		return component.decoration(TextDecoration.ITALIC, component.hasDecoration(TextDecoration.ITALIC));
 	}
