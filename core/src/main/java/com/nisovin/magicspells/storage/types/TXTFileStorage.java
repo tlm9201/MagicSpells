@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.storage;
+package com.nisovin.magicspells.storage.types;
 
 import java.io.File;
 import java.io.Writer;
@@ -20,6 +20,7 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.storage.StorageHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
 public class TXTFileStorage extends StorageHandler {

@@ -20,7 +20,7 @@ public class HasSpellCondition extends Condition {
 
     @Override
     public boolean check(LivingEntity livingEntity) {
-        if (livingEntity instanceof Player) return MagicSpells.getSpellbook((Player)livingEntity).hasSpell(spell);
+        if (livingEntity instanceof Player) return MagicSpells.getSpellbook((Player) livingEntity).hasSpell(spell);
         return false;
     }
 

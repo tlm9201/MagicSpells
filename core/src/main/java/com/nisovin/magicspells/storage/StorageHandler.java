@@ -7,7 +7,7 @@ public abstract class StorageHandler {
 
 	protected MagicSpells plugin;
 
-	StorageHandler(MagicSpells plugin) {
+	public StorageHandler(MagicSpells plugin) {
 		this.plugin = plugin;
 	}
 

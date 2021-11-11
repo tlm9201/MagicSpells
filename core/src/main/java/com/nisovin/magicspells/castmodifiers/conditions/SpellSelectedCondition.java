@@ -37,17 +37,11 @@ public class SpellSelectedCondition extends Condition {
 			}
 
 			if (s.toLowerCase().startsWith("tag:")) {
-				if (denied) {
-					deniedTagList.add(s.substring(4));
-				} else {
-					tagList.add(s.substring(4));
-				}
+				if (denied) deniedTagList.add(s.substring(4));
+				else tagList.add(s.substring(4));
 			} else {
-				if (denied) {
-					deniedSpells.add(s);
-				} else {
-					spells.add(s);
-				}
+				if (denied) deniedSpells.add(s);
+				else spells.add(s);
 			}
 		}
 
