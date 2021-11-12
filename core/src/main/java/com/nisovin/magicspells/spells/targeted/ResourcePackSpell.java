@@ -17,19 +17,26 @@ public class ResourcePackSpell extends TargetedSpell {
 	private static final int HASH_LENGTH = 40;
 
 	private final String url;
-	private final boolean required;
 	private final String hash;
 	private final Component prompt;
-	
+	private final boolean required;
+
 	public ResourcePackSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
+
 		url = getConfigString("url", null);
 		hash = getConfigString("hash", null);
-		if (hash.length() != HASH_LENGTH) {
-			MagicSpells.error("Incorrect length for resource pack hash: " + hash.length() + " (must be " + HASH_LENGTH + ")");
-		}
-		required = getConfigBoolean("required", false);
 		prompt = Util.getMiniMessage(getConfigString("prompt", ""));
+		required = getConfigBoolean("required", false);
+	}
+
+	@Override
+	public void initialize() {
+		super.initialize();
+
+		if (hash.length() != HASH_LENGTH) {
+			MagicSpells.error("ResourcePackSpell '" + internalName + "' has an incorrect hash length defined: '" + hash.length() + "' / " + HASH_LENGTH + ".");
+		}
 	}
 
 	@Override
@@ -40,8 +47,7 @@ public class ResourcePackSpell extends TargetedSpell {
 			if (targetPlayer == null) return noTarget(player);
 			try {
 				player.setResourcePack(url, hash, required, prompt);
-			}
-			catch (IllegalArgumentException e) {
+			} catch (IllegalArgumentException e) {
 				DebugHandler.debugIllegalArgumentException(e);
 			}
 		}

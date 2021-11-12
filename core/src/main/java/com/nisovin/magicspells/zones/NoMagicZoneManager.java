@@ -120,7 +120,7 @@ public class NoMagicZoneManager {
 		zoneTypes.put(name, clazz);
 	}
 
-	public void turnOff() {
+	public void disable() {
 		if (zoneTypes != null) zoneTypes.clear();
 		if (zones != null) zones.clear();
 		zoneTypes = null;
