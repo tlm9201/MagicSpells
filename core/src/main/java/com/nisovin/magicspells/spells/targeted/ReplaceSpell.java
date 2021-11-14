@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
 
-import org.bukkit.Material;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -29,9 +29,9 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 	private Map<Block, BlockData> blocks;
 
 	private boolean replaceAll;
-	private List<Material> replace;
-	private List<Material> replaceWith;
-	private List<Material> replaceBlacklist;
+	private List<BlockData> replace;
+	private List<BlockData> replaceWith;
+	private List<BlockData> replaceBlacklist;
 
 	private int yOffset;
 	private int radiusUp;
@@ -71,43 +71,40 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 				if (block.equals("all")) {
 					replaceAll = true;
 					// Just a filler.
-					replace.add(Material.AIR);
+					replace.add(null);
 					break;
 				}
 
-				Material material = Util.getMaterial(block);
-				if (material == null) {
+				try {
+					BlockData data = Bukkit.createBlockData(block.trim().toLowerCase());
+					replace.add(data);
+				} catch (IllegalArgumentException e) {
 					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blocks item: " + block);
-					continue;
 				}
-
-				replace.add(material);
 			}
 		}
 
 		list = getConfigStringList("replace-with", null);
 		if (list != null) {
 			for (String s : list) {
-				Material material = Util.getMaterial(s);
-				if (material == null) {
+				try {
+					BlockData data = Bukkit.createBlockData(s.trim().toLowerCase());
+					replaceWith.add(data);
+				} catch (IllegalArgumentException e) {
 					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-with item: " + s);
-					continue;
 				}
-
-				replaceWith.add(material);
 			}
 		}
 
 		list = getConfigStringList("replace-blacklist", null);
 		if (list != null) {
 			for (String s : list) {
-				Material material = Util.getMaterial(s);
-				if (material == null) {
+				try {
+					BlockData data = Bukkit.createBlockData(s.trim().toLowerCase());
+					replaceBlacklist.add(data);
+				} catch (IllegalArgumentException e) {
 					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blacklist item: " + s);
-					continue;
 				}
-
-				replaceBlacklist.add(material);
 			}
 		}
 
@@ -164,20 +161,23 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 				for (int z = target.getBlockZ() - h; z <= target.getBlockZ() + h; z++) {
 					block = target.getWorld().getBlockAt(x, y, z);
 					for (int i = 0; i < replace.size(); i++) {
+						BlockData data = block.getBlockData();
+
 						// If specific blocks are being replaced, skip if the block isn't replaceable.
-						if (!replaceAll && !replace.get(i).equals(block.getType())) continue;
+						if (!replaceAll && !data.matches(replace.get(i))) continue;
 						// If all blocks are being replaced, skip if the block is already replaced.
-						if (replaceAll && replaceWith.get(i).equals(block.getType())) continue;
+						if (replaceAll && data.matches(replaceWith.get(i))) continue;
 
-						if (replaceBlacklist.contains(block.getType())) continue;
+						if (replaceBlacklisted(data)) continue;
 
-						blocks.put(block, block.getBlockData());
+						blocks.put(block, data);
 						Block finalBlock = block;
 						BlockState previousState = block.getState();
 
 						// Place block.
-						if (replaceRandom) block.setType(replaceWith.get(Util.getRandomInt(replaceWith.size())));
-						else block.setType(replaceWith.get(i));
+						if (replaceRandom) block.setBlockData(replaceWith.get(Util.getRandomInt(replaceWith.size())));
+						else block.setBlockData(replaceWith.get(i));
+
 						if (checkPlugins && caster instanceof Player player) {
 							Block against = target.clone().add(target.getDirection()).getBlock();
 							if (block.equals(against)) against = block.getRelative(BlockFace.DOWN);
@@ -216,6 +216,14 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 		else playSpellEffects(EffectPosition.TARGET, target);
 
 		return replaced;
+	}
+
+	private boolean replaceBlacklisted(BlockData data) {
+		for (BlockData blockData : replaceBlacklist)
+			if (data.matches(blockData))
+				return true;
+
+		return false;
 	}
 
 }
