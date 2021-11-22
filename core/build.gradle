@@ -1,5 +1,5 @@
 plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.5.21"
+    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
 }
 
 repositories {
@@ -19,7 +19,7 @@ dependencies {
     shadow "com.github.PaperMC:PaperLib:master-SNAPSHOT"
     shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"
     shadow "net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT"
-    shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21"
+    shadow 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
 
     implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.7.0"
 
@@ -50,14 +50,14 @@ shadowJar {
 
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
         javaParameters = true
     }
 }
 
 compileTestKotlin {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 }
 
