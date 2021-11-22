@@ -66,10 +66,10 @@ afterEvaluate {
 
 // FIXME this should not be run at configuration time
 task downloadDependencies() {
-    group = "Setup"
-    doFirst {
-        magicspellsGetResources()
-    }
+  group = "Setup"
+  doFirst {
+    magicspellsGetResources()
+  }
 }
 
 allprojects {
@@ -97,10 +97,10 @@ subprojects {
     maven { url "https://maven.sk89q.com/repo/" }
   }
 
-  it.version = "4.0-Beta-10"
+  it.version = "4.0-Beta-11"
   
   processResources {
-    expand(["version": "4.0-Beta-10"])
+    expand(["version": "4.0-Beta-11"])
   }
 
   shadowJar {
