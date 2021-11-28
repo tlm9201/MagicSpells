@@ -1292,18 +1292,20 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			livingEntity.setHealth(h);
 		}
 
-		EntityEquipment equipment = livingEntity.getEquipment();
-		if (durabilityCost != 0 && equipment != null) {
-			ItemStack inHand = equipment.getItemInMainHand();
-			if (inHand.getItemMeta() instanceof Damageable damageable && inHand.getType().getMaxDurability() > 0) {
-				short newDura = (short) (damageable.getDamage() + durabilityCost);
-				if (newDura < 0) newDura = 0;
-				if (newDura >= inHand.getType().getMaxDurability()) {
-					livingEntity.getEquipment().setItemInMainHand(null);
-				} else {
-					ItemMeta meta = inHand.getItemMeta();
-					damageable.setDamage(newDura);
-					inHand.setItemMeta(meta);
+		if (durabilityCost != 0) {
+			EntityEquipment eq = livingEntity.getEquipment();
+
+			if (eq != null) {
+				ItemStack item =  eq.getItemInMainHand();
+				ItemMeta meta = item.getItemMeta();
+
+				int maxDurability = item.getType().getMaxDurability();
+				if (maxDurability > 0 && meta instanceof Damageable damageable) {
+					int damage = damageable.getDamage() + durabilityCost;
+					damage = Math.max(Math.min(damage, maxDurability), 0);
+
+					damageable.setDamage(damage);
+					item.setItemMeta(meta);
 				}
 			}
 		}
