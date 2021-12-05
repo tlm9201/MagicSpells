@@ -270,7 +270,6 @@ public class Spellbook {
 		if (checkGranted && !MagicSpells.ignoreGrantPerms() && Perm.GRANT.has(player, spell)) {
 			MagicSpells.debug("Adding granted spell '" + spell.getName() + "' for player '" + player.getName() + "'.");
 			addSpell(spell);
-			save();
 			return true;
 		}
 		return MagicSpells.tempGrantPermsEnabled() && Perm.TEMPGRANT.has(player, spell);

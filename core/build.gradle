@@ -1,5 +1,7 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
+    id("java-library")
+    id("org.jetbrains.kotlin.jvm") version "1.6.0"
+    id("io.papermc.paperweight.userdev") version "1.3.1"
 }
 
 repositories {
@@ -10,21 +12,24 @@ repositories {
     maven { url = "https://papermc.io/repo/repository/maven-public/" }
     maven { url = "https://repo.aikar.co/content/groups/aikar/" }
     maven { url = "https://oss.sonatype.org/content/repositories/central" }
+    maven { url = "https://oss.sonatype.org/content/repositories/snapshots" }
     maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
 }
 
 dependencies {
+    paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.18-R0.1-SNAPSHOT")
+
     shadow group: "org.apache.commons", name: "commons-math3", version: "3.6.1"
     shadow "com.github.elBukkit:EffectLib:master-SNAPSHOT"
     shadow "com.github.PaperMC:PaperLib:master-SNAPSHOT"
     shadow "co.aikar:acf-paper:0.5.0-SNAPSHOT"
     shadow "net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT"
-    shadow 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0'
+    shadow "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0"
 
     implementation group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.7.0"
 
-    implementation "io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT"
-    implementation "org.spigotmc:spigot:1.17.1-R0.1-SNAPSHOT"
+    implementation "io.papermc.paper:paper-api:1.18-R0.1-SNAPSHOT"
+    implementation "org.spigotmc:spigot:1.18-R0.1-SNAPSHOT"
 
     implementation "com.github.libraryaddict:LibsDisguises:v10.0.25"
     //implementation "com.github.Updated-NoCheatPlus.NoCheatPlus:ncpbuildbase:master-SNAPSHOT"
@@ -48,6 +53,11 @@ shadowJar {
     archiveClassifier.set("")
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
 compileKotlin {
     kotlinOptions {
         jvmTarget = "17"
@@ -67,5 +77,11 @@ publishing {
             groupId = "com.nisovin.magicspells"
             from components.java
         }
+    }
+}
+
+tasks {
+    build {
+        dependsOn(reobfJar)
     }
 }
