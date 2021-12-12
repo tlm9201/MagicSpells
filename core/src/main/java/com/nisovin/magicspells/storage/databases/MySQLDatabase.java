@@ -27,7 +27,7 @@ public class MySQLDatabase extends Database {
 			try {
 				file.createNewFile();
 			} catch (IOException e) {
-				MagicSpells.error("There was an error with creating the database file: " + e.getMessage());
+				MagicSpells.error("There was an error with creating the MySQLDatabase file: " + e.getMessage());
 			}
 		}
 
@@ -36,7 +36,7 @@ public class MySQLDatabase extends Database {
 			Class.forName("org.sqlite.JDBC");
 			connection = DriverManager.getConnection("jdbc:sqlite:" + folder.toPath() + "/" + dbLocation);
 		} catch (Exception e) {
-			MagicSpells.error("There was an error with creating a connection for the database: " + e.getMessage());
+			MagicSpells.error("There was an error with creating a connection for the MySQLDatabase: " + e.getMessage());
 		}
 		return connection;
 	}
@@ -46,10 +46,33 @@ public class MySQLDatabase extends Database {
 		Connection connection = getConnection();
 		try {
 			Statement statement = connection.createStatement();
-			statement.execute("CREATE TABLE IF NOT EXISTS player_data (id INTEGER PRIMARY KEY AUTO_INCREMENT, playerID VARCHAR(256) NOT NULL, level INTEGER"
-					+ " NOT NULL, experience INTEGER NOT NULL);");
+
+			// playerData
+			statement.execute("CREATE TABLE IF NOT EXISTS playerData ("
+					+ "id INTEGER PRIMARY KEY AUTO_INCREMENT, "
+					+ "playerID VARCHAR(256) NOT NULL UNIQUE"
+					+ ");"
+			);
+
+			// spells
+			statement.execute("CREATE TABLE IF NOT EXISTS spells (id INTEGER PRIMARY KEY AUTO_INCREMENT, "
+					+ "internalName VARCHAR(256) NOT NULL,"
+					+ "playerID VARCHAR(256) NOT NULL,"
+					+ "worldName VARCHAR(256) NOT NULL,"
+					+ "FOREIGN KEY (playerID) REFERENCES playerData(playerID));"
+			);
+
+			// binds
+			statement.execute("CREATE TABLE IF NOT EXISTS binds (id INTEGER PRIMARY KEY AUTO_INCREMENT, "
+					+ "playerID VARCHAR(256) NOT NULL,"
+					+ "internalName VARCHAR(256) NOT NULL,"
+					+ "worldName VARCHAR(256) NOT NULL,"
+					+ "magicItem VARCHAR(256) NOT NULL,"
+					+ "FOREIGN KEY (playerID) REFERENCES playerData(playerID));"
+			);
+
 		} catch (SQLException e) {
-			MagicSpells.error("There was an error with creating a table for the database: " + e.getMessage());
+			MagicSpells.error("There was an error with creating a table for the MySQLDatabase: " + e.getMessage());
 		}
 	}
 
