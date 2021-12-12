@@ -239,18 +239,21 @@ public class MagicCommand extends BaseCommand {
 	public static void onReload(CommandIssuer issuer, String[] args) {
 		if (!MagicSpells.isLoaded()) return;
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD)) return;
+
 		MagicSpells plugin = MagicSpells.getInstance();
 		if (args.length == 0) {
 			plugin.unload();
 			plugin.load();
 			issuer.sendMessage(MagicSpells.getTextColor() + "MagicSpells plugin reloaded.");
-		} else {
-			if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD_SPELLBOOK)) return;
-			Player player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
-			if (player == null) return;
-			MagicSpells.getSpellbooks().put(player.getName(), new Spellbook(player));
-			issuer.sendMessage(MagicSpells.getTextColor() + TxtUtil.getPossessiveName(player.getName()) + " spellbook has been reloaded.");
+			return;
 		}
+
+		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD_SPELLBOOK)) return;
+		Player player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
+		if (player == null) return;
+		MagicSpells.getSpellbooks().put(player.getName(), new Spellbook(player));
+		issuer.sendMessage(MagicSpells.getTextColor() + TxtUtil.getPossessiveName(player.getName()) + " spellbook has been reloaded.");
+
 	}
 
 	@Subcommand("reloadeffectlib")

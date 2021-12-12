@@ -504,12 +504,13 @@ public class MagicSpells extends JavaPlugin {
 		// Load player data using a storage handler
 		log("Initializing storage handler...");
 		storageHandler = new TXTFileStorage(plugin);
+		//storageHandler = new DatabaseStorage(plugin, new SQLiteDatabase(plugin, "spellbooks.db"));
 		storageHandler.initialize();
 		log("...done");
 
 		// Load online player spellbooks
 		log("Loading online player spellbooks...");
-		Util.forEachPlayerOnline(p -> spellbooks.put(p.getName(), new Spellbook(p)));
+		Util.forEachPlayerOnline(pl -> spellbooks.put(pl.getName(), new Spellbook(pl)));
 		log("...done");
 
 		// Load saved cooldowns
@@ -1747,6 +1748,16 @@ public class MagicSpells extends JavaPlugin {
 
 	public void unload() {
 		loaded = false;
+
+		// save player data and disable storage
+		if (storageHandler != null) {
+			for (Spellbook spellBook : spellbooks.values()) {
+				storageHandler.save(spellBook);
+			}
+			storageHandler.disable();
+			storageHandler = null;
+		}
+
 		// Turn off spells
 		for (Spell spell : spells.values()) {
 			spell.turnOff();
@@ -1802,6 +1813,7 @@ public class MagicSpells extends JavaPlugin {
 		ignoreCastItemDurability.clear();
 		ignoreCastItemDurability = null;
 
+
 		if (profilingRuns != null) {
 			profilingRuns.clear();
 			profilingRuns = null;
@@ -1844,11 +1856,6 @@ public class MagicSpells extends JavaPlugin {
 
 		if (volatileCodeHandle != null) {
 			volatileCodeHandle = null;
-		}
-
-		if (storageHandler != null) {
-			storageHandler.disable();
-			storageHandler = null;
 		}
 
 		config = null;
