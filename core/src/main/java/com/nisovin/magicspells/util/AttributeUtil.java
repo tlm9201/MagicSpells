@@ -48,34 +48,4 @@ public class AttributeUtil {
 		return operationNameMap.get(operation.toLowerCase());
 	}
 
-	public static class AttributeModifierData {
-
-		private final String name;
-		private final double amount;
-		private final Operation operation;
-		private final EquipmentSlot slot;
-
-		public AttributeModifierData(AttributeModifier mod) {
-			name = mod.getName();
-			amount = mod.getAmount();
-			operation = mod.getOperation();
-			slot = mod.getSlot();
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
-
-			AttributeModifierData that = (AttributeModifierData) o;
-			return amount == that.amount && Objects.equals(name, that.name) && operation == that.operation && slot == that.slot;
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(name, amount, operation, slot);
-		}
-
-	}
-
 }

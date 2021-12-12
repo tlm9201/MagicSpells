@@ -26,7 +26,6 @@ import org.bukkit.attribute.AttributeModifier;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.TxtUtil;
-import com.nisovin.magicspells.util.AttributeUtil.AttributeModifierData;
 
 public class MagicItemData {
 
@@ -76,6 +75,14 @@ public class MagicItemData {
         Set<Attribute> keysSelf = attrSelf.keySet();
         Set<Attribute> keysOther = attrOther.keySet();
         if (!keysSelf.equals(keysOther)) return false;
+
+        record AttributeModifierData(String name, double amt, AttributeModifier.Operation op, EquipmentSlot slot) {
+
+            public AttributeModifierData(AttributeModifier mod) {
+                this(mod.getName(), mod.getAmount(), mod.getOperation(), mod.getSlot());
+            }
+
+        }
 
         for (Attribute attr : keysSelf) {
             Collection<AttributeModifier> modsSelf = attrSelf.get(attr);
