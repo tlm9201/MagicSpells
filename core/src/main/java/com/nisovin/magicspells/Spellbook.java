@@ -20,9 +20,7 @@ public class Spellbook {
 	private String playerName;
 	private String uniqueId;
 
-	private final Set<Spell> spells = new TreeSet<>() {
-
-		private static final long serialVersionUID = 1L;
+	private final Set<Spell> spells = new HashSet<>() {
 
 		@Override
 		public boolean remove(Object o) {
@@ -33,6 +31,7 @@ public class Spellbook {
 
 		@Override
 		public boolean add(Spell s) {
+			if (s == null) throw new NullPointerException("Spell cant be null here");
 			boolean ret = super.add(s);
 			s.initializePlayerEffectTracker(player);
 			return ret;
