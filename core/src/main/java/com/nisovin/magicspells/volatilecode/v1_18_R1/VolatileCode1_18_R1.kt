@@ -16,20 +16,12 @@ private typealias nmsItemStack = net.minecraft.world.item.ItemStack
 
 class VolatileCode1_18_R1: VolatileCodeHandle {
 
-    /*private var entityFallingBlockFallHurtAmountField: Field? = null
-    private var entityFallingBlockFallHurtMaxField: Field? = null
-    private var entityLivingPotionEffectColor: DataWatcherObject<Int>? = null
+    /*private var entityLivingPotionEffectColor: DataWatcherObject<Int>? = null
 
     init {
         try {
-            this.entityFallingBlockFallHurtAmountField = EntityFallingBlock::class.java.getDeclaredField("ar")
-            this.entityFallingBlockFallHurtAmountField!!.isAccessible = true
-
-            this.entityFallingBlockFallHurtMaxField = EntityFallingBlock::class.java.getDeclaredField("aq")
-            this.entityFallingBlockFallHurtMaxField!!.isAccessible = true
-
             val entityLivingPotionEffectColorField = EntityLiving::class.java.getDeclaredField("bK")
-            entityLivingPotionEffectColorField.isAccessible = true;
+            entityLivingPotionEffectColorField.isAccessible = true
             this.entityLivingPotionEffectColor = entityLivingPotionEffectColorField.get(null) as DataWatcherObject<Int>
         } catch (e: Exception) {
             MagicSpells.error("THIS OCCURRED WHEN CREATING THE VOLATILE CODE HANDLE FOR 1.18, THE FOLLOWING ERROR IS MOST LIKELY USEFUL IF YOU'RE RUNNING THE LATEST VERSION OF MAGICSPELLS.")
@@ -57,11 +49,11 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
         if (item != null) nmsItem = CraftItemStack.asNMSCopy(item)
         else nmsItem = null
         val packet = PacketPlayOutSetSlot(0, 0, slot.toShort() + 36, nmsItem!!)
-        //(player as CraftPlayer).handle.b.sendPacket(packet)
+        (player as CraftPlayer).handle.connection.send(packet)
     }
 
     override fun simulateTnt(target: Location, source: LivingEntity, explosionSize: Float, fire: Boolean): Boolean {
-       /* val e = EntityTNTPrimed((target.world as CraftWorld).handle, target.x, target.y, target.z, (source as CraftLivingEntity).handle)
+        /*val e = EntityTNTPrimed((target.world as CraftWorld).handle, target.x, target.y, target.z, (source as CraftLivingEntity).handle)
         val c = CraftTNTPrimed(Bukkit.getServer() as CraftServer, e)
         val event = ExplosionPrimeEvent(c, explosionSize, fire)
         EventUtil.call(event)
@@ -103,7 +95,7 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
 
     override fun setClientVelocity(player: Player, velocity: Vector) {
         val packet = PacketPlayOutEntityVelocity(player.entityId, Vec3D(velocity.x, velocity.y, velocity.z))
-        //(player as CraftPlayer).handle.b.sendPacket(packet)
+        (player as CraftPlayer).handle.connection.send(packet)
     }
 
     override fun setInventoryTitle(player: Player, title: String) {
@@ -113,5 +105,6 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
         entityPlayer.b.sendPacket(packet)
         player.updateInventory()*/
     }
+
 }
 
