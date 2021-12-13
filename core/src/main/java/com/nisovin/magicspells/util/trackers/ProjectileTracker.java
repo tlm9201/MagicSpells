@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.util.trackers;
 
-import org.bukkit.Location;
 import org.bukkit.entity.*;
+import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import java.util.Random;
@@ -58,6 +58,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 	private Subspell groundSpell;
 	private Subspell modifierSpell;
 	private Subspell durationSpell;
+	private Subspell entityLocationSpell;
 
 	private ModifierSet projectileModifiers;
 
@@ -184,6 +185,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 			if (event.isCancelled()) continue;
 
 			if (hitSpell != null) hitSpell.castAtEntity(caster, livingEntity, event.getPower());
+			if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, currentLocation, power);
+
 			stop();
 			return;
 		}
@@ -396,6 +399,14 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 	public void setDurationSpell(Subspell durationSpell) {
 		this.durationSpell = durationSpell;
+	}
+
+	public Subspell getEntityLocationSpell() {
+		return entityLocationSpell;
+	}
+
+	public void setEntityLocationSpell(Subspell entityLocationSpell) {
+		this.entityLocationSpell = entityLocationSpell;
 	}
 
 	public ModifierSet getProjectileModifiers() {

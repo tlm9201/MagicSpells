@@ -49,10 +49,12 @@ public class BowSpell extends Spell {
 	private String spellOnShootName;
 	private String spellOnHitEntityName;
 	private String spellOnHitGroundName;
+	private String spellOnEntityLocationName;
 
 	private Subspell spellOnShoot;
 	private Subspell spellOnHitEntity;
 	private Subspell spellOnHitGround;
+	private Subspell spellOnEntityLocation;
 
 	private boolean cancelShot;
 	private boolean denyOffhand;
@@ -88,6 +90,7 @@ public class BowSpell extends Spell {
 		spellOnShootName = getConfigString("spell", "");
 		spellOnHitEntityName = getConfigString("spell-on-hit-entity", "");
 		spellOnHitGroundName = getConfigString("spell-on-hit-ground", "");
+		spellOnEntityLocationName = getConfigString("spell-on-entity-location", "");
 
 		bindable = getConfigBoolean("bindable", false);
 		cancelShot = getConfigBoolean("cancel-shot", true);
@@ -113,6 +116,12 @@ public class BowSpell extends Spell {
 		spellOnShoot = initSubspell(spellOnShootName, "BowSpell '" + internalName + "' has an invalid spell defined!");
 		spellOnHitEntity = initSubspell(spellOnHitEntityName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
 		spellOnHitGround = initSubspell(spellOnHitGroundName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
+
+		spellOnEntityLocation = new Subspell(spellOnEntityLocationName);
+		if (!spellOnEntityLocation.process() || !spellOnEntityLocation.isTargetedLocationSpell()) {
+			if (!spellOnEntityLocationName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
+			spellOnEntityLocation = null;
+		}
 
 		if (hitListener == null) {
 			hitListener = new HitListener();
@@ -287,7 +296,7 @@ public class BowSpell extends Spell {
 
 				for (ArrowData data : arrowDataList) {
 					Subspell entitySpell = data.bowSpell.spellOnHitEntity;
-					if (entitySpell == null) continue;
+					Subspell entityLocationSpell = data.bowSpell.spellOnEntityLocation;
 
 					SpellTargetEvent targetEvent = new SpellTargetEvent(data.bowSpell, caster, target, data.power);
 					EventUtil.call(targetEvent);
@@ -295,13 +304,17 @@ public class BowSpell extends Spell {
 
 					target = targetEvent.getTarget();
 
-					if (entitySpell.isTargetedEntityFromLocationSpell())
-						entitySpell.castAtEntityFromLocation(caster, caster.getLocation(), target, targetEvent.getPower());
-					else if (entitySpell.isTargetedEntitySpell())
-						entitySpell.castAtEntity(caster, target, targetEvent.getPower());
-					else if (entitySpell.isTargetedLocationSpell())
-						entitySpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
-					else entitySpell.cast(caster, targetEvent.getPower());
+					if (entitySpell != null) {
+						if (entitySpell.isTargetedEntityFromLocationSpell())
+							entitySpell.castAtEntityFromLocation(caster, caster.getLocation(), target, targetEvent.getPower());
+						else if (entitySpell.isTargetedEntitySpell())
+							entitySpell.castAtEntity(caster, target, targetEvent.getPower());
+						else if (entitySpell.isTargetedLocationSpell())
+							entitySpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
+						else entitySpell.cast(caster, targetEvent.getPower());
+					}
+
+					if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
 
 					if (data.bowSpell.removeArrow) remove = true;
 				}
