@@ -799,6 +799,24 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return (caster, target, power, args) -> def;
 	}
 
+	protected ConfigData<Integer> getConfigDataInt(String key, ConfigData<Integer> def) {
+		String path = "spells." + internalName + '.' + key;
+
+		if (config.isInt(path)) {
+			int value = config.getInt(path);
+			return (caster, target, power, args) -> value;
+		}
+
+		if (config.isString(path)) {
+			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			if (ex == null) return def;
+
+			return new FunctionData.IntegerData(ex.getFirst(), def, ex.getSecond());
+		}
+
+		return def;
+	}
+
 	protected ConfigData<Double> getConfigDataDouble(String key, double def) {
 		String path = "spells." + internalName + '.' + key;
 
@@ -817,6 +835,24 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return (caster, target, power, args) -> def;
 	}
 
+	protected ConfigData<Double> getConfigDataDouble(String key, ConfigData<Double> def) {
+		String path = "spells." + internalName + '.' + key;
+
+		if (config.isDouble(path)) {
+			double value = config.getDouble(path);
+			return (caster, target, power, args) -> value;
+		}
+
+		if (config.isString(path)) {
+			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			if (ex == null) return def;
+
+			return new FunctionData.DoubleData(ex.getFirst(), def, ex.getSecond());
+		}
+
+		return def;
+	}
+
 	protected ConfigData<Float> getConfigDataFloat(String key, float def) {
 		String path = "spells." + internalName + '.' + key;
 
@@ -833,6 +869,24 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 
 		return (caster, target, power, args) -> def;
+	}
+
+	protected ConfigData<Float> getConfigDataFloat(String key, ConfigData<Float> def) {
+		String path = "spells." + internalName + '.' + key;
+
+		if (config.isDouble(path)) {
+			float value = (float) config.getDouble(path);
+			return (caster, target, power, args) -> value;
+		}
+
+		if (config.isString(path)) {
+			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			if (ex == null) return def;
+
+			return new FunctionData.FloatData(ex.getFirst(), def, ex.getSecond());
+		}
+
+		return def;
 	}
 
 	protected ConfigData<String> getConfigDataString(String key, String def) {
