@@ -69,6 +69,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private final String groundSpellName;
 	private final String modifierSpellName;
 	private final String durationSpellName;
+	private final String entityLocationSpellName;
 
 	private String projectileName;
 
@@ -77,6 +78,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private Subspell groundSpell;
 	private Subspell modifierSpell;
 	private Subspell durationSpell;
+	private Subspell entityLocationSpell;
 
 	private ModifierSet projectileModifiers;
 	private List<String> projectileModifiersStrings;
@@ -114,6 +116,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
 		durationSpellName = getConfigString("spell-after-duration", "");
+		entityLocationSpellName = getConfigString("spell-on-entity-location", "");
 
 		projectileName = Util.colorize(getConfigString("projectile-name", ""));
 
@@ -162,6 +165,12 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		if (!modifierSpell.process() || !modifierSpell.isTargetedLocationSpell()) {
 			if (!modifierSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
 			modifierSpell = null;
+		}
+
+		entityLocationSpell = new Subspell(entityLocationSpellName);
+		if (!entityLocationSpell.process() || !entityLocationSpell.isTargetedLocationSpell()) {
+			if (!entityLocationSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
+			entityLocationSpell = null;
 		}
 
 		zoneManager = MagicSpells.getNoMagicZoneManager();
@@ -539,6 +548,14 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	public void setDurationSpell(Subspell durationSpell) {
 		this.durationSpell = durationSpell;
+	}
+
+	public Subspell getEntityLocationSpell() {
+		return entityLocationSpell;
+	}
+
+	public void setEntityLocationSpell(Subspell entityLocationSpell) {
+		this.entityLocationSpell = entityLocationSpell;
 	}
 
 	public ModifierSet getProjectileModifiers() {
