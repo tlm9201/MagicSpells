@@ -49,11 +49,13 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	private Subspell endSpell;
 	private Subspell travelSpell;
 	private Subspell groundSpell;
+	private Subspell entityLocationSpell;
 
 	private final String hitSpellName;
 	private final String endSpellName;
 	private final String travelSpellName;
 	private final String groundSpellName;
+	private final String entityLocationSpellName;
 
 	private NoMagicZoneManager zoneManager;
 
@@ -86,6 +88,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		endSpellName = getConfigString("spell-on-end", "");
 		travelSpellName = getConfigString("spell-on-travel", "");
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
+		entityLocationSpellName = getConfigString("spell-on-entity-location", "");
 
 		gravity *= -1;
 		if (interval < 0.01) interval = 0.01F;
@@ -118,6 +121,12 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		if (!groundSpell.process() || !groundSpell.isTargetedLocationSpell()) {
 			if (!groundSpellName.isEmpty()) MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
 			groundSpell = null;
+		}
+
+		entityLocationSpell = new Subspell(entityLocationSpellName);
+		if (!entityLocationSpell.process() || !entityLocationSpell.isTargetedLocationSpell()) {
+			if (!entityLocationSpellName.isEmpty()) MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
+			entityLocationSpell = null;
 		}
 
 		zoneManager = MagicSpells.getNoMagicZoneManager();
@@ -444,6 +453,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 						if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(caster, entity, event.getPower());
 						else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(caster, entity.getLocation(), event.getPower());
 					}
+
+					if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, currentLoc, power);
 
 					playSpellEffects(EffectPosition.TARGET, entity);
 					playSpellEffectsTrail(caster.getLocation(), entity.getLocation());
