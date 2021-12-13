@@ -171,7 +171,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
 			if (targetInfo == null) return noTarget(caster);
-			new HomingProjectileMonitor(caster, targetInfo.getTarget(), targetInfo.getPower());
+			new HomingProjectileMonitor(caster, targetInfo.getTarget(), targetInfo.getPower(), args);
 			sendMessages(caster, targetInfo.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -179,10 +179,15 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		new HomingProjectileMonitor(caster, target, power);
+		new HomingProjectileMonitor(caster, target, power, args);
 		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override
@@ -191,10 +196,15 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		new HomingProjectileMonitor(caster, from, target, power);
+		new HomingProjectileMonitor(caster, from, target, power, args);
 		return true;
+	}
+
+	@Override
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+		return castAtEntityFromLocation(caster, from, target, power, null);
 	}
 
 	@Override
@@ -250,13 +260,14 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		private LivingEntity target;
 		private BoundingBox hitBox;
 		private Vector currentVelocity;
+		private String[] args;
 		private float power;
 		private long startTime;
 
 		private int taskId;
 		private int counter = 0;
 
-		private HomingProjectileMonitor(LivingEntity caster, LivingEntity target, float power) {
+		private HomingProjectileMonitor(LivingEntity caster, LivingEntity target, float power, String[] args) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
@@ -265,10 +276,11 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			initialize();
 		}
 
-		private HomingProjectileMonitor(LivingEntity caster, Location startLocation, LivingEntity target, float power) {
+		private HomingProjectileMonitor(LivingEntity caster, Location startLocation, LivingEntity target, float power, String[] args) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
+			this.args = args;
 			this.startLocation = startLocation;
 
 			initialize();

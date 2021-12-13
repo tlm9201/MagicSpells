@@ -190,7 +190,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			ProjectileTracker tracker = new ProjectileTracker(caster, caster.getLocation(), power);
-			setupTracker(tracker);
+			setupTracker(tracker, caster, power, args);
 			tracker.start();
 			playSpellEffects(EffectPosition.CASTER, caster);
 		}
@@ -198,11 +198,16 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity livingEntity, Location target, float power) {
+	public boolean castAtLocation(LivingEntity livingEntity, Location target, float power, String[] args) {
 		ProjectileTracker tracker = new ProjectileTracker(livingEntity, target, power);
-		setupTracker(tracker);
+		setupTracker(tracker, livingEntity, power, args);
 		tracker.start();
 		return true;
+	}
+
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		return castAtLocation(caster, target, power, null);
 	}
 
 	@Override
@@ -210,7 +215,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		return false;
 	}
 
-	private void setupTracker(ProjectileTracker tracker) {
+	private void setupTracker(ProjectileTracker tracker, LivingEntity caster, float power, String[] args) {
 		tracker.setSpell(this);
 
 		tracker.setProjectileManager(projectileManager);
