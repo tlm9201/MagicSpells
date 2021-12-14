@@ -1,16 +1,23 @@
 package com.nisovin.magicspells.volatilecode.v1_18_R1
 
+import org.bukkit.Bukkit
 import org.bukkit.entity.*
 import org.bukkit.Location
 import org.bukkit.util.Vector
 import org.bukkit.inventory.ItemStack
+import org.bukkit.event.entity.ExplosionPrimeEvent
+
 import org.bukkit.craftbukkit.v1_18_R1.entity.*
+import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
+import org.bukkit.craftbukkit.v1_18_R1.CraftServer
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack
 
 import net.minecraft.world.phys.Vec3D
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.chat.TextComponent
+import net.minecraft.world.entity.item.PrimedTnt
 
+import com.nisovin.magicspells.util.compat.EventUtil
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 
 private typealias nmsItemStack = net.minecraft.world.item.ItemStack
@@ -54,12 +61,11 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
     }
 
     override fun simulateTnt(target: Location, source: LivingEntity, explosionSize: Float, fire: Boolean): Boolean {
-        /*val e = EntityTNTPrimed((target.world as CraftWorld).handle, target.x, target.y, target.z, (source as CraftLivingEntity).handle)
+        val e = PrimedTnt((target.world as CraftWorld).handle, target.x, target.y, target.z, (source as CraftLivingEntity).handle)
         val c = CraftTNTPrimed(Bukkit.getServer() as CraftServer, e)
         val event = ExplosionPrimeEvent(c, explosionSize, fire)
         EventUtil.call(event)
-        return event.isCancelled*/
-        return false
+        return event.isCancelled
     }
 
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
