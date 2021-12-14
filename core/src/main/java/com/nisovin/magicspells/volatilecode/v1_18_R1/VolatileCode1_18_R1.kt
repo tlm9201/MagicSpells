@@ -1,16 +1,24 @@
 package com.nisovin.magicspells.volatilecode.v1_18_R1
 
+import org.bukkit.Bukkit
 import org.bukkit.entity.*
 import org.bukkit.Location
 import org.bukkit.util.Vector
 import org.bukkit.inventory.ItemStack
-import org.bukkit.craftbukkit.v1_18_R1.entity.*
-import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack
+import org.bukkit.event.entity.ExplosionPrimeEvent
 
-import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
+import org.bukkit.craftbukkit.v1_18_R1.entity.*
+import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
+import org.bukkit.craftbukkit.v1_18_R1.CraftServer
+import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack
 
 import net.minecraft.world.phys.Vec3D
 import net.minecraft.network.protocol.game.*
+import net.minecraft.network.chat.TextComponent
+import net.minecraft.world.entity.item.PrimedTnt
+
+import com.nisovin.magicspells.util.compat.EventUtil
+import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 
 private typealias nmsItemStack = net.minecraft.world.item.ItemStack
 
@@ -53,12 +61,11 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
     }
 
     override fun simulateTnt(target: Location, source: LivingEntity, explosionSize: Float, fire: Boolean): Boolean {
-        /*val e = EntityTNTPrimed((target.world as CraftWorld).handle, target.x, target.y, target.z, (source as CraftLivingEntity).handle)
+        val e = PrimedTnt((target.world as CraftWorld).handle, target.x, target.y, target.z, (source as CraftLivingEntity).handle)
         val c = CraftTNTPrimed(Bukkit.getServer() as CraftServer, e)
         val event = ExplosionPrimeEvent(c, explosionSize, fire)
         EventUtil.call(event)
-        return event.isCancelled*/
-        return false
+        return event.isCancelled
     }
 
     override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
@@ -68,29 +75,35 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
     }
 
     override fun playDragonDeathEffect(location: Location) {
-        /*val dragon = EntityEnderDragon(EntityTypes.v, (location.world as CraftWorld).handle)
-        dragon.setPositionRotation(location.x, location.y, location.z, location.yaw, 0f)
+        /*
+        //val dragon = EntityEnderDragon(EntityTypes.v, (location.world as CraftWorld).handle)
+        //dragon.setPositionRotation(location.x, location.y, location.z, location.yaw, 0f)
+        val dragon = EnderDragon(EntityType.ENDER_DRAGON, (location.world as CraftWorld).handle)
+        val addMobPacket = ClientboundAddMobPacket(dragon)
+        //val animatePacket = ClientboundAnimatePacket(dragon, 3)
+        val removeEntityPacket = ClientboundRemoveEntitiesPacket(dragon.id)
 
-        val packet24 = PacketPlayOutSpawnEntityLiving(dragon)
+        /*val packet24 = PacketPlayOutSpawnEntity(dragon as net.minecraft.world.entity.LivingEntity)
         val packet38 = PacketPlayOutEntityStatus(dragon, 3.toByte())
         val packet29 = PacketPlayOutEntityDestroy(dragon.bukkitEntity.entityId)
+        */
 
         val box = BoundingBox(location, 64.0)
         val players = ArrayList<Player>()
         for (player in location.world!!.players) {
             if (!box.contains(player)) continue
             players.add(player)
-            (player as CraftPlayer).handle.b.sendPacket(packet24)
-            player.handle.b.sendPacket(packet38)
+            (player as CraftPlayer).handle.connection.send(addMobPacket)
+            player.handle.connection.send(addMobPacket)
+            //player.handle.connection.send(animatePacket)
         }
 
         MagicSpells.scheduleDelayedTask({
             for (player in players) {
-                if (player.isValid) {
-                    (player as CraftPlayer).handle.b.sendPacket(packet29)
-                }
+                if (!player.isValid) continue
+                (player as CraftPlayer).handle.connection.send(removeEntityPacket)
             }
-        }, 250)*/
+        }, 250) */
     }
 
     override fun setClientVelocity(player: Player, velocity: Vector) {
@@ -100,10 +113,10 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
 
     override fun setInventoryTitle(player: Player, title: String) {
         val entityPlayer = (player as CraftPlayer).handle
-        /*val container = entityPlayer.bV
-        val packet = PacketPlayOutOpenWindow(container.j, container.type, ChatMessage(title))
-        entityPlayer.b.sendPacket(packet)
-        player.updateInventory()*/
+        val container = entityPlayer.containerMenu
+        val packet = ClientboundOpenScreenPacket(container.containerId, container.type, TextComponent(title))
+        player.handle.connection.send(packet)
+        player.updateInventory()
     }
 
 }
