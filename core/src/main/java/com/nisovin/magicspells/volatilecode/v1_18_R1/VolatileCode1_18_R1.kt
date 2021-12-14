@@ -12,7 +12,7 @@ import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
 import org.bukkit.craftbukkit.v1_18_R1.CraftServer
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack
 
-import net.minecraft.world.phys.Vec3D
+import net.minecraft.world.phys.Vec3
 import net.minecraft.network.protocol.game.*
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.item.PrimedTnt
@@ -56,7 +56,8 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
         val nmsItem: nmsItemStack?
         if (item != null) nmsItem = CraftItemStack.asNMSCopy(item)
         else nmsItem = null
-        val packet = PacketPlayOutSetSlot(0, 0, slot.toShort() + 36, nmsItem!!)
+
+        val packet = ClientboundContainerSetSlotPacket(0, 0, slot.toShort() + 36, nmsItem!!)
         (player as CraftPlayer).handle.connection.send(packet)
     }
 
@@ -107,7 +108,7 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
     }
 
     override fun setClientVelocity(player: Player, velocity: Vector) {
-        val packet = PacketPlayOutEntityVelocity(player.entityId, Vec3D(velocity.x, velocity.y, velocity.z))
+        val packet = ClientboundSetEntityMotionPacket(player.entityId, Vec3(velocity.x, velocity.y, velocity.z))
         (player as CraftPlayer).handle.connection.send(packet)
     }
 
@@ -115,6 +116,7 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
         val entityPlayer = (player as CraftPlayer).handle
         val container = entityPlayer.containerMenu
         val packet = ClientboundOpenScreenPacket(container.containerId, container.type, TextComponent(title))
+
         player.handle.connection.send(packet)
         player.updateInventory()
     }
