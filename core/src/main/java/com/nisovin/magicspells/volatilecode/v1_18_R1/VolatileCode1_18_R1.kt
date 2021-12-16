@@ -19,7 +19,6 @@ import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.item.PrimedTnt
 import net.minecraft.world.item.alchemy.PotionUtils
 import net.minecraft.network.syncher.EntityDataAccessor
-
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 
 import com.nisovin.magicspells.MagicSpells
