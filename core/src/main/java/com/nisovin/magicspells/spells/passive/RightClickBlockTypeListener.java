@@ -22,6 +22,8 @@ public class RightClickBlockTypeListener extends PassiveListener {
 
 	@Override
 	public void initialize(String var) {
+		if (var == null || var.isEmpty()) return;
+
 		String[] split = var.split(",");
 		for (String s : split) {
 			s = s.trim();
