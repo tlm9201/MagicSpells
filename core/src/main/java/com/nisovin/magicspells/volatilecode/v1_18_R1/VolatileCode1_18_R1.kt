@@ -17,6 +17,9 @@ import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.EntityType
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.item.PrimedTnt
+import net.minecraft.world.item.alchemy.PotionUtils
+import net.minecraft.network.syncher.EntityDataAccessor
+
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 
 import com.nisovin.magicspells.MagicSpells
@@ -28,32 +31,34 @@ private typealias nmsItemStack = net.minecraft.world.item.ItemStack
 
 class VolatileCode1_18_R1: VolatileCodeHandle {
 
-    /*private var entityLivingPotionEffectColor: DataWatcherObject<Int>? = null
+    private var entityLivingPotionEffectColor: EntityDataAccessor<Int>? = null
 
     init {
         try {
-            val entityLivingPotionEffectColorField = EntityLiving::class.java.getDeclaredField("bK")
+            // CHANGE THIS TO SPIGOT MAPPING VERSION OF MOJANG'S - EntityDataAccessor<Integer> DATA_EFFECT_COLOR_ID
+            val entityLivingPotionEffectColorField = net.minecraft.world.entity.LivingEntity::class.java.getDeclaredField("bL")
             entityLivingPotionEffectColorField.isAccessible = true
-            this.entityLivingPotionEffectColor = entityLivingPotionEffectColorField.get(null) as DataWatcherObject<Int>
+            entityLivingPotionEffectColor = entityLivingPotionEffectColorField.get(null) as EntityDataAccessor<Int>
         } catch (e: Exception) {
             MagicSpells.error("THIS OCCURRED WHEN CREATING THE VOLATILE CODE HANDLE FOR 1.18, THE FOLLOWING ERROR IS MOST LIKELY USEFUL IF YOU'RE RUNNING THE LATEST VERSION OF MAGICSPELLS.")
             e.printStackTrace()
         }
-    }*/
+    }
 
     override fun addPotionGraphicalEffect(entity: LivingEntity, color: Int, duration: Int) {
-        val livingEntity = (entity as CraftLivingEntity).handle;
-        /*val dataWatcher = livingEntity.dataWatcher;
-        dataWatcher.set(entityLivingPotionEffectColor, color)
+        val livingEntity = (entity as CraftLivingEntity).handle
+        val entityData = livingEntity.entityData
+        entityData.set(entityLivingPotionEffectColor, color)
+
         if (duration > 0) {
             MagicSpells.scheduleDelayedTask({
                 var c = 0
-                if (livingEntity.effects.isNotEmpty()) {
-                    c = PotionUtil.a(livingEntity.effects)
+                if (livingEntity.getActiveEffects().isNotEmpty()) {
+                    c = PotionUtils.getColor(livingEntity.getActiveEffects())
                 }
-                dataWatcher.set(entityLivingPotionEffectColor, c)
+                entityData.set(entityLivingPotionEffectColor, c)
             }, duration)
-        }*/
+        }
     }
 
     override fun sendFakeSlotUpdate(player: Player, slot: Int, item: ItemStack?) {
