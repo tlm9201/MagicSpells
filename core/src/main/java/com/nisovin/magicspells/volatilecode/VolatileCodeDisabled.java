@@ -45,4 +45,9 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 
 	}
 
+	@Override
+	public void startAutoSpinAttack(LivingEntity entity, int ticks) {
+
+	}
+
 }
