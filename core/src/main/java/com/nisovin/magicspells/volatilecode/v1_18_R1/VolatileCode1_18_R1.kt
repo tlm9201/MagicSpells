@@ -124,5 +124,10 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
         player.updateInventory()
     }
 
+    override fun startAutoSpinAttack(entity: LivingEntity?, ticks: Int) {
+        val livingEntity = (entity as CraftLivingEntity).handle
+        livingEntity.startAutoSpinAttack(ticks)
+    }
+
 }
 

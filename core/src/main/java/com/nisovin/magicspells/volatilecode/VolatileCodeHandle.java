@@ -20,4 +20,7 @@ public interface VolatileCodeHandle {
 	void setClientVelocity(Player player, Vector velocity);
 
 	void setInventoryTitle(Player player, String title);
+
+	void startAutoSpinAttack(LivingEntity entity, int ticks);
+
 }
