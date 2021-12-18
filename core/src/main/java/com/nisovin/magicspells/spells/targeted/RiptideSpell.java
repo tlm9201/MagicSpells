@@ -31,7 +31,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 		Player target = targetInfo.getTarget();
 		if (target == null) return noTarget(caster);
 
-		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration.get(caster, null, power, args));
+		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration.get(caster, target, targetInfo.getPower(), args));
 		playSpellEffects(caster, target);
 
 		return PostCastAction.HANDLE_NORMALLY;
