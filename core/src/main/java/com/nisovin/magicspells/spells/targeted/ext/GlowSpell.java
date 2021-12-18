@@ -16,6 +16,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
@@ -28,11 +29,14 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 	private final Multimap<UUID, UUID> glowing;
 	private final Set<UUID> glowingUnpaired;
 
-	private final boolean toggle;
-	private final int duration;
+	private final ConfigData<Integer> duration;
+
+	private final boolean powerAffectsDuration;
 	private final boolean visibleToEveryone;
 	private final boolean visibleToCaster;
 	private final boolean visibleToTarget;
+	private final boolean toggle;
+
 	private GlowAPI.Color color;
 
 	public GlowSpell(MagicConfig config, String spellName) {
@@ -41,16 +45,16 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 		glowingUnpaired = new HashSet<>();
 
 		toggle = getConfigBoolean("toggle", false);
-		duration = getConfigInt("duration", 0);
-		visibleToEveryone = getConfigBoolean("visible-to-everyone", true);
+		duration = getConfigDataInt("duration", 0);
 		visibleToCaster = getConfigBoolean("visible-to-caster", true);
 		visibleToTarget = getConfigBoolean("visible-to-target", false);
+		visibleToEveryone = getConfigBoolean("visible-to-everyone", true);
+		powerAffectsDuration = getConfigBoolean("power-affects-duration", true);
 
 		String colorName = getConfigString("color", "");
 		try {
 			color = GlowAPI.Color.valueOf(colorName.toUpperCase());
-		}
-		catch (IllegalArgumentException ignored) {
+		} catch (IllegalArgumentException ignored) {
 			color = GlowAPI.Color.WHITE;
 			MagicSpells.log("GlowSpell '" + internalName + "' has an invalid color defined': " + colorName);
 		}
@@ -116,7 +120,9 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	private void glow(Player caster, LivingEntity target, float power, String[] args) {
-		int duration = Math.round(this.duration * power);
+		int duration = this.duration.get(caster, target, power, args);
+		if (powerAffectsDuration) duration = Math.round(duration * power);
+
 		UUID uuid = target.getUniqueId();
 
 		// Handle reapply and toggle.

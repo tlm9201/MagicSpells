@@ -1,22 +1,22 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import com.nisovin.magicspells.MagicSpells;
+import java.util.List;
+import java.util.ArrayList;
+
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -25,8 +25,8 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 
 	private PotionEffectType type;
 
-	private int duration;
-	private int strength;
+	private ConfigData<Integer> duration;
+	private ConfigData<Integer> strength;
 
 	private boolean icon;
 	private boolean hidden;
@@ -43,8 +43,8 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 
 		type = Util.getPotionEffectType(getConfigString("type", "1"));
 
-		duration = getConfigInt("duration", 0);
-		strength = getConfigInt("strength", 0);
+		duration = getConfigDataInt("duration", 0);
+		strength = getConfigDataInt("strength", 0);
 
 		icon = getConfigBoolean("icon", true);
 		hidden = getConfigBoolean("hidden", false);
@@ -113,10 +113,6 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 	public PotionEffectType getPotionType() {
 		return type;
 	}
-	
-	public int getDuration() {
-		return duration;
-	}
 
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
@@ -163,8 +159,12 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 
 	public void handlePotionEffects(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (potionEffects == null) {
-			int duration = spellPowerAffectsDuration ? Math.round(this.duration * power) : this.duration;
-			int strength = spellPowerAffectsStrength ? Math.round(this.strength * power) : this.strength;
+			int duration = this.duration.get(caster, target, power, args);
+			if (spellPowerAffectsDuration) duration = Math.round(duration * power);
+
+			int strength = this.strength.get(caster, target, power, args);
+			if (spellPowerAffectsStrength) strength = Math.round(strength * power);
+
 			PotionEffect effect = new PotionEffect(type, duration, strength, ambient, !hidden, icon);
 
 			callDamageEvent(caster, target, effect);
