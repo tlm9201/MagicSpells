@@ -75,6 +75,7 @@ public class ConditionManager {
 		addCondition("falling", FallingCondition.class);
 		addCondition("blocking", BlockingCondition.class);
 		addCondition("riding", RidingCondition.class);
+		addCondition("riptiding", RiptidingCondition.class);
 		addCondition("wearing", WearingCondition.class);
 		addCondition("wearinginslot", WearingInSlotCondition.class);
 		addCondition("holding", HoldingCondition.class);
