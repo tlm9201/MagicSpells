@@ -1,8 +1,10 @@
 package com.nisovin.magicspells.spells.buff;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.UUID;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.bukkit.Effect;
@@ -18,7 +20,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -29,7 +33,7 @@ import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 // TODO this needs exemptions for anticheat
 public class ReachSpell extends BuffSpell {
 
-	private final Set<UUID> players;
+	private final Map<UUID, SpellData> players;
 
 	private final Set<Material> disallowedBreakBlocks;
 	private final Set<Material> disallowedPlaceBlocks;
@@ -43,7 +47,7 @@ public class ReachSpell extends BuffSpell {
 		dropBlocks = getConfigBoolean("drop-blocks", true);
 		consumeBlocks = getConfigBoolean("consume-blocks", true);
 
-		players = new HashSet<>();
+		players = new HashMap<>();
 		disallowedPlaceBlocks = new HashSet<>();
 		disallowedBreakBlocks = new HashSet<>();
 
@@ -70,13 +74,13 @@ public class ReachSpell extends BuffSpell {
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		if (!(entity instanceof Player)) return false;
-		players.add(entity.getUniqueId());
+		players.put(entity.getUniqueId(), new SpellData(power, args));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return players.contains(entity.getUniqueId());
+		return players.containsKey(entity.getUniqueId());
 	}
 
 	@Override
@@ -98,10 +102,12 @@ public class ReachSpell extends BuffSpell {
 			turnOff(player);
 			return;
 		}
-		
+
+		SpellData data = players.get(player.getUniqueId());
+
 		// Get targeted block
 		Action action = event.getAction();
-		List<Block> targets = getLastTwoTargetedBlocks(player, range);
+		List<Block> targets = getLastTwoTargetedBlocks(player, getRange(player, data.power(), data.args()));
 
 		Block airBlock;
 		Block targetBlock;
@@ -169,7 +175,7 @@ public class ReachSpell extends BuffSpell {
 		}
 	}
 
-	public Set<UUID> getPlayers() {
+	public Map<UUID, SpellData> getPlayers() {
 		return players;
 	}
 
