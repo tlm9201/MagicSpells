@@ -23,9 +23,9 @@ public class Modifier implements IModifier {
 	private ModifierType type;
 
 	private String modifierVar;
-	private String strModifierFailed = null;
+	private String strModifierFailed;
 
-	private CustomData customActionData = null;
+	private CustomData customActionData;
 
 	// Is this a condition that will want to access the events directly?
 	private boolean alertCondition = false;
@@ -38,10 +38,12 @@ public class Modifier implements IModifier {
 	}
 
 	public boolean process(String string) {
+		if (MagicSpells.getConditionManager() == null) return false;
+
 		String[] s = RegexUtil.split(MODIFIER_STR_FAILED_PATTERN, string, 0);
 		if (s == null || s.length <= 0) return false;
 		String[] data = s[0].trim().split(" ", 4);
-		//String[] data = Util.splitParams(s1[0].trim(), 4);
+
 		if (data.length < 2) return false;
 
 		// Get condition
@@ -49,8 +51,6 @@ public class Modifier implements IModifier {
 			negated = true;
 			data[0] = data[0].substring(1);
 		}
-
-		if (MagicSpells.getConditionManager() == null) return false;
 
 		condition = MagicSpells.getConditionManager().getConditionByName(data[0].replace("_", ""));
 		if (condition == null) return false;
@@ -96,8 +96,16 @@ public class Modifier implements IModifier {
 		return strModifierFailed;
 	}
 
+	public void setStrModifierFailed(String strModifierFailed) {
+		this.strModifierFailed = strModifierFailed;
+	}
+
 	public CustomData getCustomActionData() {
 		return customActionData;
+	}
+
+	public void setCustomActionData(CustomData customActionData) {
+		this.customActionData = customActionData;
 	}
 
 	@Override
