@@ -115,9 +115,9 @@ public abstract class TargetedSpell extends InstantSpell {
 	}
 	
 	@Override
-	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity livingEntity, float power, boolean forceTargetPlayers, ValidTargetChecker checker) {
-		if (targetSelf || validTargetList.canTargetSelf()) return new TargetInfo<>(livingEntity, power);
-		return super.getTargetedEntity(livingEntity, power, forceTargetPlayers, checker);
+	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity caster, float power, boolean forceTargetPlayers, ValidTargetChecker checker) {
+		if (targetSelf || validTargetList.canTargetSelf()) return new TargetInfo<>(caster, power);
+		return super.getTargetedEntity(caster, power, forceTargetPlayers, checker);
 	}
 	
 	/**

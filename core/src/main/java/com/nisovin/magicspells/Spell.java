@@ -1344,89 +1344,98 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return new TargetInfo<>((Player) target.getTarget(), target.getPower());
 	}
 
-	protected TargetInfo<Player> getTargetPlayer(LivingEntity livingEntity, float power) {
-		return getTargetedPlayer(livingEntity, power);
+	protected TargetInfo<Player> getTargetPlayer(LivingEntity caster, float power) {
+		return getTargetedPlayer(caster, power);
 	}
 
-	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity livingEntity, float power) {
-		return getTargetedEntity(livingEntity, power, false, null);
+	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity caster, float power) {
+		return getTargetedEntity(caster, power, false, null);
 	}
 
-	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity livingEntity, float power, ValidTargetChecker checker) {
-		return getTargetedEntity(livingEntity, power, false, checker);
+	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity caster, float power, ValidTargetChecker checker) {
+		return getTargetedEntity(caster, power, false, checker);
 	}
 
-	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity livingEntity, float power, boolean forceTargetPlayers, ValidTargetChecker checker) {
-		// Get nearby entities
-		// TODO rename to avoid hiding
-		int range = getRange(power);
-		List<Entity> nearbyEntities = livingEntity.getNearbyEntities(range, range, range);
+	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity caster, float power, boolean forceTargetPlayers, ValidTargetChecker checker) {
+		int currentRange = getRange(power);
+		List<Entity> nearbyEntities = caster.getNearbyEntities(currentRange, currentRange, currentRange);
 
 		// Get valid targets
 		List<LivingEntity> entities;
-		if (MagicSpells.checkWorldPvpFlag() && validTargetList.canTargetPlayers() && !isBeneficial() && !livingEntity.getWorld().getPVP()) {
-			entities = validTargetList.filterTargetListCastingAsLivingEntities(livingEntity, nearbyEntities, false);
+		if (MagicSpells.checkWorldPvpFlag() && validTargetList.canTargetPlayers() && !isBeneficial() && !caster.getWorld().getPVP()) {
+			entities = validTargetList.filterTargetListCastingAsLivingEntities(caster, nearbyEntities, false);
 		} else if (forceTargetPlayers) {
-			entities = validTargetList.filterTargetListCastingAsLivingEntities(livingEntity, nearbyEntities, true);
+			entities = validTargetList.filterTargetListCastingAsLivingEntities(caster, nearbyEntities, true);
 		} else {
-			entities = validTargetList.filterTargetListCastingAsLivingEntities(livingEntity, nearbyEntities);
+			entities = validTargetList.filterTargetListCastingAsLivingEntities(caster, nearbyEntities);
 		}
 
 		// Find target
 		BlockIterator blockIterator;
 		try {
-			blockIterator = new BlockIterator(livingEntity, range);
+			blockIterator = new BlockIterator(caster, currentRange);
 		} catch (IllegalStateException e) {
 			DebugHandler.debugIllegalState(e);
 			return null;
 		}
+
 		Block block;
 		Location location;
-		int bx;
-		int by;
-		int bz;
-		double ex;
-		double ey;
-		double ez;
+
+		int blockX;
+		int blockY;
+		int blockZ;
+
+		double entityX;
+		double entityY;
+		double entityZ;
+
 		// How far can a target be from the line of sight along the x, y, and z directions
-		double xTolLower = 0.75;
-		double xTolUpper = 1.75;
-		double yTolLower = 1;
-		double yTolUpper = 2.5;
-		double zTolLower = 0.75;
-		double zTolUpper = 1.75;
+		double xLower = 0.75;
+		double xUpper = 1.75;
+		double yLower = 1;
+		double yUpper = 2.5;
+		double zLower = 0.75;
+		double zUpper = 1.75;
+
 		// Do min range
 		for (int i = 0; i < minRange && blockIterator.hasNext(); i++) {
 			blockIterator.next();
 		}
+
+		Set<Entity> blacklistedEntities = new HashSet<>();
+
 		// Loop through player's line of sight
 		while (blockIterator.hasNext()) {
 			block = blockIterator.next();
-			bx = block.getX();
-			by = block.getY();
-			bz = block.getZ();
-			if (obeyLos && !BlockUtils.isTransparent(this, block)) {
-				// Line of sight is broken, stop without target
-				break;
-			}
+			blockX = block.getX();
+			blockY = block.getY();
+			blockZ = block.getZ();
+
+			// Line of sight is broken, stop without target
+			if (obeyLos && !BlockUtils.isTransparent(this, block)) break;
+
 			// Check for entities near this block in the line of sight
 			for (LivingEntity target : entities) {
+				if (blacklistedEntities.contains(target)) continue;
 				location = target.getLocation();
-				ex = location.getX();
-				ey = location.getY();
-				ez = location.getZ();
+				entityX = location.getX();
+				entityY = location.getY();
+				entityZ = location.getZ();
 
-				if (!(bx - xTolLower <= ex && ex <= bx + xTolUpper)) continue;
-				if (!(bz - zTolLower <= ez && ez <= bz + zTolUpper)) continue;
-				if (!(by - yTolLower <= ey && ey <= by + yTolUpper)) continue;
+				if (!(blockX - xLower <= entityX && entityX <= blockX + xUpper)) continue;
+				if (!(blockY - yLower <= entityY && entityY <= blockY + yUpper)) continue;
+				if (!(blockZ - zLower <= entityZ && entityZ <= blockZ + zUpper)) continue;
 
 				// Check for invalid target
 				if (target instanceof Player && (((Player) target).getGameMode() == GameMode.CREATIVE || ((Player) target).getGameMode() == GameMode.SPECTATOR)) {
+					blacklistedEntities.add(target);
 					continue;
 				}
 
 				// Check for no-magic-zone
 				if (MagicSpells.getNoMagicZoneManager() != null && MagicSpells.getNoMagicZoneManager().willFizzle(target.getLocation(), this)) {
+					blacklistedEntities.add(target);
 					continue;
 				}
 
@@ -1435,35 +1444,49 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 
 					Team playerTeam = null;
-					if (livingEntity instanceof Player) playerTeam = scoreboard.getEntryTeam(livingEntity.getName());
+					if (caster instanceof Player) playerTeam = scoreboard.getEntryTeam(caster.getName());
 					Team targetTeam = scoreboard.getEntryTeam(target.getName());
 
 					if (playerTeam != null && targetTeam != null) {
 						if (playerTeam.equals(targetTeam)) {
-							if (!playerTeam.allowFriendlyFire() && !isBeneficial()) continue;
+							if (!playerTeam.allowFriendlyFire() && !isBeneficial()) {
+								blacklistedEntities.add(target);
+								continue;
+							}
+						} else if (isBeneficial()) {
+							blacklistedEntities.add(target);
+							continue;
 						}
-						else if (isBeneficial()) continue;
 					}
 				}
 
 				// Call event listeners
-				SpellTargetEvent spellTargetEvent = new SpellTargetEvent(this, livingEntity, target, power);
+				SpellTargetEvent spellTargetEvent = new SpellTargetEvent(this, caster, target, power);
 				EventUtil.call(spellTargetEvent);
-				if (spellTargetEvent.isCancelled()) continue;
-				else {
+				if (spellTargetEvent.isCancelled()) {
+					blacklistedEntities.add(target);
+					continue;
+				} else {
 					target = spellTargetEvent.getTarget();
 					power = spellTargetEvent.getPower();
 				}
 
 				// Call damage event
 				if (targetDamageCause != null) {
-					EntityDamageByEntityEvent entityDamageEvent = new MagicSpellsEntityDamageByEntityEvent(livingEntity, target, targetDamageCause, targetDamageAmount, this);
+					EntityDamageByEntityEvent entityDamageEvent = new MagicSpellsEntityDamageByEntityEvent(caster, target, targetDamageCause, targetDamageAmount, this);
 					EventUtil.call(entityDamageEvent);
-					if (entityDamageEvent.isCancelled()) continue;
+					if (entityDamageEvent.isCancelled()) {
+						blacklistedEntities.add(target);
+						continue;
+
+					}
 				}
 
 				// Run checker
-				if (target != null && checker != null && !checker.isValidTarget(target)) continue;
+				if (target != null && checker != null && !checker.isValidTarget(target)) {
+					blacklistedEntities.add(target);
+					continue;
+				}
 
 				return new TargetInfo<>(target, power);
 			}
