@@ -456,12 +456,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected SpellReagents getConfigReagents(String option) {
-		SpellReagents reagents;
 		List<String> costList = config.getStringList("spells." + internalName + '.' + option, null);
 		if (costList == null || costList.isEmpty()) return null;
 
-		reagents = new SpellReagents();
+		SpellReagents reagents = new SpellReagents();
 		String[] data;
+
 		for (String costVal : costList) {
 			try {
 				// Parse cost data
