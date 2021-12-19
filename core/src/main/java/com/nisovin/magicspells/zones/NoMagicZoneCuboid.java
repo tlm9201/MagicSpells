@@ -6,9 +6,11 @@ import org.bukkit.configuration.ConfigurationSection;
 public class NoMagicZoneCuboid extends NoMagicZone {
 	
 	private String worldName;
+
 	private int minX;
 	private int minY;
 	private int minZ;
+
 	private int maxX;
 	private int maxY;
 	private int maxZ;
@@ -19,9 +21,11 @@ public class NoMagicZoneCuboid extends NoMagicZone {
 		
 		String[] p1 = config.getString("point1", "0,0,0").replace(" ", "").split(",");
 		String[] p2 = config.getString("point2", "0,0,0").replace(" ", "").split(",");
+
 		int x1 = Integer.parseInt(p1[0]);
 		int y1 = Integer.parseInt(p1[1]);
 		int z1 = Integer.parseInt(p1[2]);
+
 		int x2 = Integer.parseInt(p2[0]);
 		int y2 = Integer.parseInt(p2[1]);
 		int z2 = Integer.parseInt(p2[2]);

@@ -796,6 +796,15 @@ public class MagicSpells extends JavaPlugin {
 		return classLoaders;
 	}
 
+	// Create class loader with jar files within the directory
+	public ClassLoader createSpellClassLoader(File dataFolder) {
+		final List<File> jarList = new ArrayList<>();
+		for (File file : dataFolder.listFiles()) {
+			if (file.getName().endsWith(".jar")) jarList.add(file);
+		}
+		return createSpellClassLoader(jarList, dataFolder);
+	}
+
 	// Create class loader
 	public ClassLoader createSpellClassLoader(List<File> jarList, File dataFolder) {
 		URL[] urls = new URL[jarList.size() + 1];
@@ -811,15 +820,6 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		return cl;
-	}
-
-	// Create class loader with jar files within the directory
-	public ClassLoader createSpellClassLoader(File dataFolder) {
-		final List<File> jarList = new ArrayList<>();
-		for (File file : dataFolder.listFiles()) {
-			if (file.getName().endsWith(".jar")) jarList.add(file);
-		}
-		return createSpellClassLoader(jarList, dataFolder);
 	}
 
 	private void addPermission(PluginManager pm, String perm, PermissionDefault permDefault) {
@@ -1344,11 +1344,8 @@ public class MagicSpells extends JavaPlugin {
 		for (int i = 0; i < replacements.length; i += 2) {
 			if (replacements[i] == null) continue;
 
-			if (replacements[i + 1] != null) {
-				msg = msg.replace(replacements[i], replacements[i + 1]);
-			} else {
-				msg = msg.replace(replacements[i], "");
-			}
+			if (replacements[i + 1] != null) msg = msg.replace(replacements[i], replacements[i + 1]);
+			else msg = msg.replace(replacements[i], "");
 		}
 		return msg;
 	}
@@ -1405,14 +1402,14 @@ public class MagicSpells extends JavaPlugin {
 		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
 
 		Matcher matcher = chatVarMatchPattern.matcher(string);
-		StringBuffer buf = new StringBuffer();
+		StringBuffer buffer = new StringBuffer();
 
 		while (matcher.find()) {
 			String varName = matcher.group(1), place = matcher.group(2);
 
 			Variable variable = plugin.variableManager.getVariable(varName);
 			if (variable == null) {
-				matcher.appendReplacement(buf, "0");
+				matcher.appendReplacement(buffer, "0");
 				continue;
 			}
 
@@ -1427,10 +1424,10 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(player);
 			}
 
-			matcher.appendReplacement(buf, Matcher.quoteReplacement(value));
+			matcher.appendReplacement(buffer, Matcher.quoteReplacement(value));
 		}
 
-		return matcher.appendTail(buf).toString();
+		return matcher.appendTail(buffer).toString();
 	}
 
 	private static final Pattern chatPlayerVarMatchPattern = Pattern.compile("%playervar:(" + RegexUtil.USERNAME_REGEXP + "):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
@@ -1439,14 +1436,14 @@ public class MagicSpells extends JavaPlugin {
 		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
 
 		Matcher matcher = chatPlayerVarMatchPattern.matcher(string);
-		StringBuffer buf = new StringBuffer();
+		StringBuffer buffer = new StringBuffer();
 
 		while (matcher.find()) {
 			String variableOwnerName = matcher.group(1), varName = matcher.group(2), place = matcher.group(3);
 
 			Variable variable = plugin.variableManager.getVariable(varName);
 			if (variable == null) {
-				matcher.appendReplacement(buf, "0");
+				matcher.appendReplacement(buffer, "0");
 				continue;
 			}
 
@@ -1461,10 +1458,10 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(variableOwnerName);
 			}
 
-			matcher.appendReplacement(buf, Matcher.quoteReplacement(value));
+			matcher.appendReplacement(buffer, Matcher.quoteReplacement(value));
 		}
 
-		return matcher.appendTail(buf).toString();
+		return matcher.appendTail(buffer).toString();
 	}
 
 	private static final Pattern chatTargetedVarMatchPattern = Pattern.compile("%(castervar|targetvar):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
@@ -1472,14 +1469,14 @@ public class MagicSpells extends JavaPlugin {
 		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
 
 		Matcher matcher = chatTargetedVarMatchPattern.matcher(string);
-		StringBuffer buf = new StringBuffer();
+		StringBuffer buffer = new StringBuffer();
 		Player varOwner;
 
 		while (matcher.find()) {
 			String varName = matcher.group(2);
 			Variable variable = plugin.variableManager.getVariable(varName);
 			if (variable == null) {
-				matcher.appendReplacement(buf, "0");
+				matcher.appendReplacement(buffer, "0");
 				continue;
 			}
 
@@ -1497,10 +1494,10 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(varOwner);
 			}
 
-			matcher.appendReplacement(buf, Matcher.quoteReplacement(value));
+			matcher.appendReplacement(buffer, Matcher.quoteReplacement(value));
 		}
 
-		return matcher.appendTail(buf).toString();
+		return matcher.appendTail(buffer).toString();
 	}
 
 	//%arg:(index):defaultValue%
@@ -1509,7 +1506,7 @@ public class MagicSpells extends JavaPlugin {
 		if (string == null || string.isEmpty()) return string;
 
 		Matcher matcher = argumentSubstitutionPattern.matcher(string);
-		StringBuffer buf = new StringBuffer();
+		StringBuffer buffer = new StringBuffer();
 
 		while (matcher.find()) {
 			int argIndex = Integer.parseInt(matcher.group(1)) - 1;
@@ -1517,10 +1514,10 @@ public class MagicSpells extends JavaPlugin {
 			String newValue = matcher.group(2);
 			if (args != null && argIndex >= 0 && argIndex < args.length) newValue = args[argIndex];
 
-			matcher.appendReplacement(buf, Matcher.quoteReplacement(newValue));
+			matcher.appendReplacement(buffer, Matcher.quoteReplacement(newValue));
 		}
 
-		return matcher.appendTail(buf).toString();
+		return matcher.appendTail(buffer).toString();
 	}
 
 	public static String doArgumentAndVariableSubstitution(String string, Player player, String[] args) {
