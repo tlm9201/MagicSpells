@@ -8,6 +8,8 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
+import org.apache.commons.math3.util.FastMath;
+
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
@@ -265,7 +267,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 
 			if (pointBlank && cone > 0) {
 				Vector dir = tracker.getCurrentLocation().toVector().subtract(vLoc);
-				if (Math.abs(dir.angle(facing)) > cone) continue;
+				if (FastMath.abs(dir.angle(facing)) > cone) continue;
 			}
 
 			if (claimProjectiles) tracker.setCaster(livingEntity);

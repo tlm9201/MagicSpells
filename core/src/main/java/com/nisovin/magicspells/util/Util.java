@@ -17,6 +17,9 @@ import java.util.function.Supplier;
 import java.util.function.Predicate;
 import java.util.concurrent.ThreadLocalRandom;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 import org.bukkit.*;
 import org.bukkit.inventory.*;
 import org.bukkit.util.Vector;
@@ -53,6 +56,18 @@ public class Util {
 
 	public static int getRandomInt(int bound) {
 		return random.nextInt(bound);
+	}
+
+	public static double round(double value, int places) {
+		return round(value, places, RoundingMode.HALF_UP);
+	}
+
+	public static double round(double value, int places, RoundingMode roundingMode) {
+		if (places < 0) throw new IllegalArgumentException("places cant be lower than 0");
+
+		BigDecimal bd = BigDecimal.valueOf(value);
+		bd = bd.setScale(places, roundingMode);
+		return bd.doubleValue();
 	}
 
 	public static Material getMaterial(String name) {

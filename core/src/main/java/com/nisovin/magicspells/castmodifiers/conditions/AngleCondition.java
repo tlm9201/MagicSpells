@@ -1,10 +1,10 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import org.apache.commons.math3.util.FastMath;
-
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
+
+import org.apache.commons.math3.util.FastMath;
 
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
@@ -33,25 +33,27 @@ public class AngleCondition extends OperatorCondition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		Location casterLocation = livingEntity.getLocation();
-
-		Vector targetVector = target.getLocation().toVector();
-		Vector casterVector = casterLocation.toVector();
-		Vector facing = casterLocation.getDirection();
-
-		float degrees = targetVector.subtract(casterVector).angle(facing);
-		return checkAngle(degrees);
+		return angle(livingEntity.getLocation(), target.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		Location casterLocation = livingEntity.getLocation();
+		return angle(livingEntity.getLocation(), location);
+	}
 
-		Vector casterVector = casterLocation.toVector();
-		Vector facing = casterLocation.getDirection();
-		Vector targetVector = location.toVector();
+	private boolean angle(Location from, Location to) {
+		Location startLoc = from.clone();
+		Location endLoc = to.clone();
 
-		float degrees = targetVector.subtract(casterVector).angle(facing);
+		startLoc.setY(0);
+		startLoc.setPitch(0);
+
+		endLoc.setY(0);
+		endLoc.setPitch(0);
+
+		Vector direction = endLoc.toVector().subtract(startLoc.toVector()).normalize();
+
+		double degrees = direction.angle(endLoc.getDirection());
 		return checkAngle(degrees);
 	}
 
