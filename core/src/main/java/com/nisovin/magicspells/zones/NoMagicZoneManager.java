@@ -59,7 +59,7 @@ public class NoMagicZoneManager {
 				// Create zone
 				NoMagicZone zone;
 				try {
-					zone = clazz.newInstance();
+					zone = clazz.getDeclaredConstructor().newInstance();
 				} catch (Exception e) {
 					MagicSpells.error("Failed to create no-magic zone '" + node + '\'');
 					e.printStackTrace();
