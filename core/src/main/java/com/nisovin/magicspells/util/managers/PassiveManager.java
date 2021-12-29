@@ -70,6 +70,7 @@ public class PassiveManager {
 			eventPriorities.put("_" + priority.name().toLowerCase() + "priority", priority);
 		}
 
+		addListener("anvil", AnvilListener.class);
 		addListener("blockbreak", BlockBreakListener.class);
 		addListener("blockplace", BlockPlaceListener.class);
 		addListener("buff", BuffListener.class);
@@ -78,13 +79,14 @@ public class PassiveManager {
 		addListener("dropitem", DropItemListener.class);
 		addListener("enterbed", EnterBedListener.class);
 		addListener("dismount", DismountListener.class);
-		addListener("mount", MountListener.class);
+		addListener("enchant", EnchantListener.class);
 		addListener("equip", EquipListener.class);
 		addListener("fataldamage", FatalDamageListener.class);
 		addListener("fish", FishListener.class);
 		addListener("foodlevelchange", FoodLevelChangeListener.class);
 		addListener("gamemodechange", GameModeChangeListener.class);
 		addListener("givedamage", GiveDamageListener.class);
+		addListener("grindstone", GrindstoneListener.class);
 		addListener("hitarrow", HitArrowListener.class);
 		addListener("hotbardeselect", HotbarDeselectListener.class);
 		addListener("hotbarselect", HotbarSelectListener.class);
@@ -102,6 +104,7 @@ public class PassiveManager {
 		addListener("magicspellsloaded", MagicSpellsLoadedListener.class);
 		addListener("manachange", ManaChangeListener.class);
 		addListener("missarrow", MissArrowListener.class);
+		addListener("mount", MountListener.class);
 		addListener("offhandswap", OffhandSwapListener.class);
 		addListener("pickupitem", PickupItemListener.class);
 		addListener("playeranimate", PlayerAnimationListener.class);
@@ -119,6 +122,7 @@ public class PassiveManager {
 		addListener("sheepshear", SheepShearListener.class);
 		addListener("shoot", ShootListener.class);
 		addListener("signbook", SignBookListener.class);
+		addListener("smith", SmithListener.class);
 		addListener("spellcasted", SpellCastedListener.class);
 		addListener("spellcast", SpellCastListener.class);
 		addListener("spellselect", SpellSelectListener.class);
