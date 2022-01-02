@@ -111,6 +111,7 @@ public class PassiveManager {
 		addListener("playermove", PlayerMoveListener.class);
 		addListener("playermovetoblock", PlayerMoveToBlockListener.class);
 		addListener("potioneffect", PotionEffectListener.class);
+		addListener("prepareenchant", PrepareEnchantListener.class);
 		addListener("quit", QuitListener.class);
 		addListener("regainhealth", RegainHealthListener.class);
 		addListener("resourcepack", ResourcePackListener.class);

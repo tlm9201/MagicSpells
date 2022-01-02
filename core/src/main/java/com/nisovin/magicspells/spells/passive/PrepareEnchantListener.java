@@ -6,7 +6,6 @@ import java.util.HashSet;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 
@@ -16,7 +15,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-public class EnchantListener extends PassiveListener {
+public class PrepareEnchantListener extends PassiveListener {
 
 	private Set<MagicItemData> items;
 
@@ -42,7 +41,7 @@ public class EnchantListener extends PassiveListener {
 
 	@OverridePriority
 	@EventHandler
-	public void onEnchant(EnchantItemEvent event) {
+	public void onEnchant(PrepareItemEnchantEvent event) {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity caster = event.getEnchanter();
