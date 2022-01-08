@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 public class VolatileCodeDisabled implements VolatileCodeHandle {
 
 	public VolatileCodeDisabled() {
+
 	}
 
 	@Override
