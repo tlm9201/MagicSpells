@@ -21,7 +21,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 /*
 	NOTE: ProtocolLib and GlowAPI are required for this spell class.
-	GlowAPI: https://github.com/metalshark/GlowAPI/
+	GlowAPI: https://github.com/InventivetalentDev/GlowAPI
 */
 public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 

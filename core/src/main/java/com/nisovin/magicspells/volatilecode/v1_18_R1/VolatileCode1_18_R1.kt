@@ -13,8 +13,8 @@ import org.bukkit.craftbukkit.v1_18_R1.CraftServer
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack
 
 import net.minecraft.world.phys.Vec3
-import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.EntityType
+import net.minecraft.network.protocol.game.*
 import net.minecraft.network.chat.TextComponent
 import net.minecraft.world.entity.item.PrimedTnt
 import net.minecraft.world.item.alchemy.PotionUtils
@@ -130,4 +130,3 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
     }
 
 }
-
