@@ -14,8 +14,6 @@ import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
-import io.papermc.lib.PaperLib;
-
 public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
 	private double maxRange;
@@ -89,7 +87,8 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 				sendMessage(strRecallFailed, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
-			PaperLib.teleportAsync(caster, markLocation);
+
+			caster.teleportAsync(markLocation);
 
 			playSpellEffects(EffectPosition.CASTER, from);
 			playSpellEffects(EffectPosition.TARGET, markLocation);
@@ -101,7 +100,8 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		Location mark = getRecallLocation(caster);
 		if (mark == null) return false;
-		PaperLib.teleportAsync(target, mark);
+
+		target.teleportAsync(mark);
 		return true;
 	}
 

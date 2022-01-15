@@ -21,22 +21,23 @@ dependencies {
 
     shadow(group: "org.apache.commons", name: "commons-math3", version: "3.6.1")
     shadow(group: "com.github.elBukkit", name: "EffectLib", version: "master-SNAPSHOT")
-    shadow(group: "com.github.PaperMC", name: "PaperLib", version: "master-SNAPSHOT")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.0-SNAPSHOT")
-    shadow(group: "net.kyori", name: "adventure-text-minimessage", version: "4.2.0-SNAPSHOT")
+    shadow(group: "net.kyori", name: "adventure-text-minimessage", version: "4.10.0-SNAPSHOT")
     shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.6.10")
 
-    //implementation ("com.github.Updated-NoCheatPlus.NoCheatPlus:ncpbuildbase:master-SNAPSHOT")
-
-    implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.7.0")
     implementation(group: "io.papermc.paper", name: "paper-api", version: "1.18.1-R0.1-SNAPSHOT")
-    implementation(group: "com.github.libraryaddict", name: "LibsDisguises", version: "v10.0.25")
-    implementation(group: "com.github.MilkBowl", name: "VaultAPI", version: "master-SNAPSHOT")
-    implementation(group: "com.github.PlaceholderAPI", name: "PlaceholderAPI", version: "master-SNAPSHOT")
-    implementation(group: "com.github.TechFortress", name: "GriefPrevention", version: "master-SNAPSHOT")
-    implementation(group: "com.github.InventivetalentDev", name: "GlowAPI", version: "1.5.1-SNAPSHOT")
-    implementation(group: "com.github.EngineHub", name: "WorldGuard", version: "master")
+    implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.7.0") { transitive = false }
+    implementation(group: "com.github.libraryaddict", name: "LibsDisguises", version: "v10.0.25") { transitive = false }
+    implementation(group: "com.github.MilkBowl", name: "VaultAPI", version: "master-SNAPSHOT") { transitive = false }
+    implementation(group: "com.github.PlaceholderAPI", name: "PlaceholderAPI", version: "master-SNAPSHOT") { transitive = false }
+    implementation(group: "com.github.TechFortress", name: "GriefPrevention", version: "master-SNAPSHOT") { transitive = false }
+    implementation(group: "com.github.InventivetalentDev", name: "GlowAPI", version: "1.5.1-SNAPSHOT") { transitive = false }
+
+    implementation(group: "com.github.EngineHub", name: "WorldGuard", version: "master") {
+        exclude(module: "worldguard-libs")
+    }
     implementation(group: "com.github.EngineHub", name: "WorldEdit", version: "master") {
+        transitive = false
         exclude(module: "ap")
         exclude(module: "cli")
         exclude(module: "fabric")
@@ -47,6 +48,8 @@ dependencies {
         exclude(module: "worldedit-forge-mc1.16.1")
         exclude(module: "worldedit-fabric-mc1.16.1")
     }
+
+    //implementation("com.github.Updated-NoCheatPlus.NoCheatPlus:ncpbuildbase:master-SNAPSHOT")
 }
 
 shadowJar {

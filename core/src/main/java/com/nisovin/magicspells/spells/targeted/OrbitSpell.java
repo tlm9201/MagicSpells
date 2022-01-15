@@ -23,8 +23,6 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 
-import io.papermc.lib.PaperLib;
-
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
 
@@ -318,13 +316,13 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
-					PaperLib.teleportAsync(armorStand, loc);
+					armorStand.teleportAsync(loc);
 				}
 			}
 
 			if (entitySet != null) {
 				for (Entity entity : entitySet) {
-					PaperLib.teleportAsync(entity, loc);
+					entity.teleportAsync(loc);
 				}
 			}
 

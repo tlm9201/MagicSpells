@@ -1,7 +1,7 @@
 dependencies {
     implementation project(":core")
-    implementation "com.github.TownyAdvanced:Towny:0.97.1.0"
-    implementation "io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT"
+    implementation(group: "com.github.TownyAdvanced", name: "Towny", version: "0.97.1.0") { transitive = false }
+    implementation(group: "io.papermc.paper", name: "paper-api", version: "1.18.1-R0.1-SNAPSHOT")
 }
 
 jar {
