@@ -1,6 +1,8 @@
 dependencies {
     implementation project(":core")
-    implementation "com.github.MilkBowl:VaultAPI:master-SNAPSHOT"
+    implementation(group: "com.github.MilkBowl", name: "VaultAPI", version: "master-SNAPSHOT") { transitive = false }
+
+    implementation(group: "io.papermc.paper", name: "paper-api", version: "1.18.1-R0.1-SNAPSHOT")
 }
 
 jar {

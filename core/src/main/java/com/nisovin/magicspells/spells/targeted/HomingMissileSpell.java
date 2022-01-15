@@ -27,8 +27,6 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
-import io.papermc.lib.PaperLib;
-
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
 
@@ -334,13 +332,13 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 				if (armorStandSet != null) {
 					for (ArmorStand armorStand : armorStandSet) {
-						PaperLib.teleportAsync(armorStand, effectLoc);
+						armorStand.teleportAsync(effectLoc);
 					}
 				}
 
 				if (entitySet != null) {
 					for (Entity entity : entitySet) {
-						PaperLib.teleportAsync(entity, effectLoc);
+						entity.teleportAsync(effectLoc);
 					}
 				}
 			}

@@ -16,8 +16,6 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
-import io.papermc.lib.PaperLib;
-
 public class GateSpell extends InstantSpell {
 
 	private static final Pattern COORDINATE_PATTERN = Pattern.compile("^-?[0-9]+,[0-9]+,-?[0-9]+(,-?[0-9.]+,-?[0-9.]+)?$");
@@ -104,7 +102,7 @@ public class GateSpell extends InstantSpell {
 				sendMessage(strGateFailed, caster, args);
 				return PostCastAction.ALREADY_HANDLED;
 			}
-			PaperLib.teleportAsync(caster, location);
+			caster.teleportAsync(location);
 
 			playSpellEffects(EffectPosition.CASTER, from);
 			playSpellEffects(EffectPosition.TARGET, to);

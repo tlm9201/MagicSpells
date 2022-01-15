@@ -30,8 +30,6 @@ import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spells.instant.ParticleProjectileSpell;
 
-import io.papermc.lib.PaperLib;
-
 import org.apache.commons.math3.util.FastMath;
 
 import de.slikey.effectlib.Effect;
@@ -376,13 +374,13 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
-					PaperLib.teleportAsync(armorStand, effectLoc);
+					armorStand.teleportAsync(effectLoc);
 				}
 			}
 
 			if (entitySet != null) {
 				for (Entity entity : entitySet) {
-					PaperLib.teleportAsync(entity, effectLoc);
+					entity.teleportAsync(effectLoc);
 				}
 			}
 		}
