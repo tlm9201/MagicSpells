@@ -1,7 +1,6 @@
 dependencies {
     implementation project(":core")
     implementation "com.github.TownyAdvanced:Towny:0.97.1.0"
-    implementation "io.papermc.paper:paper-api:1.18.1-R0.1-SNAPSHOT"
 }
 
 jar {
