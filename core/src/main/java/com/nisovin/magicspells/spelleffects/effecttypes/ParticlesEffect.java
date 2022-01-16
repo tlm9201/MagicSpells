@@ -44,6 +44,7 @@ public class ParticlesEffect extends SpellEffect {
 	private float xSpread;
 	private float ySpread;
 	private float zSpread;
+	private boolean force;
 
 	private boolean none = true;
 	private boolean item = false;
@@ -69,6 +70,7 @@ public class ParticlesEffect extends SpellEffect {
 		xSpread = (float) config.getDouble("x-spread", xSpread);
 		ySpread = (float) config.getDouble("y-spread", ySpread);
 		zSpread = (float) config.getDouble("z-spread", zSpread);
+		force = config.getBoolean("force", false);
 
 		dustSize = (float) config.getDouble("size", 1);
 		colorHex = config.getString("color", "FF0000");
@@ -129,15 +131,15 @@ public class ParticlesEffect extends SpellEffect {
 	public Runnable playEffectLocation(Location location) {
 		if (particle == null) return null;
 
-		if (block) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, blockData);
-		else if (item) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, itemStack);
-		else if (dust) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, dustOptions);
-		else if (transitionDust) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, dustTransitionOptions);
-		else if (none) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed);
+		if (block) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, blockData, force);
+		else if (item) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, itemStack, force);
+		else if (dust) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, dustOptions, force);
+		else if (transitionDust) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, dustTransitionOptions, force);
+		else if (none) location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, null, force);
 		else if (vibration) {
 			vibrationDestination = new Destination.BlockDestination(applyOffsets(location.clone(), vibrationOffset, vibrationRelativeOffset, 0D, 0D, 0D));
 			vibrationOptions = new Vibration(location, vibrationDestination, arrivalTime);
-			location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, vibrationOptions);
+			location.getWorld().spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, vibrationOptions, force);
 		}
 
 		return null;
