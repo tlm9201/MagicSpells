@@ -223,7 +223,7 @@ public class MagicItemData {
 
             output
                 .append("\"name\":\"")
-                .append(TxtUtil.escapeJSON(Util.getStringFromComponent((Component) getAttribute(MagicItemAttribute.NAME))))
+                .append(TxtUtil.escapeJSON(Util.getLegacyFromComponent((Component) getAttribute(MagicItemAttribute.NAME))))
                 .append('"');
 
             previous = true;
@@ -535,7 +535,7 @@ public class MagicItemData {
 
                 output
                     .append('"')
-                    .append(TxtUtil.escapeJSON(Util.getStringFromComponent(line)))
+                    .append(TxtUtil.escapeJSON(Util.getLegacyFromComponent(line)))
                     .append('"');
 
                 previousLore = true;

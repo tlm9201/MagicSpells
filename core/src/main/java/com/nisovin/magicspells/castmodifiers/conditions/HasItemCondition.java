@@ -78,7 +78,7 @@ public class HasItemCondition extends Condition {
 				if (item == null) continue;
 				String thisname = null;
 				try {
-					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = Util.getStringFromComponent(item.getItemMeta().displayName());
+					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = Util.getLegacyFromComponent(item.getItemMeta().displayName());
 				} catch (Exception e) {
 					DebugHandler.debugGeneral(e);
 				}
@@ -100,7 +100,7 @@ public class HasItemCondition extends Condition {
 				if (item == null) continue;
 				String thisname = null;
 				try {
-					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = Util.getStringFromComponent(item.getItemMeta().displayName());
+					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = Util.getLegacyFromComponent(item.getItemMeta().displayName());
 				} catch (Exception e) {
 					DebugHandler.debugGeneral(e);
 				}
