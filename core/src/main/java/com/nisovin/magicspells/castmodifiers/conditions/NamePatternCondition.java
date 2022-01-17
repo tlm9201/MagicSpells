@@ -33,7 +33,7 @@ public class NamePatternCondition extends Condition {
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		if (!(target instanceof Player player)) return false;
-		return RegexUtil.matches(compiledPattern, target.getName()) || RegexUtil.matches(compiledPattern, Util.getStringFromComponent(player.displayName()));
+		return RegexUtil.matches(compiledPattern, target.getName()) || RegexUtil.matches(compiledPattern, Util.getLegacyFromComponent(player.displayName()));
 	}
 
 	@Override

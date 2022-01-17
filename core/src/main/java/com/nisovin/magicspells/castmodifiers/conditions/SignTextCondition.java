@@ -30,7 +30,7 @@ public class SignTextCondition extends Condition {
 
 			text = new ArrayList<>();
 			for (String line : vars[4].split("\\\\n")) {
-				text.add(Util.getMiniMessage(line.replaceAll("__", " ")));
+				text.add(Util.getLegacyFromString(line.replaceAll("__", " ")));
 			}
 			return true;
 		} catch (Exception e) {

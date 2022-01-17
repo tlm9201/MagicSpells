@@ -85,7 +85,7 @@ public class OffhandCondition extends Condition {
 		int durability = meta instanceof Damageable ? ((Damageable) meta).getDamage() : 0;
 		String name = null;
 		try {
-			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) name = Util.getStringFromComponent(item.getItemMeta().displayName());
+			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) name = Util.getLegacyFromComponent(item.getItemMeta().displayName());
 		} catch (Exception e) {
 			// no op
 		}

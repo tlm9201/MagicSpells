@@ -52,7 +52,7 @@ public class CastItem {
 		type = item.getType();
 		if (isTypeValid()) {
 			if (!MagicSpells.ignoreCastItemNames()) {
-				String nameLocal = Util.getStringFromComponent(meta.displayName());
+				String nameLocal = Util.getLegacyFromComponent(meta.displayName());
 				if (!meta.hasDisplayName()) name = null;
 				else if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize(nameLocal);
 				else name = nameLocal;
@@ -69,7 +69,7 @@ public class CastItem {
 			if (!MagicSpells.ignoreCastItemLore() && meta.hasLore()) {
 				List<String> loreLocal = new ArrayList<>();
 				for (Component component : meta.lore()) {
-					loreLocal.add(Util.getStringFromComponent(component));
+					loreLocal.add(Util.getLegacyFromComponent(component));
 				}
 				lore = loreLocal;
 			}
@@ -82,7 +82,7 @@ public class CastItem {
 			type = (Material) data.getAttribute(TYPE);
 			if (isTypeValid()) {
 				if (!MagicSpells.ignoreCastItemNames() && data.hasAttribute(NAME)) {
-					String localName = Util.getStringFromComponent((Component) data.getAttribute(NAME));
+					String localName = Util.getLegacyFromComponent((Component) data.getAttribute(NAME));
 					if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize(localName);
 					else name = localName;
 				}
@@ -117,7 +117,7 @@ public class CastItem {
 				if (!MagicSpells.ignoreCastItemLore() && data.hasAttribute(LORE)) {
 					List<String> loreLocal = new ArrayList<>();
 					for (Component component : (List<Component>) data.getAttribute(LORE)) {
-						loreLocal.add(Util.getStringFromComponent(component));
+						loreLocal.add(Util.getLegacyFromComponent(component));
 					}
 					lore = loreLocal;
 				}

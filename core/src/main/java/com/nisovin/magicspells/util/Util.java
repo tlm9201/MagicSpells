@@ -604,6 +604,17 @@ public class Util {
 		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
 	}
 
+	public static Component getLegacyFromString(String input) {
+		if (input.isEmpty()) return Component.text("");
+		Component component = LegacyComponentSerializer.builder()
+				.hexColors()
+				.useUnusualXRepeatedCharacterHexFormat()
+				.character(ChatColor.COLOR_CHAR)
+				.build()
+				.deserialize(colorize(input));
+		return component.decoration(TextDecoration.ITALIC, component.hasDecoration(TextDecoration.ITALIC));
+	}
+
 	public static String getLegacyFromComponent(Component component) {
 		if (component == null) return "";
 		return LegacyComponentSerializer.legacySection().serialize(component);
