@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.HashSet;
 
+import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -11,9 +12,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
-public class VelocitySpell extends InstantSpell {
+public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
 	private final Set<UUID> jumping;
 
@@ -33,16 +36,48 @@ public class VelocitySpell extends InstantSpell {
 		addVelocityInstead = getConfigBoolean("add-velocity-instead", false);
 	}
 
+	private boolean launch(LivingEntity caster, LivingEntity target, Vector velocity) {
+		if (target == null) return false;
+
+		if (addVelocityInstead) target.setVelocity(target.getVelocity().add(velocity));
+		else target.setVelocity(velocity);
+
+		jumping.add(target.getUniqueId());
+		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
+
+		return true;
+	}
+
+	private Vector getVelocity(Location location, float power) {
+		return location.getDirection().normalize().multiply(speed * power);
+	}
+
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Vector v = caster.getEyeLocation().getDirection().normalize().multiply(speed * power);
-			if (addVelocityInstead) caster.setVelocity(caster.getVelocity().add(v));
-			else caster.setVelocity(v);
-			jumping.add(caster.getUniqueId());
-			playSpellEffects(EffectPosition.CASTER, caster);
+			launch(caster, caster, getVelocity(caster.getEyeLocation(), power));
 		}
 		return PostCastAction.HANDLE_NORMALLY;
+	}
+
+	@Override
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+		return launch(caster, target, getVelocity(from, power));
+	}
+
+	@Override
+	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
+		return launch(null, target, getVelocity(from, power));
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return launch(caster, target, getVelocity(target.getEyeLocation(), power));
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power) {
+		return launch(null, target, getVelocity(target.getEyeLocation(), power));
 	}
 
 	@EventHandler
