@@ -10,7 +10,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -20,7 +20,7 @@ public class SeeHealthSpell extends BuffSpell {
 
 	private final static String COLORS = "01234567890abcdef";
 
-	private final Map<UUID, SpellData> players;
+	private final Map<UUID, CastData> players;
 
 	private final Random random = ThreadLocalRandom.current();
 
@@ -44,7 +44,7 @@ public class SeeHealthSpell extends BuffSpell {
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		if (!(entity instanceof Player)) return false;
-		players.put(entity.getUniqueId(), new SpellData(power, args));
+		players.put(entity.getUniqueId(), new CastData(power, args));
 
 		if (updater == null) updater = new Updater();
 		return true;
@@ -85,7 +85,7 @@ public class SeeHealthSpell extends BuffSpell {
 		return ChatColor.getByChar(COLORS.charAt(random.nextInt(COLORS.length())));
 	}
 
-	private void showHealthBar(Player player, LivingEntity entity, SpellData data) {
+	private void showHealthBar(Player player, LivingEntity entity, CastData data) {
 		double pct = entity.getHealth() / Util.getMaxHealth(entity);
 
 		ChatColor color = ChatColor.GREEN;
@@ -114,7 +114,7 @@ public class SeeHealthSpell extends BuffSpell {
 		return COLORS;
 	}
 
-	public Map<UUID, SpellData> getPlayers() {
+	public Map<UUID, CastData> getPlayers() {
 		return players;
 	}
 
@@ -144,12 +144,12 @@ public class SeeHealthSpell extends BuffSpell {
 
 		@Override
 		public void run() {
-			for (Map.Entry<UUID, SpellData> entry : players.entrySet()) {
+			for (Map.Entry<UUID, CastData> entry : players.entrySet()) {
 				UUID id = entry.getKey();
 				Player player = Bukkit.getPlayer(id);
 				if (player == null || !player.isValid()) continue;
 
-				SpellData data = entry.getValue();
+				CastData data = entry.getValue();
 				TargetInfo<LivingEntity> target = getTargetedEntity(player, data.power(), data.args());
 				if (target != null) showHealthBar(player, target.getTarget(), data);
 			}
