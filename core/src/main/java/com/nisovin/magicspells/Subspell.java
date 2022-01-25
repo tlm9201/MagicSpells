@@ -26,7 +26,7 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 public class Subspell {
 
 	private static final Random random = ThreadLocalRandom.current();
-	
+
 	private Spell spell;
 	private String spellName;
 	private CastMode mode = CastMode.PARTIAL;
@@ -34,7 +34,7 @@ public class Subspell {
 	private int delay = -1;
 	private float subPower = 1F;
 	private double chance = -1D;
-	
+
 	private boolean isTargetedEntity = false;
 	private boolean isTargetedLocation = false;
 	private boolean isTargetedEntityFromLocation = false;
@@ -42,9 +42,9 @@ public class Subspell {
 	// spellName(mode=hard|h|full|f|partial|p|direct|d;power=[subpower];delay=[delay];chance=[chance])
 	public Subspell(String data) {
 		String[] split = data.split("\\(", 2);
-		
+
 		spellName = split[0].trim();
-		
+
 		if (split.length > 1) {
 			split[1] = split[1].trim();
 			if (split[1].endsWith(")")) split[1] = split[1].substring(0, split[1].length() - 1);
@@ -85,7 +85,7 @@ public class Subspell {
 		}
 
 	}
-	
+
 	public boolean process() {
 		spell = MagicSpells.getSpellByInternalName(spellName);
 		if (spell != null) {
@@ -95,35 +95,35 @@ public class Subspell {
 		}
 		return spell != null;
 	}
-	
+
 	public Spell getSpell() {
 		return spell;
 	}
-	
+
 	public boolean isTargetedEntitySpell() {
 		return isTargetedEntity;
 	}
-	
+
 	public boolean isTargetedLocationSpell() {
 		return isTargetedLocation;
 	}
-	
+
 	public boolean isTargetedEntityFromLocationSpell() {
 		return isTargetedEntityFromLocation;
 	}
-	
+
 	public PostCastAction cast(final LivingEntity caster, final float power) {
 		if ((chance > 0 && chance < 1) && random.nextDouble() > chance) return PostCastAction.ALREADY_HANDLED;
 		if (delay < 0) return castReal(caster, power);
 		MagicSpells.scheduleDelayedTask(() -> castReal(caster, power), delay);
 		return PostCastAction.HANDLE_NORMALLY;
 	}
-	
+
 	private PostCastAction castReal(LivingEntity caster, float power) {
 		if ((mode == CastMode.HARD || mode == CastMode.FULL) && caster != null) {
 			return spell.cast(caster, power * subPower, null).action;
 		}
-		
+
 		if (mode == CastMode.PARTIAL) {
 			SpellCastEvent event = new SpellCastEvent(spell, caster, SpellCastState.NORMAL, power * subPower, null, 0, null, 0);
 			EventUtil.call(event);
@@ -134,7 +134,7 @@ public class Subspell {
 			}
 			return PostCastAction.ALREADY_HANDLED;
 		}
-		
+
 		return spell.castSpell(caster, SpellCastState.NORMAL, power * subPower, null);
 	}
 
@@ -147,7 +147,7 @@ public class Subspell {
 		MagicSpells.scheduleDelayedTask(() -> castAtEntityReal(caster, target, power, passTargeting), delay);
 		return true;
 	}
-	
+
 	private boolean castAtEntityReal(LivingEntity caster, LivingEntity target, float power, boolean passTargeting) {
 		if (!isTargetedEntity) {
 			if (isTargetedLocation) castAtLocationReal(caster, target.getLocation(), power);
@@ -226,13 +226,13 @@ public class Subspell {
 		spell.setValidTargetList(originalList);
 		return success;
 	}
-	
+
 	public boolean castAtLocation(final LivingEntity caster, final Location target, final float power) {
 		if (delay < 0) return castAtLocationReal(caster, target, power);
 		MagicSpells.scheduleDelayedTask(() -> castAtLocationReal(caster, target, power), delay);
 		return true;
 	}
-	
+
 	private boolean castAtLocationReal(LivingEntity caster, Location target, float power) {
 		if (!isTargetedLocation) return false;
 
@@ -291,7 +291,7 @@ public class Subspell {
 		MagicSpells.scheduleDelayedTask(() -> castAtEntityFromLocationReal(caster, from, target, power, passTargeting), delay);
 		return true;
 	}
-	
+
 	private boolean castAtEntityFromLocationReal(LivingEntity caster, Location from, LivingEntity target, float power, boolean passTargeting) {
 		if (!isTargetedEntityFromLocation) return false;
 
