@@ -166,12 +166,15 @@ public class Subspell {
 			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
 			boolean success = false;
 			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
-				SpellTargetEvent spellTarget = new SpellTargetEvent(spell, caster, target, power);
+				SpellTargetEvent spellTarget = new SpellTargetEvent(spell, caster, target, spellCast.getPower());
 				EventUtil.call(spellTarget);
 
+				target = spellTarget.getTarget();
+				power = spellTarget.getPower();
+
 				if (!spellTarget.isCancelled()) {
-					if (passTargeting) success = passTargetingEntity(caster, target, spellCast.getPower());
-					else success = ((TargetedEntitySpell) spell).castAtEntity(caster, target, spellCast.getPower());
+					if (passTargeting) success = passTargetingEntity(caster, target, power);
+					else success = ((TargetedEntitySpell) spell).castAtEntity(caster, target, power);
 				}
 
 				if (success) {
@@ -191,16 +194,21 @@ public class Subspell {
 
 		if (mode == CastMode.PARTIAL) {
 			SpellCastEvent event = new SpellCastEvent(spell, caster, SpellCastState.NORMAL, power * subPower, null, 0, null, 0);
-			SpellTargetEvent spellTarget = new SpellTargetEvent(spell, caster, target, power);
-			EventUtil.call(spellTarget);
 			EventUtil.call(event);
+
+			SpellTargetEvent spellTarget = new SpellTargetEvent(spell, caster, target, event.getPower());
+			EventUtil.call(spellTarget);
+
+			target = spellTarget.getTarget();
+			power = spellTarget.getPower();
+
 			if (!spellTarget.isCancelled() && !event.isCancelled() && event.getSpellCastState() == SpellCastState.NORMAL) {
-				if (passTargeting) success = passTargetingEntity(caster, target, event.getPower());
+				if (passTargeting) success = passTargetingEntity(caster, target, power);
 				else {
-					if (caster != null) success = ((TargetedEntitySpell) spell).castAtEntity(caster, target, event.getPower());
-					else success = ((TargetedEntitySpell) spell).castAtEntity(target, event.getPower());
+					if (caster != null) success = ((TargetedEntitySpell) spell).castAtEntity(caster, target, power);
+					else success = ((TargetedEntitySpell) spell).castAtEntity(target, power);
 				}
-				if (success) EventUtil.call(new SpellCastedEvent(spell, caster, SpellCastState.NORMAL, event.getPower(), null, 0, null, PostCastAction.HANDLE_NORMALLY));
+				if (success) EventUtil.call(new SpellCastedEvent(spell, caster, SpellCastState.NORMAL, power, null, 0, null, PostCastAction.HANDLE_NORMALLY));
 			}
 		} else {
 			if (passTargeting) success = passTargetingEntity(caster, target, power * subPower);
@@ -248,11 +256,11 @@ public class Subspell {
 			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
 			boolean success = false;
 			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
-				SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, caster, target, power);
+				SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, caster, target, spellCast.getPower());
 				EventUtil.call(spellLocation);
 
 				if (!spellLocation.isCancelled())
-					success = ((TargetedLocationSpell) spell).castAtLocation(caster, target, spellCast.getPower());
+					success = ((TargetedLocationSpell) spell).castAtLocation(caster, spellLocation.getTargetLocation(), spellLocation.getPower());
 
 				if (!success) action = PostCastAction.ALREADY_HANDLED;
 			}
@@ -266,13 +274,18 @@ public class Subspell {
 
 		if (mode == CastMode.PARTIAL) {
 			SpellCastEvent event = new SpellCastEvent(spell, caster, SpellCastState.NORMAL, power * subPower, null, 0, null, 0);
-			SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, caster, target, power);
-			EventUtil.call(spellLocation);
 			EventUtil.call(event);
+
+			SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, caster, target, event.getPower());
+			EventUtil.call(spellLocation);
+
+			target = spellLocation.getTargetLocation();
+			power = spellLocation.getPower();
+
 			if (!spellLocation.isCancelled() && !event.isCancelled() && event.getSpellCastState() == SpellCastState.NORMAL) {
-				if (caster != null) success = ((TargetedLocationSpell) spell).castAtLocation(caster, target, event.getPower());
-				else success = ((TargetedLocationSpell) spell).castAtLocation(target, event.getPower());
-				if (success) EventUtil.call(new SpellCastedEvent(spell, caster, SpellCastState.NORMAL, event.getPower(), null, 0, null, PostCastAction.HANDLE_NORMALLY));
+				if (caster != null) success = ((TargetedLocationSpell) spell).castAtLocation(caster, target, power);
+				else success = ((TargetedLocationSpell) spell).castAtLocation(target, power);
+				if (success) EventUtil.call(new SpellCastedEvent(spell, caster, SpellCastState.NORMAL, power, null, 0, null, PostCastAction.HANDLE_NORMALLY));
 			}
 		} else {
 			if (caster != null) success = ((TargetedLocationSpell) spell).castAtLocation(caster, target, power * subPower);
@@ -307,14 +320,19 @@ public class Subspell {
 			PostCastAction action = PostCastAction.HANDLE_NORMALLY;
 			boolean success = false;
 			if (spellCast.getSpellCastState() == SpellCastState.NORMAL) {
-				SpellTargetEvent spellTarget = new SpellTargetEvent(spell, caster, target, power);
-				SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, caster, from, power);
-				EventUtil.call(spellLocation);
+				SpellTargetEvent spellTarget = new SpellTargetEvent(spell, caster, target, spellCast.getPower());
 				EventUtil.call(spellTarget);
 
+				SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, caster, from, spellTarget.getPower());
+				EventUtil.call(spellLocation);
+
+				target = spellTarget.getTarget();
+				power = spellLocation.getPower();
+				from = spellLocation.getTargetLocation();
+
 				if (!spellLocation.isCancelled() && !spellTarget.isCancelled()) {
-					if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, spellCast.getPower());
-					else success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, spellCast.getPower());
+					if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, power);
+					else success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power);
 				}
 				if (success) {
 					if (spell instanceof TargetedSpell targetedSpell) {
@@ -333,18 +351,25 @@ public class Subspell {
 
 		if (mode == CastMode.PARTIAL) {
 			SpellCastEvent event = new SpellCastEvent(spell, caster, SpellCastState.NORMAL, power * subPower, null, 0, null, 0);
-			SpellTargetEvent spellTarget = new SpellTargetEvent(spell, caster, target, power);
-			SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, caster, from, power);
-			EventUtil.call(spellLocation);
-			EventUtil.call(spellTarget);
 			EventUtil.call(event);
+
+			SpellTargetEvent spellTarget = new SpellTargetEvent(spell, caster, target, event.getPower());
+			EventUtil.call(spellTarget);
+
+			SpellTargetLocationEvent spellLocation = new SpellTargetLocationEvent(spell, caster, from, spellTarget.getPower());
+			EventUtil.call(spellLocation);
+
+			target = spellTarget.getTarget();
+			power = spellLocation.getPower();
+			from = spellLocation.getTargetLocation();
+
 			if (!spellLocation.isCancelled() && !spellTarget.isCancelled() && !event.isCancelled() && event.getSpellCastState() == SpellCastState.NORMAL) {
-				if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, event.getPower());
+				if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, power);
 				else {
-					if (caster != null) success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, event.getPower());
-					else success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(from, target, event.getPower());
+					if (caster != null) success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power);
+					else success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(from, target, power);
 				}
-				if (success) EventUtil.call(new SpellCastedEvent(spell, caster, SpellCastState.NORMAL, event.getPower(), null, 0, null, PostCastAction.HANDLE_NORMALLY));
+				if (success) EventUtil.call(new SpellCastedEvent(spell, caster, SpellCastState.NORMAL, power, null, 0, null, PostCastAction.HANDLE_NORMALLY));
 			}
 		} else {
 			if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, power * subPower);
