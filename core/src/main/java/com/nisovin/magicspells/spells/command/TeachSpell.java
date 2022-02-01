@@ -85,10 +85,13 @@ public class TeachSpell extends CommandSpell {
 			}
 			targetSpellbook.addSpell(spell);
 			targetSpellbook.save();
+
 			String playerDisplayName = Util.getStringFromComponent(player.displayName());
 			String targetDisplayName = Util.getStringFromComponent(target.displayName());
-			sendMessage(strCastTarget, target, args, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
+
+			sendMessage(spell.getStrOnTeach() == null ? strCastTarget : spell.getStrOnTeach(), target, args, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
 			sendMessage(strCastSelf, player, args, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
+
 			playSpellEffects(player, target);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -125,10 +128,13 @@ public class TeachSpell extends CommandSpell {
 			sender.sendMessage(strCantLearn);
 			return true;
 		}
+
 		targetSpellbook.addSpell(spell);
 		targetSpellbook.save();
+
 		String displayName = Util.getStringFromComponent(players.get(0).displayName());
-		sendMessage(strCastTarget, players.get(0), args, "%a", getConsoleName(), "%s", spell.getName(), "%t", displayName);
+
+		sendMessage(spell.getStrOnTeach() == null ? strCastTarget : spell.getStrOnTeach(), players.get(0), args, "%a", getConsoleName(), "%s", spell.getName(), "%t", displayName);
 		sender.sendMessage(formatMessage(strCastSelf, "%a", getConsoleName(), "%s", spell.getName(), "%t", displayName));
 		return true;
 	}
