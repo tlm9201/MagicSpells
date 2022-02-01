@@ -159,6 +159,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected String strCantBind;
 	protected String strCastStart;
 	protected String strCastOthers;
+	protected String strOnTeach;
 	protected String strOnCooldown;
 	protected String strWrongWorld;
 	protected String strInterrupted;
@@ -429,6 +430,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		strCastSelf = config.getString(path + "str-cast-self", null);
 		strCastStart = config.getString(path + "str-cast-start", null);
 		strCastOthers = config.getString(path + "str-cast-others", null);
+		strOnTeach = config.getString(path + "str-on-teach", null);
 		strOnCooldown = config.getString(path + "str-on-cooldown", MagicSpells.getOnCooldownMessage());
 		strWrongWorld = config.getString(path + "str-wrong-world", MagicSpells.getWrongWorldMessage());
 		strInterrupted = config.getString(path + "str-interrupted", null);
@@ -1965,6 +1967,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public String getStrXpLearned() {
 		return strXpAutoLearned;
+	}
+
+	public String getStrOnTeach() {
+		return strOnTeach;
 	}
 
 	public Map<UUID, Long> getCooldowns() {
