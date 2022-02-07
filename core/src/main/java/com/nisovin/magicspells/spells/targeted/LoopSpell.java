@@ -346,11 +346,6 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				}
 			}
 
-			if (loopModifiers != null && (!skipFirstLoopModifiers || count > 0) && !loopModifiers.check(caster)) {
-				cancel();
-				return;
-			}
-
 			if (variableModsTargetLoop != null && (!skipFirstVariableModsTargetLoop || count > 0) && targetEntity instanceof Player playerTarget) {
 				VariableManager variableManager = MagicSpells.getVariableManager();
 				Player playerCaster = caster instanceof Player p ? p : null;
@@ -361,6 +356,11 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 					variableManager.processVariableMods(entry.getKey(), mod, playerTarget, playerCaster, playerTarget);
 				}
+			}
+
+			if (loopModifiers != null && (!skipFirstLoopModifiers || count > 0) && !loopModifiers.check(caster)) {
+				cancel();
+				return;
 			}
 
 			if (targetEntity != null && loopTargetModifiers != null && (!skipFirstLoopTargetModifiers || count > 0) && !loopTargetModifiers.check(caster, targetEntity)) {
