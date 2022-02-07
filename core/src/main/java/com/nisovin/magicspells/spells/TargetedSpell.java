@@ -79,15 +79,15 @@ public abstract class TargetedSpell extends InstantSpell {
 		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, playerCaster, playerTarget), broadcastRange, args,
 			"%a", casterName, "%t", targetName);
 	}
-	
-	private String prepareMessage(String message, Player caster, Player playerTarget) {
+
+	protected String prepareMessage(String message, Player caster, Player playerTarget) {
 		if (message == null || message.isEmpty()) return message;
 
 		message = MagicSpells.doTargetedVariableReplacements(caster, playerTarget, message);
 
 		return message;
 	}
-	
+
 	protected String getTargetName(LivingEntity target) {
 		if (target instanceof Player) return target.getName();
 		String name = MagicSpells.getEntityNames().get(target.getType());

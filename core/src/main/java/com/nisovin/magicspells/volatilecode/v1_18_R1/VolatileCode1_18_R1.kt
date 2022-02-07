@@ -44,7 +44,7 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
         }
     }
 
-    override fun addPotionGraphicalEffect(entity: LivingEntity, color: Int, duration: Int) {
+    override fun addPotionGraphicalEffect(entity: LivingEntity, color: Int, duration: Long) {
         val livingEntity = (entity as CraftLivingEntity).handle
         val entityData = livingEntity.entityData
         entityData.set(entityLivingPotionEffectColor, color)
