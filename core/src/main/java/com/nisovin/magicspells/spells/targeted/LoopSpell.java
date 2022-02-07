@@ -267,13 +267,13 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		new Loop(caster, null, target, power, null);
+		new Loop(caster, null, target.clone().add(0, yOffset, 0), power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		new Loop(null, null, target, power, null);
+		new Loop(null, null, target.clone().add(0, yOffset, 0), power, null);
 		return true;
 	}
 
