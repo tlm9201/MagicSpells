@@ -384,9 +384,15 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				}
 			}
 
-			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
-			if (targetEntity != null) playSpellEffects(EffectPosition.TARGET, targetEntity);
-			if (targetLocation != null) playSpellEffects(EffectPosition.TARGET, targetLocation);
+			if (caster != null) {
+				if (targetEntity != null) playSpellEffects(caster, targetEntity);
+				else if (targetLocation != null) playSpellEffects(caster, targetLocation);
+				else playSpellEffects(EffectPosition.CASTER, caster);
+			} else {
+				if (targetEntity != null) playSpellEffects(EffectPosition.TARGET, targetEntity);
+				else if (targetLocation != null) playSpellEffects(EffectPosition.TARGET, targetLocation);
+			}
+
 
 			count++;
 			if (iterations > 0 && count >= iterations) cancel();
