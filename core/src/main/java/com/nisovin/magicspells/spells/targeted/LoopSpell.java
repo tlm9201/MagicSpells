@@ -242,7 +242,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				if (entityTarget == null && locationTarget == null) return noTarget(caster);
 			}
 
-			new Loop(caster, entityTarget, locationTarget, power, args);
+			initLoop(caster, entityTarget, locationTarget, power, args);
 
 			if (entityTarget != null) {
 				sendMessages(caster, entityTarget, args);
@@ -255,25 +255,25 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		new Loop(caster, target, null, power, null);
+		initLoop(caster, target, null, power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		new Loop(null, target, null, power, null);
+		initLoop(null, target, null, power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		new Loop(caster, null, target.clone().add(0, yOffset, 0), power, null);
+		initLoop(caster, null, target.clone().add(0, yOffset, 0), power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		new Loop(null, null, target.clone().add(0, yOffset, 0), power, null);
+		initLoop(null, null, target.clone().add(0, yOffset, 0), power, null);
 		return true;
 	}
 
@@ -301,6 +301,11 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		activeLoops.clear();
 	}
 
+	private void initLoop(LivingEntity caster, LivingEntity targetEntity, Location targetLocation, float power, String[] args) {
+		Loop loop = new Loop(caster, targetEntity, targetLocation, power, args);
+		if (targetEntity != null) activeLoops.put(targetEntity.getUniqueId(), loop);
+	}
+
 	public class Loop implements Runnable {
 
 		private final LivingEntity caster;
@@ -320,8 +325,6 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			this.targetEntity = targetEntity;
 			this.power = power;
 			this.args = args;
-
-			if (targetEntity != null) activeLoops.put(targetEntity.getUniqueId(), this);
 
 			taskId = MagicSpells.scheduleRepeatingTask(this, delay, interval);
 			if (duration > 0) MagicSpells.scheduleDelayedTask(this::cancel, duration);
