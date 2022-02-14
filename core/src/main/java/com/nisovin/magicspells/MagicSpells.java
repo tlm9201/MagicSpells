@@ -1585,7 +1585,7 @@ public class MagicSpells extends JavaPlugin {
 		return m.getAnnotation(clazz) != null;
 	}
 
-	public static int scheduleDelayedTask(final Runnable task, int delay) {
+	public static int scheduleDelayedTask(final Runnable task, long delay) {
 		return Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, !plugin.enableErrorLogging ? task : () -> {
 			try {
 				task.run();
@@ -1595,7 +1595,7 @@ public class MagicSpells extends JavaPlugin {
 		}, delay);
 	}
 
-	public static int scheduleRepeatingTask(final Runnable task, int delay, int interval) {
+	public static int scheduleRepeatingTask(final Runnable task, long delay, long interval) {
 		return Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, !plugin.enableErrorLogging ? task : () -> {
 			try {
 				task.run();

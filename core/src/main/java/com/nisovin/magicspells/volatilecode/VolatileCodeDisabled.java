@@ -12,7 +12,7 @@ public class VolatileCodeDisabled implements VolatileCodeHandle {
 	}
 
 	@Override
-	public void addPotionGraphicalEffect(LivingEntity entity, int color, int duration) {
+	public void addPotionGraphicalEffect(LivingEntity entity, int color, long duration) {
 
 	}
 

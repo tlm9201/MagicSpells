@@ -162,6 +162,8 @@ public class ConditionManager {
 		addCondition("slotselected", SlotSelectedCondition.class);
 		addCondition("hasscoreboardtag", HasScoreboardTagCondition.class);
 		addCondition("hasspell", HasSpellCondition.class);
+		addCondition("loopactive", LoopActiveCondition.class);
+		addCondition("ownedloopactive", OwnedLoopActiveCondition.class);
 	}
 
 }

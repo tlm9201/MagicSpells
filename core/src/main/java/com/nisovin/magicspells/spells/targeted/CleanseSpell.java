@@ -27,13 +27,14 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 	private List<DotSpell> dotSpells;
 	private List<StunSpell> stunSpells;
 	private List<BuffSpell> buffSpells;
+	private List<LoopSpell> loopSpells;
 	private List<OrbitSpell> orbitSpells;
 	private List<SilenceSpell> silenceSpells;
 	private List<LevitateSpell> levitateSpells;
 	private List<PotionEffectType> potionEffectTypes;
 
 	private boolean fire;
-	
+
 	public CleanseSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
@@ -41,6 +42,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		dotSpells = new ArrayList<>();
 		stunSpells = new ArrayList<>();
 		buffSpells = new ArrayList<>();
+		loopSpells = new ArrayList<>();
 		orbitSpells = new ArrayList<>();
 		silenceSpells = new ArrayList<>();
 		levitateSpells = new ArrayList<>();
@@ -130,6 +132,18 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 				continue;
 			}
 
+			if (s.startsWith("loop:")) {
+				if (s.equals("loop:*")) {
+					for (Spell spell : MagicSpells.getSpellsOrdered()) {
+						if (spell instanceof LoopSpell loopSpell) loopSpells.add(loopSpell);
+					}
+					continue;
+				}
+				Spell spell = MagicSpells.getSpellByInternalName(s.replace("loop:", ""));
+				if (spell instanceof LoopSpell loopSpell) loopSpells.add(loopSpell);
+				continue;
+			}
+
 			PotionEffectType type = Util.getPotionEffectType(s);
 			if (type != null) potionEffectTypes.add(type);
 		}
@@ -165,6 +179,10 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 				if (spell.isBeingLevitated(entity)) return true;
 			}
 
+			for (LoopSpell spell : loopSpells) {
+				if (spell.isActive(entity)) return true;
+			}
+
 			return false;
 		};
 	}
@@ -174,7 +192,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, checker);
 			if (target == null) return noTarget(caster);
-			
+
 			cleanse(caster, target.getTarget());
 			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
@@ -200,7 +218,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 	public ValidTargetChecker getValidTargetChecker() {
 		return checker;
 	}
-	
+
 	private void cleanse(LivingEntity caster, LivingEntity target) {
 		if (fire) target.setFireTicks(0);
 
@@ -211,6 +229,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		buffSpells.forEach(spell -> spell.turnOff(target));
 		dotSpells.forEach(spell -> spell.cancelDot(target));
 		stunSpells.forEach(spell -> spell.removeStun(target));
+		loopSpells.forEach(spell -> spell.cancelLoops(target));
 		orbitSpells.forEach(spell -> spell.removeOrbits(target));
 		silenceSpells.forEach(spell -> spell.removeSilence(target));
 		levitateSpells.forEach(spell -> spell.removeLevitate(target));

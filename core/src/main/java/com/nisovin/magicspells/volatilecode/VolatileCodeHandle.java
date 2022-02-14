@@ -7,7 +7,7 @@ import org.bukkit.inventory.ItemStack;
 
 public interface VolatileCodeHandle {
 
-	void addPotionGraphicalEffect(LivingEntity entity, int color, int duration);
+	void addPotionGraphicalEffect(LivingEntity entity, int color, long duration);
 
 	void sendFakeSlotUpdate(Player player, int slot, ItemStack item);
 
