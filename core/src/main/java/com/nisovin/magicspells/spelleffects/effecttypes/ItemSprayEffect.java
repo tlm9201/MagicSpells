@@ -20,9 +20,7 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class ItemSprayEffect extends SpellEffect {
 
-	private Material material;
-	private String materialName;
-	private ItemStack itemStack;
+	private ConfigData<Material> material;
 
 	private ConfigData<Double> force;
 
@@ -33,16 +31,7 @@ public class ItemSprayEffect extends SpellEffect {
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		materialName = config.getString("type", "");
-		material = Util.getMaterial(materialName);
-
-		if (material == null || !material.isItem()) {
-			MagicSpells.error("Wrong type defined! '" + materialName + "'");
-			itemStack = null;
-
-			return;
-		}
-		itemStack = new ItemStack(material);
+		material = ConfigDataUtil.getEnum(config, "type", Material.class, null);
 
 		force = ConfigDataUtil.getDouble(config, "force", 1);
 
@@ -54,7 +43,10 @@ public class ItemSprayEffect extends SpellEffect {
 
 	@Override
 	public Runnable playEffectLocation(Location location, SpellData data) {
-		if (itemStack == null) return null;
+		Material material = this.material.get(data);
+		if (material == null) return null;
+
+		ItemStack item = new ItemStack(material);
 
 		Random rand = ThreadLocalRandom.current();
 		Location loc = location.clone().add(0, 1, 0);
@@ -65,7 +57,7 @@ public class ItemSprayEffect extends SpellEffect {
 		int amount = this.amount.get(data);
 		Item[] items = new Item[amount];
 		for (int i = 0; i < amount; i++) {
-			items[i] = loc.getWorld().dropItem(loc, itemStack);
+			items[i] = loc.getWorld().dropItem(loc, item);
 
 			if (resolveForcePerItem) force = this.force.get(data);
 			items[i].setVelocity(new Vector((rand.nextDouble() - 0.5d) * force, (rand.nextDouble() - 0.5d) * force, (rand.nextDouble() - 0.5d) * force));
