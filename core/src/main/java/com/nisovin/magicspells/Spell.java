@@ -1,9 +1,14 @@
 package com.nisovin.magicspells;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.commons.math3.util.Pair;
+
+import com.google.common.collect.Multimap;
+import com.google.common.collect.LinkedListMultimap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -37,6 +42,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import net.kyori.adventure.text.Component;
 
+import de.slikey.effectlib.Effect;
 import de.slikey.exp4j.Expression;
 
 import com.nisovin.magicspells.util.*;
@@ -63,12 +69,6 @@ import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
-
-import de.slikey.effectlib.Effect;
-
-import com.google.common.collect.Multimap;
-import com.google.common.collect.LinkedListMultimap;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class Spell implements Comparable<Spell>, Listener {
 
@@ -459,7 +459,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		for (String costVal : costList) {
 			try {
-				// Parse cost spellData
+				// Parse cost data
 				data = costVal.split(" ");
 
 				switch (data[0].toLowerCase()) {

@@ -1,19 +1,24 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import org.bukkit.*;
-import org.bukkit.Particle.*;
-import org.bukkit.Vibration.Destination;
+import org.bukkit.Color;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Vibration;
+import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.Particle.DustOptions;
+import org.bukkit.Vibration.Destination;
+import org.bukkit.Particle.DustTransition;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.ConfigReaderUtil;
-import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.ConfigReaderUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 import static org.bukkit.Vibration.Destination.*;

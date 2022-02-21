@@ -306,7 +306,7 @@ public class MagicItemData {
             else output.append('{');
 
             output
-                .append("\"custom-model-spellData\":")
+                .append("\"custom-model-data\":")
                 .append((int) getAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA));
 
             previous = true;
@@ -367,7 +367,7 @@ public class MagicItemData {
             PotionData potionData = (PotionData) getAttribute(MagicItemAttribute.POTION_DATA);
 
             output
-                .append("\"potion-spellData\":\"")
+                .append("\"potion-data\":\"")
                 .append(potionData.getType());
 
             if (potionData.isExtended()) output.append(" extended");

@@ -22,12 +22,12 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 		
 		variableName = getConfigString("variable-name", "");
 
-		dataElement = DataLivingEntity.getDataFunction(getConfigString("spellData-element", "uuid"));
+		dataElement = DataLivingEntity.getDataFunction(getConfigString("data-element", "uuid"));
 	}
 	
 	@Override
 	public void initialize() {
-		if (dataElement == null) MagicSpells.error("DataSpell '" + internalName + "' has an invalid option defined for spellData-element!");
+		if (dataElement == null) MagicSpells.error("DataSpell '" + internalName + "' has an invalid option defined for data-element!");
 	}
 
 	@Override

@@ -8,9 +8,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class ItemCooldownEffect extends SpellEffect {

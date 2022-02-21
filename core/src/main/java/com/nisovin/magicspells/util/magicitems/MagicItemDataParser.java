@@ -52,13 +52,13 @@ public class MagicItemDataParser {
 	private static final TypeAdapter<JsonElement> jsonElementTypeAdapter = gson.getAdapter(JsonElement.class);
 
 	/* splits the saved magicItemData string by the "|" char
-		itemType{spellData}|itemType{spellData}...
+		itemType{data}|itemType{data}...
 	*/
 	public static final String DATA_REGEX = "(?=(?:(?:[^\"]*\"){2})*[^\"]*$)(?![^{]*})(?![^\\[]*\\])\\|+";
 
 	public static MagicItemData parseMagicItemData(String str) {
 		String[] args = str.split("\\{", 2);
-		// check if it contains additional spellData
+		// check if it contains additional data
 		if (args.length < 2) {
 			// it doesnt, check if its a material type
 			Material type = Util.getMaterial(str.trim());
@@ -113,7 +113,7 @@ public class MagicItemDataParser {
 							data.setAttribute(REPAIR_COST, value.getAsInt());
 							break;
 						case "custommodeldata":
-						case "custom-model-spellData":
+						case "custom-model-data":
 						case "custom_model_data":
 							data.setAttribute(CUSTOM_MODEL_DATA, value.getAsInt());
 							break;
@@ -137,7 +137,7 @@ public class MagicItemDataParser {
 							}
 							break;
 						case "potiondata":
-						case "potion-spellData":
+						case "potion-data":
 						case "potion_data":
 						case "potiontype":
 						case "potion-type":

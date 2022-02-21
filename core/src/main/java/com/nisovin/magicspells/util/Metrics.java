@@ -26,7 +26,7 @@ import java.util.logging.Level;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * bStats collects some spellData for plugin authors.
+ * bStats collects some data for plugin authors.
  *
  * Check out https://bStats.org/ to learn more about bStats!
  */
@@ -45,7 +45,7 @@ public class Metrics {
 	// The version of this bStats class
 	public static final int B_STATS_VERSION = 1;
 	
-	// The url to which the spellData is sent
+	// The url to which the data is sent
 	private static final String URL = "https://bStats.org/submitData/bukkit";
 	
 	// Should failed requests be logged?
@@ -88,7 +88,7 @@ public class Metrics {
 			
 			// Inform the server owners about bStats
 			config.options().header(
-				"bStats collects some spellData for plugin authors like how many servers are using their plugins.\n" +
+				"bStats collects some data for plugin authors like how many servers are using their plugins.\n" +
 					"To honor their work, you should not disable it.\n" +
 					"This has nearly no effect on the server performance!\n" +
 					"Check out https://bStats.org/ to learn more :)"
@@ -98,7 +98,7 @@ public class Metrics {
 			} catch (IOException ignored) { }
 		}
 		
-		// Load the spellData
+		// Load the data
 		serverUUID = config.getString("serverUuid");
 		logFailedRequests = config.getBoolean("logFailedRequests", false);
 		if (config.getBoolean("enabled", true)) {
@@ -133,7 +133,7 @@ public class Metrics {
 	}
 	
 	/**
-	 * Starts the Scheduler which submits our spellData every 30 minutes.
+	 * Starts the Scheduler which submits our data every 30 minutes.
 	 */
 	private void startSubmitting() {
 		final Timer timer = new Timer(true); // We use a timer cause the Bukkit scheduler is affected by server lags
@@ -154,16 +154,16 @@ public class Metrics {
 				});
 			}
 		}, 1000*60*5, 1000*60*30);
-		// Submit the spellData every 30 minutes, first time after 5 minutes to give other plugins enough time to start
+		// Submit the data every 30 minutes, first time after 5 minutes to give other plugins enough time to start
 		// WARNING: Changing the frequency has no effect but your plugin WILL be blocked/deleted!
 		// WARNING: Just don't do it!
 	}
 	
 	/**
-	 * Gets the plugin specific spellData.
+	 * Gets the plugin specific data.
 	 * This method is called using Reflection.
 	 *
-	 * @return The plugin specific spellData.
+	 * @return The plugin specific data.
 	 */
 	public JSONObject getPluginData() {
 		JSONObject data = new JSONObject();
@@ -175,7 +175,7 @@ public class Metrics {
 		data.put("pluginVersion", pluginVersion); // Append the version of the plugin
 		JSONArray customCharts = new JSONArray();
 		for (CustomChart customChart : charts) {
-			// Add the spellData of the custom charts
+			// Add the data of the custom charts
 			JSONObject chart = customChart.getRequestJsonObject();
 			if (chart == null) { // If the chart is null, we skip it
 				continue;
@@ -188,18 +188,18 @@ public class Metrics {
 	}
 	
 	/**
-	 * Gets the server specific spellData.
+	 * Gets the server specific data.
 	 *
-	 * @return The server specific spellData.
+	 * @return The server specific data.
 	 */
 	private JSONObject getServerData() {
-		// Minecraft specific spellData
+		// Minecraft specific data
 		int playerAmount = Bukkit.getOnlinePlayers().size();
 		int onlineMode = Bukkit.getOnlineMode() ? 1 : 0;
 		String bukkitVersion = org.bukkit.Bukkit.getVersion();
 		bukkitVersion = bukkitVersion.substring(bukkitVersion.indexOf("MC: ") + 4, bukkitVersion.length() - 1);
 		
-		// OS/Java specific spellData
+		// OS/Java specific data
 		String javaVersion = System.getProperty("java.version");
 		String osName = System.getProperty("os.name");
 		String osArch = System.getProperty("os.arch");
@@ -224,13 +224,13 @@ public class Metrics {
 	}
 	
 	/**
-	 * Collects the spellData and sends it afterwards.
+	 * Collects the data and sends it afterwards.
 	 */
 	private void submitData() {
 		final JSONObject data = getServerData();
 		
 		JSONArray pluginData = new JSONArray();
-		// Search for all other bStats Metrics classes to get their plugin spellData
+		// Search for all other bStats Metrics classes to get their plugin data
 		for (Class<?> service : Bukkit.getServicesManager().getKnownServices()) {
 			try {
 				service.getField("B_STATS_VERSION"); // Our identifier :)
@@ -250,7 +250,7 @@ public class Metrics {
 			@Override
 			public void run() {
 				try {
-					// Send the spellData
+					// Send the data
 					sendData(data);
 				} catch (Exception e) {
 					// Something went wrong! :(
@@ -263,9 +263,9 @@ public class Metrics {
 	}
 	
 	/**
-	 * Sends the spellData to the bStats server.
+	 * Sends the data to the bStats server.
 	 *
-	 * @param data The spellData to send.
+	 * @param data The data to send.
 	 * @throws Exception If the request failed.
 	 */
 	private static void sendData(JSONObject data) throws Exception {
@@ -277,7 +277,7 @@ public class Metrics {
 		}
 		HttpsURLConnection connection = (HttpsURLConnection) new URL(URL).openConnection();
 		
-		// Compress the spellData to save bandwidth
+		// Compress the data to save bandwidth
 		byte[] compressedData = compress(data.toString());
 		
 		// Add headers
@@ -286,17 +286,17 @@ public class Metrics {
 		connection.addRequestProperty("Connection", "close");
 		connection.addRequestProperty("Content-Encoding", "gzip"); // We gzip our request
 		connection.addRequestProperty("Content-Length", String.valueOf(compressedData.length));
-		connection.setRequestProperty("Content-Type", "application/json"); // We send our spellData in JSON format
+		connection.setRequestProperty("Content-Type", "application/json"); // We send our data in JSON format
 		connection.setRequestProperty("User-Agent", "MC-Server/" + B_STATS_VERSION);
 		
-		// Send spellData
+		// Send data
 		connection.setDoOutput(true);
 		DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream());
 		outputStream.write(compressedData);
 		outputStream.flush();
 		outputStream.close();
 		
-		connection.getInputStream().close(); // We don't care about the response - Just send our spellData :)
+		connection.getInputStream().close(); // We don't care about the response - Just send our data :)
 	}
 	
 	/**
@@ -343,13 +343,13 @@ public class Metrics {
 			try {
 				JSONObject data = getChartData();
 				if (data == null) {
-					// If the spellData is null we don't send the chart.
+					// If the data is null we don't send the chart.
 					return null;
 				}
 				chart.put("data", data);
 			} catch (Throwable t) {
 				if (logFailedRequests) {
-					Bukkit.getLogger().log(Level.WARNING, "Failed to get spellData for custom chart with id " + chartId, t);
+					Bukkit.getLogger().log(Level.WARNING, "Failed to get data for custom chart with id " + chartId, t);
 				}
 				return null;
 			}

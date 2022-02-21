@@ -5,10 +5,10 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.handlers.DebugHandler;
-import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class PotionEffect extends SpellEffect {
@@ -21,15 +21,6 @@ public class PotionEffect extends SpellEffect {
 	public void loadFromConfig(ConfigurationSection config) {
 		color = ConfigDataUtil.getString(config, "color", null);
 		duration = ConfigDataUtil.getInteger(config, "duration", 30);
-//		String c = config.getString("color", "");
-//		if (!c.isEmpty()) {
-//			try {
-//				color = Integer.parseInt(c, 16);
-//			} catch (NumberFormatException e) {
-//				DebugHandler.debugNumberFormat(e);
-//			}
-//		}
-//		duration = config.getInt("duration", 30);
 	}
 
 	@Override

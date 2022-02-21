@@ -1,27 +1,15 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import org.bukkit.*;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.util.Vector;
+import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.Particle.DustOptions;
-import org.bukkit.Vibration.Destination;
-import org.bukkit.Particle.DustTransition;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.ColorUtil;
-import com.nisovin.magicspells.util.ConfigReaderUtil;
-import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
-
-import de.slikey.effectlib.util.VectorUtils;
 
 public class ParticlesPersonalEffect extends ParticlesEffect {
 

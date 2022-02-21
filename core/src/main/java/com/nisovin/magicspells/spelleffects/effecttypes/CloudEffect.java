@@ -12,8 +12,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class CloudEffect extends SpellEffect {
 

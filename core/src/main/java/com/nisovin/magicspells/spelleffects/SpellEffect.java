@@ -152,7 +152,7 @@ public abstract class SpellEffect {
 	 * Plays an effect on the specified entity.
 	 *
 	 * @param entity the entity to play the effect on
-	 * @param data   the spellData of the casting spell
+	 * @param data   the spell data of the casting spell
 	 */
 	public Runnable playEffect(final Entity entity, final SpellData data) {
 		double chance = this.chance.get(data);
@@ -190,7 +190,7 @@ public abstract class SpellEffect {
 	 * Plays an effect at the specified location.
 	 *
 	 * @param location location to play the effect at
-	 * @param data     the spellData of the casting spell
+	 * @param data     the spell data of the casting spell
 	 */
 	public final Runnable playEffect(final Location location, final SpellData data) {
 		double chance = this.chance.get(data);

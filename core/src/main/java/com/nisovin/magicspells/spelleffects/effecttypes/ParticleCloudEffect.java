@@ -4,11 +4,11 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.Particle.DustOptions;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.Particle.DustOptions;
+import org.bukkit.entity.AreaEffectCloud;
+import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
