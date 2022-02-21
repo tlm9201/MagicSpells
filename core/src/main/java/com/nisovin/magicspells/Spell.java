@@ -5,8 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.apache.commons.math3.util.Pair;
-
 import com.google.common.collect.Multimap;
 import com.google.common.collect.LinkedListMultimap;
 
@@ -43,7 +41,6 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import net.kyori.adventure.text.Component;
 
 import de.slikey.effectlib.Effect;
-import de.slikey.exp4j.Expression;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.util.config.*;
@@ -769,153 +766,40 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected ConfigData<Integer> getConfigDataInt(String key, int def) {
-		String path = "spells." + internalName + '.' + key;
-
-		if (config.isInt(path)) {
-			int value = config.getInt(path, def);
-			return (caster, target, power, args) -> value;
-		}
-
-		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return (caster, target, power, args) -> def;
-
-			return new FunctionData.IntegerData(ex.getFirst(), def, ex.getSecond());
-		}
-
-		return (caster, target, power, args) -> def;
+		return ConfigDataUtil.getInteger(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected ConfigData<Integer> getConfigDataInt(String key, ConfigData<Integer> def) {
-		String path = "spells." + internalName + '.' + key;
-
-		if (config.isInt(path)) {
-			int value = config.getInt(path);
-			return (caster, target, power, args) -> value;
-		}
-
-		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return def;
-
-			return new FunctionData.IntegerData(ex.getFirst(), def, ex.getSecond());
-		}
-
-		return def;
+		return ConfigDataUtil.getInteger(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected ConfigData<Double> getConfigDataDouble(String key, double def) {
-		String path = "spells." + internalName + '.' + key;
-
-		if (config.isDouble(path)) {
-			double value = config.getDouble(path, def);
-			return (caster, target, power, args) -> value;
-		}
-
-		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return (caster, target, power, args) -> def;
-
-			return new FunctionData.DoubleData(ex.getFirst(), def, ex.getSecond());
-		}
-
-		return (caster, target, power, args) -> def;
+		return ConfigDataUtil.getDouble(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected ConfigData<Double> getConfigDataDouble(String key, ConfigData<Double> def) {
-		String path = "spells." + internalName + '.' + key;
-
-		if (config.isDouble(path)) {
-			double value = config.getDouble(path);
-			return (caster, target, power, args) -> value;
-		}
-
-		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return def;
-
-			return new FunctionData.DoubleData(ex.getFirst(), def, ex.getSecond());
-		}
-
-		return def;
+		return ConfigDataUtil.getDouble(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected ConfigData<Float> getConfigDataFloat(String key, float def) {
-		String path = "spells." + internalName + '.' + key;
-
-		if (config.isDouble(path)) {
-			float value = (float) config.getDouble(path, def);
-			return (caster, target, power, args) -> value;
-		}
-
-		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return (caster, target, power, args) -> def;
-
-			return new FunctionData.FloatData(ex.getFirst(), def, ex.getSecond());
-		}
-
-		return (caster, target, power, args) -> def;
+		return ConfigDataUtil.getFloat(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected ConfigData<Float> getConfigDataFloat(String key, ConfigData<Float> def) {
-		String path = "spells." + internalName + '.' + key;
-
-		if (config.isDouble(path)) {
-			float value = (float) config.getDouble(path);
-			return (caster, target, power, args) -> value;
-		}
-
-		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return def;
-
-			return new FunctionData.FloatData(ex.getFirst(), def, ex.getSecond());
-		}
-
-		return def;
+		return ConfigDataUtil.getFloat(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected ConfigData<Long> getConfigDataLong(String key, long def) {
-		String path = "spells." + internalName + '.' + key;
-
-		if (config.isInt(path) || config.isLong(path)) {
-			long value = config.getLong(path, def);
-			return (caster, target, power, args) -> value;
-		}
-
-		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return (caster, target, power, args) -> def;
-
-			return new FunctionData.LongData(ex.getFirst(), def, ex.getSecond());
-		}
-
-		return (caster, target, power, args) -> def;
+		return ConfigDataUtil.getLong(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	@NotNull
 	protected ConfigData<Long> getConfigDataLong(String key, ConfigData<Long> def) {
-		String path = "spells." + internalName + '.' + key;
-
-		if (config.isInt(path) || config.isLong(path)) {
-			long value = config.getLong(path, 0);
-			return (caster, target, power, args) -> value;
-		}
-
-		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return def;
-
-			return new FunctionData.LongData(ex.getFirst(), def, ex.getSecond());
-		}
-
-		return def;
+		return ConfigDataUtil.getLong(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected ConfigData<String> getConfigDataString(String key, String def) {
-		String value = config.getString("spells." + internalName + '.' + key, def);
-		return ConfigDataUtil.getString(value);
+		return ConfigDataUtil.getString(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected boolean isConfigString(String key) {

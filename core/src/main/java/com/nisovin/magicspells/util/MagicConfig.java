@@ -149,6 +149,10 @@ public class MagicConfig {
 		}
 	}
 
+	public YamlConfiguration getMainConfig() {
+		return mainConfig;
+	}
+
 	public boolean isLoaded() {
 		return mainConfig.contains("general") && mainConfig.contains("spells");
 	}
