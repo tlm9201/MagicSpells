@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -103,7 +104,7 @@ public class HasteSpell extends BuffSpell {
 		if (event.isSprinting()) {
 			event.setCancelled(true);
 			addUseAndChargeCost(player);
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, player, data.data);
 
 			player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, data.boostDuration, amplifier, false, !hidden));
 
@@ -120,7 +121,7 @@ public class HasteSpell extends BuffSpell {
 		} else {
 			player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0, false, !hidden));
 			player.removePotionEffect(PotionEffectType.SPEED);
-			playSpellEffects(EffectPosition.DISABLED, player);
+			playSpellEffects(EffectPosition.DISABLED, player, data.data);
 			MagicSpells.cancelTask(data.task);
 			data.count = 0;
 		}
@@ -162,6 +163,8 @@ public class HasteSpell extends BuffSpell {
 
 		private final boolean acceleration;
 
+		private final SpellData data;
+
 		private int count;
 		private int task;
 
@@ -175,6 +178,8 @@ public class HasteSpell extends BuffSpell {
 			accelerationAmount = HasteSpell.this.accelerationAmount.get(entity, null, power, args);
 			accelerationDelay = HasteSpell.this.accelerationDelay.get(entity, null, power, args);
 			boostDuration = HasteSpell.this.boostDuration.get(entity, null, power, args);
+
+			data = new SpellData(entity, power, args);
 
 			acceleration = accelerationDelay >= 0 && accelerationAmount > 0 && accelerationIncrease > 0 && accelerationInterval > 0;
 		}

@@ -43,14 +43,14 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
 			if (target == null) return noTarget(caster);
 			spinFace(caster, target.getTarget(), power, args);
-			playSpellEffects(caster, target.getTarget());
+			playSpellEffects(caster, target.getTarget(), power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		spinFace(caster, target, power, args);
 		return true;
 	}
@@ -62,7 +62,7 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		spinTarget(null, target, power, args);
 		return true;
 	}
@@ -74,7 +74,7 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		spin(caster, target);
 		return true;
 	}

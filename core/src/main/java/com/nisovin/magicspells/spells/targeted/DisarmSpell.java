@@ -73,7 +73,7 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 			boolean disarmed = disarm(caster, realTarget, power, args);
 			if (!disarmed) return noTarget(caster, strInvalidItem);
 
-			playSpellEffects(caster, realTarget);
+			playSpellEffects(caster, realTarget, power, args);
 			sendMessages(caster, realTarget, args);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -84,7 +84,7 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		boolean disarmed =  disarm(caster, target, power, args);
-		if (disarmed) playSpellEffects(caster, target);
+		if (disarmed) playSpellEffects(caster, target, power, args);
 		return disarmed;
 	}
 
@@ -97,7 +97,7 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(target)) return false;
 		boolean disarmed = disarm(null, target, power, args);
-		if (disarmed) playSpellEffects(EffectPosition.TARGET, target);
+		if (disarmed) playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return disarmed;
 	}
 

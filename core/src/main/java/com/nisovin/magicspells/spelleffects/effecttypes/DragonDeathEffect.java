@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class DragonDeathEffect extends SpellEffect {
@@ -14,7 +15,7 @@ public class DragonDeathEffect extends SpellEffect {
 	}
 
 	@Override
-	public Runnable playEffectLocation(Location location) {
+	public Runnable playEffectLocation(Location location, SpellData data) {
 		MagicSpells.getVolatileCodeHandler().playDragonDeathEffect(location);
 		return null;
 	}

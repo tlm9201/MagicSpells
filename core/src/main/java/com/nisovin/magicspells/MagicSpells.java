@@ -304,7 +304,7 @@ public class MagicSpells extends JavaPlugin {
 		ignoreCastItemTitle = config.getBoolean(path + "ignore-cast-item-title", true);
 		ignoreCastItemAuthor = config.getBoolean(path + "ignore-cast-item-author", true);
 		ignoreCastItemLore = config.getBoolean(path + "ignore-cast-item-lore", true);
-		ignoreCastItemCustomModelData = config.getBoolean(path + "ignore-cast-item-custom-model-data", true);
+		ignoreCastItemCustomModelData = config.getBoolean(path + "ignore-cast-item-custom-model-spellData", true);
 		ignoreCastItemDurability = Util.getMaterialList(config.getStringList(path + "ignore-cast-item-durability", new ArrayList<>()), ArrayList::new);
 
 		checkWorldPvpFlag = config.getBoolean(path + "check-world-pvp-flag", true);
@@ -510,7 +510,7 @@ public class MagicSpells extends JavaPlugin {
 		}
 		log("...done");
 
-		// Load player data using a storage handler
+		// Load player spellData using a storage handler
 		log("Initializing storage handler...");
 		storageHandler = new TXTFileStorage(plugin);
 		//storageHandler = new DatabaseStorage(plugin, new SQLiteDatabase(plugin, "spellbooks.db"));
@@ -598,13 +598,13 @@ public class MagicSpells extends JavaPlugin {
 
 		CompatBasics.setupExemptionAssistant();
 
-		// Load external data
+		// Load external spellData
 		Bukkit.getScheduler().runTaskLater(this, this::loadExternalData, 1);
 	}
 
 	private void loadExternalData() {
 		PluginManager pm = plugin.getServer().getPluginManager();
-		log("Loading external data...");
+		log("Loading external spellData...");
 
 		loadVariables(pm);
 		loadSpellEffects(pm);
@@ -1336,7 +1336,7 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	/**
-	 * Sets the storage handler, which handles data storage.
+	 * Sets the storage handler, which handles spellData storage.
 	 * @param handler the storage handler
 	 */
 	public static void setStorageHandler(StorageHandler handler) {
@@ -1766,7 +1766,7 @@ public class MagicSpells extends JavaPlugin {
 	public void unload() {
 		loaded = false;
 
-		// save player data and disable storage
+		// save player spellData and disable storage
 		if (storageHandler != null) {
 			for (Spellbook spellBook : spellbooks.values()) {
 				storageHandler.save(spellBook);

@@ -15,6 +15,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -86,7 +87,7 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 			if (target == null) return noTarget(caster, strCantZap);
 
 			if (!canZap(target)) return noTarget(caster, strCantZap);
-			boolean ok = zap(target, (Player) caster);
+			boolean ok = zap(target, (Player) caster, power, args);
 			if (!ok) return noTarget(caster, strCantZap);
 
 		}
@@ -94,11 +95,11 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
 		if (!(caster instanceof Player)) return false;
 		Block block = target.getBlock();
 		if (canZap(block)) {
-			zap(block, (Player) caster);
+			zap(block, (Player) caster, power, args);
 			return true;
 		}
 
@@ -106,7 +107,22 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 		block = target.clone().add(v).getBlock();
 
 		if (canZap(block)) {
-			zap(block, (Player) caster);
+			zap(block, (Player) caster, power, args);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		return castAtLocation(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtLocation(Location target, float power, String[] args) {
+		Block block = target.getBlock();
+		if (canZap(block)) {
+			zap(block, null, power, args);
 			return true;
 		}
 		return false;
@@ -114,15 +130,10 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		Block block = target.getBlock();
-		if (canZap(block)) {
-			zap(block, null);
-			return true;
-		}
-		return false;
+		return castAtLocation(target, power, null);
 	}
 
-	private boolean zap(Block target, Player player) {
+	private boolean zap(Block target, Player player, float power, String[] args) {
 		boolean playerNull = player == null;
 
 		if (checkPlugins && !playerNull) {
@@ -137,9 +148,11 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		if (playBreakEffect) target.getWorld().playEffect(target.getLocation(), Effect.STEP_SOUND, target.getType());
-		if (!playerNull) playSpellEffects(EffectPosition.CASTER, player);
-		playSpellEffects(EffectPosition.TARGET, target.getLocation());
-		if (!playerNull) playSpellEffectsTrail(player.getLocation(), target.getLocation());
+
+		SpellData data = new SpellData(player, power, args);
+		if (!playerNull) playSpellEffects(EffectPosition.CASTER, player, data);
+		playSpellEffects(EffectPosition.TARGET, target.getLocation(), data);
+		if (!playerNull) playSpellEffectsTrail(player.getLocation(), target.getLocation(), data);
 
 		target.setType(Material.AIR);
 		return true;

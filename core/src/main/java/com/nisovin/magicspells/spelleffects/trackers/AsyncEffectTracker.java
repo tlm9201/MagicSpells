@@ -5,6 +5,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitTask;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
@@ -18,12 +19,13 @@ public class AsyncEffectTracker implements Runnable {
 
 	protected BukkitTask effectTask;
 
-	public AsyncEffectTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
+	public AsyncEffectTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
 		this.entity = entity;
 		this.checker = checker;
 		this.effect = effect;
 
-		effectTask = Bukkit.getScheduler().runTaskTimerAsynchronously(MagicSpells.getInstance(), this, 0, effect.getEffectInterval());
+		int interval = effect.getEffectInterval().get(data);
+		effectTask = Bukkit.getScheduler().runTaskTimerAsynchronously(MagicSpells.getInstance(), this, 0, interval);
 	}
 
 	public Entity getEntity() {

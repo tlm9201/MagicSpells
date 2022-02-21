@@ -14,6 +14,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -59,10 +60,10 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public void turnOff() {
 		super.turnOff();
-		
+
 		for (Block block : blocks) {
 			block.setType(Material.AIR);
-			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation());
+			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), null);
 		}
 		blocks.clear();
 	}
@@ -77,7 +78,7 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 			
 			createTomb(caster, target, power, args);
 			sendMessages(caster, target, args);
-			playSpellEffects(caster, target);
+			playSpellEffects(caster, target, power, args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -86,7 +87,7 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		createTomb(caster, target, power, args);
 		return true;
 	}
@@ -100,7 +101,7 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(target)) return false;
 		createTomb(null, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
@@ -135,31 +136,32 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 			tempBlocks.add(feet.getRelative(0, -1, 0));
 			tempBlocks.add(feet.getRelative(0, 2, 0));
 		}
-		
+
+		SpellData data = new SpellData(caster, target, power, args);
 		for (Block b : tempBlocks) {
 			if (!BlockUtils.isAir(b.getType())) continue;
 			tombBlocks.add(b);
 			b.setType(material);
-			playSpellEffects(EffectPosition.SPECIAL, b.getLocation().add(0.5, 0.5, 0.5));
+			playSpellEffects(EffectPosition.SPECIAL, b.getLocation().add(0.5, 0.5, 0.5), data);
 		}
 		
 		blocks.addAll(tombBlocks);
 
 		int duration = this.duration.get(caster, target, power, args);
 		if (duration > 0 && !tombBlocks.isEmpty()) {
-			MagicSpells.scheduleDelayedTask(() -> removeTomb(tombBlocks), Math.round(duration * power));
+			MagicSpells.scheduleDelayedTask(() -> removeTomb(tombBlocks, data), Math.round(duration * power));
 		}
 	}
-	
-	private void removeTomb(List<Block> entomb) {
+
+	private void removeTomb(List<Block> entomb, SpellData data) {
 		for (Block block : entomb) {
 			block.setType(Material.AIR);
-			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation().add(0.5, 0.5, 0.5));
+			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation().add(0.5, 0.5, 0.5), data);
 		}
 		
 		entomb.forEach(blocks::remove);
 	}
-	
+
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
 		if (!blocks.contains(event.getBlock())) return;
@@ -167,5 +169,5 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (allowBreaking) event.getBlock().setType(Material.AIR);
 		if (!blockDestroyMessage.isEmpty()) MagicSpells.sendMessage(event.getPlayer(), blockDestroyMessage);
 	}
-	
+
 }

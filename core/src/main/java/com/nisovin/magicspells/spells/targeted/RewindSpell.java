@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -80,7 +81,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 				sendMessages(caster, targetInfo.getTarget(), args);
 				new Rewinder(caster, targetInfo.getTarget(), targetInfo.getPower(), args);
 			}
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -89,9 +90,12 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float v, String[] args) {
 		new Rewinder(caster, target, v, args);
 		sendMessages(caster, target, args);
-		playSpellEffects(EffectPosition.CASTER, caster);
-		playSpellEffects(EffectPosition.TARGET, target);
-		playSpellEffectsTrail(caster.getLocation(), target.getLocation());
+
+		SpellData data = new SpellData(caster, target, v, args);
+		playSpellEffects(EffectPosition.CASTER, caster, data);
+		playSpellEffects(EffectPosition.TARGET, target, data);
+		playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
+
 		return true;
 	}
 
@@ -103,7 +107,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public boolean castAtEntity(LivingEntity target, float v, String[] args) {
 		new Rewinder(null, target, v, args);
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, v, args);
 		return true;
 	}
 
@@ -139,6 +143,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 		private LivingEntity caster;
 		private float power;
 		private String[] args;
+		private SpellData data;
 		private LivingEntity entity;
 		private List<Location> locations;
 
@@ -151,6 +156,8 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 			this.caster = caster;
 			this.power = power;
 			this.args = args;
+
+			data = new SpellData(caster, entity, power, args);
 
 			entities.put(entity, this);
 
@@ -173,7 +180,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 			locations.add(entity.getLocation());
 			// Loop through already saved locations and play effects with special position
 			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0)
-				locations.forEach(loc -> playSpellEffects(EffectPosition.SPECIAL, loc));
+				locations.forEach(loc -> playSpellEffects(EffectPosition.SPECIAL, loc, data));
 			counter++;
 			if (counter >= startDuration) rewind();
 		}
@@ -198,6 +205,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 		private int counter;
 
 		private int startMana;
+		private SpellData data;
 		private double startHealth;
 		private LivingEntity entity;
 
@@ -212,6 +220,8 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 			this.startMana = startMana;
 			this.startHealth = startHealth;
 			this.counter = locations.size();
+
+			data = new SpellData(caster, entity, power, args);
 
 			delayedEffectInterval = RewindSpell.this.delayedEffectInterval.get(caster, entity, power, args);
 
@@ -232,7 +242,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 				entity.teleport(tempLocation);
 				locations.remove(tempLocation);
 				if (delayedEffectInterval > 0 && counter % delayedEffectInterval == 0)
-					locations.forEach(loc -> playSpellEffects(EffectPosition.DELAYED, loc));
+					locations.forEach(loc -> playSpellEffects(EffectPosition.DELAYED, loc, data));
 			}
 
 			counter--;

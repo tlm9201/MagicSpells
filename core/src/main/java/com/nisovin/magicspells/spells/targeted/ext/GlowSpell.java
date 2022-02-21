@@ -13,6 +13,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.LinkedListMultimap;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -137,9 +138,10 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> removeGlow(caster, target), duration);
 
 		// Play effects.
-		if (caster == null) playSpellEffects(EffectPosition.TARGET, target);
-		else playSpellEffects(caster, target);
-		playSpellEffectsBuff(target, entity -> entity instanceof LivingEntity && isGlowing((LivingEntity) entity));
+		SpellData data = new SpellData(caster, target, power, args);
+		if (caster == null) playSpellEffects(EffectPosition.TARGET, target, data);
+		else playSpellEffects(caster, target, data);
+		playSpellEffectsBuff(target, entity -> entity instanceof LivingEntity && isGlowing((LivingEntity) entity), data);
 	}
 
 	private void removeGlow(Player caster, Entity target) {

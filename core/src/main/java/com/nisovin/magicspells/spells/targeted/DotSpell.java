@@ -13,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.DamageSpell;
@@ -133,8 +134,8 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 			activeDots.put(target.getUniqueId(), dot);
 		}
 
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 	}
 
 	@EventHandler
@@ -224,7 +225,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 				else target.damage(localDamage, caster);
 			}
 
-			playSpellEffects(EffectPosition.DELAYED, target);
+			playSpellEffects(EffectPosition.DELAYED, target, new SpellData(caster, target, power, args));
 			target.setNoDamageTicks(0);
 		}
 

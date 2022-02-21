@@ -15,6 +15,7 @@ import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
@@ -125,15 +126,20 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 
 			target.setHealth(health);
 			target.setLastDamage(localDamage);
-			playSpellEffects(caster, target);
 			target.playEffect(EntityEffect.HURT);
+
+			if (caster != null) playSpellEffects(caster, target, power, args);
+			else playSpellEffects(EffectPosition.TARGET, target, power, args);
+
 			return true;
 		}
 
 		if (tryAvoidingAntiCheatPlugins) target.damage(localDamage);
 		else target.damage(localDamage, caster);
 
-		playSpellEffects(caster, target);
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
+
 		return true;
 	}
 

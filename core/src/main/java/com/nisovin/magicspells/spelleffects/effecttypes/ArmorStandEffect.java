@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -55,7 +56,7 @@ public class ArmorStandEffect extends SpellEffect {
 	}
 
 	@Override
-	protected ArmorStand playArmorStandEffectLocation(Location location) {
+	protected ArmorStand playArmorStandEffectLocation(Location location, SpellData data) {
 		ArmorStand armorStand = (ArmorStand) entityData.spawn(location);
 		armorStand.addScoreboardTag(ENTITY_TAG);
 		armorStand.setGravity(gravity);

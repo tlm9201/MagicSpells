@@ -59,17 +59,17 @@ public class TransmuteSpell extends TargetedSpell implements TargetedLocationSpe
 			if (!canTransmute(block)) return noTarget(caster);
 
 			block.setType(transmuteType);
-			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5));
+			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
 		Block block = target.getBlock();
 		if (canTransmute(block)) {
 			block.setType(transmuteType);
-			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5));
+			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
 			return true;
 		}
 
@@ -77,7 +77,23 @@ public class TransmuteSpell extends TargetedSpell implements TargetedLocationSpe
 		block = target.clone().add(v).getBlock();
 		if (canTransmute(block)) {
 			block.setType(transmuteType);
-			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5));
+			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		return castAtLocation(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtLocation(Location target, float power, String[] args) {
+		Block block = target.getBlock();
+		if (canTransmute(block)) {
+			block.setType(transmuteType);
+			playSpellEffects(EffectPosition.TARGET, block.getLocation().add(0.5, 0.5, 0.5), power, args);
 			return true;
 		}
 		return false;
@@ -85,15 +101,9 @@ public class TransmuteSpell extends TargetedSpell implements TargetedLocationSpe
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		Block block = target.getBlock();
-		if (canTransmute(block)) {
-			block.setType(transmuteType);
-			playSpellEffects(EffectPosition.TARGET, block.getLocation().add(0.5, 0.5, 0.5));
-			return true;
-		}
-		return false;
+		return castAtLocation(target, power, null);
 	}
-	
+
 	private boolean canTransmute(Block block) {
 		for (Material m : blockTypes) {
 			if (m.equals(block.getType())) return true;

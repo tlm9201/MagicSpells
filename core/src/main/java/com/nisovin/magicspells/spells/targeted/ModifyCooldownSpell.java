@@ -45,6 +45,7 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
 			if (target == null) return noTarget(caster);
+
 			modifyCooldowns(caster, target.getTarget(), target.getPower(), args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -53,25 +54,25 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		modifyCooldowns(caster, target, power, args);
-		playSpellEffects(caster, target);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
+		modifyCooldowns(caster, target, power, null);
+		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		modifyCooldowns(null, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
+		modifyCooldowns(null, target, power, null);
+		return true;
 	}
 
 	private void modifyCooldowns(LivingEntity caster, LivingEntity target, float power, String[] args) {
@@ -90,6 +91,9 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 			if (cd < 0) cd = 0;
 			spell.setCooldown(target, cd, false);
 		}
+
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 	}
 
 }

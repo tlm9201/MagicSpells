@@ -11,6 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -69,6 +70,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 	private Location startLocation;
 	private LivingEntity caster;
 	private Vector currentVelocity;
+	private SpellData spellData;
 	private String[] args;
 	private float power;
 	private long startTime;
@@ -86,6 +88,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 		this.args = args;
 		this.startLocation = startLocation;
 
+		spellData = new SpellData(caster, power, args);
 	}
 
 	public void start() {
@@ -127,9 +130,9 @@ public class ProjectileTracker implements Runnable, Tracker {
 		if (projectile instanceof Explosive explosive) explosive.setIsIncendiary(incendiary);
 
 		if (spell != null) {
-			spell.playEffects(EffectPosition.CASTER, startLocation);
-			spell.playEffects(EffectPosition.PROJECTILE, projectile);
-			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
+			spell.playEffects(EffectPosition.CASTER, startLocation, spellData);
+			spell.playEffects(EffectPosition.PROJECTILE, projectile, spellData);
+			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile, spellData);
 		}
 		ProjectileSpell.getProjectileTrackers().add(this);
 	}
@@ -175,7 +178,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.castAtLocation(caster, currentLocation, power);
 
-		if (spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation);
+		if (spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, spellData);
 
 		counter++;
 
@@ -202,7 +205,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 	public void stop(boolean removeTracker) {
 		if (spell != null) {
-			spell.playEffects(EffectPosition.DELAYED, currentLocation);
+			spell.playEffects(EffectPosition.DELAYED, currentLocation, spellData);
 			if (removeTracker) ProjectileSpell.getProjectileTrackers().remove(this);
 		}
 		MagicSpells.cancelTask(taskId);
@@ -508,4 +511,13 @@ public class ProjectileTracker implements Runnable, Tracker {
 	public void setArgs(String[] args) {
 		this.args = args;
 	}
+
+	public SpellData getSpellData() {
+		return spellData;
+	}
+
+	public void setSpellData(SpellData spellData) {
+		this.spellData = spellData;
+	}
+
 }

@@ -28,6 +28,7 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.CastData;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -147,8 +148,9 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 			fireball.setShooter(caster);
 			fireball.setGravity(fireballGravity);
 
-			playSpellEffects(EffectPosition.CASTER, caster);
-			playSpellEffects(EffectPosition.PROJECTILE, fireball);
+			SpellData data = new SpellData(caster, power, args);
+			playSpellEffects(EffectPosition.CASTER, caster, data);
+			playSpellEffects(EffectPosition.PROJECTILE, fireball, data);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -166,11 +168,13 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 		if (caster != null) fireball.setShooter(caster);
 		fireballs.put(fireball, new CastData(power, args));
 
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
-		else playSpellEffects(EffectPosition.CASTER, from);
+		SpellData data = new SpellData(caster, target, power, args);
 
-		playSpellEffects(EffectPosition.PROJECTILE, fireball);
-		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, from, fireball.getLocation(), caster, fireball);
+		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
+		else playSpellEffects(EffectPosition.CASTER, from, data);
+
+		playSpellEffects(EffectPosition.PROJECTILE, fireball, data);
+		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, from, fireball.getLocation(), caster, fireball, data);
 
 		return true;
 	}
@@ -203,10 +207,10 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 		if (!(entityRaw instanceof Fireball fireball)) return;
 		if (!fireballs.containsKey(fireball)) return;
 
-		playSpellEffects(EffectPosition.TARGET, fireball.getLocation());
-
 		LivingEntity caster = fireball.getShooter() instanceof LivingEntity le ? le : null;
 		CastData data = fireballs.get(fireball);
+
+		playSpellEffects(EffectPosition.TARGET, fireball.getLocation(), new SpellData(caster, data.power(), data.args()));
 
 		if (noExplosion) {
 			event.setCancelled(true);

@@ -69,7 +69,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 			boolean ok = geyser(caster, target.getTarget(), target.getPower(), args);
 			if (!ok) return noTarget(caster);
 
-			playSpellEffects(caster, target.getTarget());
+			playSpellEffects(caster, target.getTarget(), power, args);
 			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -123,7 +123,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		geyser(caster, target, power, args);
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
@@ -136,7 +136,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(target)) return false;
 		geyser(null, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 

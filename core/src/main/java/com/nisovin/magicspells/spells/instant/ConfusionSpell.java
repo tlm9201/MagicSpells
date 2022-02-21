@@ -12,6 +12,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -72,10 +73,13 @@ public class ConfusionSpell extends InstantSpell implements TargetedLocationSpel
 			int next = i + 1;
 			if (next >= monsters.size()) next = 0;
 			MobUtil.setTarget(monsters.get(i), monsters.get(next));
-			playSpellEffects(EffectPosition.TARGET, monsters.get(i));
-			playSpellEffectsTrail(caster.getLocation(), monsters.get(i).getLocation());
+
+			SpellData data = new SpellData(caster, monsters.get(i), power, args);
+
+			playSpellEffects(EffectPosition.TARGET, monsters.get(i), data);
+			playSpellEffectsTrail(caster.getLocation(), monsters.get(i).getLocation(), data);
 		}
-		playSpellEffects(EffectPosition.CASTER, caster);
+		playSpellEffects(EffectPosition.CASTER, caster, power, args);
 	}
 
 }

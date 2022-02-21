@@ -37,41 +37,65 @@ public class CreatureTargetSpell extends TargetedSpell implements TargetedEntity
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			castSpells(caster, power);
+			castSpells(caster, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		castSpells(caster, power, args);
+		return true;
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		castSpells(caster, power);
+		castSpells(caster, power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
+		castSpells(caster, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		castSpells(caster, power);
+		castSpells(caster, power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
+		playSpellEffects(from, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		playSpellEffects(from, target);
+		playSpellEffects(from, target, power, null);
 		return true;
 	}
 
-	private void castSpells(LivingEntity livingEntity, float power) {
+	private void castSpells(LivingEntity livingEntity, float power, String[] args) {
 		if (!(livingEntity instanceof Creature caster)) return;
 		LivingEntity target = caster.getTarget();
 		if (target == null || !target.isValid()) return;
 
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		if (targetSpell == null) return;
 		if (targetSpell.isTargetedEntityFromLocationSpell()) targetSpell.castAtEntityFromLocation(caster, caster.getLocation(), target, power);
 		else if (targetSpell.isTargetedLocationSpell()) targetSpell.castAtLocation(caster, target.getLocation(), power);

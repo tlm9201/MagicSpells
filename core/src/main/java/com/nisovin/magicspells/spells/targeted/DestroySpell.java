@@ -19,6 +19,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -125,7 +126,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 			if (b != null && !BlockUtils.isAir(b.getType())) {
 				Location loc = b.getLocation().add(0.5, 0.5, 0.5);
 				doIt(caster, null, caster.getLocation(), loc, power, args);
-				playSpellEffects(caster, loc);
+				playSpellEffects(caster, loc, power, args);
 			}
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -134,7 +135,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
 		doIt(caster, null, caster.getLocation(), target, power, args);
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
@@ -151,7 +152,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
 		doIt(caster, target, from, target.getLocation(), power, args);
-		playSpellEffects(from, target);
+		playSpellEffects(from, target, new SpellData(caster, target, power, args));
 		return true;
 	}
 
@@ -163,7 +164,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
 		doIt(null, target, from, target.getLocation(), power, args);
-		playSpellEffects(from, target);
+		playSpellEffects(from, target, new SpellData(null, target, power, args));
 		return true;
 	}
 
@@ -218,13 +219,14 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 		float fallingBlockDamage = resolveDamagePerBlock ? 0 : this.fallingBlockDamage.get(caster, target, power, args);
 		int fallingBlockHeight = resolveMaxHeightPerBlock ? 0 : this.fallingBlockMaxHeight.get(caster, target, power, args);
 
+		SpellData data = new SpellData(caster, target, power, args);
 		for (Block b : blocksToThrow) {
 			Material material = b.getType();
 			Location l = b.getLocation().clone().add(0.5, 0.5, 0.5);
 			FallingBlock fb = b.getWorld().spawnFallingBlock(l, material.createBlockData());
 			fb.setDropItem(false);
-			playSpellEffects(EffectPosition.PROJECTILE, fb);
-			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, source, fb.getLocation(), null, fb);
+			playSpellEffects(EffectPosition.PROJECTILE, fb, data);
+			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, source, fb.getLocation(), null, fb, data);
 
 			Vector v;
 			if (resolveVelocityPerBlock) velocity = this.velocity.get(caster, target, power, args);

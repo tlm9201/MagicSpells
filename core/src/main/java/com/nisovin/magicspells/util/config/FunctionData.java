@@ -89,7 +89,8 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 
 			ValidationResult result = expression.validate(false);
 			if (!result.isValid()) {
-				if (!silent) MagicSpells.error("Invalid equation '" + expressionString + "': [" + String.join(", ", result.getErrors()) + "]");
+				if (!silent)
+					MagicSpells.error("Invalid equation '" + expressionString + "': [" + String.join(", ", result.getErrors()) + "]");
 				return null;
 			}
 
@@ -217,6 +218,78 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 			Integer ret;
 
 			if (value != null) ret = value.intValue();
+			else if (dataDef != null) ret = dataDef.get(caster, target, power, args);
+			else ret = def;
+
+			return ret;
+		}
+
+	}
+
+	public static class ShortData extends FunctionData<Short> {
+
+		public ShortData(@NotNull Expression expression, @NotNull Short def, boolean targeted) {
+			super(expression, def, targeted);
+		}
+
+		public ShortData(@NotNull Expression expression, @NotNull ConfigData<Short> def, boolean targeted) {
+			super(expression, def, targeted);
+		}
+
+		@Override
+		public Short get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+			Double value = getValue(caster, target, power, args);
+			Short ret;
+
+			if (value != null) ret = value.shortValue();
+			else if (dataDef != null) ret = dataDef.get(caster, target, power, args);
+			else ret = def;
+
+			return ret;
+		}
+
+	}
+
+	public static class ByteData extends FunctionData<Byte> {
+
+		public ByteData(@NotNull Expression expression, @NotNull Byte def, boolean targeted) {
+			super(expression, def, targeted);
+		}
+
+		public ByteData(@NotNull Expression expression, @NotNull ConfigData<Byte> def, boolean targeted) {
+			super(expression, def, targeted);
+		}
+
+		@Override
+		public Byte get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+			Double value = getValue(caster, target, power, args);
+			Byte ret;
+
+			if (value != null) ret = value.byteValue();
+			else if (dataDef != null) ret = dataDef.get(caster, target, power, args);
+			else ret = def;
+
+			return ret;
+		}
+
+	}
+
+	public static class LongData extends FunctionData<Long> {
+
+		public LongData(@NotNull Expression expression, @NotNull Long def, boolean targeted) {
+			super(expression, def, targeted);
+		}
+
+		public LongData(@NotNull Expression expression, @NotNull ConfigData<Long> def, boolean targeted) {
+			super(expression, def, targeted);
+		}
+
+		@Override
+		public Long get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+			Double value = getValue(caster, target, power, args);
+			Long ret;
+
+			if (value != null) ret = value.longValue();
 			else if (dataDef != null) ret = dataDef.get(caster, target, power, args);
 			else ret = def;
 

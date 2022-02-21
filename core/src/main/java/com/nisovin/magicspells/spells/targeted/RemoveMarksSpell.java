@@ -110,8 +110,8 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		markSpell.setMarks(marks);
-		playSpellEffects(EffectPosition.TARGET, loc);
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
+		if (caster != null) playSpellEffects(caster, loc, power, args);
+		else playSpellEffects(EffectPosition.TARGET, loc, power, args);
 	}
 
 }

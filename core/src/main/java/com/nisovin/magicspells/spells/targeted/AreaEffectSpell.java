@@ -11,6 +11,7 @@ import org.bukkit.util.NumberConversions;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -181,10 +182,13 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			power = event.getPower();
 
 			castSpells(caster, location, target, power);
-			playSpellEffects(EffectPosition.TARGET, target);
-			playSpellEffects(EffectPosition.SPECIAL, location);
-			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation());
-			else if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation());
+
+			SpellData data = new SpellData(caster, target, power, args);
+
+			playSpellEffects(EffectPosition.TARGET, target, data);
+			playSpellEffects(EffectPosition.SPECIAL, location, data);
+			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation(), data);
+			else playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
 
 			return true;
 		}
@@ -229,9 +233,11 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			power = event.getPower();
 
 			castSpells(caster, location, target, power);
-			playSpellEffects(EffectPosition.TARGET, target);
-			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation());
-			else if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation());
+
+			SpellData data = new SpellData(caster, target, power, args);
+			playSpellEffects(EffectPosition.TARGET, target, data);
+			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation(), data);
+			else if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
 
 			count++;
 
@@ -240,8 +246,9 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		boolean success = count > 0 || !failIfNoTargets;
 		if (success) {
-			playSpellEffects(EffectPosition.SPECIAL, location);
-			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
+			SpellData data = new SpellData(caster, basePower, args);
+			playSpellEffects(EffectPosition.SPECIAL, location, data);
+			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
 		}
 
 		return success;

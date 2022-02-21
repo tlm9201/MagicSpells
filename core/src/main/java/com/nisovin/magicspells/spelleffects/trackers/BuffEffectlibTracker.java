@@ -6,17 +6,21 @@ import org.bukkit.entity.Entity;
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
 
 public class BuffEffectlibTracker extends AsyncEffectTracker implements Runnable {
 
 	private final Effect effectlibEffect;
+	private final SpellData data;
 
-	public BuffEffectlibTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
-		super(entity, checker, effect);
+	public BuffEffectlibTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
+		super(entity, checker, effect, data);
 
-		effectlibEffect = effect.playEffectLib(entity.getLocation());
+		this.data = data;
+
+		effectlibEffect = effect.playEffectLib(entity.getLocation(), data);
 		if (effectlibEffect != null) effectlibEffect.infinite();
 	}
 
@@ -27,7 +31,7 @@ public class BuffEffectlibTracker extends AsyncEffectTracker implements Runnable
 			return;
 		}
 
-		Location entityLoc = effect.applyOffsets(entity.getLocation().clone());
+		Location entityLoc = effect.applyOffsets(entity.getLocation(), data);
 
 		effectlibEffect.setLocation(entityLoc);
 		if (effectlibEffect instanceof ModifiedEffect) {

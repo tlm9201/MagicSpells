@@ -247,7 +247,7 @@ public class ScrollSpell extends CommandSpell {
 			}
 		}
 		
-		// Get scroll data (spell and uses)
+		// Get scroll spellData (spell and uses)
 		String scrollDataString = DataUtil.getString(inHand, key);
 		if (scrollDataString == null || scrollDataString.isEmpty()) return;
 		String[] scrollData = scrollDataString.split(",");

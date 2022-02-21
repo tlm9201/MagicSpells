@@ -6,6 +6,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -87,7 +88,7 @@ public class ShadowstepSpell extends TargetedSpell implements TargetedEntitySpel
 		Block b = targetLoc.getBlock();
 		if (!BlockUtils.isPathable(b.getType()) || !BlockUtils.isPathable(b.getRelative(BlockFace.UP))) return false;
 
-		playSpellEffects(caster.getLocation(), targetLoc);
+		playSpellEffects(caster.getLocation(), targetLoc, new SpellData(caster, target, power, args));
 		caster.teleport(targetLoc);
 
 		return true;

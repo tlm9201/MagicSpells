@@ -55,7 +55,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 			if (loc == null) return PostCastAction.ALREADY_HANDLED;
 
 			if (spellToCast != null) spellToCast.castAtLocation(caster, loc, power);
-			playSpellEffects(caster, loc);
+			playSpellEffects(caster, loc, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

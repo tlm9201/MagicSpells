@@ -277,13 +277,14 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		opener.openInventory(inv);
 		Util.setInventoryTitle(opener, title);
 
+		SpellData data = new SpellData(caster, entityTarget, power, args);
 		if (entityTarget != null && caster != null) {
-			playSpellEffects(caster, entityTarget);
+			playSpellEffects(caster, entityTarget, data);
 			return;
 		}
-		playSpellEffects(EffectPosition.SPECIAL, opener);
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
-		if (locTarget != null) playSpellEffects(EffectPosition.TARGET, locTarget);
+		playSpellEffects(EffectPosition.SPECIAL, opener, data);
+		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
+		if (locTarget != null) playSpellEffects(EffectPosition.TARGET, locTarget, data);
 	}
 
 	private void applyOptionsToInventory(Player opener, Inventory inv, String[] args) {

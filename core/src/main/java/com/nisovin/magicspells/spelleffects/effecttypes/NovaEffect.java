@@ -19,9 +19,12 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.SpellAnimation;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class NovaEffect extends SpellEffect {
 
@@ -31,13 +34,13 @@ public class NovaEffect extends SpellEffect {
 
 	private BlockData blockData;
 
-	private double range;
+	private ConfigData<Double> range;
 
-	private int radius;
-	private int startRadius;
-	private int heightPerTick;
-	private int expandInterval;
-	private int expandingRadiusChange;
+	private ConfigData<Integer> radius;
+	private ConfigData<Integer> startRadius;
+	private ConfigData<Integer> heightPerTick;
+	private ConfigData<Integer> expandInterval;
+	private ConfigData<Integer> expandingRadiusChange;
 
 	private boolean circleShape;
 	private boolean removePreviousBlocks;
@@ -49,7 +52,6 @@ public class NovaEffect extends SpellEffect {
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-
 		List<String> materialList = config.getStringList("types");
 		if (!materialList.isEmpty()) {
 			blockDataList = new ArrayList<>();
@@ -86,15 +88,13 @@ public class NovaEffect extends SpellEffect {
 			MagicSpells.error("Wrong nova type defined: '" + blockName + "'");
 		}
 
-		range = Math.max(config.getDouble("range", 20), 1);
-		if (range > MagicSpells.getGlobalRadius()) range = MagicSpells.getGlobalRadius();
+		range = ConfigDataUtil.getDouble(config, "range", 20);
 
-		radius = config.getInt("radius", 3);
-		startRadius = config.getInt("start-radius", 0);
-		heightPerTick = config.getInt("height-per-tick", 0);
-		expandInterval = config.getInt("expand-interval", 5);
-		expandingRadiusChange = config.getInt("expanding-radius-change", 1);
-		if (expandingRadiusChange < 1) expandingRadiusChange = 1;
+		radius = ConfigDataUtil.getInteger(config, "radius", 3);
+		startRadius = ConfigDataUtil.getInteger(config, "start-radius", 0);
+		heightPerTick = ConfigDataUtil.getInteger(config, "height-per-tick", 0);
+		expandInterval = ConfigDataUtil.getInteger(config, "expand-interval", 5);
+		expandingRadiusChange = ConfigDataUtil.getInteger(config, "expanding-radius-change", 1);
 
 		circleShape = config.getBoolean("circle-shape", false);
 		removePreviousBlocks = config.getBoolean("remove-previous-blocks", true);
@@ -103,8 +103,11 @@ public class NovaEffect extends SpellEffect {
 	}
 
 	@Override
-	public Runnable playEffectLocation(Location location) {
+	public Runnable playEffectLocation(Location location, SpellData data) {
 		if (blockData == null) return null;
+
+		double range = this.range.get(data);
+		range = Math.max(Math.min(range, MagicSpells.getGlobalRadius()), 1);
 
 		// Get nearby players
 		Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, range, range, range);
@@ -117,52 +120,68 @@ public class NovaEffect extends SpellEffect {
 		// Start animation
 		if (circleShape) {
 			if (blockDataList != null && !blockDataList.isEmpty())
-				new NovaAnimationCircle(nearby, location.getBlock(), blockDataList, radius, expandInterval, expandingRadiusChange);
+				new NovaAnimationCircle(nearby, location.getBlock(), blockDataList, data);
 			else
-				new NovaAnimationCircle(nearby, location.getBlock(), blockData, radius, expandInterval, expandingRadiusChange);
+				new NovaAnimationCircle(nearby, location.getBlock(), blockData, data);
 		} else {
 			if (blockDataList != null && !blockDataList.isEmpty())
-				new NovaAnimationSquare(nearby, location.getBlock(), blockDataList, radius, expandInterval, expandingRadiusChange);
+				new NovaAnimationSquare(nearby, location.getBlock(), blockDataList, data);
 			else
-				new NovaAnimationSquare(nearby, location.getBlock(), blockData, radius, expandInterval, expandingRadiusChange);
+				new NovaAnimationSquare(nearby, location.getBlock(), blockData, data);
 		}
 		return null;
 	}
 
-	private class NovaAnimationSquare extends SpellAnimation {
+	private abstract class NovaAnimation extends SpellAnimation {
 
-		List<Player> nearby;
-		Set<Block> blocks;
-		Block center;
-		BlockData blockData;
-		List<BlockData> blockDataList;
-		int radiusNova;
-		int radiusChange;
+		protected final List<Player> nearby;
+		protected final Block center;
 
-		public NovaAnimationSquare(List<Player> nearby, Block center, BlockData blockData, int radius, int tickInterval, int activeRadiusChange) {
-			super(tickInterval, true);
+		protected final List<BlockData> blockDataList;
+		protected final BlockData blockData;
+
+		protected final Set<Block> blocks;
+
+		protected final int radius;
+		protected final int startRadius;
+		protected final int heightPerTick;
+		protected final int expandingRadiusChange;
+
+		public NovaAnimation(List<Player> nearby, Block center, BlockData blockData, List<BlockData> blockDataList, SpellData data) {
+			super(expandInterval.get(data), true);
+
 			this.nearby = nearby;
 			this.center = center;
 			this.blockData = blockData;
-			this.radiusNova = radius;
-			this.blocks = new HashSet<>();
-			this.radiusChange = activeRadiusChange;
+			this.blockDataList = blockDataList;
+
+			blocks = new HashSet<>();
+
+			radius = NovaEffect.this.radius.get(data);
+			startRadius = NovaEffect.this.startRadius.get(data);
+			heightPerTick = NovaEffect.this.heightPerTick.get(data);
+
+			int radiusChange = NovaEffect.this.expandingRadiusChange.get(data);
+			if (radiusChange < 1) radiusChange = 1;
+			expandingRadiusChange = radiusChange;
 		}
 
-		public NovaAnimationSquare(List<Player> nearby, Block center, List<BlockData> blockDataList, int radius, int tickInterval, int activeRadiusChange) {
-			super(tickInterval, true);
-			this.nearby = nearby;
-			this.center = center;
-			this.blockDataList = blockDataList;
-			this.radiusNova = radius;
-			this.blocks = new HashSet<>();
-			this.radiusChange = activeRadiusChange;
+	}
+
+	private class NovaAnimationSquare extends NovaAnimation {
+
+		public NovaAnimationSquare(List<Player> nearby, Block center, BlockData blockData, SpellData data) {
+			super(nearby, center, blockData, null, data);
+		}
+
+		public NovaAnimationSquare(List<Player> nearby, Block center, List<BlockData> blockDataList, SpellData data) {
+			super(nearby, center, null, blockDataList, data);
 		}
 
 		@Override
 		protected void onTick(int tick) {
 			tick += startRadius;
-			tick *= radiusChange;
+			tick *= expandingRadiusChange;
 
 			// Remove old blocks
 			if (removePreviousBlocks) {
@@ -173,10 +192,10 @@ public class NovaEffect extends SpellEffect {
 				blocks.clear();
 			}
 
-			if (tick > radiusNova + 1) {
+			if (tick > radius + 1) {
 				stop(true);
 				return;
-			} else if (tick > radiusNova) {
+			} else if (tick > radius) {
 				return;
 			}
 
@@ -226,40 +245,20 @@ public class NovaEffect extends SpellEffect {
 
 	}
 
-	private class NovaAnimationCircle extends SpellAnimation {
+	private class NovaAnimationCircle extends NovaAnimation {
 
-		List<Player> nearby;
-		Set<Block> blocks;
-		Block center;
-		BlockData blockData;
-		List<BlockData> blockDataList;
-		int radiusNova;
-		int radiusChange;
-
-		public NovaAnimationCircle(List<Player> nearby, Block center, BlockData blockData, int radius, int tickInterval, int activeRadiusChange) {
-			super(tickInterval, true);
-			this.nearby = nearby;
-			this.center = center;
-			this.blockData = blockData;
-			this.radiusNova = radius;
-			this.blocks = new HashSet<>();
-			this.radiusChange = activeRadiusChange;
+		public NovaAnimationCircle(List<Player> nearby, Block center, BlockData blockData, SpellData data) {
+			super(nearby, center, blockData, null, data);
 		}
 
-		public NovaAnimationCircle(List<Player> nearby, Block center, List<BlockData> blockDataList, int radius, int tickInterval, int activeRadiusChange) {
-			super(tickInterval, true);
-			this.nearby = nearby;
-			this.center = center;
-			this.blockDataList = blockDataList;
-			this.radiusNova = radius;
-			this.blocks = new HashSet<>();
-			this.radiusChange = activeRadiusChange;
+		public NovaAnimationCircle(List<Player> nearby, Block center, List<BlockData> blockDataList, SpellData data) {
+			super(nearby, center, null, blockDataList, data);
 		}
 
 		@Override
 		protected void onTick(int tick) {
 			tick += startRadius;
-			tick *= radiusChange;
+			tick *= expandingRadiusChange;
 
 			// Remove old blocks
 			if (removePreviousBlocks) {
@@ -270,10 +269,10 @@ public class NovaEffect extends SpellEffect {
 				blocks.clear();
 			}
 
-			if (tick > radiusNova + 1) {
+			if (tick > radius + 1) {
 				stop(true);
 				return;
-			} else if (tick > radiusNova) {
+			} else if (tick > radius) {
 				return;
 			}
 

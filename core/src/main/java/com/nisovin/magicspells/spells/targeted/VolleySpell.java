@@ -21,6 +21,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellPreImpactEvent;
@@ -140,13 +141,14 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 		if (noTarget || targetLoc == null) v = from.getDirection();
 		else v = targetLoc.toVector().subtract(spawn.toVector()).normalize();
 
+		SpellData data = new SpellData(caster, target, power, args);
 		int shootInterval = this.shootInterval.get(caster, target, power, args);
 		if (shootInterval <= 0) {
 			List<Arrow> arrowList = new ArrayList<>();
 
-			int removeDelay = this.removeDelay.get(caster, target, power, args);
 
 			int arrows = this.arrows.get(caster, target, power, args);
+			int removeDelay = this.removeDelay.get(caster, target, power, args);
 			int castingArrows = powerAffectsArrowCount ? Math.round(arrows * power) : arrows;
 			for (int i = 0; i < castingArrows; i++) {
 				float speed = this.speed.get(caster, target, power, args) / 10f;
@@ -170,8 +172,8 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 				if (removeDelay > 0) arrowList.add(arrow);
 
-				playSpellEffects(EffectPosition.PROJECTILE, arrow);
-				playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, spawn, arrow.getLocation(), caster, arrow);
+				playSpellEffects(EffectPosition.PROJECTILE, arrow, data);
+				playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, spawn, arrow.getLocation(), caster, arrow, data);
 			}
 
 			if (removeDelay > 0) {
@@ -183,11 +185,11 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 		} else new ArrowShooter(caster, target, spawn, v, power, args);
 
 		if (caster != null) {
-			if (targetLoc != null) playSpellEffects(caster, targetLoc);
-			else playSpellEffects(EffectPosition.CASTER, caster);
+			if (targetLoc != null) playSpellEffects(caster, targetLoc, data);
+			else playSpellEffects(EffectPosition.CASTER, caster, data);
 		} else {
-			playSpellEffects(EffectPosition.CASTER, from);
-			if (targetLoc != null) playSpellEffects(EffectPosition.TARGET, targetLoc);
+			playSpellEffects(EffectPosition.CASTER, from, data);
+			if (targetLoc != null) playSpellEffects(EffectPosition.TARGET, targetLoc, data);
 		}
 	}
 
@@ -221,6 +223,7 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 		private final LivingEntity caster;
 		private final LivingEntity target;
+		private final SpellData data;
 		private final Location spawn;
 		private final String[] args;
 		private final float power;
@@ -239,6 +242,8 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 			this.power = power;
 			this.args = args;
 			this.dir = dir;
+
+			data = new SpellData(caster, target, power, args);
 
 			removeDelay = VolleySpell.this.removeDelay.get(caster, target, power, args);
 
@@ -278,8 +283,8 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 				if (removeDelay > 0) arrowMap.put(count, arrow);
 
-				playSpellEffects(EffectPosition.PROJECTILE, arrow);
-				playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster == null ? spawn : caster.getLocation(), arrow.getLocation(), caster, arrow);
+				playSpellEffects(EffectPosition.PROJECTILE, arrow, data);
+				playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster == null ? spawn : caster.getLocation(), arrow.getLocation(), caster, arrow, data);
 			}
 
 			if (removeDelay > 0) {

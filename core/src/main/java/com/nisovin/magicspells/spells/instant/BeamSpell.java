@@ -11,6 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -190,7 +191,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	}
 
 	private void shootBeam(LivingEntity caster, LivingEntity target, Location from, float power, String[] args) {
-		playSpellEffects(EffectPosition.CASTER, caster);
+		SpellData data = new SpellData(caster, target, power, args);
+		playSpellEffects(EffectPosition.CASTER, caster, data);
 
 		Location loc = from.clone();
 		if (!changePitch) loc.setPitch(0);
@@ -267,12 +269,12 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 			//check block collision
 			if (!isTransparent(loc.getBlock())) {
-				playSpellEffects(EffectPosition.DISABLED, loc);
+				playSpellEffects(EffectPosition.DISABLED, loc, data);
 				if (groundSpell != null) groundSpell.castAtLocation(caster, loc, power);
 				if (stopOnHitGround) break;
 			}
 
-			playSpellEffects(EffectPosition.SPECIAL, loc);
+			playSpellEffects(EffectPosition.SPECIAL, loc, data);
 
 			if (travelSpell != null) travelSpell.castAtLocation(caster, loc, power);
 
@@ -293,8 +295,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 				if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, loc, power);
 
-				playSpellEffects(EffectPosition.TARGET, entity);
-				playSpellEffectsTrail(caster.getLocation(), entity.getLocation());
+				playSpellEffects(EffectPosition.TARGET, entity, data);
+				playSpellEffectsTrail(caster.getLocation(), entity.getLocation(), data);
 				immune.add(e);
 
 				if (stopOnHitEntity) break mainLoop;
@@ -303,7 +305,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 		//end of the beam
 		if (!zoneManager.willFizzle(loc, this) && d >= maxDistance) {
-			playSpellEffects(EffectPosition.DELAYED, loc);
+			playSpellEffects(EffectPosition.DELAYED, loc, data);
 			if (endSpell != null) endSpell.castAtLocation(caster, loc, power);
 		}
 	}

@@ -39,25 +39,12 @@ import net.kyori.adventure.text.Component;
 
 import de.slikey.exp4j.Expression;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.IntMap;
-import com.nisovin.magicspells.util.TxtUtil;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.util.config.*;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.spelleffects.*;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.mana.ManaHandler;
-import com.nisovin.magicspells.util.VariableMod;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.LocationUtil;
-import com.nisovin.magicspells.util.InventoryUtil;
-import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.spells.PassiveSpell;
-import com.nisovin.magicspells.util.ExperienceUtils;
-import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.events.SpellCastEvent;
@@ -65,7 +52,6 @@ import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.MoneyHandler;
 import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
-import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.effecttypes.*;
@@ -82,6 +68,7 @@ import de.slikey.effectlib.Effect;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.LinkedListMultimap;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class Spell implements Comparable<Spell>, Listener {
 
@@ -472,7 +459,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		for (String costVal : costList) {
 			try {
-				// Parse cost data
+				// Parse cost spellData
 				data = costVal.split(" ");
 
 				switch (data[0].toLowerCase()) {
@@ -889,19 +876,46 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return def;
 	}
 
+	protected ConfigData<Long> getConfigDataLong(String key, long def) {
+		String path = "spells." + internalName + '.' + key;
+
+		if (config.isInt(path) || config.isLong(path)) {
+			long value = config.getLong(path, def);
+			return (caster, target, power, args) -> value;
+		}
+
+		if (config.isString(path)) {
+			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			if (ex == null) return (caster, target, power, args) -> def;
+
+			return new FunctionData.LongData(ex.getFirst(), def, ex.getSecond());
+		}
+
+		return (caster, target, power, args) -> def;
+	}
+
+	@NotNull
+	protected ConfigData<Long> getConfigDataLong(String key, ConfigData<Long> def) {
+		String path = "spells." + internalName + '.' + key;
+
+		if (config.isInt(path) || config.isLong(path)) {
+			long value = config.getLong(path, 0);
+			return (caster, target, power, args) -> value;
+		}
+
+		if (config.isString(path)) {
+			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			if (ex == null) return def;
+
+			return new FunctionData.LongData(ex.getFirst(), def, ex.getSecond());
+		}
+
+		return def;
+	}
+
 	protected ConfigData<String> getConfigDataString(String key, String def) {
 		String value = config.getString("spells." + internalName + '.' + key, def);
-
-		boolean argReplacement = value.contains("%arg");
-		boolean varReplacement = value.contains("%var") || value.contains("%playervar");
-
-		boolean targeted = value.contains("%targetvar");
-		boolean targetedReplacement = targeted || value.contains("%castervar");
-
-		if (argReplacement || varReplacement || targetedReplacement)
-			return new StringData(value, varReplacement, targetedReplacement, argReplacement, targeted);
-
-		return (caster, target, power, args) -> value;
+		return ConfigDataUtil.getString(value);
 	}
 
 	protected boolean isConfigString(String key) {
@@ -932,7 +946,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		else {
 			action = PostCastAction.DELAYED;
 			sendMessage(strCastStart, livingEntity, args);
-			playSpellEffects(EffectPosition.START_CAST, livingEntity);
+			playSpellEffects(EffectPosition.START_CAST, livingEntity, new SpellData(livingEntity, power, args));
 			if (MagicSpells.useExpBarAsCastTimeBar()) new DelayedSpellCastWithBar(spellCast);
 			else new DelayedSpellCast(spellCast);
 		}
@@ -1023,11 +1037,11 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			} else if (state == SpellCastState.ON_COOLDOWN) {
 				MagicSpells.sendMessageAndFormat(strOnCooldown, caster, spellCast.getSpellArgs(),
 					"%c", Math.round(getCooldown(caster)) + "", "%s", spellCast.getSpell().getName());
-				playSpellEffects(EffectPosition.COOLDOWN, caster);
+				playSpellEffects(EffectPosition.COOLDOWN, caster, new SpellData(caster, spellCast.getPower(), spellCast.getSpellArgs()));
 				if (soundOnCooldown != null && caster instanceof Player player) player.playSound(caster.getLocation(), soundOnCooldown, 1F, 1F);
 			} else if (state == SpellCastState.MISSING_REAGENTS) {
 				MagicSpells.sendMessage(strMissingReagents, caster, spellCast.getSpellArgs());
-				playSpellEffects(EffectPosition.MISSING_REAGENTS, caster);
+				playSpellEffects(EffectPosition.MISSING_REAGENTS, caster, new SpellData(caster, spellCast.getPower(), spellCast.getSpellArgs()));
 				if (MagicSpells.showStrCostOnMissingReagents() && strCost != null && !strCost.isEmpty()) MagicSpells.sendMessage("    (" + strCost + ')', caster, spellCast.getSpellArgs());
 				if (soundMissingReagents != null && caster instanceof Player player) player.playSound(caster.getLocation(), soundMissingReagents, 1F, 1F);
 			} else if (state == SpellCastState.CANT_CAST) {
@@ -1214,7 +1228,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				chargesConsumed.increment(uuid);
 				MagicSpells.scheduleDelayedTask(() -> {
 					chargesConsumed.decrement(uuid);
-					playSpellEffects(EffectPosition.CHARGE_USE, livingEntity);
+					playSpellEffects(EffectPosition.CHARGE_USE, livingEntity, new SpellData(livingEntity));
 					if (rechargeSound == null) return;
 					if (rechargeSound.isEmpty()) return;
 					if (livingEntity instanceof Player player) player.playSound(livingEntity.getLocation(), rechargeSound, 1.0F, 1.0F);
@@ -1673,36 +1687,102 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return losTransparentBlocks.contains(block.getType());
 	}
 
+	@Deprecated
 	protected void playSpellEffects(Entity pos1, Entity pos2) {
-		playSpellEffects(EffectPosition.CASTER, pos1);
-		playSpellEffects(EffectPosition.TARGET, pos2);
-		playSpellEffectsTrail(pos1.getLocation(), pos2.getLocation());
+		playSpellEffects(pos1, pos2, null);
 	}
 
+	protected void playSpellEffects(Entity pos1, Entity pos2, float power, String[] args) {
+		SpellData data = new SpellData(pos1 instanceof LivingEntity le ? le : null, pos2 instanceof LivingEntity le ? le : null, power, args);
+		playSpellEffects(pos1, pos2, data);
+	}
+
+	protected void playSpellEffects(LivingEntity pos1, LivingEntity pos2, float power, String[] args) {
+		SpellData data = new SpellData(pos1, pos2, power, args);
+		playSpellEffects(pos1, pos2, data);
+	}
+
+	protected void playSpellEffects(Entity pos1, Entity pos2, SpellData data) {
+		playSpellEffects(EffectPosition.CASTER, pos1, data);
+		playSpellEffects(EffectPosition.TARGET, pos2, data);
+		playSpellEffectsTrail(pos1.getLocation(), pos2.getLocation(), data);
+	}
+
+	@Deprecated
 	protected void playSpellEffects(Entity pos1, Location pos2) {
-		playSpellEffects(EffectPosition.CASTER, pos1);
-		playSpellEffects(EffectPosition.TARGET, pos2);
-		playSpellEffectsTrail(pos1.getLocation(), pos2);
+		playSpellEffects(pos1, pos2, null);
 	}
 
+	protected void playSpellEffects(Entity pos1, Location pos2, float power, String[] args) {
+		SpellData data = new SpellData(pos1 instanceof LivingEntity le ? le : null, power, args);
+		playSpellEffects(pos1, pos2, data);
+	}
+
+	protected void playSpellEffects(Entity pos1, Location pos2, SpellData data) {
+		playSpellEffects(EffectPosition.CASTER, pos1, data);
+		playSpellEffects(EffectPosition.TARGET, pos2, data);
+		playSpellEffectsTrail(pos1.getLocation(), pos2, data);
+	}
+
+	@Deprecated
 	protected void playSpellEffects(Location pos1, Entity pos2) {
-		playSpellEffects(EffectPosition.CASTER, pos1);
-		playSpellEffects(EffectPosition.TARGET, pos2);
-		playSpellEffectsTrail(pos1, pos2.getLocation());
+		playSpellEffects(pos1, pos2, null);
 	}
 
+	protected void playSpellEffects(Location pos1, Entity pos2, float power, String[] args) {
+		SpellData data = new SpellData(null, pos2 instanceof LivingEntity le ? le : null, power, args);
+		playSpellEffects(pos1, pos2, data);
+	}
+
+	protected void playSpellEffects(Location pos1, Entity pos2, SpellData data) {
+		playSpellEffects(EffectPosition.CASTER, pos1, data);
+		playSpellEffects(EffectPosition.TARGET, pos2, data);
+		playSpellEffectsTrail(pos1, pos2.getLocation(), data);
+	}
+
+	@Deprecated
 	protected void playSpellEffects(Location pos1, Location pos2) {
-		playSpellEffects(EffectPosition.CASTER, pos1);
-		playSpellEffects(EffectPosition.TARGET, pos2);
-		playSpellEffectsTrail(pos1, pos2);
+		playSpellEffects(pos1, pos2, null);
 	}
 
+	protected void playSpellEffects(Location pos1, Location pos2, float power, String[] args) {
+		SpellData data = new SpellData(null, null, power, args);
+		playSpellEffects(pos1, pos2, data);
+	}
+
+	protected void playSpellEffects(Location pos1, Location pos2, SpellData data) {
+		playSpellEffects(EffectPosition.CASTER, pos1, data);
+		playSpellEffects(EffectPosition.TARGET, pos2, data);
+		playSpellEffectsTrail(pos1, pos2, data);
+	}
+
+	@Deprecated
 	protected void playSpellEffects(EffectPosition pos, Entity entity) {
+		playSpellEffects(pos, entity, null);
+	}
+
+	protected void playSpellEffects(EffectPosition pos, Entity entity, float power, String[] args) {
+		LivingEntity caster = pos == EffectPosition.CASTER && entity instanceof LivingEntity le ? le : null;
+		LivingEntity target = pos == EffectPosition.TARGET && entity instanceof LivingEntity le ? le : null;
+		SpellData data = new SpellData(caster, target, power, args);
+
+		playSpellEffects(pos, entity, data);
+	}
+
+	protected void playSpellEffects(EffectPosition pos, LivingEntity entity, float power, String[] args) {
+		LivingEntity caster = pos == EffectPosition.CASTER ? entity : null;
+		LivingEntity target = pos == EffectPosition.TARGET ? entity : null;
+		SpellData data = new SpellData(caster, target, power, args);
+
+		playSpellEffects(pos, entity, data);
+	}
+
+	protected void playSpellEffects(EffectPosition pos, Entity entity, SpellData data) {
 		if (effects == null) return;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return;
 		for (SpellEffect effect : effectsList) {
-			Runnable canceler = effect.playEffect(entity);
+			Runnable canceler = effect.playEffect(entity, data);
 			if (canceler == null) continue;
 			if (!(entity instanceof Player player)) continue;
 			Map<EffectPosition, List<Runnable>> runnablesMap = callbacks.get(player.getUniqueId().toString());
@@ -1713,74 +1793,108 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 	}
 
+	@Deprecated
 	protected void playSpellEffects(EffectPosition pos, Location location) {
+		playSpellEffects(pos, location, null);
+	}
+
+	protected void playSpellEffects(EffectPosition pos, Location location, float power, String[] args) {
+		playSpellEffects(pos, location, new SpellData(null, null, power, args));
+	}
+
+	protected void playSpellEffects(EffectPosition pos, Location location, SpellData data) {
 		if (effects == null) return;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return;
 		for (SpellEffect effect : effectsList) {
-			effect.playEffect(location);
+			effect.playEffect(location, data);
 		}
 	}
 
+	@Deprecated
 	protected Set<EffectlibSpellEffect> playSpellEffectLibEffects(EffectPosition pos, Location location) {
+		return playSpellEffectLibEffects(pos, location, null);
+	}
+
+	protected Set<EffectlibSpellEffect> playSpellEffectLibEffects(EffectPosition pos, Location location, SpellData data) {
 		if (effects == null) return null;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return null;
 		Set<EffectlibSpellEffect> spellEffects = new HashSet<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof EffectLibEffect)) continue;
-			spellEffects.add(new EffectlibSpellEffect(effect.playEffectLib(location), (EffectLibEffect) effect));
+			spellEffects.add(new EffectlibSpellEffect(effect.playEffectLib(location, data), (EffectLibEffect) effect));
 		}
 		return spellEffects;
 	}
 
+	@Deprecated
 	protected Set<Entity> playSpellEntityEffects(EffectPosition pos, Location location) {
+		return playSpellEntityEffects(pos, location, null);
+	}
+
+	protected Set<Entity> playSpellEntityEffects(EffectPosition pos, Location location, SpellData data) {
 		if (effects == null) return null;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return null;
 		Set<Entity> entities = new HashSet<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof EntityEffect)) continue;
-			entities.add(effect.playEntityEffect(location));
+			entities.add(effect.playEntityEffect(location, data));
 		}
 		return entities;
 	}
 
+	@Deprecated
 	protected Set<ArmorStand> playSpellArmorStandEffects(EffectPosition pos, Location location) {
+		return playSpellArmorStandEffects(pos, location, null);
+	}
+
+	protected Set<ArmorStand> playSpellArmorStandEffects(EffectPosition pos, Location location, SpellData data) {
 		if (effects == null) return null;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return null;
 		Set<ArmorStand> armorStands = new HashSet<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof ArmorStandEffect)) continue;
-			armorStands.add(effect.playArmorStandEffect(location));
+			armorStands.add(effect.playArmorStandEffect(location, data));
 		}
 		return armorStands;
 	}
 
+	@Deprecated
 	protected void playSpellEffectsTrail(Location loc1, Location loc2) {
+		playSpellEffectsTrail(loc1, loc2, null);
+	}
+
+	protected void playSpellEffectsTrail(Location loc1, Location loc2, SpellData data) {
 		if (effects == null) return;
 		if (!LocationUtil.isSameWorld(loc1, loc2)) return;
 		List<SpellEffect> effectsList = effects.get(EffectPosition.TRAIL);
 		if (effectsList != null) {
 			for (SpellEffect effect : effectsList) {
-				effect.playEffect(loc1, loc2);
+				effect.playEffect(loc1, loc2, data);
 			}
 		}
 		List<SpellEffect> rTrailEffects = effects.get(EffectPosition.REVERSE_LINE);
 		if (rTrailEffects != null) {
-			for (SpellEffect effect: rTrailEffects) {
-				effect.playEffect(loc2, loc1);
+			for (SpellEffect effect : rTrailEffects) {
+				effect.playEffect(loc2, loc1, data);
 			}
 		}
 	}
 
+	@Deprecated
 	public void playTrackingLinePatterns(EffectPosition pos, Location origin, Location target, Entity originEntity, Entity targetEntity) {
+		playTrackingLinePatterns(pos, origin, target, originEntity, targetEntity, null);
+	}
+
+	public void playTrackingLinePatterns(EffectPosition pos, Location origin, Location target, Entity originEntity, Entity targetEntity, SpellData data) {
 		if (effects == null) return;
 		List<SpellEffect> spellEffects = effects.get(pos);
 		if (spellEffects == null) return;
-		for (SpellEffect e: spellEffects) {
-			e.playTrackingLinePatterns(origin, target, originEntity, targetEntity);
+		for (SpellEffect e : spellEffects) {
+			e.playTrackingLinePatterns(origin, target, originEntity, targetEntity, data);
 		}
 	}
 
@@ -1829,12 +1943,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return asyncEffectTrackerSet;
 	}
 
-	protected void playSpellEffectsBuff(Entity entity, SpellEffect.SpellEffectActiveChecker checker) {
+	protected void playSpellEffectsBuff(Entity entity, SpellEffect.SpellEffectActiveChecker checker, SpellData data) {
 		if (effects == null) return;
 		List<SpellEffect> effectList = effects.get(EffectPosition.BUFF);
 		if (effectList != null) {
 			for (SpellEffect effect : effectList) {
-				EffectTracker tracker = effect.playEffectWhileActiveOnEntity(entity, checker);
+				EffectTracker tracker = effect.playEffectWhileActiveOnEntity(entity, checker, data);
 				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
 				effectTrackerSet.add(tracker);
 			}
@@ -1843,7 +1957,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		effectList = effects.get(EffectPosition.ORBIT);
 		if (effectList != null) {
 			for (SpellEffect effect : effectList) {
-				EffectTracker tracker = effect.playEffectWhileActiveOrbit(entity, checker);
+				EffectTracker tracker = effect.playEffectWhileActiveOrbit(entity, checker, data);
 				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
 				effectTrackerSet.add(tracker);
 			}
@@ -1853,7 +1967,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (effectList != null) {
 			for (SpellEffect effect : effectList) {
 				if (!(effect instanceof EffectLibEffect)) continue;
-				AsyncEffectTracker tracker = effect.playEffectlibEffectWhileActiveOnEntity(entity, checker);
+				AsyncEffectTracker tracker = effect.playEffectlibEffectWhileActiveOnEntity(entity, checker, data);
 				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
 				asyncEffectTrackerSet.add(tracker);
 			}
@@ -1867,11 +1981,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (effect instanceof EffectLibLineEffect) continue;
 				if (effect instanceof EffectLibEntityEffect) continue;
 
-				AsyncEffectTracker tracker = effect.playEffectlibEffectWhileActiveOrbit(entity, checker);
+				AsyncEffectTracker tracker = effect.playEffectlibEffectWhileActiveOrbit(entity, checker, data);
 				if (this instanceof BuffSpell) tracker.setBuffSpell((BuffSpell) this);
 				asyncEffectTrackerSet.add(tracker);
 			}
 		}
+	}
+
+	protected void playSpellEffectsBuff(Entity entity, SpellEffect.SpellEffectActiveChecker checker) {
+		playSpellEffectsBuff(entity, checker, null);
 	}
 
 	protected void registerEvents() {

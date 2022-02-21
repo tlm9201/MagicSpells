@@ -29,7 +29,7 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 			if (target == null) return noTarget(caster);
 
 			close(caster, target, target, power, args);
-			playSpellEffects(caster, target);
+			playSpellEffects(caster, target, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

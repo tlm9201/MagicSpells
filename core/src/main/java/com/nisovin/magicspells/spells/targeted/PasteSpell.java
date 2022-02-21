@@ -102,8 +102,8 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
 		boolean ok = pasteInstant(caster, target, power, args);
 		if (!ok) return false;
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 

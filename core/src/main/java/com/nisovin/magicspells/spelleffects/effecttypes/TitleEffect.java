@@ -11,6 +11,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class TitleEffect extends SpellEffect {
@@ -38,7 +39,7 @@ public class TitleEffect extends SpellEffect {
 	}
 	
 	@Override
-	protected Runnable playEffectEntity(Entity entity) {
+	protected Runnable playEffectEntity(Entity entity, SpellData data) {
 		if (broadcast) Util.forEachPlayerOnline(this::send);
 		else if (entity instanceof Player player) send(player);
 		return null;

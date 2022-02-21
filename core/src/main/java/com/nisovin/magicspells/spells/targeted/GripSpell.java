@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -109,8 +110,9 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 		if (checkGround && !BlockUtils.isPathable(loc.getBlock())) return false;
 
-		playSpellEffects(EffectPosition.TARGET, target);
-		playSpellEffectsTrail(from, loc);
+		SpellData data = new SpellData(caster, target, power, args);
+		playSpellEffects(EffectPosition.TARGET, target, data);
+		playSpellEffectsTrail(from, loc, data);
 
 		return target.teleport(loc);
 	}

@@ -28,6 +28,7 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import com.nisovin.magicspells.util.MobUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.handlers.DebugHandler;
@@ -140,7 +141,7 @@ public class SteedSpell extends InstantSpell {
 			}
 
 			entity.addPassenger(caster);
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, power, args);
 			mounted.put(caster.getUniqueId(), entity.getEntityId());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -166,7 +167,7 @@ public class SteedSpell extends InstantSpell {
 		if (!mounted.containsKey(player.getUniqueId())) return;
 		mounted.remove(player.getUniqueId());
 		event.getDismounted().remove();
-		playSpellEffects(EffectPosition.DISABLED, player);
+		playSpellEffects(EffectPosition.DISABLED, player, new SpellData(player));
 	}
 	
 	@EventHandler

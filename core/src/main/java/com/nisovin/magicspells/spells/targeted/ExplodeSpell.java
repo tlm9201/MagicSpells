@@ -113,7 +113,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 		currentArgs = args;
 
 		boolean ret = target.getWorld().createExplosion(target, explosionSize, addFire, !preventBlockDamage, caster);
-		if (ret) playSpellEffects(caster, target);
+		if (ret) playSpellEffects(caster, target, power, args);
 
 		return ret;
 	}

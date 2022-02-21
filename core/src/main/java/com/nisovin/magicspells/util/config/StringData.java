@@ -39,7 +39,7 @@ public class StringData implements ConfigData<String> {
 
 	@Override
 	public boolean isConstant() {
-		return false;
+		return argReplacement || varReplacement || targetedReplacement;
 	}
 
 	@Override

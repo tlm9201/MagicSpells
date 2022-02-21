@@ -19,6 +19,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -150,7 +151,11 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 		double distance = caster.getLocation().distance(target.getLocation());
 		Levitator lev = new Levitator(caster, target, duration / tickRate, tickRate, distance, power, args);
 		levitating.put(caster.getUniqueId(), lev);
-		playSpellEffects(caster, target);
+
+		SpellData data = new SpellData(caster, target, power, args);
+
+		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster.getLocation(), target.getLocation(), caster, target, data);
+		playSpellEffects(caster, target, data);
 	}
 
 	@EventHandler
@@ -227,8 +232,6 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 			yOffset = LevitateSpell.this.yOffset.get(caster, target, power, args);
 
 			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickRate);
-
-			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster.getLocation(), target.getLocation(), caster, target);
 		}
 
 		@Override

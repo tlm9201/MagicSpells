@@ -96,7 +96,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 	private Random random = ThreadLocalRandom.current();
 
-	// DEBUG INFO: level 2, invalid potion effect on internalname spell data
+	// DEBUG INFO: level 2, invalid potion effect on internalname spell spellData
 	public SpawnEntitySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
@@ -412,8 +412,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			MagicSpells.scheduleDelayedTask(() -> HandlerList.unregisterAll(monitor), duration > 0 ? duration : 12000);
 		}
 
-		if (caster != null) playSpellEffects(caster, entity);
-		else playSpellEffects(source, entity);
+		if (caster != null) playSpellEffects(caster, entity, power, args);
+		else playSpellEffects(source, entity, power, args);
 
 		entities.add(entity);
 		if (duration > 0) {

@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spelleffects.trackers;
 import org.bukkit.entity.Entity;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
@@ -16,12 +17,13 @@ public class EffectTracker implements Runnable {
 
 	protected int effectTrackerTaskId;
 
-	public EffectTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect) {
+	public EffectTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
 		this.entity = entity;
 		this.checker = checker;
 		this.effect = effect;
 
-		effectTrackerTaskId = MagicSpells.scheduleRepeatingTask(this, 0, effect.getEffectInterval());
+		int interval = effect.getEffectInterval().get(data);
+		effectTrackerTaskId = MagicSpells.scheduleRepeatingTask(this, 0, interval);
 	}
 
 	public Entity getEntity() {

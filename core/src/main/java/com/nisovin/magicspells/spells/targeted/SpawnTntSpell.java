@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -23,7 +24,7 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Map<Integer, TntInfo> tnts;
+	private Map<Integer, SpellData> tnts;
 
 	private ConfigData<Integer> fuse;
 
@@ -106,8 +107,10 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 		TNTPrimed tnt = loc.getWorld().spawn(loc, TNTPrimed.class);
 		if (cancelGravity) tnt.setGravity(false);
 
-		playSpellEffects(EffectPosition.PROJECTILE, tnt);
-		if (caster != null) playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster.getLocation(), tnt.getLocation(), caster, tnt);
+		SpellData data = new SpellData(caster, power, args);
+
+		playSpellEffects(EffectPosition.PROJECTILE, tnt, data);
+		if (caster != null) playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster.getLocation(), tnt.getLocation(), caster, tnt, data);
 
 		tnt.setFuseTicks(fuse.get(caster, null, power, args));
 
@@ -117,13 +120,13 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 		if (velocity > 0) tnt.setVelocity(loc.getDirection().normalize().setY(0).multiply(velocity).setY(upVelocity));
 		else if (upVelocity > 0) tnt.setVelocity(new Vector(0, upVelocity, 0));
 
-		tnts.put(tnt.getEntityId(), new TntInfo(caster, power));
+		tnts.put(tnt.getEntityId(), data);
 	}
 
 	@EventHandler
 	public void onEntityExplode(EntityExplodeEvent event) {
-		TntInfo info = tnts.remove(event.getEntity().getEntityId());
-		if (info == null) return;
+		SpellData data = tnts.remove(event.getEntity().getEntityId());
+		if (data == null) return;
 
 		if (cancelExplosion) {
 			event.setCancelled(true);
@@ -135,17 +138,14 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 			event.setYield(0F);
 		}
 
-		for (Block b : event.blockList()) playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, b.getLocation());
+		for (Block b : event.blockList()) playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, b.getLocation(), data);
 
 		if (spellToCast == null) return;
-		if (info.caster == null) return;
-		if (!info.caster.isValid()) return;
-		if (info.caster.isDead()) return;
 
-		spellToCast.castAtLocation(info.caster, event.getEntity().getLocation(), info.power);
-	}
+		LivingEntity caster = data.caster();
+		if (caster == null || !caster.isValid()) return;
 
-	private record TntInfo(LivingEntity caster, float power) {
+		spellToCast.castAtLocation(caster, event.getEntity().getLocation(), data.power());
 	}
 
 }

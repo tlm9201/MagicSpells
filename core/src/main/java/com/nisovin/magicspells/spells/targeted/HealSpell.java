@@ -110,8 +110,8 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
 		target.setHealth(health);
 
-		if (caster == null) playSpellEffects(EffectPosition.TARGET, target);
-		else playSpellEffects(caster, target);
+		if (caster == null) playSpellEffects(EffectPosition.TARGET, target, power, args);
+		else playSpellEffects(caster, target, power, args);
 		return true;
 	}
 

@@ -8,6 +8,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -42,10 +43,13 @@ public class RoarSpell extends InstantSpell {
 				if (!(entity instanceof LivingEntity livingEntity)) continue;
 				if (entity instanceof Player) continue;
 				if (!validTargetList.canTarget(caster, entity)) continue;
+
 				MobUtil.setTarget(livingEntity, caster);
-				playSpellEffectsTrail(caster.getLocation(), entity.getLocation());
-				playSpellEffects(EffectPosition.TARGET, entity);
 				count++;
+
+				SpellData data = new SpellData(caster, livingEntity, power, args);
+				playSpellEffectsTrail(caster.getLocation(), entity.getLocation(), data);
+				playSpellEffects(EffectPosition.TARGET, entity, data);
 			}
 
 			if (cancelIfNoTargets && count == 0) {
@@ -53,7 +57,7 @@ public class RoarSpell extends InstantSpell {
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

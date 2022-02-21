@@ -75,8 +75,8 @@ public class CrippleSpell extends TargetedSpell implements TargetedEntitySpell {
 	private void cripple(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (target == null) return;
 
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 
 		if (useSlownessEffect) {
 			int strength = this.strength.get(caster, target, power, args);

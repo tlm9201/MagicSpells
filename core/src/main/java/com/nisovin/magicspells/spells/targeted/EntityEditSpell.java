@@ -37,7 +37,7 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 			if (target == null) return noTarget(caster);
 
 			applyAttributes(target.getTarget());
-			playSpellEffects(caster, target.getTarget());
+			playSpellEffects(caster, target.getTarget(), power, args);
 			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -45,15 +45,29 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		playSpellEffects(caster, target, power, args);
+		applyAttributes(target);
+		return true;
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, null);
+		applyAttributes(target);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		applyAttributes(target);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, null);
 		applyAttributes(target);
 		return true;
 	}

@@ -7,6 +7,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.spells.InstantSpell;
@@ -94,8 +95,9 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
 			caster.teleportAsync(markLocation);
 
-			playSpellEffects(EffectPosition.CASTER, from);
-			playSpellEffects(EffectPosition.TARGET, markLocation);
+			SpellData data = new SpellData(caster, power, args);
+			playSpellEffects(EffectPosition.CASTER, from, data);
+			playSpellEffects(EffectPosition.TARGET, markLocation, data);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

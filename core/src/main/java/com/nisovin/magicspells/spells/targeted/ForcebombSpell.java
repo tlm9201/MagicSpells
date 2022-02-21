@@ -8,6 +8,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -97,14 +98,15 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		double radiusSquared = this.radius.get(caster, null, basePower, args);
 		radiusSquared *= radiusSquared;
 
+		SpellData data = new SpellData(caster, basePower, args);
 		if (validTargetList.canTargetOnlyCaster()) {
 			if (caster == null || caster.getLocation().distanceSquared(location) > radiusSquared) return;
 
 			bomb(caster, caster, location, basePower, args);
 
-			playSpellEffects(EffectPosition.TARGET, caster);
-			playSpellEffects(EffectPosition.CASTER, caster);
-			playSpellEffects(EffectPosition.SPECIAL, location);
+			playSpellEffects(EffectPosition.TARGET, caster, data);
+			playSpellEffects(EffectPosition.CASTER, caster, data);
+			playSpellEffects(EffectPosition.SPECIAL, location, data);
 			return;
 		}
 
@@ -115,12 +117,10 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 			if (entity.getLocation().distanceSquared(location) > radiusSquared) continue;
 
 			bomb(caster, entity, location, basePower, args);
-			if (caster != null) playSpellEffectsTrail(caster.getLocation(), entity.getLocation());
-			playSpellEffects(EffectPosition.TARGET, entity);
 		}
 
-		playSpellEffects(EffectPosition.SPECIAL, location);
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
+		playSpellEffects(EffectPosition.SPECIAL, location, data);
+		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
 	}
 
 	private void bomb(LivingEntity caster, LivingEntity target, Location location, float basePower, String[] args) {
@@ -132,6 +132,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 			EventUtil.call(event);
 			if (event.isCancelled()) return;
 
+			target = event.getTarget();
 			power = event.getPower();
 		}
 
@@ -148,6 +149,10 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 
 		if (addVelocityInstead) target.setVelocity(target.getVelocity().add(v));
 		else target.setVelocity(v);
+
+		SpellData data = new SpellData(caster, target, power, args);
+		if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
+		playSpellEffects(EffectPosition.TARGET, target, data);
 	}
 
 }

@@ -8,6 +8,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -78,11 +79,12 @@ public class ForcepushSpell extends InstantSpell {
 			if (addVelocityInstead) target.setVelocity(target.getVelocity().add(v));
 			else target.setVelocity(v);
 
-			playSpellEffects(EffectPosition.TARGET, target);
-			playSpellEffectsTrail(caster.getLocation(), target.getLocation());
+			SpellData data = new SpellData(caster, target, power, args);
+			playSpellEffects(EffectPosition.TARGET, target, data);
+			playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
 		}
 
-		playSpellEffects(EffectPosition.CASTER, caster);
+		playSpellEffects(EffectPosition.CASTER, caster, basePower, args);
 	}
 
 	public boolean shouldAddVelocityInstead() {

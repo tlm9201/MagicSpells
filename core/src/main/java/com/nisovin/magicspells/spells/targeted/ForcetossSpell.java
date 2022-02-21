@@ -108,7 +108,7 @@ public class ForcetossSpell extends TargetedSpell implements TargetedEntitySpell
 		if (addVelocityInstead) target.setVelocity(target.getVelocity().add(v));
 		else target.setVelocity(v);
 
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 	}
 
 }

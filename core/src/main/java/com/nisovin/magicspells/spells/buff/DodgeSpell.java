@@ -15,6 +15,7 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.CastData;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.SpellFilter;
@@ -30,7 +31,7 @@ public class DodgeSpell extends BuffSpell {
 
 	private final Map<UUID, CastData> entities;
 
-	private ConfigData<Double> distance;
+	private final ConfigData<Double> distance;
 
 	private SpellFilter filter;
 
@@ -113,18 +114,21 @@ public class DodgeSpell extends BuffSpell {
 
 		e.setCancelled(true);
 		tracker.getImmune().add(target);
-		dodge(target, tracker);
-		playSpellEffects(EffectPosition.TARGET, tracker.getCurrentLocation());
+
+		CastData castData = entities.get(target.getUniqueId());
+		SpellData spellData = new SpellData(target, tracker.getCaster(), castData.power(), castData.args());
+		dodge(target, tracker, spellData);
+
+		playSpellEffects(EffectPosition.TARGET, tracker.getCurrentLocation(), spellData);
 	}
 
-	private void dodge(LivingEntity entity, ParticleProjectileTracker tracker) {
+	private void dodge(LivingEntity entity, ParticleProjectileTracker tracker, SpellData spellData) {
 		Location targetLoc = tracker.getCurrentLocation().clone();
 		Location entityLoc = entity.getLocation().clone();
-		playSpellEffects(EffectPosition.SPECIAL, entityLoc);
 
-		CastData data = entities.get(entity.getUniqueId());
-		Vector v = RandomUtils.getRandomCircleVector().multiply(distance.get(entity, tracker.getCaster(), data.power(), data.args()));
+		playSpellEffects(EffectPosition.SPECIAL, entityLoc, spellData);
 
+		Vector v = RandomUtils.getRandomCircleVector().multiply(distance.get(entity, tracker.getCaster(), spellData.power(), spellData.args()));
 		targetLoc.add(v);
 		targetLoc.setDirection(entity.getLocation().getDirection());
 
@@ -133,8 +137,10 @@ public class DodgeSpell extends BuffSpell {
 		if (!BlockUtils.isPathable(targetLoc.getBlock().getType()) || !BlockUtils.isPathable(targetLoc.getBlock().getRelative(BlockFace.UP))) return;
 		entity.teleport(targetLoc);
 		addUseAndChargeCost(entity);
-		playSpellEffectsTrail(entityLoc, targetLoc);
-		playSpellEffects(EffectPosition.DELAYED, targetLoc);
+
+		playSpellEffectsTrail(entityLoc, targetLoc, spellData);
+		playSpellEffects(EffectPosition.DELAYED, targetLoc, spellData);
+
 		if (spellAfterDodge != null) spellAfterDodge.castAtLocation(entity, targetLoc, 1F);
 	}
 

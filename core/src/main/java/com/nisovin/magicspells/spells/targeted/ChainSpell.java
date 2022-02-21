@@ -9,6 +9,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -147,9 +148,11 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			}
 		}
 
+		SpellData data = new SpellData(caster, target, power, args);
+
 		// Cast spell at targets
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
-		else if (start != null) playSpellEffects(EffectPosition.CASTER, start);
+		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
+		else if (start != null) playSpellEffects(EffectPosition.CASTER, start, data);
 
 		if (interval <= 0) {
 			for (int i = 0; i < targets.size(); i++) {
@@ -158,12 +161,13 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				else from = targets.get(i - 1).getLocation();
 
 				castSpellAt(caster, from, targets.get(i), targetPowers.get(i));
-				if (i > 0) playSpellEffectsTrail(targets.get(i - 1).getLocation(), targets.get(i).getLocation());
-				else if (i == 0 && caster != null)
-					playSpellEffectsTrail(caster.getLocation(), targets.get(i).getLocation());
-				playSpellEffects(EffectPosition.TARGET, targets.get(i));
+
+				data = new SpellData(caster, targets.get(i), targetPowers.get(i), args);
+				if (i > 0) playSpellEffectsTrail(targets.get(i - 1).getLocation(), targets.get(i).getLocation(), data);
+				else if (caster != null) playSpellEffectsTrail(caster.getLocation(), targets.get(i).getLocation(), data);
+				playSpellEffects(EffectPosition.TARGET, targets.get(i), data);
 			}
-		} else new ChainBouncer(caster, start, targets, targetPowers, interval);
+		} else new ChainBouncer(caster, start, targets, targetPowers, interval, args);
 	}
 
 	private boolean castSpellAt(LivingEntity caster, Location from, LivingEntity target, float power) {
@@ -181,6 +185,7 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 		private final LivingEntity caster;
 		private final Location start;
+		private final String[] args;
 		private final int taskId;
 
 		private final List<LivingEntity> targets;
@@ -188,9 +193,10 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 		private int current = 0;
 
-		private ChainBouncer(LivingEntity caster, Location start, List<LivingEntity> targets, List<Float> targetPowers, int interval) {
+		private ChainBouncer(LivingEntity caster, Location start, List<LivingEntity> targets, List<Float> targetPowers, int interval, String[] args) {
 			this.caster = caster;
 			this.start = start;
+			this.args = args;
 
 			this.targetPowers = targetPowers;
 			this.targets = targets;
@@ -204,14 +210,16 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			if (current == 0) from = start;
 			else from = targets.get(current - 1).getLocation();
 
+			SpellData data = new SpellData(caster, targets.get(current), targetPowers.get(current), args);
+
 			castSpellAt(caster, from, targets.get(current), targetPowers.get(current));
 			if (current > 0) {
-				playSpellEffectsTrail(targets.get(current - 1).getLocation().add(0, 0.5, 0), targets.get(current).getLocation().add(0, 0.5, 0));
+				playSpellEffectsTrail(targets.get(current - 1).getLocation().add(0, 0.5, 0), targets.get(current).getLocation().add(0, 0.5, 0), data);
 			} else if (current == 0 && caster != null) {
-				playSpellEffectsTrail(caster.getLocation().add(0, 0.5, 0), targets.get(current).getLocation().add(0, 0.5, 0));
+				playSpellEffectsTrail(caster.getLocation().add(0, 0.5, 0), targets.get(current).getLocation().add(0, 0.5, 0), data);
 			}
 
-			playSpellEffects(EffectPosition.TARGET, targets.get(current));
+			playSpellEffects(EffectPosition.TARGET, targets.get(current), data);
 			current++;
 			if (current >= targets.size()) MagicSpells.cancelTask(taskId);
 		}

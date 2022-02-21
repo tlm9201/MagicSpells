@@ -22,12 +22,12 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 		
 		variableName = getConfigString("variable-name", "");
 
-		dataElement = DataLivingEntity.getDataFunction(getConfigString("data-element", "uuid"));
+		dataElement = DataLivingEntity.getDataFunction(getConfigString("spellData-element", "uuid"));
 	}
 	
 	@Override
 	public void initialize() {
-		if (dataElement == null) MagicSpells.error("DataSpell '" + internalName + "' has an invalid option defined for data-element!");
+		if (dataElement == null) MagicSpells.error("DataSpell '" + internalName + "' has an invalid option defined for spellData-element!");
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 			LivingEntity target = targetInfo.getTarget();
 			if (target == null) return noTarget(player);
 
-			playSpellEffects(player, target);
+			playSpellEffects(player, target, power, args);
 			String value = dataElement.apply(target);
 			MagicSpells.getVariableManager().set(variableName, player, value);
 		}
@@ -55,12 +55,17 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(caster instanceof Player)) return false;
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		String value = dataElement.apply(target);
 		MagicSpells.getVariableManager().set(variableName, (Player) caster, value);
 		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override

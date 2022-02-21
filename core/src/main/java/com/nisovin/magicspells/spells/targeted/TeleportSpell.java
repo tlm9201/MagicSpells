@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -76,9 +77,10 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 
 		if (!BlockUtils.isPathable(targetLoc.getBlock())) return false;
 
-		playSpellEffects(EffectPosition.CASTER, caster);
-		playSpellEffects(EffectPosition.TARGET, target);
-		playSpellEffectsTrail(startLoc, targetLoc);
+		SpellData data = new SpellData(caster, target, power, args);
+		playSpellEffects(EffectPosition.CASTER, caster, data);
+		playSpellEffects(EffectPosition.TARGET, target, data);
+		playSpellEffectsTrail(startLoc, targetLoc, data);
 
 		return caster.teleport(targetLoc);
 	}

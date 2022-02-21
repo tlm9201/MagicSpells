@@ -27,6 +27,7 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -193,7 +194,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 			ProjectileTracker tracker = new ProjectileTracker(caster, caster.getLocation(), power, args);
 			setupTracker(tracker, caster, power, args);
 			tracker.start();
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, tracker.getSpellData());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -293,7 +294,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 				else if (tracker.getHitSpell().isTargetedLocationSpell()) tracker.getHitSpell().castAtLocation(tracker.getCaster(), entity.getLocation(), tracker.getPower());
 			}
 
-			playSpellEffects(EffectPosition.TARGET, entity);
+			playSpellEffects(EffectPosition.TARGET, entity, tracker.getSpellData());
 			event.setCancelled(true);
 			event.setDamage(0);
 			tracker.stop(false);
@@ -359,16 +360,12 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 				&& Math.abs(loc1.getZ() - loc2.getZ()) < 0.1;
 	}
 
-	public void playEffects(EffectPosition position, Location loc) {
-		playSpellEffects(position, loc);
+	public void playEffects(EffectPosition position, Location loc, SpellData data) {
+		playSpellEffects(position, loc, data);
 	}
 
-	public void playEffects(EffectPosition position, Entity entity) {
-		playSpellEffects(position, entity);
-	}
-
-	public void playTrackingLineEffects(EffectPosition position, Location startLocation, Location location, LivingEntity caster, Projectile projectile) {
-		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
+	public void playEffects(EffectPosition position, Entity entity, SpellData data) {
+		playSpellEffects(position, entity, data);
 	}
 
 	public static Set<ProjectileTracker> getProjectileTrackers() {

@@ -102,7 +102,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (target == null) return noTarget(caster);
 
 			silence(caster, target.getTarget(), target.getPower(), args);
-			playSpellEffects(caster, target.getTarget());
+			playSpellEffects(caster, target.getTarget(), power, args);
 			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -112,7 +112,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		silence(caster, target, power, args);
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
@@ -124,7 +124,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		silence(null, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 

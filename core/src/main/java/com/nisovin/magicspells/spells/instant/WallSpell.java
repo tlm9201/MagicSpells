@@ -226,7 +226,7 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 			blockSet.removeAfter(wallDuration, (TemporaryBlockSet set) -> blockSets.remove(caster.getUniqueId()));
 		}
 
-		playSpellEffects(EffectPosition.CASTER, caster);
+		playSpellEffects(EffectPosition.CASTER, caster, power, args);
 	}
 
 	private class BreakListener implements Listener {

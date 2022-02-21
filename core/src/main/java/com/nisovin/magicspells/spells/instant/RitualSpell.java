@@ -18,6 +18,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -133,8 +134,10 @@ public class RitualSpell extends InstantSpell {
 	private class ActiveRitual implements Runnable {
 
 		private final Player caster;
-		private final float power;
+
+		private final SpellData data;
 		private final String[] args;
+		private final float power;
 
 		private final Map<Player, Location> channelers;
 		private final int taskId;
@@ -151,6 +154,8 @@ public class RitualSpell extends InstantSpell {
 			this.power = power;
 			this.args = args;
 
+			data = new SpellData(caster, power, args);
+
 			channelers = new HashMap<>();
 			channelers.put(caster, caster.getLocation());
 
@@ -162,14 +167,14 @@ public class RitualSpell extends InstantSpell {
 			taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(MagicSpells.plugin, this, tickInterval, tickInterval);
 
 			if (showProgressOnExpBar) MagicSpells.getExpBarManager().lock(caster, this);
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, data);
 		}
 
 		private void addChanneler(Player player) {
 			if (channelers.containsKey(player)) return;
 			channelers.put(player, player.getLocation());
 			if (showProgressOnExpBar) MagicSpells.getExpBarManager().lock(player, this);
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, player, data);
 		}
 
 		private void removeChanneler(Player player) {
@@ -210,7 +215,7 @@ public class RitualSpell extends InstantSpell {
 					MagicSpells.getExpBarManager().update(player, count, (float) duration / (float) ritualDuration, this);
 
 				// Spell effect
-				if (duration % effectInterval == 0) playSpellEffects(EffectPosition.CASTER, player);
+				if (duration % effectInterval == 0) playSpellEffects(EffectPosition.CASTER, player, data);
 			}
 
 			if (interrupted) {
@@ -227,7 +232,7 @@ public class RitualSpell extends InstantSpell {
 				if (count >= reqParticipants && !caster.isDead() && caster.isOnline()) {
 					if (chargeReagentsImmediately || hasReagents(caster)) {
 						stop(strRitualSuccess);
-						playSpellEffects(EffectPosition.DELAYED, caster);
+						playSpellEffects(EffectPosition.DELAYED, caster, data);
 						PostCastAction action = spellToCast.castSpell(caster, SpellCastState.NORMAL, power, args);
 						if (!chargeReagentsImmediately && action.chargeReagents()) removeReagents(caster);
 						if (!setCooldownImmediately && action.setCooldown()) setCooldown(caster, cooldown);

@@ -171,7 +171,7 @@ public class DowseSpell extends InstantSpell {
 				if (getDistance) distance = (int) Math.round(player.getLocation().distance(foundEntity.getLocation()));
 			}
 			
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, player, power, args);
 			if (getDistance) {
 				sendMessage(strCastSelf, player, args, "%d", distance + "");
 				sendMessageNear(player, strCastOthers);

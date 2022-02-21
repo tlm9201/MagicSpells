@@ -23,10 +23,12 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -41,11 +43,11 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	private final Multimap<UUID, Loop> activeLoops = HashMultimap.create();
 
-	private final int iterations;
+	private final ConfigData<Integer> iterations;
 
-	private final long delay;
-	private final long duration;
-	private final long interval;
+	private final ConfigData<Long> delay;
+	private final ConfigData<Long> duration;
+	private final ConfigData<Long> interval;
 
 	private final double yOffset;
 
@@ -88,11 +90,11 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	public LoopSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		iterations = getConfigInt("iterations", 0);
+		iterations = getConfigDataInt("iterations", 0);
 
-		delay = getConfigLong("delay", 0);
-		duration = getConfigLong("duration", 0);
-		interval = getConfigLong("interval", 20);
+		delay = getConfigDataLong("delay", 0);
+		duration = getConfigDataLong("duration", 0);
+		interval = getConfigDataLong("interval", 20);
 
 		yOffset = getConfigDouble("y-offset", 0);
 
@@ -322,11 +324,13 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 		private final LivingEntity targetEntity;
 		private final Location targetLocation;
+		private final SpellData data;
 		private final String[] args;
 		private final float power;
 
+		private final long iterations;
 		private final int taskId;
-		private int count;
+		private long count;
 
 		private Loop(LivingEntity caster, LivingEntity targetEntity, Location targetLocation, float power, String[] args) {
 			this.caster = caster;
@@ -336,8 +340,12 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			this.power = power;
 			this.args = args;
 
-			taskId = MagicSpells.scheduleRepeatingTask(this, delay, interval);
-			if (duration > 0) MagicSpells.scheduleDelayedTask(this::cancel, duration);
+			data = new SpellData(caster, targetEntity, power, args);
+			taskId = MagicSpells.scheduleRepeatingTask(this, delay.get(caster, targetEntity, power, args), interval.get(caster, targetEntity, power, args));
+			iterations = LoopSpell.this.iterations.get(caster, targetEntity, power, args);
+
+			long dur = duration.get(caster, targetEntity, power, args);
+			if (dur > 0) MagicSpells.scheduleDelayedTask(this::cancel, dur);
 		}
 
 		@Override
@@ -355,7 +363,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 					VariableMod mod = entry.getValue();
 					if (mod == null) continue;
 
-					variableManager.processVariableMods(entry.getKey(), mod, playerCaster, playerCaster, playerTarget);
+					variableManager.processVariableMods(entry.getKey(), mod, playerCaster, playerCaster, playerTarget, power, args);
 				}
 			}
 
@@ -367,7 +375,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 					VariableMod mod = entry.getValue();
 					if (mod == null) continue;
 
-					variableManager.processVariableMods(entry.getKey(), mod, playerTarget, playerCaster, playerTarget);
+					variableManager.processVariableMods(entry.getKey(), mod, playerTarget, playerCaster, playerTarget, power, args);
 				}
 			}
 
@@ -398,14 +406,13 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			}
 
 			if (caster != null) {
-				if (targetEntity != null) playSpellEffects(caster, targetEntity);
-				else if (targetLocation != null) playSpellEffects(caster, targetLocation);
-				else playSpellEffects(EffectPosition.CASTER, caster);
+				if (targetEntity != null) playSpellEffects(caster, targetEntity, data);
+				else if (targetLocation != null) playSpellEffects(caster, targetLocation, data);
+				else playSpellEffects(EffectPosition.CASTER, caster, data);
 			} else {
-				if (targetEntity != null) playSpellEffects(EffectPosition.TARGET, targetEntity);
-				else if (targetLocation != null) playSpellEffects(EffectPosition.TARGET, targetLocation);
+				if (targetEntity != null) playSpellEffects(EffectPosition.TARGET, targetEntity, data);
+				else if (targetLocation != null) playSpellEffects(EffectPosition.TARGET, targetLocation, data);
 			}
-
 
 			count++;
 			if (iterations > 0 && count >= iterations) cancel();
@@ -466,9 +473,9 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				activeLoops.remove(key, this);
 			}
 
-			if (targetEntity != null) playSpellEffects(EffectPosition.DELAYED, targetEntity);
-			else if (targetLocation != null) playSpellEffects(EffectPosition.DELAYED, targetLocation);
-			else if (caster != null) playSpellEffects(EffectPosition.DELAYED, caster);
+			if (targetEntity != null) playSpellEffects(EffectPosition.DELAYED, targetEntity, data);
+			else if (targetLocation != null) playSpellEffects(EffectPosition.DELAYED, targetLocation, data);
+			else if (caster != null) playSpellEffects(EffectPosition.DELAYED, caster, data);
 
 			if (caster != null || targetEntity != null) {
 				Player playerCaster = caster instanceof Player p ? p : null;

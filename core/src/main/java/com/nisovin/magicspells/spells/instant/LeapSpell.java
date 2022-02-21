@@ -8,11 +8,12 @@ import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
-import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import org.bukkit.event.entity.EntityDamageEvent;
 
+import com.nisovin.magicspells.Subspell;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -91,7 +92,7 @@ public class LeapSpell extends InstantSpell {
 			}
 
 			jumping.add(caster.getUniqueId());
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -102,7 +103,7 @@ public class LeapSpell extends InstantSpell {
 		LivingEntity livingEntity = (LivingEntity) event.getEntity();
 		if (!jumping.remove(livingEntity.getUniqueId())) return;
 		if (landSpell != null) landSpell.cast(livingEntity, 1F);
-		playSpellEffects(EffectPosition.TARGET, livingEntity.getLocation());
+		playSpellEffects(EffectPosition.TARGET, livingEntity.getLocation(), new SpellData(livingEntity));
 		if (cancelDamage) event.setCancelled(true);
 	}
 

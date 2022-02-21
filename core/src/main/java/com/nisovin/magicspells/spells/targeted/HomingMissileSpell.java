@@ -11,15 +11,10 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.BoundingBox;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -239,6 +234,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 		private LivingEntity caster;
 		private LivingEntity target;
+		private SpellData data;
 		private Location currentLocation;
 		private Vector currentVelocity;
 		private BoundingBox hitBox;
@@ -263,7 +259,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			currentLocation = caster.getLocation().clone();
 			currentVelocity = currentLocation.getDirection();
 			init(caster, target, power, args);
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, data);
 		}
 
 		private MissileTracker(LivingEntity caster, Location startLocation, LivingEntity target, float power, String[] args) {
@@ -272,14 +268,16 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			currentVelocity = target.getLocation().clone().toVector().subtract(currentLocation.toVector()).normalize();
 			init(caster, target, power, args);
 
-			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
-			else playSpellEffects(EffectPosition.CASTER, startLocation);
+			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
+			else playSpellEffects(EffectPosition.CASTER, startLocation, data);
 		}
 
 		private void init(LivingEntity caster, LivingEntity target, float power, String[] args) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
+
+			data = new SpellData(caster, target, power, args);
 
 			startTime = System.currentTimeMillis();
 
@@ -311,9 +309,9 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			float verticalHitRadius = HomingMissileSpell.this.verticalHitRadius.get(caster, target, power, args);
 			hitBox = new BoundingBox(currentLocation, hitRadius, verticalHitRadius);
 
-			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, currentLocation);
-			entitySet = playSpellEntityEffects(EffectPosition.PROJECTILE, currentLocation);
-			armorStandSet = playSpellArmorStandEffects(EffectPosition.PROJECTILE, currentLocation);
+			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, currentLocation, data);
+			entitySet = playSpellEntityEffects(EffectPosition.PROJECTILE, currentLocation, data);
+			armorStandSet = playSpellArmorStandEffects(EffectPosition.PROJECTILE, currentLocation, data);
 
 			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
 		}
@@ -408,7 +406,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 					effect = spellEffect.getEffect();
 					if (effect == null) continue;
 
-					effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone());
+					effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone(), data);
 					effect.setLocation(effectLoc);
 
 					if (effect instanceof ModifiedEffect) {
@@ -418,7 +416,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				}
 			}
 
-			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation);
+			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation, data);
 
 			counter++;
 
@@ -435,7 +433,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 					if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(caster, target, power);
 					else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(caster, target.getLocation(), power);
 					if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, currentLocation, power);
-					playSpellEffects(EffectPosition.TARGET, target);
+					playSpellEffects(EffectPosition.TARGET, target, data);
 					if (stopOnHitTarget) stop();
 				} else {
 					redirect();
@@ -457,7 +455,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		}
 
 		private void playMissileEffect(Location loc) {
-			playSpellEffects(EffectPosition.SPECIAL, loc);
+			playSpellEffects(EffectPosition.SPECIAL, loc, data);
 		}
 
 		private void redirect() {
@@ -468,7 +466,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		}
 
 		private void stop() {
-			playSpellEffects(EffectPosition.DELAYED, currentLocation);
+			playSpellEffects(EffectPosition.DELAYED, currentLocation, data);
 			MagicSpells.cancelTask(taskId);
 			if (effectSet != null) {
 				for (EffectlibSpellEffect spellEffect : effectSet) {

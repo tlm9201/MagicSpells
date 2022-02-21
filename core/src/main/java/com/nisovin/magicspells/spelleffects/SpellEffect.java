@@ -13,7 +13,10 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.trackers.BuffTracker;
 import com.nisovin.magicspells.spelleffects.trackers.OrbitTracker;
@@ -27,37 +30,34 @@ public abstract class SpellEffect {
 
 	private final Random random = ThreadLocalRandom.current();
 
-	private int delay;
+	private ConfigData<Integer> delay;
 
-	private double chance;
-	private double zOffset;
-	private double heightOffset;
-	private double forwardOffset;
+	private ConfigData<Double> chance;
+	private ConfigData<Double> zOffset;
+	private ConfigData<Double> heightOffset;
+	private ConfigData<Double> forwardOffset;
 
 	private Vector offset;
 	private Vector relativeOffset;
-	
+
 	// for line
-	private double maxDistance;
-	private double distanceBetween;
+	private ConfigData<Double> distanceBetween;
+	private ConfigData<Double> maxDistanceSquared;
 
 	// for buff/orbit
-	private float orbitXAxis;
-	private float orbitYAxis;
-	private float orbitZAxis;
-	private float orbitRadius;
-	private float orbitYOffset;
-	private float horizOffset;
-	private float horizExpandRadius;
-	private float vertExpandRadius;
-	private float ticksPerSecond;
-	private float distancePerTick;
-	private float secondsPerRevolution;
+	private ConfigData<Float> orbitXAxis;
+	private ConfigData<Float> orbitYAxis;
+	private ConfigData<Float> orbitZAxis;
+	private ConfigData<Float> orbitRadius;
+	private ConfigData<Float> orbitYOffset;
+	private ConfigData<Float> horizOffset;
+	private ConfigData<Float> horizExpandRadius;
+	private ConfigData<Float> vertExpandRadius;
+	private ConfigData<Float> secondsPerRevolution;
 
-	private int ticksPerRevolution;
-	private int horizExpandDelay;
-	private int vertExpandDelay;
-	private int effectInterval;
+	private ConfigData<Integer> horizExpandDelay;
+	private ConfigData<Integer> vertExpandDelay;
+	private ConfigData<Integer> effectInterval;
 
 	private boolean counterClockwise;
 
@@ -70,46 +70,42 @@ public abstract class SpellEffect {
 	public void loadFromString(String string) {
 		MagicSpells.plugin.getLogger().warning("Warning: single line effects are being removed, usage encountered: " + string);
 	}
-	
+
 	public final void loadFromConfiguration(ConfigurationSection config) {
-		delay = config.getInt("delay", 0);
-		chance = config.getDouble("chance", -1) / 100;
-		zOffset = config.getDouble("z-offset", 0);
-		heightOffset = config.getDouble("height-offset", 0);
-		forwardOffset = config.getDouble("forward-offset", 0);
+		delay = ConfigDataUtil.getInteger(config, "delay", 0);
+		chance = ConfigDataUtil.getDouble(config, "chance", -1);
+		zOffset = ConfigDataUtil.getDouble(config, "z-offset", 0);
+		heightOffset = ConfigDataUtil.getDouble(config, "height-offset", 0);
+		forwardOffset = ConfigDataUtil.getDouble(config, "forward-offset", 0);
 
 		String[] offsetStr = config.getString("offset", "0,0,0").split(",");
 		String[] relativeStr = config.getString("relative-offset", "0,0,0").split(",");
 		offset = new Vector(Double.parseDouble(offsetStr[0]), Double.parseDouble(offsetStr[1]), Double.parseDouble(offsetStr[2]));
 		relativeOffset = new Vector(Double.parseDouble(relativeStr[0]), Double.parseDouble(relativeStr[1]), Double.parseDouble(relativeStr[2]));
 
-		maxDistance = config.getDouble("max-distance", 100);
-		distanceBetween = config.getDouble("distance-between", 1);
+		maxDistanceSquared = ConfigDataUtil.getDouble(config, "max-distance", 100);
+		distanceBetween = ConfigDataUtil.getDouble(config, "distance-between", 1);
 
 		String path = "orbit-";
-		orbitXAxis = (float) config.getDouble(path + "x-axis", 0F);
-		orbitYAxis = (float) config.getDouble(path + "y-axis", 0F);
-		orbitZAxis = (float) config.getDouble(path + "z-axis", 0F);
-		orbitRadius = (float) config.getDouble(path + "radius", 1F);
-		orbitYOffset = (float) config.getDouble(path + "y-offset", 0F);
-		horizOffset = (float) config.getDouble(path + "horiz-offset", 0F);
-		horizExpandRadius = (float) config.getDouble(path + "horiz-expand-radius", 0);
-		vertExpandRadius = (float) config.getDouble(path + "vert-expand-radius", 0);
-		secondsPerRevolution = (float) config.getDouble(path + "seconds-per-revolution", 3);
+		orbitXAxis = ConfigDataUtil.getFloat(config, path + "x-axis", 0F);
+		orbitYAxis = ConfigDataUtil.getFloat(config, path + "y-axis", 0F);
+		orbitZAxis = ConfigDataUtil.getFloat(config, path + "z-axis", 0F);
+		orbitRadius = ConfigDataUtil.getFloat(config, path + "radius", 1F);
+		orbitYOffset = ConfigDataUtil.getFloat(config, path + "y-offset", 0F);
+		horizOffset = ConfigDataUtil.getFloat(config, path + "horiz-offset", 0F);
+		horizExpandRadius = ConfigDataUtil.getFloat(config, path + "horiz-expand-radius", 0);
+		vertExpandRadius = ConfigDataUtil.getFloat(config, path + "vert-expand-radius", 0);
+		secondsPerRevolution = ConfigDataUtil.getFloat(config, path + "seconds-per-revolution", 3);
 
-		horizExpandDelay = config.getInt(path + "horiz-expand-delay", 0);
-		vertExpandDelay = config.getInt(path + "vert-expand-delay", 0);
-		effectInterval = config.getInt("effect-interval", TimeUtil.TICKS_PER_SECOND);
+		horizExpandDelay = ConfigDataUtil.getInteger(config, path + "horiz-expand-delay", 0);
+		vertExpandDelay = ConfigDataUtil.getInteger(config, path + "vert-expand-delay", 0);
+		effectInterval = ConfigDataUtil.getInteger(config, "effect-interval", TimeUtil.TICKS_PER_SECOND);
 
 		counterClockwise = config.getBoolean(path + "counter-clockwise", false);
-		
+
 		modifiersList = config.getStringList("modifiers");
 		locationModifiersList = config.getStringList("location-modifiers");
 
-		maxDistance *= maxDistance;
-		ticksPerSecond = 20F / (float) effectInterval;
-		ticksPerRevolution = Math.round(ticksPerSecond * secondsPerRevolution);
-		distancePerTick = 6.28F / (ticksPerSecond * secondsPerRevolution);
 		loadFromConfig(config);
 	}
 
@@ -117,16 +113,21 @@ public abstract class SpellEffect {
 		if (modifiersList != null) modifiers = new ModifierSet(modifiersList, spell);
 		if (locationModifiersList != null) locationModifiers = new ModifierSet(locationModifiersList, spell);
 	}
-	
+
 	protected abstract void loadFromConfig(ConfigurationSection config);
 
 	public Location applyOffsets(Location loc) {
-		return applyOffsets(loc, offset, relativeOffset, zOffset, heightOffset, forwardOffset);
+		return applyOffsets(loc, null);
+	}
+
+	public Location applyOffsets(Location loc, SpellData data) {
+		return applyOffsets(loc, offset, relativeOffset, zOffset.get(data), heightOffset.get(data), forwardOffset.get(data));
 	}
 
 	public Location applyOffsets(Location loc, Vector offset, Vector relativeOffset, double zOffset, double heightOffset, double forwardOffset) {
 		if (offset.getX() != 0 || offset.getY() != 0 || offset.getZ() != 0) loc.add(offset);
-		if (relativeOffset.getX() != 0 || relativeOffset.getY() != 0 || relativeOffset.getZ() != 0) loc.add(VectorUtils.rotateVector(relativeOffset, loc));
+		if (relativeOffset.getX() != 0 || relativeOffset.getY() != 0 || relativeOffset.getZ() != 0)
+			loc.add(VectorUtils.rotateVector(relativeOffset, loc));
 		if (zOffset != 0) {
 			Vector locDirection = loc.getDirection().normalize();
 			Vector horizOffset = new Vector(-locDirection.getZ(), 0.0, locDirection.getX()).normalize();
@@ -139,166 +140,307 @@ public abstract class SpellEffect {
 
 	/**
 	 * Plays an effect on the specified entity.
+	 *
 	 * @param entity the entity to play the effect on
 	 */
+	@Deprecated
 	public Runnable playEffect(final Entity entity) {
+		return playEffect(entity, null);
+	}
+
+	/**
+	 * Plays an effect on the specified entity.
+	 *
+	 * @param entity the entity to play the effect on
+	 * @param data   the spellData of the casting spell
+	 */
+	public Runnable playEffect(final Entity entity, final SpellData data) {
+		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+
 		if (entity instanceof LivingEntity && modifiers != null && !modifiers.check((LivingEntity) entity)) return null;
-		if (delay <= 0) return playEffectEntity(entity);
-		MagicSpells.scheduleDelayedTask(() -> playEffectEntity(entity), delay);
+
+		int delay = this.delay.get(data);
+		if (delay <= 0) return playEffectEntity(entity, data);
+		MagicSpells.scheduleDelayedTask(() -> playEffectEntity(entity, data), delay);
+
 		return null;
 	}
-	
+
+	@Deprecated
 	protected Runnable playEffectEntity(Entity entity) {
-		return playEffectLocationReal(entity == null ? null : entity.getLocation());
+		return playEffectLocationReal(entity == null ? null : entity.getLocation(), null);
 	}
-	
+
+	protected Runnable playEffectEntity(Entity entity, SpellData data) {
+		return playEffectLocationReal(entity == null ? null : entity.getLocation(), data);
+	}
+
 	/**
 	 * Plays an effect at the specified location.
+	 *
 	 * @param location location to play the effect at
 	 */
+	@Deprecated
 	public final Runnable playEffect(final Location location) {
+		return playEffect(location, (SpellData) null);
+	}
+
+	/**
+	 * Plays an effect at the specified location.
+	 *
+	 * @param location location to play the effect at
+	 * @param data     the spellData of the casting spell
+	 */
+	public final Runnable playEffect(final Location location, final SpellData data) {
+		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+
 		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
-		if (delay <= 0) return playEffectLocationReal(location);
-		MagicSpells.scheduleDelayedTask(() -> playEffectLocationReal(location), delay);
+
+		int delay = this.delay.get(data);
+		if (delay <= 0) return playEffectLocationReal(location, data);
+		MagicSpells.scheduleDelayedTask(() -> playEffectLocationReal(location, data), delay);
+
 		return null;
 	}
 
+	@Deprecated
 	public final Effect playEffectLib(final Location location) {
+		return playEffectLib(location, null);
+	}
+
+	public final Effect playEffectLib(final Location location, final SpellData data) {
+		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+
 		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
-		if (delay <= 0) return playEffectLibLocationReal(location);
-		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
+
+		int delay = this.delay.get(data);
+		if (delay <= 0) return playEffectLibLocationReal(location, data);
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, data), delay);
+
 		return null;
 	}
 
+	@Deprecated
 	public final Entity playEntityEffect(final Location location) {
+		return playEntityEffect(location, null);
+	}
+
+	public final Entity playEntityEffect(final Location location, final SpellData data) {
+		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+
 		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
-		if (delay <= 0) return playEntityEffectLocationReal(location);
-		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
+
+		int delay = this.delay.get(data);
+		if (delay <= 0) return playEntityEffectLocationReal(location, data);
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, data), delay);
+
 		return null;
 	}
 
+	@Deprecated
 	public final ArmorStand playArmorStandEffect(final Location location) {
+		return playArmorStandEffect(location, null);
+	}
+
+	public final ArmorStand playArmorStandEffect(final Location location, final SpellData data) {
+		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
+
 		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
-		if (delay <= 0) return playArmorStandEffectLocationReal(location);
-		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location), delay);
+
+		int delay = this.delay.get(data);
+		if (delay <= 0) return playArmorStandEffectLocationReal(location, data);
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, data), delay);
+
 		return null;
 	}
-	
-	private Runnable playEffectLocationReal(Location location) {
-		if (location == null) return playEffectLocation(null);
+
+	private Runnable playEffectLocationReal(Location location, SpellData data) {
+		if (location == null) return playEffectLocation(null, data);
 		Location loc = location.clone();
-		applyOffsets(loc);
-		return playEffectLocation(loc);
+		applyOffsets(loc, data);
+		return playEffectLocation(loc, data);
 	}
 
-	private Effect playEffectLibLocationReal(Location location) {
-		if (location == null) return playEffectLibLocation(null);
+	private Effect playEffectLibLocationReal(Location location, SpellData data) {
+		if (location == null) return playEffectLibLocation(null, data);
 		Location loc = location.clone();
-		applyOffsets(loc);
-		return playEffectLibLocation(loc);
+		applyOffsets(loc, data);
+		return playEffectLibLocation(loc, data);
 	}
 
-	private Entity playEntityEffectLocationReal(Location location) {
-		if (location == null) return playEntityEffectLocation(null);
+	private Entity playEntityEffectLocationReal(Location location, SpellData data) {
+		if (location == null) return playEntityEffectLocation(null, data);
 		Location loc = location.clone();
-		applyOffsets(loc);
-		return playEntityEffectLocation(loc);
+		applyOffsets(loc, data);
+		return playEntityEffectLocation(loc, data);
 	}
 
-	private ArmorStand playArmorStandEffectLocationReal(Location location) {
-		if (location == null) return playArmorStandEffectLocation(null);
+	private ArmorStand playArmorStandEffectLocationReal(Location location, SpellData data) {
+		if (location == null) return playArmorStandEffectLocation(null, data);
 		Location loc = location.clone();
-		applyOffsets(loc);
-		return playArmorStandEffectLocation(loc);
+		applyOffsets(loc, data);
+		return playArmorStandEffectLocation(loc, data);
 	}
-	
+
+	@Deprecated
 	protected Runnable playEffectLocation(Location location) {
 		//expect to be overridden
 		return null;
 	}
 
+	protected Runnable playEffectLocation(Location location, SpellData data) {
+		//expect to be overridden
+		return playEffectLocation(location);
+	}
+
+	@Deprecated
 	protected Effect playEffectLibLocation(Location location) {
 		//expect to be overridden
 		return null;
 	}
 
+	protected Effect playEffectLibLocation(Location location, SpellData data) {
+		//expect to be overridden
+		return playEffectLibLocation(location);
+	}
+
+	@Deprecated
 	protected Entity playEntityEffectLocation(Location location) {
 		//expect to be overridden
 		return null;
 	}
 
+	protected Entity playEntityEffectLocation(Location location, SpellData data) {
+		//expect to be overridden
+		return playEntityEffectLocation(location);
+	}
+
+	@Deprecated
 	protected ArmorStand playArmorStandEffectLocation(Location location) {
 		//expect to be overridden
 		return null;
 	}
-	
+
+	protected ArmorStand playArmorStandEffectLocation(Location location, SpellData data) {
+		//expect to be overridden
+		return playArmorStandEffectLocation(location);
+	}
+
+	@Deprecated
+	public void playTrackingLinePatterns(Location origin, Location target, Entity originEntity, Entity targetEntity) {
+		// no op, effects should override this with their own behavior
+	}
+
+	public void playTrackingLinePatterns(Location origin, Location target, Entity originEntity, Entity targetEntity, SpellData data) {
+		// no op, effects should override this with their own behavior
+		playTrackingLinePatterns(origin, target, originEntity, targetEntity);
+	}
+
 	/**
 	 * Plays an effect between two locations (such as a smoke trail type effect).
+	 *
 	 * @param location1 the starting location
 	 * @param location2 the ending location
 	 */
+	@Deprecated
 	public Runnable playEffect(Location location1, Location location2) {
+		return playEffect(location1, location2, null);
+	}
+
+	/**
+	 * Plays an effect between two locations (such as a smoke trail type effect).
+	 *
+	 * @param location1 the starting location
+	 * @param location2 the ending location
+	 */
+	public Runnable playEffect(Location location1, Location location2, SpellData data) {
+		double maxDistance = this.maxDistanceSquared.get(data);
 		if (location1.distanceSquared(location2) > maxDistance) return null;
+
 		Location loc1 = location1.clone();
 		Location loc2 = location2.clone();
-		//double localHeightOffset = heightOffsetExpression.resolveValue(null, null, location1, location2).doubleValue();
-		//double localForwardOffset = forwardOffsetExpression.resolveValue(null, null, location1, location2).doubleValue();
+
+		double distanceBetween = this.distanceBetween.get(data);
 		int c = (int) Math.ceil(loc1.distance(loc2) / distanceBetween) - 1;
 		if (c <= 0) return null;
+
 		Vector v = loc2.toVector().subtract(loc1.toVector()).normalize().multiply(distanceBetween);
 		Location l = loc1.clone();
+
+		double heightOffset = this.heightOffset.get(data);
 		if (heightOffset != 0) l.setY(l.getY() + heightOffset);
-		
+
 		for (int i = 0; i < c; i++) {
 			l.add(v);
-			playEffect(l);
+			playEffect(l, data);
 		}
+
 		return null;
 	}
 
+	@Deprecated
 	public BuffEffectlibTracker playEffectlibEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new BuffEffectlibTracker(entity, checker, this);
+		return new BuffEffectlibTracker(entity, checker, this, null);
 	}
 
+	public BuffEffectlibTracker playEffectlibEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker, SpellData data) {
+		return new BuffEffectlibTracker(entity, checker, this, data);
+	}
+
+	@Deprecated
 	public OrbitEffectlibTracker playEffectlibEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new OrbitEffectlibTracker(entity, checker, this);
+		return new OrbitEffectlibTracker(entity, checker, this, null);
 	}
-	
+
+	public OrbitEffectlibTracker playEffectlibEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker, SpellData data) {
+		return new OrbitEffectlibTracker(entity, checker, this, data);
+	}
+
+	@Deprecated
 	public BuffTracker playEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new BuffTracker(entity, checker, this);
+		return new BuffTracker(entity, checker, this, null);
 	}
-	
+
+	public BuffTracker playEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker, SpellData data) {
+		return new BuffTracker(entity, checker, this, data);
+	}
+
+	@Deprecated
 	public OrbitTracker playEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new OrbitTracker(entity, checker, this);
+		return new OrbitTracker(entity, checker, this, null);
 	}
-	
+
+	public OrbitTracker playEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker, final SpellData data) {
+		return new OrbitTracker(entity, checker, this, data);
+	}
+
 	@FunctionalInterface
 	public interface SpellEffectActiveChecker {
 		boolean isActive(Entity entity);
 	}
 
-	public int getDelay() {
+	public ConfigData<Integer> getDelay() {
 		return delay;
 	}
 
-	public double getChance() {
+	public ConfigData<Double> getChance() {
 		return chance;
 	}
 
-	public double getZOffset() {
+	public ConfigData<Double> getZOffset() {
 		return zOffset;
 	}
 
-	public double getHeightOffset() {
+	public ConfigData<Double> getHeightOffset() {
 		return heightOffset;
 	}
 
-	public double getForwardOffset() {
+	public ConfigData<Double> getForwardOffset() {
 		return forwardOffset;
 	}
 
@@ -310,71 +452,59 @@ public abstract class SpellEffect {
 		return relativeOffset;
 	}
 
-	public double getMaxDistance() {
-		return maxDistance;
+	public ConfigData<Double> getMaxDistanceSquared() {
+		return maxDistanceSquared;
 	}
 
-	public double getDistanceBetween() {
+	public ConfigData<Double> getDistanceBetween() {
 		return distanceBetween;
 	}
 
-	public float getOrbitXAxis() {
+	public ConfigData<Float> getOrbitXAxis() {
 		return orbitXAxis;
 	}
 
-	public float getOrbitYAxis() {
+	public ConfigData<Float> getOrbitYAxis() {
 		return orbitYAxis;
 	}
 
-	public float getOrbitZAxis() {
+	public ConfigData<Float> getOrbitZAxis() {
 		return orbitZAxis;
 	}
 
-	public float getOrbitRadius() {
+	public ConfigData<Float> getOrbitRadius() {
 		return orbitRadius;
 	}
 
-	public float getOrbitYOffset() {
+	public ConfigData<Float> getOrbitYOffset() {
 		return orbitYOffset;
 	}
 
-	public float getHorizOffset() {
+	public ConfigData<Float> getHorizOffset() {
 		return horizOffset;
 	}
 
-	public float getHorizExpandRadius() {
+	public ConfigData<Float> getHorizExpandRadius() {
 		return horizExpandRadius;
 	}
 
-	public float getVertExpandRadius() {
+	public ConfigData<Float> getVertExpandRadius() {
 		return vertExpandRadius;
 	}
 
-	public float getTicksPerSecond() {
-		return ticksPerSecond;
-	}
-
-	public float getDistancePerTick() {
-		return distancePerTick;
-	}
-
-	public float getSecondsPerRevolution() {
+	public ConfigData<Float> getSecondsPerRevolution() {
 		return secondsPerRevolution;
 	}
 
-	public int getTicksPerRevolution() {
-		return ticksPerRevolution;
-	}
-
-	public int getHorizExpandDelay() {
+	public ConfigData<Integer> getHorizExpandDelay() {
 		return horizExpandDelay;
 	}
 
-	public int getVertExpandDelay() {
+	public ConfigData<Integer> getVertExpandDelay() {
 		return vertExpandDelay;
 	}
 
-	public int getEffectInterval() {
+	public ConfigData<Integer> getEffectInterval() {
 		return effectInterval;
 	}
 
@@ -384,10 +514,6 @@ public abstract class SpellEffect {
 
 	public ModifierSet getModifiers() {
 		return modifiers;
-	}
-	
-	public void playTrackingLinePatterns(Location origin, Location target, Entity originEntity, Entity targetEntity) {
-		// no op, effects should override this with their own behavior
 	}
 
 }

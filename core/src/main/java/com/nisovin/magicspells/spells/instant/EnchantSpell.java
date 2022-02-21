@@ -47,7 +47,7 @@ public class EnchantSpell extends InstantSpell {
 			ItemStack targetItem = caster.getEquipment().getItemInMainHand();
 			if (targetItem == null) return PostCastAction.ALREADY_HANDLED;
 			enchant(targetItem);
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

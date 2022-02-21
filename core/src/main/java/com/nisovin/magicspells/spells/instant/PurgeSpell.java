@@ -12,6 +12,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -50,8 +51,7 @@ public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			boolean killed = purge(caster, caster.getLocation(), power, args);
-			if (killed) playSpellEffects(EffectPosition.CASTER, caster);
-			else return PostCastAction.ALREADY_HANDLED;
+			if (!killed) return PostCastAction.ALREADY_HANDLED;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -59,7 +59,7 @@ public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
 		boolean killed = purge(caster, target, power, args);
-		if (killed) playSpellEffects(EffectPosition.CASTER, caster);
+		if (killed && caster != null) playSpellEffects(EffectPosition.CASTER, caster, power, args);
 		return killed;
 	}
 
@@ -89,8 +89,11 @@ public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
 			if (!(entity instanceof LivingEntity livingEntity)) continue;
 			if (entity instanceof Player) continue;
 			if (entities != null && !entities.contains(entity.getType())) continue;
-			playSpellEffectsTrail(loc, entity.getLocation());
-			playSpellEffects(EffectPosition.TARGET, entity);
+
+			SpellData data = new SpellData(caster, livingEntity, power, args);
+			playSpellEffectsTrail(loc, entity.getLocation(), data);
+			playSpellEffects(EffectPosition.TARGET, entity, data);
+
 			livingEntity.setHealth(0);
 			killed = true;
 		}

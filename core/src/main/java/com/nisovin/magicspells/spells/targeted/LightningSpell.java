@@ -86,7 +86,7 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 			}
 			if (target != null) {
 				lightning(target.getLocation());
-				playSpellEffects(caster, target.getLocation());
+				playSpellEffects(caster, target.getLocation(), power, args);
 				if (entityTarget != null) {
 					sendMessages(caster, entityTarget, args);
 					return PostCastAction.NO_MESSAGES;
@@ -97,19 +97,33 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 	}
 
 	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
+		lightning(target);
+		playSpellEffects(caster, target, power, args);
+		return true;
+	}
+
+	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		lightning(target);
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtLocation(Location target, float power, String[] args) {
+		lightning(target);
+		playSpellEffects(EffectPosition.CASTER, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
 		lightning(target);
-		playSpellEffects(EffectPosition.CASTER, target);
+		playSpellEffects(EffectPosition.CASTER, target, power, null);
 		return true;
 	}
-	
+
 	private void lightning(Location target) {
 		if (noDamage) target.getWorld().strikeLightningEffect(target);
 		else {

@@ -15,14 +15,14 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.util.config.ConfigData;
 
 public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell {
 
@@ -154,6 +154,8 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 		int rad = this.radius.get(player, null, power, args);
 		if (powerAffectsRadius) rad = Math.round(rad * power);
 
+		SpellData data = new SpellData(player, power, args);
+
 		final List<Block> blockList = new ArrayList<>();
 		for (int x = loc.getBlockX() - rad; x <= loc.getBlockX() + rad; x++) {
 			for (int z = loc.getBlockZ() - rad; z <= loc.getBlockZ() + rad; z++) {
@@ -168,7 +170,7 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 				b.setType(material, false);
 				blockList.add(b);
 				blocks.put(b, new CarpetData(player, power, args));
-				playSpellEffects(EffectPosition.TARGET, b.getLocation().add(0.5, 0, 0.5));
+				playSpellEffects(EffectPosition.TARGET, b.getLocation().add(0.5, 0, 0.5), data);
 			}
 		}
 
@@ -182,7 +184,7 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 				}
 			}, duration);
 		}
-		if (player != null) playSpellEffects(EffectPosition.CASTER, player);
+		if (player != null) playSpellEffects(EffectPosition.CASTER, player, data);
 	}
 
 	private record CarpetData(LivingEntity caster, float power, String[] args) {}

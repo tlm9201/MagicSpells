@@ -9,28 +9,32 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
+import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class CloudEffect extends SpellEffect {
 
-	private Random rand = ThreadLocalRandom.current();
+	private static final Random rand = ThreadLocalRandom.current();
 
-	private int radius;
+	private ConfigData<Integer> radius;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		radius = config.getInt("radius", 3);
+		radius = ConfigDataUtil.getInteger(config, "radius", 3);
 	}
 	
 	@Override
-	public Runnable playEffectLocation(Location location) {
+	public Runnable playEffectLocation(Location location, SpellData data) {
 		World w = location.getWorld();
 		int cx = location.getBlockX();
 		int cy = location.getBlockY();
 		int cz = location.getBlockZ();
 		
 		Block b;
+		int radius = this.radius.get(data);
 		for (int x = cx - radius; x <= cx + radius; x++) {
 			for (int z = cz - radius; z <= cz + radius; z++) {
 				if (!inRange(x, z, cx, cz, radius)) continue;

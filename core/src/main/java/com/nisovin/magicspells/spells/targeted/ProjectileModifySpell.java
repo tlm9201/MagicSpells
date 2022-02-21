@@ -13,6 +13,7 @@ import org.apache.commons.math3.util.FastMath;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.BoundingBox;
@@ -262,6 +263,8 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 	private boolean modify(LivingEntity caster, Location location, float power, String[] args) {
 		int count = 0;
 
+		SpellData data = new SpellData(caster, power, args);
+
 		Vector facing = caster != null ? caster.getLocation().getDirection() : location.getDirection();
 		Vector vLoc = caster != null ? caster.getLocation().toVector() : location.toVector();
 
@@ -325,17 +328,17 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 
 			tracker.getCurrentVelocity().multiply(velocity.get(caster, null, power, args));
 
-			playSpellEffects(EffectPosition.TARGET, tracker.getCurrentLocation());
-			playSpellEffectsTrail(location, tracker.getCurrentLocation());
-			if (caster != null) playSpellEffectsTrail(caster.getLocation(), tracker.getCurrentLocation());
+			playSpellEffects(EffectPosition.TARGET, tracker.getCurrentLocation(), data);
+			playSpellEffectsTrail(location, tracker.getCurrentLocation(), data);
+			if (caster != null) playSpellEffectsTrail(caster.getLocation(), tracker.getCurrentLocation(), data);
 
 			count++;
 
 			if (maxTargets > 0 && count >= maxTargets) break;
 		}
 
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
-		playSpellEffects(EffectPosition.SPECIAL, location);
+		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
+		playSpellEffects(EffectPosition.SPECIAL, location, data);
 
 		return count > 0;
 	}

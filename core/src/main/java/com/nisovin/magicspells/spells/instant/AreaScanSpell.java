@@ -11,6 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -88,6 +89,8 @@ public class AreaScanSpell extends InstantSpell {
 
 				radius = Math.min(radius, MagicSpells.getGlobalRadius());
 
+				SpellData data = new SpellData(caster, power, args);
+
 				int count = 0;
 				loop:
 				for (int r = 1; r <= radius; r++) {
@@ -105,8 +108,8 @@ public class AreaScanSpell extends InstantSpell {
 											else spell.cast(caster, power);
 										}
 
-										playSpellEffects(EffectPosition.TARGET, block.getLocation());
-										playSpellEffectsTrail(caster.getLocation(), block.getLocation());
+										playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
+										playSpellEffectsTrail(caster.getLocation(), block.getLocation(), data);
 
 										if (maxBlocks > 0) {
 											count++;
@@ -127,7 +130,7 @@ public class AreaScanSpell extends InstantSpell {
 				if (getDistance) distance = (int) Math.round(caster.getLocation().distance(foundBlock.getLocation()));
 			}
 
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, power, args);
 			if (getDistance) {
 				sendMessage(strCastSelf, caster, args, "%d", distance + "");
 				sendMessageNear(caster, strCastOthers);

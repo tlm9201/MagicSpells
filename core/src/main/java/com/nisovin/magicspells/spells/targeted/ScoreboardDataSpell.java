@@ -61,19 +61,24 @@ public class ScoreboardDataSpell extends TargetedSpell implements TargetedEntity
 
 			setScore(player, target);
 
-			playSpellEffects(player, target);
+			playSpellEffects(player, target, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(caster instanceof Player player)) return false;
 
 		setScore(player, target);
 
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override

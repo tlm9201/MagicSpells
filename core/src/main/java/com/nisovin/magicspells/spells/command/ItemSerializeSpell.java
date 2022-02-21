@@ -43,7 +43,7 @@ public class ItemSerializeSpell extends CommandSpell {
 	
 	@Override
 	protected void initialize() {
-		// Setup data folder
+		// Setup spellData folder
 		dataFolder = new File(MagicSpells.getInstance().getDataFolder(), "items");
 		if (!dataFolder.exists()) dataFolder.mkdirs();
 	}

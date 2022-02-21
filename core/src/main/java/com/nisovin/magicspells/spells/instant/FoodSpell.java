@@ -35,7 +35,7 @@ public class FoodSpell extends InstantSpell {
 			float s = Math.min(player.getSaturation() + saturation, maxSaturation);
 			player.setSaturation(s);
 
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, player, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

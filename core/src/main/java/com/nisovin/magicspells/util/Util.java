@@ -707,6 +707,11 @@ public class Util {
 		return getMiniMessage(MagicSpells.doVariableReplacements(player, input));
 	}
 
+	public static Component getMiniMessageWithArgsAndVars(Player player, String input, String[] args) {
+		if (input.isEmpty()) return Component.text("");
+		return getMiniMessage(MagicSpells.doArgumentAndVariableSubstitution(input, player, args));
+	}
+
 	public static String getStringFromComponent(Component component) {
 		return component == null ? "" : MiniMessage.miniMessage().serialize(component);
 	}

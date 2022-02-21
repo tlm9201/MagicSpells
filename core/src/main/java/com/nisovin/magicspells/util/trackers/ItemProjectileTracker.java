@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -72,6 +73,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 	private Location startLocation;
 	private Location currentLocation;
 	private Location previousLocation;
+	private SpellData data;
 	private String[] args;
 	private float power;
 
@@ -87,6 +89,8 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		this.power = power;
 		this.args = args;
 		this.startLocation = startLocation;
+
+		data = new SpellData(caster, power, args);
 	}
 
 	public void start() {
@@ -116,9 +120,9 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		entity.setVelocity(velocity);
 
 		if (spell != null) {
-			spell.playEffects(EffectPosition.CASTER, caster);
-			spell.playEffects(EffectPosition.PROJECTILE, entity);
-			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, entity.getLocation(), caster, entity);
+			spell.playEffects(EffectPosition.CASTER, caster, data);
+			spell.playEffects(EffectPosition.PROJECTILE, entity, data);
+			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, entity.getLocation(), caster, entity, data);
 		}
 
 		taskId = MagicSpells.scheduleRepeatingTask(this, tickInterval, tickInterval);
@@ -152,7 +156,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 			}
 		}
 
-		if (spell != null && specialEffectInterval > 0 && count % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation);
+		if (spell != null && specialEffectInterval > 0 && count % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, data);
 
 		if (zoneManager.willFizzle(currentLocation, spell)) {
 			stop();
@@ -170,7 +174,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 			SpellTargetEvent event = new SpellTargetEvent(spell, caster, target, power, args);
 			EventUtil.call(event);
 			if (!event.isCancelled()) {
-				if (spell != null) spell.playEffects(EffectPosition.TARGET, event.getTarget());
+				if (spell != null) spell.playEffects(EffectPosition.TARGET, event.getTarget(), data);
 				if (spellOnHitEntity != null) spellOnHitEntity.castAtEntity(caster, event.getTarget(), event.getPower());
 				if (stopOnHitEntity) stop();
 				return;
@@ -201,7 +205,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 
 	public void stop(boolean removeTracker) {
 		if (spell != null) {
-			if (entity != null) spell.playEffects(EffectPosition.DELAYED, entity.getLocation());
+			if (entity != null) spell.playEffects(EffectPosition.DELAYED, entity.getLocation(), data);
 			if (removeTracker) ItemProjectileSpell.getProjectileTrackers().remove(this);
 		}
 		if (entity != null) entity.remove();

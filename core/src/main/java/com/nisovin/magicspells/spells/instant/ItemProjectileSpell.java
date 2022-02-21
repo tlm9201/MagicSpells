@@ -15,6 +15,7 @@ import net.kyori.adventure.text.Component;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -306,16 +307,16 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		this.spellOnHitGround = spellOnHitGround;
 	}
 
-	public void playEffects(EffectPosition position, Location loc) {
-		playSpellEffects(position, loc);
+	public void playEffects(EffectPosition position, Location loc, SpellData data) {
+		playSpellEffects(position, loc, data);
 	}
 
-	public void playEffects(EffectPosition position, Entity entity) {
-		playSpellEffects(position, entity);
+	public void playEffects(EffectPosition position, Entity entity, SpellData data) {
+		playSpellEffects(position, entity, data);
 	}
 
-	public void playTrackingLineEffects(EffectPosition position, Location startLocation, Location location, LivingEntity caster, Projectile projectile) {
-		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
+	public void playTrackingLineEffects(EffectPosition position, Location startLocation, Location location, LivingEntity caster, Projectile projectile, SpellData data) {
+		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile, data);
 	}
 
 }

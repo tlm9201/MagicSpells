@@ -17,6 +17,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
@@ -152,7 +153,7 @@ public class FlightPathSpell extends InstantSpell {
 		private final float speed;
 		private final float targetX;
 		private final float targetZ;
-
+		private final SpellData data;
 		private final int cruisingAltitude;
 
 		private ActiveFlight(Player caster, float power, String[] args) {
@@ -161,6 +162,8 @@ public class FlightPathSpell extends InstantSpell {
 			wasFlying = caster.isFlying();
 			wasFlyingAllowed = caster.getAllowFlight();
 			lastLocation = caster.getLocation();
+
+			data = new SpellData(caster, power, args);
 
 			speed = FlightPathSpell.this.speed.get(caster, null, power, args);
 			targetX = FlightPathSpell.this.targetX.get(caster, null, power, args);
@@ -171,7 +174,7 @@ public class FlightPathSpell extends InstantSpell {
 
 		private void start() {
 			player.setAllowFlight(true);
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, player, data);
 			entityToPush = player;
 		}
 
@@ -223,7 +226,7 @@ public class FlightPathSpell extends InstantSpell {
 				}
 			}
 
-			playSpellEffects(EffectPosition.SPECIAL, player);
+			playSpellEffects(EffectPosition.SPECIAL, player, data);
 		}
 
 		private void cancel() {
@@ -235,7 +238,7 @@ public class FlightPathSpell extends InstantSpell {
 					mountActive.eject();
 					mountActive.remove();
 				}
-				playSpellEffects(EffectPosition.DELAYED, player);
+				playSpellEffects(EffectPosition.DELAYED, player, data);
 
 				player = null;
 				mountActive = null;

@@ -13,6 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class FireworksEffect extends SpellEffect implements Listener {
@@ -62,7 +63,7 @@ public class FireworksEffect extends SpellEffect implements Listener {
 	}
 
 	@Override
-	public Runnable playEffectLocation(Location location) {
+	public Runnable playEffectLocation(Location location, SpellData data) {
 		FireworkEffect.Type t = FireworkEffect.Type.BALL;
 		if (type == 1) t = FireworkEffect.Type.BALL_LARGE;
 		else if (type == 2) t = FireworkEffect.Type.STAR;

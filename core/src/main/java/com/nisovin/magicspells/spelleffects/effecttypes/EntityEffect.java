@@ -5,6 +5,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
@@ -31,7 +32,7 @@ public class EntityEffect extends SpellEffect {
 	}
 
 	@Override
-	protected Entity playEntityEffectLocation(Location location) {
+	protected Entity playEntityEffectLocation(Location location, SpellData data) {
 		Entity entity = entityData.spawn(location);
 		entity.addScoreboardTag(ENTITY_TAG);
 		entity.setGravity(gravity);

@@ -18,6 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -337,10 +338,11 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		else
 			block.getLocation().getWorld().spawnFallingBlock(block.getLocation().add(0.5, fallHeight.get(player, null, power, args), 0.5), material.createBlockData());
 
+		SpellData data = new SpellData(player, power, args);
+		playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
 		if (player != null) {
-			playSpellEffects(EffectPosition.CASTER, player);
-			playSpellEffects(EffectPosition.TARGET, block.getLocation());
-			playSpellEffectsTrail(player.getLocation(), block.getLocation());
+			playSpellEffects(EffectPosition.CASTER, player, data);
+			playSpellEffectsTrail(player.getLocation(), block.getLocation(), data);
 		}
 
 		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
@@ -350,14 +352,14 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			MagicSpells.scheduleDelayedTask(() -> {
 				if (materials.contains(block.getType())) {
 					blocks.remove(block);
-					playSpellEffects(EffectPosition.DELAYED, block.getLocation());
+					playSpellEffects(EffectPosition.DELAYED, block.getLocation(), data);
 					if (checkPlugins && player != null) {
 						MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(block, player);
 						EventUtil.call(event);
 						if (event.isCancelled()) return;
 					}
 					block.setType(Material.AIR);
-					playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation());
+					playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
 					if (playBreakEffect)
 						block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
 				}

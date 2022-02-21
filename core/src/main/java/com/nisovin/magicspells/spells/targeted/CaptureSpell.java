@@ -14,6 +14,7 @@ import net.kyori.adventure.text.Component;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -52,7 +53,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, getValidTargetChecker(), args);
 			if (target == null) return noTarget(caster);
-			boolean ok = capture(caster, target.getTarget(), target.getPower());
+			boolean ok = capture(caster, target.getTarget(), target.getPower(), args);
 			if (!ok) return noTarget(caster);
 
 			sendMessages(caster, target.getTarget(), args);
@@ -62,17 +63,27 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!target.getType().isSpawnable()) return false;
 		if (!validTargetList.canTarget(caster, target)) return false;
-		return capture(caster, target, power);
+		return capture(caster, target, power, args);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!target.getType().isSpawnable()) return false;
+		if (!validTargetList.canTarget(target)) return false;
+		return capture(null, target, power, args);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!target.getType().isSpawnable()) return false;
-		if (!validTargetList.canTarget(target)) return false;
-		return capture(null, target, power);
+		return castAtEntity(target, power, null);
 	}
 
 	@Override
@@ -80,7 +91,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		return (LivingEntity entity) -> !(entity instanceof Player) && entity.getType().isSpawnable();
 	}
 	
-	private boolean capture(LivingEntity caster, LivingEntity target, float power) {
+	private boolean capture(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		ItemStack item = MobUtil.getEggItemForEntityType(target.getType());
 		if (item == null) return false;
 
@@ -106,15 +117,16 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		target.remove();
 		boolean added = false;
 
-		if (addToInventory && caster instanceof Player pl) added = Util.addToInventory(pl.getInventory(), item, true, false);
+		if (addToInventory && caster instanceof Player player) added = Util.addToInventory(player.getInventory(), item, true, false);
 		if (!added) {
 			Item dropped = target.getWorld().dropItem(target.getLocation().add(0, 1, 0), item);
 			dropped.setItemStack(item);
 			dropped.setGravity(gravity);
 		}
 
-		if (caster != null) playSpellEffects(caster, target.getLocation());
-		else playSpellEffects(EffectPosition.TARGET, target.getLocation());
+		SpellData data = new SpellData(caster, target, power, args);
+		if (caster != null) playSpellEffects(caster, target.getLocation(), data);
+		else playSpellEffects(EffectPosition.TARGET, target.getLocation(), data);
 
 		return true;
 	}

@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.LocationUtil;
@@ -280,8 +281,8 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		ticker.start();
-		if (caster != null) playSpellEffects(caster, loc2);
-		else playSpellEffects(EffectPosition.TARGET, loc2);
+		if (caster != null) playSpellEffects(caster, loc2, totem.data);
+		else playSpellEffects(EffectPosition.TARGET, loc2, totem.data);
 	}
 
 	@EventHandler
@@ -325,12 +326,15 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		private final double maxDistanceSq;
 		private final int totalPulses;
+		private final SpellData data;
 		private final float power;
 		private int pulseCount;
 
 		private Totem(LivingEntity caster, Location loc, float power, String[] args) {
 			this.caster = caster;
 			this.power = power;
+
+			data = new SpellData(caster, power, args);
 
 			double maxDistance = TotemSpell.this.maxDistance.get(caster, null, power, args);
 			maxDistanceSq = maxDistance * maxDistance;
@@ -386,7 +390,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 				activated = spell.castAtLocation(caster, totemLocation, power) || activated;
 			}
 
-			playSpellEffects(EffectPosition.SPECIAL, totemLocation);
+			playSpellEffects(EffectPosition.SPECIAL, totemLocation, data);
 			if (totalPulses > 0 && (activated || !onlyCountOnSuccess)) {
 				pulseCount += 1;
 				if (pulseCount >= totalPulses) {
@@ -400,7 +404,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		private void stop() {
 			if (!totemLocation.getChunk().isLoaded()) totemLocation.getChunk().load();
 			armorStand.remove();
-			playSpellEffects(EffectPosition.DISABLED, totemLocation);
+			playSpellEffects(EffectPosition.DISABLED, totemLocation, data);
 			if (spellOnBreak != null) spellOnBreak.castAtLocation(caster, totemLocation, power);
 		}
 

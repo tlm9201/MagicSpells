@@ -76,7 +76,7 @@ public class Spellbook {
 	}
 
 	public void load() {
-		MagicSpells.debug("  Loading data for player '" + player.getName() + "'...");
+		MagicSpells.debug("  Loading spellData for player '" + player.getName() + "'...");
 		MagicSpells.getStorageHandler().load(this);
 
 		// Give all spells to ops, or if ignoring grant perms
@@ -106,7 +106,7 @@ public class Spellbook {
 	}
 
 	public void reload() {
-		MagicSpells.debug(1, "Reloading data for player '" + playerName + "'...");
+		MagicSpells.debug(1, "Reloading spellData for player '" + playerName + "'...");
 		removeAllSpells();
 		MagicSpells.getStorageHandler().load(this);
 		MagicSpells.debug(1, "...done");

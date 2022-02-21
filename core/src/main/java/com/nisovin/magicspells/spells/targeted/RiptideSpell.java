@@ -31,8 +31,10 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 		Player target = targetInfo.getTarget();
 		if (target == null) return noTarget(caster);
 
-		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration.get(caster, target, targetInfo.getPower(), args));
-		playSpellEffects(caster, target);
+		power = targetInfo.getPower();
+
+		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration.get(caster, target, power, args));
+		playSpellEffects(caster, target, power, args);
 
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -41,7 +43,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (target instanceof Player player) {
 			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(caster, target, power, args));
-			playSpellEffects(caster, target);
+			playSpellEffects(caster, target, power, args);
 			return true;
 		}
 
@@ -52,7 +54,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (target instanceof Player player) {
 			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(caster, target, power, null));
-			playSpellEffects(caster, target);
+			playSpellEffects(caster, target, power, null);
 			return true;
 		}
 
@@ -63,7 +65,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (target instanceof Player player) {
 			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(null, target, power, args));
-			playSpellEffects(EffectPosition.TARGET, target);
+			playSpellEffects(EffectPosition.TARGET, target, power, args);
 			return true;
 		}
 
@@ -74,7 +76,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 	public boolean castAtEntity(LivingEntity target, float power) {
 		if (target instanceof Player player) {
 			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(null, target, power, null));
-			playSpellEffects(EffectPosition.TARGET, target);
+			playSpellEffects(EffectPosition.TARGET, target, power, null);
 			return true;
 		}
 

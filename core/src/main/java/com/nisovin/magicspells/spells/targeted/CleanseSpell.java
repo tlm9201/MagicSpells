@@ -193,7 +193,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, checker, args);
 			if (target == null) return noTarget(caster);
 
-			cleanse(caster, target.getTarget());
+			cleanse(caster, target.getTarget(), power, args);
 			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -201,16 +201,30 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
+		cleanse(caster, target, power, args);
+		return true;
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		cleanse(caster, target);
+		cleanse(caster, target, power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
+		cleanse(null, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
 		if (!validTargetList.canTarget(target)) return false;
-		cleanse(null, target);
+		cleanse(null, target, power, null);
 		return true;
 	}
 
@@ -219,7 +233,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		return checker;
 	}
 
-	private void cleanse(LivingEntity caster, LivingEntity target) {
+	private void cleanse(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (fire) target.setFireTicks(0);
 
 		for (PotionEffectType type : potionEffectTypes) {
@@ -234,8 +248,8 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		silenceSpells.forEach(spell -> spell.removeSilence(target));
 		levitateSpells.forEach(spell -> spell.removeLevitate(target));
 
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 	}
 
 }

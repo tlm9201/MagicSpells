@@ -598,7 +598,7 @@ public class MagicCommand extends BaseCommand {
 		@Subcommand("saveskin")
 		@CommandCompletion("@players @nothing")
 		@Syntax("[player]")
-		@Description("Save a player's current skin data to a readable file.")
+		@Description("Save a player's current skin spellData to a readable file.")
 		@HelpPermission(permission = Perm.COMMAND_UTIL_SAVE_SKIN)
 		public void onSaveSkin(CommandIssuer issuer, @Optional Player player) {
 			if (!MagicSpells.isLoaded()) return;

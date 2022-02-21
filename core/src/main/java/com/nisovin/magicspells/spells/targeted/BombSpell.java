@@ -12,6 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellAnimation;
@@ -114,8 +115,10 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		blocks.add(block);
 		block.setType(material);
-		if (livingEntity != null) playSpellEffects(livingEntity, loc.add(0.5, 0, 0.5));
-		else playSpellEffects(EffectPosition.TARGET, loc.add(0.5, 0, 0.5));
+
+		SpellData data = new SpellData(livingEntity, power, args);
+		if (livingEntity != null) playSpellEffects(livingEntity, loc.add(0.5, 0, 0.5), data);
+		else playSpellEffects(EffectPosition.TARGET, loc.add(0.5, 0, 0.5), data);
 
 		final int interval = this.interval.get(livingEntity, null, power, args);
 		final int fuse = this.fuse.get(livingEntity, null, power, args);
@@ -132,11 +135,11 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 					if (material.equals(block.getType())) {
 						blocks.remove(block);
 						block.setType(Material.AIR);
-						playSpellEffects(EffectPosition.DELAYED, l);
+						playSpellEffects(EffectPosition.DELAYED, l, data);
 						if (targetSpell != null) targetSpell.castAtLocation(livingEntity, l, power);
 					}
 				} else if (!material.equals(block.getType())) stop(true);
-				else playSpellEffects(EffectPosition.SPECIAL, l);
+				else playSpellEffects(EffectPosition.SPECIAL, l, data);
 			}
 				
 		};

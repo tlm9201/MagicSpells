@@ -78,7 +78,7 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 					int delay = Math.max(pickupDelay.get(caster, null, power, args), 0);
 					dropped.setPickupDelay(delay);
 
-					playSpellEffects(EffectPosition.SPECIAL, dropped);
+					playSpellEffects(EffectPosition.SPECIAL, dropped, power, args);
 				}
 			}
 		}
@@ -97,7 +97,7 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 		int delay = Math.max(pickupDelay.get(caster, null, power, args), 0);
 		dropped.setPickupDelay(delay);
 
-		playSpellEffects(EffectPosition.SPECIAL, dropped);
+		playSpellEffects(EffectPosition.SPECIAL, dropped, power, args);
 		return true;
 	}
 

@@ -96,8 +96,8 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		combusting.put(target.getUniqueId(), new CombustData(caster, power, args));
 
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 
 		MagicSpells.scheduleDelayedTask(() -> combusting.remove(target.getUniqueId()), duration + 2);
 

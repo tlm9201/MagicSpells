@@ -18,6 +18,7 @@ import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.DataUtil;
 import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.CommandSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -174,7 +175,7 @@ public class TomeSpell extends CommandSpell {
 
 		}
 		if (uses <= 0 && consumeBook) event.getPlayer().getInventory().setItemInMainHand(null);
-		playSpellEffects(EffectPosition.DELAYED, event.getPlayer());
+		playSpellEffects(EffectPosition.DELAYED, event.getPlayer(), new SpellData(event.getPlayer()));
 	}
 
 	public static Pattern getIntPattern() {

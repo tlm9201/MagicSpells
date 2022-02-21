@@ -113,8 +113,8 @@ public class StunSpell extends TargetedSpell implements TargetedEntitySpell {
 		StunnedInfo info = new StunnedInfo(caster, target, System.currentTimeMillis() + duration, target.getLocation());
 		stunnedLivingEntities.put(target.getUniqueId(), info);
 
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 
 		playSpellEffectsBuff(target, entity -> {
 			if (!(entity instanceof LivingEntity)) return false;

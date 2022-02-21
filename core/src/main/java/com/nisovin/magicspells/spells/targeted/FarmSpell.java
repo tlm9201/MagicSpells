@@ -8,6 +8,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -74,8 +75,10 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 			if (block != null) {
 				boolean farmed = farm(caster, block, power, args);
 				if (!farmed) return noTarget(caster);
-				playSpellEffects(EffectPosition.CASTER, caster);
-				if (targeted) playSpellEffects(EffectPosition.TARGET, block.getLocation());
+
+				SpellData data = new SpellData(caster, power, args);
+				playSpellEffects(EffectPosition.CASTER, caster, data);
+				if (targeted) playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
 			} else return noTarget(caster);
 
 		}

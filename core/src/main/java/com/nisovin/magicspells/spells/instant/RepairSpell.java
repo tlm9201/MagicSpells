@@ -166,7 +166,7 @@ public class RepairSpell extends InstantSpell {
 				return PostCastAction.ALREADY_HANDLED;
 			}
 			
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, player, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

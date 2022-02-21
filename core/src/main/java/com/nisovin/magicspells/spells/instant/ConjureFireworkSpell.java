@@ -17,6 +17,7 @@ import org.bukkit.inventory.meta.FireworkMeta;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -125,6 +126,7 @@ public class ConjureFireworkSpell extends InstantSpell implements TargetedLocati
 			if (meta instanceof FireworkMeta fMeta) fMeta.setPower(flight.get(caster, null, power, args));
 
 			if (addToInventory) added = Util.addToInventory(player.getInventory(), item, true, false);
+			SpellData data = new SpellData(caster, power, args);
 			if (!added) {
 				Item dropped = player.getWorld().dropItem(player.getLocation(), item);
 				dropped.setItemStack(item);
@@ -133,16 +135,17 @@ public class ConjureFireworkSpell extends InstantSpell implements TargetedLocati
 				int delay = Math.max(pickupDelay.get(caster, null, power, args), 0);
 				dropped.setPickupDelay(delay);
 
-				playSpellEffects(EffectPosition.SPECIAL, dropped);
+				playSpellEffects(EffectPosition.SPECIAL, dropped, data);
 			}
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, player, data);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		playSpellEffects(EffectPosition.CASTER, caster);
+		SpellData data = new SpellData(caster, power, args);
+		playSpellEffects(EffectPosition.CASTER, caster, data);
 
 		ItemStack item = firework.clone();
 		item.setAmount(count.get(caster, null, power, args));
@@ -157,13 +160,12 @@ public class ConjureFireworkSpell extends InstantSpell implements TargetedLocati
 		int delay = Math.max(pickupDelay.get(caster, null, power, args), 0);
 		dropped.setPickupDelay(delay);
 
-		playSpellEffects(EffectPosition.SPECIAL, dropped);
+		playSpellEffects(EffectPosition.SPECIAL, dropped, data);
 		return true;
 	}
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		playSpellEffects(EffectPosition.CASTER, caster);
 		return castAtLocation(null, target, power, null);
 	}
 

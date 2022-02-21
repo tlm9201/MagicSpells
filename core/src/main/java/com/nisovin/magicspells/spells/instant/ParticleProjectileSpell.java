@@ -339,7 +339,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 			ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
 			setupTracker(tracker, caster, null, power, args);
 			tracker.start(caster.getLocation());
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, tracker.getSpellData());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -349,7 +349,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
 		setupTracker(tracker, caster, null, power, args);
 		tracker.start(target);
-		playSpellEffects(EffectPosition.CASTER, caster);
+		playSpellEffects(EffectPosition.CASTER, caster, tracker.getSpellData());
 		return true;
 	}
 
@@ -381,7 +381,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
 		setupTracker(tracker, caster, target, power, args);
 		tracker.startTarget(from, target);
-		playSpellEffects(from, target);
+		playSpellEffects(from, target, tracker.getSpellData());
 		return true;
 	}
 
@@ -398,7 +398,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		ParticleProjectileTracker tracker = new ParticleProjectileTracker(null, power, args);
 		setupTracker(tracker, null, target, power, args);
 		tracker.startTarget(from, target);
-		playSpellEffects(from, target);
+		playSpellEffects(from, target, tracker.getSpellData());
 		return true;
 	}
 
@@ -413,7 +413,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
 		setupTracker(tracker, caster, target, power, args);
 		tracker.startTarget(caster.getLocation(), target);
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, tracker.getSpellData());
 		return true;
 	}
 
@@ -431,24 +431,24 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		return trackerSet;
 	}
 
-	public void playEffects(EffectPosition position, Location loc) {
-		playSpellEffects(position, loc);
+	public void playEffects(EffectPosition position, Location loc, SpellData data) {
+		playSpellEffects(position, loc, data);
 	}
 
-	public void playEffects(EffectPosition position, Entity entity) {
-		playSpellEffects(position, entity);
+	public void playEffects(EffectPosition position, Entity entity, SpellData data) {
+		playSpellEffects(position, entity, data);
 	}
 
-	public Set<EffectlibSpellEffect> playEffectsProjectile(EffectPosition position, Location location) {
-		return playSpellEffectLibEffects(position, location);
+	public Set<EffectlibSpellEffect> playEffectsProjectile(EffectPosition position, Location location, SpellData data) {
+		return playSpellEffectLibEffects(position, location, data);
 	}
 
-	public Set<Entity> playEntityEffectsProjectile(EffectPosition position, Location location) {
-		return playSpellEntityEffects(position, location);
+	public Set<Entity> playEntityEffectsProjectile(EffectPosition position, Location location, SpellData data) {
+		return playSpellEntityEffects(position, location, data);
 	}
 
-	public Set<ArmorStand> playArmorStandEffectsProjectile(EffectPosition position, Location location) {
-		return playSpellArmorStandEffects(position, location);
+	public Set<ArmorStand> playArmorStandEffectsProjectile(EffectPosition position, Location location, SpellData data) {
+		return playSpellArmorStandEffects(position, location, data);
 	}
 
 	private void setupTracker(ParticleProjectileTracker tracker, LivingEntity caster, LivingEntity target, float power, String[] args) {

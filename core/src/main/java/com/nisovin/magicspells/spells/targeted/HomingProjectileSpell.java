@@ -228,7 +228,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 			if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(monitor.caster, entity, monitor.power);
 			else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(monitor.caster, entity.getLocation(), monitor.power);
-			playSpellEffects(EffectPosition.TARGET, entity);
+			playSpellEffects(EffectPosition.TARGET, entity, monitor.data);
 			event.setCancelled(true);
 
 			monitor.stop();
@@ -261,6 +261,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		private LivingEntity target;
 		private BoundingBox hitBox;
 		private Vector currentVelocity;
+		private SpellData data;
 		private String[] args;
 		private float power;
 		private long startTime;
@@ -298,6 +299,8 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		private void initialize(LivingEntity caster, LivingEntity target, float power, String[] args) {
 			startTime = System.currentTimeMillis();
 
+			data = new SpellData(caster, target, power, args);
+
 			Vector startDir = startLocation.clone().getDirection().normalize();
 			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
 			startLocation.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
@@ -319,7 +322,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			float verticalHitRadius = HomingProjectileSpell.this.verticalHitRadius.get(caster, target, power, args);
 			hitBox = new BoundingBox(startLocation, hitRadius, verticalHitRadius);
 
-			playSpellEffects(EffectPosition.CASTER, startLocation);
+			playSpellEffects(EffectPosition.CASTER, startLocation, data);
 
 			projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass());
 
@@ -335,8 +338,8 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			currentVelocity.setY(currentVelocity.getY() + 0.15);
 			projectile.setVelocity(currentVelocity);
 
-			playSpellEffects(EffectPosition.PROJECTILE, projectile);
-			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
+			playSpellEffects(EffectPosition.PROJECTILE, projectile, data);
+			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile, data);
 			monitors.add(this);
 
 			int tickInterval = HomingProjectileSpell.this.tickInterval.get(caster, target, power, args);
@@ -398,7 +401,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 			if (intermediateSpecialEffects > 0) playIntermediateEffectLocations(previousLocation, oldVelocity);
 
-			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation);
+			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation, data);
 
 			counter++;
 
@@ -407,7 +410,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 				SpellTargetEvent targetEvent = new SpellTargetEvent(thisSpell, caster, target, power, args);
 				EventUtil.call(targetEvent);
 				if (targetEvent.isCancelled()) return;
-				playSpellEffects(EffectPosition.TARGET, targetEvent.getTarget());
+				playSpellEffects(EffectPosition.TARGET, targetEvent.getTarget(), data);
 				if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(caster, targetEvent.getTarget(), targetEvent.getPower());
 				else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(caster, targetEvent.getTarget().getLocation(), targetEvent.getPower());
 				stop();
@@ -421,12 +424,12 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			movement.setZ(movement.getZ() / divideFactor);
 			for (int i = 0; i < intermediateSpecialEffects; i++) {
 				old = old.add(movement).setDirection(movement);
-				playSpellEffects(EffectPosition.SPECIAL, old);
+				playSpellEffects(EffectPosition.SPECIAL, old, data);
 			}
 		}
 
 		private void stop() {
-			playSpellEffects(EffectPosition.DELAYED, currentLocation);
+			playSpellEffects(EffectPosition.DELAYED, currentLocation, data);
 			MagicSpells.cancelTask(taskId);
 			caster = null;
 			target = null;

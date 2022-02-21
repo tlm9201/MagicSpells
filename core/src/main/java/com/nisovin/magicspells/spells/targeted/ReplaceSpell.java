@@ -16,6 +16,7 @@ import org.bukkit.block.data.BlockData;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -168,6 +169,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 			h = Math.round(h * power);
 		}
 
+		SpellData spellData = new SpellData(caster, power, args);
 		int yOffset = this.yOffset.get(caster, null, power, args);
 		int replaceDuration = resolveDurationPerBlock ? 0 : this.replaceDuration.get(caster, null, power, args);
 
@@ -202,7 +204,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 								return false;
 							}
 						}
-						playSpellEffects(EffectPosition.SPECIAL, finalBlock.getLocation());
+						playSpellEffects(EffectPosition.SPECIAL, finalBlock.getLocation(), spellData);
 
 						// Break block.
 						if (resolveDurationPerBlock) replaceDuration = this.replaceDuration.get(caster, null, power, args);
@@ -218,7 +220,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 									if (event.isCancelled()) return;
 								}
 								finalBlock.setBlockData(previous);
-								playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, finalBlock.getLocation());
+								playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, finalBlock.getLocation(), spellData);
 							}, replaceDuration);
 						}
 
@@ -229,8 +231,8 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 			}
 		}
 
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster != null) playSpellEffects(caster, target, spellData);
+		else playSpellEffects(EffectPosition.TARGET, target, spellData);
 
 		return replaced;
 	}

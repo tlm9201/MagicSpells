@@ -26,7 +26,7 @@ public class SwitchHealthSpell extends TargetedSpell implements TargetedEntitySp
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
 			if (target == null) return noTarget(caster);
 
-			boolean ok = switchHealth(caster, target.getTarget());
+			boolean ok = switchHealth(caster, target.getTarget(), power, args);
 			if (!ok) return noTarget(caster);
 
 			sendMessages(caster, target.getTarget(), args);
@@ -36,9 +36,15 @@ public class SwitchHealthSpell extends TargetedSpell implements TargetedEntitySp
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
+		return switchHealth(caster, target, power, args);
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		return switchHealth(caster, target);
+		return switchHealth(caster, target, power, null);
 	}
 
 	@Override
@@ -46,7 +52,7 @@ public class SwitchHealthSpell extends TargetedSpell implements TargetedEntitySp
 		return false;
 	}
 
-	private boolean switchHealth(LivingEntity caster, LivingEntity target) {
+	private boolean switchHealth(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (caster.isDead() || target.isDead()) return false;
 		double casterPct = caster.getHealth() / Util.getMaxHealth(caster);
 		double targetPct = target.getHealth() / Util.getMaxHealth(target);
@@ -54,7 +60,7 @@ public class SwitchHealthSpell extends TargetedSpell implements TargetedEntitySp
 		if (requireLesserHealthPercent && casterPct > targetPct) return false;
 		caster.setHealth(targetPct * Util.getMaxHealth(caster));
 		target.setHealth(casterPct * Util.getMaxHealth(target));
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 

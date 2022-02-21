@@ -16,6 +16,7 @@ import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.MessageBlocker;
@@ -116,12 +117,12 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 				}
 				target = targetInfo.getTarget();
 			}
-			process(caster, target, args);
+			process(caster, target, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
-	private void process(CommandSender sender, Player target, String[] args) {
+	private void process(CommandSender sender, Player target, float power, String[] args) {
 		// Get actual sender
 		CommandSender actualSender;
 		if (executeAsTargetInstead) actualSender = target;
@@ -197,21 +198,36 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 		
 		// Effects
 		if (sender instanceof Player player) {
-			if (target != null) playSpellEffects(player, target);
-			else playSpellEffects(EffectPosition.CASTER, player);
+			SpellData data = new SpellData(player, target, power, args);
+			if (target != null) playSpellEffects(player, target, data);
+			else playSpellEffects(EffectPosition.CASTER, player, data);
 		} else if (sender instanceof BlockCommandSender commandBlock) {
-			playSpellEffects(EffectPosition.CASTER, commandBlock.getBlock().getLocation());
+			playSpellEffects(EffectPosition.CASTER, commandBlock.getBlock().getLocation(), new SpellData(null, target, power, args));
 		}
 		// Add delayed command
 		if (commandToExecuteLater != null && !commandToExecuteLater.isEmpty() && !commandToExecuteLater.get(0).isEmpty()) {
-			MagicSpells.scheduleDelayedTask(new DelayedCommand(sender, target), commandDelay);
+			MagicSpells.scheduleDelayedTask(new DelayedCommand(sender, target, power, args), commandDelay);
 		}
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (requirePlayerTarget && target instanceof Player player) {
-			process(caster, player, MagicSpells.NULL_ARGS);
+			process(caster, player, power, args);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (requirePlayerTarget && target instanceof Player player) {
+			process(null, player, power, args);
 			return true;
 		}
 		return false;
@@ -219,17 +235,13 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (requirePlayerTarget && target instanceof Player player) {
-			process(null, player, MagicSpells.NULL_ARGS);
-			return true;
-		}
-		return false;
+		return castAtEntity(target, power, null);
 	}
-	
+
 	@Override
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		if (!requirePlayerTarget) {
-			process(sender, null, args);
+			process(sender, null, 1f, args);
 			return true;
 		}
 		return false;
@@ -258,12 +270,14 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 	
 	private class DelayedCommand implements Runnable {
 
-		private CommandSender sender;
-		private Player target;
-		
-		DelayedCommand(CommandSender sender, Player target) {
+		private final CommandSender sender;
+		private final SpellData data;
+		private final Player target;
+
+		private DelayedCommand(CommandSender sender, Player target, float power, String[] args) {
 			this.sender = sender;
 			this.target = target;
+			data = new SpellData(sender instanceof LivingEntity le ? le : null, target, power, args);
 		}
 		
 		@Override
@@ -317,11 +331,11 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 			
 			// Deop
 			if (opped) actualSender.setOp(false);
-			
+
 			// Graphical effect
 			if (sender == null) return;
-			if (sender instanceof Player player) playSpellEffects(EffectPosition.DISABLED, player);
-			else if (sender instanceof BlockCommandSender commandBlock) playSpellEffects(EffectPosition.DISABLED, commandBlock.getBlock().getLocation());
+			if (sender instanceof Player player) playSpellEffects(EffectPosition.DISABLED, player, data);
+			else if (sender instanceof BlockCommandSender commandBlock) playSpellEffects(EffectPosition.DISABLED, commandBlock.getBlock().getLocation(), data);
 		}
 		
 	}

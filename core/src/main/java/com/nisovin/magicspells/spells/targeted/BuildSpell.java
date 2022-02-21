@@ -92,7 +92,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 			if (lastBlocks == null || lastBlocks.size() < 2 || BlockUtils.isAir(lastBlocks.get(1).getType()))
 				return noTarget(player, strCantBuild);
 
-			boolean built = build(player, lastBlocks.get(0), lastBlocks.get(1), item, slot);
+			boolean built = build(player, lastBlocks.get(0), lastBlocks.get(1), item, slot, power, args);
 			if (!built) return noTarget(player, strCantBuild);
 
 		}
@@ -109,7 +109,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		Block block = target.getBlock();
 
-		return build(player, block, block, item, slot);
+		return build(player, block, block, item, slot, power, args);
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 		return mat.isBlock() && allowedTypes != null && allowedTypes.contains(mat);
 	}
 
-	private boolean build(Player player, Block block, Block against, ItemStack item, int slot) {
+	private boolean build(Player player, Block block, Block against, ItemStack item, int slot, float power, String[] args) {
 		BlockState previousState = block.getState();
 		block.setType(item.getType());
 
@@ -141,7 +141,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
 
-		playSpellEffects(player, block.getLocation());
+		playSpellEffects(player, block.getLocation(), power, args);
 
 		if (consumeBlock) {
 			int amt = item.getAmount() - 1;

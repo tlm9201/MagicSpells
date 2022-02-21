@@ -581,7 +581,7 @@ public enum ModifierType {
 			//[<caster|target>:]<variableToModify>;[=|+|*|/][-]<amount|[<caster|target>:]<modifyingVariableName>>
 			VariableModData data = new VariableModData();
 			if (text == null) {
-				data.invalidText = "No data action data defined.";
+				data.invalidText = "No spellData action spellData defined.";
 				return data;
 			}
 

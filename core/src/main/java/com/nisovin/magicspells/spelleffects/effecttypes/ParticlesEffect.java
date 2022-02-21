@@ -2,164 +2,182 @@ package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.*;
 import org.bukkit.Particle.*;
-import org.bukkit.util.Vector;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.Vibration.Destination;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.ColorUtil;
 import com.nisovin.magicspells.util.ConfigReaderUtil;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
+
+import static org.bukkit.Vibration.Destination.*;
 
 public class ParticlesEffect extends SpellEffect {
 
-	private Particle particle;
-	private String particleName;
+	protected ConfigData<Particle> particle;
 
-	private Material material;
-	private String materialName;
+	protected ConfigData<Material> material;
+	protected ConfigData<BlockData> blockData;
+	protected ConfigData<DustOptions> dustOptions;
+	protected ConfigData<DustTransition> dustTransition;
 
-	private BlockData blockData;
-	private ItemStack itemStack;
+	protected ConfigData<ParticlePosition> vibrationOrigin;
+	protected ConfigData<ParticlePosition> vibrationDestination;
 
-	private int shriekDelay;
-	private float sculkChargeRotation;
+	protected Vector vibrationOffset;
+	protected Vector vibrationRelativeOffset;
 
-	private float dustSize;
-	private String colorHex;
-	private String toColorHex;
-	private Color dustColor;
-	private Color toDustColor;
-	private DustOptions dustOptions;
-	private DustTransition dustTransitionOptions;
+	protected ConfigData<Integer> count;
+	protected ConfigData<Integer> arrivalTime;
+	protected ConfigData<Integer> shriekDelay;
 
-	private int arrivalTime;
-	private Vibration vibrationOptions;
-	private Destination vibrationDestination;
-	private Vector vibrationOffset;
-	private Vector vibrationRelativeOffset;
+	protected ConfigData<Float> speed;
+	protected ConfigData<Float> xSpread;
+	protected ConfigData<Float> ySpread;
+	protected ConfigData<Float> zSpread;
+	protected ConfigData<Float> sculkChargeRotation;
 
-	private int count;
-	private float speed;
-	private float xSpread;
-	private float ySpread;
-	private float zSpread;
-	private boolean force;
-
-	private boolean none = true;
-	private boolean item = false;
-	private boolean dust = false;
-	private boolean block = false;
-	private boolean shriek = false;
-	private boolean vibration = false;
-	private boolean sculkCharge = false;
-	private boolean transitionDust = false;
+	protected boolean force;
+	protected boolean staticLocation;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
+		particle = ConfigDataUtil.getParticle(config, "particle-name", Particle.EXPLOSION_NORMAL);
 
-		particleName = config.getString("particle-name", "EXPLOSION_NORMAL");
-		particle = Util.getParticle(particleName);
+		material = ConfigDataUtil.getEnum(config, "material", Material.class, null);
+		blockData = ConfigDataUtil.getBlockData(config, "material", null);
+		dustOptions = ConfigDataUtil.getDustOptions(config, "color", "size", new DustOptions(Color.RED, 1));
+		dustTransition = ConfigDataUtil.getDustTransition(config, "color", "to-color", "size", new DustTransition(Color.RED, Color.BLACK, 1));
 
-		materialName = config.getString("material", "");
-		material = Util.getMaterial(materialName);
+		vibrationOrigin = ConfigDataUtil.getEnum(config, "vibration-origin", ParticlePosition.class, ParticlePosition.POSITION);
+		vibrationDestination = ConfigDataUtil.getEnum(config, "vibration-destination", ParticlePosition.class, ParticlePosition.POSITION);
 
-		count = config.getInt("count", 5);
-		speed = (float) config.getDouble("speed", 0.2F);
-		xSpread = (float) config.getDouble("horiz-spread", 0.2F);
-		ySpread = (float) config.getDouble("vert-spread", 0.2F);
-		zSpread = xSpread;
-		xSpread = (float) config.getDouble("x-spread", xSpread);
-		ySpread = (float) config.getDouble("y-spread", ySpread);
-		zSpread = (float) config.getDouble("z-spread", zSpread);
-		force = config.getBoolean("force", false);
-
-		dustSize = (float) config.getDouble("size", 1);
-		colorHex = config.getString("color", "FF0000");
-		toColorHex = config.getString("to-color", "000000");
-		dustColor = ColorUtil.getColorFromHexString(colorHex);
-		toDustColor = ColorUtil.getColorFromHexString(toColorHex);
-
-		arrivalTime = config.getInt("arrival-time", -1);
 		vibrationOffset = ConfigReaderUtil.readVector(config.getString("vibration-offset", "0,0,0"));
 		vibrationRelativeOffset = ConfigReaderUtil.readVector(config.getString("vibration-relative-offset", "0,0,0"));
 
-		shriekDelay = config.getInt("shriek-delay", 0);
-		sculkChargeRotation = (float) config.getDouble("sculk-charge-rotation", 0.0);
+		count = ConfigDataUtil.getInteger(config, "count", 5);
+		arrivalTime = ConfigDataUtil.getInteger(config, "arrival-time", -1);
+		shriekDelay = ConfigDataUtil.getInteger(config, "shriek-delay", 0);
 
-		if (dustColor != null) dustOptions = new DustOptions(dustColor, dustSize);
-		if (dustColor != null && toDustColor != null) dustTransitionOptions = new DustTransition(dustColor, toDustColor, dustSize);
+		speed = ConfigDataUtil.getFloat(config, "speed", 0.2f);
 
-		if ((particle == Particle.BLOCK_CRACK || particle == Particle.BLOCK_DUST || particle == Particle.FALLING_DUST) && material != null && material.isBlock()) {
-			block = true;
-			blockData = material.createBlockData();
-			none = false;
-		} else if (particle == Particle.ITEM_CRACK && material != null && material.isItem()) {
-			item = true;
-			itemStack = new ItemStack(material);
-			none = false;
-		} else if (particle == Particle.REDSTONE && dustOptions != null) {
-			dust = true;
-			none = false;
-		}  else if (particle == Particle.DUST_COLOR_TRANSITION && dustTransitionOptions != null) {
-			transitionDust = true;
-			none = false;
-		} else if (particle == Particle.VIBRATION && arrivalTime >= 0) {
-			vibration = true;
-			none = false;
-		} else if (particle == Particle.SHRIEK) {
-			shriek = true;
-			none = false;
-		} else if (particle == Particle.SCULK_CHARGE) {
-			sculkCharge = true;
-			none = false;
-		}
+		ConfigData<Float> horizSpread = ConfigDataUtil.getFloat(config, "horiz-spread", 0.2f);
+		xSpread = ConfigDataUtil.getFloat(config, "xSpread", horizSpread);
+		zSpread = ConfigDataUtil.getFloat(config, "zSpread", horizSpread);
+		sculkChargeRotation = ConfigDataUtil.getFloat(config, "sculk-charge-rotation", 0);
 
-		if (particle == null) MagicSpells.error("Wrong particle-name defined! '" + particleName + "'");
+		ConfigData<Float> vertSpread = ConfigDataUtil.getFloat(config, "vert-spread", 0.2f);
+		ySpread = ConfigDataUtil.getFloat(config, "ySpread", vertSpread);
 
-		if ((particle == Particle.BLOCK_CRACK || particle == Particle.BLOCK_DUST || particle == Particle.FALLING_DUST) && (material == null || !material.isBlock())) {
-			particle = null;
-			MagicSpells.error("Wrong material defined! '" + materialName + "'");
-		}
-
-		if (particle == Particle.ITEM_CRACK && (material == null || !material.isItem())) {
-			particle = null;
-			MagicSpells.error("Wrong material defined! '" + materialName + "'");
-		}
-
-		if (particle == Particle.REDSTONE && dustColor == null) {
-			particle = null;
-			MagicSpells.error("Wrong color defined! '" + colorHex + "'");
-		}
-
-		if (particle == Particle.DUST_COLOR_TRANSITION && dustTransitionOptions == null) {
-			particle = null;
-			MagicSpells.error("Wrong transition colors defined! '" + colorHex + "', '" + toColorHex + "'");
-		}
+		force = config.getBoolean("force", false);
+		staticLocation = config.getBoolean("static", false);
 	}
 
 	@Override
-	public Runnable playEffectLocation(Location location) {
-		if (particle == null) return null;
-		World world = location.getWorld();
+	protected Runnable playEffectEntity(Entity entity, SpellData data) {
+		Location location = applyOffsets(entity.getLocation(), data);
+		if (staticLocation) return playEffectLocation(location, data);
 
-		if (block) world.spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, blockData, force);
-		else if (item) world.spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, itemStack, force);
-		else if (dust) world.spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, dustOptions, force);
-		else if (transitionDust) world.spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, dustTransitionOptions, force);
-		else if (none) world.spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, null, force);
-		else if (shriek) world.spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, shriekDelay, force);
-		else if (sculkCharge) world.spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, sculkChargeRotation, force);
-		else if (vibration) {
-			vibrationDestination = new Destination.BlockDestination(applyOffsets(location.clone(), vibrationOffset, vibrationRelativeOffset, 0D, 0D, 0D));
-			vibrationOptions = new Vibration(vibrationDestination, arrivalTime);
-			world.spawnParticle(particle, location, count, xSpread, ySpread, zSpread, speed, vibrationOptions, force);
-		}
+		Particle particle = this.particle.get(data);
+		Object particleData = getParticleData(particle, entity, location, data);
+
+		location.getWorld().spawnParticle(particle, location, count.get(data), xSpread.get(data), ySpread.get(data), zSpread.get(data), speed.get(data), particleData, force);
 
 		return null;
+	}
+
+	@Override
+	public Runnable playEffectLocation(Location location, SpellData data) {
+		Particle particle = this.particle.get(data);
+		Object particleData = getParticleData(particle, location, data);
+
+		location.getWorld().spawnParticle(particle, location, count.get(data), xSpread.get(data), ySpread.get(data), zSpread.get(data), speed.get(data), particleData, force);
+
+		return null;
+	}
+
+	protected Object getParticleData(Particle particle, Entity entity, Location location, SpellData data) {
+		Class<?> type = particle.getDataType();
+		Object particleData = null;
+
+		if (type == ItemStack.class) {
+			Material material = this.material.get(data);
+			particleData = material == null ? null : new ItemStack(material);
+		} else if (type == Vibration.class) {
+			Location originLocation = getLocation(location, data, vibrationOrigin);
+			if (originLocation == null) return null;
+
+			Destination destination = switch (vibrationDestination.get(data)) {
+				case CASTER -> {
+					LivingEntity caster = data == null ? null : data.caster();
+					yield new EntityDestination(caster == null ? entity : caster);
+				}
+				case TARGET -> {
+					LivingEntity target = data == null ? null : data.target();
+					yield new EntityDestination(target == null ? entity : target);
+				}
+				case POSITION -> new EntityDestination(entity);
+			};
+
+			particleData = new Vibration(destination, arrivalTime.get(data));
+		} else if (type == BlockData.class) particleData = blockData.get(data);
+		else if (type == DustOptions.class) particleData = dustOptions.get(data);
+		else if (type == DustTransition.class) particleData = dustTransition.get(data);
+		else if (type == Float.class) particleData = sculkChargeRotation.get(data);
+		else if (type == Integer.class) particleData = shriekDelay.get(data);
+
+		return particleData;
+	}
+
+	protected Object getParticleData(Particle particle, Location location, SpellData data) {
+		Class<?> type = particle.getDataType();
+		Object particleData = null;
+
+		if (type == ItemStack.class) {
+			Material material = this.material.get(data);
+			particleData = material == null ? null : new ItemStack(material);
+		} else if (type == Vibration.class) {
+			Location originLocation = getLocation(location, data, vibrationOrigin);
+			if (originLocation == null) return null;
+
+			Location targetLocation = getLocation(location, data, vibrationDestination);
+			if (targetLocation == null) return null;
+
+			Destination destination = new BlockDestination(applyOffsets(targetLocation, vibrationOffset, vibrationRelativeOffset, 0, 0, 0));
+			particleData = new Vibration(destination, arrivalTime.get(data));
+		} else if (type == BlockData.class) particleData = blockData.get(data);
+		else if (type == DustOptions.class) particleData = dustOptions.get(data);
+		else if (type == DustTransition.class) particleData = dustTransition.get(data);
+
+		return particleData;
+	}
+
+	protected Location getLocation(Location location, SpellData data, ConfigData<ParticlePosition> position) {
+		return switch (position.get(data)) {
+			case CASTER -> {
+				LivingEntity caster = data == null ? null : data.caster();
+				yield caster == null ? null : caster.getLocation();
+			}
+			case TARGET -> {
+				LivingEntity target = data == null ? null : data.target();
+				yield target == null ? null : target.getLocation();
+			}
+			case POSITION -> location.clone();
+		};
+	}
+
+	protected enum ParticlePosition {
+
+		CASTER,
+		TARGET,
+		POSITION
+
 	}
 
 }

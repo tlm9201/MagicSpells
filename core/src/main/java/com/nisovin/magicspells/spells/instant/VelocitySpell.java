@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -101,7 +102,9 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 		else target.setVelocity(velocity);
 
 		jumping.add(target.getUniqueId());
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
+
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 
 		return true;
 	}
@@ -111,7 +114,7 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 		if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
 		LivingEntity livingEntity = (LivingEntity) event.getEntity();
 		if (!jumping.remove(livingEntity.getUniqueId())) return;
-		playSpellEffects(EffectPosition.TARGET, livingEntity.getLocation());
+		playSpellEffects(EffectPosition.TARGET, livingEntity.getLocation(), new SpellData(livingEntity));
 		if (cancelDamage) event.setCancelled(true);
 	}
 

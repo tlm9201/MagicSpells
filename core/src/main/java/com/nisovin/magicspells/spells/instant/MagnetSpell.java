@@ -14,6 +14,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -52,7 +53,7 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 			List<Item> items = getNearbyItems(caster, location, power, args);
 			magnet(caster, location, items, power, args);
 
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, power, args);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
@@ -106,10 +107,11 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 			if (powerAffectsVelocity) velocity *= power;
 		}
 
-		for (Item i : items) magnet(caster, location, i, power, args, velocity);
+		SpellData data = new SpellData(caster, power, args);
+		for (Item i : items) magnet(caster, location, i, power, args, data, velocity);
 	}
 
-	private void magnet(LivingEntity caster, Location origin, Item item, float power, String[] args, double velocity) {
+	private void magnet(LivingEntity caster, Location origin, Item item, float power, String[] args, SpellData data, double velocity) {
 		if (removeItemGravity) item.setGravity(false);
 		if (teleport) item.teleport(origin);
 		else {
@@ -120,7 +122,7 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 
 			item.setVelocity(origin.toVector().subtract(item.getLocation().toVector()).normalize().multiply(velocity));
 		}
-		playSpellEffects(EffectPosition.PROJECTILE, item);
+		playSpellEffects(EffectPosition.PROJECTILE, item, data);
 	}
 
 	public boolean shouldTeleport() {

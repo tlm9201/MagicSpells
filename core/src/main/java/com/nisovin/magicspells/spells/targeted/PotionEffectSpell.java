@@ -123,7 +123,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 			LivingEntity target = targetInfo.getTarget();
 
 			handlePotionEffects(caster, target, power, args);
-			playSpellEffects(caster, target);
+			playSpellEffects(caster, target, power, args);
 			sendMessages(caster, target, args);
 
 			return PostCastAction.NO_MESSAGES;
@@ -135,7 +135,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
 		handlePotionEffects(caster, target, power, args);
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
@@ -148,7 +148,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(target)) return false;
 		handlePotionEffects(null, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 

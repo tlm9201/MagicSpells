@@ -33,23 +33,37 @@ public class TagEntitySpell extends TargetedSpell implements TargetedEntitySpell
 			LivingEntity target = targetInfo.getTarget();
 			if (target == null) return noTarget(caster);
 			tag(caster, target);
-			playSpellEffects(caster, target);
+			playSpellEffects(caster, target, power, args);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		tag(caster, target);
+		playSpellEffects(caster, target, power, args);
+		return true;
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		tag(caster, target);
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		tag(target, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
 		tag(target, target);
-		playSpellEffects(EffectPosition.TARGET, target);
+		playSpellEffects(EffectPosition.TARGET, target, power, null);
 		return true;
 	}
 
