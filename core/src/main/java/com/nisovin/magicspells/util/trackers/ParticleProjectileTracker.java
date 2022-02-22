@@ -149,11 +149,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		startLocation = from.clone();
 
 		// Changing the start location
-		startDirection = from.getDirection().normalize();
-		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-		startLocation.add(horizOffset.multiply(startZOffset));
-		startLocation.add(startLocation.getDirection().multiply(startXOffset));
-		startLocation.setY(startLocation.getY() + startYOffset);
+		Util.applyRelativeOffset(startLocation, from.getDirection().normalize(), startXOffset, startYOffset, startZOffset);
 
 		previousLocation = startLocation.clone();
 		currentLocation = startLocation.clone();
@@ -200,9 +196,9 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		Vector dir = currentVelocity.clone().normalize();
 		Vector dirNormalized = dir.clone().normalize();
 
-		Vector angleZ = new Vector(-dirNormalized.getZ(), 0D, dirNormalized.getX()).normalize();
-		Vector angleY = dir.clone().rotateAroundAxis(angleZ, ANGLE_Y).normalize();
-		Vector angleX = dir.clone();
+		Vector angleZ = Util.makeFinite(new Vector(-dirNormalized.getZ(), 0D, dirNormalized.getX()).normalize());
+		Vector angleY = Util.makeFinite(dir.clone().rotateAroundAxis(angleZ, ANGLE_Y).normalize());
+		Vector angleX = Util.makeFinite(dir.clone());
 
 		if (verticalRotation != 0) currentVelocity.rotateAroundAxis(angleZ, verticalRotation);
 		if (horizontalRotation != 0) currentVelocity.rotateAroundAxis(angleY, horizontalRotation);
@@ -576,6 +572,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		}
 	}
 
+	@Override
 	public void stop() {
 		stop(true);
 	}

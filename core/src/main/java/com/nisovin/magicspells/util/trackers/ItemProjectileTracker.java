@@ -191,6 +191,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		}
 	}
 
+	@Override
 	public void stop() {
 		stop(true);
 	}
