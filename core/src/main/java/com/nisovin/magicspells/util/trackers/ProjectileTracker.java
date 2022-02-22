@@ -192,6 +192,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 		}
 	}
 
+	@Override
 	public void stop() {
 		stop(true);
 	}

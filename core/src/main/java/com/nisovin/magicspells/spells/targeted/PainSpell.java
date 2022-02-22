@@ -86,6 +86,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 	private boolean causePain(LivingEntity caster, LivingEntity target, float power) {
 		if (target == null) return false;
 		if (target.isDead()) return false;
+
 		double localDamage = damage * power;
 
 		if (checkPlugins) {
@@ -116,6 +117,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 
 		if (tryAvoidingAntiCheatPlugins) target.damage(localDamage);
 		else target.damage(localDamage, caster);
+
 		playSpellEffects(caster, target);
 		return true;
 	}

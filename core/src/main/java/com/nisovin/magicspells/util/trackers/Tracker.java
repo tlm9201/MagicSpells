@@ -4,4 +4,6 @@ public interface Tracker {
 
 	void initialize();
 
+	void stop();
+
 }
