@@ -1,7 +1,5 @@
 package com.nisovin.magicspells;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -793,7 +791,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return ConfigDataUtil.getLong(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
-	@NotNull
 	protected ConfigData<Long> getConfigDataLong(String key, ConfigData<Long> def) {
 		return ConfigDataUtil.getLong(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}

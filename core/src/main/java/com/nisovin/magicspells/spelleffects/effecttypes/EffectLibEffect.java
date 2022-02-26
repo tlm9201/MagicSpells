@@ -40,6 +40,11 @@ public class EffectLibEffect extends SpellEffect {
 		manager = MagicSpells.getEffectManager();
 
 		Effect effect = manager.getEffectByClassName(className);
+		if (effect == null) {
+			MagicSpells.error("Invalid EffectLib effect class '" + className + "' defined!");
+			return;
+		}
+
 		Class<? extends Effect> effectClass = effect.getClass();
 
 		Set<String> keys = effectLibSection.getKeys(false);
