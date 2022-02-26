@@ -1642,9 +1642,9 @@ public class MagicSpells extends JavaPlugin {
 			ex.printStackTrace();
 		}
 
+		// Delete old errors if the folder exceeds the limit.
 		int limit = getErrorLogLimit();
 		if (limit > 0) {
-			// Delete old errors if the folder exceeds the limit.
 			try (Stream<Path> errorPaths = Files.list(folder.toPath())) {
 				errorPaths
 					.map(Path::toFile)
