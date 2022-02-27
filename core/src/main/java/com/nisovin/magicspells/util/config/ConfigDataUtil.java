@@ -256,7 +256,7 @@ public class ConfigDataUtil {
 
 					@Override
 					public String get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-						if (args.length > index) return args[index];
+						if (args != null && args.length > index) return args[index];
 						else return defaultString;
 					}
 
@@ -389,38 +389,32 @@ public class ConfigDataUtil {
 		String value = config.getString(path);
 		if (value == null) return (caster, target, power, args) -> def;
 
-		try {
-			Particle val = ParticleUtil.ParticleEffect.getParticle(value);
-			return (caster, target, power, args) -> val;
-		} catch (IllegalArgumentException e) {
-			ConfigData<String> supplier = getString(value);
+		Particle val = ParticleUtil.ParticleEffect.getParticle(value);
+		if (val != null) return (caster, target, power, args) -> val;
 
-			return new ConfigData<>() {
+		ConfigData<String> supplier = getString(value);
+		return new ConfigData<>() {
 
-				@Override
-				public Particle get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					String val = supplier.get(caster, target, power, args);
-					if (val == null) return def;
+			@Override
+			public Particle get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+				String val = supplier.get(caster, target, power, args);
+				if (val == null) return def;
 
-					try {
-						return ParticleUtil.ParticleEffect.getParticle(val);
-					} catch (IllegalArgumentException ex) {
-						return def;
-					}
-				}
+				Particle particle = ParticleUtil.ParticleEffect.getParticle(val);
+				return particle == null ? def : particle;
+			}
 
-				@Override
-				public boolean isConstant() {
-					return supplier.isConstant();
-				}
+			@Override
+			public boolean isConstant() {
+				return supplier.isConstant();
+			}
 
-				@Override
-				public boolean isTargeted() {
-					return supplier.isTargeted();
-				}
+			@Override
+			public boolean isTargeted() {
+				return supplier.isTargeted();
+			}
 
-			};
-		}
+		};
 	}
 
 	@NotNull
