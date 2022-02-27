@@ -260,15 +260,15 @@ public class MinionSpell extends BuffSpell {
 
 		// Spawn creature
 		LivingEntity minion = (LivingEntity) player.getWorld().spawnEntity(loc, creatureType);
-		if (!(minion instanceof Creature)) {
+		if (!(minion instanceof Mob)) {
 			minion.remove();
-			MagicSpells.error("MinionSpell '" + internalName + "' Can only summon creatures!");
+			MagicSpells.error("MinionSpell '" + internalName + "' can only summon mobs!");
 			return false;
 		}
 
-		if (minion instanceof Ageable) {
-			if (baby) ((Ageable) minion).setBaby();
-			else ((Ageable) minion).setAdult();
+		if (minion instanceof Ageable ageable) {
+			if (baby) ageable.setBaby();
+			else ageable.setAdult();
 		}
 
 		minion.setGravity(gravity);
@@ -512,7 +512,7 @@ public class MinionSpell extends BuffSpell {
 
 				Location loc = pl.getLocation().clone();
 				loc.add(loc.getDirection().setY(0).normalize().multiply(followRange));
-				((Creature) minions.get(pl.getUniqueId())).getPathfinder().moveTo(loc, followSpeed);
+				((Mob) minions.get(pl.getUniqueId())).getPathfinder().moveTo(loc, followSpeed);
 			}
 		}
 	}
@@ -568,7 +568,7 @@ public class MinionSpell extends BuffSpell {
 			// The distance between minion and his owner is greater that the defined max distance or the minion has no targets, he will follow his owner
 			Location loc = pl.getLocation().clone();
 			loc.add(loc.getDirection().setY(0).normalize().multiply(followRange));
-			((Creature) minions.get(pl.getUniqueId())).getPathfinder().moveTo(loc, followSpeed);
+			((Mob) minions.get(pl.getUniqueId())).getPathfinder().moveTo(loc, followSpeed);
 		}
 	}
 
