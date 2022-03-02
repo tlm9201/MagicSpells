@@ -40,14 +40,15 @@ public class TitleEffect extends SpellEffect {
 	
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
-		if (broadcast) Util.forEachPlayerOnline(this::send);
-		else if (entity instanceof Player player) send(player);
+		String[] args = data == null ? null : data.args();
+		if (broadcast) Util.forEachPlayerOnline(p -> send(p, args));
+		else if (entity instanceof Player player) send(player, args);
 		return null;
 	}
 	
-	private void send(Player player) {
-		Component titleComponent = Util.getMiniMessageWithVars(player, title);
-		Component subtitleComponent = Util.getMiniMessageWithVars(player, subtitle);
+	private void send(Player player, String[] args) {
+		Component titleComponent = Util.getMiniMessageWithArgsAndVars(player, title, args);
+		Component subtitleComponent = Util.getMiniMessageWithArgsAndVars(player, subtitle, args);
 		player.showTitle(Title.title(titleComponent, subtitleComponent, times));
 	}
 

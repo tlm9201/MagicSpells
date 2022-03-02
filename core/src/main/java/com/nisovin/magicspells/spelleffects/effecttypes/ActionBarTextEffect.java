@@ -22,7 +22,7 @@ public class ActionBarTextEffect extends SpellEffect {
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
-		String[] args = data.args();
+		String[] args = data == null ? null : data.args();
 		if (broadcast) Util.forEachPlayerOnline(p -> send(p, args));
 		else if (entity instanceof Player p) send(p, args);
 		return null;

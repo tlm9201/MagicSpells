@@ -36,9 +36,10 @@ public class BroadcastEffect extends SpellEffect {
 
 	@Override
 	public Runnable playEffectEntity(Entity entity, SpellData data) {
-		String[] args = data.args();
 		if (targeted) {
-			if (entity instanceof Player player) MagicSpells.sendMessage(message, player, args);
+			if (entity instanceof Player player)
+				MagicSpells.sendMessage(message, player,  data == null ? null : data.args());
+
 			return null;
 		}
 
@@ -57,7 +58,8 @@ public class BroadcastEffect extends SpellEffect {
 	private void broadcast(Location location, String message, SpellData data) {
 		double range = this.range.get(data);
 		if (range <= 0) {
-			Util.forEachPlayerOnline(player -> MagicSpells.sendMessage(message, player, data.args()));
+			String[] args =  data == null ? null : data.args();
+			Util.forEachPlayerOnline(player -> MagicSpells.sendMessage(message, player, args));
 			return;
 		}
 		if (location == null) return;

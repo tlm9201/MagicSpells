@@ -12,8 +12,6 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class ParticleCloudEffect extends ParticlesEffect {
 
-	private ConfigData<Particle> particle;
-
 	private ConfigData<Integer> color;
 	private ConfigData<Integer> duration;
 
@@ -23,8 +21,6 @@ public class ParticleCloudEffect extends ParticlesEffect {
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		particle = ConfigDataUtil.getParticle(config, "particle-name", Particle.EXPLOSION_NORMAL);
-
 		color = ConfigDataUtil.getInteger(config, "color", 0xFF0000);
 		duration = ConfigDataUtil.getInteger(config, "duration", 60);
 
