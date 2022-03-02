@@ -318,7 +318,7 @@ public class MagicCommand extends BaseCommand {
 		else spells.add(spell);
 		for (Spell s : spells) {
 			if (player == null) s.getCooldowns().clear();
-			else s.setCooldown(player, 0);
+			else s.setCooldown(player, 0, false);
 		}
 		issuer.sendMessage(MagicSpells.getTextColor() + "Cooldowns reset" + (player == null ? "" : " for " + player.getName()) + (spell == null ? "" : " for spell " + Util.colorize(spell.getName())) + ".");
 	}
