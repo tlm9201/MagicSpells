@@ -6,6 +6,7 @@ tab-complete-internal-names: false
 terminate-effectlib-instances: true
 enable-error-logging: true
 enable-profiling: false
+error-log-limit: -1
 text-color: 3
 broadcast-range: 20
 effectlib-instance-limit: 20000

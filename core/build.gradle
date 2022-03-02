@@ -10,7 +10,7 @@ dependencies {
     shadow(group: "org.apache.commons", name: "commons-math3", version: "3.6.1")
     shadow(group: "com.github.elBukkit", name: "EffectLib", version: "master-SNAPSHOT")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.0-SNAPSHOT")
-    shadow(group: "net.kyori", name: "adventure-text-minimessage", version: "4.10.0-SNAPSHOT")
+    shadow(group: "net.kyori", name: "adventure-text-minimessage", version: "4.2.0-SNAPSHOT")
     shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.6.10")
 
     implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.7.0") { transitive = false }

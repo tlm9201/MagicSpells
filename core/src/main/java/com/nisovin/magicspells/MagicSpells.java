@@ -4,6 +4,7 @@ import java.io.*;
 
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Stream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +15,9 @@ import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.MalformedURLException;
+
+import java.nio.file.Path;
+import java.nio.file.Files;
 
 import de.slikey.effectlib.EffectManager;
 
@@ -175,6 +179,7 @@ public class MagicSpells extends JavaPlugin {
 	private int debugLevel;
 	private int spellIconSlot;
 	private int globalRadius;
+	private int errorLogLimit;
 	private int globalCooldown;
 	private int broadcastRange;
 	private int effectlibInstanceLimit;
@@ -262,6 +267,7 @@ public class MagicSpells extends JavaPlugin {
 		terminateEffectlibInstances = config.getBoolean(path + "terminate-effectlib-instances", true);
 
 		enableErrorLogging = config.getBoolean(path + "enable-error-logging", true);
+		errorLogLimit = config.getInt(path + "error-log-limit", -1);
 		enableProfiling = config.getBoolean(path + "enable-profiling", false);
 		textColor = ChatColor.getByChar(config.getString(path + "text-color", ChatColor.DARK_AQUA.getChar() + ""));
 		broadcastRange = config.getInt(path + "broadcast-range", 20);
@@ -1077,6 +1083,10 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.debugLevelOriginal;
 	}
 
+	public static int getErrorLogLimit() {
+		return plugin.errorLogLimit;
+	}
+
 	public static void setDebug(boolean debug) {
 		plugin.debug = debug;
 	}
@@ -1603,27 +1613,17 @@ public class MagicSpells extends JavaPlugin {
 		Bukkit.getScheduler().cancelTask(taskId);
 	}
 
-	public static void handleException(Exception ex) {
+	public static void handleException(@NotNull Exception ex) {
 		if (!plugin.enableErrorLogging) {
 			ex.printStackTrace();
 			return;
 		}
 
+		File folder = new File(plugin.getDataFolder(), "errors");
+		if (!folder.exists()) folder.mkdir();
+
 		plugin.getLogger().severe("AN EXCEPTION HAS OCCURED:");
-		PrintWriter writer = null;
-		try {
-			File folder = new File(plugin.getDataFolder(), "errors");
-			if (!folder.exists()) folder.mkdir();
-
-			// Delete old errors if the folder is too many.
-			File[] oldErrors = folder.listFiles();
-			if (oldErrors != null && oldErrors.length >= 50) {
-				for (File file : oldErrors) {
-					file.delete();
-				}
-			}
-
-			writer = new PrintWriter(new File(folder, System.currentTimeMillis() + ".txt"));
+		try (PrintWriter writer = new PrintWriter(new File(folder, System.currentTimeMillis() + ".txt"));) {
 			Throwable t = ex;
 			while (t != null) {
 				plugin.getLogger().severe("    " + t.getMessage() + " (" + t.getClass().getName() + ')');
@@ -1631,16 +1631,30 @@ public class MagicSpells extends JavaPlugin {
 				writer.println();
 				t = t.getCause();
 			}
-			plugin.getLogger().severe("This error has been saved in the errors folder");
+
+			plugin.getLogger().severe("This error has been saved in the errors folder.");
 			writer.println("Server version: " + Bukkit.getServer().getVersion());
 			writer.println("MagicSpells version: " + plugin.getDescription().getVersion());
 			writer.println("Error log date: " + new Date());
-		} catch (Exception x) {
-			plugin.getLogger().severe("ERROR HANDLING EXCEPTION");
-			x.printStackTrace();
+		} catch (Exception e) {
+			plugin.getLogger().severe("ERROR WHILE HANDLING EXCEPTION:");
+			e.printStackTrace();
 			ex.printStackTrace();
-		} finally {
-			if (writer != null) writer.close();
+		}
+
+		// Delete old errors if the folder exceeds the limit.
+		int limit = getErrorLogLimit();
+		if (limit > 0) {
+			try (Stream<Path> errorPaths = Files.list(folder.toPath())) {
+				errorPaths
+					.map(Path::toFile)
+					.sorted(Comparator.comparing(File::lastModified, Comparator.reverseOrder()))
+					.skip(limit)
+					.forEach(File::delete);
+			} catch (Exception e) {
+				plugin.getLogger().severe("Error while cleaning up error folder:");
+				e.printStackTrace();
+			}
 		}
 	}
 

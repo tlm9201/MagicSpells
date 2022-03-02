@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.bukkit.Material;
-import org.bukkit.entity.Creature;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -45,8 +45,7 @@ public class MobUtil {
 	}
 
 	public static void setTarget(LivingEntity mob, LivingEntity target) {
-		if (!(mob instanceof Creature creature)) return;
-		creature.setTarget(target);
+		if (mob instanceof Mob m) m.setTarget(target);
 	}
 
 	public static EntityType getPigZombieEntityType() {
