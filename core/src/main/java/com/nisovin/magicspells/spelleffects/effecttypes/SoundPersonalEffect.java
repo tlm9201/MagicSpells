@@ -14,7 +14,7 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class SoundPersonalEffect extends SoundEffect {
 
-	private ConfigData<SoundPosition> target;
+	private ConfigData<SoundTarget> target;
 
 	private boolean broadcast;
 	private boolean useListenerAsTarget;
@@ -27,7 +27,7 @@ public class SoundPersonalEffect extends SoundEffect {
 	public void loadFromConfig(ConfigurationSection config) {
 		super.loadFromConfig(config);
 
-		target = ConfigDataUtil.getEnum(config, "target", SoundPosition.class, SoundPosition.POSITION);
+		target = ConfigDataUtil.getEnum(config, "target", SoundTarget.class, SoundTarget.POSITION);
 
 		broadcast = config.getBoolean("broadcast", false);
 		useListenerAsTarget = config.getBoolean("use-listener-as-target", false);
@@ -107,7 +107,7 @@ public class SoundPersonalEffect extends SoundEffect {
 		}
 	}
 
-	private enum SoundPosition {
+	private enum SoundTarget {
 
 		CASTER,
 		TARGET,
