@@ -49,7 +49,7 @@ public class ParticlesEffect extends SpellEffect {
 	protected ConfigData<Float> sculkChargeRotation;
 
 	protected boolean force;
-	protected boolean staticLocation;
+	protected boolean staticDestination;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -81,13 +81,12 @@ public class ParticlesEffect extends SpellEffect {
 		ySpread = ConfigDataUtil.getFloat(config, "ySpread", vertSpread);
 
 		force = config.getBoolean("force", false);
-		staticLocation = config.getBoolean("static", false);
+		staticDestination = config.getBoolean("static-destination", false);
 	}
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
 		Location location = applyOffsets(entity.getLocation(), data);
-		if (staticLocation) return playEffectLocation(location, data);
 
 		Particle particle = this.particle.get(data);
 		Object particleData = getParticleData(particle, entity, location, data);
@@ -109,11 +108,10 @@ public class ParticlesEffect extends SpellEffect {
 
 	protected Object getParticleData(Particle particle, Entity entity, Location location, SpellData data) {
 		Class<?> type = particle.getDataType();
-		Object particleData = null;
 
 		if (type == ItemStack.class) {
 			Material material = this.material.get(data);
-			particleData = material == null ? null : new ItemStack(material);
+			return material == null ? null : new ItemStack(material);
 		} else if (type == Vibration.class) {
 			Location originLocation = getLocation(location, data, vibrationOrigin);
 			if (originLocation == null) return null;
@@ -121,23 +119,31 @@ public class ParticlesEffect extends SpellEffect {
 			Destination destination = switch (vibrationDestination.get(data)) {
 				case CASTER -> {
 					LivingEntity caster = data == null ? null : data.caster();
-					yield new EntityDestination(caster == null ? entity : caster);
+					if (caster == null) yield null;
+
+					yield staticDestination ? new BlockDestination(applyOffsets(caster.getLocation(), vibrationOffset,
+						vibrationRelativeOffset, 0, 0, 0)) : new EntityDestination(caster);
 				}
 				case TARGET -> {
 					LivingEntity target = data == null ? null : data.target();
-					yield new EntityDestination(target == null ? entity : target);
+					if (target == null) yield null;
+
+					yield staticDestination ? new BlockDestination(applyOffsets(target.getLocation(), vibrationOffset,
+						vibrationRelativeOffset, 0, 0, 0)) : new EntityDestination(target);
 				}
-				case POSITION -> new EntityDestination(entity);
+				case POSITION -> staticDestination ? new BlockDestination(applyOffsets(location, vibrationOffset,
+					vibrationRelativeOffset, 0, 0, 0)) : new EntityDestination(entity);
 			};
+			if (destination == null) return null;
 
-			particleData = new Vibration(destination, arrivalTime.get(data));
-		} else if (type == BlockData.class) particleData = blockData.get(data);
-		else if (type == DustOptions.class) particleData = dustOptions.get(data);
-		else if (type == DustTransition.class) particleData = dustTransition.get(data);
-		else if (type == Float.class) particleData = sculkChargeRotation.get(data);
-		else if (type == Integer.class) particleData = shriekDelay.get(data);
+			return new Vibration(destination, arrivalTime.get(data));
+		} else if (type == BlockData.class) return blockData.get(data);
+		else if (type == DustOptions.class) return dustOptions.get(data);
+		else if (type == DustTransition.class) return dustTransition.get(data);
+		else if (type == Float.class) return sculkChargeRotation.get(data);
+		else if (type == Integer.class) return shriekDelay.get(data);
 
-		return particleData;
+		return null;
 	}
 
 	protected Object getParticleData(Particle particle, Location location, SpellData data) {
@@ -154,7 +160,9 @@ public class ParticlesEffect extends SpellEffect {
 			Location targetLocation = getLocation(location, data, vibrationDestination);
 			if (targetLocation == null) return null;
 
-			Destination destination = new BlockDestination(applyOffsets(targetLocation, vibrationOffset, vibrationRelativeOffset, 0, 0, 0));
+			Destination destination = new BlockDestination(applyOffsets(targetLocation, vibrationOffset,
+				vibrationRelativeOffset, 0, 0, 0));
+
 			particleData = new Vibration(destination, arrivalTime.get(data));
 		} else if (type == BlockData.class) particleData = blockData.get(data);
 		else if (type == DustOptions.class) particleData = dustOptions.get(data);

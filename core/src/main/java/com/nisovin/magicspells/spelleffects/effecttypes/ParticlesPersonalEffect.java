@@ -28,7 +28,6 @@ public class ParticlesPersonalEffect extends ParticlesEffect {
 		if (player == null) return null;
 
 		Location location = applyOffsets(entity.getLocation(), data);
-		if (staticLocation) return playEffectLocation(location, data);
 
 		Particle particle = this.particle.get(data);
 		Object particleData = getParticleData(particle, entity, location, data);
