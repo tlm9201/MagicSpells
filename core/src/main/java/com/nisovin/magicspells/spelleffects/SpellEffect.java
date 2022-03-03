@@ -41,8 +41,8 @@ public abstract class SpellEffect {
 	private Vector relativeOffset;
 
 	// for line
+	private ConfigData<Double> maxDistance;
 	private ConfigData<Double> distanceBetween;
-	private ConfigData<Double> maxDistanceSquared;
 
 	// for buff/orbit
 	private ConfigData<Float> orbitXAxis;
@@ -83,7 +83,7 @@ public abstract class SpellEffect {
 		offset = new Vector(Double.parseDouble(offsetStr[0]), Double.parseDouble(offsetStr[1]), Double.parseDouble(offsetStr[2]));
 		relativeOffset = new Vector(Double.parseDouble(relativeStr[0]), Double.parseDouble(relativeStr[1]), Double.parseDouble(relativeStr[2]));
 
-		maxDistanceSquared = ConfigDataUtil.getDouble(config, "max-distance", 100);
+		maxDistance = ConfigDataUtil.getDouble(config, "max-distance", 100);
 		distanceBetween = ConfigDataUtil.getDouble(config, "distance-between", 1);
 
 		String path = "orbit-";
@@ -359,8 +359,8 @@ public abstract class SpellEffect {
 	 * @param location2 the ending location
 	 */
 	public Runnable playEffect(Location location1, Location location2, SpellData data) {
-		double maxDistance = this.maxDistanceSquared.get(data);
-		if (location1.distanceSquared(location2) > maxDistance) return null;
+		double maxDistance = this.maxDistance.get(data);
+		if (location1.distanceSquared(location2) > maxDistance * maxDistance) return null;
 
 		Location loc1 = location1.clone();
 		Location loc2 = location2.clone();
@@ -452,8 +452,8 @@ public abstract class SpellEffect {
 		return relativeOffset;
 	}
 
-	public ConfigData<Double> getMaxDistanceSquared() {
-		return maxDistanceSquared;
+	public ConfigData<Double> getMaxDistance() {
+		return maxDistance;
 	}
 
 	public ConfigData<Double> getDistanceBetween() {
