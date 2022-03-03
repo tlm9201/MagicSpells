@@ -14,7 +14,7 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class SoundPersonalEffect extends SoundEffect {
 
-	private ConfigData<SoundPosition> source;
+	private ConfigData<SoundPosition> target;
 
 	private boolean broadcast;
 	private boolean useListenerAsTarget;
@@ -27,7 +27,7 @@ public class SoundPersonalEffect extends SoundEffect {
 	public void loadFromConfig(ConfigurationSection config) {
 		super.loadFromConfig(config);
 
-		source = ConfigDataUtil.getEnum(config, "source", SoundPosition.class, SoundPosition.LISTENER);
+		target = ConfigDataUtil.getEnum(config, "source", SoundPosition.class, SoundPosition.POSITION);
 
 		broadcast = config.getBoolean("broadcast", false);
 		useListenerAsTarget = config.getBoolean("use-listener-as-target", false);
@@ -40,26 +40,14 @@ public class SoundPersonalEffect extends SoundEffect {
 	@Override
 	public Runnable playEffectEntity(Entity entity, SpellData data) {
 		if (broadcast) {
-			if (entity != null) playEffectLocation(entity.getLocation(), data);
+			broadcast(data);
 			return null;
 		}
 
-		SoundPosition position = source.get(data);
-		if (entity instanceof Player player) {
-			Location location = switch (position) {
-				case CASTER -> {
-					LivingEntity caster = data.caster();
-					yield caster == null ? null : caster.getLocation();
-				}
-				case TARGET -> {
-					LivingEntity target = data.target();
-					yield target == null ? null : target.getLocation();
-				}
-				case LISTENER, POSITION -> entity.getLocation();
-			};
-			if (location == null) return null;
-
-			player.playSound(applyOffsets(location, data), sound.get(data), category.get(data), volume.get(data), pitch.get(data));
+		Player target = getTarget(entity, data);
+		if (target != null) {
+			if (useListenerAsTarget && data != null) data = new SpellData(data.caster(), target, data.power(), data.args());
+			target.playSound(applyOffsets(entity.getLocation(), data), sound.get(data), category.get(data), volume.get(data), pitch.get(data));
 		}
 
 		return null;
@@ -67,29 +55,42 @@ public class SoundPersonalEffect extends SoundEffect {
 
 	@Override
 	public Runnable playEffectLocation(Location location, SpellData data) {
-		if (!broadcast) return null;
+		if (broadcast) {
+			broadcast(data);
+			return null;
+		}
 
-		SoundPosition position = source.get(data);
+		Player target = getTarget(null, data);
+		if (target != null) {
+			if (useListenerAsTarget && data != null) data = new SpellData(data.caster(), target, data.power(), data.args());
+			target.playSound(location, sound.get(data), category.get(data), volume.get(data), pitch.get(data));
+		}
 
-		Location l = switch (position) {
+		return null;
+	}
+
+	private Player getTarget(Entity entity, SpellData data) {
+		return switch (target.get(data)) {
 			case CASTER -> {
+				if (data == null) yield null;
+
 				LivingEntity caster = data.caster();
-				yield caster == null ? null : caster.getLocation();
+				yield caster instanceof Player player ? player : null;
 			}
 			case TARGET -> {
+				if (data == null) yield null;
+
 				LivingEntity target = data.target();
-				yield target == null ? null : target.getLocation();
+				yield target instanceof Player player ? player : null;
 			}
-			case POSITION -> location == null ? null : location.clone();
-			case LISTENER -> null;
+			case POSITION -> entity instanceof Player player ? player : null;
 		};
+	}
 
-		boolean listener = position == SoundPosition.LISTENER;
-		if (l == null && !listener) return null;
-
-		String sound = resolveSoundPerPlayer ? null : this.sound.get(data);
+	private void broadcast(SpellData data) {
 		float pitch = resolvePitchPerPlayer ? 0 : this.pitch.get(data);
 		float volume = resolveVolumePerPlayer ? 0 : this.volume.get(data);
+		String sound = resolveSoundPerPlayer ? null : this.sound.get(data);
 		SoundCategory category = resolveCategoryPerPlayer ? null : this.category.get(data);
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
@@ -102,17 +103,14 @@ public class SoundPersonalEffect extends SoundEffect {
 			if (resolveCategoryPerPlayer) category = this.category.get(data);
 
 			if (sound == null || category == null) continue;
-			player.playSound(listener ? player.getLocation() : l, sound, category, pitch, volume);
+			player.playSound(player.getLocation(), sound, category, pitch, volume);
 		}
-
-		return null;
 	}
 
 	private enum SoundPosition {
 
 		CASTER,
 		TARGET,
-		LISTENER,
 		POSITION
 
 	}
