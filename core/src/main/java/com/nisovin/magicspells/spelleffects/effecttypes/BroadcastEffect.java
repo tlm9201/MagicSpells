@@ -46,8 +46,7 @@ public class BroadcastEffect extends SpellEffect {
 		String msg = message;
 		if (entity instanceof Player player) {
 			String displayName = Util.getStringFromComponent(player.displayName());
-			msg = msg.replace("%a", displayName)
-				.replace("%t", displayName)
+			msg = msg.replaceAll("%a(?!rg:)|%t(?!argetvar:)", displayName)
 				.replace("%n", entity.getName());
 		}
 		broadcast(entity == null ? null : entity.getLocation(), msg, data);
@@ -56,21 +55,23 @@ public class BroadcastEffect extends SpellEffect {
 	}
 
 	private void broadcast(Location location, String message, SpellData data) {
+		String[] args =  data == null ? null : data.args();
+
 		double range = this.range.get(data);
 		if (range <= 0) {
-			String[] args =  data == null ? null : data.args();
 			Util.forEachPlayerOnline(player -> MagicSpells.sendMessage(message, player, args));
 			return;
 		}
+
 		if (location == null) return;
 
 		double rangeSq = range * range;
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			if (!player.getWorld().equals(location.getWorld())) continue;
 			if (player.getLocation().distanceSquared(location) > rangeSq) continue;
-			MagicSpells.sendMessage(message, player, null);
-		}
 
+			MagicSpells.sendMessage(message, player, args);
+		}
 	}
 
 }
