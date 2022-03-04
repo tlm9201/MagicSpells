@@ -364,7 +364,7 @@ public class ConfigDataUtil {
 					if (val == null) return def;
 
 					try {
-						return Enum.valueOf(type, value.toUpperCase());
+						return Enum.valueOf(type, val.toUpperCase());
 					} catch (IllegalArgumentException ex) {
 						return def;
 					}
