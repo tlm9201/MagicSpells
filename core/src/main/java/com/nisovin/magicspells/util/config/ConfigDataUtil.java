@@ -773,7 +773,7 @@ public class ConfigDataUtil {
 		if (config.isInt(sizePath) || config.isLong(sizePath) || config.isDouble(sizePath)) {
 			float size = (float) config.getDouble(sizePath);
 
-			return new ConfigData<DustTransition>() {
+			return new ConfigData<>() {
 
 				@Override
 				public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
@@ -835,7 +835,7 @@ public class ConfigDataUtil {
 		}
 
 		ConfigData<Float> size = getFloat(config, sizePath, def == null ? 0 : def.getSize());
-		return new ConfigData<DustTransition>() {
+		return new ConfigData<>() {
 
 			@Override
 			public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
