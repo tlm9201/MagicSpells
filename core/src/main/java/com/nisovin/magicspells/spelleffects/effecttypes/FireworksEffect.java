@@ -14,12 +14,14 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class FireworksEffect extends SpellEffect implements Listener {
 
-	private int type;
-	private int flightDuration;
+	private ConfigData<Integer> type;
+	private ConfigData<Integer> flightDuration;
 
 	private boolean trail;
 	private boolean flicker;
@@ -29,8 +31,8 @@ public class FireworksEffect extends SpellEffect implements Listener {
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		type = config.getInt("type", 0);
-		flightDuration = config.getInt("flight", 0);
+		type = ConfigDataUtil.getInteger(config, "type", 0);
+		flightDuration = ConfigDataUtil.getInteger(config, "flight", 0);
 
 		trail = config.getBoolean("trail", false);
 		flicker = config.getBoolean("flicker", false);
@@ -65,6 +67,7 @@ public class FireworksEffect extends SpellEffect implements Listener {
 	@Override
 	public Runnable playEffectLocation(Location location, SpellData data) {
 		FireworkEffect.Type t = FireworkEffect.Type.BALL;
+		int type = this.type.get(data);
 		if (type == 1) t = FireworkEffect.Type.BALL_LARGE;
 		else if (type == 2) t = FireworkEffect.Type.STAR;
 		else if (type == 3) t = FireworkEffect.Type.CREEPER;
@@ -100,7 +103,7 @@ public class FireworksEffect extends SpellEffect implements Listener {
 			if (!firework.isValid()) return;
 			if (firework.isDead()) return;
 			firework.detonate();
-		}, flightDuration);
+		}, flightDuration.get(data));
 
 		return null;
 	}
