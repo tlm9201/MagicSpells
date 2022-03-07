@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.volatilecode.v1_18_R1
+package com.nisovin.magicspells.volatilecode.v1_18_R2
 
 import org.bukkit.Bukkit
 import org.bukkit.entity.*
@@ -7,10 +7,10 @@ import org.bukkit.util.Vector
 import org.bukkit.inventory.ItemStack
 import org.bukkit.event.entity.ExplosionPrimeEvent
 
-import org.bukkit.craftbukkit.v1_18_R1.entity.*
-import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
-import org.bukkit.craftbukkit.v1_18_R1.CraftServer
-import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack
+import org.bukkit.craftbukkit.v1_18_R2.entity.*
+import org.bukkit.craftbukkit.v1_18_R2.CraftWorld
+import org.bukkit.craftbukkit.v1_18_R2.CraftServer
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack
 
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.entity.EntityType
@@ -28,7 +28,7 @@ import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 
 private typealias nmsItemStack = net.minecraft.world.item.ItemStack
 
-class VolatileCode1_18_R1: VolatileCodeHandle {
+class VolatileCode1_18_R2: VolatileCodeHandle {
 
     private var entityLivingPotionEffectColor: EntityDataAccessor<Int>? = null
 
@@ -124,9 +124,9 @@ class VolatileCode1_18_R1: VolatileCodeHandle {
         player.updateInventory()
     }
 
-    override fun startAutoSpinAttack(entity: LivingEntity?, ticks: Int) {
-        val livingEntity = (entity as CraftLivingEntity).handle
-        livingEntity.startAutoSpinAttack(ticks)
+    override fun startAutoSpinAttack(player: Player?, ticks: Int) {
+        val entityPlayer = (player as CraftPlayer).handle
+        entityPlayer.startAutoSpinAttack(ticks)
     }
 
 }

@@ -21,6 +21,6 @@ public interface VolatileCodeHandle {
 
 	void setInventoryTitle(Player player, String title);
 
-	void startAutoSpinAttack(LivingEntity entity, int ticks);
+	void startAutoSpinAttack(Player player, int ticks);
 
 }

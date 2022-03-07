@@ -3,14 +3,13 @@ package com.nisovin.magicspells.util;
 import java.io.File;
 import java.io.FileOutputStream;
 
-import net.md_5.bungee.api.ChatColor;
-
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -53,6 +52,10 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 public class Util {
 
 	private static final Random random = ThreadLocalRandom.current();
+
+	private static final Pattern WEIRD_HEX_PATTERN = Pattern.compile("[&§]x(([&§][0-9a-f]){6})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern COLOR_PATTERN = Pattern.compile("[&§]([0-9a-fk-or])", Pattern.CASE_INSENSITIVE);
+	private static final Pattern HEX_PATTERN = Pattern.compile("[&§](#[0-9a-f]{6})", Pattern.CASE_INSENSITIVE);
 
 	public static int getRandomInt(int bound) {
 		return random.nextInt(bound);
@@ -624,6 +627,35 @@ public class Util {
 		return component.decoration(TextDecoration.ITALIC, component.hasDecoration(TextDecoration.ITALIC));
 	}
 
+	public static String getMiniMessageFromLegacy(String input) {
+		StringBuilder builder = new StringBuilder();
+
+		Matcher matcher = WEIRD_HEX_PATTERN.matcher(input);
+		while (matcher.find()) {
+			matcher.appendReplacement(builder, "<#" + matcher.group(1).replaceAll("[§&]", "") + ">");
+		}
+		matcher.appendTail(builder);
+
+		matcher = HEX_PATTERN.matcher(builder.toString());
+		builder.setLength(0);
+		while (matcher.find()) {
+			matcher.appendReplacement(builder, "<" + matcher.group(1) + ">");
+		}
+		matcher.appendTail(builder);
+
+		matcher = COLOR_PATTERN.matcher(builder.toString());
+		builder.setLength(0);
+		while (matcher.find()) {
+			ChatColor color = ChatColor.getByChar(matcher.group(1).toLowerCase());
+			if (color == null) continue;
+
+			matcher.appendReplacement(builder, color == ChatColor.UNDERLINE ? "<underlined>" : "<" + color.asBungee().getName() + ">");
+		}
+		matcher.appendTail(builder);
+
+		return builder.toString();
+	}
+
 	public static String getLegacyFromComponent(Component component) {
 		if (component == null) return "";
 		return LegacyComponentSerializer.legacySection().serialize(component);
@@ -635,19 +667,11 @@ public class Util {
 	}
 
 	public static Component getMiniMessage(String input) {
-		if (input.isEmpty()) return Component.text("");
-		// Let's handle MS color patterns. Replace ampersand with section (§).
-		input = colorize(input);
-		// Translate legacy section (§) to Adventure colors.
-		Component component = LegacyComponentSerializer.builder()
-				.hexColors()
-				.useUnusualXRepeatedCharacterHexFormat()
-				.character(ChatColor.COLOR_CHAR)
-				.build()
-				.deserialize(input);
-		input = getStringFromComponent(component);
-		// Parse the actual MiniMessage.
-		component = MiniMessage.miniMessage().deserialize(input);
+		if (input.isEmpty()) return Component.empty();
+
+		// Convert legacy color patterns to MiniMessage format, then deserialize it.
+		Component component = MiniMessage.miniMessage().deserialize(getMiniMessageFromLegacy(input));
+
 		// Remove italics if they aren't present. Otherwise, item name and lore will render italic text.
 		return component.decoration(TextDecoration.ITALIC, component.hasDecoration(TextDecoration.ITALIC));
 	}
@@ -666,9 +690,10 @@ public class Util {
 		Matcher matcher = ColorUtil.HEX_PATTERN.matcher(ChatColor.translateAlternateColorCodes('&', string));
 		StringBuilder buffer = new StringBuilder();
 		while (matcher.find()) {
-			try {
-				matcher.appendReplacement(buffer, ChatColor.of(matcher.group(1).toUpperCase()).toString());
-			} catch (IllegalArgumentException ignored) {}
+			ChatColor color = ChatColor.getByChar(matcher.group(1).toUpperCase());
+			if (color == null) continue;
+
+			matcher.appendReplacement(buffer, color.toString());
 		}
 		return matcher.appendTail(buffer).toString();
 	}

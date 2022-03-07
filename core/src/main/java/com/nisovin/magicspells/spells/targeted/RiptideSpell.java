@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
+import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -23,26 +24,38 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state != SpellCastState.NORMAL) return PostCastAction.HANDLE_NORMALLY;
 
-		TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
-		if (target == null) return noTarget(caster);
-		playSpellEffects(caster, target.getTarget());
+		TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power);
+		if (targetInfo == null) return noTarget(caster);
 
-		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target.getTarget(), duration);
+		Player target = targetInfo.getTarget();
+		if (target == null) return noTarget(caster);
+
+		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration);
+		playSpellEffects(caster, target);
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration);
-		playSpellEffects(caster, target);
-		return true;
+		if (target instanceof Player player) {
+			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration);
+			playSpellEffects(caster, target);
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration);
-		playSpellEffects(EffectPosition.TARGET, target);
-		return true;
+		if (target instanceof Player player) {
+			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration);
+			playSpellEffects(EffectPosition.TARGET, target);
+			return true;
+		}
+
+		return false;
 	}
 
 	public int getDuration() {
