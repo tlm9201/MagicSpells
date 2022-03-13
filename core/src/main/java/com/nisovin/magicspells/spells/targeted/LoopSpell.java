@@ -32,6 +32,7 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.managers.VariableManager;
+import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
@@ -236,6 +237,12 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 					if (block != null) {
 						locationTarget = block.getLocation();
 						locationTarget.add(0.5, yOffset + 0.5, 0.5);
+
+						SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, locationTarget, power);
+						if (!event.callEvent()) return noTarget(caster);
+
+						locationTarget = event.getTargetLocation();
+						power = event.getPower();
 					}
 				}
 
@@ -303,7 +310,10 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	private void initLoop(LivingEntity caster, LivingEntity targetEntity, Location targetLocation, float power, String[] args) {
 		Loop loop = new Loop(caster, targetEntity, targetLocation, power, args);
+
 		if (targetEntity != null) activeLoops.put(targetEntity.getUniqueId(), loop);
+		else if (caster != null) activeLoops.put(caster.getUniqueId(), loop);
+		else activeLoops.put(null, loop);
 	}
 
 	public class Loop implements Runnable {
@@ -448,10 +458,16 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private void cancel(boolean remove) {
 			MagicSpells.cancelTask(taskId);
 
-			if (targetEntity != null) {
-				if (remove) activeLoops.remove(targetEntity.getUniqueId(), this);
-				playSpellEffects(EffectPosition.DELAYED, targetEntity);
-			} else if (targetLocation != null) playSpellEffects(EffectPosition.DELAYED, targetLocation);
+			if (remove) {
+				UUID key = null;
+				if (targetEntity != null) key = targetEntity.getUniqueId();
+				else if (caster != null) key = caster.getUniqueId();
+
+				activeLoops.remove(key, this);
+			}
+
+			if (targetEntity != null) playSpellEffects(EffectPosition.DELAYED, targetEntity);
+			else if (targetLocation != null) playSpellEffects(EffectPosition.DELAYED, targetLocation);
 			else if (caster != null) playSpellEffects(EffectPosition.DELAYED, caster);
 
 			if (caster != null || targetEntity != null) {

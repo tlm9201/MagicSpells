@@ -126,8 +126,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			if (loc == null) return noTarget(caster);
 			
 			boolean done = doAoe(caster, loc, power);
-			
-			if (!done && failIfNoTargets) return noTarget(caster);
+			if (!done) return noTarget(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -225,12 +224,13 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			if (maxTargets > 0 && count >= maxTargets) break;
 		}
 
-		if (count > 0 || !failIfNoTargets) {
+		boolean success = count > 0 || !failIfNoTargets;
+		if (success) {
 			playSpellEffects(EffectPosition.SPECIAL, location);
 			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
 		}
-		
-		return count > 0;
+
+		return success;
 	}
 
 	private void castSpells(LivingEntity caster, Location location, LivingEntity target, float power) {
