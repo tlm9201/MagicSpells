@@ -451,7 +451,13 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private void cancel(boolean remove) {
 			MagicSpells.cancelTask(taskId);
 
-			if (remove) activeLoops.remove(targetEntity == null ? null : targetEntity.getUniqueId(), this);
+			if (remove) {
+				UUID key = null;
+				if (targetEntity != null) key = targetEntity.getUniqueId();
+				else if (caster != null) key = caster.getUniqueId();
+
+				activeLoops.remove(key, this);
+			}
 
 			if (targetEntity != null) playSpellEffects(EffectPosition.DELAYED, targetEntity);
 			else if (targetLocation != null) playSpellEffects(EffectPosition.DELAYED, targetLocation);
