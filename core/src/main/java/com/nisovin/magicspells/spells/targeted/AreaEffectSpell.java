@@ -101,7 +101,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			if (pointBlank) loc = caster.getLocation();
 			else {
 				try {
-					Block block = getTargetedBlock(caster, power);
+					Block block = getTargetedBlock(caster, power, args);
 					if (block != null && !BlockUtils.isAir(block.getType())) loc = block.getLocation().add(0.5, 0, 0.5);
 				}
 				catch (IllegalStateException ignored) {}

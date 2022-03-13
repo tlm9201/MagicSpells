@@ -141,7 +141,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				return PostCastAction.NO_MESSAGES;
 			}
 
-			Block block = getTargetedBlock(caster, power);
+			Block block = getTargetedBlock(caster, power, args);
 			if (block != null) {
 				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, block.getLocation(), power, args);
 				EventUtil.call(event);

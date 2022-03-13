@@ -72,7 +72,7 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 				} else return noTarget(caster);
 			} else {
 				try {
-					target = getTargetedBlock(caster, power);
+					target = getTargetedBlock(caster, power, args);
 				} catch (IllegalStateException e) {
 					DebugHandler.debugIllegalState(e);
 					target = null;

@@ -234,13 +234,13 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				} else if (pointBlank) {
 					locationTarget = caster.getLocation();
 				} else {
-					Block block = getTargetedBlock(caster, power);
+					Block block = getTargetedBlock(caster, power, args);
 
 					if (block != null) {
 						locationTarget = block.getLocation();
 						locationTarget.add(0.5, yOffset + 0.5, 0.5);
 
-						SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, locationTarget, power);
+						SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, locationTarget, power, args);
 						if (!event.callEvent()) return noTarget(caster);
 
 						locationTarget = event.getTargetLocation();
@@ -263,8 +263,20 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		initLoop(caster, target, null, power, args);
+		return true;
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		initLoop(caster, target, null, power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		initLoop(null, target, null, power, args);
 		return true;
 	}
 
@@ -275,8 +287,20 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
+		initLoop(caster, null, target.clone().add(0, yOffset, 0), power, args);
+		return true;
+	}
+
+	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
 		initLoop(caster, null, target.clone().add(0, yOffset, 0), power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtLocation(Location target, float power, String[] args) {
+		initLoop(null, null, target.clone().add(0, yOffset, 0), power, args);
 		return true;
 	}
 

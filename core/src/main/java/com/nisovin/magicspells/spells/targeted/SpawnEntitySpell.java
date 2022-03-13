@@ -243,7 +243,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 					power = targetInfo.getPower();
 				}
 				case "target" -> {
-					Block block = getTargetedBlock(caster, power);
+					Block block = getTargetedBlock(caster, power, args);
 					if (block != null && block.getType() != Material.AIR) {
 						if (BlockUtils.isPathable(block)) loc = block.getLocation();
 						else if (BlockUtils.isPathable(block.getRelative(BlockFace.UP))) loc = block.getLocation().add(0, 1, 0);

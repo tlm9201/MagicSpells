@@ -59,7 +59,7 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Block block;
-			if (targeted) block = getTargetedBlock(caster, power);
+			if (targeted) block = getTargetedBlock(caster, power, args);
 			else block = caster.getLocation().subtract(0, 1, 0).getBlock();
 
 			if (block != null) {

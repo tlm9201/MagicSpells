@@ -48,7 +48,7 @@ public class TransmuteSpell extends TargetedSpell implements TargetedLocationSpe
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block block = getTargetedBlock(caster, power);
+			Block block = getTargetedBlock(caster, power, args);
 			if (block == null) return noTarget(caster);
 			
 			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, block.getLocation(), power);

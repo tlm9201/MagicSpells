@@ -70,7 +70,7 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			List<Block> blocks = getLastTwoTargetedBlocks(caster, power);
+			List<Block> blocks = getLastTwoTargetedBlocks(caster, power, args);
 			if (blocks.size() == 2 && !blocks.get(0).getType().isSolid() && blocks.get(0).getType().isSolid()) {
 				Location loc = blocks.get(0).getLocation().add(0.5, 0.5, 0.5);
 				loc.setDirection(caster.getLocation().getDirection());

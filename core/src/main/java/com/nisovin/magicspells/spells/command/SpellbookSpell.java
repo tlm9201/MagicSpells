@@ -123,7 +123,7 @@ public class SpellbookSpell extends CommandSpell {
 				return PostCastAction.ALREADY_HANDLED;
 			}
 
-			Block target = getTargetedBlock(player, 10);
+			Block target = getTargetedBlock(player, 10, args);
 			if (target == null || !spellbookBlock.equals(target.getType())) {
 				sendMessage(strNoTarget, player, args);
 				return PostCastAction.ALREADY_HANDLED;

@@ -47,7 +47,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 			TargetInfo<LivingEntity> entityTargetInfo = getTargetedEntity(caster, power, args);
 
 			if (entityTargetInfo != null && entityTargetInfo.getTarget() != null) baseTargetLocation = entityTargetInfo.getTarget().getLocation();
-			else baseTargetLocation = getTargetedBlock(caster, power).getLocation();
+			else baseTargetLocation = getTargetedBlock(caster, power, args).getLocation();
 
 			if (baseTargetLocation == null) return noTarget(caster);
 

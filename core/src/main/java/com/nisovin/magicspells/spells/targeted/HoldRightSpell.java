@@ -75,16 +75,14 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 				if (target != null) data = new CastData(caster, target.getTarget(), target.getPower(), args);
 				else return noTarget(caster);
 			} else if (targetLocation) {
-				Block block = getTargetedBlock(caster, power);
+				Block block = getTargetedBlock(caster, power, args);
 				if (block != null && block.getType() != Material.AIR)
 					data = new CastData(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
 				else return noTarget(caster);
 			} else data = new CastData(caster, power, args);
 
-			if (data != null) {
-				data.cast(caster);
-				casting.put(caster.getUniqueId(), data);
-			}
+			data.cast(caster);
+			casting.put(caster.getUniqueId(), data);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

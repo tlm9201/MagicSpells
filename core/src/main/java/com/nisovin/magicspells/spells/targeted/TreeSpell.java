@@ -45,7 +45,7 @@ public class TreeSpell extends TargetedSpell implements TargetedLocationSpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Block target = getTargetedBlock(caster, power);
+			Block target = getTargetedBlock(caster, power, args);
 
 			if (target != null && !BlockUtils.isAir(target.getType())) {
 				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
