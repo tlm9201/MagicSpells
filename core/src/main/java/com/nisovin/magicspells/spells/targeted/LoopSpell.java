@@ -303,7 +303,10 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	private void initLoop(LivingEntity caster, LivingEntity targetEntity, Location targetLocation, float power, String[] args) {
 		Loop loop = new Loop(caster, targetEntity, targetLocation, power, args);
+
 		if (targetEntity != null) activeLoops.put(targetEntity.getUniqueId(), loop);
+		else if (caster != null) activeLoops.put(caster.getUniqueId(), loop);
+		else activeLoops.put(null, loop);
 	}
 
 	public class Loop implements Runnable {
@@ -448,10 +451,10 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private void cancel(boolean remove) {
 			MagicSpells.cancelTask(taskId);
 
-			if (targetEntity != null) {
-				if (remove) activeLoops.remove(targetEntity.getUniqueId(), this);
-				playSpellEffects(EffectPosition.DELAYED, targetEntity);
-			} else if (targetLocation != null) playSpellEffects(EffectPosition.DELAYED, targetLocation);
+			if (remove) activeLoops.remove(targetEntity == null ? null : targetEntity.getUniqueId(), this);
+
+			if (targetEntity != null) playSpellEffects(EffectPosition.DELAYED, targetEntity);
+			else if (targetLocation != null) playSpellEffects(EffectPosition.DELAYED, targetLocation);
 			else if (caster != null) playSpellEffects(EffectPosition.DELAYED, caster);
 
 			if (caster != null || targetEntity != null) {
