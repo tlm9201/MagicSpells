@@ -20,9 +20,9 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 /*
-	NOTE: ProtocolLib and GlowAPI are required for this spell class.
-	GlowAPI: https://github.com/InventivetalentDev/GlowAPI
-*/
+ * NOTE: ProtocolLib and GlowAPI are required for this spell class.
+ * GlowAPI: https://github.com/InventivetalentDev/GlowAPI
+ */
 public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final Multimap<UUID, UUID> glowing;
@@ -30,7 +30,8 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final boolean toggle;
 	private final int duration;
-	private final boolean clientSide;
+	private final boolean visibleToEveryone;
+	private final boolean visibleToCaster;
 	private final boolean visibleToTarget;
 	private GlowAPI.Color color;
 
@@ -41,7 +42,8 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		toggle = getConfigBoolean("toggle", false);
 		duration = getConfigInt("duration", 0);
-		clientSide = getConfigBoolean("client-side", false);
+		visibleToEveryone = getConfigBoolean("visible-to-everyone", true);
+		visibleToCaster = getConfigBoolean("visible-to-caster", true);
 		visibleToTarget = getConfigBoolean("visible-to-target", false);
 
 		String colorName = getConfigString("color", "");
@@ -132,10 +134,16 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	private Collection<Player> getWatchers(Player caster, Entity target) {
-		List<Player> watchers = new ArrayList<>();
-		if (clientSide) watchers.addAll(Bukkit.getOnlinePlayers());
-		else if (caster != null) watchers.add(caster);
-		if (visibleToTarget && target instanceof Player) watchers.add((Player) target);
+		Set<Player> watchers = new HashSet<>();
+		if (visibleToEveryone) watchers.addAll(Bukkit.getOnlinePlayers());
+		if (caster != null) {
+			if (visibleToCaster) watchers.add(caster);
+			else watchers.remove(caster);
+		}
+		if (target instanceof Player targetPlayer) {
+			if (visibleToTarget) watchers.add(targetPlayer);
+			else watchers.remove(targetPlayer);
+		}
 		return watchers;
 	}
 
