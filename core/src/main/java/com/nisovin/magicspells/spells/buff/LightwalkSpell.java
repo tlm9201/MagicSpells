@@ -1,26 +1,20 @@
 package com.nisovin.magicspells.spells.buff;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.List;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 
@@ -30,50 +24,42 @@ public class LightwalkSpell extends BuffSpell {
 
 	private final Set<Material> allowedTypes;
 
-	private Material material;
+	private int yOffset;
+	private BlockData blockType;
 
 	public LightwalkSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		String materialName = getConfigString("material", "GLOWSTONE");
-		material = Util.getMaterial(materialName);
-		if (material == null) {
-			MagicSpells.error("LightwalkSpell " + internalName + " has an invalid material defined");
-			material = Material.GLOWSTONE;
+		yOffset = getConfigInt("y-offset", 0);
+
+		String blockTypeString = getConfigString("block-type", "light");
+		try {
+			blockType = Bukkit.createBlockData(blockTypeString.trim().toLowerCase());
+		} catch (IllegalArgumentException e) {
+			MagicSpells.error("LightwalkSpell " + internalName + " has an invalid 'block-type' defined.");
 		}
+		if (blockType == null) blockType = Material.LIGHT.createBlockData();
 
 		entities = new HashMap<>();
 
 		allowedTypes = new HashSet<>();
 
-		List<String> blockList = getConfigStringList("allowed-types", null);
-		if (blockList != null) {
-			for (String str : blockList) {
-				Material material = Util.getMaterial(str);
-				if (material == null) MagicSpells.error("LightwalkSpell " + internalName + " has an invalid block defined: " + str);
-				else allowedTypes.add(material);
-			}
-		} else {
-			allowedTypes.add(Material.GRASS_BLOCK);
-			allowedTypes.add(Material.DIRT);
-			allowedTypes.add(Material.GRAVEL);
-			allowedTypes.add(Material.STONE);
-			allowedTypes.add(Material.NETHERRACK);
-			allowedTypes.add(Material.SOUL_SAND);
-			allowedTypes.add(Material.SAND);
-			allowedTypes.add(Material.SANDSTONE);
-			allowedTypes.add(Material.GLASS);
-			allowedTypes.add(Material.WHITE_WOOL);
-			allowedTypes.add(Material.BRICK);
-			allowedTypes.add(Material.OBSIDIAN);
-			allowedTypes.add(Material.OAK_WOOD);
-			allowedTypes.add(Material.OAK_LOG);
+		List<String> blockList = getConfigStringList("allowed-types", Collections.singletonList("air"));
+		if (blockList == null) return;
+		for (String str : blockList) {
+			Material material = Util.getMaterial(str);
+			if (material == null) MagicSpells.error("LightwalkSpell " + internalName + " has an invalid block defined: " + str);
+			else allowedTypes.add(material);
 		}
+	}
+
+	private Block getBlockToChange(LivingEntity entity) {
+		return entity.getLocation().clone().add(0, yOffset + 0.5, 0).getBlock();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), entity.getLocation().getBlock().getRelative(BlockFace.DOWN));
+		entities.put(entity.getUniqueId(), getBlockToChange(entity));
 		return true;
 	}
 
@@ -84,20 +70,20 @@ public class LightwalkSpell extends BuffSpell {
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		Block b = entities.remove(entity.getUniqueId());
-		if (b == null) return;
-		if (!(entity instanceof Player)) return;
-		((Player) entity).sendBlockChange(b.getLocation(), b.getBlockData());
+		Block block = entities.remove(entity.getUniqueId());
+		if (block == null) return;
+		if (!(entity instanceof Player player)) return;
+		player.sendBlockChange(block.getLocation(), block.getBlockData());
 	}
 
 	@Override
 	protected void turnOff() {
 		for (UUID id : entities.keySet()) {
 			Entity entity = Bukkit.getEntity(id);
-			if (!(entity instanceof Player)) continue;
-			Block b = entities.get(id);
-			if (b == null) continue;
-			((Player) entity).sendBlockChange(b.getLocation(), b.getBlockData());
+			if (!(entity instanceof Player player)) continue;
+			Block block = entities.get(id);
+			if (block == null) continue;
+			player.sendBlockChange(block.getLocation(), block.getBlockData());
 		}
 
 		entities.clear();
@@ -109,11 +95,10 @@ public class LightwalkSpell extends BuffSpell {
 		if (!isActive(player)) return;
 
 		Block oldBlock = entities.get(player.getUniqueId());
-		Block newBlock = player.getLocation().getBlock().getRelative(BlockFace.DOWN);
+		Block newBlock = getBlockToChange(player);
 		if (oldBlock == null) return;
 		if (oldBlock.equals(newBlock)) return;
 		if (!allowedTypes.contains(newBlock.getType())) return;
-		if (BlockUtils.isAir(newBlock.getType())) return;
 		if (isExpired(player)) {
 			turnOff(player);
 			return;
@@ -121,7 +106,7 @@ public class LightwalkSpell extends BuffSpell {
 
 		addUseAndChargeCost(player);
 		entities.put(player.getUniqueId(), newBlock);
-		player.sendBlockChange(newBlock.getLocation(), material.createBlockData());
+		player.sendBlockChange(newBlock.getLocation(), blockType);
 		player.sendBlockChange(oldBlock.getLocation(), oldBlock.getBlockData());
 	}
 
@@ -133,12 +118,20 @@ public class LightwalkSpell extends BuffSpell {
 		return allowedTypes;
 	}
 
-	public Material getMaterial() {
-		return material;
+	public int getYOffset() {
+		return yOffset;
 	}
 
-	public void setMaterial(Material material) {
-		this.material = material;
+	public void setYOffset(int yOffset) {
+		this.yOffset = yOffset;
+	}
+
+	public BlockData getBlockType() {
+		return blockType;
+	}
+
+	public void setBlockType(BlockData blockTyoe) {
+		this.blockType = blockTyoe;
 	}
 
 }
