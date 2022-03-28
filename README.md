@@ -1,33 +1,65 @@
-# MagicSpells
-Build status: [![Build Status](https://travis-ci.org/TheComputerGeek2/MagicSpells.svg?branch=master)](https://travis-ci.org/TheComputerGeek2/MagicSpells)
-Downloads: [![Github Releases](https://img.shields.io/github/downloads/TheComputerGeek2/MagicSpells/total.svg)](https://github.com/TheComputerGeek2/MagicSpells/releases)
+<div align="center">
+	<br>
+	<img src="https://media.discordapp.net/attachments/335237931633606656/595352328341684427/Untitled.png" alt="MagicSpells Icon">
+	<hr>
+	<h2><i>Magic without writing Java</i></h2>
+	<!--
+            Build badge is commented out until it is fixed.
+            <a href="https://travis-ci.org/TheComputerGeek2/MagicSpells"><img src="https://travis-ci.org/TheComputerGeek2/MagicSpells.svg?branch=main" alt="Build Status"></a>
+        -->
+	<a href="https://discord.magicspells.dev"><img src="https://img.shields.io/discord/335237931633606656?color=5562e9&logo=discord&logoColor=white" alt="Discord Server"></a>
+	<a href="https://github.com/TheComputerGeek2/MagicSpells/releases"><img src="https://img.shields.io/github/downloads/TheComputerGeek2/MagicSpells/total.svg" alt="Github Releases"></a>
+	<img src="https://img.shields.io/bstats/servers/892" alt="In MC servers">
+</div>
 
-MagicSpells is a Bukkit plugin that allows you to set up a magic system, and much more. The plugin is very configurable and flexible.
-This plugin has nearly endless possibilities.
+[//]: # (These links are here for easier hyperlink referencing and less clutter in the actual text below.)
+[Discord server]: https://discord.magicspells.dev
+[Forum]: https://forum.magicspells.dev
+[showcase channel]: https://canary.discord.com/channels/335237931633606656/468537255925907466
+[Releases]: https://github.com/TheComputerGeek2/MagicSpells/releases
+[Wiki]: https://github.com/TheComputerGeek2/MagicSpells/wiki
+[Guides]: https://forum.magicspells.dev/index.php?p=/categories/configuration-guides
+[SpellRepo]: https://github.com/niblexis/ms-examples
+[PAPIExp]: https://github.com/JasperLorelai/Expansion-MagicSpells
+[Soundboard]: https://mhaprodigy.uk/soundboard/
+[Nisovin]: https://nisovin.com/
+[Bukkit]: https://dev.bukkit.org/projects/magicspells
+[Spigot]: https://www.spigotmc.org/resources/magicspells.60847/
+[Community Update]: https://forum.magicspells.dev/index.php?p=/discussion/17/community-update
+[DiscordBadge]: https://img.shields.io/badge/Join%20our%20Discord-blue?style=for-the-badge&color=586ff2
+[WelcomeChannel]: https://media.discordapp.net/attachments/423551934784339968/957725621503541288/unknown.png
 
-### Version Independent Resources
-- **Forums**: http://magicspells.site.nfoservers.com/forums/
+MagicSpells is a [Paper](https://papermc.io/) plugin which gives its users the ability to modify their Minecraft servers by configuring existing features without writing Java code.  It provides you with the tools for playing with blocks of logic, bringing other plugins together, playing fantastic special effects, making your own new mechanics, and more.
 
+Check out more examples of what this plugin can do in our [Discord server] (in the [showcase channel]).
 
-### This version of MagicSpells
-> [Discord Link](https://discord.gg/FJXfDPZ)
-- **Community Spell Examples**: https://github.com/niblexis/ms-examples
-- **Plugin Guides**: http://magicspells.site.nfoservers.com/forums/categories/guides
-- **Community information thread**: http://magicspells.site.nfoservers.com/forums/discussion/17/community-update
+---
+## Resources 📝
+* [Plugin Releases (Downloads)][Releases]
+* [Community Wiki][Wiki]
+* [Plugin Guides][Guides]
+* [Official Forum][Forum]
+* [Discord server]
+* [Niblexis' Public Spell Repo][SpellRepo]
+* [MagicSpells PAPI Expansion][PAPIExp]
+* [JasperLorelai's Soundboard][Soundboard]
 
+---
+## Classical MagicSpells ⭐
+This plugin was originally created by [Nisovin], and published on [Bukkit]. After some time TheComputerGeek2 took over the project on [Spigot] which was followed by the [Community Update].
 
-### Classical MagicSpells
-> Reminder that most of this is deprecated
-- **BukkitDev Page**: http://dev.bukkit.org/bukkit-plugins/magicspells/  
-- **Configuration Documentation**: http://nisovin.com/magicspells/  
-- **Release Downloads**: http://dev.bukkit.org/bukkit-plugins/magicspells/files/  
-- **Dev Builds**: http://nisovin.com/magicspells/dev/  
+---
+## Support 📞
+If you need help with the plugin, our Discord server can provide you community support. You can also post suggestions there or find more resources that can be useful for you.
 
-### Building
-- The move to gradle has made building much easier. The only step is running the command `./gradlew assemble`. Simple right?
+[![Join our Discord][DiscordBadge]][Discord server]
 
-### Demonstrations of MagicSpells in Action
-> More coming soon
-- https://youtu.be/ytb62SzjNhs
-- https://youtu.be/L1vKdE-Tomo
-- https://youtu.be/UdvCsnMkd_o
+![Screenshot of the server][WelcomeChannel]
+
+---
+## Building 🧱
+The move to Gradle has made building much easier. After cloning and navigating to the source's directory, you can simply run this command:
+```
+./gradlew build shadowJar
+```
+Simple right?
