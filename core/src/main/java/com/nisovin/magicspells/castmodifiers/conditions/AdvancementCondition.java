@@ -24,26 +24,15 @@ public class AdvancementCondition extends Condition {
 		advancements = new HashSet<>();
 
 		// minecraft advancements must start with minecraft:
-		String[] adv = var.split(",");
-		for (String str : adv) {
-			String[] keys = str.split(":");
-			Advancement advancement;
-			NamespacedKey key;
-			if (keys.length >= 2) {
-				if (!keys[0].equalsIgnoreCase("minecraft")) continue;
-				key = NamespacedKey.minecraft(keys[1].toLowerCase());
-				advancement = Bukkit.getAdvancement(key);
-				if (advancement == null) continue;
+		String[] split = var.split(",");
+		for (String data : split) {
+			NamespacedKey key = NamespacedKey.fromString(data, MagicSpells.getInstance());
+			if (key == null) continue;
 
-				advancements.add(advancement);
-				continue;
-			}
-			if (keys.length >= 1) {
-				key = new NamespacedKey(MagicSpells.getInstance(), keys[0]);
-				advancement = Bukkit.getAdvancement(key);
-				if (advancement == null) continue;
-				advancements.add(advancement);
-			}
+			Advancement advancement = Bukkit.getAdvancement(key);
+			if (advancement == null) continue;
+
+			advancements.add(advancement);
 		}
 
 		return true;
