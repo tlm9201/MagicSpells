@@ -3,23 +3,14 @@
 // TODO make sure all builds can be cached where possible
 // TODO clean up dependency management
 
+plugins {
+  id "java"
+  id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
 wrapper {
   gradleVersion = "7.3.3"
   setDistributionType(Wrapper.DistributionType.ALL)
-}
-
-buildscript {
-  repositories {
-    mavenCentral()
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
-  }
-  dependencies {
-    classpath "gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.0.0"
-    classpath "de.undercouch:gradle-download-task:4.1.1"
-    classpath "com.sarhanm:gradle-versioner:4.1.7"
-  }
 }
 
 repositories {
@@ -72,6 +63,7 @@ task downloadDependencies() {
 }
 
 allprojects {
+
   apply plugin: "java"
   apply plugin: "com.github.johnrengelman.shadow"
   apply plugin: "maven-publish"
@@ -97,7 +89,7 @@ allprojects {
   }
 
   dependencies {
-    implementation(group: "io.papermc.paper", name: "paper-api", version: "1.18.1-R0.1-SNAPSHOT")
+    implementation(group: "io.papermc.paper", name: "paper-api", version: "1.18.2-R0.1-SNAPSHOT")
   }
 
 }
