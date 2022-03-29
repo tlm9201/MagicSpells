@@ -156,6 +156,7 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 					if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
 					if (health == MIN_HEALTH && livingEntity instanceof Player) target.setKiller((Player) livingEntity);
 					target.setHealth(health);
+					target.setLastDamage(take);
 					target.playEffect(EntityEffect.HURT);
 				} else target.damage(take, livingEntity);
 			}
