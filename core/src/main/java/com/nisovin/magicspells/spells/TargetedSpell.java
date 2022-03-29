@@ -11,6 +11,8 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.ValidTargetChecker;
 
 public abstract class TargetedSpell extends InstantSpell {
@@ -116,7 +118,12 @@ public abstract class TargetedSpell extends InstantSpell {
 	
 	@Override
 	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity caster, float power, boolean forceTargetPlayers, ValidTargetChecker checker) {
-		if (targetSelf || validTargetList.canTargetSelf()) return new TargetInfo<>(caster, power);
+		if (targetSelf || validTargetList.canTargetSelf()) {
+			SpellTargetEvent event = new SpellTargetEvent(this, caster, caster, power);
+			EventUtil.call(event);
+			if (event.isCancelled()) return null;
+			return new TargetInfo<>(event.getTarget(), event.getPower());
+		}
 		return super.getTargetedEntity(caster, power, forceTargetPlayers, checker);
 	}
 	
