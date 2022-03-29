@@ -112,4 +112,8 @@ subprojects {
     configurations = [project.configurations.shadow]
   }
 
+  artifacts {
+    archives shadowJar
+  }
+
 }
