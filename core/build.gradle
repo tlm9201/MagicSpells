@@ -67,6 +67,7 @@ publishing {
         maven(MavenPublication) {
             groupId = "com.nisovin.magicspells"
             from components.java
+            artifact shadowJar
         }
     }
 }
