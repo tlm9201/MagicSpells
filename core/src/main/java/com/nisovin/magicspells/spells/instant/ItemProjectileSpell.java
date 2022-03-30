@@ -10,6 +10,8 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
@@ -26,13 +28,14 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 	private static Set<ItemProjectileTracker> trackerSet;
 
-	private final String itemName;
 	private final String spellOnTickName;
 	private final String spellOnDelayName;
 	private final String spellOnHitEntityName;
 	private final String spellOnHitGroundName;
 
 	private ItemStack item;
+
+	private Component itemName;
 
 	private int spellDelay;
 	private int pickupDelay;
@@ -96,7 +99,7 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		relativeOffset = getConfigVector("relative-offset", "0,0,0");
 		if (yOffset != 0) relativeOffset.setY(yOffset);
 
-		itemName = Util.colorize(getConfigString("item-name", ""));
+		itemName = Util.getMiniMessage(getConfigString("item-name", ""));
 		spellOnTickName = getConfigString("spell-on-tick", "");
 		spellOnDelayName = getConfigString("spell-on-delay", "");
 		spellOnHitEntityName = getConfigString("spell-on-hit-entity", "");
@@ -212,6 +215,14 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 	public void setItem(ItemStack item) {
 		this.item = item;
+	}
+
+	public Component getItemName() {
+		return itemName;
+	}
+
+	public void setItemName(Component itemName) {
+		this.itemName = itemName;
 	}
 
 	public boolean shouldCheckPlugins() {

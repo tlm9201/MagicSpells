@@ -22,6 +22,8 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.Spellbook;
@@ -40,12 +42,13 @@ public class BowSpell extends Spell {
 	private static final String METADATA_KEY = "MSBowSpell";
 	private static HitListener hitListener;
 
-	private List<String> bowNames;
-	private List<String> disallowedBowNames;
+	private List<Component> bowNames;
+	private List<Component> disallowedBowNames;
 
 	private ValidTargetList triggerList;
 
-	private String bowName;
+	private Component bowName;
+
 	private String spellOnShootName;
 	private String spellOnHitEntityName;
 	private String spellOnHitGroundName;
@@ -72,13 +75,13 @@ public class BowSpell extends Spell {
 		List<String> names = getConfigStringList("bow-names", null);
 		if (names != null) {
 			bowNames = new ArrayList<>();
-			names.forEach(str -> bowNames.add(Util.colorize(str)));
-		} else bowName = Util.colorize(getConfigString("bow-name", ""));
+			names.forEach(str -> bowNames.add(Util.getMiniMessage(str)));
+		} else bowName = Util.getMiniMessage(getConfigString("bow-name", ""));
 
 		List<String> disallowedNames = getConfigStringList("disallowed-bow-names", null);
 		if (disallowedNames != null) {
 			disallowedBowNames = new ArrayList<>();
-			disallowedNames.forEach(str -> disallowedBowNames.add(Util.colorize(str)));
+			disallowedNames.forEach(str -> disallowedBowNames.add(Util.getMiniMessage(str)));
 		}
 
 		if (config.isList("spells." + internalName + ".can-trigger")) {
@@ -174,10 +177,10 @@ public class BowSpell extends Spell {
 		if (inHand == null || (inHand.getType() != Material.BOW && inHand.getType() != Material.CROSSBOW)) return;
 		ItemMeta itemMeta = inHand.getItemMeta();
 
-		String name = Util.getLegacyFromComponent(itemMeta.displayName());
+		Component name = itemMeta.displayName();
 		if (bowNames != null && !bowNames.contains(name)) return;
 		if (disallowedBowNames != null && disallowedBowNames.contains(name)) return;
-		if (bowName != null && !bowName.isEmpty() && !bowName.equals(name)) return;
+		if (bowName != null && !bowName.equals(name)) return;
 
 		float force = event.getForce();
 		if (force < minimumForce || force > maximumForce) return;

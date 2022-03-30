@@ -217,7 +217,7 @@ public class MagicCommand extends BaseCommand {
 
 	private static boolean noPermission(CommandSender sender, Perm perm, String error) {
 		if (perm.has(sender)) return false;
-		sender.sendMessage(Util.colorize("&4Error: " + error));
+		sender.sendMessage(Util.getMiniMessage("&4Error: " + error));
 		return true;
 	}
 
@@ -320,7 +320,7 @@ public class MagicCommand extends BaseCommand {
 			if (player == null) s.getCooldowns().clear();
 			else s.setCooldown(player, 0, false);
 		}
-		issuer.sendMessage(MagicSpells.getTextColor() + "Cooldowns reset" + (player == null ? "" : " for " + player.getName()) + (spell == null ? "" : " for spell " + Util.colorize(spell.getName())) + ".");
+		issuer.sendMessage(MagicSpells.getTextColor() + "Cooldowns reset" + (player == null ? "" : " for " + player.getName()) + (spell == null ? "" : " for spell " + Util.getMiniMessage(spell.getName())) + ".");
 	}
 
 	@Subcommand("mana")

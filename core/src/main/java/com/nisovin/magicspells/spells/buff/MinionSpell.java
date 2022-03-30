@@ -272,7 +272,7 @@ public class MinionSpell extends BuffSpell {
 		}
 
 		minion.setGravity(gravity);
-		minion.setCustomName(Util.colorize(minionName.replace("%c", player.getName())));
+		minion.customName(Util.getMiniMessage(minionName.replace("%c", player.getName())));
 		minion.setCustomNameVisible(true);
 
 		if (powerAffectsHealth) {

@@ -7,6 +7,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
@@ -22,7 +24,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 
 	private ItemProjectileSpell spell;
 
-	private String itemName;
+	private Component itemName;
 
 	private ItemStack item;
 
@@ -121,7 +123,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		taskId = MagicSpells.scheduleRepeatingTask(this, tickInterval, tickInterval);
 
 		MagicSpells.scheduleDelayedTask(() -> {
-			entity.setCustomName(itemName);
+			entity.customName(itemName);
 			entity.setCustomNameVisible(true);
 		}, itemNameDelay);
 
@@ -310,11 +312,11 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		this.power = power;
 	}
 
-	public String getItemName() {
+	public Component getItemName() {
 		return itemName;
 	}
 
-	public void setItemName(String itemName) {
+	public void setItemName(Component itemName) {
 		this.itemName = itemName;
 	}
 

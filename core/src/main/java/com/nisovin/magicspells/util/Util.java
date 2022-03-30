@@ -708,6 +708,11 @@ public class Util {
 		return colorize(MagicSpells.doVariableReplacements(player, string));
 	}
 
+	public static String doVarReplacement(Player player, String string) {
+		if (string.isEmpty()) return "";
+		return MagicSpells.doVariableReplacements(player, string);
+	}
+
 	public static void setInventoryTitle(Player player, String title) {
 		title = doVarReplacementAndColorize(player, title);
 		MagicSpells.getVolatileCodeHandler().setInventoryTitle(player, title);

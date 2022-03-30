@@ -13,6 +13,8 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.meta.Damageable;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
@@ -22,7 +24,7 @@ public class HasItemCondition extends Condition {
 
 	private Material material;
 	private short durability;
-	private String name;
+	private Component name;
 	private boolean checkName;
 
 	@Override
@@ -31,20 +33,16 @@ public class HasItemCondition extends Condition {
 			if (var.contains("|")) {
 				String[] subvardata = var.split("\\|");
 				var = subvardata[0];
-				name = Util.colorize(subvardata[1]).replace("__", " ");
-				if (name.isEmpty()) name = null;
+				name = Util.getMiniMessage(subvardata[1].replace("__", " "));
 				checkName = true;
-			} else {
-				name = null;
-				checkName = false;
-			}
+			} else checkName = false;
+
 			if (var.contains(":")) {
 				String[] vardata = var.split(":");
 				material = Util.getMaterial(vardata[0]);
 				durability = vardata[1].equals("*") ? 0 : Short.parseShort(vardata[1]);
-			} else {
-				material = Util.getMaterial(var);
-			}
+			} else material = Util.getMaterial(var);
+
 			return true;
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
@@ -60,7 +58,7 @@ public class HasItemCondition extends Condition {
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
 		if (target == null) return false;
-		if (target instanceof InventoryHolder) return check(((InventoryHolder) target).getInventory());
+		if (target instanceof InventoryHolder holder) return check(holder.getInventory());
 		else return check(target.getEquipment());
 	}
 	
@@ -68,7 +66,7 @@ public class HasItemCondition extends Condition {
 	public boolean check(LivingEntity livingEntity, Location location) {
 		Block target = location.getBlock();
 		BlockState targetState = target.getState();
-		return targetState instanceof InventoryHolder holder && check((holder).getInventory());
+		return targetState instanceof InventoryHolder holder && check(holder.getInventory());
 	}
 
 	private boolean check(Inventory inventory) {
@@ -76,13 +74,13 @@ public class HasItemCondition extends Condition {
 		if (checkName) {
 			for (ItemStack item : inventory.getContents()) {
 				if (item == null) continue;
-				String thisname = null;
+				Component itemName = null;
 				try {
-					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = Util.getLegacyFromComponent(item.getItemMeta().displayName());
+					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) itemName = item.getItemMeta().displayName();
 				} catch (Exception e) {
 					DebugHandler.debugGeneral(e);
 				}
-				if (item.getType() == material && (item instanceof Damageable damageable && damageable.getDamage() == durability) && (!checkName || Objects.equals(thisname, name))) return true;
+				if (item.getType() == material && (item instanceof Damageable damageable && damageable.getDamage() == durability) && (!checkName || Objects.equals(itemName, name))) return true;
 			}
 
 			return false;
@@ -98,13 +96,13 @@ public class HasItemCondition extends Condition {
 		if (checkName) {
 			for (ItemStack item : items) {
 				if (item == null) continue;
-				String thisname = null;
+				Component itemName = null;
 				try {
-					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) thisname = Util.getLegacyFromComponent(item.getItemMeta().displayName());
+					if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) itemName = item.getItemMeta().displayName();
 				} catch (Exception e) {
 					DebugHandler.debugGeneral(e);
 				}
-				if (item.getType() == material && (item instanceof Damageable damageable && damageable.getDamage() == durability) && (!checkName || Objects.equals(name, thisname))) return true;
+				if (item.getType() == material && (item instanceof Damageable damageable && damageable.getDamage() == durability) && (!checkName || Objects.equals(name, itemName))) return true;
 			}
 
 			return false;

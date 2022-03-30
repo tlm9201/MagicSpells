@@ -10,6 +10,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.EntityEquipment;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -18,7 +20,7 @@ public class WearingCondition extends Condition {
 
 	private Material[] ids;
 	private short[] datas;
-	private String[] names;
+	private Component[] names;
 	private boolean[] checkName;
 	private boolean[] checkData;
 
@@ -29,14 +31,13 @@ public class WearingCondition extends Condition {
 			ids = new Material[vardata.length];
 			datas = new short[vardata.length];
 			checkData = new boolean[vardata.length];
-			names = new String[vardata.length];
+			names = new Component[vardata.length];
 			checkName = new boolean[vardata.length];
 			for (int i = 0; i < vardata.length; i++) {
 				if (vardata[i].contains("|")) {
 					String[] subvardata = vardata[i].split("\\|");
 					vardata[i] = subvardata[0];
-					names[i] = Util.colorize(subvardata[1]).replace("__", " ");
-					if (names[i].isEmpty()) names[i] = null;
+					names[i] = Util.getMiniMessage(subvardata[1].replace("__", " "));
 					checkName[i] = true;
 				} else {
 					names[i] = null;
@@ -91,9 +92,9 @@ public class WearingCondition extends Condition {
 		Material type = item.getType();
 		ItemMeta meta = item.getItemMeta();
 		int durability = meta instanceof Damageable ? ((Damageable) meta).getDamage() : 0;
-		String name = null;
+		Component name = null;
 		try {
-			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) name = Util.getLegacyFromComponent(item.getItemMeta().displayName());
+			if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) name = item.getItemMeta().displayName();
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 		}
