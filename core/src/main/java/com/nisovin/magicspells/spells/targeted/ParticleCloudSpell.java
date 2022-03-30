@@ -19,6 +19,8 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.potion.PotionEffectType;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
@@ -33,7 +35,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 	private Vector relativeOffset;
 
-	private String customName;
+	private Component customName;
 
 	private Particle particle;
 	private String particleName;
@@ -75,8 +77,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 		relativeOffset = getConfigVector("relative-offset", "0,0.5,0");
 
-		customName = getConfigString("custom-name", null);
-		if (customName != null) customName = Util.colorize(customName);
+		customName = Util.getMiniMessage(getConfigString("custom-name", null));
 
 		particleName = getConfigString("particle-name", "EXPLOSION_NORMAL");
 		particle = Util.getParticle(particleName);
@@ -239,7 +240,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 		}
 
 		if (customName != null) {
-			cloud.setCustomName(customName);
+			cloud.customName(customName);
 			cloud.setCustomNameVisible(true);
 		}
 

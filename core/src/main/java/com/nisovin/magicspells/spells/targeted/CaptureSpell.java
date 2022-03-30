@@ -23,8 +23,8 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private String itemName;
-	private List<String> itemLore;
+	private Component itemName;
+	private List<Component> itemLore = new ArrayList<>();
 
 	private boolean gravity;
 	private boolean addToInventory;
@@ -33,17 +33,16 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 	public CaptureSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		itemName = getConfigString("item-name", null);
-		itemLore = getConfigStringList("item-lore", null);
+		itemName = Util.getMiniMessage(getConfigString("item-name", null));
+		List<String> lore = getConfigStringList("item-lore", null);
 
 		gravity = getConfigBoolean("gravity", true);
 		addToInventory = getConfigBoolean("add-to-inventory", false);
 		powerAffectsQuantity = getConfigBoolean("power-affects-quantity", true);
 
-		if (itemName != null) itemName = Util.colorize(itemName);
-		if (itemLore != null) {
-			for (int i = 0; i < itemLore.size(); i++) {
-				itemLore.set(i, Util.colorize(itemLore.get(i)));
+		if (lore != null) {
+			for (int i = 0; i < lore.size(); i++) {
+				itemLore.set(i, Util.getMiniMessage(lore.get(i)));
 			}
 		}
 	}
@@ -94,10 +93,10 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (itemName != null || itemLore != null) {
 			if (entityName == null) entityName = "unknown";
 			ItemMeta meta = item.getItemMeta();
-			if (itemName != null) meta.displayName(Util.getMiniMessage(itemName.replace("%name%", entityName)));
+			if (itemName != null) meta.displayName(Util.getMiniMessage(Util.getStringFromComponent(itemName).replace("%name%", entityName)));
 			if (itemLore != null) {
 				List<Component> lore = new ArrayList<>();
-				for (String l : itemLore) lore.add(Util.getMiniMessage(l.replace("%name%", entityName)));
+				for (Component l : itemLore) lore.add(Util.getMiniMessage(Util.getStringFromComponent(l).replace("%name%", entityName)));
 				meta.lore(lore);
 			}
 
@@ -107,7 +106,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		target.remove();
 		boolean added = false;
 
-		if (addToInventory && caster != null && caster instanceof Player) added = Util.addToInventory(((Player) caster).getInventory(), item, true, false);
+		if (addToInventory && caster instanceof Player pl) added = Util.addToInventory(pl.getInventory(), item, true, false);
 		if (!added) {
 			Item dropped = target.getWorld().dropItem(target.getLocation().add(0, 1, 0), item);
 			dropped.setItemStack(item);

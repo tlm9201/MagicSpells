@@ -21,6 +21,8 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
@@ -71,7 +73,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private final String durationSpellName;
 	private final String entityLocationSpellName;
 
-	private String projectileName;
+	private Component projectileName;
 
 	private Subspell hitSpell;
 	private Subspell tickSpell;
@@ -118,7 +120,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		durationSpellName = getConfigString("spell-after-duration", "");
 		entityLocationSpellName = getConfigString("spell-on-entity-location", "");
 
-		projectileName = Util.colorize(getConfigString("projectile-name", ""));
+		projectileName = Util.getMiniMessage(getConfigString("projectile-name", ""));
 
 		projectileModifiersStrings = getConfigStringList("projectile-modifiers", null);
 	}
@@ -502,11 +504,11 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		this.maxDuration = maxDuration;
 	}
 
-	public String getProjectileName() {
+	public Component getProjectileName() {
 		return projectileName;
 	}
 
-	public void setProjectileName(String projectileName) {
+	public void setProjectileName(Component projectileName) {
 		this.projectileName = projectileName;
 	}
 

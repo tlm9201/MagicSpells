@@ -303,7 +303,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private class Totem {
 
 		private final LivingEntity caster;
-		private final LivingEntity armorStand;
+		private final ArmorStand armorStand;
 		private Location totemLocation;
 
 		private final float power;
@@ -315,25 +315,25 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 			pulseCount = 0;
 			loc.setYaw(caster.getLocation().getYaw());
-			armorStand = (LivingEntity) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
+			armorStand = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
 			if (!totemName.isEmpty()) {
-				if (caster instanceof Player) armorStand.setCustomName(MagicSpells.doArgumentAndVariableSubstitution(Util.colorize(totemName), (Player) caster, null));
-				else armorStand.setCustomName(Util.colorize(totemName));
+				if (caster instanceof Player pl) armorStand.customName(Util.getMiniMessage(MagicSpells.doArgumentAndVariableSubstitution(totemName, pl, null)));
+				else armorStand.customName(Util.getMiniMessage(totemName));
 				armorStand.setCustomNameVisible(totemNameVisible);
 			}
 			EntityEquipment totemEquipment = armorStand.getEquipment();
 			armorStand.setGravity(gravity);
 			armorStand.addScoreboardTag("MS_Totem");
-			if (totemEquipment != null) {
-				if (mainHand != null) totemEquipment.setItemInMainHand(mainHand);
-				if (offHand != null) totemEquipment.setItemInOffHand(offHand);
-				if (helmet != null) totemEquipment.setHelmet(helmet);
-				if (chestplate != null) totemEquipment.setChestplate(chestplate);
-				if (leggings != null) totemEquipment.setLeggings(leggings);
-				if (boots != null) totemEquipment.setBoots(boots);
-			}
-			((ArmorStand) armorStand).setVisible(visibility);
-			((ArmorStand) armorStand).setMarker(marker);
+
+			if (mainHand != null) totemEquipment.setItemInMainHand(mainHand);
+			if (offHand != null) totemEquipment.setItemInOffHand(offHand);
+			if (helmet != null) totemEquipment.setHelmet(helmet);
+			if (chestplate != null) totemEquipment.setChestplate(chestplate);
+			if (leggings != null) totemEquipment.setLeggings(leggings);
+			if (boots != null) totemEquipment.setBoots(boots);
+
+			armorStand.setVisible(visibility);
+			armorStand.setMarker(marker);
 			armorStand.setSilent(silenced);
 			armorStand.setInvulnerable(true);
 			totemLocation = armorStand.getLocation();

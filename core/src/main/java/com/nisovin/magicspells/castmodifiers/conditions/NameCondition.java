@@ -4,16 +4,18 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.util.Util;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class NameCondition extends Condition {
 
-	private String name;
+	private Component name;
 	
 	@Override
 	public boolean initialize(String var) {
 		if (var == null || var.isEmpty()) return false;
-		name = Util.colorize(var);
+		name = Util.getMiniMessage(var);
 		return true;
 	}
 
@@ -24,7 +26,7 @@ public class NameCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target.getName().equalsIgnoreCase(name);
+		return target.name().equals(name);
 	}
 
 	@Override

@@ -15,6 +15,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -56,10 +58,11 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 	private String hitSpellName;
 	private String airSpellName;
-	private String projectileName;
 	private String groundSpellName;
 	private String modifierSpellName;
 	private String durationSpellName;
+
+	private Component projectileName;
 
 	private Subspell hitSpell;
 	private Subspell airSpell;
@@ -97,7 +100,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 		hitSpellName = getConfigString("spell", "");
 		airSpellName = getConfigString("spell-on-hit-air", "");
-		projectileName = Util.colorize(getConfigString("projectile-name", ""));
+		projectileName = Util.getMiniMessage(getConfigString("projectile-name", ""));
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
 		durationSpellName = getConfigString("spell-after-duration", "");
@@ -289,8 +292,8 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 			currentLocation = startLocation.clone();
 
-			if (!projectileName.isEmpty()) {
-				projectile.setCustomName(projectileName);
+			if (projectileName != null) {
+				projectile.customName(projectileName);
 				projectile.setCustomNameVisible(true);
 			}
 

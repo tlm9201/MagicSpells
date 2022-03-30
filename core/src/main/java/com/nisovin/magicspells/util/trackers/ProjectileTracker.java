@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.util.trackers;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -51,7 +52,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 	private double maxDuration;
 
-	private String projectileName;
+	private Component projectileName;
 
 	private Subspell hitSpell;
 	private Subspell tickSpell;
@@ -116,8 +117,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 		projectile.setVelocity(currentVelocity);
 		projectile.setGravity(gravity);
 		projectile.setShooter(caster);
-		if (!projectileName.isEmpty()) {
-			projectile.setCustomName(projectileName);
+		if (projectileName != null) {
+			projectile.customName(projectileName);
 			projectile.setCustomNameVisible(true);
 		}
 		if (projectile instanceof WitherSkull witherSkull) witherSkull.setCharged(charged);
@@ -354,11 +355,11 @@ public class ProjectileTracker implements Runnable, Tracker {
 		this.maxDuration = maxDuration;
 	}
 
-	public String getProjectileName() {
+	public Component getProjectileName() {
 		return projectileName;
 	}
 
-	public void setProjectileName(String projectileName) {
+	public void setProjectileName(Component projectileName) {
 		this.projectileName = projectileName;
 	}
 

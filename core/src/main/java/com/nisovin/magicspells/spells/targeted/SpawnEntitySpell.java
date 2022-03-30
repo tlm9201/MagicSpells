@@ -28,6 +28,8 @@ import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
@@ -73,7 +75,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private double retargetRange;
 
 	private String location;
-	private String nameplateText;
+
+	private Component nameplateText;
 
 	private boolean noAI;
 	private boolean gravity;
@@ -161,7 +164,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		retargetRange = getConfigDouble("retarget-range", 50);
 
 		location = getConfigString("location", "target");
-		nameplateText = getConfigString("nameplate-text", "");
+		nameplateText = Util.getMiniMessage(getConfigString("nameplate-text", ""));
 
 		noAI = getConfigBoolean("no-ai", false);
 		gravity = getConfigBoolean("gravity", true);
@@ -170,8 +173,6 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		useCasterName = getConfigBoolean("use-caster-name", false);
 		addLookAtPlayerAI = getConfigBoolean("add-look-at-player-ai", false);
 		allowSpawnInMidair = getConfigBoolean("allow-spawn-in-midair", false);
-		nameplateFormatting = getConfigBoolean("nameplate-formatting", false);
-		if (nameplateFormatting) nameplateText = Util.colorize(nameplateText);
 
 		attackSpellName = getConfigString("attack-spell", "");
 
@@ -433,11 +434,11 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		if (useCasterName && caster != null) {
-			if (caster instanceof Player player) entity.setCustomName(Util.getStringFromComponent(player.displayName()));
-			else entity.setCustomName(caster.getName());
+			if (caster instanceof Player player) entity.customName(player.displayName());
+			else entity.customName(caster.name());
 			entity.setCustomNameVisible(true);
-		} else if (nameplateText != null && !nameplateText.isEmpty()) {
-			entity.setCustomName(nameplateText);
+		} else if (nameplateText != null) {
+			entity.customName(nameplateText);
 			entity.setCustomNameVisible(true);
 		}
 	}
