@@ -4,8 +4,7 @@
 // TODO clean up dependency management
 
 plugins {
-  id "java"
-  id "com.github.johnrengelman.shadow" version "7.1.2"
+  //id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 wrapper {
@@ -13,16 +12,9 @@ wrapper {
   setDistributionType(Wrapper.DistributionType.ALL)
 }
 
-repositories {
-  flatDir {
-    dirs "lib"
-  }
-}
-
-allprojects {
+subprojects {
 
   apply plugin: "java"
-  apply plugin: "com.github.johnrengelman.shadow"
   apply plugin: "maven-publish"
 
   java {
@@ -32,10 +24,6 @@ allprojects {
   }
 
   repositories {
-    flatDir {
-      dirs(rootDir.path + "/lib")
-    }
-
     mavenCentral()
     mavenLocal()
     maven { url = "https://repo.dmulloy2.net/nexus/repository/public/" }
@@ -63,14 +51,6 @@ subprojects {
   
   processResources {
     expand(["version": "4.0-Beta-11"])
-  }
-
-  shadowJar {
-    configurations = [project.configurations.shadow]
-  }
-
-  artifacts {
-    archives shadowJar
   }
 
 }
