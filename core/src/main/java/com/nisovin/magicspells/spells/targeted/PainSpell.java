@@ -104,12 +104,13 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 		if (ignoreArmor) {
 			double health = target.getHealth();
 			if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
-			health = health - localDamage;
+			health -= localDamage;
 			if (health < 0) health = 0;
 			if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
 			if (health == 0 && caster instanceof Player) target.setKiller((Player) caster);
 
 			target.setHealth(health);
+			target.setLastDamage(localDamage);
 			playSpellEffects(caster, target);
 			target.playEffect(EntityEffect.HURT);
 			return true;

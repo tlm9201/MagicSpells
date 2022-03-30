@@ -174,7 +174,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 				double health = target.getHealth();
 
 				if (health > maxHealth) health = maxHealth;
-				health = health - localDamage;
+				health -= localDamage;
 
 				if (health < 0) {
 					health = 0;
@@ -184,6 +184,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 				if (health > maxHealth) health = maxHealth;
 
 				target.setHealth(health);
+				target.setLastDamage(localDamage);
 				target.playEffect(EntityEffect.HURT);
 			} else {
 				if (tryAvoidingAntiCheatPlugins) target.damage(localDamage);
