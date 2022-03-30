@@ -19,49 +19,6 @@ repositories {
   }
 }
 
-ext {
-  magicspellsData = new MSConfig()
-}
-
-class MSConfig {
-  String libDir = "lib"
-
-  // Resource retrieving
-  //def resourceNcpUrl = "https://ci.md-5.net/job/NoCheatPlus/lastSuccessfulBuild/artifact/target/NoCheatPlus.jar"
-
-}
-
-static def downloadFile(File file, URL url) {
-  if (!file.exists()) {
-    url.withInputStream{ i -> file.withOutputStream{ it << i }}
-  }
-}
-
-// FIXME this should be setup as a task instead of a method running on configuration time
-// Ensures resource availability
-def magicspellsGetResources() {
-  println "Running the get resources phase"
-
-  File libFolder = project.file(project.ext.magicspellsData.libDir)
-
-  // Get NoCheatPlus
-  //downloadFile(new File(libFolder, "NoCheatPlus.jar"), new URL(project.ext.magicspellsData.resourceNcpUrl))
-
-  println "Finished running the get resources phase"
-}
-
-afterEvaluate {
-  magicspellsGetResources()
-}
-
-// FIXME this should not be run at configuration time
-task downloadDependencies() {
-  group = "Setup"
-  doFirst {
-    magicspellsGetResources()
-  }
-}
-
 allprojects {
 
   apply plugin: "java"
