@@ -77,8 +77,7 @@ public class LilywalkSpell extends BuffSpell {
 		if (!moved) return;
 
 		lilies.move(block);
-		addUse(player);
-		chargeUseCost(player);
+		addUseAndChargeCost(player);
 	}
 	
 	@EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)

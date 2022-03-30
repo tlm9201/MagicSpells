@@ -84,9 +84,7 @@ public class ReflectSpell extends BuffSpell {
 			return;
 		}
 
-		if (!chargeUseCost(target)) return;
-
-		addUse(target);
+		addUseAndChargeCost(target);
 		event.setTarget(event.getCaster());
 		event.setPower(event.getPower() * reflectedSpellPowerMultiplier * (spellPowerAffectsReflectedPower ? power : 1));
 	}
@@ -127,7 +125,7 @@ public class ReflectSpell extends BuffSpell {
 			return;
 		}
 
-		addUse(target);
+		addUseAndChargeCost(target);
 		event.setRedirected(true);
 		float powerMultiplier = 1.0F;
 		powerMultiplier *= reflectedSpellPowerMultiplier * (spellPowerAffectsReflectedPower ? (reflectors.get(target.getUniqueId()) == null ? 1.0: reflectors.get(target.getUniqueId())) : 1.0);
