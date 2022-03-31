@@ -12,14 +12,9 @@ subprojects {
     implementation(group: "io.papermc.paper", name: "paper-api", version: "1.18.2-R0.1-SNAPSHOT")
   }
 
-}
-
-subprojects {
-
   it.version = "4.0-Beta-11"
-  
+
   processResources {
     expand(["version": "4.0-Beta-11"])
   }
-
 }
