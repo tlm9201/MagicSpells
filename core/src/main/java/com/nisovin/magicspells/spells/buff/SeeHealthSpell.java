@@ -21,7 +21,7 @@ public class SeeHealthSpell extends BuffSpell {
 
 	private final static String COLORS = "01234567890abcdef";
 
-	private final Set<UUID> entities;
+	private final Set<UUID> players;
 
 	private final Random random = ThreadLocalRandom.current();
 
@@ -39,27 +39,27 @@ public class SeeHealthSpell extends BuffSpell {
 		interval = getConfigInt("update-interval", 5);
 		symbol = getConfigString("symbol", "=");
 
-		entities = new HashSet<>();
+		players = new HashSet<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		if (!(entity instanceof Player)) return true;
-		entities.add(entity.getUniqueId());
+		players.add(entity.getUniqueId());
 		updater = new Updater();
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.contains(entity.getUniqueId());
+		return players.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		entities.remove(entity.getUniqueId());
+		players.remove(entity.getUniqueId());
 
-		if (updater != null && entities.isEmpty()) {
+		if (updater != null && players.isEmpty()) {
 			updater.stop();
 			updater = null;
 		}
@@ -67,14 +67,14 @@ public class SeeHealthSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		for (UUID id : entities) {
+		for (UUID id : players) {
 			Player player = Bukkit.getPlayer(id);
 			if (player == null) continue;
 			if (!player.isValid()) continue;
 			player.updateInventory();
 		}
 
-		entities.clear();
+		players.clear();
 		if (updater != null) {
 			updater.stop();
 			updater = null;
@@ -112,8 +112,8 @@ public class SeeHealthSpell extends BuffSpell {
 		return COLORS;
 	}
 
-	public Set<UUID> getEntities() {
-		return entities;
+	public Set<UUID> getPlayers() {
+		return players;
 	}
 
 	public int getBarSize() {
@@ -150,7 +150,7 @@ public class SeeHealthSpell extends BuffSpell {
 		
 		@Override
 		public void run() {
-			for (UUID id : entities) {
+			for (UUID id : players) {
 				Player player = Bukkit.getPlayer(id);
 				if (player == null) continue;
 				if (!player.isValid()) continue;

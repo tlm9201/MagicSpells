@@ -4,8 +4,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 
+import org.apache.commons.math3.util.FastMath;
+
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -20,11 +21,9 @@ import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
-import org.apache.commons.math3.util.FastMath;
-
 public class HasteSpell extends BuffSpell {
 
-	private final Map<UUID, HasteData> entities;
+	private final Map<UUID, HasteData> players;
 
 	private int strength;
 	private int boostDuration;
@@ -49,61 +48,62 @@ public class HasteSpell extends BuffSpell {
 		hidden = getConfigBoolean("hidden", false);
 		if (accelerationDelay >= 0 && accelerationAmount > 0 && accelerationIncrease > 0 && accelerationInterval > 0) acceleration = true;
 
-		entities = new HashMap<>();
+		players = new HashMap<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new HasteData(FastMath.round(strength * power)));
+		if (!(entity instanceof Player)) return true;
+		players.put(entity.getUniqueId(), new HasteData(FastMath.round(strength * power)));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.containsKey(entity.getUniqueId());
+		return players.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		HasteData data = entities.get(entity.getUniqueId());
+		HasteData data = players.get(entity.getUniqueId());
 		if (data == null) return;
 		MagicSpells.cancelTask(data.task);
-		entities.remove(entity.getUniqueId());
+		players.remove(entity.getUniqueId());
 		entity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0));
 		entity.removePotionEffect(PotionEffectType.SPEED);
 	}
 
 	@Override
 	protected void turnOff() {
-		for (UUID id : entities.keySet()) {
-			Entity e = Bukkit.getEntity(id);
-			if (!(e instanceof LivingEntity livingEntity)) continue;
-			livingEntity.removePotionEffect(PotionEffectType.SPEED);
-			HasteData data = entities.get(id);
+		for (UUID id : players.keySet()) {
+			Player player = Bukkit.getPlayer(id);
+			if (player == null) continue;
+			player.removePotionEffect(PotionEffectType.SPEED);
+			HasteData data = players.get(id);
 			if (data != null) MagicSpells.cancelTask(data.task);
 		}
 
-		entities.clear();
+		players.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
 	public void onPlayerToggleSprint(PlayerToggleSprintEvent event) {
-		Player pl = event.getPlayer();
-		if (!isActive(pl)) return;
+		Player player = event.getPlayer();
+		if (!isActive(player)) return;
 
-		if (isExpired(pl)) {
-			turnOff(pl);
+		if (isExpired(player)) {
+			turnOff(player);
 			return;
 		}
 
-		HasteData data = entities.get(pl.getUniqueId());
+		HasteData data = players.get(player.getUniqueId());
 		int amplifier = data.strength;
 
 		if (event.isSprinting()) {
 			event.setCancelled(true);
-			addUseAndChargeCost(pl);
-			playSpellEffects(EffectPosition.CASTER, pl);
-			pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, boostDuration, amplifier, false, !hidden));
+			addUseAndChargeCost(player);
+			playSpellEffects(EffectPosition.CASTER, player);
+			player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, boostDuration, amplifier, false, !hidden));
 			if (acceleration) {
 				data.task = MagicSpells.scheduleRepeatingTask(() -> {
 					if (data.count >= accelerationAmount) {
@@ -111,13 +111,13 @@ public class HasteSpell extends BuffSpell {
 						return;
 					}
 					data.count++;
-					pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, boostDuration, amplifier + (data.count * accelerationIncrease), false, !hidden));
+					player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, boostDuration, amplifier + (data.count * accelerationIncrease), false, !hidden));
 				}, accelerationDelay, accelerationInterval);
 			}
 		} else {
-			pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0, false, !hidden));
-			pl.removePotionEffect(PotionEffectType.SPEED);
-			playSpellEffects(EffectPosition.DISABLED, pl);
+			player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0, false, !hidden));
+			player.removePotionEffect(PotionEffectType.SPEED);
+			playSpellEffects(EffectPosition.DISABLED, player);
 			MagicSpells.cancelTask(data.task);
 			data.count = 0;
 		}
@@ -125,19 +125,19 @@ public class HasteSpell extends BuffSpell {
 
 	@EventHandler
 	public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
-		Player pl = event.getPlayer();
-		if (!isActive(pl)) return;
+		Player player = event.getPlayer();
+		if (!isActive(player)) return;
 
-		pl.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0, false, !hidden));
-		pl.removePotionEffect(PotionEffectType.SPEED);
+		player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0, false, !hidden));
+		player.removePotionEffect(PotionEffectType.SPEED);
 
-		HasteData data = entities.get(pl.getUniqueId());
+		HasteData data = players.get(player.getUniqueId());
 		if (data == null) return;
 		MagicSpells.cancelTask(data.task);
 	}
 
-	public Map<UUID, HasteData> getEntities() {
-		return entities;
+	public Map<UUID, HasteData> getPlayers() {
+		return players;
 	}
 
 	public int getStrength() {
@@ -208,7 +208,7 @@ public class HasteSpell extends BuffSpell {
 
 		private int task;
 		private int count;
-		private int strength;
+		private final int strength;
 
 		private HasteData(int strength) {
 			this.strength = strength;

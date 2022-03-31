@@ -22,7 +22,7 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class WindwalkSpell extends BuffSpell {
 
-	private final Set<UUID> entities;
+	private final Set<UUID> players;
 
 	private int maxY;
 	private int maxAltitude;
@@ -42,8 +42,8 @@ public class WindwalkSpell extends BuffSpell {
 		flySpeed = getConfigFloat("fly-speed", 0.1F);
 		launchSpeed = getConfigFloat("launch-speed", 1F);
 		cancelOnLand = getConfigBoolean("cancel-on-land", true);
-		
-		entities = new HashSet<>();
+
+		players = new HashSet<>();
 	}
 	
 	@Override
@@ -62,7 +62,7 @@ public class WindwalkSpell extends BuffSpell {
 			entity.setVelocity(new Vector(0, launchSpeed, 0));
 		}
 
-		entities.add(entity.getUniqueId());
+		players.add(entity.getUniqueId());
 		((Player) entity).setAllowFlight(true);
 		((Player) entity).setFlying(true);
 		((Player) entity).setFlySpeed(flySpeed);
@@ -74,18 +74,18 @@ public class WindwalkSpell extends BuffSpell {
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.contains(entity.getUniqueId());
+		return players.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		entities.remove(entity.getUniqueId());
+		players.remove(entity.getUniqueId());
 		((Player) entity).setFlying(false);
 		if (((Player) entity).getGameMode() != GameMode.CREATIVE) ((Player) entity).setAllowFlight(false);
 		((Player) entity).setFlySpeed(0.1F);
 		entity.setFallDistance(0);
 
-		if (heightMonitor != null && entities.isEmpty()) {
+		if (heightMonitor != null && players.isEmpty()) {
 			heightMonitor.stop();
 			heightMonitor = null;
 		}
@@ -93,22 +93,22 @@ public class WindwalkSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		for (UUID id : entities) {
+		for (UUID id : players) {
 			Player player = Bukkit.getPlayer(id);
 			if (player == null) continue;
 			if (!player.isValid()) continue;
 			turnOff(player);
 		}
 
-		entities.clear();
+		players.clear();
 
 		if (heightMonitor == null) return;
 		heightMonitor.stop();
 		heightMonitor = null;
 	}
 
-	public Set<UUID> getEntities() {
-		return entities;
+	public Set<UUID> getPlayers() {
+		return players;
 	}
 
 	public int getMaxY() {
@@ -173,22 +173,22 @@ public class WindwalkSpell extends BuffSpell {
 		
 		@Override
 		public void run() {
-			for (UUID id : entities) {
-				Player pl = Bukkit.getPlayer(id);
-				if (pl == null) continue;
-				if (!pl.isValid()) continue;
-				addUseAndChargeCost(pl);
+			for (UUID id : players) {
+				Player player = Bukkit.getPlayer(id);
+				if (player == null) continue;
+				if (!player.isValid()) continue;
+				addUseAndChargeCost(player);
 				if (maxY > 0) {
-					int ydiff = pl.getLocation().getBlockY() - maxY;
+					int ydiff = player.getLocation().getBlockY() - maxY;
 					if (ydiff > 0) {
-						pl.setVelocity(pl.getVelocity().setY(-ydiff * 1.5));
+						player.setVelocity(player.getVelocity().setY(-ydiff * 1.5));
 						continue;
 					}
 				}
 
 				if (maxAltitude > 0) {
-					int ydiff = pl.getLocation().getBlockY() - pl.getWorld().getHighestBlockYAt(pl.getLocation()) - maxAltitude;
-					if (ydiff > 0) pl.setVelocity(pl.getVelocity().setY(-ydiff * 1.5));
+					int ydiff = player.getLocation().getBlockY() - player.getWorld().getHighestBlockYAt(player.getLocation()) - maxAltitude;
+					if (ydiff > 0) player.setVelocity(player.getVelocity().setY(-ydiff * 1.5));
 				}
 			}
 		}
