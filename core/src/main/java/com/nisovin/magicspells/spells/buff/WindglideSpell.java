@@ -102,14 +102,15 @@ public class WindglideSpell extends BuffSpell {
 		for (UUID id : entities) {
 			Entity entity = Bukkit.getEntity(id);
 			if (entity == null) continue;
-			if (!(entity instanceof LivingEntity)) continue;
+			if (!(entity instanceof LivingEntity livingEntity)) continue;
 			if (!entity.isValid()) continue;
 
-			((LivingEntity) entity).setGliding(false);
-			turnOffBuff((LivingEntity) entity);
+			livingEntity.setGliding(false);
+			turnOffBuff(livingEntity);
 		}
 
 		entities.clear();
+		monitor.stop();
 	}
 
 	@EventHandler
@@ -123,11 +124,11 @@ public class WindglideSpell extends BuffSpell {
 	@EventHandler
 	public void onEntityCollision(EntityDamageEvent e) {
 		if (e.getCause() != EntityDamageEvent.DamageCause.FLY_INTO_WALL) return;
-		if (!(e.getEntity() instanceof LivingEntity livingEntity)) return;
-		if (!isActive(livingEntity)) return;
+		if (!(e.getEntity() instanceof LivingEntity entity)) return;
+		if (!isActive(entity)) return;
 		if (blockCollisionDmg) e.setCancelled(true);
-		if (cancelOnCollision) turnOff(livingEntity);
-		if (collisionSpell != null) collisionSpell.castAtLocation(livingEntity, livingEntity.getLocation(), 1F);
+		if (cancelOnCollision) turnOff(entity);
+		if (collisionSpell != null) collisionSpell.castAtLocation(entity, entity.getLocation(), 1F);
 	}
 
 	public Set<UUID> getEntities() {
