@@ -1,12 +1,10 @@
-import dev.magicspells.gradle.MSJavaPlugin
-
 wrapper {
   gradleVersion = "7.3.3"
   setDistributionType(Wrapper.DistributionType.ALL)
 }
 
 subprojects {
-  apply plugin: MSJavaPlugin
+  apply plugin: "dev.magicspells.msjava"
 
   dependencies {
     implementation(group: "io.papermc.paper", name: "paper-api", version: "1.18.2-R0.1-SNAPSHOT")
