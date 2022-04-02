@@ -6,8 +6,6 @@ plugins {
 }
 
 dependencies {
-    //paperweightDevelopmentBundle(group: "io.papermc.paper", name: "dev-bundle", version: "1.18.2-R0.1-SNAPSHOT")
-
     shadow(group: "org.apache.commons", name: "commons-math3", version: "3.6.1")
     shadow(group: "com.github.elBukkit", name: "EffectLib", version: "master-SNAPSHOT")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.0-SNAPSHOT")
@@ -35,8 +33,6 @@ dependencies {
         exclude(module: "worldedit-forge-mc1.16.1")
         exclude(module: "worldedit-fabric-mc1.16.1")
     }
-
-    //implementation("com.github.Updated-NoCheatPlus.NoCheatPlus:ncpbuildbase:master-SNAPSHOT")
 }
 
 shadowJar {
