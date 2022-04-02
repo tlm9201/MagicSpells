@@ -7,6 +7,6 @@ public class MSPaperweight implements Plugin<Project> {
     // TODO figure out how to apply the plugin
     @Override
     public void apply(Project project) {
-        project.getDependencies().add("paperweightDevelopmentBundle", "io.papermc.paper:dev-bundle:1.18.2-R0.1-SNAPSHOT");
+        project.getDependencies().add("paperweightDevelopmentBundle", "io.papermc.paper:dev-bundle:1.18.2-R0.1-SNAPSHOT").because("We need a server implementation rather than just an api here.");
     }
 }
