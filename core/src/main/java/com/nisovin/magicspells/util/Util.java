@@ -48,6 +48,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class Util {
 
@@ -664,6 +665,30 @@ public class Util {
 	public static String getLegacyFromMiniMessage(String input) {
 		if (input.isEmpty()) return "";
 		return getLegacyFromComponent(getMiniMessage(input));
+	}
+
+	public static String getPlainString(Component component) {
+		if (component == null) return "";
+
+		// Return plain text component
+		return PlainTextComponentSerializer.plainText().serialize(component);
+	}
+
+	public static Component getPlainComponent(Component input) {
+		if (input == null) return Component.empty();
+
+		// Serialize a plain text component and create a new component of the string.
+		return Component.text(PlainTextComponentSerializer.plainText().serialize(input));
+	}
+
+	public static Component getPlainComponentFromString(String input) {
+		if (input.isEmpty()) return Component.empty();
+
+		// Convert legacy color patterns to MiniMessage format, then deserialize it.
+		Component component = MiniMessage.miniMessage().deserialize(getMiniMessageFromLegacy(input));
+
+		// Convert mini message component to a plain string and deserialize string to plain component.
+		return PlainTextComponentSerializer.plainText().deserialize(PlainTextComponentSerializer.plainText().serialize(component));
 	}
 
 	public static Component getMiniMessage(String input) {
