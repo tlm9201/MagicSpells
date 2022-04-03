@@ -1,12 +1,11 @@
 plugins {
-    id("java-library")
     id("org.jetbrains.kotlin.jvm") version "1.6.0"
     id("io.papermc.paperweight.userdev") version "1.3.5"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("dev.magicspells.mspaperweight")
 }
 
 dependencies {
-    paperweightDevelopmentBundle(group: "io.papermc.paper", name: "dev-bundle", version: "1.18.2-R0.1-SNAPSHOT")
-
     shadow(group: "org.apache.commons", name: "commons-math3", version: "3.6.1")
     shadow(group: "com.github.elBukkit", name: "EffectLib", version: "master-SNAPSHOT")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.0-SNAPSHOT")
@@ -34,11 +33,11 @@ dependencies {
         exclude(module: "worldedit-forge-mc1.16.1")
         exclude(module: "worldedit-fabric-mc1.16.1")
     }
-
-    //implementation("com.github.Updated-NoCheatPlus.NoCheatPlus:ncpbuildbase:master-SNAPSHOT")
 }
 
 shadowJar {
+    configurations = [project.configurations.shadow]
+
     setArchivesBaseName("MagicSpells")
     relocate("org.apache.commons.math3", "com.nisovin.magicspells.shaded.org.apache.commons")
     relocate("de.slikey.effectlib", "com.nisovin.magicspells.shaded.effectlib")
@@ -60,6 +59,10 @@ compileTestKotlin {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+artifacts {
+    archives shadowJar
 }
 
 publishing {

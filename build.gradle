@@ -1,119 +1,18 @@
-// TODO create task to setup workspace
-// TODO make sure the clean task cleans everything properly
-// TODO make sure all builds can be cached where possible
-// TODO clean up dependency management
-
-plugins {
-  id "java"
-  id "com.github.johnrengelman.shadow" version "7.1.2"
-}
-
 wrapper {
-  gradleVersion = "7.3.3"
+  gradleVersion = "7.4.2"
   setDistributionType(Wrapper.DistributionType.ALL)
 }
 
-repositories {
-  flatDir {
-    dirs "lib"
-  }
-}
-
-ext {
-  magicspellsData = new MSConfig()
-}
-
-class MSConfig {
-  String libDir = "lib"
-
-  // Resource retrieving
-  //def resourceNcpUrl = "https://ci.md-5.net/job/NoCheatPlus/lastSuccessfulBuild/artifact/target/NoCheatPlus.jar"
-
-}
-
-static def downloadFile(File file, URL url) {
-  if (!file.exists()) {
-    url.withInputStream{ i -> file.withOutputStream{ it << i }}
-  }
-}
-
-// FIXME this should be setup as a task instead of a method running on configuration time
-// Ensures resource availability
-def magicspellsGetResources() {
-  println "Running the get resources phase"
-
-  File libFolder = project.file(project.ext.magicspellsData.libDir)
-
-  // Get NoCheatPlus
-  //downloadFile(new File(libFolder, "NoCheatPlus.jar"), new URL(project.ext.magicspellsData.resourceNcpUrl))
-
-  println "Finished running the get resources phase"
-}
-
-afterEvaluate {
-  magicspellsGetResources()
-}
-
-// FIXME this should not be run at configuration time
-task downloadDependencies() {
-  group = "Setup"
-  doFirst {
-    magicspellsGetResources()
-  }
-}
-
-allprojects {
-
-  apply plugin: "java"
-  apply plugin: "com.github.johnrengelman.shadow"
-  apply plugin: "maven-publish"
-
-  java {
-    toolchain {
-      languageVersion = JavaLanguageVersion.of(17)
-    }
-  }
-
-  repositories {
-    flatDir {
-      dirs(rootDir.path + "/lib")
-    }
-
-    mavenCentral()
-    mavenLocal()
-    maven { url = "https://repo.dmulloy2.net/nexus/repository/public/" }
-    maven { url = "https://repo.md-5.net/content/repositories/releases/" }
-    maven { url = "https://papermc.io/repo/repository/maven-public/" }
-    maven { url = "https://repo.aikar.co/content/groups/aikar/" }
-    maven { url = "https://oss.sonatype.org/content/repositories/central" }
-    maven { url = "https://oss.sonatype.org/content/repositories/snapshots" }
-    maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
-    maven { url = "https://jitpack.io" }
-    maven { url = "https://repo.codemc.org/repository/maven-public" }
-    maven { url = "https://cdn.rawgit.com/Rayzr522/maven-repo/master/" }
-    maven { url = "https://maven.sk89q.com/repo/" }
-  }
+subprojects {
+  apply plugin: "dev.magicspells.msjava"
 
   dependencies {
     implementation(group: "io.papermc.paper", name: "paper-api", version: "1.18.2-R0.1-SNAPSHOT")
   }
 
-}
-
-subprojects {
-
   it.version = "4.0-Beta-11"
-  
+
   processResources {
     expand(["version": "4.0-Beta-11"])
   }
-
-  shadowJar {
-    configurations = [project.configurations.shadow]
-  }
-
-  artifacts {
-    archives shadowJar
-  }
-
 }
