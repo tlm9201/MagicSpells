@@ -132,7 +132,7 @@ public class MagicCommand extends BaseCommand {
 			// Add spell name
 			String name = spell.getName();
 			if (name != null && !name.equals(spell.getInternalName())) {
-				spellNames.add("\"" + Util.decolorize(name) + "\"");
+				spellNames.add("\"" + Util.getPlainString(Util.getMiniMessage(spell.getName())) + "\"");
 				added = true;
 			}
 
