@@ -10,7 +10,6 @@ import java.util.Iterator;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
@@ -23,6 +22,8 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
+
+import io.papermc.paper.event.entity.EntityMoveEvent;
 
 public class LilywalkSpell extends BuffSpell {
 
@@ -60,24 +61,28 @@ public class LilywalkSpell extends BuffSpell {
 		Util.forEachValueOrdered(entities, Lilies::remove);
 		entities.clear();
 	}
-	
-	@EventHandler(priority=EventPriority.MONITOR)
-	public void onPlayerMove(PlayerMoveEvent event) {
-		Player player = event.getPlayer();
-		Lilies lilies = entities.get(player.getUniqueId());
 
+	private void handleMove(LivingEntity entity, Block block) {
+		Lilies lilies = entities.get(entity.getUniqueId());
 		if (lilies == null) return;
-		if (isExpired(player)) {
-			turnOff(player);
+		if (isExpired(entity)) {
+			turnOff(entity);
 			return;
 		}
-
-		Block block = event.getTo().getBlock();
 		boolean moved = lilies.isMoved(block);
 		if (!moved) return;
-
 		lilies.move(block);
-		addUseAndChargeCost(player);
+		addUseAndChargeCost(entity);
+	}
+
+	@EventHandler(priority=EventPriority.MONITOR)
+	public void onPlayerMove(PlayerMoveEvent event) {
+		handleMove(event.getPlayer(), event.getTo().getBlock());
+	}
+	
+	@EventHandler(priority=EventPriority.MONITOR)
+	public void onEntityMove(EntityMoveEvent event) {
+		handleMove(event.getEntity(), event.getTo().getBlock());
 	}
 	
 	@EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)

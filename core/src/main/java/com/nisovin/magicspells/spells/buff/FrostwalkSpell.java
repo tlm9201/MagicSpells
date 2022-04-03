@@ -7,12 +7,13 @@ import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+
+import io.papermc.paper.event.entity.EntityMoveEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.BlockUtils;
@@ -64,43 +65,46 @@ public class FrostwalkSpell extends BuffSpell {
 		entities.clear();
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
-	public void onPlayerMove(PlayerMoveEvent event) {
-		Player player = event.getPlayer();
-		if (!isActive(player)) return;
-		if (isExpired(player)) {
-			turnOff(player);
+	private void handleMove(LivingEntity entity, Location to, Location from) {
+		if (!isActive(entity)) return;
+		if (isExpired(entity)) {
+			turnOff(entity);
 			return;
 		}
-		
+
 		Block block;
 		boolean teleportUp = false;
 
-		Location locationTo = event.getTo();
-		Location locationFrom = event.getFrom();
+		double locationToY = to.getY();
+		double locationFromY = from.getY();
 
-		double locationToY = locationTo.getY();
-		double locationFromY = locationFrom.getY();
-
-		Block locationToBlock = locationTo.getBlock();
+		Block locationToBlock = to.getBlock();
 
 		if (locationToY > locationFromY && locationToY % 1 > .62 && locationToBlock.getType() == Material.WATER && BlockUtils.isAir(locationToBlock.getRelative(0, 1, 0).getType())) {
 			block = locationToBlock;
 			teleportUp = true;
-		} else {
-			block = locationToBlock.getRelative(0, -1, 0);
 		}
-		boolean moved = entities.get(player.getUniqueId()).movePlatform(block);
+		else block = locationToBlock.getRelative(0, -1, 0);
+		boolean moved = entities.get(entity.getUniqueId()).movePlatform(block);
 		if (!moved) return;
 
-		addUseAndChargeCost(player);
+		addUseAndChargeCost(entity);
 
 		if (teleportUp) {
-			Location loc = player.getLocation().clone();
-			loc.setY(locationTo.getBlockY() + 1);
-			player.teleport(loc);
+			Location loc = entity.getLocation().clone();
+			loc.setY(to.getBlockY() + 1);
+			entity.teleport(loc);
 		}
+	}
 
+	@EventHandler(priority=EventPriority.MONITOR)
+	public void onPlayerMove(PlayerMoveEvent event) {
+		handleMove(event.getPlayer(), event.getTo(), event.getFrom());
+	}
+
+	@EventHandler(priority=EventPriority.MONITOR)
+	public void onEntityMove(EntityMoveEvent event) {
+		handleMove(event.getEntity(), event.getTo(), event.getFrom());
 	}
 
 	@EventHandler(ignoreCancelled = true)
