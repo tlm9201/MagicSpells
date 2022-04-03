@@ -5,15 +5,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.compat.CompatBasics;
-
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
+import com.nisovin.magicspells.castmodifiers.Condition;
+import com.nisovin.magicspells.castmodifiers.conditions.util.DependsOn;
+
+@DependsOn(plugin = "WorldGuard")
 public class InRegionCondition extends Condition {
 
 	private String worldName;
@@ -22,10 +22,6 @@ public class InRegionCondition extends Condition {
 	@Override
 	public boolean initialize(String var) {
 		if (var == null || var.isEmpty()) return false;
-
-		WorldGuardPlugin worldGuard = (WorldGuardPlugin) CompatBasics.getPlugin("WorldGuard");
-		if (worldGuard == null || !worldGuard.isEnabled()) return false;
-
 		String[] split = var.split(":");
 		if (split.length == 2) {
 			worldName = split[0];

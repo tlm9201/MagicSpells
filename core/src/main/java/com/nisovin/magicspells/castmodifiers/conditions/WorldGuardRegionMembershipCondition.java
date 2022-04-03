@@ -4,14 +4,16 @@ import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.castmodifiers.conditions.util.DependsOn;
 import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardCondition;
 
+@DependsOn(plugin = "WorldGuard")
 public class WorldGuardRegionMembershipCondition extends AbstractWorldGuardCondition {
 
 	private Type type = Type.MEMBER;
 
 	@Override
-	protected boolean parseVar(String var) {
+	public boolean initialize(String var) {
 		if (var == null || var.isEmpty()) return true;
 		try {
 			type = Type.valueOf(var.toUpperCase());

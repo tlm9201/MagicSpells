@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.compat.CompatBasics;
 
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.LocalPlayer;
@@ -19,14 +18,6 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 public abstract class AbstractWorldGuardCondition extends Condition {
-
-	@Override
-	public boolean initialize(String var) {
-		if (!CompatBasics.pluginEnabled("WorldGuard")) return false;
-		return parseVar(var);
-	}
-
-	protected abstract boolean parseVar(String var);
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {

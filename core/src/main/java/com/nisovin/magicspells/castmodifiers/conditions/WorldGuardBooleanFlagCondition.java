@@ -9,8 +9,10 @@ import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.flags.BooleanFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
+import com.nisovin.magicspells.castmodifiers.conditions.util.DependsOn;
 import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardCondition;
 
+@DependsOn(plugin = "WorldGuard")
 public class WorldGuardBooleanFlagCondition extends AbstractWorldGuardCondition {
 
 	protected static Map<String, BooleanFlag> flags = new HashMap<>();
@@ -24,7 +26,7 @@ public class WorldGuardBooleanFlagCondition extends AbstractWorldGuardCondition 
 	private BooleanFlag flag = null;
 	
 	@Override
-	protected boolean parseVar(String var) {
+	public boolean initialize(String var) {
 		if (var == null || var.isEmpty()) return false;
 		flag = flags.get(var.toLowerCase());
 		return flag != null;
