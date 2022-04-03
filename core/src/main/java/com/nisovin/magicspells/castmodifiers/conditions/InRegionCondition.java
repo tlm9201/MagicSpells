@@ -21,7 +21,7 @@ public class InRegionCondition extends Condition {
 
 	@Override
 	public boolean initialize(String var) {
-		if (var == null) return false;
+		if (var == null || var.isEmpty()) return false;
 
 		WorldGuardPlugin worldGuard = (WorldGuardPlugin) CompatBasics.getPlugin("WorldGuard");
 		if (worldGuard == null || !worldGuard.isEnabled()) return false;

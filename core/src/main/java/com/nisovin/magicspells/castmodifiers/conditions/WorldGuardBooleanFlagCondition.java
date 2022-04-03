@@ -3,38 +3,36 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.LocalPlayer;
+import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.flags.BooleanFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-//import com.sk89q.worldguard.protection.flags.DefaultFlag;
-//import com.sk89q.worldguard.protection.flags.Flag;
 
-import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardFlagCondition;
+import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardCondition;
 
-public class WorldGuardBooleanFlagCondition extends AbstractWorldGuardFlagCondition {
+public class WorldGuardBooleanFlagCondition extends AbstractWorldGuardCondition {
+
+	protected static Map<String, BooleanFlag> flags = new HashMap<>();
+	static {
+		for (Flag<?> flag : WorldGuard.getInstance().getFlagRegistry().getAll()) {
+			if (!(flag instanceof BooleanFlag booleanFlag)) continue;
+			flags.put(flag.getName(), booleanFlag);
+		}
+	}
 
 	private BooleanFlag flag = null;
 	
-	private static Map<String, BooleanFlag> nameMap;
-	static {
-		nameMap = new HashMap<>();
-		/*for (Flag<?> f: DefaultFlag.getFlags()) {
-			if (f instanceof BooleanFlag) {
-				nameMap.put(f.getName().toLowerCase(), (BooleanFlag)f);
-			}
-		}*/
-		// FIXME set this up
-	}
-	
 	@Override
 	protected boolean parseVar(String var) {
-		flag = nameMap.get(var.toLowerCase());
+		if (var == null || var.isEmpty()) return false;
+		flag = flags.get(var.toLowerCase());
 		return flag != null;
 	}
 
 	@Override
 	protected boolean check(ProtectedRegion region, LocalPlayer player) {
-		return region.getFlag(flag);
+		return region.getFlag(flag) == Boolean.TRUE;
 	}
 
 }

@@ -1,41 +1,67 @@
 package com.nisovin.magicspells.castmodifiers.conditions.util;
 
 import org.bukkit.World;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
+
+import com.nisovin.magicspells.castmodifiers.Condition;
+import com.nisovin.magicspells.util.compat.CompatBasics;
 
 import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldedit.math.BlockVector3;
-import com.sk89q.worldedit.bukkit.BukkitWorld;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.bukkit.BukkitPlayer;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
-import com.nisovin.magicspells.castmodifiers.Condition;
-
 public abstract class AbstractWorldGuardCondition extends Condition {
 
-	protected WorldGuardPlugin worldGuard;
-
-	protected boolean worldGuardEnabled() {
-		worldGuard = (WorldGuardPlugin) Bukkit.getPluginManager().getPlugin("WorldGuard");
-		return worldGuard != null && worldGuard.isEnabled();
+	@Override
+	public boolean initialize(String var) {
+		if (!CompatBasics.pluginEnabled("WorldGuard")) return false;
+		return parseVar(var);
 	}
+
+	protected abstract boolean parseVar(String var);
+
+	@Override
+	public boolean check(LivingEntity livingEntity) {
+		return check(livingEntity, livingEntity.getLocation());
+	}
+
+	@Override
+	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+		return check(livingEntity, target.getLocation());
+	}
+
+	@Override
+	public boolean check(LivingEntity livingEntity, Location location) {
+		if (!(livingEntity instanceof Player player)) return false;
+		ProtectedRegion region = getTopPriorityRegion(location);
+		if (region == null) return false;
+		LocalPlayer localPlayer = new BukkitPlayer(WorldGuardPlugin.inst(), player);
+		return check(region, localPlayer);
+	}
+
+	protected abstract boolean check(ProtectedRegion region, LocalPlayer player);
 
 	protected RegionManager getRegionManager(World world) {
-		return WorldGuard.getInstance().getPlatform().getRegionContainer().get(new BukkitWorld(world));
-		//return worldGuard.getRegionManager(world);
+		return WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
 	}
 
-	protected ApplicableRegionSet getRegion(Location loc) {
+	protected ApplicableRegionSet getRegions(Location loc) {
 		RegionManager manager = getRegionManager(loc.getWorld());
+		if (manager == null) return null;
 		return manager.getApplicableRegions(BlockVector3.at(loc.getX(), loc.getY(), loc.getZ()));
-		//return getRegionManager(loc.getWorld()).getApplicableRegions(new Vector(loc.getX(), loc.getY(), loc.getZ()));
 	}
 
 	protected ProtectedRegion getTopPriorityRegion(Location loc) {
-		ApplicableRegionSet regions = getRegion(loc);
+		ApplicableRegionSet regions = getRegions(loc);
+
 		ProtectedRegion topRegion = null;
 		int topPriority = Integer.MIN_VALUE;
 		for (ProtectedRegion region: regions) {
@@ -46,5 +72,5 @@ public abstract class AbstractWorldGuardCondition extends Condition {
 		}
 		return topRegion;
 	}
-	
+
 }
