@@ -60,6 +60,6 @@ If you need help with the plugin, our Discord server can provide you community s
 ## Building 🧱
 The move to Gradle has made building much easier. After cloning and navigating to the source's directory, you can simply run this command:
 ```
-./gradlew build shadowJar
+./gradlew build
 ```
 Simple right?
