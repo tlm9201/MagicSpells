@@ -63,16 +63,20 @@ public class SpellHasteSpell extends BuffSpell {
 	@EventHandler (priority=EventPriority.MONITOR)
 	public void onSpellSpeedCast(SpellCastEvent event) {
 		if (!filter.check(event.getSpell())) return;
-		if (!isActive(event.getCaster())) return;
+		LivingEntity caster = event.getCaster();
+		if (!isActive(caster)) return;
 		
 		Float power = entities.get(event.getCaster().getUniqueId());
 		if (power == null) return;
+
+		boolean modified = false;
 
 		if (castTimeModAmt != 0) {
 			int ct = event.getCastTime();
 			float newCT = ct + (castTimeModAmt * power * ct);
 			if (newCT < 0) newCT = 0;
 			event.setCastTime(Math.round(newCT));
+			modified = true;
 		}
 
 		if (cooldownModAmt != 0) {
@@ -80,8 +84,11 @@ public class SpellHasteSpell extends BuffSpell {
 			float newCD = cd + (cooldownModAmt * power * cd);
 			if (newCD < 0) newCD = 0;
 			event.setCooldown(newCD);
+			modified = true;
 		}
 
+		if (!modified) return;
+		addUseAndChargeCost(caster);
 	}
 
 	public Map<UUID, Float> getEntities() {

@@ -6,6 +6,7 @@ import java.util.UUID;
 import java.util.HashSet;
 import java.util.HashMap;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -16,6 +17,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+
+import io.papermc.paper.event.entity.EntityMoveEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
@@ -76,25 +79,33 @@ public class CarpetSpell extends BuffSpell {
 		entities.clear();
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
-	public void onPlayerMove(PlayerMoveEvent event) {
-		Player player = event.getPlayer();
-		BlockPlatform platform = entities.get(player.getUniqueId());
+	private void handleMove(LivingEntity entity, Location to) {
+		BlockPlatform platform = entities.get(entity.getUniqueId());
 		if (platform == null) return;
 
-		if (isExpired(player)) {
-			turnOff(player);
+		if (isExpired(entity)) {
+			turnOff(entity);
 			return;
 		}
 
-		Block block = event.getTo().getBlock().getRelative(BlockFace.DOWN);
-		if (falling.contains(player.getUniqueId())) block = event.getTo().getBlock().getRelative(BlockFace.DOWN, 2);
+		Block block = to.getBlock().getRelative(BlockFace.DOWN);
+		if (falling.contains(entity.getUniqueId())) block = to.getBlock().getRelative(BlockFace.DOWN, 2);
 
 		boolean moved = platform.isMoved(block, true);
 		if (moved) {
 			platform.movePlatform(block, true);
-			addUseAndChargeCost(player);
+			addUseAndChargeCost(entity);
 		}
+	}
+
+	@EventHandler(priority=EventPriority.MONITOR)
+	public void onPlayerMove(PlayerMoveEvent event) {
+		handleMove(event.getPlayer(), event.getTo());
+	}
+
+	@EventHandler(priority=EventPriority.MONITOR)
+	public void onEntityMove(EntityMoveEvent event) {
+		handleMove(event.getEntity(), event.getTo());
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)

@@ -1,10 +1,10 @@
 package com.nisovin.magicspells.util.data;
 
-import org.bukkit.entity.LivingEntity;
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.function.Function;
+
+import org.bukkit.entity.LivingEntity;
 
 public class DataLivingEntity {
 	

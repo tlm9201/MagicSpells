@@ -16,7 +16,7 @@ import com.nisovin.magicspells.events.ManaChangeEvent;
 
 public class ManaRegenSpell extends BuffSpell { 
 
-	private final Set<UUID> entities;
+	private final Set<UUID> players;
 
 	private int regenModAmt;
 
@@ -25,51 +25,52 @@ public class ManaRegenSpell extends BuffSpell {
 
 		regenModAmt = getConfigInt("regen-mod-amt", 3);
 
-		entities = new HashSet<>();
+		players = new HashSet<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.add(entity.getUniqueId());
+		if (!(entity instanceof Player)) return true;
+		players.add(entity.getUniqueId());
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.contains(entity.getUniqueId());
+		return players.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		entities.remove(entity.getUniqueId());
+		players.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		entities.clear();
+		players.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void onManaRegenTick(ManaChangeEvent event) {
-		Player pl = event.getPlayer();
-		if (isExpired(pl)) {
-			turnOff(pl);
+		Player player = event.getPlayer();
+		if (isExpired(player)) {
+			turnOff(player);
 			return;
 		}
 
-		if (!isActive(pl)) return;
+		if (!isActive(player)) return;
 		if (!event.getReason().equals(ManaChangeReason.REGEN)) return;
 		
 		int newAmt = event.getNewAmount() + regenModAmt;
 		if (newAmt > event.getMaxMana()) newAmt = event.getMaxMana();
 		else if (newAmt < 0) newAmt = 0;
 
-		addUseAndChargeCost(pl);
+		addUseAndChargeCost(player);
 		event.setNewAmount(newAmt);
 	}
 
-	public Set<UUID> getEntities() {
-		return entities;
+	public Set<UUID> getPlayers() {
+		return players;
 	}
 
 	public int getRegenModAmt() {

@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,6 +22,8 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
+
+import io.papermc.paper.event.entity.EntityMoveEvent;
 
 public class WalkwaySpell extends BuffSpell {
 
@@ -111,16 +112,25 @@ public class WalkwaySpell extends BuffSpell {
 	}
 
 	public class WalkwayListener implements Listener {
-	
-		@EventHandler(priority=EventPriority.MONITOR)
-		public void onPlayerMove(PlayerMoveEvent event) {
-			Player player = event.getPlayer();
-			Platform carpet = entities.get(player.getUniqueId());
+
+		private void handleMove(LivingEntity entity) {
+			Platform carpet = entities.get(entity.getUniqueId());
 			if (carpet == null) return;
 			boolean moved = carpet.move();
-			if (moved) addUseAndChargeCost(player);
+			if (!moved) return;
+			addUseAndChargeCost(entity);
 		}
-	
+
+		@EventHandler(priority=EventPriority.MONITOR)
+		public void onPlayerMove(PlayerMoveEvent event) {
+			handleMove(event.getPlayer());
+		}
+
+		@EventHandler(priority=EventPriority.MONITOR)
+		public void onEventMove(EntityMoveEvent event) {
+			handleMove(event.getEntity());
+		}
+
 		@EventHandler(ignoreCancelled=true)
 		public void onBlockBreak(BlockBreakEvent event) {
 			Block block = event.getBlock();
@@ -131,11 +141,10 @@ public class WalkwaySpell extends BuffSpell {
 				return;
 			}
 		}
-		
+
 	}
-	
 	private static class Platform {
-		
+
 		private LivingEntity entity;
 		private Material materialPlatform;
 		private int sizePlatform;

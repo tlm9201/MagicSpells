@@ -1,12 +1,14 @@
 package com.nisovin.magicspells.util.data;
 
-import org.bukkit.Nameable;
-import org.bukkit.entity.Entity;
-import org.bukkit.command.CommandSender;
-
 import java.util.Map;
 import java.util.HashMap;
 import java.util.function.Function;
+
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.SpawnCategory;
+import org.bukkit.command.CommandSender;
+
+import com.nisovin.magicspells.util.Util;
 
 public class DataEntity {
 	
@@ -15,13 +17,7 @@ public class DataEntity {
 	static {
 		try {
 			dataElements.put("name", CommandSender::getName);
-		} catch (Throwable ignored) {}
-		
-		try {
-			dataElements.put("customname", Nameable::getCustomName);
-		} catch (Throwable ignored) {}
-		
-		try {
+			dataElements.put("customname", entity -> Util.getStringFromComponent(entity.customName()));
 			dataElements.put("portalcooldown", entity -> entity.getPortalCooldown() + "");
 		} catch (Throwable ignored) {}
 		
@@ -44,19 +40,21 @@ public class DataEntity {
 		dataElements.put("velocity.lengthsquared", entity -> entity.getVelocity().lengthSquared() + "");
 		dataElements.put("world", entity -> entity.getWorld().toString());
 		dataElements.put("world.name", entity -> entity.getWorld().getName());
-		dataElements.put("world.ambientspawnlimit", entity -> entity.getWorld().getAmbientSpawnLimit() + "");
-		dataElements.put("world.animalspawnlimit", entity -> entity.getWorld().getAnimalSpawnLimit() + "");
+		dataElements.put("world.ambientspawnlimit", entity -> entity.getWorld().getSpawnLimit(SpawnCategory.AMBIENT) + "");
+		dataElements.put("world.animalspawnlimit", entity -> entity.getWorld().getSpawnLimit(SpawnCategory.ANIMAL) + "");
 		dataElements.put("world.difficulty", entity -> entity.getWorld().getDifficulty().name());
 		dataElements.put("world.environment", entity -> entity.getWorld().getEnvironment().name());
+		dataElements.put("world.time", entity -> entity.getWorld().getTime() + "");
 		dataElements.put("world.fulltime", entity -> entity.getWorld().getFullTime() + "");
+		dataElements.put("world.gametime", entity -> entity.getWorld().getGameTime() + "");
 		dataElements.put("world.maxheight", entity -> entity.getWorld().getMaxHeight() + "");
-		dataElements.put("world.monsterspawnlimit", entity -> entity.getWorld().getMonsterSpawnLimit() + "");
+		dataElements.put("world.monsterspawnlimit", entity -> entity.getWorld().getSpawnLimit(SpawnCategory.MONSTER) + "");
 		dataElements.put("world.sealevel", entity -> entity.getWorld().getSeaLevel() + "");
 		dataElements.put("world.seed", entity -> entity.getWorld().getSeed() + "");
 		dataElements.put("world.thunderduration", entity -> entity.getWorld().getThunderDuration() + "");
-		dataElements.put("world.ticksperanimalspawn", entity -> entity.getWorld().getTicksPerAnimalSpawns() + "");
-		dataElements.put("world.tickspermonsterspawn", entity -> entity.getWorld().getTicksPerMonsterSpawns() + "");
-		dataElements.put("world.wateranimalspawnlimit", entity -> entity.getWorld().getWaterAnimalSpawnLimit() + "");
+		dataElements.put("world.ticksperanimalspawn", entity -> entity.getWorld().getTicksPerSpawns(SpawnCategory.ANIMAL) + "");
+		dataElements.put("world.tickspermonsterspawn", entity -> entity.getWorld().getTicksPerSpawns(SpawnCategory.MONSTER) + "");
+		dataElements.put("world.wateranimalspawnlimit", entity -> entity.getWorld().getSpawnLimit(SpawnCategory.WATER_ANIMAL) + "");
 		dataElements.put("world.weatherduration", entity -> entity.getWorld().getWeatherDuration() + "");
 		dataElements.put("location", entity -> entity.getLocation().toString());
 		dataElements.put("location.x", entity -> entity.getLocation().getX() + "");

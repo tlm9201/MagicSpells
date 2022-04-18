@@ -29,7 +29,7 @@ import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 // TODO this needs exemptions for anticheat
 public class ReachSpell extends BuffSpell {
 
-	private final Set<UUID> entities;
+	private final Set<UUID> players;
 
 	private final Set<Material> disallowedBreakBlocks;
 	private final Set<Material> disallowedPlaceBlocks;
@@ -43,7 +43,7 @@ public class ReachSpell extends BuffSpell {
 		dropBlocks = getConfigBoolean("drop-blocks", true);
 		consumeBlocks = getConfigBoolean("consume-blocks", true);
 
-		entities = new HashSet<>();
+		players = new HashSet<>();
 		disallowedPlaceBlocks = new HashSet<>();
 		disallowedBreakBlocks = new HashSet<>();
 
@@ -69,23 +69,24 @@ public class ReachSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.add(entity.getUniqueId());
+		if (!(entity instanceof Player)) return true;
+		players.add(entity.getUniqueId());
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.contains(entity.getUniqueId());
+		return players.contains(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		entities.remove(entity.getUniqueId());
+		players.remove(entity.getUniqueId());
 	}
 
 	@Override
 	protected void turnOff() {
-		entities.clear();
+		players.clear();
 	}
 
 	@EventHandler(priority=EventPriority.HIGHEST)
@@ -168,8 +169,8 @@ public class ReachSpell extends BuffSpell {
 		}
 	}
 
-	public Set<UUID> getEntities() {
-		return entities;
+	public Set<UUID> getPlayers() {
+		return players;
 	}
 
 	public Set<Material> getDisallowedBreakBlocks() {

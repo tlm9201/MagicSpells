@@ -27,7 +27,7 @@ import com.nisovin.magicspells.util.PlayerNameUtils;
 
 public class StonevisionSpell extends BuffSpell {
 
-	private final Map<UUID, TransparentBlockSet> entities;
+	private final Map<UUID, TransparentBlockSet> players;
 
 	private final Set<Material> transparentTypes;
 
@@ -64,34 +64,34 @@ public class StonevisionSpell extends BuffSpell {
 
 		if (radius > MagicSpells.getGlobalRadius()) radius = MagicSpells.getGlobalRadius();
 
-		entities = new HashMap<>();
+		players = new HashMap<>();
 	}
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		if (!(entity instanceof Player)) return true;
-		entities.put(entity.getUniqueId(), new TransparentBlockSet((Player) entity, radius, transparentTypes));
+		players.put(entity.getUniqueId(), new TransparentBlockSet((Player) entity, radius, transparentTypes));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.containsKey(entity.getUniqueId());
+		return players.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		TransparentBlockSet t = entities.remove(entity.getUniqueId());
+		TransparentBlockSet t = players.remove(entity.getUniqueId());
 		if (t != null) t.removeTransparency();
 	}
 
 	@Override
 	protected void turnOff() {
-		for (TransparentBlockSet tbs : entities.values()) {
+		for (TransparentBlockSet tbs : players.values()) {
 			tbs.removeTransparency();
 		}
 
-		entities.clear();
+		players.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
@@ -103,13 +103,13 @@ public class StonevisionSpell extends BuffSpell {
 			return;
 		}
 
-		boolean moved = entities.get(pl.getUniqueId()).moveTransparency();
+		boolean moved = players.get(pl.getUniqueId()).moveTransparency();
 		if (!moved) return;
 		addUseAndChargeCost(pl);
 	}
 
-	public Map<UUID, TransparentBlockSet> getEntities() {
-		return entities;
+	public Map<UUID, TransparentBlockSet> getPlayers() {
+		return players;
 	}
 
 	public Set<Material> getTransparentTypes() {

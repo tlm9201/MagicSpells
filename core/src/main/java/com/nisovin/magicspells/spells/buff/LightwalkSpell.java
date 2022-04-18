@@ -5,7 +5,6 @@ import java.util.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -20,7 +19,7 @@ import com.nisovin.magicspells.util.MagicConfig;
 
 public class LightwalkSpell extends BuffSpell {
 	
-	private final Map<UUID, Block> entities;
+	private final Map<UUID, Block> players;
 
 	private final Set<Material> allowedTypes;
 
@@ -40,7 +39,7 @@ public class LightwalkSpell extends BuffSpell {
 		}
 		if (blockType == null) blockType = Material.LIGHT.createBlockData();
 
-		entities = new HashMap<>();
+		players = new HashMap<>();
 
 		allowedTypes = new HashSet<>();
 
@@ -59,18 +58,19 @@ public class LightwalkSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), getBlockToChange(entity));
+		if (!(entity instanceof Player)) return true;
+		players.put(entity.getUniqueId(), getBlockToChange(entity));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.containsKey(entity.getUniqueId());
+		return players.containsKey(entity.getUniqueId());
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		Block block = entities.remove(entity.getUniqueId());
+		Block block = players.remove(entity.getUniqueId());
 		if (block == null) return;
 		if (!(entity instanceof Player player)) return;
 		player.sendBlockChange(block.getLocation(), block.getBlockData());
@@ -78,15 +78,15 @@ public class LightwalkSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		for (UUID id : entities.keySet()) {
-			Entity entity = Bukkit.getEntity(id);
-			if (!(entity instanceof Player player)) continue;
-			Block block = entities.get(id);
+		for (UUID id : players.keySet()) {
+			Player player = Bukkit.getPlayer(id);
+			if (player == null) continue;
+			Block block = players.get(id);
 			if (block == null) continue;
 			player.sendBlockChange(block.getLocation(), block.getBlockData());
 		}
 
-		entities.clear();
+		players.clear();
 	}
 
 	@EventHandler(priority=EventPriority.MONITOR)
@@ -94,7 +94,7 @@ public class LightwalkSpell extends BuffSpell {
 		Player player = event.getPlayer();
 		if (!isActive(player)) return;
 
-		Block oldBlock = entities.get(player.getUniqueId());
+		Block oldBlock = players.get(player.getUniqueId());
 		Block newBlock = getBlockToChange(player);
 		if (oldBlock == null) return;
 		if (oldBlock.equals(newBlock)) return;
@@ -105,13 +105,13 @@ public class LightwalkSpell extends BuffSpell {
 		}
 
 		addUseAndChargeCost(player);
-		entities.put(player.getUniqueId(), newBlock);
+		players.put(player.getUniqueId(), newBlock);
 		player.sendBlockChange(newBlock.getLocation(), blockType);
 		player.sendBlockChange(oldBlock.getLocation(), oldBlock.getBlockData());
 	}
 
-	public Map<UUID, Block> getEntities() {
-		return entities;
+	public Map<UUID, Block> getPlayers() {
+		return players;
 	}
 
 	public Set<Material> getAllowedTypes() {

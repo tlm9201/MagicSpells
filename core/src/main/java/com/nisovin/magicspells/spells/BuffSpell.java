@@ -391,7 +391,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	/**
 	 * Turns off this spell for the specified livingEntity. This can be called from many situations, including when the spell expires or the uses run out.
 	 * When overriding this function, you should always be sure to call super.turnOff(livingEntity).
-	 * @param entity
+	 * @param entity livingEntity to turn the buff off for
 	 */
 	public final void turnOff(LivingEntity entity) {
 		if (!isActive(entity)) return;

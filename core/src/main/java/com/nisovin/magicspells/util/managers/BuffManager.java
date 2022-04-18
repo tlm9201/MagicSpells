@@ -55,7 +55,7 @@ public class BuffManager {
 	}
 
 	public void turnOff() {
-		MagicSpells.cancelTask(monitor.taskId);
+		monitor.stop();
 		monitor = null;
 		activeBuffs.clear();
 		activeBuffs = null;
