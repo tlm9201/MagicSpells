@@ -35,7 +35,7 @@ public class MagicChatListener implements Listener {
 				if (spellbook.hasSpell(spell)) {
 					String[] args = new String[split.length - 1];
 					System.arraycopy(split, 1, args, 0, args.length);
-					spell.cast(player, args);
+					MagicSpells.scheduleDelayedTask(() -> spell.cast(player, args), 0);
 					return true;
 				}
 				return false;
@@ -45,7 +45,7 @@ public class MagicChatListener implements Listener {
 		if (spell != null) {
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			if (spellbook.hasSpell(spell)) {
-				spell.cast(player);
+				MagicSpells.scheduleDelayedTask(() -> spell.cast(player), 0);
 				return true;
 			}
 		}
