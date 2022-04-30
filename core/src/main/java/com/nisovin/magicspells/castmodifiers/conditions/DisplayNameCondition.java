@@ -5,18 +5,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.util.Util;
 
-import net.kyori.adventure.text.Component;
-
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class DisplayNameCondition extends Condition {
 
-    private Component displayName;
+    private String displayName;
 
     @Override
     public boolean initialize(String var) {
         if (var == null || var.isEmpty()) return false;
-        displayName = Util.getMiniMessage(var);
+        displayName = Util.getStringFromComponent(Util.getMiniMessage(var));
         return true;
     }
 
@@ -28,7 +26,7 @@ public class DisplayNameCondition extends Condition {
     @Override
     public boolean check(LivingEntity livingEntity, LivingEntity target) {
         if (!(target instanceof Player player)) return false;
-        return player.displayName().equals(displayName);
+        return Util.getStringFromComponent(player.displayName()).equals(displayName);
     }
 
     @Override
