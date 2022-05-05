@@ -44,7 +44,7 @@ public class SeeHealthSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return true;
+		if (!(entity instanceof Player)) return false;
 		players.add(entity.getUniqueId());
 		updater = new Updater();
 		return true;

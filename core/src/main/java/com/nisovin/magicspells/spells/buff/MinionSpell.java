@@ -234,7 +234,7 @@ public class MinionSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player player)) return true;
+		if (!(entity instanceof Player player)) return false;
 		// Selecting the mob
 		EntityType creatureType = null;
 		int num = random.nextInt(100);

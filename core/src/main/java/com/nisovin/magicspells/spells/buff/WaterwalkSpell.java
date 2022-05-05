@@ -36,7 +36,7 @@ public class WaterwalkSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return true;
+		if (!(entity instanceof Player)) return false;
 		entities.add(entity.getUniqueId());
 		startTicker();
 		return true;

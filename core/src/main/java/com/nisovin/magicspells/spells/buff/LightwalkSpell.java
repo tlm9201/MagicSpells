@@ -58,7 +58,7 @@ public class LightwalkSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return true;
+		if (!(entity instanceof Player)) return false;
 		players.put(entity.getUniqueId(), getBlockToChange(entity));
 		return true;
 	}
