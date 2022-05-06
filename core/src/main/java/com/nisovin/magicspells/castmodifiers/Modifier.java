@@ -175,7 +175,7 @@ public class Modifier implements IModifier {
 		if (alertCondition) {
 			result = ((IModifier) condition).apply(caster, target, data);
 			if (negated) result = new ModifierResult(result.data(), !result.check());
-		} else result = new ModifierResult(data, negated != condition.check(caster));
+		} else result = new ModifierResult(data, negated != condition.check(caster, target));
 		return type.apply(caster, result, customActionData);
 	}
 
@@ -185,7 +185,7 @@ public class Modifier implements IModifier {
 		if (alertCondition) {
 			result = ((IModifier) condition).apply(caster, target, data);
 			if (negated) result = new ModifierResult(result.data(), !result.check());
-		} else result = new ModifierResult(data, negated != condition.check(caster));
+		} else result = new ModifierResult(data, negated != condition.check(caster, target));
 		return type.apply(caster, result, customActionData);
 	}
 
