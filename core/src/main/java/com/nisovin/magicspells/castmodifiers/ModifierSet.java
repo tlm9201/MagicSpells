@@ -9,6 +9,8 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.events.*;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.ModifierResult;
+import com.nisovin.magicspells.util.SpellData;
 
 public class ModifierSet {
 
@@ -114,6 +116,51 @@ public class ModifierSet {
 			if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), event.getCaster(), MagicSpells.NULL_ARGS);
 			break;
 		}
+	}
+
+	public ModifierResult apply(LivingEntity caster, SpellData data) {
+		for (Modifier modifier : modifiers) {
+		    ModifierResult result = modifier.apply(caster, data);
+			if (result.check()) {
+				data = result.data();
+				continue;
+			}
+
+			if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), caster, result.data().args());
+			return result;
+		}
+
+		return new ModifierResult(data, true);
+	}
+
+	public ModifierResult apply(LivingEntity caster, LivingEntity target, SpellData data) {
+		for (Modifier modifier : modifiers) {
+			ModifierResult result = modifier.apply(caster, target, data);
+			if (result.check()) {
+				data = result.data();
+				continue;
+			}
+
+			if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), caster, result.data().args());
+			return result;
+		}
+
+		return new ModifierResult(data, true);
+	}
+
+	public ModifierResult apply(LivingEntity caster, Location target, SpellData data) {
+		for (Modifier modifier : modifiers) {
+			ModifierResult result = modifier.apply(caster, target, data);
+			if (result.check()) {
+				data = result.data();
+				continue;
+			}
+
+			if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), caster, result.data().args());
+			return result;
+		}
+
+		return new ModifierResult(data, true);
 	}
 
 	public boolean check(LivingEntity livingEntity) {

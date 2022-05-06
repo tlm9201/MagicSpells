@@ -7,6 +7,7 @@ import org.bukkit.entity.LivingEntity;
 import de.slikey.exp4j.Expression;
 
 import com.nisovin.magicspells.events.*;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.FunctionData;
 
@@ -44,6 +45,10 @@ public class CustomDataFloat extends CustomData {
 
 	public float get(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		return customData.get(caster, target, power, args);
+	}
+
+	public static float from(CustomData data, SpellData spellData) {
+		return ((CustomDataFloat) data).customData.get(spellData);
 	}
 
 	public static float from(CustomData data, SpellCastEvent event) {

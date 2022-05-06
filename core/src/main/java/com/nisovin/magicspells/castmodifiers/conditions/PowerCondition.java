@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.ManaChangeEvent;
 import com.nisovin.magicspells.castmodifiers.IModifier;
@@ -52,6 +54,21 @@ public class PowerCondition extends OperatorCondition implements IModifier {
 	public boolean apply(MagicSpellsGenericPlayerEvent event) {
 		// No power to check
 		return false;
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, SpellData data) {
+		return new ModifierResult(data, power(data.power()));
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, LivingEntity target, SpellData data) {
+		return new ModifierResult(data, power(data.power()));
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, Location target, SpellData data) {
+		return new ModifierResult(data, power(data.power()));
 	}
 
 	@Override

@@ -7,7 +7,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.castmodifiers.Modifier;
 import com.nisovin.magicspells.events.ManaChangeEvent;
@@ -234,7 +236,61 @@ public class MultiCondition extends Condition implements IModifier {
 		}
 		return passCondition.hasPassed(pass, fail);
 	}
-	
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, SpellData data) {
+		int pass = 0;
+		int fail = 0;
+		for (Modifier m : modifiers) {
+			ModifierResult result = m.apply(caster, data);
+			data = result.data();
+			if (result.check()) pass++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data().args());
+			}
+			if (!passCondition.shouldContinue(pass, fail)) return new ModifierResult(data, passCondition.hasPassed(pass, fail));
+		}
+		return new ModifierResult(data, passCondition.hasPassed(pass, fail));
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, LivingEntity target, SpellData data) {
+		int pass = 0;
+		int fail = 0;
+		for (Modifier m : modifiers) {
+			ModifierResult result = m.apply(caster, target, data);
+			data = result.data();
+			if (result.check()) pass++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data().args());
+			}
+			if (!passCondition.shouldContinue(pass, fail)) return new ModifierResult(data, passCondition.hasPassed(pass, fail));
+		}
+		return new ModifierResult(data, passCondition.hasPassed(pass, fail));
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, Location target, SpellData data) {
+		int pass = 0;
+		int fail = 0;
+		for (Modifier m : modifiers) {
+			ModifierResult result = m.apply(caster, target, data);
+			data = result.data();
+			if (result.check()) pass++;
+			else {
+				fail++;
+				String msg = m.getStrModifierFailed();
+				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data().args());
+			}
+			if (!passCondition.shouldContinue(pass, fail)) return new ModifierResult(data, passCondition.hasPassed(pass, fail));
+		}
+		return new ModifierResult(data, passCondition.hasPassed(pass, fail));
+	}
+
 	public enum PassCondition {
 		
 		ALL{

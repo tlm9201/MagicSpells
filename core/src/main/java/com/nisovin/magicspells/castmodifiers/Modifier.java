@@ -8,6 +8,8 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.ManaChangeEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -155,6 +157,36 @@ public class Modifier implements IModifier {
 		boolean check = condition.check(event.getPlayer());
 		if (negated) check = !check;
 		return type.apply(event, check, customActionData);
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, SpellData data) {
+		ModifierResult result;
+		if (alertCondition) {
+			result = ((IModifier) condition).apply(caster, data);
+			if (negated) result = new ModifierResult(result.data(), !result.check());
+		} else result = new ModifierResult(data, negated != condition.check(caster));
+		return type.apply(caster, result, customActionData);
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, LivingEntity target, SpellData data) {
+		ModifierResult result;
+		if (alertCondition) {
+			result = ((IModifier) condition).apply(caster, target, data);
+			if (negated) result = new ModifierResult(result.data(), !result.check());
+		} else result = new ModifierResult(data, negated != condition.check(caster));
+		return type.apply(caster, result, customActionData);
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, Location target, SpellData data) {
+		ModifierResult result;
+		if (alertCondition) {
+			result = ((IModifier) condition).apply(caster, target, data);
+			if (negated) result = new ModifierResult(result.data(), !result.check());
+		} else result = new ModifierResult(data, negated != condition.check(caster));
+		return type.apply(caster, result, customActionData);
 	}
 
 	@Override
