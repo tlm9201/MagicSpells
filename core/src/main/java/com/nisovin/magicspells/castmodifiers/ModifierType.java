@@ -174,7 +174,7 @@ public enum ModifierType {
 				);
 			}
 
-			return result;
+			return new ModifierResult(result.data(), true);
 		}
 
 		@Override
@@ -193,7 +193,7 @@ public enum ModifierType {
 				);
 			}
 
-			return result;
+			return new ModifierResult(result.data(), true);
 		}
 
 		@Override
@@ -212,7 +212,7 @@ public enum ModifierType {
 				);
 			}
 
-			return result;
+			return new ModifierResult(result.data(), true);
 		}
 
 		@Override
@@ -273,7 +273,7 @@ public enum ModifierType {
 				);
 			}
 
-			return result;
+			return new ModifierResult(result.data(), true);
 		}
 
 		@Override
@@ -292,7 +292,7 @@ public enum ModifierType {
 				);
 			}
 
-			return result;
+			return new ModifierResult(result.data(), true);
 		}
 
 		@Override
@@ -311,7 +311,7 @@ public enum ModifierType {
 				);
 			}
 
-			return result;
+			return new ModifierResult(result.data(), true);
 		}
 
 		@Override
