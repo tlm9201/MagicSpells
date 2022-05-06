@@ -4,12 +4,13 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
 
 public class BuffTracker extends EffectTracker implements Runnable {
 
-	private final SpellData data;
+	private SpellData data;
 
 	public BuffTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
 		super(entity, checker, effect, data);
@@ -24,8 +25,12 @@ public class BuffTracker extends EffectTracker implements Runnable {
 			return;
 		}
 
-		if (entity instanceof LivingEntity && effect.getModifiers() != null && !effect.getModifiers().check((LivingEntity) entity))
-			return;
+		if (entity instanceof LivingEntity livingEntity && effect.getModifiers() != null) {
+			ModifierResult result = effect.getModifiers().apply(livingEntity, data);
+			data = result.data();
+
+			if (!result.check()) return;
+		}
 
 		effect.playEffect(entity, data);
 	}

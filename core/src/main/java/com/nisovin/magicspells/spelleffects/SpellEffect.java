@@ -13,11 +13,12 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spelleffects.trackers.BuffTracker;
 import com.nisovin.magicspells.spelleffects.trackers.OrbitTracker;
 import com.nisovin.magicspells.spelleffects.trackers.BuffEffectlibTracker;
@@ -62,9 +63,13 @@ public abstract class SpellEffect {
 	private boolean counterClockwise;
 
 	private List<String> modifiersList;
+	private List<String> casterModifiersList;
+	private List<String> targetModifiersList;
 	private List<String> locationModifiersList;
 
 	private ModifierSet modifiers;
+	private ModifierSet casterModifiers;
+	private ModifierSet targetModifiers;
 	private ModifierSet locationModifiers;
 
 	public void loadFromString(String string) {
@@ -104,14 +109,74 @@ public abstract class SpellEffect {
 		counterClockwise = config.getBoolean(path + "counter-clockwise", false);
 
 		modifiersList = config.getStringList("modifiers");
+		casterModifiersList = config.getStringList("caster-modifiers");
+		targetModifiersList = config.getStringList("target-modifiers");
 		locationModifiersList = config.getStringList("location-modifiers");
 
 		loadFromConfig(config);
 	}
 
 	public void initializeModifiers(Spell spell) {
-		if (modifiersList != null) modifiers = new ModifierSet(modifiersList, spell);
-		if (locationModifiersList != null) locationModifiers = new ModifierSet(locationModifiersList, spell);
+		if (modifiersList != null) {
+			modifiers = new ModifierSet(modifiersList, spell);
+			modifiersList = null;
+		}
+
+		if (casterModifiersList != null) {
+			casterModifiers = new ModifierSet(casterModifiersList, spell);
+			casterModifiersList = null;
+		}
+
+		if (targetModifiersList != null) {
+			targetModifiers = new ModifierSet(targetModifiersList, spell);
+			targetModifiersList = null;
+		}
+
+		if (locationModifiersList != null) {
+			locationModifiers = new ModifierSet(locationModifiersList, spell);
+			locationModifiersList = null;
+		}
+	}
+
+	protected ModifierResult checkModifiers(SpellData data) {
+		if (data == null) return new ModifierResult(null, true);
+
+		ModifierResult result = null;
+		if (casterModifiers != null && data.caster() != null) {
+			result = casterModifiers.apply(data.caster(), data);
+			if (!result.check()) return result;
+		}
+
+		if (targetModifiers != null && data.caster() != null && data.target() != null) {
+			if (result != null) data = result.data();
+			return targetModifiers.apply(data.caster(), data.target(), data);
+		}
+
+		return result == null ? new ModifierResult(data, true) : result;
+	}
+
+	protected ModifierResult checkModifiers(SpellData data, Location location) {
+		if (data == null) return new ModifierResult(null, true);
+
+		ModifierResult result = null;
+		if (casterModifiers != null) {
+			result = casterModifiers.apply(data.caster(), data);
+			if (!result.check()) return result;
+		}
+
+		if (targetModifiers != null && data.caster() != null && data.target() != null) {
+			if (result != null) data = result.data();
+
+			result = targetModifiers.apply(data.caster(), data.target(), data);
+			if (!result.check()) return result;
+		}
+
+		if (locationModifiers != null && data.caster() != null) {
+			if (result != null) data = result.data();
+			return locationModifiers.apply(data.caster(), location, data);
+		}
+
+		return result == null ? new ModifierResult(data, true) : result;
 	}
 
 	protected abstract void loadFromConfig(ConfigurationSection config);
@@ -154,15 +219,25 @@ public abstract class SpellEffect {
 	 * @param entity the entity to play the effect on
 	 * @param data   the spell data of the casting spell
 	 */
-	public Runnable playEffect(final Entity entity, final SpellData data) {
+	public Runnable playEffect(final Entity entity, SpellData data) {
 		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
 
-		if (entity instanceof LivingEntity && modifiers != null && !modifiers.check((LivingEntity) entity)) return null;
+		ModifierResult result = checkModifiers(data);
+		if (!result.check()) return null;
+		data = result.data();
+
+		if (modifiers != null && entity instanceof LivingEntity le) {
+			result = modifiers.apply(le, data);
+			if (!result.check()) return null;
+			data = result.data();
+		}
 
 		int delay = this.delay.get(data);
 		if (delay <= 0) return playEffectEntity(entity, data);
-		MagicSpells.scheduleDelayedTask(() -> playEffectEntity(entity, data), delay);
+
+		SpellData finalData = data;
+		MagicSpells.scheduleDelayedTask(() -> playEffectEntity(entity, finalData), delay);
 
 		return null;
 	}
@@ -192,15 +267,19 @@ public abstract class SpellEffect {
 	 * @param location location to play the effect at
 	 * @param data     the spell data of the casting spell
 	 */
-	public final Runnable playEffect(final Location location, final SpellData data) {
+	public final Runnable playEffect(final Location location, SpellData data) {
 		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
 
-		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
+		ModifierResult result = checkModifiers(data, location);
+		if (!result.check()) return null;
+		data = result.data();
 
 		int delay = this.delay.get(data);
 		if (delay <= 0) return playEffectLocationReal(location, data);
-		MagicSpells.scheduleDelayedTask(() -> playEffectLocationReal(location, data), delay);
+
+		SpellData finalData = data;
+		MagicSpells.scheduleDelayedTask(() -> playEffectLocationReal(location, finalData), delay);
 
 		return null;
 	}
@@ -210,15 +289,19 @@ public abstract class SpellEffect {
 		return playEffectLib(location, null);
 	}
 
-	public final Effect playEffectLib(final Location location, final SpellData data) {
+	public final Effect playEffectLib(final Location location, SpellData data) {
 		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
 
-		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
+		ModifierResult result = checkModifiers(data, location);
+		if (!result.check()) return null;
+		data = result.data();
 
 		int delay = this.delay.get(data);
 		if (delay <= 0) return playEffectLibLocationReal(location, data);
-		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, data), delay);
+
+		SpellData finalData = data;
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, finalData), delay);
 
 		return null;
 	}
@@ -228,15 +311,19 @@ public abstract class SpellEffect {
 		return playEntityEffect(location, null);
 	}
 
-	public final Entity playEntityEffect(final Location location, final SpellData data) {
+	public final Entity playEntityEffect(final Location location, SpellData data) {
 		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
 
-		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
+		ModifierResult result = checkModifiers(data, location);
+		if (!result.check()) return null;
+		data = result.data();
 
 		int delay = this.delay.get(data);
 		if (delay <= 0) return playEntityEffectLocationReal(location, data);
-		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, data), delay);
+
+		SpellData finalData = data;
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, finalData), delay);
 
 		return null;
 	}
@@ -246,15 +333,19 @@ public abstract class SpellEffect {
 		return playArmorStandEffect(location, null);
 	}
 
-	public final ArmorStand playArmorStandEffect(final Location location, final SpellData data) {
+	public final ArmorStand playArmorStandEffect(final Location location, SpellData data) {
 		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
 
-		if (locationModifiers != null && !locationModifiers.check(null, location)) return null;
+		ModifierResult result = checkModifiers(data, location);
+		if (!result.check()) return null;
+		data = result.data();
 
 		int delay = this.delay.get(data);
 		if (delay <= 0) return playArmorStandEffectLocationReal(location, data);
-		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, data), delay);
+
+		SpellData finalData = data;
+		MagicSpells.scheduleDelayedTask(() -> playEffectLibLocationReal(location, finalData), delay);
 
 		return null;
 	}

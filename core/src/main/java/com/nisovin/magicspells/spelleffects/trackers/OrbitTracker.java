@@ -8,6 +8,7 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
 
@@ -74,7 +75,12 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 
 		Location loc = getLocation();
 
-		if (entity instanceof LivingEntity && effect.getModifiers() != null && !effect.getModifiers().check((LivingEntity) entity)) return;
+		if (entity instanceof LivingEntity livingEntity && effect.getModifiers() != null) {
+			ModifierResult result = effect.getModifiers().apply(livingEntity, data);
+			data = result.data();
+
+			if (!result.check()) return;
+		}
 
 		effect.playEffect(loc, data);
 	}
