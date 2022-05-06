@@ -116,6 +116,8 @@ public class ArmorSpell extends BuffSpell {
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		EntityEquipment inv = entity.getEquipment();
+		if (inv == null) return false;
+
 		if (!replace && ((helmet != null && inv.getHelmet() != null) || (chestplate != null && inv.getChestplate() != null) || (leggings != null && inv.getLeggings() != null) || (boots != null && inv.getBoots() != null))) {
 			// error
 			if (entity instanceof Player) sendMessage(strHasArmor, entity, args);

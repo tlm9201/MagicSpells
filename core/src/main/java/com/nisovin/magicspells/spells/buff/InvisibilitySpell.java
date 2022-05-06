@@ -47,7 +47,7 @@ public class InvisibilitySpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player player)) return true;
+		if (!(entity instanceof Player player)) return false;
 		makeInvisible(player);
 		entities.add(entity.getUniqueId());
 		return true;

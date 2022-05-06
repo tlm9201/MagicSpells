@@ -30,7 +30,7 @@ public class ManaRegenSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return true;
+		if (!(entity instanceof Player)) return false;
 		players.add(entity.getUniqueId());
 		return true;
 	}

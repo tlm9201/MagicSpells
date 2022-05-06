@@ -55,7 +55,7 @@ public class WindwalkSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return true;
+		if (!(entity instanceof Player)) return false;
 
 		if (launchSpeed > 0) {
 			entity.teleport(entity.getLocation().add(0, 0.25, 0));
