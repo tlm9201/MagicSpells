@@ -12,6 +12,7 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -154,10 +155,21 @@ public class ProjectileTracker implements Runnable, Tracker {
 			return;
 		}
 
-		if (projectileModifiers != null && caster instanceof Player && !projectileModifiers.check(caster)) {
-			if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
-			if (stopOnModifierFail) stop();
-			return;
+		if (projectileModifiers != null) {
+			ModifierResult result = projectileModifiers.apply(caster, spellData);
+			spellData = result.data();
+			power = spellData.power();
+			args = spellData.args();
+
+			if (!result.check()) {
+				if (modifierSpell != null) {
+					if (modifierSpell.isTargetedLocationSpell()) modifierSpell.castAtLocation(caster, currentLocation, power);
+					else modifierSpell.cast(caster, power);
+				}
+
+				if (stopOnModifierFail) stop();
+				return;
+			}
 		}
 
 		if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {

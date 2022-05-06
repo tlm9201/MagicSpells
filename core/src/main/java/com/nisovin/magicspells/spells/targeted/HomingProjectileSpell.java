@@ -368,10 +368,21 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 				return;
 			}
 
-			if (homingModifiers != null && !homingModifiers.check(caster)) {
-				if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
-				if (stopOnModifierFail) stop();
-				return;
+			if (homingModifiers != null) {
+				ModifierResult result = homingModifiers.apply(caster, data);
+				data = result.data();
+				power = data.power();
+				args = data.args();
+
+				if (!result.check()) {
+					if (modifierSpell != null) {
+						if (modifierSpell.isTargetedLocationSpell()) modifierSpell.castAtLocation(caster, currentLocation, power);
+						else modifierSpell.cast(caster, power);
+					}
+
+					if (stopOnModifierFail) stop();
+					return;
+				}
 			}
 
 			if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {

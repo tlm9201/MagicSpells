@@ -272,10 +272,17 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			return;
 		}
 
-		if (projectileModifiers != null && !projectileModifiers.check(caster)) {
-			if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
-			if (stopOnModifierFail) stop();
-			return;
+		if (projectileModifiers != null) {
+			ModifierResult result = projectileModifiers.apply(caster, data);
+			data = result.data();
+			power = data.power();
+			args = data.args();
+
+			if (!result.check()) {
+				if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
+				if (stopOnModifierFail) stop();
+				return;
+			}
 		}
 
 		if (controllable) {
