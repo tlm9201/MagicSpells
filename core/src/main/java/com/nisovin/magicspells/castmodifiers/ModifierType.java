@@ -602,6 +602,7 @@ public enum ModifierType {
 			CastData data = (CastData) customData;
 			if (check && data.isValid()) {
 				if (data.spell.isTargetedEntitySpell()) data.spell.castAtEntity(event.getCaster(), event.getTarget(), event.getPower());
+				else if (data.spell.isTargetedLocationSpell()) data.spell.castAtLocation(event.getCaster(), event.getTarget().getLocation(), event.getPower());
 				else data.spell.cast(event.getCaster(), event.getPower());
 			}
 			return true;
@@ -717,6 +718,7 @@ public enum ModifierType {
 			CustomInsteadData data = (CustomInsteadData) customData;
 			if (check && data.isValid()) {
 				if (data.spell.isTargetedEntitySpell()) data.spell.castAtEntity(event.getCaster(), event.getTarget(), event.getPower());
+				else if (data.spell.isTargetedLocationSpell()) data.spell.castAtLocation(event.getCaster(), event.getTarget().getLocation(), event.getPower());
 				else data.spell.cast(event.getCaster(), event.getPower());
 			}
 			return !check;
@@ -737,7 +739,7 @@ public enum ModifierType {
 		public boolean apply(MagicSpellsGenericPlayerEvent event, boolean check, CustomData customData) {
 			CustomInsteadData data = (CustomInsteadData) customData;
 			if (check && data.isValid()) {
-				if (data.spell != null) data.spell.cast(event.getPlayer(), 1f);
+				data.spell.cast(event.getPlayer(), 1f);
 			}
 			return !check;
 		}
