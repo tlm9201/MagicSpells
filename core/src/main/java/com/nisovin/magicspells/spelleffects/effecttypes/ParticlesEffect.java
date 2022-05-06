@@ -73,12 +73,12 @@ public class ParticlesEffect extends SpellEffect {
 		speed = ConfigDataUtil.getFloat(config, "speed", 0.2f);
 
 		ConfigData<Float> horizSpread = ConfigDataUtil.getFloat(config, "horiz-spread", 0.2f);
-		xSpread = ConfigDataUtil.getFloat(config, "xSpread", horizSpread);
-		zSpread = ConfigDataUtil.getFloat(config, "zSpread", horizSpread);
+		xSpread = ConfigDataUtil.getFloat(config, "x-spread", horizSpread);
+		zSpread = ConfigDataUtil.getFloat(config, "z-spread", horizSpread);
 		sculkChargeRotation = ConfigDataUtil.getFloat(config, "sculk-charge-rotation", 0);
 
 		ConfigData<Float> vertSpread = ConfigDataUtil.getFloat(config, "vert-spread", 0.2f);
-		ySpread = ConfigDataUtil.getFloat(config, "ySpread", vertSpread);
+		ySpread = ConfigDataUtil.getFloat(config, "y-spread", vertSpread);
 
 		force = config.getBoolean("force", false);
 		staticDestination = config.getBoolean("static-destination", false);
