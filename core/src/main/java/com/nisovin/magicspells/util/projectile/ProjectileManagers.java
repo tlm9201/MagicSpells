@@ -13,8 +13,8 @@ public class ProjectileManagers {
 	private static <E extends ProjectileManager> E constructProjectileManager(Class<E> clazz) {
 		E ret = null;
 		try {
-			ret = clazz.newInstance();
-		} catch (InstantiationException | IllegalAccessException exception) {
+			ret = clazz.getDeclaredConstructor().newInstance();
+		} catch (Exception exception) {
 			MagicSpells.debug(1, "Failed to instantiate ProjectileManager from class: " + clazz.getCanonicalName());
 			MagicSpells.debug(1, "Cause of failure: " + exception.getClass().getSimpleName() + ", " + exception.getMessage());
 		}

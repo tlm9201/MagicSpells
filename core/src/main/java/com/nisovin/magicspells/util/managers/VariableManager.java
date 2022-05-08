@@ -61,7 +61,7 @@ public class VariableManager {
 		if (clazz == null) return null;
 
 		try {
-			return clazz.newInstance();
+			return clazz.getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
 			DebugHandler.debugGeneral(e);
 			return null;
