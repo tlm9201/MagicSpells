@@ -277,11 +277,7 @@ public class Subspell {
 						power = targetEvent.getPower();
 
 						if (passTargeting) success = passTargetingEntity(caster, target, power, args);
-						else {
-							TargetedEntitySpell targetedEntitySpell = (TargetedEntitySpell) spell;
-							success = caster != null ? targetedEntitySpell.castAtEntity(caster, target, power, args) :
-								targetedEntitySpell.castAtEntity(target, power, args);
-						}
+						else ((TargetedEntitySpell) spell).castAtEntity(caster, target, power, args);
 					}
 				}
 
@@ -373,9 +369,7 @@ public class Subspell {
 						target = targetEvent.getTargetLocation();
 						power = targetEvent.getPower();
 
-						TargetedLocationSpell targetedSpell = (TargetedLocationSpell) spell;
-						success = caster != null ? targetedSpell.castAtLocation(caster, target, power, args) :
-							targetedSpell.castAtLocation(target, power, args);
+						success = ((TargetedLocationSpell) spell).castAtLocation(caster, target, power, args);
 					}
 				}
 
@@ -469,13 +463,8 @@ public class Subspell {
 							power = targetLocationEvent.getPower();
 							from = targetLocationEvent.getTargetLocation();
 
-							if (passTargeting)
-								success = passTargetingEntityFromLocation(caster, from, target, power, args);
-							else {
-								TargetedEntityFromLocationSpell targetedEntitySpell = (TargetedEntityFromLocationSpell) spell;
-								success = caster != null ? targetedEntitySpell.castAtEntityFromLocation(caster, from, target, power, args) :
-									targetedEntitySpell.castAtEntityFromLocation(from, target, power, args);
-							}
+							if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, power, args);
+							else success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power, args);
 						}
 					}
 				}
