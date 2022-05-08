@@ -174,6 +174,7 @@ public class ConditionManager {
 		addCondition("hasspell", HasSpellCondition.class);
 		addCondition("loopactive", LoopActiveCondition.class);
 		addCondition("ownedloopactive", OwnedLoopActiveCondition.class);
+		addCondition("always", AlwaysCondition.class);
 	}
 
 }
