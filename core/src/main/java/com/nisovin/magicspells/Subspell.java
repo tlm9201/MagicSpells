@@ -15,6 +15,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.CastTargeting;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.Spell.SpellCastState;
@@ -37,6 +38,7 @@ public class Subspell {
 	private Spell spell;
 	private String spellName;
 	private CastMode mode = CastMode.PARTIAL;
+	private CastTargeting targeting = CastTargeting.NORMAL;
 
 	private int delay = -1;
 	private float subPower = 1F;
@@ -108,6 +110,14 @@ public class Subspell {
 							DebugHandler.debugNumberFormat(e);
 						}
 					}
+					case "target" -> {
+						try {
+							targeting = CastTargeting.valueOf(keyValue[1].toUpperCase());
+						} catch (IllegalArgumentException e) {
+							MagicSpells.error("Invalid target type '" + keyValue[1] + "' on subspell '" + data + "'.");
+							DebugHandler.debugIllegalArgumentException(e);
+						}
+					}
 					default -> MagicSpells.error("Invalid cast argument '" + castArgument + "' on subspell '" + data + "'.");
 				}
 			}
@@ -120,7 +130,34 @@ public class Subspell {
 			isTargetedEntity = spell instanceof TargetedEntitySpell;
 			isTargetedLocation = spell instanceof TargetedLocationSpell;
 			isTargetedEntityFromLocation = spell instanceof TargetedEntityFromLocationSpell;
+
+			switch (targeting) {
+				case NONE -> {
+					isTargetedEntity = false;
+					isTargetedLocation = false;
+					isTargetedEntityFromLocation = false;
+				}
+				case ENTITY -> {
+					if (!isTargetedEntity) return false;
+
+					isTargetedLocation = false;
+					isTargetedEntityFromLocation = false;
+				}
+				case LOCATION -> {
+					if (!isTargetedLocation) return false;
+
+					isTargetedEntity = false;
+					isTargetedEntityFromLocation = false;
+				}
+				case ENTITY_FROM_LOCATION -> {
+					if (!isTargetedEntityFromLocation) return false;
+
+					isTargetedEntity = false;
+					isTargetedLocation = false;
+				}
+			}
 		}
+
 		return spell != null;
 	}
 
