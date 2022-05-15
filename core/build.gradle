@@ -68,7 +68,6 @@ artifacts {
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = "com.nisovin.magicspells"
             from components.java
         }
     }
