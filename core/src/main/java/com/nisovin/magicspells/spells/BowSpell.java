@@ -76,7 +76,10 @@ public class BowSpell extends Spell {
 		if (names != null) {
 			bowNames = new ArrayList<>();
 			names.forEach(str -> bowNames.add(Util.getMiniMessage(str)));
-		} else bowName = Util.getMiniMessage(getConfigString("bow-name", ""));
+		} else {
+			String bowNameString = getConfigString("bow-name", null);
+			if (bowNameString != null) bowName = Util.getMiniMessage(bowNameString);
+		}
 
 		List<String> disallowedNames = getConfigStringList("disallowed-bow-names", null);
 		if (disallowedNames != null) {
@@ -175,9 +178,8 @@ public class BowSpell extends Spell {
 
 		ItemStack inHand = event.getBow();
 		if (inHand == null || (inHand.getType() != Material.BOW && inHand.getType() != Material.CROSSBOW)) return;
-		ItemMeta itemMeta = inHand.getItemMeta();
 
-		Component name = itemMeta.displayName();
+		Component name = inHand.getItemMeta().displayName();
 		if (bowNames != null && !bowNames.contains(name)) return;
 		if (disallowedBowNames != null && disallowedBowNames.contains(name)) return;
 		if (bowName != null && !bowName.equals(name)) return;
