@@ -110,7 +110,7 @@ public class Subspell {
 							DebugHandler.debugNumberFormat(e);
 						}
 					}
-					case "target" -> {
+					case "targeting" -> {
 						try {
 							targeting = CastTargeting.valueOf(keyValue[1].toUpperCase());
 						} catch (IllegalArgumentException e) {
