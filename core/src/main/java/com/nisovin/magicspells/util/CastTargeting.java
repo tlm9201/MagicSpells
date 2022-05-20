@@ -3,9 +3,9 @@ package com.nisovin.magicspells.util;
 public enum CastTargeting {
 
 	NORMAL,
-	NONE,
+	ENTITY_FROM_LOCATION,
 	ENTITY,
 	LOCATION,
-	ENTITY_FROM_LOCATION
+	NONE
 
 }
