@@ -282,7 +282,7 @@ public class BowSpell extends Spell {
 		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 		public void onArrowHitEntity(EntityDamageByEntityEvent event) {
 			Entity damager = event.getDamager();
-			if (!(damager instanceof Arrow)) return;
+			if (!(damager instanceof Arrow arrow)) return;
 			if (!damager.hasMetadata(METADATA_KEY)) return;
 
 			List<MetadataValue> metas = damager.getMetadata(METADATA_KEY);
@@ -293,7 +293,7 @@ public class BowSpell extends Spell {
 				Entity damaged = event.getEntity();
 				if (!(damaged instanceof LivingEntity target)) break;
 
-				ProjectileSource shooter = ((Arrow) damager).getShooter();
+				ProjectileSource shooter = arrow.getShooter();
 				if (!(shooter instanceof LivingEntity caster)) break;
 
 				List<ArrowData> arrowDataList = (List<ArrowData>) meta.value();
@@ -319,7 +319,7 @@ public class BowSpell extends Spell {
 						else entitySpell.cast(caster, targetEvent.getPower());
 					}
 
-					if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, target.getLocation(), targetEvent.getPower());
+					if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, arrow.getLocation(), targetEvent.getPower());
 
 					if (data.bowSpell.removeArrow) remove = true;
 				}

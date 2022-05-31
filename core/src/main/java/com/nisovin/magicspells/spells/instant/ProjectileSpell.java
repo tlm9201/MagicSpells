@@ -242,6 +242,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		tracker.setGroundSpell(groundSpell);
 		tracker.setModifierSpell(modifierSpell);
 		tracker.setDurationSpell(durationSpell);
+		tracker.setEntityLocationSpell(entityLocationSpell);
 
 		tracker.setProjectileModifiers(projectileModifiers);
 
