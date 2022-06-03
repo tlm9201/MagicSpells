@@ -92,7 +92,6 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 			Block target = pasteAtCaster ? caster.getLocation().getBlock() : getTargetedBlock(caster, power);
 			if (target == null) return noTarget(caster);
 			Location loc = target.getLocation();
-			loc.add(0, yOffset, 0);
 			boolean ok = castAtLocation(loc, power);
 			if (!ok) return noTarget(caster);
 		}
@@ -101,7 +100,7 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		boolean ok = pasteInstant(target);
+		boolean ok = pasteInstant(target.add(0, yOffset, 0));
 		if (!ok) return false;
 		if (caster != null) playSpellEffects(caster, target);
 		else playSpellEffects(EffectPosition.TARGET, target);
