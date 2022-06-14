@@ -30,6 +30,10 @@ public class ParticlesPersonalEffect extends SpellEffect {
 	private BlockData blockData;
 	private ItemStack itemStack;
 
+
+	private int shriekDelay;
+	private float sculkChargeRotation;
+
 	private float dustSize;
 	private String colorHex;
 	private String toColorHex;
@@ -54,7 +58,9 @@ public class ParticlesPersonalEffect extends SpellEffect {
 	private boolean item = false;
 	private boolean dust = false;
 	private boolean block = false;
+	private boolean shriek = false;
 	private boolean vibration = false;
+	private boolean sculkCharge = false;
 	private boolean transitionDust = false;
 
 	@Override
@@ -85,6 +91,9 @@ public class ParticlesPersonalEffect extends SpellEffect {
 		vibrationOffset = ConfigReaderUtil.readVector(config.getString("vibration-offset", "0,0,0"));
 		vibrationRelativeOffset = ConfigReaderUtil.readVector(config.getString("vibration-relative-offset", "0,0,0"));
 
+		shriekDelay = config.getInt("shriek-delay", 0);
+		sculkChargeRotation = (float) config.getDouble("sculk-charge-rotation", 0.0);
+
 		if (dustColor != null) dustOptions = new DustOptions(dustColor, dustSize);
 		if (dustColor != null && toDustColor != null) dustTransition = new DustTransition(dustColor, toDustColor, dustSize);
 
@@ -104,6 +113,12 @@ public class ParticlesPersonalEffect extends SpellEffect {
 			none = false;
 		} else if (particle == Particle.VIBRATION && arrivalTime >= 0) {
 			vibration = true;
+			none = false;
+		} else if (particle == Particle.SHRIEK) {
+			shriek = true;
+			none = false;
+		} else if (particle == Particle.SCULK_CHARGE) {
+			sculkCharge = true;
 			none = false;
 		}
 
@@ -152,9 +167,11 @@ public class ParticlesPersonalEffect extends SpellEffect {
 		else if (dust) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, dustOptions);
 		else if (transitionDust) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, dustTransition);
 		else if (none) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed);
+		else if (shriek) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, shriekDelay);
+		else if (sculkCharge) ((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, sculkChargeRotation);
 		else if (vibration) {
 			vibrationDestination = new Vibration.Destination.BlockDestination(applyOffsets(loc.clone(), vibrationOffset, vibrationRelativeOffset, 0D, 0D, 0D));
-			vibrationOptions = new Vibration(loc, vibrationDestination, arrivalTime);
+			vibrationOptions = new Vibration(vibrationDestination, arrivalTime);
 			((Player) entity).spawnParticle(particle, loc, count, xSpread, ySpread, zSpread, speed, vibrationOptions);
 		}
 

@@ -33,6 +33,8 @@ public class EntityData {
 	private Parrot.Variant parrotVariant;
 	private Villager.Profession profession;
 	private MushroomCow.Variant cowVariant;
+	private Axolotl.Variant axolotlVariant;
+	private Frog.Variant frogVariant;
 	private TropicalFish.Pattern fishPattern;
 
 	private EulerAngle headAngle;
@@ -235,6 +237,46 @@ public class EntityData {
 					MagicSpells.error("Invalid cat type: " + type);
 					catType = null;
 				}
+			}
+			case "goat" -> {
+				entityType = EntityType.GOAT;
+				isMob = true;
+			}
+			case "glow_squid" -> {
+				entityType = EntityType.GLOW_SQUID;
+				isMob = true;
+			}
+			case "allay" -> {
+				entityType = EntityType.ALLAY;
+				isMob = true;
+			}
+			case "axolotl" -> {
+				entityType = EntityType.AXOLOTL;
+				isMob = true;
+				try {
+					axolotlVariant = Axolotl.Variant.valueOf(type.toUpperCase());
+				} catch (Exception exception) {
+					MagicSpells.error("Invalid axolotl variant: " + type);
+					axolotlVariant = null;
+				}
+			}
+			case "frog" -> {
+				entityType = EntityType.FROG;
+				isMob = true;
+				try {
+					frogVariant = Frog.Variant.valueOf(type.toUpperCase());
+				} catch (Exception exception) {
+					MagicSpells.error("Invalid frog variant: " + type);
+					frogVariant = null;
+				}
+			}
+			case "tadpole" -> {
+				entityType = EntityType.TADPOLE;
+				isMob = true;
+			}
+			case "warden" -> {
+				entityType = EntityType.WARDEN;
+				isMob = true;
 			}
 			case "pig" -> {
 				entityType = EntityType.PIG;
@@ -596,6 +638,14 @@ public class EntityData {
 		return parrotVariant;
 	}
 
+	public Frog.Variant getFrogVariant() {
+		return frogVariant;
+	}
+
+	public Axolotl.Variant getAxolotlVariant() {
+		return axolotlVariant;
+	}
+
 	public Rabbit.Type getRabbitType() {
 		return rabbitType;
 	}
@@ -699,6 +749,8 @@ public class EntityData {
 				((Panda) entity).setMainGene(getMainGene());
 				((Panda) entity).setHiddenGene(getMainGene());
 			}
+			case FROG -> ((Frog) entity).setVariant(getFrogVariant());
+			case AXOLOTL -> ((Axolotl) entity).setVariant(getAxolotlVariant());
 		}
 
 		return entity;
