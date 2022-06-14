@@ -35,7 +35,7 @@ public class MSJavaPlugin implements Plugin<Project> {
                 "https://jitpack.io",
                 "https://repo.codemc.org/repository/maven-public",
                 "https://cdn.rawgit.com/Rayzr522/maven-repo/master/",
-                "https://maven.sk89q.com/repo/"
+                "https://maven.enginehub.org/repo/"
         };
         for (String url : mavenUrls) {
             repositories.maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(url));
