@@ -2,12 +2,12 @@ package dev.magicspells.gradle;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.publish.maven.plugins.MavenPublishPlugin;
 
 public class MSJavaPlugin implements Plugin<Project> {
     @Override
