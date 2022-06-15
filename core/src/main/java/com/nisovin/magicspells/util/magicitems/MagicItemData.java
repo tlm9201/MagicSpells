@@ -29,9 +29,9 @@ import com.nisovin.magicspells.util.TxtUtil;
 
 public class MagicItemData {
 
-    private EnumMap<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
-    private EnumSet<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
-    private EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+    private final EnumMap<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
+    private final EnumSet<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+    private final EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
 
     public Object getAttribute(MagicItemAttribute attr) {
         return itemAttributes.get(attr);
@@ -56,16 +56,8 @@ public class MagicItemData {
         return blacklistedAttributes;
     }
 
-    public void setBlacklistedAttributes(EnumSet<MagicItemAttribute> blacklistedAttributes) {
-        this.blacklistedAttributes = blacklistedAttributes;
-    }
-
     public EnumSet<MagicItemAttribute> getIgnoredAttributes() {
         return ignoredAttributes;
-    }
-
-    public void setIgnoredAttributes(EnumSet<MagicItemAttribute> ignoredAttributes) {
-        this.ignoredAttributes = ignoredAttributes;
     }
 
     private boolean hasEqualAttributes(MagicItemData other) {
