@@ -427,6 +427,16 @@ public class MagicItemDataParser {
 								}
 							}
 							break;
+						case "strictenchants":
+						case "strict-enchants":
+						case "strict_enchants":
+							data.setStrictEnchants(value.getAsBoolean());
+							break;
+						case "strictenchantlevel":
+						case "strict-enchant-level":
+						case "strict_enchant_level":
+							data.setStrictEnchantLevel(value.getAsBoolean());
+							break;
 					}
 				}
 
