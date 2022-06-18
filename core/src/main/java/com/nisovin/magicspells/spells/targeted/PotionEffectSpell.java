@@ -24,6 +24,8 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 	private boolean hidden;
 	private boolean ambient;
 	private boolean targeted;
+
+	private boolean override;
 	private boolean spellPowerAffectsDuration;
 	private boolean spellPowerAffectsStrength;
 	
@@ -38,6 +40,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 		hidden = getConfigBoolean("hidden", false);
 		ambient = getConfigBoolean("ambient", false);
 		targeted = getConfigBoolean("targeted", false);
+		override = getConfigBoolean("override", false);
 		spellPowerAffectsDuration = getConfigBoolean("spell-power-affects-duration", true);
 		spellPowerAffectsStrength = getConfigBoolean("spell-power-affects-strength", true);
 	}
@@ -109,6 +112,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 		if (effect.getType() == PotionEffectType.POISON) cause = DamageCause.POISON;
 		else if (effect.getType() == PotionEffectType.WITHER) cause = DamageCause.WITHER;
 		if (cause != null) EventUtil.call(new SpellApplyDamageEvent(this, caster, target, effect.getAmplifier(), cause, ""));
+		if (override && target.hasPotionEffect(effect.getType())) target.removePotionEffect(effect.getType());
 		target.addPotionEffect(effect);
 	}
 
