@@ -14,7 +14,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.projectiles.ProjectileSource;
@@ -34,7 +33,9 @@ import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class BowSpell extends Spell {
@@ -44,6 +45,11 @@ public class BowSpell extends Spell {
 
 	private List<Component> bowNames;
 	private List<Component> disallowedBowNames;
+
+	private List<MagicItemData> bowItems;
+	private List<MagicItemData> ammoItems;
+	private List<MagicItemData> disallowedBowItems;
+	private List<MagicItemData> disallowedAmmoItems;
 
 	private ValidTargetList triggerList;
 
@@ -93,6 +99,11 @@ public class BowSpell extends Spell {
 			triggerList = new ValidTargetList(this, targets);
 		} else triggerList = new ValidTargetList(this, getConfigString("can-trigger", "players"));
 
+		bowItems = getFilter("bow-items");
+		ammoItems = getFilter("ammo-items");
+		disallowedBowItems = getFilter("disallowed-bow-items");
+		disallowedAmmoItems = getFilter("disallowed-ammo-items");
+
 		spellOnShootName = getConfigString("spell", "");
 		spellOnHitEntityName = getConfigString("spell-on-hit-entity", "");
 		spellOnHitGroundName = getConfigString("spell-on-hit-ground", "");
@@ -113,6 +124,24 @@ public class BowSpell extends Spell {
 		else if (minimumForce > 1F) minimumForce = 1F;
 		if (maximumForce < 0F) maximumForce = 0F;
 		else if (maximumForce > 1F) maximumForce = 1F;
+	}
+
+	private List<MagicItemData> getFilter(String key) {
+		List<String> itemStrings = getConfigStringList(key, null);
+		if (itemStrings == null || itemStrings.isEmpty()) return null;
+
+		List<MagicItemData> itemData = new ArrayList<>();
+		for (String itemString : itemStrings) {
+			MagicItemData data = MagicItems.getMagicItemDataFromString(itemString);
+			if (data == null) {
+				MagicSpells.error("BowSpell '" + internalName + "' has an magic item '" + itemString + "' defined!");
+				continue;
+			}
+
+			itemData.add(data);
+		}
+
+		return itemData.isEmpty() ? null : itemData;
 	}
 
 	@Override
@@ -176,16 +205,23 @@ public class BowSpell extends Spell {
 			if (!spellbook.hasSpell(this) || !spellbook.canCast(this)) return;
 		}
 
-		ItemStack inHand = event.getBow();
-		if (inHand == null || (inHand.getType() != Material.BOW && inHand.getType() != Material.CROSSBOW)) return;
+		ItemStack bow = event.getBow();
+		if (bow == null || (bow.getType() != Material.BOW && bow.getType() != Material.CROSSBOW)) return;
 
-		Component name = inHand.getItemMeta().displayName();
+		float force = event.getForce();
+		if (force < minimumForce || force > maximumForce) return;
+
+		Component name = bow.getItemMeta().displayName();
 		if (bowNames != null && !bowNames.contains(name)) return;
 		if (disallowedBowNames != null && disallowedBowNames.contains(name)) return;
 		if (bowName != null && !bowName.equals(name)) return;
 
-		float force = event.getForce();
-		if (force < minimumForce || force > maximumForce) return;
+		if (bowItems != null && !check(bow, bowItems)) return;
+		if (disallowedBowItems != null && check(bow, disallowedBowItems)) return;
+
+		ItemStack ammo = event.getConsumable();
+		if (ammoItems != null && !check(ammo, ammoItems)) return;
+		if (disallowedAmmoItems != null && check(ammo, disallowedAmmoItems)) return;
 
 		SpellCastEvent castEvent = preCast(caster, useBowForce ? force : 1f, null);
 		if (castEvent == null) {
@@ -226,6 +262,15 @@ public class BowSpell extends Spell {
 		} else if (cancelShotOnFail) event.setCancelled(true);
 
 		postCast(castEvent, PostCastAction.HANDLE_NORMALLY);
+	}
+
+	private boolean check(ItemStack item, List<MagicItemData> filters) {
+		MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
+		for (MagicItemData data : filters)
+			if (data.matches(itemData))
+				return true;
+
+		return false;
 	}
 
 	private class ShootListener implements Listener {

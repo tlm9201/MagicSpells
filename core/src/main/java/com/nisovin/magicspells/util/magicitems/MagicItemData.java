@@ -29,9 +29,12 @@ import com.nisovin.magicspells.util.TxtUtil;
 
 public class MagicItemData {
 
-    private EnumMap<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
-    private EnumSet<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
-    private EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+    private final EnumMap<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
+    private final EnumSet<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+    private final EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+
+    private boolean strictEnchantLevel = true;
+    private boolean strictEnchants = true;
 
     public Object getAttribute(MagicItemAttribute attr) {
         return itemAttributes.get(attr);
@@ -56,16 +59,24 @@ public class MagicItemData {
         return blacklistedAttributes;
     }
 
-    public void setBlacklistedAttributes(EnumSet<MagicItemAttribute> blacklistedAttributes) {
-        this.blacklistedAttributes = blacklistedAttributes;
-    }
-
     public EnumSet<MagicItemAttribute> getIgnoredAttributes() {
         return ignoredAttributes;
     }
 
-    public void setIgnoredAttributes(EnumSet<MagicItemAttribute> ignoredAttributes) {
-        this.ignoredAttributes = ignoredAttributes;
+    public boolean isStrictEnchantLevel() {
+        return strictEnchantLevel;
+    }
+
+    public void setStrictEnchantLevel(boolean strictEnchantLevel) {
+        this.strictEnchantLevel = strictEnchantLevel;
+    }
+
+    public boolean isStrictEnchants() {
+        return strictEnchants;
+    }
+
+    public void setStrictEnchants(boolean strictEnchants) {
+        this.strictEnchants = strictEnchants;
     }
 
     private boolean hasEqualAttributes(MagicItemData other) {
@@ -129,9 +140,37 @@ public class MagicItemData {
         for (MagicItemAttribute attr : keysSelf) {
             if (ignoredAttributes.contains(attr)) continue;
 
-            if (attr == MagicItemAttribute.ATTRIBUTES) {
-                if (!hasEqualAttributes(data)) return false;
-            } else if (!itemAttributes.get(attr).equals(data.itemAttributes.get(attr))) return false;
+            switch (attr) {
+                case ATTRIBUTES -> {
+                    if (!hasEqualAttributes(data)) return false;
+                }
+                case ENCHANTS -> {
+                    if (strictEnchants && strictEnchantLevel) {
+                        if (!itemAttributes.get(attr).equals(data.itemAttributes.get(attr)))
+                            return false;
+
+                        continue;
+                    }
+
+                    Map<Enchantment, Integer> enchantsSelf = (Map<Enchantment, Integer>) itemAttributes.get(attr);
+                    Map<Enchantment, Integer> enchantsOther = (Map<Enchantment, Integer>) data.itemAttributes.get(attr);
+
+                    if (strictEnchants && enchantsSelf.size() != enchantsOther.size()) return false;
+
+                    for (Enchantment enchant : enchantsSelf.keySet()) {
+                        if (!enchantsOther.containsKey(enchant)) return false;
+
+                        Integer levelSelf = enchantsSelf.get(enchant);
+                        Integer levelOther = enchantsOther.get(enchant);
+
+                        int compare = levelSelf.compareTo(levelOther);
+                        if ((strictEnchantLevel && compare != 0) || (!strictEnchantLevel && compare > 0)) return false;
+                    }
+                }
+                default -> {
+                    if (!itemAttributes.get(attr).equals(data.itemAttributes.get(attr))) return false;
+                }
+            }
         }
 
         return true;
@@ -705,6 +744,22 @@ public class MagicItemData {
             }
 
             output.append(']');
+            previous = true;
+        }
+
+        if (!strictEnchants) {
+            if (previous) output.append(",");
+            else output.append('{');
+
+            output.append("\"strict-enchants\": false");
+            previous = true;
+        }
+
+        if (!strictEnchantLevel) {
+            if (previous) output.append(",");
+            else output.append('{');
+
+            output.append("\"strict-enchant-level\": false");
             previous = true;
         }
 
