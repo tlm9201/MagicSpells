@@ -712,15 +712,20 @@ public class Util {
 
 	public static String colorize(String string) {
 		if (string.isEmpty()) return "";
-		Matcher matcher = ColorUtil.HEX_PATTERN.matcher(ChatColor.translateAlternateColorCodes('&', string));
-		StringBuilder buffer = new StringBuilder();
-		while (matcher.find()) {
-			ChatColor color = ChatColor.getByChar(matcher.group(1).toUpperCase());
-			if (color == null) continue;
 
-			matcher.appendReplacement(buffer, color.toString());
+		Matcher matcher = ColorUtil.HEX_PATTERN.matcher(ChatColor.translateAlternateColorCodes('&', string));
+		StringBuilder builder = new StringBuilder();
+		while (matcher.find()) {
+			String code = matcher.group(1);
+
+			StringBuilder magic = new StringBuilder();
+			magic.append(ChatColor.COLOR_CHAR).append('x');
+			for (int i = 1; i < code.length(); i++) magic.append(ChatColor.COLOR_CHAR).append(code.charAt(i));
+
+			matcher.appendReplacement(builder, magic.toString());
 		}
-		return matcher.appendTail(buffer).toString();
+
+		return matcher.appendTail(builder).toString();
 	}
 
 	public static String decolorize(String string) {
