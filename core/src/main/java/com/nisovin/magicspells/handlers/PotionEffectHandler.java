@@ -19,6 +19,7 @@ public enum PotionEffectHandler {
 	CONFUSION("nausea"),
 	REGENERATION("regeneration"),
 	DAMAGE_RESISTANCE("resistance"),
+	DARKNESS("darkness"),
 	FIRE_RESISTANCE("fire_resistance"),
 	WATER_BREATHING("water_breathing"),
 	INVISIBILITY("invisibility"),
@@ -55,13 +56,13 @@ public enum PotionEffectHandler {
 
 		namesToType = new HashMap<>();
 
-		for (PotionEffectHandler pe: PotionEffectHandler.values()) {
-			PotionEffectType type = PotionEffectType.getByName(pe.name());
+		for (PotionEffectHandler potionEffect : PotionEffectHandler.values()) {
+			PotionEffectType type = PotionEffectType.getByName(potionEffect.name());
 			if (type == null) continue;
 
 			// handle the names
-			namesToType.put(pe.name().toLowerCase(), type);
-			for (String s: pe.names) {
+			namesToType.put(potionEffect.name().toLowerCase(), type);
+			for (String s: potionEffect.names) {
 				namesToType.put(s.toLowerCase(), type);
 			}
 		}

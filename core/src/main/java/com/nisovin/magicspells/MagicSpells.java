@@ -367,11 +367,7 @@ public class MagicSpells extends JavaPlugin {
 		boolean opsIgnoreReagents = config.getBoolean(path + "ops-ignore-reagents", true);
 		boolean opsIgnoreCooldowns = config.getBoolean(path + "ops-ignore-cooldowns", true);
 		boolean opsIgnoreCastTimes = config.getBoolean(path + "ops-ignore-cast-times", true);
-		addPermission(pm, "noreagents", opsIgnoreReagents? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without needing reagents");
-		addPermission(pm, "nocooldown", opsIgnoreCooldowns? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without being affected by cooldowns");
-		addPermission(pm, "nocasttime", opsIgnoreCastTimes? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without being affected by cast times");
-		addPermission(pm, "notarget", PermissionDefault.FALSE, "Prevents being targeted by any targeted spells");
-		addPermission(pm, "silent", PermissionDefault.FALSE, "Prevents cast messages from being broadcast to players");
+
 		Map<String, Boolean> permGrantChildren = new HashMap<>();
 		Map<String, Boolean> permLearnChildren = new HashMap<>();
 		Map<String, Boolean> permCastChildren = new HashMap<>();
@@ -438,6 +434,13 @@ public class MagicSpells extends JavaPlugin {
 		addPermission(pm, "learn.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permLearnChildren);
 		addPermission(pm, "cast.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permCastChildren);
 		addPermission(pm, "teach.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permTeachChildren);
+
+		// Op permissions
+		addPermission(pm, "noreagents", opsIgnoreReagents? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without needing reagents");
+		addPermission(pm, "nocooldown", opsIgnoreCooldowns? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without being affected by cooldowns");
+		addPermission(pm, "nocasttime", opsIgnoreCastTimes? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without being affected by cast times");
+		addPermission(pm, "notarget", PermissionDefault.FALSE, "Prevents being targeted by any targeted spells");
+		addPermission(pm, "silent", PermissionDefault.FALSE, "Prevents cast messages from being broadcast to players");
 
 		// Advanced permissions
 		addPermission(pm, "advanced.list", PermissionDefault.FALSE);
