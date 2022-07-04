@@ -174,7 +174,12 @@ public class Subspell {
 
 				if (!spellTarget.isCancelled()) {
 					if (passTargeting) success = passTargetingEntity(caster, target, power);
-					else success = ((TargetedEntitySpell) spell).castAtEntity(caster, target, power);
+					else {
+						success = spell.getValidTargetList().canTarget(caster, target);
+						if (!success) return false;
+
+						success = ((TargetedEntitySpell) spell).castAtEntity(caster, target, power);
+					}
 				}
 
 				if (success) {
@@ -205,6 +210,9 @@ public class Subspell {
 			if (!spellTarget.isCancelled() && !event.isCancelled() && event.getSpellCastState() == SpellCastState.NORMAL) {
 				if (passTargeting) success = passTargetingEntity(caster, target, power);
 				else {
+					success = caster != null ? spell.getValidTargetList().canTarget(caster, target) : spell.getValidTargetList().canTarget(target);
+					if (!success) return false;
+
 					if (caster != null) success = ((TargetedEntitySpell) spell).castAtEntity(caster, target, power);
 					else success = ((TargetedEntitySpell) spell).castAtEntity(target, power);
 				}
@@ -213,25 +221,14 @@ public class Subspell {
 		} else {
 			if (passTargeting) success = passTargetingEntity(caster, target, power * subPower);
 			else {
+				success = caster != null ? spell.getValidTargetList().canTarget(caster, target) : spell.getValidTargetList().canTarget(target);
+				if (!success) return false;
+
 				if (caster != null) success = ((TargetedEntitySpell) spell).castAtEntity(caster, target, power * subPower);
 				else success = ((TargetedEntitySpell) spell).castAtEntity(target, power * subPower);
 			}
 		}
 
-		return success;
-	}
-
-	public boolean passTargetingEntity(LivingEntity caster, LivingEntity target, float power) {
-		ValidTargetList list = spell.getValidTargetList();
-		ValidTargetList	originalList = list.clone();
-		if (caster.equals(target) && !list.canTargetSelf()) list.setTargetCaster(true);
-		if (!list.canTargetEntity(target)) {
-			list.addEntityTarget(target);
-			spell.setValidTargetList(list);
-		}
-
-		boolean success = caster != null ? ((TargetedEntitySpell) spell).castAtEntity(caster, target, power) : ((TargetedEntitySpell) spell).castAtEntity(target, power);
-		spell.setValidTargetList(originalList);
 		return success;
 	}
 
@@ -332,7 +329,12 @@ public class Subspell {
 
 				if (!spellLocation.isCancelled() && !spellTarget.isCancelled()) {
 					if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, power);
-					else success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power);
+					else {
+						success = spell.getValidTargetList().canTarget(caster, target);
+						if (!success) return false;
+
+						success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power);
+					}
 				}
 				if (success) {
 					if (spell instanceof TargetedSpell targetedSpell) {
@@ -366,6 +368,9 @@ public class Subspell {
 			if (!spellLocation.isCancelled() && !spellTarget.isCancelled() && !event.isCancelled() && event.getSpellCastState() == SpellCastState.NORMAL) {
 				if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, power);
 				else {
+					success = caster != null ? spell.getValidTargetList().canTarget(caster, target) : spell.getValidTargetList().canTarget(target);
+					if (!success) return false;
+
 					if (caster != null) success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power);
 					else success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(from, target, power);
 				}
@@ -374,11 +379,32 @@ public class Subspell {
 		} else {
 			if (passTargeting) success = passTargetingEntityFromLocation(caster, from, target, power * subPower);
 			else {
+				success = caster != null ? spell.getValidTargetList().canTarget(caster, target) : spell.getValidTargetList().canTarget(target);
+				if (!success) return false;
+
 				if (caster != null) success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power * subPower);
 				else success = ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(from, target, power * subPower);
 			}
 		}
 
+		return success;
+	}
+
+	public boolean passTargetingEntity(LivingEntity caster, LivingEntity target, float power) {
+		ValidTargetList list = spell.getValidTargetList();
+		ValidTargetList	originalList = list.clone();
+		if (caster.equals(target) && !list.canTargetSelf()) list.setTargetCaster(true);
+		if (!list.canTargetEntity(target)) {
+			list.addEntityTarget(target);
+			spell.setValidTargetList(list);
+		}
+
+		// handle targeting
+		boolean success = caster != null ? list.canTarget(caster, target) : list.canTarget(target);
+		if (!success) return false;
+
+		success = caster != null ? ((TargetedEntitySpell) spell).castAtEntity(caster, target, power) : ((TargetedEntitySpell) spell).castAtEntity(target, power);
+		spell.setValidTargetList(originalList);
 		return success;
 	}
 
@@ -391,7 +417,11 @@ public class Subspell {
 			spell.setValidTargetList(list);
 		}
 
-		boolean success = caster != null ? ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power) : ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(from, target, power);
+		// handle targeting
+		boolean success = caster != null ? list.canTarget(caster, target) : list.canTarget(target);
+		if (!success) return false;
+
+		success = caster != null ? ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power) : ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(from, target, power);
 		spell.setValidTargetList(originalList);
 		return success;
 	}
