@@ -42,9 +42,4 @@ public class StringData implements ConfigData<String> {
 		return argReplacement || varReplacement || targetedReplacement;
 	}
 
-	@Override
-	public boolean isTargeted() {
-		return targeted;
-	}
-
 }

@@ -81,13 +81,10 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 				int fuse = Integer.parseInt(split[1]);
 				tntFuse = (caster, target, power, args) -> fuse;
 			} catch (NumberFormatException e) {
-				Pair<Expression, Boolean> ex = FunctionData.buildExpression(split[1]);
+				Expression ex = FunctionData.buildExpression(split[1]);
 
-				if (ex != null) tntFuse = new FunctionData.IntegerData(ex.getFirst(), 0, ex.getSecond());
-				else {
-					MagicSpells.error("Invalid tnt fuse '" + split[1] + "' for ThrowBlockSpell '" + internalName + "'.");
-					tntFuse = null;
-				}
+				tntFuse = ex == null ? null : new FunctionData.IntegerData(ex, 0);
+				if (ex == null) MagicSpells.error("Invalid tnt fuse '" + split[1] + "' for ThrowBlockSpell '" + internalName + "'.");
 			}
 		} else {
 			material = Util.getMaterial(materialName);

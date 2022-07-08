@@ -92,10 +92,10 @@ public class VariableMod {
 
 				modifyingVariableName = matcher.group(2);
 			} else {
-				Pair<Expression, Boolean> ex = FunctionData.buildExpression(data, true);
+				Expression ex = FunctionData.buildExpression(data, true);
 				if (ex == null) return;
 
-				functionModifier = new FunctionData.DoubleData(ex.getFirst(), 0d, ex.getSecond());
+				functionModifier = new FunctionData.DoubleData(ex, 0d);
 			}
 		}
 	}

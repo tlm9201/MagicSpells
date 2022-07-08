@@ -6,8 +6,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.math3.util.Pair;
-
 import de.slikey.exp4j.Expression;
 
 import org.bukkit.Bukkit;
@@ -38,10 +36,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.IntegerData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.IntegerData(ex, def);
 		}
 
 		return (caster, target, power, args) -> def;
@@ -55,10 +53,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return def;
 
-			return new FunctionData.IntegerData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.IntegerData(ex, def);
 		}
 
 		return def;
@@ -72,10 +70,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.LongData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.LongData(ex, def);
 		}
 
 		return (caster, target, power, args) -> def;
@@ -89,10 +87,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return def;
 
-			return new FunctionData.LongData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.LongData(ex, def);
 		}
 
 		return def;
@@ -106,10 +104,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.ShortData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.ShortData(ex, def);
 		}
 
 		return (caster, target, power, args) -> def;
@@ -123,10 +121,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return def;
 
-			return new FunctionData.ShortData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.ShortData(ex, def);
 		}
 
 		return def;
@@ -140,10 +138,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.ByteData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.ByteData(ex, def);
 		}
 
 		return (caster, target, power, args) -> def;
@@ -157,10 +155,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return def;
 
-			return new FunctionData.ByteData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.ByteData(ex, def);
 		}
 
 		return def;
@@ -174,10 +172,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.DoubleData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.DoubleData(ex, def);
 		}
 
 		return (caster, target, power, args) -> def;
@@ -191,10 +189,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return def;
 
-			return new FunctionData.DoubleData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.DoubleData(ex, def);
 		}
 
 		return def;
@@ -208,10 +206,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path));
 			if (ex == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.FloatData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.FloatData(ex, def);
 		}
 
 		return (caster, target, power, args) -> def;
@@ -225,10 +223,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Pair<Expression, Boolean> ex = FunctionData.buildExpression(config.getString(path, ""));
+			Expression ex = FunctionData.buildExpression(config.getString(path, ""));
 			if (ex == null) return def;
 
-			return new FunctionData.FloatData(ex.getFirst(), def, ex.getSecond());
+			return new FunctionData.FloatData(ex, def);
 		}
 
 		return def;
@@ -308,11 +306,6 @@ public class ConfigDataUtil {
 					return false;
 				}
 
-				@Override
-				public boolean isTargeted() {
-					return true;
-				}
-
 			};
 		}
 
@@ -375,11 +368,6 @@ public class ConfigDataUtil {
 					return supplier.isConstant();
 				}
 
-				@Override
-				public boolean isTargeted() {
-					return supplier.isTargeted();
-				}
-
 			};
 		}
 	}
@@ -407,11 +395,6 @@ public class ConfigDataUtil {
 			@Override
 			public boolean isConstant() {
 				return supplier.isConstant();
-			}
-
-			@Override
-			public boolean isTargeted() {
-				return supplier.isTargeted();
 			}
 
 		};
@@ -446,11 +429,6 @@ public class ConfigDataUtil {
 					return supplier.isConstant();
 				}
 
-				@Override
-				public boolean isTargeted() {
-					return supplier.isTargeted();
-				}
-
 			};
 		}
 	}
@@ -482,11 +460,6 @@ public class ConfigDataUtil {
 					return false;
 				}
 
-				@Override
-				public boolean isTargeted() {
-					return size.isTargeted();
-				}
-
 			};
 		}
 		if (colorHex == null) return (caster, target, power, args) -> null;
@@ -510,11 +483,6 @@ public class ConfigDataUtil {
 					return false;
 				}
 
-				@Override
-				public boolean isTargeted() {
-					return colorSupplier.isTargeted();
-				}
-
 			};
 		}
 
@@ -532,11 +500,6 @@ public class ConfigDataUtil {
 			@Override
 			public boolean isConstant() {
 				return false;
-			}
-
-			@Override
-			public boolean isTargeted() {
-				return colorSupplier.isTargeted() || size.isTargeted();
 			}
 
 		};
@@ -585,11 +548,6 @@ public class ConfigDataUtil {
 					return false;
 				}
 
-				@Override
-				public boolean isTargeted() {
-					return size.isTargeted();
-				}
-
 			};
 		}
 
@@ -619,11 +577,6 @@ public class ConfigDataUtil {
 						return false;
 					}
 
-					@Override
-					public boolean isTargeted() {
-						return toColorSupplier.isTargeted();
-					}
-
 				};
 			}
 
@@ -643,11 +596,6 @@ public class ConfigDataUtil {
 					@Override
 					public boolean isConstant() {
 						return false;
-					}
-
-					@Override
-					public boolean isTargeted() {
-						return toColorSupplier.isTargeted();
 					}
 
 				};
@@ -670,11 +618,6 @@ public class ConfigDataUtil {
 				@Override
 				public boolean isConstant() {
 					return false;
-				}
-
-				@Override
-				public boolean isTargeted() {
-					return size.isTargeted() || toColorSupplier.isTargeted();
 				}
 
 			};
@@ -706,11 +649,6 @@ public class ConfigDataUtil {
 						return false;
 					}
 
-					@Override
-					public boolean isTargeted() {
-						return colorSupplier.isTargeted();
-					}
-
 				};
 			}
 
@@ -730,11 +668,6 @@ public class ConfigDataUtil {
 					@Override
 					public boolean isConstant() {
 						return false;
-					}
-
-					@Override
-					public boolean isTargeted() {
-						return colorSupplier.isTargeted();
 					}
 
 				};
@@ -757,11 +690,6 @@ public class ConfigDataUtil {
 				@Override
 				public boolean isConstant() {
 					return false;
-				}
-
-				@Override
-				public boolean isTargeted() {
-					return size.isTargeted() || colorSupplier.isTargeted();
 				}
 
 			};
@@ -797,11 +725,6 @@ public class ConfigDataUtil {
 					return false;
 				}
 
-				@Override
-				public boolean isTargeted() {
-					return colorSupplier.isTargeted() || toColorSupplier.isTargeted();
-				}
-
 			};
 		}
 
@@ -824,11 +747,6 @@ public class ConfigDataUtil {
 				@Override
 				public boolean isConstant() {
 					return false;
-				}
-
-				@Override
-				public boolean isTargeted() {
-					return colorSupplier.isTargeted() || toColorSupplier.isTargeted();
 				}
 
 			};
@@ -857,11 +775,6 @@ public class ConfigDataUtil {
 			@Override
 			public boolean isConstant() {
 				return false;
-			}
-
-			@Override
-			public boolean isTargeted() {
-				return size.isTargeted() || colorSupplier.isTargeted() || toColorSupplier.isTargeted();
 			}
 
 		};

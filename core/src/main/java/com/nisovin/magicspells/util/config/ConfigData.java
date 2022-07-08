@@ -17,8 +17,4 @@ public interface ConfigData<T> {
 		return true;
 	}
 
-	default boolean isTargeted() {
-		return false;
-	}
-
 }

@@ -23,13 +23,13 @@ public class CustomDataFloat extends CustomData {
 			return;
 		}
 
-		Pair<Expression, Boolean> expression = FunctionData.buildExpression(data);
+		Expression expression = FunctionData.buildExpression(data);
 		if (expression == null) {
 			invalidText = "Number or function is invalid.";
 			return;
 		}
 
-		customData = new FunctionData.FloatData(expression.getFirst(), 0f, expression.getSecond());
+		customData = new FunctionData.FloatData(expression, 0f);
 		isValid = true;
 	}
 

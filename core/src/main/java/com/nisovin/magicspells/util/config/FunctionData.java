@@ -7,8 +7,6 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.math3.util.Pair;
-
 import de.slikey.exp4j.Expression;
 import de.slikey.exp4j.ValidationResult;
 import de.slikey.exp4j.ExpressionBuilder;
@@ -26,45 +24,38 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 	private static final Pattern VARIABLE_PATTERN = Pattern.compile("%(var|castervar|targetvar):(\\w+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	private final Expression expression;
-	private final boolean targeted;
 
 	protected final ConfigData<T> dataDef;
 	protected final T def;
 
-	public FunctionData(@NotNull Expression expression, @NotNull T def, boolean targeted) {
+	public FunctionData(@NotNull Expression expression, @NotNull T def) {
 		this.expression = expression;
-		this.targeted = targeted;
 		this.dataDef = null;
 		this.def = def;
 	}
 
-	public FunctionData(@NotNull Expression expression, @NotNull ConfigData<T> def, boolean targeted) {
+	public FunctionData(@NotNull Expression expression, @NotNull ConfigData<T> def) {
 		this.expression = expression;
-		this.targeted = targeted;
 		this.dataDef = def;
 		this.def = null;
 	}
 
-	public static Pair<Expression, Boolean> buildExpression(String expressionString) {
+	public static Expression buildExpression(String expressionString) {
 		return buildExpression(expressionString, false);
 	}
 
-	public static Pair<Expression, Boolean> buildExpression(String expressionString, boolean silent) {
-		if (expressionString.isEmpty()) return null;
+	public static Expression buildExpression(String expressionString, boolean silent) {
+		if (expressionString == null || expressionString.isEmpty()) return null;
 
 		Set<String> variables = new HashSet<>();
 		variables.add("power");
 
 		Matcher matcher = VARIABLE_PATTERN.matcher(expressionString);
 		StringBuilder builder = new StringBuilder();
-		boolean targeted = false;
 
 		while (matcher.find()) {
-			String variable;
-			if (matcher.group(1).equals("targetvar")) {
-				variable = "target." + matcher.group(2);
-				targeted = true;
-			} else variable = matcher.group(2);
+			String variable = matcher.group(2);
+			if (matcher.group(1).equals("targetvar")) variable = "target." + variable;
 
 			variables.add(variable);
 			matcher.appendReplacement(builder, variable);
@@ -94,7 +85,7 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 				return null;
 			}
 
-			return new Pair<>(expression, targeted);
+			return expression;
 		} catch (IllegalArgumentException e) {
 			if (!silent) {
 				MagicSpells.error("Invalid expression '" + expressionString + "'.");
@@ -149,19 +140,14 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 		return false;
 	}
 
-	@Override
-	public boolean isTargeted() {
-		return targeted;
-	}
-
 	public static class DoubleData extends FunctionData<Double> {
 
-		public DoubleData(@NotNull Expression expression, @NotNull Double def, boolean targeted) {
-			super(expression, def, targeted);
+		public DoubleData(@NotNull Expression expression, @NotNull Double def) {
+			super(expression, def);
 		}
 
-		public DoubleData(@NotNull Expression expression, @NotNull ConfigData<Double> def, boolean targeted) {
-			super(expression, def, targeted);
+		public DoubleData(@NotNull Expression expression, @NotNull ConfigData<Double> def) {
+			super(expression, def);
 		}
 
 		@Override
@@ -180,12 +166,12 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 
 	public static class FloatData extends FunctionData<Float> {
 
-		public FloatData(@NotNull Expression expression, @NotNull Float def, boolean targeted) {
-			super(expression, def, targeted);
+		public FloatData(@NotNull Expression expression, @NotNull Float def) {
+			super(expression, def);
 		}
 
-		public FloatData(@NotNull Expression expression, @NotNull ConfigData<Float> def, boolean targeted) {
-			super(expression, def, targeted);
+		public FloatData(@NotNull Expression expression, @NotNull ConfigData<Float> def) {
+			super(expression, def);
 		}
 
 		@Override
@@ -204,12 +190,12 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 
 	public static class IntegerData extends FunctionData<Integer> {
 
-		public IntegerData(@NotNull Expression expression, @NotNull Integer def, boolean targeted) {
-			super(expression, def, targeted);
+		public IntegerData(@NotNull Expression expression, @NotNull Integer def) {
+			super(expression, def);
 		}
 
-		public IntegerData(@NotNull Expression expression, @NotNull ConfigData<Integer> def, boolean targeted) {
-			super(expression, def, targeted);
+		public IntegerData(@NotNull Expression expression, @NotNull ConfigData<Integer> def) {
+			super(expression, def);
 		}
 
 		@Override
@@ -228,12 +214,12 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 
 	public static class ShortData extends FunctionData<Short> {
 
-		public ShortData(@NotNull Expression expression, @NotNull Short def, boolean targeted) {
-			super(expression, def, targeted);
+		public ShortData(@NotNull Expression expression, @NotNull Short def) {
+			super(expression, def);
 		}
 
-		public ShortData(@NotNull Expression expression, @NotNull ConfigData<Short> def, boolean targeted) {
-			super(expression, def, targeted);
+		public ShortData(@NotNull Expression expression, @NotNull ConfigData<Short> def) {
+			super(expression, def);
 		}
 
 		@Override
@@ -252,12 +238,12 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 
 	public static class ByteData extends FunctionData<Byte> {
 
-		public ByteData(@NotNull Expression expression, @NotNull Byte def, boolean targeted) {
-			super(expression, def, targeted);
+		public ByteData(@NotNull Expression expression, @NotNull Byte def) {
+			super(expression, def);
 		}
 
-		public ByteData(@NotNull Expression expression, @NotNull ConfigData<Byte> def, boolean targeted) {
-			super(expression, def, targeted);
+		public ByteData(@NotNull Expression expression, @NotNull ConfigData<Byte> def) {
+			super(expression, def);
 		}
 
 		@Override
@@ -276,12 +262,12 @@ public abstract class FunctionData<T> implements ConfigData<T> {
 
 	public static class LongData extends FunctionData<Long> {
 
-		public LongData(@NotNull Expression expression, @NotNull Long def, boolean targeted) {
-			super(expression, def, targeted);
+		public LongData(@NotNull Expression expression, @NotNull Long def) {
+			super(expression, def);
 		}
 
-		public LongData(@NotNull Expression expression, @NotNull ConfigData<Long> def, boolean targeted) {
-			super(expression, def, targeted);
+		public LongData(@NotNull Expression expression, @NotNull ConfigData<Long> def) {
+			super(expression, def);
 		}
 
 		@Override
