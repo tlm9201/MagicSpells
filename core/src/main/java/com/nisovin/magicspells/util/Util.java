@@ -692,6 +692,7 @@ public class Util {
 	}
 
 	public static Component getMiniMessage(String input) {
+		if (input == null) return null;
 		if (input.isEmpty()) return Component.empty();
 
 		// Convert legacy color patterns to MiniMessage format, then deserialize it.
