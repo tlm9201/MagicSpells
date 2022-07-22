@@ -1,7 +1,9 @@
 package com.nisovin.magicspells;
 
+import java.util.Map;
 import java.util.List;
 import java.util.Random;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -14,8 +16,6 @@ import com.google.gson.JsonSyntaxException;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.CastTargeting;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.Spell.SpellCastState;
@@ -23,7 +23,6 @@ import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.Spell.SpellCastResult;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.handlers.DebugHandler;
-import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -68,7 +67,7 @@ public class Subspell {
 				}
 
 				switch (keyValue[0].toLowerCase().trim()) {
-					case "mode" -> mode = Util.getCastMode(keyValue[1].trim());
+					case "mode" -> mode = CastMode.getFromString(keyValue[1].trim());
 					case "args" -> {
 						try {
 							JsonElement element = JsonParser.parseString(keyValue[1].trim());
@@ -495,6 +494,46 @@ public class Subspell {
 		boolean success = caster != null ? ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(caster, from, target, power, args) : ((TargetedEntityFromLocationSpell) spell).castAtEntityFromLocation(from, target, power, args);
 		spell.setValidTargetList(originalList);
 		return success;
+	}
+
+	public enum CastMode {
+
+		HARD("hard", "h"),
+		FULL("full", "f"),
+		PARTIAL("partial", "p"),
+		DIRECT("direct", "d");
+
+		private static Map<String, CastMode> nameMap = new HashMap<>();
+
+		private final String[] names;
+
+		CastMode(String... names) {
+			this.names = names;
+		}
+
+		public static CastMode getFromString(String label) {
+			return nameMap.get(label.toLowerCase());
+		}
+
+		static {
+			for (CastMode mode : CastMode.values()) {
+				nameMap.put(mode.name().toLowerCase(), mode);
+				for (String s : mode.names) {
+					nameMap.put(s.toLowerCase(), mode);
+				}
+			}
+		}
+
+	}
+
+	public enum CastTargeting {
+
+		NORMAL,
+		ENTITY_FROM_LOCATION,
+		ENTITY,
+		LOCATION,
+		NONE
+
 	}
 
 }
