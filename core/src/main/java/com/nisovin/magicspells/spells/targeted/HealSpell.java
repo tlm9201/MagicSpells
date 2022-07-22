@@ -60,7 +60,7 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (validTargetList.canTarget(caster, target) && target.getHealth() < Util.getMaxHealth(target))
+		if (validTargetList.canTarget(caster, target) && (!cancelIfFull || target.getHealth() < Util.getMaxHealth(target)))
 			return heal(caster, target, power, args);
 
 		return false;
@@ -73,7 +73,7 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (validTargetList.canTarget(target) && target.getHealth() < Util.getMaxHealth(target))
+		if (validTargetList.canTarget(target) && (!cancelIfFull || target.getHealth() < Util.getMaxHealth(target)))
 			return heal(null, target, power, args);
 
 		return false;
