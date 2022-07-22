@@ -183,7 +183,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 				int strength = effect.getAmplifier();
 				if (spellPowerAffectsStrength) strength = Math.round(strength * power);
 
-				effect = new PotionEffect(effect.getType(), duration, strength, effect.isAmbient(), effect.hasParticles(), icon);
+				effect = new PotionEffect(effect.getType(), duration, strength, effect.isAmbient(), effect.hasParticles(), effect.hasIcon());
 			}
 
 			callDamageEvent(caster, target, effect);
