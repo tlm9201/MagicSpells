@@ -265,24 +265,28 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		initLoop(caster, target, null, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		initLoop(caster, target, null, power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
 		initLoop(null, target, null, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		initLoop(null, target, null, power, null);
 		return true;
 	}

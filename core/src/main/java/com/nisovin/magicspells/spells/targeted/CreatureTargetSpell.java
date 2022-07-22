@@ -44,48 +44,56 @@ public class CreatureTargetSpell extends TargetedSpell implements TargetedEntity
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		castSpells(caster, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		castSpells(caster, power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(EffectPosition.TARGET, target, power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		castSpells(caster, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		castSpells(caster, power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(from, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(from, target, power, null);
 		return true;
 	}

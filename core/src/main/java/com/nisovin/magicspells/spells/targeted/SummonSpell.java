@@ -121,6 +121,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		return target.teleport(caster);
 	}
 
@@ -131,6 +132,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		return target.teleport(from);
 	}
 

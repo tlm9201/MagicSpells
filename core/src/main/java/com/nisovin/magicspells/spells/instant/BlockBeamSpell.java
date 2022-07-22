@@ -170,6 +170,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		shootBeam(caster, target, caster.getLocation(), power, args);
 		return true;
 	}
@@ -202,6 +203,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		shootBeam(caster, target, from, power, args);
 		return true;
 	}

@@ -157,6 +157,8 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
+		if (caster == null ? !validTargetList.canTarget(target) : !validTargetList.canTarget(caster, target)) return false;
+
 		from = offsetLocation(from);
 		Vector facing = target.getLocation().toVector().subtract(from.toVector()).normalize();
 		Location loc = from.clone();
@@ -182,6 +184,11 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		return castAtEntityFromLocation(caster, from, target, power, null);
+	}
+
+	@Override
+	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
+		return castAtEntityFromLocation(null, from, target, power, args);
 	}
 
 	@Override

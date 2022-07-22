@@ -33,13 +33,16 @@ public class GlideSpell extends TargetedSpell implements TargetedEntitySpell{
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		target.setGliding(targetState.getBooleanState(target.isGliding()));
 		return true;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(null, target, power);
+		if (!validTargetList.canTarget(target)) return false;
+		target.setGliding(targetState.getBooleanState(target.isGliding()));
+		return true;
 	}
 	
 }

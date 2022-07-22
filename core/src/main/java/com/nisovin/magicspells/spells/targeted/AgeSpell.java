@@ -39,7 +39,7 @@ public class AgeSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(target instanceof Ageable ageable)) return false;
+		if (!validTargetList.canTarget(caster, target) || !(target instanceof Ageable ageable)) return false;
 		applyAgeChanges(caster, target, ageable, power, args);
 		return true;
 	}
@@ -51,12 +51,14 @@ public class AgeSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return castAtEntity(null, target, power, args);
+		if (!validTargetList.canTarget(target) || !(target instanceof Ageable ageable)) return false;
+		applyAgeChanges(null, target, ageable, power, args);
+		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(null, target, power, null);
+		return castAtEntity(target, power, null);
 	}
 
 	private void applyAgeChanges(LivingEntity caster, LivingEntity target, Ageable ageable, float power, String[] args) {

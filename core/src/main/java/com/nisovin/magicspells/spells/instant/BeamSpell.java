@@ -146,12 +146,14 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		shootBeam(caster, target, caster.getLocation(), power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		shootBeam(caster, target, caster.getLocation(), power, null);
 		return true;
 	}
@@ -180,12 +182,14 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		shootBeam(caster, target, from, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		shootBeam(caster, target, from, power, null);
 		return true;
 	}

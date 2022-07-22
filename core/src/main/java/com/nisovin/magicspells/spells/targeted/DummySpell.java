@@ -34,24 +34,28 @@ public class DummySpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		playSpellEffects(caster, target, power, null);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(EffectPosition.TARGET, target, power, null);
 		return true;
 	}
@@ -82,24 +86,28 @@ public class DummySpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		playSpellEffects(from, target, new SpellData(caster, target, power, args));
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		playSpellEffects(from, target, new SpellData(caster, target, power, null));
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(from, target, new SpellData(null, target, power, args));
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(from, target, new SpellData(null, target, power, null));
 		return true;
 	}

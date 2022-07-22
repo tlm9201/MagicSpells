@@ -89,7 +89,8 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 	}
 
 	private boolean launch(LivingEntity caster, LivingEntity target, Location from, float power, String[] args) {
-		if (target == null) return false;
+		if (target == null || (caster == null ? !validTargetList.canTarget(target) : !validTargetList.canTarget(caster, target)))
+			return false;
 
 		if (from == null) from = target.getLocation();
 

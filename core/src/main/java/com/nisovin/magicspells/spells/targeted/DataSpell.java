@@ -56,7 +56,7 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(caster instanceof Player)) return false;
+		if (!(caster instanceof Player) || !validTargetList.canTarget(caster, target)) return false;
 		playSpellEffects(caster, target, power, args);
 		String value = dataElement.apply(target);
 		MagicSpells.getVariableManager().set(variableName, (Player) caster, value);

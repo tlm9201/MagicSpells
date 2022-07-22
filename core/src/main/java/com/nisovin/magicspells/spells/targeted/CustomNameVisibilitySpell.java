@@ -33,12 +33,14 @@ public class CustomNameVisibilitySpell extends TargetedSpell implements Targeted
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		target.setCustomNameVisible(targetBooleanState.getBooleanState(target.isCustomNameVisible()));
 		return true;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		target.setCustomNameVisible(targetBooleanState.getBooleanState(target.isCustomNameVisible()));
 		return true;
 	}

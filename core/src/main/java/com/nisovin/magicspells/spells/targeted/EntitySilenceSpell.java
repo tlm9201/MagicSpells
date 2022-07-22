@@ -33,12 +33,14 @@ public class EntitySilenceSpell extends TargetedSpell implements TargetedEntityS
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		target.setSilent(targetBooleanState.getBooleanState(target.isSilent()));
 		return true;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		target.setSilent(targetBooleanState.getBooleanState(target.isSilent()));
 		return true;
 	}

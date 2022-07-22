@@ -162,6 +162,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		new OrbitTracker(caster, target, power, args);
 		playSpellEffects(caster, target, power, args);
 		return true;
@@ -169,6 +170,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		new OrbitTracker(caster, target, power, null);
 		playSpellEffects(caster, target, power, null);
 		return false;

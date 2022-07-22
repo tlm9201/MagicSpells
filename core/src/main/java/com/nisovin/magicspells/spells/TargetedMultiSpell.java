@@ -158,6 +158,9 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 	}
 
 	private boolean runSpells(LivingEntity livingEntity, LivingEntity entTarget, Location locTarget, float power, String[] args) {
+		if (entTarget != null && (livingEntity == null ? !validTargetList.canTarget(entTarget) : !validTargetList.canTarget(livingEntity, entTarget)))
+			return false;
+
 		boolean somethingWasDone = false;
 		if (!castRandomSpellInstead) {
 			int delay = 0;

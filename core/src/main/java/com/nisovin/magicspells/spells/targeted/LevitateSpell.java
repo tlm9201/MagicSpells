@@ -104,12 +104,14 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		levitate(caster, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		levitate(caster, target, power, null);
 		return true;
 	}

@@ -36,7 +36,7 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(target instanceof Player player)) return false;
+		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
 		close(caster, target, player, power, args);
 		return true;
 	}
@@ -48,13 +48,15 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return castAtEntity(null, target, power, args);
+		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
+		close(null, target, player, power, args);
+		return true;
 
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(null, target, power, null);
+		return castAtEntity(target, power, null);
 	}
 
 	private void close(LivingEntity caster, LivingEntity target, Player playerTarget, float power, String[] args) {

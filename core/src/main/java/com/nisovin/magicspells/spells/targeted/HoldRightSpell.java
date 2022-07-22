@@ -115,7 +115,7 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!targetEntity) return false;
+		if (!targetEntity || !validTargetList.canTarget(caster, target)) return false;
 		CastData data = casting.get(caster.getUniqueId());
 		if (data != null && data.isValid(caster)) {
 			data.cast(caster);

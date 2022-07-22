@@ -33,12 +33,14 @@ public class CollisionSpell extends TargetedSpell implements TargetedEntitySpell
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		target.setCollidable(targetBooleanState.getBooleanState(target.isCollidable()));
 		return true;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		target.setCollidable(targetBooleanState.getBooleanState(target.isCollidable()));
 		return true;
 	}

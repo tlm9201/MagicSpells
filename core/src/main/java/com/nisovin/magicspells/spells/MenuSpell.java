@@ -187,7 +187,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (requireEntityTarget && !validTargetList.canTarget(caster, target)) return false;
+		if (!validTargetList.canTarget(caster, target)) return false;
 		if (!(caster instanceof Player opener)) return false;
 		if (targetOpensMenuInstead) {
 			if (!(target instanceof Player player)) return false;
@@ -206,7 +206,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (!targetOpensMenuInstead) return false;
-		if (requireEntityTarget && !validTargetList.canTarget(target)) return false;
+		if (!validTargetList.canTarget(target)) return false;
 		if (!(target instanceof Player player)) return false;
 		open(null, player, null, null, power, args);
 		return true;

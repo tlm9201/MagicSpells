@@ -34,15 +34,15 @@ public class FlySpell extends TargetedSpell implements TargetedEntitySpell {
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		((Player) target).setFlying(targetBooleanState.getBooleanState(((Player) target).isFlying()));
+		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
+		player.setFlying(targetBooleanState.getBooleanState(((Player) target).isFlying()));
 		return true;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		((Player) target).setFlying(targetBooleanState.getBooleanState(((Player) target).isFlying()));
+		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
+		player.setFlying(targetBooleanState.getBooleanState(((Player) target).isFlying()));
 		return true;
 	}
 	

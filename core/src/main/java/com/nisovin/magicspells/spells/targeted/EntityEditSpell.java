@@ -46,6 +46,7 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		playSpellEffects(caster, target, power, args);
 		applyAttributes(target);
 		return true;
@@ -53,6 +54,7 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		playSpellEffects(caster, target, power, null);
 		applyAttributes(target);
 		return true;
@@ -60,6 +62,7 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		applyAttributes(target);
 		return true;
@@ -67,6 +70,7 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(EffectPosition.TARGET, target, power, null);
 		applyAttributes(target);
 		return true;

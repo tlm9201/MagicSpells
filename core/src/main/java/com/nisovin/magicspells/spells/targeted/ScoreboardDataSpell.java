@@ -68,7 +68,7 @@ public class ScoreboardDataSpell extends TargetedSpell implements TargetedEntity
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(caster instanceof Player player)) return false;
+		if (!(caster instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
 
 		setScore(player, target);
 

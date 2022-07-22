@@ -112,7 +112,7 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (noTarget) return false;
+		if (noTarget || !validTargetList.canTarget(caster, target)) return false;
 		volley(caster, target, from, target.getLocation(), power, args);
 		return true;
 	}
@@ -124,7 +124,7 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		if (noTarget) return false;
+		if (noTarget || !validTargetList.canTarget(target)) return false;
 		volley(null, target, from, target.getLocation(), power, args);
 		return true;
 	}

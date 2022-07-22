@@ -316,6 +316,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		if (location.equals("focus")) spawnMob(caster, from, from, target, power, args);
 		else castAtLocation(caster, from, power, args);
 		return true;
@@ -328,6 +329,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 	@Override
 	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
 		if (location.equals("focus")) spawnMob(null, from, from, target, power, args);
 		else castAtLocation(from, power, args);
 		return true;

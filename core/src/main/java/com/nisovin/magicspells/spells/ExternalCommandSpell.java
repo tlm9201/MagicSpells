@@ -212,10 +212,13 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
+
 		if (requirePlayerTarget && target instanceof Player player) {
 			process(caster, player, power, args);
 			return true;
 		}
+
 		return false;
 	}
 
@@ -226,10 +229,13 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
+
 		if (requirePlayerTarget && target instanceof Player player) {
 			process(null, player, power, args);
 			return true;
 		}
+
 		return false;
 	}
 

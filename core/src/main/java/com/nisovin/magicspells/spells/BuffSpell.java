@@ -231,6 +231,9 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	private PostCastAction activate(LivingEntity caster, LivingEntity target, float power, String[] args, boolean normal) {
+		if (caster == null ? !validTargetList.canTarget(target) : !validTargetList.canTarget(caster, target))
+			return PostCastAction.ALREADY_HANDLED;
+
 		if (isActive(target) && toggle) {
 			turnOff(target);
 			return PostCastAction.ALREADY_HANDLED;

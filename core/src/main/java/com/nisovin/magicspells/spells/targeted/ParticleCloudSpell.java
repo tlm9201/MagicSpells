@@ -217,7 +217,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!canTargetEntities) return false;
+		if (!canTargetEntities || !validTargetList.canTarget(caster, target)) return false;
 		AreaEffectCloud cloud = spawnCloud(caster, target, target.getLocation(), power, args);
 		cloud.setSource(caster);
 		return true;
@@ -230,12 +230,14 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return castAtEntity(null, target, power, args);
+		if (!canTargetEntities || !validTargetList.canTarget(target)) return false;
+		spawnCloud(null, target, target.getLocation(), power, args);
+		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(null, target, power, null);
+		return castAtEntity(target, power, null);
 	}
 
 	private AreaEffectCloud spawnCloud(LivingEntity caster, LivingEntity target, Location loc, float power, String[] args) {

@@ -50,6 +50,7 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		playSpellEffects(caster, target, power, args);
 		spinFace(caster, target, power, args);
 		return true;
@@ -62,6 +63,7 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
 		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		spinTarget(null, target, power, args);
 		return true;

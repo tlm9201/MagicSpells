@@ -36,6 +36,7 @@ public class ConversationSpell extends TargetedSpell implements TargetedEntitySp
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		conversate(target);
 		return true;
 	}

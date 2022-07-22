@@ -49,22 +49,22 @@ public class SlotSelectSpell extends TargetedSpell implements TargetedEntitySpel
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		return slotChange(caster, target, power, args);
+		return validTargetList.canTarget(caster, target) && slotChange(caster, target, power, args);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return slotChange(caster, target, power, null);
+		return validTargetList.canTarget(caster, target) && slotChange(caster, target, power, null);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return slotChange(null, target, power, args);
+		return validTargetList.canTarget(target) && slotChange(null, target, power, args);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return slotChange(null, target, power, null);
+		return validTargetList.canTarget(target) && slotChange(null, target, power, null);
 	}
 
 	private boolean slotChange(LivingEntity caster, LivingEntity target, float power, String[] args) {

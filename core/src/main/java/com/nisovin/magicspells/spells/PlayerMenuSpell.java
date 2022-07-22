@@ -119,14 +119,14 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!(target instanceof Player player)) return false;
+		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
 		openDelay(player, power);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Player player)) return false;
+		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
 		openDelay(player, power);
 		return true;
 	}

@@ -41,7 +41,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (target instanceof Player player) {
+		if (target instanceof Player player && validTargetList.canTarget(caster, target)) {
 			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(caster, target, power, args));
 			playSpellEffects(caster, target, power, args);
 			return true;
@@ -52,7 +52,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (target instanceof Player player) {
+		if (target instanceof Player player && validTargetList.canTarget(caster, target)) {
 			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(caster, target, power, null));
 			playSpellEffects(caster, target, power, null);
 			return true;
@@ -63,7 +63,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (target instanceof Player player) {
+		if (target instanceof Player player && validTargetList.canTarget(target)) {
 			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(null, target, power, args));
 			playSpellEffects(EffectPosition.TARGET, target, power, args);
 			return true;
@@ -74,7 +74,7 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (target instanceof Player player) {
+		if (target instanceof Player player && validTargetList.canTarget(target)) {
 			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(null, target, power, null));
 			playSpellEffects(EffectPosition.TARGET, target, power, null);
 			return true;
