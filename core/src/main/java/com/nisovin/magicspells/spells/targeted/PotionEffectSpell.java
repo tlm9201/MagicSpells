@@ -82,9 +82,9 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 			}
 
 			int strength = 0;
-			if (data.length >= 2) {
+			if (data.length >= 3) {
 				try {
-					strength = Integer.parseInt(data[1]);
+					strength = Integer.parseInt(data[2]);
 				} catch (NumberFormatException e) {
 					MagicSpells.error("Invalid strength '" + strength + "' in potion effect string '" + potionEffectString + "' in PotionEffectSpell '" + internalName + "'.");
 					continue;
@@ -92,15 +92,15 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 			}
 
 			boolean hidden = false;
-			if (data.length >= 3) hidden = Boolean.parseBoolean(data[2]);
-
-			boolean ambient = false;
 			if (data.length >= 4) hidden = Boolean.parseBoolean(data[3]);
 
-			boolean icon = true;
-			if (data.length >= 5) icon = Boolean.parseBoolean(data[4]);
+			boolean ambient = false;
+			if (data.length >= 5) ambient = Boolean.parseBoolean(data[4]);
 
-			if (data.length > 5)
+			boolean icon = true;
+			if (data.length >= 6) icon = Boolean.parseBoolean(data[5]);
+
+			if (data.length > 6)
 				MagicSpells.error("Trailing data found in potion effect string '" + potionEffectString + "' in PotionEffectSpell '" + internalName + "'.");
 
 			potionEffects.add(new PotionEffect(type, duration, strength, hidden, ambient, icon));
