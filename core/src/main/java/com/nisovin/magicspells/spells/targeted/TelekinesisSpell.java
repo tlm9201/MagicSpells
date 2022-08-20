@@ -41,36 +41,41 @@ public class TelekinesisSpell extends TargetedSpell implements TargetedLocationS
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player) {
-			Block target = getTargetedBlock(caster, power);
+			Block target = getTargetedBlock(caster, power, args);
 			if (target == null) return noTarget(caster);
 
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power, args);
 			EventUtil.call(event);
 			if (event.isCancelled()) return noTarget(caster);
 			
 			target = event.getTargetLocation().getBlock();
-			
+
 			boolean activated = activate((Player) caster, target);
 			if (!activated) return noTarget(caster);
-			
-			playSpellEffects(caster, target.getLocation());
+
+			playSpellEffects(caster, target.getLocation(), power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
 		if (!(caster instanceof Player)) return false;
 		boolean activated = activate((Player) caster, target.getBlock());
-		if (activated) playSpellEffects(caster, target);
+		if (activated) playSpellEffects(caster, target, power, args);
 		return activated;
+	}
+
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		return castAtLocation(caster, target, power, null);
 	}
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
 		return false;
 	}
-	
+
 	private boolean checkPlugins(Player caster, Block target) {
 		if (!checkPlugins) return true;
 		MagicSpellsPlayerInteractEvent event = new MagicSpellsPlayerInteractEvent(caster, Action.RIGHT_CLICK_BLOCK, caster.getEquipment().getItemInMainHand(), target, BlockFace.SELF);

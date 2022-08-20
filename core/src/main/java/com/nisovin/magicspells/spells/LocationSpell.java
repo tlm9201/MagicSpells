@@ -55,7 +55,7 @@ public class LocationSpell extends InstantSpell {
 			if (loc == null) return PostCastAction.ALREADY_HANDLED;
 
 			if (spellToCast != null) spellToCast.castAtLocation(caster, loc, power);
-			playSpellEffects(caster, loc);
+			playSpellEffects(caster, loc, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

@@ -9,6 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
@@ -94,7 +95,7 @@ public class BossBarEffect extends SpellEffect {
 	}
 
 	@Override
-	protected Runnable playEffectEntity(Entity entity) {
+	protected Runnable playEffectEntity(Entity entity, SpellData data) {
 		if (!remove && (barStyle == null || barColor == null)) return null;
 		if (broadcast) Util.forEachPlayerOnline(this::createBar);
 		else if (entity instanceof Player) createBar((Player) entity);

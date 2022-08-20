@@ -21,7 +21,7 @@ public class CustomNameVisibilitySpell extends TargetedSpell implements Targeted
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
 			if (targetInfo == null) return noTarget(caster);
 			LivingEntity target = targetInfo.getTarget();
 			if (target == null) return noTarget(caster);
@@ -33,12 +33,14 @@ public class CustomNameVisibilitySpell extends TargetedSpell implements Targeted
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		target.setCustomNameVisible(targetBooleanState.getBooleanState(target.isCustomNameVisible()));
 		return true;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		target.setCustomNameVisible(targetBooleanState.getBooleanState(target.isCustomNameVisible()));
 		return true;
 	}

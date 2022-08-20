@@ -11,10 +11,12 @@ import org.bukkit.util.NumberConversions;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -27,13 +29,11 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	private List<Subspell> spells;
 	private List<String> spellNames;
 
-	private int maxTargets;
+	private ConfigData<Integer> maxTargets;
 
-	private double cone;
-	private double vRadius;
-	private double hRadius;
-	private double vRadiusSquared;
-	private double hRadiusSquared;
+	private ConfigData<Double> cone;
+	private ConfigData<Double> vRadius;
+	private ConfigData<Double> hRadius;
 
 	private boolean pointBlank;
 	private boolean circleShape;
@@ -48,11 +48,11 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		spellNames = getConfigStringList("spells", null);
 
-		maxTargets = getConfigInt("max-targets", 0);
+		maxTargets = getConfigDataInt("max-targets", 0);
 
-		cone = getConfigDouble("cone", 0);
-		vRadius = getConfigDouble("vertical-radius", 5);
-		hRadius = getConfigDouble("horizontal-radius", 10);
+		cone = getConfigDataDouble("cone", 0);
+		vRadius = getConfigDataDouble("vertical-radius", 5);
+		hRadius = getConfigDataDouble("horizontal-radius", 10);
 
 		pointBlank = getConfigBoolean("point-blank", true);
 		circleShape = getConfigBoolean("circle-shape", false);
@@ -61,12 +61,6 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		failIfNoTargets = getConfigBoolean("fail-if-no-targets", true);
 		reverseProximity = getConfigBoolean("reverse-proximity", false);
 		spellSourceInCenter = getConfigBoolean("spell-source-in-center", false);
-
-		if (vRadius > MagicSpells.getGlobalRadius()) vRadius = MagicSpells.getGlobalRadius();
-		if (hRadius > MagicSpells.getGlobalRadius()) hRadius = MagicSpells.getGlobalRadius();
-
-		vRadiusSquared = vRadius * vRadius;
-		hRadiusSquared = hRadius * hRadius;
 	}
 	
 	@Override
@@ -107,7 +101,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			if (pointBlank) loc = caster.getLocation();
 			else {
 				try {
-					Block block = getTargetedBlock(caster, power);
+					Block block = getTargetedBlock(caster, power, args);
 					if (block != null && !BlockUtils.isAir(block.getType())) loc = block.getLocation().add(0.5, 0, 0.5);
 				}
 				catch (IllegalStateException ignored) {}
@@ -115,7 +109,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 			if (loc == null) return noTarget(caster);
 
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, loc, power);
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, loc, power, args);
 			EventUtil.call(event);
 			if (event.isCancelled()) loc = null;
 			else {
@@ -125,30 +119,51 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 			if (loc == null) return noTarget(caster);
 			
-			boolean done = doAoe(caster, loc, power);
+			boolean done = doAoe(caster, loc, power, args);
 			if (!done) return noTarget(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
+		return doAoe(caster, target, power, args);
+	}
+
+	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return doAoe(caster, target, power);
+		return doAoe(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtLocation(Location target, float power, String[] args) {
+		return doAoe(null, target, power, args);
 	}
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		return doAoe(null, target, power);
+		return doAoe(null, target, power, null);
 	}
-	
-	private boolean doAoe(LivingEntity caster, Location location, float basePower) {
+
+	private boolean doAoe(LivingEntity caster, Location location, float basePower, String[] args) {
 		int count = 0;
 
 		Location finalLoc = caster != null ? caster.getLocation() : location;
 
 		location = Util.makeFinite(location);
 
+		int maxTargets = this.maxTargets.get(caster, null, basePower, args);
+
+		double cone = this.cone.get(caster, null, basePower, args);
+		double vRadius = Math.min(this.vRadius.get(caster, null, basePower, args), MagicSpells.getGlobalRadius());
+		double hRadius = Math.min(this.hRadius.get(caster, null, basePower, args), MagicSpells.getGlobalRadius());
+
+		double vRadiusSquared = vRadius * vRadius;
+		double hRadiusSquared = hRadius * hRadius;
+
 		if (validTargetList.canTargetOnlyCaster()) {
+			if (caster == null) return false;
+
 			LivingEntity target = caster;
 			float power = basePower;
 
@@ -159,7 +174,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			double vDistance = NumberConversions.square(target.getLocation().getY() - location.getY());
 			if (vDistance > vRadiusSquared) return false;
 
-			SpellTargetEvent event = new SpellTargetEvent(this, caster, target, power);
+			SpellTargetEvent event = new SpellTargetEvent(this, caster, target, power, args);
 			EventUtil.call(event);
 			if (event.isCancelled()) return false;
 
@@ -167,10 +182,13 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			power = event.getPower();
 
 			castSpells(caster, location, target, power);
-			playSpellEffects(EffectPosition.TARGET, target);
-			playSpellEffects(EffectPosition.SPECIAL, location);
-			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation());
-			else if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation());
+
+			SpellData data = new SpellData(caster, target, power, args);
+
+			playSpellEffects(EffectPosition.TARGET, target, data);
+			playSpellEffects(EffectPosition.SPECIAL, location, data);
+			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation(), data);
+			else playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
 
 			return true;
 		}
@@ -207,7 +225,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			if (caster == null && !validTargetList.canTarget(target)) continue;
 			if (caster != null && !validTargetList.canTarget(caster, target)) continue;
 
-			SpellTargetEvent event = new SpellTargetEvent(this, caster, target, power);
+			SpellTargetEvent event = new SpellTargetEvent(this, caster, target, power, args);
 			EventUtil.call(event);
 			if (event.isCancelled()) continue;
 
@@ -215,9 +233,11 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			power = event.getPower();
 
 			castSpells(caster, location, target, power);
-			playSpellEffects(EffectPosition.TARGET, target);
-			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation());
-			else if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation());
+
+			SpellData data = new SpellData(caster, target, power, args);
+			playSpellEffects(EffectPosition.TARGET, target, data);
+			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation(), data);
+			else if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
 
 			count++;
 
@@ -226,8 +246,9 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		boolean success = count > 0 || !failIfNoTargets;
 		if (success) {
-			playSpellEffects(EffectPosition.SPECIAL, location);
-			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
+			SpellData data = new SpellData(caster, basePower, args);
+			playSpellEffects(EffectPosition.SPECIAL, location, data);
+			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
 		}
 
 		return success;

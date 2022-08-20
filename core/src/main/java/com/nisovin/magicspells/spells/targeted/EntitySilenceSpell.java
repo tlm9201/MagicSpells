@@ -21,7 +21,7 @@ public class EntitySilenceSpell extends TargetedSpell implements TargetedEntityS
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
 			if (targetInfo == null) return noTarget(caster);
 
 			LivingEntity target = targetInfo.getTarget();
@@ -33,12 +33,14 @@ public class EntitySilenceSpell extends TargetedSpell implements TargetedEntityS
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		target.setSilent(targetBooleanState.getBooleanState(target.isSilent()));
 		return true;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
+		if (!validTargetList.canTarget(target)) return false;
 		target.setSilent(targetBooleanState.getBooleanState(target.isSilent()));
 		return true;
 	}

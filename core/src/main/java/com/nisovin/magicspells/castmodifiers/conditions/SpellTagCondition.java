@@ -6,6 +6,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.events.ManaChangeEvent;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -49,7 +51,22 @@ public class SpellTagCondition extends Condition implements IModifier {
 	public boolean apply(MagicSpellsGenericPlayerEvent event) {
 		return false;
 	}
-	
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, SpellData data) {
+		return new ModifierResult(data, false);
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, LivingEntity target, SpellData data) {
+		return new ModifierResult(data, false);
+	}
+
+	@Override
+	public ModifierResult apply(LivingEntity caster, Location target, SpellData data) {
+		return new ModifierResult(data, false);
+	}
+
 	private boolean checkSpell(Spell spell) {
 		if (spell == null) return false;
 		Set<String> tags = spell.getTags();

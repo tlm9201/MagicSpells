@@ -12,10 +12,12 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellAnimation;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
@@ -26,8 +28,8 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 	private Material material;
 	private String materialName;
 
-	private int fuse;
-	private int interval;
+	private ConfigData<Integer> fuse;
+	private ConfigData<Integer> interval;
 
 	private Subspell targetSpell;
 	private String targetSpellName;
@@ -42,8 +44,8 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 			material = null;
 		}
 
-		fuse = getConfigInt("fuse", 100);
-		interval = getConfigInt("interval", 20);
+		fuse = getConfigDataInt("fuse", 100);
+		interval = getConfigDataInt("interval", 20);
 
 		targetSpellName = getConfigString("spell", "");
 
@@ -75,41 +77,56 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			List<Block> blocks = getLastTwoTargetedBlocks(caster, power);
+			List<Block> blocks = getLastTwoTargetedBlocks(caster, power, args);
 			if (blocks.size() != 2) return noTarget(caster);
 			if (!blocks.get(1).getType().isSolid()) return noTarget(caster);
 
 			Block target = blocks.get(0);
-			boolean ok = bomb(caster, target.getLocation(), power);
+			boolean ok = bomb(caster, target.getLocation(), power, args);
 			if (!ok) return noTarget(caster);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
+		return bomb(caster, target, power, args);
+	}
+
+	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return bomb(caster, target, power);
+		return bomb(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtLocation(Location target, float power, String[] args) {
+		return bomb(null, target, power, args);
 	}
 
 	@Override
 	public boolean castAtLocation(Location target, float power) {
-		return bomb(null, target, power);
+		return bomb(null, target, power, null);
 	}
 
-	private boolean bomb(LivingEntity livingEntity, Location loc, float power) {
+	private boolean bomb(LivingEntity livingEntity, Location loc, float power, String[] args) {
 		if (material == null) return false;
 		Block block = loc.getBlock();
 		if (!BlockUtils.isAir(block.getType())) return false;
 
 		blocks.add(block);
 		block.setType(material);
-		if (livingEntity != null) playSpellEffects(livingEntity, loc.add(0.5, 0, 0.5));
-		else playSpellEffects(EffectPosition.TARGET, loc.add(0.5, 0, 0.5));
 
+		SpellData data = new SpellData(livingEntity, power, args);
+		if (livingEntity != null) playSpellEffects(livingEntity, loc.add(0.5, 0, 0.5), data);
+		else playSpellEffects(EffectPosition.TARGET, loc.add(0.5, 0, 0.5), data);
+
+		final int interval = this.interval.get(livingEntity, null, power, args);
+		final int fuse = this.fuse.get(livingEntity, null, power, args);
 		new SpellAnimation(interval, interval, true) {
-				
-			int time = 0;
-			Location l = block.getLocation().add(0.5, 0, 0.5);
+
+			private final Location l = block.getLocation().add(0.5, 0, 0.5);
+			private int time = 0;
+
 			@Override
 			protected void onTick(int tick) {
 				time += interval;
@@ -118,11 +135,11 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 					if (material.equals(block.getType())) {
 						blocks.remove(block);
 						block.setType(Material.AIR);
-						playSpellEffects(EffectPosition.DELAYED, l);
+						playSpellEffects(EffectPosition.DELAYED, l, data);
 						if (targetSpell != null) targetSpell.castAtLocation(livingEntity, l, power);
 					}
 				} else if (!material.equals(block.getType())) stop(true);
-				else playSpellEffects(EffectPosition.SPECIAL, l);
+				else playSpellEffects(EffectPosition.SPECIAL, l, data);
 			}
 				
 		};

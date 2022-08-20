@@ -50,7 +50,7 @@ public class RegrowSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
 			if (target == null) return PostCastAction.ALREADY_HANDLED;
 			if (!(target.getTarget() instanceof Sheep sheep)) return PostCastAction.ALREADY_HANDLED;
 
@@ -65,13 +65,13 @@ public class RegrowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!(target instanceof Sheep sheep)) return false;
+		if (!(target instanceof Sheep sheep) || !validTargetList.canTarget(caster, target)) return false;
 		return grow(sheep);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Sheep sheep)) return false;
+		if (!(target instanceof Sheep sheep) || !validTargetList.canTarget(target)) return false;
 		return grow(sheep);
 	}
 

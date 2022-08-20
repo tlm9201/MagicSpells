@@ -6,6 +6,8 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import de.slikey.effectlib.util.DynamicLocation;
 
+import com.nisovin.magicspells.util.SpellData;
+
 public class EffectLibLineEffect extends EffectLibEffect {
 
 	private boolean forceStaticOriginLocation;
@@ -19,14 +21,14 @@ public class EffectLibLineEffect extends EffectLibEffect {
 	}
 	
 	@Override
-	public Runnable playEffect(Location location1, Location location2) {
+	public Runnable playEffect(Location location1, Location location2, SpellData data) {
 		if (!initialize()) return null;
-		manager.start(className, effectLibSection, new DynamicLocation(location1), new DynamicLocation(location2), (ConfigurationSection) null, null);
+		manager.start(className, getParameters(data), new DynamicLocation(location1), new DynamicLocation(location2), (ConfigurationSection) null, null);
 		return null;
 	}
 	
 	@Override
-	public void playTrackingLinePatterns(Location origin, Location target, Entity originEntity, Entity targetEntity) {
+	public void playTrackingLinePatterns(Location origin, Location target, Entity originEntity, Entity targetEntity, SpellData data) {
 		if (!initialize()) return;
 		if (forceStaticOriginLocation) {
 			if (origin == null && originEntity != null) origin = originEntity.getLocation();
@@ -36,7 +38,7 @@ public class EffectLibLineEffect extends EffectLibEffect {
 			if (target == null && targetEntity != null) target = targetEntity.getLocation();
 			targetEntity = null;
 		}
-		manager.start(className, effectLibSection, new DynamicLocation(origin, originEntity), new DynamicLocation(target, targetEntity), (ConfigurationSection) null, null);
+		manager.start(className, getParameters(data), new DynamicLocation(origin, originEntity), new DynamicLocation(target, targetEntity), (ConfigurationSection) null, null);
 	}
 	
 }

@@ -5,33 +5,32 @@ import org.bukkit.Location;
 import org.bukkit.SoundCategory;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class SoundEffect extends SpellEffect {
 
-	private String sound;
-	private float pitch;
-	private float volume;
-	private SoundCategory category;
+	protected ConfigData<String> sound;
+	protected ConfigData<Float> pitch;
+	protected ConfigData<Float> volume;
+	protected ConfigData<SoundCategory> category;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		sound = config.getString("sound", "entity.llama.spit");
-		pitch = (float) config.getDouble("pitch", 1.0F);
-		volume = (float) config.getDouble("volume", 1.0F);
-		try {
-			category = SoundCategory.valueOf(config.getString("category", "master").toUpperCase());
-		}
-		catch (IllegalArgumentException ignored) {
-			category = SoundCategory.MASTER;
-		}
+		sound = ConfigDataUtil.getString(config, "sound", "entity.llama.spit");
+		pitch = ConfigDataUtil.getFloat(config, "pitch", 1.0F);
+		volume = ConfigDataUtil.getFloat(config, "volume", 1.0F);
+		category = ConfigDataUtil.getEnum(config, "category", SoundCategory.class, SoundCategory.MASTER);
 	}
 
 	@Override
-	public Runnable playEffectLocation(Location location) {
+	public Runnable playEffectLocation(Location location, SpellData data) {
 		World world = location.getWorld();
 		if (world == null) return null;
-		world.playSound(location, sound, category, volume, pitch);
+
+		world.playSound(location, sound.get(data), category.get(data), volume.get(data), pitch.get(data));
 		return null;
 	}
 

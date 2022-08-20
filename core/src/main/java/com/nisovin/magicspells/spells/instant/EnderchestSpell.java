@@ -31,10 +31,12 @@ public class EnderchestSpell extends InstantSpell implements TargetedEntitySpell
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!(target instanceof Player)) return false;
-		if (!(caster instanceof Player)) return false;
-		((Player) caster).openInventory(((Player) target).getEnderChest());
-		return false;
+		if (!validTargetList.canTarget(caster, target)) return false;
+
+		if (!(caster instanceof Player playerCaster) || !(target instanceof Player playerTarget)) return false;
+		playerCaster.openInventory(playerTarget.getEnderChest());
+
+		return true;
 	}
 
 	@Override

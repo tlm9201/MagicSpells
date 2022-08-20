@@ -4,20 +4,23 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class SplashPotionEffect extends SpellEffect {
 
-	private int pot;
+	private ConfigData<Integer> pot;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		pot = config.getInt("potion", 0);
+		pot = ConfigDataUtil.getInteger(config, "potion", 0);
 	}
 
 	@Override
-	public Runnable playEffectLocation(Location location) {
-		location.getWorld().playEffect(location, Effect.POTION_BREAK, pot);
+	public Runnable playEffectLocation(Location location, SpellData data) {
+		location.getWorld().playEffect(location, Effect.POTION_BREAK, pot.get(data));
 		return null;
 	}
 	

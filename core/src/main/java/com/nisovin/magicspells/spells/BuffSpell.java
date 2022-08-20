@@ -29,6 +29,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellFilter;
@@ -191,7 +192,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		LivingEntity target;
 
 		if (targeted) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
 			if (targetInfo == null) return noTarget(caster);
 			if (!targetList.canTarget(targetInfo.getTarget())) return noTarget(caster);
 
@@ -210,8 +211,18 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		return activate(caster, target, power, args, true) == PostCastAction.HANDLE_NORMALLY;
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
 		return activate(caster, target, power, MagicSpells.NULL_ARGS, true) == PostCastAction.HANDLE_NORMALLY;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		return activate(null, target, power, args, true) == PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
@@ -220,6 +231,9 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	private PostCastAction activate(LivingEntity caster, LivingEntity target, float power, String[] args, boolean normal) {
+		if (caster == null ? !validTargetList.canTarget(target) : !validTargetList.canTarget(caster, target))
+			return PostCastAction.ALREADY_HANDLED;
+
 		if (isActive(target) && toggle) {
 			turnOff(target);
 			return PostCastAction.ALREADY_HANDLED;
@@ -235,8 +249,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		startSpellDuration(target, power);
 		lastCaster.put(target.getUniqueId(), caster);
-		if (caster != null) playSpellEffects(caster, target);
-		else playSpellEffects(EffectPosition.TARGET, target);
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -403,7 +417,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		if (manager != null) manager.removeBuff(entity, this);
 
 		turnOffBuff(entity);
-		playSpellEffects(EffectPosition.DISABLED, entity);
+		playSpellEffects(EffectPosition.DISABLED, entity, new SpellData(entity));
 		cancelEffects(EffectPosition.CASTER, entity.getUniqueId().toString());
 		stopEffects(entity);
 

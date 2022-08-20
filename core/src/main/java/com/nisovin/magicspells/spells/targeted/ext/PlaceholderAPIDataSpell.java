@@ -54,7 +54,7 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(player, power);
+			TargetInfo<Player> targetInfo = getTargetedPlayer(player, power, args);
 			if (targetInfo == null) return noTarget(player);
 			Player target = targetInfo.getTarget();
 			if (target == null) return noTarget(player);
@@ -66,8 +66,8 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!(caster instanceof Player casterPlayer)) return false;
-		if (!(target instanceof Player targetPlayer)) return false;
+		if (!(caster instanceof Player casterPlayer) || !(target instanceof Player targetPlayer)) return false;
+		if (!validTargetList.canTarget(caster, target)) return false;
 		setPlaceholders(casterPlayer, targetPlayer, placeholderAPITemplate);
 		return true;
 	}

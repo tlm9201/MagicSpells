@@ -166,7 +166,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			Player opener = player;
 
 			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power);
+				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power, args);
 				if (targetInfo != null) entityTarget = targetInfo.getTarget();
 				if (entityTarget == null) return noTarget(player);
 				if (targetOpensMenuInstead) {
@@ -175,7 +175,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 					entityTarget = null;
 				}
 			} else if (requireLocationTarget) {
-				Block block = getTargetedBlock(player, power);
+				Block block = getTargetedBlock(player, power, args);
 				if (block == null || BlockUtils.isAir(block.getType())) return noTarget(player);
 				locTarget = block.getLocation();
 			}
@@ -186,32 +186,47 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (requireEntityTarget && !validTargetList.canTarget(caster, target)) return false;
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		if (!(caster instanceof Player opener)) return false;
 		if (targetOpensMenuInstead) {
 			if (!(target instanceof Player player)) return false;
 			opener = player;
 			target = null;
 		}
-		open((Player) caster, opener, target, null, power, MagicSpells.NULL_ARGS);
+		open((Player) caster, opener, target, null, power, args);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!targetOpensMenuInstead) return false;
+		if (!validTargetList.canTarget(target)) return false;
+		if (!(target instanceof Player player)) return false;
+		open(null, player, null, null, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!targetOpensMenuInstead) return false;
-		if (requireEntityTarget && !validTargetList.canTarget(target)) return false;
-		if (!(target instanceof Player player)) return false;
-		open(null, player, null, null, power, MagicSpells.NULL_ARGS);
+		return castAtEntity(target, power, null);
+	}
+
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
+		if (!(caster instanceof Player player)) return false;
+		open(player, player, null, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		if (!(caster instanceof Player player)) return false;
-		open(player, player, null, target, power, MagicSpells.NULL_ARGS);
-		return true;
+		return castAtLocation(caster, target, power, null);
 	}
 
 	@Override
@@ -262,13 +277,14 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		opener.openInventory(inv);
 		Util.setInventoryTitle(opener, title);
 
+		SpellData data = new SpellData(caster, entityTarget, power, args);
 		if (entityTarget != null && caster != null) {
-			playSpellEffects(caster, entityTarget);
+			playSpellEffects(caster, entityTarget, data);
 			return;
 		}
-		playSpellEffects(EffectPosition.SPECIAL, opener);
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster);
-		if (locTarget != null) playSpellEffects(EffectPosition.TARGET, locTarget);
+		playSpellEffects(EffectPosition.SPECIAL, opener, data);
+		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
+		if (locTarget != null) playSpellEffects(EffectPosition.TARGET, locTarget, data);
 	}
 
 	private void applyOptionsToInventory(Player opener, Inventory inv, String[] args) {

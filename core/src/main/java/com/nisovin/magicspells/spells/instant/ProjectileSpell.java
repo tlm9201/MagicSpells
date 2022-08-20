@@ -27,8 +27,10 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -47,16 +49,16 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	private Vector relativeOffset;
 
-	private int tickInterval;
-	private int tickSpellInterval;
-	private int specialEffectInterval;
+	private ConfigData<Integer> tickInterval;
+	private ConfigData<Integer> tickSpellInterval;
+	private ConfigData<Integer> specialEffectInterval;
 
-	private float rotation;
-	private float velocity;
-	private float hitRadius;
-	private float vertSpread;
-	private float horizSpread;
-	private float verticalHitRadius;
+	private ConfigData<Float> rotation;
+	private ConfigData<Float> velocity;
+	private ConfigData<Float> hitRadius;
+	private ConfigData<Float> vertSpread;
+	private ConfigData<Float> horizSpread;
+	private ConfigData<Float> verticalHitRadius;
 
 	private boolean gravity;
 	private boolean charged;
@@ -64,7 +66,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private boolean checkPlugins;
 	private boolean stopOnModifierFail;
 
-	private double maxDuration;
+	private ConfigData<Double> maxDuration;
 
 	private final String hitSpellName;
 	private final String tickSpellName;
@@ -94,16 +96,16 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 		relativeOffset = getConfigVector("relative-offset", "0,1.5,0");
 
-		tickInterval = getConfigInt("tick-interval", 1);
-		tickSpellInterval = getConfigInt("spell-interval", 20);
-		specialEffectInterval = getConfigInt("special-effect-interval", 0);
+		tickInterval = getConfigDataInt("tick-interval", 1);
+		tickSpellInterval = getConfigDataInt("spell-interval", 20);
+		specialEffectInterval = getConfigDataInt("special-effect-interval", 0);
 
-		rotation = getConfigFloat("rotation", 0F);
-		velocity = getConfigFloat("velocity", 1F);
-		hitRadius = getConfigFloat("hit-radius", 2F);
-		vertSpread = getConfigFloat("vertical-spread", 0F);
-		horizSpread = getConfigFloat("horizontal-spread", 0F);
-		verticalHitRadius = getConfigFloat("vertical-hit-radius", 2F);
+		rotation = getConfigDataFloat("rotation", 0F);
+		velocity = getConfigDataFloat("velocity", 1F);
+		hitRadius = getConfigDataFloat("hit-radius", 2F);
+		vertSpread = getConfigDataFloat("vertical-spread", 0F);
+		horizSpread = getConfigDataFloat("horizontal-spread", 0F);
+		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", 2F);
 
 		gravity = getConfigBoolean("gravity", true);
 		charged = getConfigBoolean("charged", false);
@@ -111,7 +113,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		checkPlugins = getConfigBoolean("check-plugins", true);
 		stopOnModifierFail = getConfigBoolean("stop-on-modifier-fail", true);
 
-		maxDuration = getConfigDouble("max-duration", 10) * (double) TimeUtil.MILLISECONDS_PER_SECOND;
+		maxDuration = getConfigDataDouble("max-duration", 10);
 
 		hitSpellName = getConfigString("spell", "");
 		tickSpellName = getConfigString("spell-on-tick", "");
@@ -189,20 +191,25 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			ProjectileTracker tracker = new ProjectileTracker(caster, caster.getLocation(), power);
-			setupTracker(tracker);
+			ProjectileTracker tracker = new ProjectileTracker(caster, caster.getLocation(), power, args);
+			setupTracker(tracker, caster, power, args);
 			tracker.start();
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, tracker.getSpellData());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity livingEntity, Location target, float power) {
-		ProjectileTracker tracker = new ProjectileTracker(livingEntity, target, power);
-		setupTracker(tracker);
+	public boolean castAtLocation(LivingEntity livingEntity, Location target, float power, String[] args) {
+		ProjectileTracker tracker = new ProjectileTracker(livingEntity, target, power, args);
+		setupTracker(tracker, livingEntity, power, args);
 		tracker.start();
 		return true;
+	}
+
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		return castAtLocation(caster, target, power, null);
 	}
 
 	@Override
@@ -210,22 +217,22 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		return false;
 	}
 
-	private void setupTracker(ProjectileTracker tracker) {
+	private void setupTracker(ProjectileTracker tracker, LivingEntity caster, float power, String[] args) {
 		tracker.setSpell(this);
 
 		tracker.setProjectileManager(projectileManager);
 		tracker.setRelativeOffset(relativeOffset);
 
-		tracker.setTickInterval(tickInterval);
-		tracker.setTickSpellInterval(tickSpellInterval);
-		tracker.setSpecialEffectInterval(specialEffectInterval);
+		tracker.setTickInterval(tickInterval.get(caster, null, power, args));
+		tracker.setTickSpellInterval(tickSpellInterval.get(caster, null, power, args));
+		tracker.setSpecialEffectInterval(specialEffectInterval.get(caster, null, power, args));
 
-		tracker.setRotation(rotation);
-		tracker.setVelocity(velocity);
-		tracker.setHitRadius(hitRadius);
-		tracker.setVertSpread(vertSpread);
-		tracker.setHorizSpread(horizSpread);
-		tracker.setVerticalHitRadius(verticalHitRadius);
+		tracker.setRotation(rotation.get(caster, null, power, args));
+		tracker.setVelocity(velocity.get(caster, null, power, args));
+		tracker.setHitRadius(hitRadius.get(caster, null, power, args));
+		tracker.setVertSpread(vertSpread.get(caster, null, power, args));
+		tracker.setHorizSpread(horizSpread.get(caster, null, power, args));
+		tracker.setVerticalHitRadius(verticalHitRadius.get(caster, null, power, args));
 
 		tracker.setGravity(gravity);
 		tracker.setCharged(charged);
@@ -233,7 +240,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		tracker.setCallEvents(checkPlugins);
 		tracker.setStopOnModifierFail(stopOnModifierFail);
 
-		tracker.setMaxDuration(maxDuration);
+		tracker.setMaxDuration(maxDuration.get(caster, null, power, args) * TimeUtil.MILLISECONDS_PER_SECOND);
 
 		tracker.setProjectileName(projectileName);
 
@@ -287,7 +294,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 				else if (tracker.getHitSpell().isTargetedLocationSpell()) tracker.getHitSpell().castAtLocation(tracker.getCaster(), entity.getLocation(), tracker.getPower());
 			}
 
-			playSpellEffects(EffectPosition.TARGET, entity);
+			playSpellEffects(EffectPosition.TARGET, entity, tracker.getSpellData());
 			event.setCancelled(true);
 			event.setDamage(0);
 			tracker.stop(false);
@@ -353,16 +360,12 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 				&& Math.abs(loc1.getZ() - loc2.getZ()) < 0.1;
 	}
 
-	public void playEffects(EffectPosition position, Location loc) {
-		playSpellEffects(position, loc);
+	public void playEffects(EffectPosition position, Location loc, SpellData data) {
+		playSpellEffects(position, loc, data);
 	}
 
-	public void playEffects(EffectPosition position, Entity entity) {
-		playSpellEffects(position, entity);
-	}
-
-	public void playTrackingLineEffects(EffectPosition position, Location startLocation, Location location, LivingEntity caster, Projectile projectile) {
-		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
+	public void playEffects(EffectPosition position, Entity entity, SpellData data) {
+		playSpellEffects(position, entity, data);
 	}
 
 	public static Set<ProjectileTracker> getProjectileTrackers() {
@@ -391,78 +394,6 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	public void setRelativeOffset(Vector relativeOffset) {
 		this.relativeOffset = relativeOffset;
-	}
-
-	public int getTickInterval() {
-		return tickInterval;
-	}
-
-	public void setTickInterval(int tickInterval) {
-		this.tickInterval = tickInterval;
-	}
-
-	public int getTickSpellInterval() {
-		return tickSpellInterval;
-	}
-
-	public void setTickSpellInterval(int tickSpellInterval) {
-		this.tickSpellInterval = tickSpellInterval;
-	}
-
-	public int getSpecialEffectInterval() {
-		return specialEffectInterval;
-	}
-
-	public void setSpecialEffectInterval(int specialEffectInterval) {
-		this.specialEffectInterval = specialEffectInterval;
-	}
-
-	public float getRotation() {
-		return rotation;
-	}
-
-	public void setRotation(float rotation) {
-		this.rotation = rotation;
-	}
-
-	public float getVelocity() {
-		return velocity;
-	}
-
-	public void setVelocity(float velocity) {
-		this.velocity = velocity;
-	}
-
-	public float getHitRadius() {
-		return hitRadius;
-	}
-
-	public void setHitRadius(float hitRadius) {
-		this.hitRadius = hitRadius;
-	}
-
-	public float getVertSpread() {
-		return vertSpread;
-	}
-
-	public void setVertSpread(float vertSpread) {
-		this.vertSpread = vertSpread;
-	}
-
-	public float getHorizSpread() {
-		return horizSpread;
-	}
-
-	public void setHorizSpread(float horizSpread) {
-		this.horizSpread = horizSpread;
-	}
-
-	public float getVerticalHitRadius() {
-		return verticalHitRadius;
-	}
-
-	public void setVerticalHitRadius(float verticalHitRadius) {
-		this.verticalHitRadius = verticalHitRadius;
 	}
 
 	public boolean hasGravity() {
@@ -495,14 +426,6 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	public void setStopOnModifierFail(boolean stopOnModifierFail) {
 		this.stopOnModifierFail = stopOnModifierFail;
-	}
-
-	public double getMaxDuration() {
-		return maxDuration;
-	}
-
-	public void setMaxDuration(double maxDuration) {
-		this.maxDuration = maxDuration;
 	}
 
 	public Component getProjectileName() {

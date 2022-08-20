@@ -21,7 +21,7 @@ public class GlideSpell extends TargetedSpell implements TargetedEntitySpell{
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
 			if (targetInfo == null) return noTarget(caster);
 			LivingEntity target = targetInfo.getTarget();
 
@@ -33,13 +33,16 @@ public class GlideSpell extends TargetedSpell implements TargetedEntitySpell{
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		target.setGliding(targetState.getBooleanState(target.isGliding()));
 		return true;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(null, target, power);
+		if (!validTargetList.canTarget(target)) return false;
+		target.setGliding(targetState.getBooleanState(target.isGliding()));
+		return true;
 	}
 	
 }

@@ -28,9 +28,11 @@ import org.spigotmc.event.entity.EntityDismountEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import com.nisovin.magicspells.util.MobUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -44,7 +46,7 @@ public class SteedSpell extends InstantSpell {
 	private boolean gravity;
 	private boolean hasChest;
 
-	private double jumpStrength;
+	private ConfigData<Double> jumpStrength;
 
 	private String strAlreadyMounted;
 
@@ -65,7 +67,7 @@ public class SteedSpell extends InstantSpell {
 		gravity = getConfigBoolean("gravity", true);
 		hasChest = getConfigBoolean("has-chest", false);
 
-		jumpStrength = getConfigDouble("jump-strength", 1);
+		jumpStrength = getConfigDataDouble("jump-strength", 1);
 
 		strAlreadyMounted = getConfigString("str-already-mounted", "You are already mounted!");
 
@@ -124,7 +126,7 @@ public class SteedSpell extends InstantSpell {
 				abstractHorse.setAdult();
 				abstractHorse.setTamed(true);
 				if (caster instanceof AnimalTamer tamer) abstractHorse.setOwner(tamer);
-				abstractHorse.setJumpStrength(jumpStrength);
+				abstractHorse.setJumpStrength(jumpStrength.get(caster, null, power, args));
 				abstractHorse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
 
 				if (entity instanceof Horse horse) {
@@ -139,7 +141,7 @@ public class SteedSpell extends InstantSpell {
 			}
 
 			entity.addPassenger(caster);
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, power, args);
 			mounted.put(caster.getUniqueId(), entity.getEntityId());
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -165,7 +167,7 @@ public class SteedSpell extends InstantSpell {
 		if (!mounted.containsKey(player.getUniqueId())) return;
 		mounted.remove(player.getUniqueId());
 		event.getDismounted().remove();
-		playSpellEffects(EffectPosition.DISABLED, player);
+		playSpellEffects(EffectPosition.DISABLED, player, new SpellData(player));
 	}
 	
 	@EventHandler
@@ -208,14 +210,6 @@ public class SteedSpell extends InstantSpell {
 
 	public void setHasChest(boolean hasChest) {
 		this.hasChest = hasChest;
-	}
-
-	public double getJumpStrength() {
-		return jumpStrength;
-	}
-
-	public void setJumpStrength(double jumpStrength) {
-		this.jumpStrength = jumpStrength;
 	}
 
 	public String getStrAlreadyMounted() {

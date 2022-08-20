@@ -18,18 +18,20 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class RitualSpell extends InstantSpell {
 
 	private final Map<Player, ActiveRitual> activeRituals;
 
-	private int tickInterval;
-	private int effectInterval;
-	private int ritualDuration;
-	private int reqParticipants;
+	private ConfigData<Integer> tickInterval;
+	private ConfigData<Integer> effectInterval;
+	private ConfigData<Integer> ritualDuration;
+	private ConfigData<Integer> reqParticipants;
 
 	private boolean setCooldownForAll;
 	private boolean showProgressOnExpBar;
@@ -51,10 +53,10 @@ public class RitualSpell extends InstantSpell {
 
 		activeRituals = new HashMap<>();
 
-		tickInterval = getConfigInt("tick-interval", 5);
-		effectInterval = getConfigInt("effect-interval", TimeUtil.TICKS_PER_SECOND);
-		ritualDuration = getConfigInt("ritual-duration", 200);
-		reqParticipants = getConfigInt("req-participants", 3);
+		tickInterval = getConfigDataInt("tick-interval", 5);
+		effectInterval = getConfigDataInt("effect-interval", TimeUtil.TICKS_PER_SECOND);
+		ritualDuration = getConfigDataInt("ritual-duration", 200);
+		reqParticipants = getConfigDataInt("req-participants", 3);
 
 		setCooldownForAll = getConfigBoolean("set-cooldown-for-all", true);
 		showProgressOnExpBar = getConfigBoolean("show-progress-on-exp-bar", true);
@@ -70,7 +72,7 @@ public class RitualSpell extends InstantSpell {
 		strRitualSuccess = getConfigString("str-ritual-success", "");
 		strRitualInterrupted = getConfigString("str-ritual-interrupted", "");
 	}
-	
+
 	@Override
 	public void initialize() {
 		super.initialize();
@@ -94,19 +96,21 @@ public class RitualSpell extends InstantSpell {
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
-	
-	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerInteract(PlayerInteractEntityEvent event) {
-		if (!(event.getRightClicked() instanceof Player)) return;
+		if (!(event.getRightClicked() instanceof Player player)) return;
 		if (event.getHand().equals(EquipmentSlot.OFF_HAND)) return;
-		ActiveRitual channel = activeRituals.get(event.getRightClicked());
+
+		ActiveRitual channel = activeRituals.get(player);
 		if (channel == null) return;
+
 		if (!needSpellToParticipate || hasThisSpell(event.getPlayer())) {
 			channel.addChanneler(event.getPlayer());
-			sendMessage(strRitualJoined, event.getPlayer(), MagicSpells.NULL_ARGS);
+			sendMessage(strRitualJoined, event.getPlayer(), channel.args);
 		}
 	}
-	
+
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		for (ActiveRitual ritual : activeRituals.values()) {
@@ -114,45 +118,63 @@ public class RitualSpell extends InstantSpell {
 			ritual.stop(strInterrupted);
 		}
 	}
-	
-	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		for (ActiveRitual ritual : activeRituals.values()) {
 			if (!ritual.isChanneler(event.getEntity())) continue;
 			ritual.stop(strInterrupted);
 		}
 	}
-	
+
 	private boolean hasThisSpell(Player player) {
 		return MagicSpells.getSpellbook(player).hasSpell(this);
 	}
-	
+
 	private class ActiveRitual implements Runnable {
-		
-		private Player caster;
-		private float power;
-		private String[] args;
+
+		private final Player caster;
+
+		private final SpellData data;
+		private final String[] args;
+		private final float power;
+
+		private final Map<Player, Location> channelers;
+		private final int taskId;
+
+		private final int tickInterval;
+		private final int effectInterval;
+		private final int ritualDuration;
+		private final int reqParticipants;
+
 		private int duration = 0;
-		private int taskId;
-		private Map<Player, Location> channelers;
 
 		private ActiveRitual(Player caster, float power, String[] args) {
 			this.caster = caster;
 			this.power = power;
 			this.args = args;
-			channelers = new HashMap<>();
 
+			data = new SpellData(caster, power, args);
+
+			channelers = new HashMap<>();
 			channelers.put(caster, caster.getLocation());
+
+			tickInterval = RitualSpell.this.tickInterval.get(caster, null, power, args);
+			effectInterval = RitualSpell.this.effectInterval.get(caster, null, power, args);
+			ritualDuration = RitualSpell.this.ritualDuration.get(caster, null, power, args);
+			reqParticipants = RitualSpell.this.reqParticipants.get(caster, null, power, args);
+
 			taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(MagicSpells.plugin, this, tickInterval, tickInterval);
+
 			if (showProgressOnExpBar) MagicSpells.getExpBarManager().lock(caster, this);
-			playSpellEffects(EffectPosition.CASTER, caster);
+			playSpellEffects(EffectPosition.CASTER, caster, data);
 		}
 
 		private void addChanneler(Player player) {
 			if (channelers.containsKey(player)) return;
 			channelers.put(player, player.getLocation());
 			if (showProgressOnExpBar) MagicSpells.getExpBarManager().lock(player, this);
-			playSpellEffects(EffectPosition.CASTER, player);
+			playSpellEffects(EffectPosition.CASTER, player, data);
 		}
 
 		private void removeChanneler(Player player) {
@@ -162,7 +184,7 @@ public class RitualSpell extends InstantSpell {
 		private boolean isChanneler(Player player) {
 			return channelers.containsKey(player);
 		}
-		
+
 		@Override
 		public void run() {
 			duration += tickInterval;
@@ -172,7 +194,7 @@ public class RitualSpell extends InstantSpell {
 
 			while (iter.hasNext()) {
 				Player player = iter.next().getKey();
-				
+
 				// Check for movement/death/offline
 				Location oldloc = channelers.get(player);
 				Location newloc = player.getLocation();
@@ -189,26 +211,28 @@ public class RitualSpell extends InstantSpell {
 					}
 				}
 				// Send exp bar update
-				if (showProgressOnExpBar) MagicSpells.getExpBarManager().update(player, count, (float) duration / (float) ritualDuration, this);
+				if (showProgressOnExpBar)
+					MagicSpells.getExpBarManager().update(player, count, (float) duration / (float) ritualDuration, this);
 
 				// Spell effect
-				if (duration % effectInterval == 0) playSpellEffects(EffectPosition.CASTER, player);
+				if (duration % effectInterval == 0) playSpellEffects(EffectPosition.CASTER, player, data);
 			}
 
 			if (interrupted) {
 				stop(strRitualInterrupted);
 				if (spellOnInterrupt != null && caster.isValid()) {
-					if (spellOnInterrupt.isTargetedLocationSpell()) spellOnInterrupt.castAtLocation(caster, caster.getLocation(), power);
+					if (spellOnInterrupt.isTargetedLocationSpell())
+						spellOnInterrupt.castAtLocation(caster, caster.getLocation(), power);
 					else spellOnInterrupt.cast(caster, power);
 				}
 			}
-			
+
 			if (duration >= ritualDuration) {
 				// Channel is done
 				if (count >= reqParticipants && !caster.isDead() && caster.isOnline()) {
 					if (chargeReagentsImmediately || hasReagents(caster)) {
 						stop(strRitualSuccess);
-						playSpellEffects(EffectPosition.DELAYED, caster);
+						playSpellEffects(EffectPosition.DELAYED, caster, data);
 						PostCastAction action = spellToCast.castSpell(caster, SpellCastState.NORMAL, power, args);
 						if (!chargeReagentsImmediately && action.chargeReagents()) removeReagents(caster);
 						if (!setCooldownImmediately && action.setCooldown()) setCooldown(caster, cooldown);
@@ -224,20 +248,20 @@ public class RitualSpell extends InstantSpell {
 
 		private void stop(String message) {
 			for (Player player : channelers.keySet()) {
-				sendMessage(message, player, MagicSpells.NULL_ARGS);
+				sendMessage(message, player, args);
 				resetManaBar(player);
 			}
 			channelers.clear();
 			Bukkit.getScheduler().cancelTask(taskId);
 			activeRituals.remove(caster);
 		}
-		
+
 		private void resetManaBar(Player player) {
 			MagicSpells.getExpBarManager().unlock(player, this);
 			MagicSpells.getExpBarManager().update(player, player.getLevel(), player.getExp());
 			if (MagicSpells.getManaHandler() != null) MagicSpells.getManaHandler().showMana(player);
 		}
-		
+
 	}
 
 }

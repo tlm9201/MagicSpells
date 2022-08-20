@@ -38,8 +38,8 @@ import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.Subspell.CastMode;
 import com.nisovin.magicspells.handlers.DebugHandler;
-import com.nisovin.magicspells.util.CastUtil.CastMode;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
@@ -705,6 +705,11 @@ public class Util {
 	public static Component getMiniMessageWithVars(Player player, String input) {
 		if (input.isEmpty()) return Component.text("");
 		return getMiniMessage(MagicSpells.doVariableReplacements(player, input));
+	}
+
+	public static Component getMiniMessageWithArgsAndVars(Player player, String input, String[] args) {
+		if (input.isEmpty()) return Component.text("");
+		return getMiniMessage(MagicSpells.doArgumentAndVariableSubstitution(input, player, args));
 	}
 
 	public static String getStringFromComponent(Component component) {

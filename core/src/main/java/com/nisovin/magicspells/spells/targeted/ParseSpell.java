@@ -82,28 +82,46 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power);
+			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
 			if (targetInfo == null) return noTarget(caster);
 			Player target = targetInfo.getTarget();
 			if (target == null) return noTarget(caster);
 
 			parse(target);
-			playSpellEffects(caster, target);
+			playSpellEffects(caster, target, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		playSpellEffects(caster, target);
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
 		parse(target);
+		playSpellEffects(caster, target, power, args);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		if (!validTargetList.canTarget(caster, target)) return false;
+		parse(target);
+		playSpellEffects(caster, target, power, null);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
+		parse(target);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		playSpellEffects(EffectPosition.TARGET, target);
+		if (!validTargetList.canTarget(target)) return false;
 		parse(target);
+		playSpellEffects(EffectPosition.TARGET, target, power, null);
 		return true;
 	}
 

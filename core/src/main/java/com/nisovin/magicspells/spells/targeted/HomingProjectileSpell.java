@@ -21,6 +21,7 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
@@ -43,18 +44,19 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	private Vector relativeOffset;
 	private Vector targetRelativeOffset;
 
-	private int tickInterval;
-	private int airSpellInterval;
-	private int specialEffectInterval;
-	private int intermediateSpecialEffects;
+	private ConfigData<Integer> tickInterval;
+	private ConfigData<Integer> airSpellInterval;
+	private ConfigData<Integer> specialEffectInterval;
+	private ConfigData<Integer> intermediateSpecialEffects;
 
-	private float velocity;
-	private float hitRadius;
-	private float verticalHitRadius;
+	private ConfigData<Float> velocity;
+	private ConfigData<Float> hitRadius;
+	private ConfigData<Float> verticalHitRadius;
 
 	private boolean stopOnModifierFail;
+	private boolean powerAffectsVelocity;
 
-	private double maxDuration;
+	private ConfigData<Double> maxDuration;
 
 	private String hitSpellName;
 	private String airSpellName;
@@ -85,18 +87,19 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		relativeOffset = getConfigVector("relative-offset", "0.5,0.5,0");
 		targetRelativeOffset = getConfigVector("target-relative-offset", "0,0.5,0");
 
-		tickInterval = getConfigInt("tick-interval", 1);
-		airSpellInterval = getConfigInt("spell-interval", 20);
-		specialEffectInterval = getConfigInt("special-effect-interval", 0);
-		intermediateSpecialEffects = getConfigInt("intermediate-special-effect-locations", 0);
+		tickInterval = getConfigDataInt("tick-interval", 1);
+		airSpellInterval = getConfigDataInt("spell-interval", 20);
+		specialEffectInterval = getConfigDataInt("special-effect-interval", 0);
+		intermediateSpecialEffects = getConfigDataInt("intermediate-special-effect-locations", 0);
 
-		velocity = getConfigFloat("velocity", 1F);
-		hitRadius = getConfigFloat("hit-radius", 2F);
-		verticalHitRadius = getConfigFloat("vertical-hit-radius", 2F);
+		velocity = getConfigDataFloat("velocity", 1F);
+		hitRadius = getConfigDataFloat("hit-radius", 2F);
+		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", 2F);
 
 		stopOnModifierFail = getConfigBoolean("stop-on-modifier-fail", true);
+		powerAffectsVelocity = getConfigBoolean("power-affects-velocity", true);
 
-		maxDuration = getConfigDouble("max-duration", 10) * (double) TimeUtil.MILLISECONDS_PER_SECOND;
+		maxDuration = getConfigDataDouble("max-duration", 10);
 
 		hitSpellName = getConfigString("spell", "");
 		airSpellName = getConfigString("spell-on-hit-air", "");
@@ -106,8 +109,6 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		durationSpellName = getConfigString("spell-after-duration", "");
 
 		homingModifiersStrings = getConfigStringList("homing-modifiers", null);
-
-		if (intermediateSpecialEffects < 0) intermediateSpecialEffects = 0;
 	}
 
 	@Override
@@ -169,9 +170,9 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power);
+			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
 			if (targetInfo == null) return noTarget(caster);
-			new HomingProjectileMonitor(caster, targetInfo.getTarget(), targetInfo.getPower());
+			new HomingProjectileMonitor(caster, targetInfo.getTarget(), targetInfo.getPower(), args);
 			sendMessages(caster, targetInfo.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -179,10 +180,15 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		new HomingProjectileMonitor(caster, target, power);
+		new HomingProjectileMonitor(caster, target, power, args);
 		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override
@@ -191,10 +197,15 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		new HomingProjectileMonitor(caster, from, target, power);
+		new HomingProjectileMonitor(caster, from, target, power, args);
 		return true;
+	}
+
+	@Override
+	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
+		return castAtEntityFromLocation(caster, from, target, power, null);
 	}
 
 	@Override
@@ -217,7 +228,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 			if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(monitor.caster, entity, monitor.power);
 			else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(monitor.caster, entity.getLocation(), monitor.power);
-			playSpellEffects(EffectPosition.TARGET, entity);
+			playSpellEffects(EffectPosition.TARGET, entity, monitor.data);
 			event.setCancelled(true);
 
 			monitor.stop();
@@ -250,33 +261,45 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		private LivingEntity target;
 		private BoundingBox hitBox;
 		private Vector currentVelocity;
+		private SpellData data;
+		private String[] args;
 		private float power;
 		private long startTime;
+
+		private int airSpellInterval;
+		private int specialEffectInterval;
+		private int intermediateSpecialEffects;
+
+		private float velocity;
+
+		private double maxDuration;
 
 		private int taskId;
 		private int counter = 0;
 
-		private HomingProjectileMonitor(LivingEntity caster, LivingEntity target, float power) {
+		private HomingProjectileMonitor(LivingEntity caster, LivingEntity target, float power, String[] args) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
 			startLocation = caster.getLocation();
 
-			initialize();
+			initialize(caster, target, power, args);
 		}
 
-		private HomingProjectileMonitor(LivingEntity caster, Location startLocation, LivingEntity target, float power) {
+		private HomingProjectileMonitor(LivingEntity caster, Location startLocation, LivingEntity target, float power, String[] args) {
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
+			this.args = args;
 			this.startLocation = startLocation;
 
-			initialize();
+			initialize(caster, target, power, args);
 		}
 
-		private void initialize() {
+		private void initialize(LivingEntity caster, LivingEntity target, float power, String[] args) {
 			startTime = System.currentTimeMillis();
-			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
+
+			data = new SpellData(caster, target, power, args);
 
 			Vector startDir = startLocation.clone().getDirection().normalize();
 			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
@@ -284,9 +307,22 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
 			startLocation.setY(startLocation.getY() + relativeOffset.getY());
 
+			airSpellInterval = HomingProjectileSpell.this.airSpellInterval.get(caster, target, power, args);
+			specialEffectInterval = HomingProjectileSpell.this.specialEffectInterval.get(caster, target, power, args);
+
+			intermediateSpecialEffects = HomingProjectileSpell.this.intermediateSpecialEffects.get(caster, target, power, args);
+			if (intermediateSpecialEffects < 0) intermediateSpecialEffects = 0;
+
+			velocity = HomingProjectileSpell.this.velocity.get(caster, target, power, args);
+			if (powerAffectsVelocity) velocity *= power;
+
+			maxDuration = HomingProjectileSpell.this.maxDuration.get(caster, target, power, args) * TimeUtil.MILLISECONDS_PER_SECOND;
+
+			float hitRadius = HomingProjectileSpell.this.hitRadius.get(caster, target, power, args);
+			float verticalHitRadius = HomingProjectileSpell.this.verticalHitRadius.get(caster, target, power, args);
 			hitBox = new BoundingBox(startLocation, hitRadius, verticalHitRadius);
 
-			playSpellEffects(EffectPosition.CASTER, startLocation);
+			playSpellEffects(EffectPosition.CASTER, startLocation, data);
 
 			projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass());
 
@@ -298,13 +334,16 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			}
 
 			currentVelocity = target.getLocation().add(0, 0.75, 0).toVector().subtract(projectile.getLocation().toVector()).normalize();
-			currentVelocity.multiply(velocity * power);
+			currentVelocity.multiply(velocity);
 			currentVelocity.setY(currentVelocity.getY() + 0.15);
 			projectile.setVelocity(currentVelocity);
 
-			playSpellEffects(EffectPosition.PROJECTILE, projectile);
-			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile);
+			playSpellEffects(EffectPosition.PROJECTILE, projectile, data);
+			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile, data);
 			monitors.add(this);
+
+			int tickInterval = HomingProjectileSpell.this.tickInterval.get(caster, target, power, args);
+			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
 		}
 
 		@Override
@@ -329,10 +368,21 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 				return;
 			}
 
-			if (homingModifiers != null && !homingModifiers.check(caster)) {
-				if (modifierSpell != null) modifierSpell.castAtLocation(caster, currentLocation, power);
-				if (stopOnModifierFail) stop();
-				return;
+			if (homingModifiers != null) {
+				ModifierResult result = homingModifiers.apply(caster, data);
+				data = result.data();
+				power = data.power();
+				args = data.args();
+
+				if (!result.check()) {
+					if (modifierSpell != null) {
+						if (modifierSpell.isTargetedLocationSpell()) modifierSpell.castAtLocation(caster, currentLocation, power);
+						else modifierSpell.cast(caster, power);
+					}
+
+					if (stopOnModifierFail) stop();
+					return;
+				}
 			}
 
 			if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {
@@ -353,7 +403,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			targetLoc.setY(target.getLocation().getY() + targetRelativeOffset.getY());
 
 			currentVelocity = targetLoc.toVector().subtract(projectile.getLocation().toVector()).normalize();
-			currentVelocity.multiply(velocity * power);
+			currentVelocity.multiply(velocity);
 			currentVelocity.setY(currentVelocity.getY() + 0.15);
 			projectile.setVelocity(currentVelocity);
 			currentLocation = projectile.getLocation();
@@ -362,18 +412,18 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 			if (intermediateSpecialEffects > 0) playIntermediateEffectLocations(previousLocation, oldVelocity);
 
-			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation);
+			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation, data);
 
 			counter++;
 
 			hitBox.setCenter(currentLocation);
 			if (hitBox.contains(targetLoc)) {
-				SpellTargetEvent targetEvent = new SpellTargetEvent(thisSpell, caster, target, power);
+				SpellTargetEvent targetEvent = new SpellTargetEvent(thisSpell, caster, target, power, args);
 				EventUtil.call(targetEvent);
 				if (targetEvent.isCancelled()) return;
-				playSpellEffects(EffectPosition.TARGET, target);
-				if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(caster, target, power);
-				else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(caster, target.getLocation(), power);
+				playSpellEffects(EffectPosition.TARGET, targetEvent.getTarget(), data);
+				if (hitSpell.isTargetedEntitySpell()) hitSpell.castAtEntity(caster, targetEvent.getTarget(), targetEvent.getPower());
+				else if (hitSpell.isTargetedLocationSpell()) hitSpell.castAtLocation(caster, targetEvent.getTarget().getLocation(), targetEvent.getPower());
 				stop();
 			}
 		}
@@ -385,12 +435,12 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			movement.setZ(movement.getZ() / divideFactor);
 			for (int i = 0; i < intermediateSpecialEffects; i++) {
 				old = old.add(movement).setDirection(movement);
-				playSpellEffects(EffectPosition.SPECIAL, old);
+				playSpellEffects(EffectPosition.SPECIAL, old, data);
 			}
 		}
 
 		private void stop() {
-			playSpellEffects(EffectPosition.DELAYED, currentLocation);
+			playSpellEffects(EffectPosition.DELAYED, currentLocation, data);
 			MagicSpells.cancelTask(taskId);
 			caster = null;
 			target = null;

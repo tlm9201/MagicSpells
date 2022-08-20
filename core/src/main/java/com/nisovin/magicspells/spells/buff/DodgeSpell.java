@@ -1,9 +1,9 @@
 package com.nisovin.magicspells.spells.buff;
 
-import java.util.Set;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.HashSet;
+import java.util.List;
+import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -14,10 +14,13 @@ import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.CastData;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
 import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
@@ -26,9 +29,9 @@ import de.slikey.effectlib.util.RandomUtils;
 
 public class DodgeSpell extends BuffSpell {
 
-	private final Set<UUID> entities;
+	private final Map<UUID, CastData> entities;
 
-	private float distance;
+	private final ConfigData<Double> distance;
 
 	private SpellFilter filter;
 
@@ -41,9 +44,9 @@ public class DodgeSpell extends BuffSpell {
 	public DodgeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		entities = new HashSet<>();
+		entities = new HashMap<>();
 
-		distance = getConfigFloat("distance", 2);
+		distance = getConfigDataDouble("distance", 2);
 
 		spellBeforeDodgeName = getConfigString("spell-before-dodge", "");
 		spellAfterDodgeName = getConfigString("spell-after-dodge", "");
@@ -75,13 +78,13 @@ public class DodgeSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.add(entity.getUniqueId());
+		entities.put(entity.getUniqueId(), new CastData(power, args));
 		return true;
 	}
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.contains(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
@@ -111,17 +114,21 @@ public class DodgeSpell extends BuffSpell {
 
 		e.setCancelled(true);
 		tracker.getImmune().add(target);
-		dodge(target, tracker.getCurrentLocation());
-		playSpellEffects(EffectPosition.TARGET, tracker.getCurrentLocation());
+
+		CastData castData = entities.get(target.getUniqueId());
+		SpellData spellData = new SpellData(target, tracker.getCaster(), castData.power(), castData.args());
+		dodge(target, tracker, spellData);
+
+		playSpellEffects(EffectPosition.TARGET, tracker.getCurrentLocation(), spellData);
 	}
 
-	private void dodge(LivingEntity entity, Location location) {
-		Location targetLoc = location.clone();
+	private void dodge(LivingEntity entity, ParticleProjectileTracker tracker, SpellData spellData) {
+		Location targetLoc = tracker.getCurrentLocation().clone();
 		Location entityLoc = entity.getLocation().clone();
-		playSpellEffects(EffectPosition.SPECIAL, entityLoc);
 
-		Vector v = RandomUtils.getRandomCircleVector().multiply(distance);
+		playSpellEffects(EffectPosition.SPECIAL, entityLoc, spellData);
 
+		Vector v = RandomUtils.getRandomCircleVector().multiply(distance.get(entity, tracker.getCaster(), spellData.power(), spellData.args()));
 		targetLoc.add(v);
 		targetLoc.setDirection(entity.getLocation().getDirection());
 
@@ -130,21 +137,15 @@ public class DodgeSpell extends BuffSpell {
 		if (!BlockUtils.isPathable(targetLoc.getBlock().getType()) || !BlockUtils.isPathable(targetLoc.getBlock().getRelative(BlockFace.UP))) return;
 		entity.teleport(targetLoc);
 		addUseAndChargeCost(entity);
-		playSpellEffectsTrail(entityLoc, targetLoc);
-		playSpellEffects(EffectPosition.DELAYED, targetLoc);
+
+		playSpellEffectsTrail(entityLoc, targetLoc, spellData);
+		playSpellEffects(EffectPosition.DELAYED, targetLoc, spellData);
+
 		if (spellAfterDodge != null) spellAfterDodge.castAtLocation(entity, targetLoc, 1F);
 	}
 
-	public Set<UUID> getEntities() {
+	public Map<UUID, CastData> getEntities() {
 		return entities;
-	}
-
-	public float getDistance() {
-		return distance;
-	}
-
-	public void setDistance(float distance) {
-		this.distance = distance;
 	}
 
 	public SpellFilter getFilter() {

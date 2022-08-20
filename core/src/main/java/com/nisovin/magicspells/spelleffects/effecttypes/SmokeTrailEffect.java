@@ -9,28 +9,34 @@ import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class SmokeTrailEffect extends SpellEffect {
 
-	private int interval;
+	private ConfigData<Integer> interval;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		interval = config.getInt("interval", 0);
+		interval = ConfigDataUtil.getInteger(config, "interval", 0);
 	}
 
 	@Override
-	public Runnable playEffect(Location location1, Location location2) {		
+	public Runnable playEffect(Location location1, Location location2, SpellData data) {
 		SmokeStreamEffect effect = new SmokeStreamEffect(location1, location2);
+
+		int interval = this.interval.get(data);
 		if (interval > 0) effect.start(interval);
 		else effect.showNoAnimation();
+
 		return null;
 	}
-	
+
 	// Thanks to DrBowe for sharing the code
 	private static class SmokeStreamEffect implements Runnable {
-		
+
 		private Location startLoc;
 		private Location endLoc;
 		private List<Location> locationsForProjection;
@@ -38,7 +44,7 @@ public class SmokeTrailEffect extends SpellEffect {
 
 		private int i;
 		private int id;
-		
+
 		SmokeStreamEffect(Location loc1, Location loc2) {
 			this.startLoc = loc1;
 			this.endLoc = loc2;
@@ -46,7 +52,7 @@ public class SmokeTrailEffect extends SpellEffect {
 			this.locationsForProjection = calculateLocsForProjection();
 			this.i = 0;
 		}
-		
+
 		public void start(int interval) {
 			this.id = MagicSpells.scheduleRepeatingTask(this, interval, interval);
 		}
@@ -56,7 +62,7 @@ public class SmokeTrailEffect extends SpellEffect {
 				run();
 			}
 		}
-		
+
 		@Override
 		public void run() {
 			if (i > locationsForProjection.size() - 1) {
@@ -67,9 +73,9 @@ public class SmokeTrailEffect extends SpellEffect {
 			for (int j = 0; j <= 8; j += 2) {
 				world.playEffect(loc, Effect.SMOKE, j);
 			}
-			i++;			
+			i++;
 		}
-		
+
 		private List<Location> calculateLocsForProjection() {
 			double x1;
 			double y1;
@@ -91,13 +97,13 @@ public class SmokeTrailEffect extends SpellEffect {
 			zVect = z2 - z1;
 			double distance = startLoc.distance(endLoc);
 			List<Location> tmp = new ArrayList<>((int) Math.floor(distance));
-			
+
 			for (double t = 0; t <= 1; t += 1 / distance) {
 				tmp.add(new Location(world, x2 - (xVect * t), y2 - (yVect * t) + 1, z2 - (zVect * t)));
 			}
 			return tmp;
 		}
-		
+
 	}
-	
+
 }

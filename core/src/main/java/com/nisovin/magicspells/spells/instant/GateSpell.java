@@ -8,6 +8,7 @@ import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
@@ -97,8 +98,9 @@ public class GateSpell extends InstantSpell {
 			}
 			caster.teleportAsync(location);
 
-			playSpellEffects(EffectPosition.CASTER, from);
-			playSpellEffects(EffectPosition.TARGET, to);
+			SpellData data = new SpellData(caster, power, args);
+			playSpellEffects(EffectPosition.CASTER, from, data);
+			playSpellEffects(EffectPosition.TARGET, to, data);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

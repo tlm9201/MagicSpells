@@ -33,11 +33,11 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
 			if (target == null) return noTarget(caster);
 
 			applyAttributes(target.getTarget());
-			playSpellEffects(caster, target.getTarget());
+			playSpellEffects(caster, target.getTarget(), power, args);
 			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -45,15 +45,33 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target)) return false;
+		playSpellEffects(caster, target, power, args);
+		applyAttributes(target);
+		return true;
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		playSpellEffects(caster, target);
+		if (!validTargetList.canTarget(caster, target)) return false;
+		playSpellEffects(caster, target, power, null);
+		applyAttributes(target);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target)) return false;
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		applyAttributes(target);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		playSpellEffects(EffectPosition.TARGET, target);
+		if (!validTargetList.canTarget(target)) return false;
+		playSpellEffects(EffectPosition.TARGET, target, power, null);
 		applyAttributes(target);
 		return true;
 	}

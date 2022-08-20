@@ -21,6 +21,7 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 
@@ -31,7 +32,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 	private String strCantBuild;
 	private String strInvalidBlock;
 
-	private int slot;
+	private ConfigData<Integer> slot;
 
 	private boolean consumeBlock;
 	private boolean checkPlugins;
@@ -43,7 +44,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 		strCantBuild = getConfigString("str-cant-build", "You can't build there.");
 		strInvalidBlock = getConfigString("str-invalid-block", "You can't build that block.");
 
-		slot = getConfigInt("slot", 0);
+		slot = getConfigDataInt("slot", 0);
 
 		consumeBlock = getConfigBoolean("consume-block", true);
 		checkPlugins = getConfigBoolean("check-plugins", true);
@@ -72,24 +73,26 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 			allowedTypes.add(material);
 		}
 	}
-	
+
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
+			int slot = this.slot.get(caster, null, power, args);
 			ItemStack item = player.getInventory().getItem(slot);
 			if (item == null || !isAllowed(item.getType())) return noTarget(player, strInvalidBlock);
-			
+
 			List<Block> lastBlocks;
 			try {
-				lastBlocks = getLastTwoTargetedBlocks(player, power);
+				lastBlocks = getLastTwoTargetedBlocks(player, power, args);
 			} catch (IllegalStateException e) {
 				DebugHandler.debugIllegalState(e);
 				lastBlocks = null;
 			}
 
-			if (lastBlocks == null || lastBlocks.size() < 2 || BlockUtils.isAir(lastBlocks.get(1).getType())) return noTarget(player, strCantBuild);
+			if (lastBlocks == null || lastBlocks.size() < 2 || BlockUtils.isAir(lastBlocks.get(1).getType()))
+				return noTarget(player, strCantBuild);
 
-			boolean built = build(player, lastBlocks.get(0), lastBlocks.get(1), item);
+			boolean built = build(player, lastBlocks.get(0), lastBlocks.get(1), item, slot, power, args);
 			if (!built) return noTarget(player, strCantBuild);
 
 		}
@@ -97,14 +100,21 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		if (!(caster instanceof Player)) return false;
-		ItemStack item = ((Player) caster).getInventory().getItem(slot);
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
+		if (!(caster instanceof Player player)) return false;
+
+		int slot = this.slot.get(caster, null, power, args);
+		ItemStack item = player.getInventory().getItem(slot);
 		if (item == null || !isAllowed(item.getType())) return false;
 
 		Block block = target.getBlock();
 
-		return build((Player) caster, block, block, item);
+		return build(player, block, block, item, slot, power, args);
+	}
+
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		return castAtLocation(caster, target, power, null);
 	}
 
 	@Override
@@ -116,7 +126,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 		return mat.isBlock() && allowedTypes != null && allowedTypes.contains(mat);
 	}
 
-	private boolean build(Player player, Block block, Block against, ItemStack item) {
+	private boolean build(Player player, Block block, Block against, ItemStack item, int slot, float power, String[] args) {
 		BlockState previousState = block.getState();
 		block.setType(item.getType());
 
@@ -131,7 +141,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
 
-		playSpellEffects(player, block.getLocation());
+		playSpellEffects(player, block.getLocation(), power, args);
 
 		if (consumeBlock) {
 			int amt = item.getAmount() - 1;

@@ -4,17 +4,19 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private float yaw;
-	private float pitch;
+	private ConfigData<Float> yaw;
+	private ConfigData<Float> pitch;
 
 	private Vector relativeOffset;
 
@@ -23,8 +25,8 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 	public TeleportSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		yaw = getConfigFloat("yaw", 0);
-		pitch = getConfigFloat("pitch", 0);
+		yaw = getConfigDataFloat("yaw", 0);
+		pitch = getConfigDataFloat("pitch", 0);
 
 		relativeOffset = getConfigVector("relative-offset", "0,0.1,0");
 
@@ -34,9 +36,9 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
 			if (target == null) return noTarget(caster);
-			if (!teleport(caster, target.getTarget())) return noTarget(caster, strCantTeleport);
+			if (!teleport(caster, target.getTarget(), target.getPower(), args)) return noTarget(caster, strCantTeleport);
 
 			sendMessages(caster, target.getTarget(), args);
 			return PostCastAction.NO_MESSAGES;
@@ -45,9 +47,14 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		return teleport(caster, target);
+		return teleport(caster, target, power, args);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override
@@ -55,7 +62,7 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 		return false;
 	}
 
-	private boolean teleport(LivingEntity caster, LivingEntity target) {
+	private boolean teleport(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		Location targetLoc = target.getLocation();
 		Location startLoc = caster.getLocation();
 
@@ -65,14 +72,15 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 		targetLoc.add(startLoc.getDirection().multiply(relativeOffset.getX()));
 		targetLoc.setY(targetLoc.getY() + relativeOffset.getY());
 
-		targetLoc.setPitch(startLoc.getPitch() - pitch);
-		targetLoc.setYaw(startLoc.getYaw() + yaw);
+		targetLoc.setPitch(startLoc.getPitch() - pitch.get(caster, target, power, args));
+		targetLoc.setYaw(startLoc.getYaw() + yaw.get(caster, target, power, args));
 
 		if (!BlockUtils.isPathable(targetLoc.getBlock())) return false;
 
-		playSpellEffects(EffectPosition.CASTER, caster);
-		playSpellEffects(EffectPosition.TARGET, target);
-		playSpellEffectsTrail(startLoc, targetLoc);
+		SpellData data = new SpellData(caster, target, power, args);
+		playSpellEffects(EffectPosition.CASTER, caster, data);
+		playSpellEffects(EffectPosition.TARGET, target, data);
+		playSpellEffectsTrail(startLoc, targetLoc, data);
 
 		return caster.teleport(targetLoc);
 	}

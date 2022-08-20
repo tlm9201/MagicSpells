@@ -71,7 +71,7 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 				loc = prev.getLocation();
 			}
 			if (loc != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, loc, power);
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, loc, power, args);
 				EventUtil.call(event);
 
 				if (event.isCancelled()) loc = null;
@@ -85,21 +85,26 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 			loc.setPitch(caster.getLocation().getPitch());
 			loc.setYaw(caster.getLocation().getYaw());
 
-			playSpellEffects(caster, loc);
+			playSpellEffects(caster, loc, power, args);
 			caster.teleport(loc);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
 		Location location = target.clone();
 		location.setYaw(caster.getLocation().getYaw());
 		location.setPitch(caster.getLocation().getPitch());
 
-		playSpellEffects(caster, location);
+		playSpellEffects(caster, location, power, args);
 		caster.teleport(location);
 		return true;
+	}
+
+	@Override
+	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
+		return castAtLocation(caster, target, power, null);
 	}
 
 	@Override

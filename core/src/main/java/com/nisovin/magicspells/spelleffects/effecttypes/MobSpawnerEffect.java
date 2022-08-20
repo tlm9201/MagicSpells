@@ -4,6 +4,7 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
 public class MobSpawnerEffect extends SpellEffect {
@@ -14,7 +15,7 @@ public class MobSpawnerEffect extends SpellEffect {
 	}
 
 	@Override
-	public Runnable playEffectLocation(Location location) {
+	public Runnable playEffectLocation(Location location, SpellData data) {
 		location.getWorld().playEffect(location, Effect.MOBSPAWNER_FLAMES, 0);
 		return null;
 	}

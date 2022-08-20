@@ -118,15 +118,21 @@ public abstract class TargetedSpell extends InstantSpell {
 	
 	@Override
 	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity caster, float power, boolean forceTargetPlayers, ValidTargetChecker checker) {
+		return getTargetedEntity(caster, power, forceTargetPlayers, checker, null);
+	}
+
+	@Override
+	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity caster, float power, boolean forceTargetPlayers, ValidTargetChecker checker, String[] args) {
 		if (targetSelf || validTargetList.canTargetSelf()) {
-			SpellTargetEvent event = new SpellTargetEvent(this, caster, caster, power);
-			EventUtil.call(event);
-			if (event.isCancelled()) return null;
+			SpellTargetEvent event = new SpellTargetEvent(this, caster, caster, power, args);
+			if (!event.callEvent()) return null;
+
 			return new TargetInfo<>(event.getTarget(), event.getPower());
 		}
-		return super.getTargetedEntity(caster, power, forceTargetPlayers, checker);
+
+		return super.getTargetedEntity(caster, power, forceTargetPlayers, checker, args);
 	}
-	
+
 	/**
 	 * This should be called if a target should not be found. It sends the no target message
 	 * and returns the appropriate return value.
