@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import java.util.Objects;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
@@ -11,6 +13,7 @@ public class VariableStringEqualsCondition extends Condition {
 
 	private String variable;
 	private String value;
+	private boolean isVariable;
 
 	@Override
 	public boolean initialize(String var) {
@@ -27,8 +30,10 @@ public class VariableStringEqualsCondition extends Condition {
 			MagicSpells.error("No variable stated for comparison within this modifier!");
 			return false;
 		}
-		//Translates "null" string to "".
-		if (value.equals("null")) value = "";
+
+		isVariable = MagicSpells.getVariableManager().getVariables().containsKey(value);
+		//Translates "null" string to empty.
+		if (!isVariable && value.equals("null")) value = "";
 
 		//If everything checks out, will continue.
 		return true;
@@ -36,18 +41,25 @@ public class VariableStringEqualsCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return isEqualFor(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		if (!(target instanceof Player)) return false;
-		return MagicSpells.getVariableManager().getStringValue(variable, (Player) target).equals(value);
+		return isEqualFor(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		return check(livingEntity, livingEntity);
+		return isEqualFor(livingEntity);
+	}
+
+	private boolean isEqualFor(LivingEntity entity) {
+		if (!(entity instanceof Player player)) return false;
+		return Objects.equals(
+				MagicSpells.getVariableManager().getStringValue(variable, player),
+				isVariable ? MagicSpells.getVariableManager().getStringValue(value, player) : value
+		);
 	}
 
 }
