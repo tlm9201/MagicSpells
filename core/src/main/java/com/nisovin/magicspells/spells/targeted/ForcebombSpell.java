@@ -27,6 +27,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 	private ConfigData<Double> yOffset;
 	private ConfigData<Double> maxYForce;
 
+	private boolean addYForceInstead;
 	private boolean callTargetEvents;
 	private boolean powerAffectsForce;
 	private boolean addVelocityInstead;
@@ -40,6 +41,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		yOffset = getConfigDataDouble("y-offset", 0F);
 		maxYForce = getConfigDataDouble("max-vertical-force", 20);
 
+		addYForceInstead = getConfigBoolean("add-y-force-instead", false);
 		callTargetEvents = getConfigBoolean("call-target-events", true);
 		powerAffectsForce = getConfigBoolean("power-affects-force", true);
 		addVelocityInstead = getConfigBoolean("add-velocity-instead", false);
@@ -104,7 +106,6 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 
 			bomb(caster, caster, location, basePower, args);
 
-			playSpellEffects(EffectPosition.TARGET, caster, data);
 			playSpellEffects(EffectPosition.CASTER, caster, data);
 			playSpellEffects(EffectPosition.SPECIAL, location, data);
 			return;
@@ -144,7 +145,10 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		double yForce = this.yForce.get(caster, target, power, args) / 10;
 		if (powerAffectsForce) yForce *= power;
 
-		v.setY(Math.min(v.getY() + yForce, maxYForce.get(caster, target, power, args) / 10));
+		double maxYForce = this.maxYForce.get(caster, target, power, args) / 10;
+		if (addYForceInstead) v.setY(Math.min(v.getY() + yForce, maxYForce));
+		else v.setY(Math.min(force == 0 ? yForce : v.getY() * yForce, maxYForce));
+
 		v = Util.makeFinite(v);
 
 		if (addVelocityInstead) target.setVelocity(target.getVelocity().add(v));
