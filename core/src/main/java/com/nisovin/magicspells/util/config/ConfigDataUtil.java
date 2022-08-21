@@ -406,19 +406,20 @@ public class ConfigDataUtil {
 		if (value == null) return (caster, target, power, args) -> def;
 
 		try {
-			BlockData val = Bukkit.createBlockData(value);
+			BlockData val = Bukkit.createBlockData(value.trim().toLowerCase());
 			return (caster, target, power, args) -> val;
 		} catch (IllegalArgumentException e) {
 			ConfigData<String> supplier = getString(value);
 
 			return new ConfigData<>() {
+
 				@Override
 				public BlockData get(LivingEntity caster, LivingEntity target, float power, String[] args) {
 					String val = supplier.get(caster, target, power, args);
 					if (val == null) return def;
 
 					try {
-						return Bukkit.createBlockData(val);
+						return Bukkit.createBlockData(val.trim().toLowerCase());
 					} catch (IllegalArgumentException e) {
 						return def;
 					}
