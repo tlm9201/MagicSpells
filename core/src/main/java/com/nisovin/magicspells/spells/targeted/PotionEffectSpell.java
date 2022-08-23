@@ -198,7 +198,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 		if (effect.getType() == PotionEffectType.POISON) cause = DamageCause.POISON;
 		else if (effect.getType() == PotionEffectType.WITHER) cause = DamageCause.WITHER;
 
-		new SpellApplyDamageEvent(this, caster, target, effect.getAmplifier(), cause, "").callEvent();
+		if (cause != null) new SpellApplyDamageEvent(this, caster, target, effect.getAmplifier(), cause, "").callEvent();
 	}
 
 }
