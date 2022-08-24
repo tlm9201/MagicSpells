@@ -72,10 +72,6 @@ public abstract class SpellEffect {
 	private ModifierSet targetModifiers;
 	private ModifierSet locationModifiers;
 
-	public void loadFromString(String string) {
-		MagicSpells.plugin.getLogger().warning("Warning: single line effects are being removed, usage encountered: " + string);
-	}
-
 	public final void loadFromConfiguration(ConfigurationSection config) {
 		delay = ConfigDataUtil.getInteger(config, "delay", 0);
 		chance = ConfigDataUtil.getDouble(config, "chance", -1);
