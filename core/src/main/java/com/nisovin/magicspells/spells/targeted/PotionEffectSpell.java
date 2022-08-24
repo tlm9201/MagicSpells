@@ -41,7 +41,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 
 		potionEffectStrings = getConfigStringList("potion-effects", null);
 
-		type = Util.getPotionEffectType(getConfigString("type", "1"));
+		type = Util.getPotionEffectType(getConfigString("type", "speed"));
 
 		duration = getConfigDataInt("duration", 0);
 		strength = getConfigDataInt("strength", 0);
