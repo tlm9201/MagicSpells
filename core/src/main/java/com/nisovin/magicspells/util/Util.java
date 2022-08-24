@@ -69,16 +69,13 @@ public class Util {
 	public static double round(double value, int places, RoundingMode roundingMode) {
 		if (places < 0) throw new IllegalArgumentException("places cant be lower than 0");
 
-		BigDecimal bd = BigDecimal.valueOf(value);
-		bd = bd.setScale(places, roundingMode);
-		return bd.doubleValue();
+		return BigDecimal.valueOf(value).setScale(places, roundingMode).doubleValue();
 	}
 
 	public static Material getMaterial(String name) {
-		name = name.toUpperCase();
-		Material material = Material.getMaterial(name);
-		if (material == null) material = Material.matchMaterial(name);
-		return material;
+		Material m = Material.getMaterial(name.toUpperCase());
+		if (m == null) m = Material.matchMaterial(name.toUpperCase());
+		return m;
 	}
 
 	// - <potionEffectType> (level) (duration) (ambient)
@@ -110,7 +107,12 @@ public class Util {
 		}
 
 		boolean ambient = data.length > 3 && (BooleanUtils.isYes(data[3]) || data[3].equalsIgnoreCase("ambient"));
-		return new PotionEffect(t, duration, level, ambient);
+
+		boolean particles = data.length > 4 && (BooleanUtils.isYes(data[4]) || data[4].equalsIgnoreCase("particles"));
+
+		boolean icon = data.length > 5 && (BooleanUtils.isYes(data[5]) || data[5].equalsIgnoreCase("icon"));
+
+		return new PotionEffect(t, duration, level, ambient, particles, icon);
 	}
 
 	// - <potionEffectType> (duration)
@@ -176,8 +178,8 @@ public class Util {
 	public static void setLocationFacingFromVector(Location location, Vector vector) {
 		double yaw = getYawOfVector(vector);
 		double pitch = FastMath.toDegrees(-FastMath.asin(vector.getY()));
-		location.setYaw((float)yaw);
-		location.setPitch((float)pitch);
+		location.setYaw((float) yaw);
+		location.setPitch((float) pitch);
 	}
 
 	public static double getYawOfVector(Vector vector) {
@@ -241,7 +243,10 @@ public class Util {
 			if (max > 0 && list.size() == max - 1) {
 				if (!building.isEmpty()) building += " ";
 				building += word;
-			} else if (quote == ' ') {
+				continue;
+			}
+
+			if (quote == ' ') {
 				if (word.length() == 1 || (word.charAt(0) != '"' && word.charAt(0) != '\'')) {
 					list.add(word);
 				} else {
@@ -253,14 +258,15 @@ public class Util {
 						building = word.substring(1);
 					}
 				}
+				continue;
+			}
+
+			if (word.charAt(word.length() - 1) == quote) {
+				list.add(building + ' ' + word.substring(0, word.length() - 1));
+				building = "";
+				quote = ' ';
 			} else {
-				if (word.charAt(word.length() - 1) == quote) {
-					list.add(building + ' ' + word.substring(0, word.length() - 1));
-					building = "";
-					quote = ' ';
-				} else {
-					building += ' ' + word;
-				}
+				building += ' ' + word;
 			}
 		}
 
@@ -290,8 +296,8 @@ public class Util {
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
 
-			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
-			if (magicItemData == null || !itemData.matches(magicItemData)) continue;
+			MagicItemData magicData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (magicData == null || !itemData.matches(magicData)) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);
@@ -327,8 +333,8 @@ public class Util {
 		for (int i = 0; i < items.length; i++) {
 			if (items[i] == null) continue;
 
-			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(items[i]);
-			if (magicItemData == null || !itemData.matches(magicItemData)) continue;
+			MagicItemData magicData = MagicItems.getMagicItemDataFromItemStack(items[i]);
+			if (magicData == null || !itemData.matches(magicData)) continue;
 
 			if (items[i].getAmount() > amt) {
 				items[i].setAmount(items[i].getAmount() - amt);
@@ -411,8 +417,7 @@ public class Util {
 	}
 
 	public static Location applyRelativeOffset(Location location, Vector direction, float x, float y, float z) {
-		Vector horizOffset = new Vector(-direction.getZ(), 0.0, direction.getX()).normalize();
-		location.add(horizOffset.multiply(z));
+		location.add(new Vector(-direction.getZ(), 0.0, direction.getX()).normalize().multiply(z));
 		location.add(location.getDirection().multiply(x));
 		location.setY(location.getY() + y);
 
@@ -750,8 +755,7 @@ public class Util {
 	}
 
 	public static void setInventoryTitle(Player player, String title) {
-		title = doVarReplacementAndColorize(player, title);
-		MagicSpells.getVolatileCodeHandler().setInventoryTitle(player, title);
+		MagicSpells.getVolatileCodeHandler().setInventoryTitle(player, doVarReplacementAndColorize(player, title));
 	}
 
 	public static PlayerProfile setTexture(PlayerProfile profile, String texture, String signature) {
@@ -773,8 +777,7 @@ public class Util {
 	}
 
 	public static void setSkin(Player player, String skin, String signature) {
-		PlayerProfile profile = setTexture(player.getPlayerProfile(), skin, signature);
-		player.setPlayerProfile(profile);
+		player.setPlayerProfile(setTexture(player.getPlayerProfile(), skin, signature));
 	}
 
 	public static void setTexture(SkullMeta meta, String texture, String signature, String uuid, OfflinePlayer offlinePlayer) {
