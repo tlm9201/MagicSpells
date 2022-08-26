@@ -17,10 +17,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.potion.PotionEffectType;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ColorUtil;
 import com.nisovin.magicspells.util.ParticleUtil;
+import com.nisovin.magicspells.util.Util;
 
 public class ConfigDataUtil {
 
@@ -335,6 +337,23 @@ public class ConfigDataUtil {
 		return (caster, target, power, args) -> def;
 	}
 
+	public static ConfigData<Boolean> getBoolean(@NotNull ConfigurationSection config, @NotNull String path, ConfigData<Boolean> def) {
+		if (config.isBoolean(path)) {
+			boolean val = config.getBoolean(path);
+			return (caster, target, power, args) -> val;
+		}
+
+		if (config.isString(path)) {
+			ConfigData<String> supplier = getString(config, path, null);
+			return (caster, target, power, args) -> {
+				String value = supplier.get(caster, target, power, args);
+				return value == null ? def.get(caster, target, power, args) : Boolean.parseBoolean(value);
+			};
+		}
+
+		return def;
+	}
+
 	@NotNull
 	public static <T extends Enum<T>> ConfigData<T> getEnum(@NotNull ConfigurationSection config,
 															@NotNull String path,
@@ -370,6 +389,34 @@ public class ConfigDataUtil {
 
 			};
 		}
+	}
+
+	@NotNull
+	public static ConfigData<PotionEffectType> getPotionEffectType(@NotNull ConfigurationSection config, @NotNull String path, @Nullable PotionEffectType def) {
+		String value = config.getString(path);
+		if (value == null) return (caster, target, power, args) -> def;
+
+		PotionEffectType type = Util.getPotionEffectType(value);
+		if (type != null) return (caster, target, power, args) -> type;
+
+		ConfigData<String> supplier = getString(value);
+		return new ConfigData<>() {
+
+			@Override
+			public PotionEffectType get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+				String val = supplier.get(caster, target, power, args);
+				if (val == null) return def;
+
+				PotionEffectType type = Util.getPotionEffectType(val);
+				return type == null ? def : type;
+			}
+
+			@Override
+			public boolean isConstant() {
+				return supplier.isConstant();
+			}
+
+		};
 	}
 
 	@NotNull

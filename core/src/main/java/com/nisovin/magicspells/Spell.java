@@ -741,6 +741,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return config.getDouble("spells." + internalName + '.' + key, defaultValue);
 	}
 
+	protected List<?> getConfigList(String key, List<?> defaultValue) {
+		return config.getList("spells." + internalName + "." + key, defaultValue);
+	}
+
 	protected List<Integer> getConfigIntList(String key, List<Integer> defaultValue) {
 		return config.getIntList("spells." + internalName + '.' + key, defaultValue);
 	}
@@ -755,6 +759,14 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected ConfigurationSection getConfigSection(String key) {
 		return config.getSection("spells." + internalName + '.' + key);
+	}
+
+	protected ConfigData<Boolean> getConfigDataBoolean(String key, boolean def) {
+		return ConfigDataUtil.getBoolean(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+	}
+
+	protected ConfigData<Boolean> getConfigDataBoolean(String key, ConfigData<Boolean> def) {
+		return ConfigDataUtil.getBoolean(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected ConfigData<Integer> getConfigDataInt(String key, int def) {
