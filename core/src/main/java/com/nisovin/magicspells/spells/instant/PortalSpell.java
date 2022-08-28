@@ -159,7 +159,7 @@ public class PortalSpell extends InstantSpell {
 			}
 
 			Portal startPortal = new Portal(loc, teleportReagents, new BoundingBox(loc, hRadiusStart.get(data), vRadiusStart.get(data)));
-			Portal endPortal = new Portal(loc, teleportReagents, new BoundingBox(locSecond, hRadiusEnd.get(data), vRadiusEnd.get(data)));
+			Portal endPortal = new Portal(locSecond, teleportReagents, new BoundingBox(locSecond, hRadiusEnd.get(data), vRadiusEnd.get(data)));
 
 			new PortalLink(caster, startPortal, endPortal, power, data);
 
@@ -282,7 +282,7 @@ public class PortalSpell extends InstantSpell {
 			this.power = power;
 			this.data = data;
 
-			tpCooldown = teleportCooldown.get(data);
+			tpCooldown = teleportCooldown.get(data) * 1000;
 
 			allowReturn = canReturn.get(data);
 			teleportOtherPlayers = canTeleportOtherPlayers.get(data);
@@ -320,6 +320,7 @@ public class PortalSpell extends InstantSpell {
 		@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 		private void onMove(PlayerMoveEvent event) {
 			if (!teleportOtherPlayers && !event.getPlayer().equals(caster)) return;
+			if (event.getFrom().toVector().equals(event.getTo().toVector())) return;
 			if (!caster.isValid()) {
 				stop();
 				return;
