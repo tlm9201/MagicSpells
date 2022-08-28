@@ -49,21 +49,21 @@ public class OnBlockCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return onBlock(livingEntity);
+		return onBlock(livingEntity.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return onBlock(target);
+		return onBlock(target.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		return false;
+		return onBlock(location.clone());
 	}
 
-	private boolean onBlock(LivingEntity entity) {
-		BlockData bd = entity.getLocation().subtract(0, 1, 0).getBlock().getBlockData();
+	private boolean onBlock(Location location) {
+		BlockData bd = location.subtract(0, 1, 0).getBlock().getBlockData();
 		if (blockData != null) return bd.matches(blockData);
 
 		for (BlockData data : blockDataSet)

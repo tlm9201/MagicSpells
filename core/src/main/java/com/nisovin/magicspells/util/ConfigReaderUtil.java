@@ -1,9 +1,11 @@
 package com.nisovin.magicspells.util;
 
-import org.bukkit.util.Vector;
+import java.util.Map;
 
+import org.bukkit.util.Vector;
 import org.bukkit.conversations.Prompt;
 import org.bukkit.conversations.ConversationFactory;
+import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -24,7 +26,7 @@ public class ConfigReaderUtil {
 	public static MagicLocation readLocation(ConfigurationSection section, String path) {
 		return readLocation(section, path, "world,0,0,0");
 	}
-	
+
 	public static MagicLocation readLocation(ConfigurationSection section, String path, String defaultText) {
 		String s = section.getString(path, defaultText);
 		MagicLocation ret;
@@ -44,11 +46,11 @@ public class ConfigReaderUtil {
 		}
 		return ret;
 	}
-	
+
 	public static Prompt readPrompt(ConfigurationSection section) {
 		return readPrompt(section, Prompt.END_OF_CONVERSATION);
 	}
-	
+
 	public static Prompt readPrompt(ConfigurationSection section, Prompt defaultPrompt) {
 		if (section == null) return defaultPrompt;
 		String type = section.getString("prompt-type");
@@ -56,7 +58,7 @@ public class ConfigReaderUtil {
 		if (promptType == null) return defaultPrompt;
 		return promptType.constructPrompt(section);
 	}
-	
+
 	// prefix accepts a string and defaults to null
 	// local-echo accepts a boolean and defaults to true
 	// first-prompt accepts a configuration section in prompt format
@@ -64,29 +66,35 @@ public class ConfigReaderUtil {
 	// escape-sequence accepts a string and defaults to null
 	public static ConversationFactory readConversationFactory(ConfigurationSection section) {
 		ConversationFactory ret = new ConversationFactory(MagicSpells.plugin);
-		
+
 		// Handle the prefix
 		String prefix = section.getString("prefix", null);
 		if (prefix != null && !prefix.isEmpty()) ret = ret.withPrefix(new MagicConversationPrefix(Util.colorize(prefix)));
-		
+
 		// Handle local echo
 		boolean localEcho = section.getBoolean("local-echo", true);
 		ret = ret.withLocalEcho(localEcho);
-		
+
 		// Handle first prompt loading
 		Prompt firstPrompt = readPrompt(section.getConfigurationSection("first-prompt"));
 		ret = ret.withFirstPrompt(firstPrompt);
-		
+
 		// Handle timeout
 		int timeoutSeconds = section.getInt("timeout-seconds", 30);
 		ret = ret.withTimeout(timeoutSeconds);
-		
+
 		// Handle escape sequence
 		String escapeSequence = section.getString("escape-sequence", null);
 		if (escapeSequence != null && !escapeSequence.isEmpty()) ret = ret.withEscapeSequence("");
-		
+
 		// Return
 		return ret;
 	}
-	
+
+	public static ConfigurationSection mapToSection(Map<?, ?> map) {
+		ConfigurationSection section = new MemoryConfiguration();
+		for (Map.Entry<?, ?> entry : map.entrySet()) section.set(String.valueOf(entry.getKey()), entry.getValue());
+		return section;
+	}
+
 }
