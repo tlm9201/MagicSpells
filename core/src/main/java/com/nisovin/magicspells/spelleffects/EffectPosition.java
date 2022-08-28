@@ -6,8 +6,10 @@ import java.util.HashMap;
 public enum EffectPosition {
 
 	START_CAST("start", "startcast"),
-	CASTER("pos1", "position1", "caster", "actor"),
-	TARGET("pos2", "position2", "target"),
+	CASTER("caster", "actor"),
+	TARGET("target"),
+	START_POSITION("startposition", "startpos", "pos1", "position1"),
+	END_POSITION( "endposition", "endpos", "pos2", "position2"),
 	TRAIL("line", "trail"),
 	DISABLED("disabled"),
 	DELAYED("delayed"),
@@ -38,18 +40,18 @@ public enum EffectPosition {
 	private static void initializeNameMap() {
 		if (nameMap == null) nameMap = new HashMap<>();
 		nameMap.clear();
-		for (EffectPosition pos: EffectPosition.values()) {
+		for (EffectPosition position : EffectPosition.values()) {
 			// For all of the names
-			for (String name: pos.names) {
-				nameMap.put(name.toLowerCase(), pos);
+			for (String name : position.names) {
+				nameMap.put(name.toLowerCase(), position);
 			}
 		}
 		initialized = true;
 	}
 
-	public static EffectPosition getPositionFromString(String pos) {
+	public static EffectPosition getPositionFromString(String position) {
 		if (!initialized) initializeNameMap();
-		return nameMap.get(pos.toLowerCase());
+		return nameMap.get(position.toLowerCase());
 	}
 
 }

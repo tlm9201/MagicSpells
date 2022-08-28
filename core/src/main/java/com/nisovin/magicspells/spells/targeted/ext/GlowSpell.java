@@ -1,75 +1,84 @@
 package com.nisovin.magicspells.spells.targeted.ext;
 
-import java.util.*;
+import java.util.Set;
+import java.util.UUID;
+import java.util.Collection;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
-import org.inventivetalent.glow.GlowAPI;
+import ru.xezard.glow.data.glow.Glow;
+import ru.xezard.glow.data.glow.Glow.GlowBuilder;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.LinkedListMultimap;
+
+import org.apache.commons.math3.util.FastMath;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.spells.buff.InvisibilitySpell;
 
 /*
- * NOTE: ProtocolLib and GlowAPI are required for this spell class.
- * GlowAPI: https://github.com/InventivetalentDev/GlowAPI
+ * NOTE: ProtocolLib and XGlow are required for this spell class.
+ * XGlow: https://github.com/Xezard/XGlow
  */
 public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final Multimap<UUID, UUID> glowing;
-	private final Set<UUID> glowingUnpaired;
+	private final Multimap<UUID, GlowData> glowing;
+
+	private GlowBuilder glowBuilder;
+
+	private ChatColor color;
 
 	private final ConfigData<Integer> duration;
 
 	private final boolean powerAffectsDuration;
-	private final boolean visibleToEveryone;
-	private final boolean visibleToCaster;
-	private final boolean visibleToTarget;
-	private final boolean toggle;
-
-	private GlowAPI.Color color;
 
 	public GlowSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		glowing = LinkedListMultimap.create();
-		glowingUnpaired = new HashSet<>();
 
-		toggle = getConfigBoolean("toggle", false);
+		glowing = LinkedListMultimap.create();
+
 		duration = getConfigDataInt("duration", 0);
-		visibleToCaster = getConfigBoolean("visible-to-caster", true);
-		visibleToTarget = getConfigBoolean("visible-to-target", false);
-		visibleToEveryone = getConfigBoolean("visible-to-everyone", true);
+
 		powerAffectsDuration = getConfigBoolean("power-affects-duration", true);
 
 		String colorName = getConfigString("color", "");
 		try {
-			color = GlowAPI.Color.valueOf(colorName.toUpperCase());
+			color = ChatColor.valueOf(colorName.toUpperCase());
 		} catch (IllegalArgumentException ignored) {
-			color = GlowAPI.Color.WHITE;
-			MagicSpells.log("GlowSpell '" + internalName + "' has an invalid color defined': " + colorName);
+			color = ChatColor.WHITE;
+			MagicSpells.log("GlowSpell '" + internalName + "' has an invalid color defined: '" + colorName + "'.");
 		}
+	}
+
+	@Override
+	public void initialize() {
+		super.initialize();
+
+		glowBuilder = Glow.builder().color(color).name(MagicSpells.getInstance().getName());
 	}
 
 	@Override
 	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && livingEntity instanceof Player caster) {
+
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
 			if (targetInfo == null) return noTarget(caster);
+
 			LivingEntity target = targetInfo.getTarget();
 
 			sendMessages(caster, target, args);
-			glow(caster, target, targetInfo.getPower(), args);
+			glow(caster, target, powerAffectsDuration ? targetInfo.getPower() : 1F, args);
+
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
@@ -78,91 +87,140 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		glow(caster instanceof Player ? (Player) caster : null, target, power, args);
+		if (!(caster instanceof Player pl)) return false;
+
+		glow(pl, target, powerAffectsDuration ? power : 1F, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
+		return castAtEntity(caster, target, powerAffectsDuration ? power : 1F, null);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		glow(null, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
+		return true;
 	}
 
 	@Override
 	public void turnOff() {
-		for (Map.Entry<UUID, UUID> entry : new HashSet<>(glowing.entries())) {
-			Player player = Bukkit.getPlayer(entry.getKey());
-			if (player == null) continue;
-			Entity entity = Bukkit.getEntity(entry.getValue());
-			if (entity == null) continue;
-			removeGlow(player, entity);
-		}
-		for (UUID uuid : new HashSet<>(glowingUnpaired)) {
-			Entity entity = Bukkit.getEntity(uuid);
-			if (entity == null) continue;
-			removeGlow(null, entity);
-		}
-	}
-
-	private boolean isGlowing(LivingEntity entity) {
-		UUID uuid = entity.getUniqueId();
-		return glowing.containsValue(uuid) || glowingUnpaired.contains(uuid);
+		glowing.values().forEach(glowData -> glowData.getGlow().destroy());
 	}
 
 	private void glow(Player caster, LivingEntity target, float power, String[] args) {
-		int duration = this.duration.get(caster, target, power, args);
-		if (powerAffectsDuration) duration = Math.round(duration * power);
-
-		UUID uuid = target.getUniqueId();
-
-		// Handle reapply and toggle.
-		if (isGlowing(target)) {
-			removeGlow(caster, target);
-			if (toggle) return;
-		}
-
-		GlowAPI.setGlowing(target, color, getWatchers(caster, target));
-		if (caster == null) glowingUnpaired.add(uuid);
-		else glowing.put(caster.getUniqueId(), uuid);
-		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> removeGlow(caster, target), duration);
-
-		// Play effects.
 		SpellData data = new SpellData(caster, target, power, args);
-		if (caster == null) playSpellEffects(EffectPosition.TARGET, target, data);
-		else playSpellEffects(caster, target, data);
-		playSpellEffectsBuff(target, entity -> entity instanceof LivingEntity && isGlowing((LivingEntity) entity), data);
-	}
+		Collection<GlowData> glows = glowing.get(caster.getUniqueId());
+		for (GlowData glowData : glows) {
+			// That entity is glowing for the caster
+			if (!glowData.getGlow().hasHolder(target)) continue;
 
-	private void removeGlow(Player caster, Entity target) {
-		GlowAPI.setGlowing(target, false, getWatchers(caster, target));
-		UUID uuid = target.getUniqueId();
-		if (caster == null) glowingUnpaired.remove(uuid);
-		else glowing.remove(caster.getUniqueId(), uuid);
-	}
+			// If casted by the same spell, extend duration, otherwise fail
+			if (!glowData.getInternalName().equals(internalName)) return;
 
-	private Collection<Player> getWatchers(Player caster, Entity target) {
-		Set<Player> watchers = new HashSet<>();
-		if (visibleToEveryone) watchers.addAll(Bukkit.getOnlinePlayers());
-		if (caster != null) {
-			if (visibleToCaster) watchers.add(caster);
-			else watchers.remove(caster);
+			MagicSpells.cancelTask(glowData.getTaskId());
+			glowData.setTaskId(MagicSpells.scheduleDelayedTask(() -> {
+				// Make the target hidden if it has an invisibility spell active
+				if (target instanceof Player targetPlayer) {
+					Set<BuffSpell> buffSpells = MagicSpells.getBuffManager().getActiveBuffs(target);
+					if (buffSpells != null) {
+						for (BuffSpell buffSpell : buffSpells) {
+							if (!(buffSpell instanceof InvisibilitySpell)) continue;
+							if (!caster.canSee(targetPlayer)) continue;
+
+							caster.hidePlayer(MagicSpells.getInstance(), targetPlayer);
+						}
+					}
+				}
+
+				glowData.getGlow().destroy();
+				glowing.remove(caster.getUniqueId(), glowData);
+			}, FastMath.round(duration.get(data) * power)));
+
+			return;
 		}
+
+		GlowData glowData;
+
+		Glow glow = glowBuilder.name(target.getUniqueId().toString() + caster.getUniqueId().toString() + internalName).build();
+		glow.addHolders(target);
+		glow.display(caster);
+
+		glowData = new GlowData(glow, internalName);
+		glowData.setTaskId(MagicSpells.scheduleDelayedTask(() -> {
+			// Make the target hidden if it has an invisibility spell active
+			if (target instanceof Player targetPlayer) {
+				Set<BuffSpell> buffSpells = MagicSpells.getBuffManager().getActiveBuffs(targetPlayer);
+				if (buffSpells != null) {
+					for (BuffSpell buffSpell : buffSpells) {
+						if (!(buffSpell instanceof InvisibilitySpell)) continue;
+						if (!caster.canSee(targetPlayer)) continue;
+
+						caster.hidePlayer(MagicSpells.getInstance(), targetPlayer);
+					}
+				}
+			}
+
+			glow.destroy();
+			glowing.remove(caster.getUniqueId(), glowData);
+		}, FastMath.round(duration.get(data) * power)));
+
+		// If target is a vanished player, make the caster see the target with vanish
 		if (target instanceof Player targetPlayer) {
-			if (visibleToTarget) watchers.add(targetPlayer);
-			else watchers.remove(targetPlayer);
+			Set<BuffSpell> buffSpells = MagicSpells.getBuffManager().getActiveBuffs(targetPlayer);
+			if (buffSpells != null) {
+				for (BuffSpell buffSpell : buffSpells) {
+					if (!(buffSpell instanceof InvisibilitySpell)) continue;
+					if (caster.canSee(targetPlayer)) continue;
+
+					caster.showPlayer(MagicSpells.getInstance(), targetPlayer);
+				}
+			}
 		}
-		return watchers;
+
+		glowing.put(caster.getUniqueId(), glowData);
+	}
+
+	private static class GlowData {
+
+		private Glow glow;
+		private int taskId;
+		private String internalName;
+
+		private GlowData(Glow glow, String internalName) {
+			this.glow = glow;
+			this.internalName = internalName;
+		}
+
+		public Glow getGlow() {
+			return glow;
+		}
+
+		public void setGlow(Glow glow) {
+			this.glow = glow;
+		}
+
+		public int getTaskId() {
+			return taskId;
+		}
+
+		public void setTaskId(int taskId) {
+			this.taskId = taskId;
+		}
+
+		public String getInternalName() {
+			return internalName;
+		}
+
+		public void setInternalName(String internalName) {
+			this.internalName = internalName;
+		}
+
 	}
 
 }

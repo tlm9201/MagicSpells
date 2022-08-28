@@ -44,12 +44,6 @@ public class NovaEffect extends SpellEffect {
 
 	private boolean circleShape;
 	private boolean removePreviousBlocks;
-
-	@Override
-	public void loadFromString(String string) {
-		super.loadFromString(string);
-	}
-
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
 		List<String> materialList = config.getStringList("types");

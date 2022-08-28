@@ -20,25 +20,18 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
 import org.bukkit.util.BlockIterator;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-
-import net.kyori.adventure.text.Component;
-
-import de.slikey.effectlib.Effect;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.util.config.*;
@@ -47,10 +40,8 @@ import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.handlers.DebugHandler;
-import com.nisovin.magicspells.handlers.MoneyHandler;
 import com.nisovin.magicspells.events.SpellCastedEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -58,12 +49,15 @@ import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.effecttypes.*;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
-import com.nisovin.magicspells.util.managers.VariableManager;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
+
+import de.slikey.effectlib.Effect;
+
+import net.kyori.adventure.text.Component;
 
 public abstract class Spell implements Comparable<Spell>, Listener {
 
@@ -1150,87 +1144,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	protected boolean hasReagents(LivingEntity livingEntity, SpellReagents reagents) {
 		if (reagents == null) return true;
-		return hasReagents(livingEntity, reagents.getItemsAsArray(), reagents.getHealth(), reagents.getMana(), reagents.getHunger(), reagents.getExperience(), reagents.getLevels(), reagents.getDurability(), reagents.getMoney(), reagents.getVariables());
-	}
-
-	/**
-	 * Checks if a player has the specified reagents, including health and mana
-	 * @param livingEntity the living entity to check
-	 * @param reagents the inventory item reagents to look for
-	 * @param healthCost the health cost, in half-hearts
-	 * @param manaCost the mana cost
-	 * @return true if the player has all the reagents, false otherwise
-	 */
-	private boolean hasReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents, double healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
-		// Is the livingEntity exempt from reagent costs?
-		if (Perm.NO_REAGENTS.has(livingEntity)) return true;
-
-		// player reagents
-		if (livingEntity instanceof Player player) {
-			// Mana costs
-			if (manaCost > 0 && (MagicSpells.getManaHandler() == null || !MagicSpells.getManaHandler().hasMana(player, manaCost))) return false;
-
-			// Hunger costs
-			if (hungerCost > 0 && player.getFoodLevel() < hungerCost) return false;
-
-			// Experience costs
-			if (experienceCost > 0 && !ExperienceUtils.hasExp(player, experienceCost)) return false;
-
-			// Level costs
-			if (levelsCost > 0 && player.getLevel() < levelsCost) return false;
-
-			// Money costs
-			if (moneyCost > 0) {
-				MoneyHandler moneyHandler = MagicSpells.getMoneyHandler();
-				if (moneyHandler == null || !moneyHandler.hasMoney(player, moneyCost)) {
-					return false;
-				}
-			}
-
-			// Variable costs
-			if (variables != null) {
-				VariableManager varMan = MagicSpells.getVariableManager();
-				if (varMan == null) return false;
-				for (Map.Entry<String, Double> var : variables.entrySet()) {
-					double val = var.getValue();
-					if (val > 0 && varMan.getValue(var.getKey(), player) < val) return false;
-				}
-			}
-		}
-
-		// Health costs
-		if (healthCost > 0 && livingEntity.getHealth() <= healthCost) return false;
-
-		// Durabilty costs
-		if (durabilityCost > 0) {
-			// Durability cost is charged from the main hand item
-			EntityEquipment equipment = livingEntity.getEquipment();
-			if (equipment == null) return false;
-			ItemStack inHand = equipment.getItemInMainHand();
-			if (!(inHand.getItemMeta() instanceof Damageable damageable)) return false;
-			if (damageable.getDamage() >= inHand.getType().getMaxDurability()) return false;
-		}
-
-		// Item costs
-		if (reagents != null) {
-			if (livingEntity instanceof Player player) {
-				Inventory inventory = player.getInventory();
-				for (SpellReagents.ReagentItem item : reagents) {
-					if (item == null) continue;
-					if (InventoryUtil.inventoryContains(inventory, item)) continue;
-					return false;
-				}
-			} else {
-				EntityEquipment entityEquipment = livingEntity.getEquipment();
-				for (SpellReagents.ReagentItem item : reagents) {
-					if (item == null) continue;
-					if (InventoryUtil.inventoryContains(entityEquipment, item)) continue;
-					return false;
-				}
-			}
-		}
-
-		return true;
+		return SpellUtil.hasReagents(livingEntity, reagents.getItemsAsArray(), reagents.getHealth(), reagents.getMana(), reagents.getHunger(), reagents.getExperience(), reagents.getLevels(), reagents.getDurability(), reagents.getMoney(), reagents.getVariables());
 	}
 
 	/**
@@ -1250,92 +1164,11 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param reagents the inventory item reagents to remove
 	 */
 	protected void removeReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents) {
-		removeReagents(livingEntity, reagents, 0, 0, 0, 0, 0, 0, 0, null);
+		SpellUtil.removeReagents(livingEntity, reagents, 0, 0, 0, 0, 0, 0, 0, null);
 	}
 
 	protected void removeReagents(LivingEntity livingEntity, SpellReagents reagents) {
-		removeReagents(livingEntity, reagents.getItemsAsArray(), reagents.getHealth(), reagents.getMana(), reagents.getHunger(), reagents.getExperience(), reagents.getLevels(), reagents.getDurability(), reagents.getMoney(), reagents.getVariables());
-	}
-
-	/**
-	 * Removes the specified reagents, including health and mana, from the player's inventory.
-	 * This does not check if the player has the reagents, use hasReagents() for that.
-	 * @param livingEntity the living entity to remove the reagents from
-	 * @param reagents the inventory item reagents to remove
-	 * @param healthCost the health to remove
-	 * @param manaCost the mana to remove
-	 */
-	private void removeReagents(LivingEntity livingEntity, SpellReagents.ReagentItem[] reagents, double healthCost, int manaCost, int hungerCost, int experienceCost, int levelsCost, int durabilityCost, float moneyCost, Map<String, Double> variables) {
-		if (Perm.NO_REAGENTS.has(livingEntity)) return;
-
-		if (reagents != null) {
-			for (SpellReagents.ReagentItem item : reagents) {
-				if (item == null) continue;
-				if (livingEntity instanceof Player player) Util.removeFromInventory(player.getInventory(), item);
-				else if (livingEntity.getEquipment() != null) Util.removeFromInventory(livingEntity.getEquipment(), item);
-			}
-		}
-
-		if (livingEntity instanceof Player player) {
-			if (manaCost != 0) MagicSpells.getManaHandler().addMana(player, -manaCost, ManaChangeReason.SPELL_COST);
-
-			if (hungerCost != 0) {
-				int f = player.getFoodLevel() - hungerCost;
-				if (f < 0) f = 0;
-				if (f > 20) f = 20;
-				player.setFoodLevel(f);
-			}
-
-			if (experienceCost != 0) ExperienceUtils.changeExp(player, -experienceCost);
-
-			if (moneyCost != 0) {
-				MoneyHandler moneyHandler = MagicSpells.getMoneyHandler();
-				if (moneyHandler != null) {
-					if (moneyCost > 0) moneyHandler.removeMoney(player, moneyCost);
-					else moneyHandler.addMoney(player, moneyCost);
-				}
-			}
-
-			if (levelsCost != 0) {
-				int lvl = player.getLevel() - levelsCost;
-				if (lvl < 0) lvl = 0;
-				player.setLevel(lvl);
-			}
-
-			if (variables != null) {
-				VariableManager varMan = MagicSpells.getVariableManager();
-				if (varMan != null) {
-					for (Map.Entry<String, Double> var : variables.entrySet()) {
-						varMan.set(var.getKey(), player, varMan.getValue(var.getKey(), player) - var.getValue());
-					}
-				}
-			}
-		}
-
-		if (healthCost != 0) {
-			double h = livingEntity.getHealth() - healthCost;
-			if (h < 0) h = 0;
-			if (h > Util.getMaxHealth(livingEntity)) h = Util.getMaxHealth(livingEntity);
-			livingEntity.setHealth(h);
-		}
-
-		if (durabilityCost != 0) {
-			EntityEquipment eq = livingEntity.getEquipment();
-
-			if (eq != null) {
-				ItemStack item =  eq.getItemInMainHand();
-				ItemMeta meta = item.getItemMeta();
-
-				int maxDurability = item.getType().getMaxDurability();
-				if (maxDurability > 0 && meta instanceof Damageable damageable) {
-					int damage = damageable.getDamage() + durabilityCost;
-					damage = Math.max(Math.min(damage, maxDurability), 0);
-
-					damageable.setDamage(damage);
-					item.setItemMeta(meta);
-				}
-			}
-		}
+		SpellUtil.removeReagents(livingEntity, reagents.getItemsAsArray(), reagents.getHealth(), reagents.getMana(), reagents.getHunger(), reagents.getExperience(), reagents.getLevels(), reagents.getDurability(), reagents.getMoney(), reagents.getVariables());
 	}
 
 	public EnumMap<EffectPosition, List<SpellEffect>> getEffects() {
@@ -1573,72 +1406,72 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	@Deprecated
-	protected void playSpellEffects(Entity pos1, Entity pos2) {
-		playSpellEffects(pos1, pos2, null);
+	protected void playSpellEffects(Entity caster, Entity target) {
+		playSpellEffects(caster, target, null);
 	}
 
-	protected void playSpellEffects(Entity pos1, Entity pos2, float power, String[] args) {
-		SpellData data = new SpellData(pos1 instanceof LivingEntity le ? le : null, pos2 instanceof LivingEntity le ? le : null, power, args);
-		playSpellEffects(pos1, pos2, data);
+	protected void playSpellEffects(Entity caster, Entity target, float power, String[] args) {
+		SpellData data = new SpellData(caster instanceof LivingEntity le ? le : null, target instanceof LivingEntity le ? le : null, power, args);
+		playSpellEffects(caster, target, data);
 	}
 
-	protected void playSpellEffects(LivingEntity pos1, LivingEntity pos2, float power, String[] args) {
-		SpellData data = new SpellData(pos1, pos2, power, args);
-		playSpellEffects(pos1, pos2, data);
+	protected void playSpellEffects(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		playSpellEffects(caster, target, new SpellData(caster, target, power, args));
 	}
 
-	protected void playSpellEffects(Entity pos1, Entity pos2, SpellData data) {
-		playSpellEffects(EffectPosition.CASTER, pos1, data);
-		playSpellEffects(EffectPosition.TARGET, pos2, data);
-		playSpellEffectsTrail(pos1.getLocation(), pos2.getLocation(), data);
-	}
-
-	@Deprecated
-	protected void playSpellEffects(Entity pos1, Location pos2) {
-		playSpellEffects(pos1, pos2, null);
-	}
-
-	protected void playSpellEffects(Entity pos1, Location pos2, float power, String[] args) {
-		SpellData data = new SpellData(pos1 instanceof LivingEntity le ? le : null, power, args);
-		playSpellEffects(pos1, pos2, data);
-	}
-
-	protected void playSpellEffects(Entity pos1, Location pos2, SpellData data) {
-		playSpellEffects(EffectPosition.CASTER, pos1, data);
-		playSpellEffects(EffectPosition.TARGET, pos2, data);
-		playSpellEffectsTrail(pos1.getLocation(), pos2, data);
+	protected void playSpellEffects(Entity caster, Entity target, SpellData data) {
+		playSpellEffects(EffectPosition.CASTER, caster, data);
+		playSpellEffects(EffectPosition.TARGET, target, data);
+		playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
 	}
 
 	@Deprecated
-	protected void playSpellEffects(Location pos1, Entity pos2) {
-		playSpellEffects(pos1, pos2, null);
+	protected void playSpellEffects(Entity caster, Location target) {
+		playSpellEffects(caster, target, null);
 	}
 
-	protected void playSpellEffects(Location pos1, Entity pos2, float power, String[] args) {
-		SpellData data = new SpellData(null, pos2 instanceof LivingEntity le ? le : null, power, args);
-		playSpellEffects(pos1, pos2, data);
+	protected void playSpellEffects(Entity caster, Location target, float power, String[] args) {
+		SpellData data = new SpellData(caster instanceof LivingEntity le ? le : null, power, args);
+		playSpellEffects(caster, target, data);
 	}
 
-	protected void playSpellEffects(Location pos1, Entity pos2, SpellData data) {
-		playSpellEffects(EffectPosition.CASTER, pos1, data);
-		playSpellEffects(EffectPosition.TARGET, pos2, data);
-		playSpellEffectsTrail(pos1, pos2.getLocation(), data);
+	protected void playSpellEffects(Entity caster, Location target, SpellData data) {
+		playSpellEffects(EffectPosition.CASTER, caster, data);
+		playSpellEffects(EffectPosition.TARGET, target, data);
+		playSpellEffectsTrail(caster.getLocation(), target, data);
 	}
 
 	@Deprecated
-	protected void playSpellEffects(Location pos1, Location pos2) {
-		playSpellEffects(pos1, pos2, null);
+	protected void playSpellEffects(Location startLoc, Entity target) {
+		playSpellEffects(startLoc, target, null);
 	}
 
-	protected void playSpellEffects(Location pos1, Location pos2, float power, String[] args) {
-		SpellData data = new SpellData(null, null, power, args);
-		playSpellEffects(pos1, pos2, data);
+	protected void playSpellEffects(Location startLoc, Entity target, float power, String[] args) {
+		SpellData data = new SpellData(null, target instanceof LivingEntity le ? le : null, power, args);
+		playSpellEffects(startLoc, target, data);
 	}
 
-	protected void playSpellEffects(Location pos1, Location pos2, SpellData data) {
-		playSpellEffects(EffectPosition.CASTER, pos1, data);
-		playSpellEffects(EffectPosition.TARGET, pos2, data);
-		playSpellEffectsTrail(pos1, pos2, data);
+	protected void playSpellEffects(Location startLoc, Entity target, SpellData data) {
+		playSpellEffects(EffectPosition.START_POSITION, startLoc, data);
+		playSpellEffects(EffectPosition.TARGET, target, data);
+		playSpellEffectsTrail(startLoc, target.getLocation(), data);
+	}
+
+	@Deprecated
+	protected void playSpellEffects(Location startLoc, Location endLoc) {
+		playSpellEffects(startLoc, endLoc, null);
+	}
+
+	protected void playSpellEffects(Location startLoc, Location endLoc, float power, String[] args) {
+		playSpellEffects(startLoc, endLoc, new SpellData(null, null, power, args));
+	}
+
+	protected void playSpellEffects(Location startLoc, Location endLoc, SpellData data) {
+		playSpellEffects(EffectPosition.CASTER, startLoc, data);
+		playSpellEffects(EffectPosition.TARGET, endLoc, data);
+		playSpellEffects(EffectPosition.START_POSITION, startLoc, data);
+		playSpellEffects(EffectPosition.END_POSITION, endLoc, data);
+		playSpellEffectsTrail(startLoc, endLoc, data);
 	}
 
 	@Deprecated
@@ -1649,31 +1482,34 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected void playSpellEffects(EffectPosition pos, Entity entity, float power, String[] args) {
 		LivingEntity caster = pos == EffectPosition.CASTER && entity instanceof LivingEntity le ? le : null;
 		LivingEntity target = pos == EffectPosition.TARGET && entity instanceof LivingEntity le ? le : null;
-		SpellData data = new SpellData(caster, target, power, args);
 
-		playSpellEffects(pos, entity, data);
+		playSpellEffects(pos, entity, new SpellData(caster, target, power, args));
 	}
 
 	protected void playSpellEffects(EffectPosition pos, LivingEntity entity, float power, String[] args) {
 		LivingEntity caster = pos == EffectPosition.CASTER ? entity : null;
 		LivingEntity target = pos == EffectPosition.TARGET ? entity : null;
-		SpellData data = new SpellData(caster, target, power, args);
 
-		playSpellEffects(pos, entity, data);
+		playSpellEffects(pos, entity, new SpellData(caster, target, power, args));
 	}
 
 	protected void playSpellEffects(EffectPosition pos, Entity entity, SpellData data) {
 		if (effects == null) return;
+
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return;
+
 		for (SpellEffect effect : effectsList) {
 			Runnable canceler = effect.playEffect(entity, data);
 			if (canceler == null) continue;
 			if (!(entity instanceof Player player)) continue;
+
 			Map<EffectPosition, List<Runnable>> runnablesMap = callbacks.get(player.getUniqueId().toString());
 			if (runnablesMap == null) continue;
+
 			List<Runnable> runnables = runnablesMap.get(pos);
 			if (runnables == null) continue;
+
 			runnables.add(canceler);
 		}
 	}
