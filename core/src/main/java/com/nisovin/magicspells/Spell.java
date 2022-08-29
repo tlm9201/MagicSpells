@@ -551,10 +551,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (!config.contains(path + "effects")) return;
 
 		effects = new EnumMap<>(EffectPosition.class);
-		if (config.isList(path + "effects")) {
-			MagicSpells.error("Warning: Single line effects are deprecated. Usage encountered on spell: " + internalName);
-			return;
-		}
 
 		if (!config.isSection(path + "effects")) return;
 		for (String key : config.getKeys(path + "effects")) {
