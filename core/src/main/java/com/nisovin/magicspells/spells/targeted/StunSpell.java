@@ -18,6 +18,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -113,14 +114,15 @@ public class StunSpell extends TargetedSpell implements TargetedEntitySpell {
 		StunnedInfo info = new StunnedInfo(caster, target, System.currentTimeMillis() + duration, target.getLocation());
 		stunnedLivingEntities.put(target.getUniqueId(), info);
 
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
+		SpellData data = new SpellData(caster, target, power, args);
+
+		if (caster != null) playSpellEffects(caster, target, data);
+		else playSpellEffects(EffectPosition.TARGET, target, data);
 
 		playSpellEffectsBuff(target, entity -> {
 			if (!(entity instanceof LivingEntity)) return false;
 			return isStunned((LivingEntity) entity);
-		});
-
+		}, data);
 	}
 
 	public boolean isStunned(LivingEntity entity) {
