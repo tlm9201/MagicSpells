@@ -248,7 +248,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		if (!ok) return PostCastAction.HANDLE_NORMALLY;
 
-		startSpellDuration(target, power);
+		startSpellDuration(caster, target, power, args);
 		lastCaster.put(target.getUniqueId(), caster);
 		if (caster != null) playSpellEffects(caster, target, power, args);
 		else playSpellEffects(EffectPosition.TARGET, target, power, args);
@@ -270,25 +270,25 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	/**
-	 * Begins counting the spell duration for a livingEntity
-	 * @param livingEntity the livingEntity to begin counting duration
+	 * Begins counting the spell duration for a living entity
+	 * @param target the living entity to begin counting duration
 	 */
-	private void startSpellDuration(final LivingEntity livingEntity, float power) {
+	private void startSpellDuration(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (duration > 0 && durationEndTime != null) {
 
 			float dur = duration;
 			if (powerAffectsDuration) dur *= power;
-			setDuration(livingEntity, dur);
+			setDuration(target, dur);
 
 			MagicSpells.scheduleDelayedTask(() -> {
-				if (isExpired(livingEntity)) turnOff(livingEntity);
+				if (isExpired(target)) turnOff(target);
 			}, Math.round(dur * TimeUtil.TICKS_PER_SECOND) + 1); // overestimate ticks, since the duration is real-time ms based
 		}
 
-		playSpellEffectsBuff(livingEntity, entity -> thisSpell.isActiveAndNotExpired((LivingEntity) entity));
+		playSpellEffectsBuff(target, entity -> thisSpell.isActiveAndNotExpired((LivingEntity) entity), new SpellData(caster, target, power, args));
 
 		BuffManager manager = MagicSpells.getBuffManager();
-		if (manager != null) manager.addBuff(livingEntity, this);
+		if (manager != null) manager.addBuff(target, this);
 	}
 
 	public void setDuration(LivingEntity livingEntity, float duration) {
