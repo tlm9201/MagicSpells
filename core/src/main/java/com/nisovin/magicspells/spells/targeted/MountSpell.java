@@ -34,10 +34,13 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			LivingEntity target = targetInfo.getTarget();
-			if (target == null) return noTarget(caster);
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+			LivingEntity target = targetInfo.target();
+
 			mount(caster, target, power, args);
+			sendMessages(caster, target, args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
@@ -109,7 +112,8 @@ public class MountSpell extends TargetedSpell implements TargetedEntitySpell {
 			LivingEntity finalTarget1 = target;
 			MagicSpells.scheduleDelayedTask(() -> finalTarget1.removePassenger(caster), duration);
 		}
-		sendMessages(caster, target, args);
+
+		playSpellEffects(caster, target, power, args);
 	}
 
 	@EventHandler

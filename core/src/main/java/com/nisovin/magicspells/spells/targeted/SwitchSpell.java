@@ -24,13 +24,14 @@ public class SwitchSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
+			if (target.noTarget()) return noTarget(caster, args, target);
 			
-			playSpellEffects(caster, target.getTarget(), power, args);
-			switchPlaces(caster, target.getTarget(), target.getPower(), args);
-			sendMessages(caster, target.getTarget(), args);
+			switchPlaces(caster, target.target(), target.power(), args);
+			sendMessages(caster, target.target(), args);
+
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
@@ -59,6 +60,8 @@ public class SwitchSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		int switchBack = this.switchBack.get(caster, target, power, args);
 		if (switchBack <= 0) return;
+
+		playSpellEffects(caster, target, power, args);
 
 		MagicSpells.scheduleDelayedTask(() -> {
 			if (caster.isDead() || target.isDead()) return;

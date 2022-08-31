@@ -171,9 +171,11 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			new HomingProjectileMonitor(caster, targetInfo.getTarget(), targetInfo.getPower(), args);
-			sendMessages(caster, targetInfo.getTarget(), args);
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+
+			new HomingProjectileMonitor(caster, targetInfo.target(), targetInfo.power(), args);
+			sendMessages(caster, targetInfo.target(), args);
+
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

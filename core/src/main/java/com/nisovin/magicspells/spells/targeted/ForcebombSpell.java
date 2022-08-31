@@ -61,7 +61,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 				}
 			}
 
-			if (block == null || BlockUtils.isAir(block.getType())) return noTarget(caster);
+			if (block == null || BlockUtils.isAir(block.getType())) return noTarget(caster, args);
 			knockback(caster, block.getLocation().add(0.5, 0, 0.5), power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;

@@ -76,9 +76,14 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			applyDot(caster, targetInfo.getTarget(), targetInfo.getPower(), args);
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+
+			applyDot(caster, targetInfo.target(), targetInfo.power(), args);
+			sendMessages(caster, targetInfo.target(), args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

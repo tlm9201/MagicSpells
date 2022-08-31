@@ -43,14 +43,17 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power, args);
-			if (targetInfo == null) return noTarget(player);
-			LivingEntity target = targetInfo.getTarget();
-			if (target == null) return noTarget(player);
+			if (targetInfo.noTarget()) return noTarget(player, args, targetInfo);
+			LivingEntity target = targetInfo.target();
 
-			playSpellEffects(player, target, power, args);
+			playSpellEffects(player, target, targetInfo.power(), args);
 			String value = dataElement.apply(target);
 			MagicSpells.getVariableManager().set(variableName, player, value);
+
+			sendMessages(caster, target, args);
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

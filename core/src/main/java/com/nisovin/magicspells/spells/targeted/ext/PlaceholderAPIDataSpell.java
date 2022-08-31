@@ -55,21 +55,30 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
 			TargetInfo<Player> targetInfo = getTargetedPlayer(player, power, args);
-			if (targetInfo == null) return noTarget(player);
-			Player target = targetInfo.getTarget();
-			if (target == null) return noTarget(player);
+			if (targetInfo.noTarget()) return noTarget(player, args, null);
+			Player target = targetInfo.target();
+
 			String value = MagicSpells.doArgumentSubstitution(placeholderAPITemplate, args);
-			setPlaceholders(player, target, value);
+			setPlaceholders(player, target, value, targetInfo.power(), args);
+			sendMessages(caster, target, args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(caster instanceof Player casterPlayer) || !(target instanceof Player targetPlayer)) return false;
 		if (!validTargetList.canTarget(caster, target)) return false;
-		setPlaceholders(casterPlayer, targetPlayer, placeholderAPITemplate);
+		setPlaceholders(casterPlayer, targetPlayer, placeholderAPITemplate, power, args);
 		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override
@@ -77,12 +86,12 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 		return false;
 	}
 
-	private void setPlaceholders(Player caster, Player target, String value) {
+	private void setPlaceholders(Player caster, Player target, String value, float power, String[] args) {
 		value = MagicSpells.doVariableReplacements(useTargetVariables ? target : caster, value);
 		value = PlaceholderAPI.setBracketPlaceholders(setTargetPlaceholders ? target : caster, value);
 		value = PlaceholderAPI.setPlaceholders(setTargetPlaceholders ? target : caster, value);
 		MagicSpells.getVariableManager().set(variableName, setTargetVariable ? target : caster, value);
-		playSpellEffects(caster, target);
+		playSpellEffects(caster, target, power, args);
 	}
 
 }

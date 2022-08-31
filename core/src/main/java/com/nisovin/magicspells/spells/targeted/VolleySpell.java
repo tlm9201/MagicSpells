@@ -87,7 +87,7 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 			} catch (IllegalStateException e) {
 				target = null;
 			}
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster);
+			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster, args);
 			volley(caster, null, caster.getLocation(), target.getLocation(), power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;

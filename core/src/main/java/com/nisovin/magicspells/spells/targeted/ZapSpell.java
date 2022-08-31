@@ -84,11 +84,11 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 				if (event.isCancelled()) target = null;
 				else target = event.getTargetLocation().getBlock();
 			}
-			if (target == null) return noTarget(caster, strCantZap);
+			if (target == null) return noTarget(caster, strCantZap, args);
 
-			if (!canZap(target)) return noTarget(caster, strCantZap);
+			if (!canZap(target)) return noTarget(caster, strCantZap, args);
 			boolean ok = zap(target, (Player) caster, power, args);
-			if (!ok) return noTarget(caster, strCantZap);
+			if (!ok) return noTarget(caster, strCantZap, args);
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;

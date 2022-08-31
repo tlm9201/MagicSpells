@@ -9,6 +9,7 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class CloseInventorySpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -23,21 +24,22 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+			Player target = targetInfo.target();
 
-			Player target = targetInfo.getTarget();
-			if (target == null) return noTarget(caster);
+			close(caster, target, targetInfo.power(), args);
+			sendMessages(caster, target, args);
 
-			close(caster, target, target, power, args);
-			playSpellEffects(caster, target, power, args);
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
-		close(caster, target, player, power, args);
+		close(caster, player, power, args);
 		return true;
 	}
 
@@ -49,9 +51,8 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
-		close(null, target, player, power, args);
+		close(null, player, power, args);
 		return true;
-
 	}
 
 	@Override
@@ -59,11 +60,23 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 		return castAtEntity(target, power, null);
 	}
 
-	private void close(LivingEntity caster, LivingEntity target, Player playerTarget, float power, String[] args) {
+	private void close(LivingEntity caster, Player target, float power, String[] args) {
 		int delay = this.delay.get(caster, target, power, args);
 
-		if (delay > 0) MagicSpells.scheduleDelayedTask(playerTarget::closeInventory, delay);
-		else playerTarget.closeInventory();
+		if (delay > 0) {
+			MagicSpells.scheduleDelayedTask(() -> {
+				target.closeInventory();
+
+				if (caster != null) playSpellEffects(caster, target, power, args);
+				else playSpellEffects(EffectPosition.TARGET, target, power, args);
+			}, delay);
+		}
+		else {
+			target.closeInventory();
+
+			if (caster != null) playSpellEffects(caster, target, power, args);
+			else playSpellEffects(EffectPosition.TARGET, target, power, args);
+		}
 	}
 
 }

@@ -42,16 +42,15 @@ public class TelekinesisSpell extends TargetedSpell implements TargetedLocationS
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player) {
 			Block target = getTargetedBlock(caster, power, args);
-			if (target == null) return noTarget(caster);
+			if (target == null) return noTarget(caster, args);
 
 			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power, args);
-			EventUtil.call(event);
-			if (event.isCancelled()) return noTarget(caster);
+			if (!event.callEvent()) return noTarget(caster, args);
 			
 			target = event.getTargetLocation().getBlock();
 
 			boolean activated = activate((Player) caster, target);
-			if (!activated) return noTarget(caster);
+			if (!activated) return noTarget(caster, args);
 
 			playSpellEffects(caster, target.getLocation(), power, args);
 		}

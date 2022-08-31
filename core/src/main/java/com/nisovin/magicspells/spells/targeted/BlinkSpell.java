@@ -54,7 +54,7 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 				}
 			}
 
-			if (found == null) return noTarget(caster, strCantBlink);
+			if (found == null) return noTarget(caster, strCantBlink, args);
 
 			Location loc = null;
 			if (!passThroughCeiling && found.getRelative(0, -1, 0).equals(prev)) {
@@ -78,7 +78,7 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 				else loc = event.getTargetLocation();
 			}
 
-			if (loc == null) return noTarget(caster, strCantBlink);
+			if (loc == null) return noTarget(caster, strCantBlink, args);
 
 			loc.setX(loc.getX() + 0.5);
 			loc.setZ(loc.getZ() + 0.5);

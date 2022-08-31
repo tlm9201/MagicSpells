@@ -151,7 +151,7 @@ public class SeeHealthSpell extends BuffSpell {
 
 				CastData data = entry.getValue();
 				TargetInfo<LivingEntity> target = getTargetedEntity(player, data.power(), data.args());
-				if (target != null) showHealthBar(player, target.getTarget(), data);
+				if (!target.noTarget()) showHealthBar(player, target.target(), data);
 			}
 		}
 

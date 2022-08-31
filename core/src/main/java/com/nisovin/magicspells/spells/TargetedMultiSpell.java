@@ -82,10 +82,10 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 			LivingEntity entTarget = null;
 			if (requireEntityTarget) {
 				TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-				if (info != null) {
-					entTarget = info.getTarget();
-					power = info.getPower();
-				}
+				if (info.noTarget()) return noTarget(caster, args, info);
+
+				entTarget = info.target();
+				power = info.power();
 			} else if (pointBlank) {
 				locTarget = caster.getLocation();
 			} else {
@@ -100,20 +100,21 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 					DebugHandler.debugIllegalState(e);
 				}
 			}
-			if (locTarget == null && entTarget == null) return noTarget(caster);
+			if (locTarget == null && entTarget == null) return noTarget(caster, args);
 			if (locTarget != null) {
 				locTarget.setY(locTarget.getY() + yOffset.get(caster, null, power, args));
 				locTarget.setDirection(caster.getLocation().getDirection());
 			}
 			
 			boolean somethingWasDone = runSpells(caster, entTarget, locTarget, power, args);
-			if (!somethingWasDone) return noTarget(caster);
+			if (!somethingWasDone) return noTarget(caster, args);
 			
 			if (entTarget != null) {
 				sendMessages(caster, entTarget, args);
 				return PostCastAction.NO_MESSAGES;
 			}
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

@@ -79,7 +79,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
 			int slot = this.slot.get(caster, null, power, args);
 			ItemStack item = player.getInventory().getItem(slot);
-			if (item == null || !isAllowed(item.getType())) return noTarget(player, strInvalidBlock);
+			if (item == null || !isAllowed(item.getType())) return noTarget(player, strInvalidBlock, args);
 
 			List<Block> lastBlocks;
 			try {
@@ -90,10 +90,10 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 			}
 
 			if (lastBlocks == null || lastBlocks.size() < 2 || BlockUtils.isAir(lastBlocks.get(1).getType()))
-				return noTarget(player, strCantBuild);
+				return noTarget(player, strCantBuild, args);
 
 			boolean built = build(player, lastBlocks.get(0), lastBlocks.get(1), item, slot, power, args);
-			if (!built) return noTarget(player, strCantBuild);
+			if (!built) return noTarget(player, strCantBuild, args);
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;

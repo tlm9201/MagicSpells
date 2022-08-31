@@ -132,17 +132,17 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			Block target = null;
 
 			if (lastTwo != null && lastTwo.size() == 2) target = lastTwo.get(0);
-			if (target == null) return noTarget(caster);
+			if (target == null) return noTarget(caster, args);
 
 			int yOffset = this.yOffset.get(caster, null, power, args);
 			if (yOffset > 0) target = target.getRelative(BlockFace.UP, yOffset);
 			else if (yOffset < 0) target = target.getRelative(BlockFace.DOWN, yOffset);
-			if (!BlockUtils.isPathable(target)) return noTarget(caster);
+			if (!BlockUtils.isPathable(target)) return noTarget(caster, args);
 
 			if (target != null) {
 				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power, args);
 				EventUtil.call(event);
-				if (event.isCancelled()) return noTarget(caster);
+				if (event.isCancelled()) return noTarget(caster, args);
 				target = event.getTargetLocation().getBlock();
 				power = event.getPower();
 			}

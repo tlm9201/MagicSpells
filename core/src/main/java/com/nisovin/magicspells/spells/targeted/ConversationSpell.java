@@ -10,12 +10,13 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.ConfigReaderUtil;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.util.prompt.ConversationContextUtil;
 
 public class ConversationSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private ConversationFactory conversationFactory;
-	
+
 	public ConversationSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
@@ -26,31 +27,48 @@ public class ConversationSpell extends TargetedSpell implements TargetedEntitySp
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo == null || targetInfo.getTarget() == null) return noTarget(caster);
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
 
-			conversate(targetInfo.getTarget());
-			return PostCastAction.HANDLE_NORMALLY;
+			conversate(caster, targetInfo.target(), targetInfo.power(), args);
+			sendMessages(caster, targetInfo.target(), args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(caster, target) || !(target instanceof Player player)) return false;
+		conversate(caster, player, power, args);
+		return true;
+	}
+
+	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		conversate(target);
+		return castAtEntity(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!validTargetList.canTarget(target) || !(target instanceof Player player)) return false;
+		conversate(null, player, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
+		return castAtEntity(target, power, null);
 	}
 
-	private void conversate(LivingEntity target) {
-		if (!(target instanceof Player player)) return;
-		Conversation conversation = conversationFactory.buildConversation(player);
-		ConversationContextUtil.setConversable(conversation.getContext(), player);
+	private void conversate(LivingEntity caster, Player target, float power, String[] args) {
+		Conversation conversation = conversationFactory.buildConversation(target);
+		ConversationContextUtil.setConversable(conversation.getContext(), target);
 		conversation.begin();
+
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
 	}
 
 }

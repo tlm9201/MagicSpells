@@ -157,20 +157,20 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 				lastTwo = null;
 			}
 
-			if (lastTwo == null || lastTwo.size() != 2) return noTarget(player);
-			if (!BlockUtils.isAir(lastTwo.get(0).getType()) || BlockUtils.isAir(lastTwo.get(1).getType())) return noTarget(player);
+			if (lastTwo == null || lastTwo.size() != 2) return noTarget(player, args);
+			if (!BlockUtils.isAir(lastTwo.get(0).getType()) || BlockUtils.isAir(lastTwo.get(1).getType())) return noTarget(player, args);
 
 			Block block = lastTwo.get(0);
 			Block against = lastTwo.get(1);
 			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, block.getLocation(), power, args);
 			EventUtil.call(event);
-			if (event.isCancelled()) return noTarget(player, strFailed);
+			if (event.isCancelled()) return noTarget(player, strFailed, args);
 			block = event.getTargetLocation().getBlock();
 			power = event.getPower();
 
 			if (!hasMiddle) {
 				boolean done = materialize(player, block, against, power, args);
-				if (!done) return noTarget(player, strFailed);
+				if (!done) return noTarget(player, strFailed, args);
 				return PostCastAction.HANDLE_NORMALLY;
 			}
 
@@ -234,7 +234,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 						//As soon as a block can't be spawned, it will return an error.
 						boolean done = materialize(player, air, ground, power, args);
-						if (!done) return noTarget(player, strFailed);
+						if (!done) return noTarget(player, strFailed, args);
 
 						//Done with placing that one block? Move on to the next one.
 						spawnBlock.setX((ground.getX() + 1));

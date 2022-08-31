@@ -11,11 +11,11 @@ import org.bukkit.inventory.ItemStack;
 
 public class MobUtil {
 
-	static Map<String, EntityType> entityTypeMap = new HashMap<>();
+	private static final Map<EntityType, Material> entityToEggMaterial = new HashMap<>();
+	private static final Map<String, EntityType> entityTypeMap = new HashMap<>();
 
 	static {
 		for (EntityType type : EntityType.values()) {
-			if (type == null) continue;
 			if (type == EntityType.UNKNOWN) continue;
 
 			entityTypeMap.put(type.name().toLowerCase(), type);
@@ -23,6 +23,9 @@ public class MobUtil {
 
 			entityTypeMap.put(type.getKey().getKey(), type);
 			entityTypeMap.put(type.getKey().getKey().replace("_", ""), type);
+
+			Material material = Util.getMaterial(type.getKey().getKey() + "_SPAWN_EGG");
+			if (material != null) entityToEggMaterial.put(type, material);
 		}
 
 		Map<String, EntityType> types = new HashMap<>();
@@ -38,10 +41,14 @@ public class MobUtil {
 	}
 
 	public static ItemStack getEggItemForEntityType(EntityType type) {
-		Material eggMaterial = Util.getMaterial(type.getKey().getKey() + "_SPAWN_EGG");
+		Material eggMaterial = entityToEggMaterial.get(type);
 		if (eggMaterial == null) return null;
 
 		return new ItemStack(eggMaterial);
+	}
+
+	public static boolean hasEggMaterialForEntityType(EntityType type) {
+		return entityToEggMaterial.containsKey(type);
 	}
 
 	public static void setTarget(LivingEntity mob, LivingEntity target) {

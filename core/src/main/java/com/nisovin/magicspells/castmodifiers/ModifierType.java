@@ -720,6 +720,9 @@ public enum ModifierType {
 				if (data.spell.isTargetedEntitySpell()) data.spell.castAtEntity(event.getCaster(), event.getTarget(), event.getPower());
 				else if (data.spell.isTargetedLocationSpell()) data.spell.castAtLocation(event.getCaster(), event.getTarget().getLocation(), event.getPower());
 				else data.spell.cast(event.getCaster(), event.getPower());
+
+				event.setCancelled(true);
+				event.setCastCancelled(true);
 			}
 			return !check;
 		}

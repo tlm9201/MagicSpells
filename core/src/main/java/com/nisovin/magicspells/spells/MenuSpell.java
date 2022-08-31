@@ -161,27 +161,39 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			LivingEntity entityTarget = null;
+			LivingEntity target = null;
 			Location locTarget = null;
 			Player opener = player;
 
 			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power, args);
-				if (targetInfo != null) entityTarget = targetInfo.getTarget();
-				if (entityTarget == null) return noTarget(player);
 				if (targetOpensMenuInstead) {
-					if (!(entityTarget instanceof Player targetPlayer)) return noTarget(player);
-					opener = targetPlayer;
-					entityTarget = null;
+					TargetInfo<Player> info = getTargetedPlayer(player, power, args);
+					if (info.noTarget()) return noTarget(caster, args, info);
+
+					opener = info.target();
+					power = info.power();
+				} else {
+					TargetInfo<LivingEntity> info = getTargetedEntity(player, power, args);
+					if (info.noTarget()) return noTarget(caster, args, info);
+
+					target = info.target();
+					power = info.power();
 				}
 			} else if (requireLocationTarget) {
 				Block block = getTargetedBlock(player, power, args);
-				if (block == null || BlockUtils.isAir(block.getType())) return noTarget(player);
+				if (block == null || BlockUtils.isAir(block.getType())) return noTarget(caster, args);
+
 				locTarget = block.getLocation();
 			}
 
-			open(player, opener, entityTarget, locTarget, power, args);
+			open(player, opener, target, locTarget, power, args);
+
+			if (requireEntityTarget) {
+				sendMessages(caster, targetOpensMenuInstead ? opener : target, args);
+				return PostCastAction.NO_MESSAGES;
+			}
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

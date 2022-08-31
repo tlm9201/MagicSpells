@@ -24,13 +24,15 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 
+	private static final ValidTargetChecker CAPTURABLE = entity -> MobUtil.hasEggMaterialForEntityType(entity.getType());
+
 	private Component itemName;
 	private List<Component> itemLore = new ArrayList<>();
 
 	private boolean gravity;
 	private boolean addToInventory;
 	private boolean powerAffectsQuantity;
-	
+
 	public CaptureSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
@@ -51,21 +53,22 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, getValidTargetChecker(), args);
-			if (target == null) return noTarget(caster);
-			boolean ok = capture(caster, target.getTarget(), target.getPower(), args);
-			if (!ok) return noTarget(caster);
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, CAPTURABLE, args);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			sendMessages(caster, target.getTarget(), args);
+			boolean ok = capture(caster, target.target(), target.power(), args);
+			if (!ok) return noTarget(caster, args);
+
+			sendMessages(caster, target.target(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!target.getType().isSpawnable()) return false;
-		if (!validTargetList.canTarget(caster, target)) return false;
+		if (!validTargetList.canTarget(caster, target) || !MobUtil.hasEggMaterialForEntityType(target.getType())) return false;
 		return capture(caster, target, power, args);
 	}
 
@@ -76,8 +79,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!target.getType().isSpawnable()) return false;
-		if (!validTargetList.canTarget(target)) return false;
+		if (!validTargetList.canTarget(target) || !MobUtil.hasEggMaterialForEntityType(target.getType())) return false;
 		return capture(null, target, power, args);
 	}
 
@@ -88,9 +90,9 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public ValidTargetChecker getValidTargetChecker() {
-		return (LivingEntity entity) -> !(entity instanceof Player) && entity.getType().isSpawnable();
+		return CAPTURABLE;
 	}
-	
+
 	private boolean capture(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		ItemStack item = MobUtil.getEggItemForEntityType(target.getType());
 		if (item == null) return false;

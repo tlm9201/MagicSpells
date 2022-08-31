@@ -107,7 +107,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 				catch (IllegalStateException ignored) {}
 			}
 
-			if (loc == null) return noTarget(caster);
+			if (loc == null) return noTarget(caster, args);
 
 			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, loc, power, args);
 			EventUtil.call(event);
@@ -117,10 +117,10 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 				power = event.getPower();
 			}
 
-			if (loc == null) return noTarget(caster);
+			if (loc == null) return noTarget(caster, args);
 			
 			boolean done = doAoe(caster, loc, power, args);
-			if (!done) return noTarget(caster);
+			if (!done) return noTarget(caster, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

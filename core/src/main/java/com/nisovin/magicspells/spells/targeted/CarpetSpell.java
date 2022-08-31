@@ -101,7 +101,7 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 				if (b != null && b.getType() != Material.AIR) loc = b.getLocation();
 			}
 
-			if (loc == null) return noTarget(player);
+			if (loc == null) return noTarget(player, args);
 
 			layCarpet(player, loc, power, args);
 		}

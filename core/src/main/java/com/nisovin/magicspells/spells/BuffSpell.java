@@ -192,14 +192,13 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		LivingEntity target;
 
 		if (targeted) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			if (!targetList.canTarget(targetInfo.getTarget())) return noTarget(caster);
+			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
+			if (!targetList.canTarget(info.target())) return noTarget(caster, args);
 
-			target = targetInfo.getTarget();
-			power = targetInfo.getPower();
-		}
-		else target = caster;
+			target = info.target();
+			power = info.power();
+		} else target = caster;
 
 		PostCastAction action = activate(caster, target, power, args, state == SpellCastState.NORMAL);
 		if (targeted && action == PostCastAction.HANDLE_NORMALLY) {

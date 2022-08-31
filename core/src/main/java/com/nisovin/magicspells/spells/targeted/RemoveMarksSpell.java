@@ -63,7 +63,7 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 				Block b = getTargetedBlock(caster, power, args);
 				if (b != null && !BlockUtils.isAir(b.getType())) loc = b.getLocation();
 			}
-			if (loc == null) return noTarget(caster);
+			if (loc == null) return noTarget(caster, args);
 			removeMarks(caster, loc, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;

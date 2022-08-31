@@ -74,12 +74,12 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 
 			if (block != null) {
 				boolean farmed = farm(caster, block, power, args);
-				if (!farmed) return noTarget(caster);
+				if (!farmed) return noTarget(caster, args);
 
 				SpellData data = new SpellData(caster, power, args);
 				playSpellEffects(EffectPosition.CASTER, caster, data);
 				if (targeted) playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
-			} else return noTarget(caster);
+			} else return noTarget(caster, args);
 
 		}
 		return PostCastAction.HANDLE_NORMALLY;

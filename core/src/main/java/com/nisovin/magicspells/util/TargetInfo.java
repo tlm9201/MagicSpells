@@ -2,22 +2,14 @@ package com.nisovin.magicspells.util;
 
 import org.bukkit.entity.Entity;
 
-public class TargetInfo<E extends Entity> {
+public record TargetInfo<E extends Entity>(E target, float power, boolean cancelled) {
 
-	private E target;
-	private float power;
-	
-	public TargetInfo(E target, float power) {
-		this.target = target;
-		this.power = power;
+	public boolean empty() {
+		return target == null;
 	}
-	
-	public E getTarget() {
-		return target;
+
+	public boolean noTarget() {
+		return cancelled || target == null;
 	}
-	
-	public float getPower() {
-		return power;
-	}
-	
+
 }

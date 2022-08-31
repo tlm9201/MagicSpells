@@ -37,10 +37,11 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
-			if (!teleport(caster, target.getTarget(), target.getPower(), args)) return noTarget(caster, strCantTeleport);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			sendMessages(caster, target.getTarget(), args);
+			if (!teleport(caster, target.target(), target.power(), args)) return noTarget(caster, strCantTeleport, args);
+
+			sendMessages(caster, target.target(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

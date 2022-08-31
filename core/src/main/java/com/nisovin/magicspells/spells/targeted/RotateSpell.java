@@ -40,19 +40,24 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
-			spinFace(caster, target.getTarget(), power, args);
-			playSpellEffects(caster, target.getTarget(), power, args);
+			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
+
+			spinFace(caster, info.target(), info.power(), args);
+			playSpellEffects(caster, info.target(), info.power(), args);
+			sendMessages(caster, info.target(), args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		playSpellEffects(caster, target, power, args);
 		spinFace(caster, target, power, args);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
@@ -64,8 +69,8 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(target)) return false;
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		spinTarget(null, target, power, args);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
@@ -76,8 +81,8 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		spin(caster, target);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 

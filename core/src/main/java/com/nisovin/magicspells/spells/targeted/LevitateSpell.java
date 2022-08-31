@@ -93,10 +93,11 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 			return PostCastAction.ALREADY_HANDLED;
 		} else if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			levitate(caster, target.getTarget(), target.getPower(), args);
-			sendMessages(caster, target.getTarget(), args);
+			levitate(caster, target.target(), target.power(), args);
+			sendMessages(caster, target.target(), args);
+
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

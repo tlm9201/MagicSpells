@@ -57,16 +57,17 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
 			boolean done;
-			if (caster instanceof Player) done = CompatBasics.exemptAction(() -> causePain(caster, target.getTarget(), target.getPower(), args), (Player) caster, CompatBasics.activeExemptionAssistant.getPainExemptions());
-			else done = causePain(caster, target.getTarget(), target.getPower(), args);
-			if (!done) return noTarget(caster);
+			if (caster instanceof Player) done = CompatBasics.exemptAction(() -> causePain(caster, target.target(), target.power(), args), (Player) caster, CompatBasics.activeExemptionAssistant.getPainExemptions());
+			else done = causePain(caster, target.target(), target.power(), args);
+			if (!done) return noTarget(caster, args);
 			
-			sendMessages(caster, target.getTarget(), args);
+			sendMessages(caster, target.target(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

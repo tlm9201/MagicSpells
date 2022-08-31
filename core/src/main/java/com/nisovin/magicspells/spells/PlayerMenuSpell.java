@@ -21,13 +21,15 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private Map<UUID, Float> spellPower;
+	private Map<UUID, SpellData> spellData;
 
 	private final int delay;
 	private final String title;
@@ -102,33 +104,44 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		spellOnSneakLeft = initSubspell(spellOnSneakLeftName, error + "spell-on-sneak-left defined!");
 		spellOnSneakRight = initSubspell(spellOnSneakRightName, error + "spell-on-sneak-right defined!");
 
-		spellPower = new HashMap<>();
+		spellData = new HashMap<>();
 	}
 
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player) {
 			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			Player target = targetInfo.getTarget();
-			if (target == null) return noTarget(caster);
-			openDelay(target, power);
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+			Player target = targetInfo.target();
+
+			openDelay(caster, target, power, args);
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
-		openDelay(player, power);
+		openDelay(caster, player, power, args);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
+		openDelay(null, player, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
-		openDelay(player, power);
-		return true;
+		return castAtEntity(target, power, null);
 	}
 
 	@Override
@@ -136,14 +149,16 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		if (args.length < 1) return false;
 		Player player = Bukkit.getPlayer(args[0]);
 		if (player == null) return false;
-		openDelay(player, 1);
+		openDelay(null, player, 1, null);
 		return true;
 	}
 
-	private void openDelay(Player opener, float power) {
-		spellPower.put(opener.getUniqueId(), power);
-		if (delay > 0) MagicSpells.scheduleDelayedTask(() -> open(opener), delay);
-		else open(opener);
+	private void openDelay(LivingEntity caster, Player opener, float power, String[] args) {
+		SpellData data = new SpellData(caster, opener, power, args);
+		spellData.put(opener.getUniqueId(), data);
+
+		if (delay > 0) MagicSpells.scheduleDelayedTask(() -> open(opener, data), delay);
+		else open(opener, data);
 	}
 
 	private Component translate(Player player, Player target, String string) {
@@ -161,7 +176,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		subspell.cast(caster, power);
 	}
 
-	private void open(Player opener) {
+	private void open(Player opener, SpellData data) {
 		List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
 		if (!addOpener) players.remove(opener);
 		if (playerModifiers != null) players.removeIf(player -> !playerModifiers.check(player));
@@ -189,11 +204,14 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		}
 		opener.openInventory(inv);
 		Util.setInventoryTitle(opener, title);
+
+		if (data.caster() != null) playSpellEffects(data.caster(), data.target(), data);
+		else playSpellEffects(EffectPosition.TARGET, data.target(), data);
 	}
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
-		spellPower.remove(event.getPlayer().getUniqueId());
+		spellData.remove(event.getPlayer().getUniqueId());
 	}
 
 	@EventHandler
@@ -207,14 +225,16 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		SkullMeta skullMeta = (SkullMeta) itemMeta;
 		if (skullMeta == null) return;
 		OfflinePlayer target = skullMeta.getOwningPlayer();
-		float power = spellPower.containsKey(player.getUniqueId()) ?  spellPower.get(player.getUniqueId()) : 1;
+		SpellData data = spellData.get(player.getUniqueId());
+		float power = data == null ? 1f : data.power();
 		if (target == null || !target.isOnline()) {
 			itemMeta.displayName(translate(player, null, skullNameOffline));
 			if (spellOffline != null) spellOffline.cast(player, power);
 			if (stayOpen) item.setItemMeta(itemMeta);
 			else {
 				player.closeInventory();
-				spellPower.remove(player.getUniqueId());
+				spellData.remove(player.getUniqueId());
+				playSpellEffects(EffectPosition.DISABLED, player, data);
 			}
 			return;
 		} else {
@@ -228,7 +248,8 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 			if (stayOpen) item.setItemMeta(itemMeta);
 			else {
 				player.closeInventory();
-				spellPower.remove(player.getUniqueId());
+				spellData.remove(player.getUniqueId());
+				playSpellEffects(EffectPosition.DISABLED, player, data);
 			}
 			return;
 		}
@@ -242,10 +263,11 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		if (variableTarget != null && !variableTarget.isEmpty() && MagicSpells.getVariableManager().getVariable(variableTarget) != null) {
 			MagicSpells.getVariableManager().set(variableTarget, player, target.getName());
 		}
-		if (stayOpen) open(player);
+		if (stayOpen) open(player, data);
 		else {
 			player.closeInventory();
-			spellPower.remove(player.getUniqueId());
+			spellData.remove(player.getUniqueId());
+			playSpellEffects(EffectPosition.DISABLED, player, data);
 		}
 	}
 }

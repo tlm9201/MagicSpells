@@ -44,25 +44,30 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Location baseTargetLocation;
-			TargetInfo<LivingEntity> entityTargetInfo = getTargetedEntity(caster, power, args);
+			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
+			if (info.cancelled()) return PostCastAction.ALREADY_HANDLED;
 
-			if (entityTargetInfo != null && entityTargetInfo.getTarget() != null) baseTargetLocation = entityTargetInfo.getTarget().getLocation();
+			if (!info.empty()) baseTargetLocation = info.target().getLocation();
 			else baseTargetLocation = getTargetedBlock(caster, power, args).getLocation();
 
-			if (baseTargetLocation == null) return noTarget(caster);
-
 			Location loc = Util.applyOffsets(baseTargetLocation.clone(), relativeOffset, absoluteOffset);
-			if (loc == null) return PostCastAction.ALREADY_HANDLED;
 
 			if (spellToCast != null) spellToCast.castAtLocation(caster, loc, power);
 			playSpellEffects(caster, loc, power, args);
+
+			if (!info.empty()) {
+				sendMessages(caster, info.target(), args);
+				return PostCastAction.NO_MESSAGES;
+			}
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
 		if (spellToCast != null) spellToCast.castAtLocation(caster, Util.applyOffsets(target.clone(), relativeOffset, absoluteOffset), power);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 

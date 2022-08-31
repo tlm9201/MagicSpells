@@ -72,23 +72,26 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			LivingEntity target = targetInfo.getTarget();
-			power = targetInfo.getPower();
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+
+			LivingEntity target = targetInfo.target();
+			power = targetInfo.power();
 			
 			createTomb(caster, target, power, args);
 			sendMessages(caster, target, args);
 			playSpellEffects(caster, target, power, args);
+
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		playSpellEffects(caster, target, power, args);
 		createTomb(caster, target, power, args);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
