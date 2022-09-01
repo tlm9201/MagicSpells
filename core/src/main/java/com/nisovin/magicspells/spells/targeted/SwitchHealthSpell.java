@@ -24,12 +24,12 @@ public class SwitchHealthSpell extends TargetedSpell implements TargetedEntitySp
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			boolean ok = switchHealth(caster, target.getTarget(), power, args);
-			if (!ok) return noTarget(caster);
+			boolean ok = switchHealth(caster, target.target(), target.power(), args);
+			if (!ok) return noTarget(caster, args);
 
-			sendMessages(caster, target.getTarget(), args);
+			sendMessages(caster, target.target(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;

@@ -106,13 +106,15 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			boolean drained = drain(caster, target.getTarget(), target.getPower(), args);
-			if (!drained) return noTarget(caster);
-			sendMessages(caster, target.getTarget(), args);
+			boolean drained = drain(caster, target.target(), target.power(), args);
+			if (!drained) return noTarget(caster, args);
+
+			sendMessages(caster, target.target(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

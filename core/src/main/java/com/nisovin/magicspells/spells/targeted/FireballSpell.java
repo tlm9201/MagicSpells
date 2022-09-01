@@ -106,23 +106,26 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			Location targetLoc = null;
 			boolean selfTarget = false;
+			LivingEntity target = null;
+			Location targetLoc = null;
+
 			if (requireEntityTarget) {
 				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-				if (targetInfo == null) return noTarget(caster);
+				if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
 
-				LivingEntity entity = targetInfo.getTarget();
-				power = targetInfo.getPower();
-				if (entity == null) return noTarget(caster);
+				target = targetInfo.target();
+				power = targetInfo.power();
+
 				if (checkPlugins) {
 					// Run a pvp damage check
-					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, entity, DamageCause.ENTITY_ATTACK, 1D, this);
+					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, DamageCause.ENTITY_ATTACK, 1D, this);
 					EventUtil.call(event);
-					if (event.isCancelled()) return noTarget(caster);
+					if (event.isCancelled()) return noTarget(caster, args);
 				}
-				targetLoc = entity.getLocation();
-				if (entity.equals(caster)) selfTarget = true;
+
+				targetLoc = target.getLocation();
+				if (target.equals(caster)) selfTarget = true;
 			}
 
 			// Create fireball
@@ -151,7 +154,13 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 			SpellData data = new SpellData(caster, power, args);
 			playSpellEffects(EffectPosition.CASTER, caster, data);
 			playSpellEffects(EffectPosition.PROJECTILE, fireball, data);
+
+			if (target != null) {
+				sendMessages(caster, target, args);
+				return PostCastAction.NO_MESSAGES;
+			}
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

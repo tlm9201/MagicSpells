@@ -16,6 +16,7 @@ public class SpellTargetEvent extends SpellEvent implements Cancellable {
 	private String[] args;
 	private float power;
 	private boolean cancelled = false;
+	private boolean castCancelled = false;
 
 	public SpellTargetEvent(Spell spell, LivingEntity caster, LivingEntity target, float power, String[] args) {
 		super(spell, caster);
@@ -88,5 +89,13 @@ public class SpellTargetEvent extends SpellEvent implements Cancellable {
 	public void setCancelled(boolean cancelled) {
 		this.cancelled = cancelled;		
 	}
-	
+
+	public boolean isCastCancelled() {
+		return castCancelled;
+	}
+
+	public void setCastCancelled(boolean castCancelled) {
+		this.castCancelled = castCancelled;
+	}
+
 }

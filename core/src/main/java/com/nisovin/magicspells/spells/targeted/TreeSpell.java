@@ -54,10 +54,10 @@ public class TreeSpell extends TargetedSpell implements TargetedLocationSpell {
 				else target = event.getTargetLocation().getBlock();
 			}
 			
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster);
+			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster, args);
 			
 			boolean grown = growTree(caster, target, power, args);
-			if (!grown) return noTarget(caster);
+			if (!grown) return noTarget(caster, args);
 
 			playSpellEffects(caster, target.getLocation(), power, args);
 		}

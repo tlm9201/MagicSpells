@@ -167,13 +167,12 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 			if (canTargetEntities) {
 				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-				if (targetInfo != null) {
-					target = targetInfo.getTarget();
+				if (targetInfo.cancelled()) return PostCastAction.ALREADY_HANDLED;
 
-					if (target != null) {
-						locToSpawn = targetInfo.getTarget().getLocation();
-						power = targetInfo.getPower();
-					}
+				if (!targetInfo.empty()) {
+					power = targetInfo.power();
+					target = targetInfo.target();
+					locToSpawn = target.getLocation();
 				}
 			}
 
@@ -182,13 +181,14 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 				if (targetBlock != null) locToSpawn = targetBlock.getLocation().add(0.5, 1, 0.5);
 			}
 
-			if (locToSpawn == null) return noTarget(caster);
+			if (locToSpawn == null) return noTarget(caster, args);
 
 			locToSpawn.setDirection(caster.getLocation().getDirection());
 
 			AreaEffectCloud cloud = spawnCloud(caster, target, locToSpawn, power, args);
 			cloud.setSource(caster);
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

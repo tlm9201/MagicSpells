@@ -20,7 +20,6 @@ import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class MagicBondSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -52,9 +51,12 @@ public class MagicBondSpell extends TargetedSpell implements TargetedEntitySpell
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			bond(caster, target.getTarget(), target.getPower(), args);
+			bond(caster, target.target(), target.power(), args);
+			sendMessages(caster, target.target(), args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

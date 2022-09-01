@@ -148,12 +148,12 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 			if (pointBlank) origin = caster.getLocation();
 			else {
 				Block target = getTargetedBlock(caster, power, args);
-				if (target == null) return noTarget(caster);
+				if (target == null) return noTarget(caster, args);
 
 				origin = target.getLocation();
 			}
 
-			if (!scan(caster, origin, power, args)) return noTarget(caster);
+			if (!scan(caster, origin, power, args)) return noTarget(caster, args);
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;

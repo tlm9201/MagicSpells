@@ -111,14 +111,18 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 			Player target = null;
 			if (requirePlayerTarget) {
 				TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-				if (targetInfo == null) {
-					sendMessage(strNoTarget, caster, args);
-					return PostCastAction.ALREADY_HANDLED;
-				}
-				target = targetInfo.getTarget();
+				if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+
+				target = targetInfo.target();
+				power = targetInfo.power();
 			}
+
 			process(caster, target, power, args);
+			sendMessages(caster, target, args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 	

@@ -85,9 +85,9 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 				}
 			}
 
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster);
+			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster, args);
 			boolean exploded = explode(caster, target.getLocation(), power, args);
-			if (!exploded && !ignoreCanceled) return noTarget(caster);
+			if (!exploded && !ignoreCanceled) return noTarget(caster, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

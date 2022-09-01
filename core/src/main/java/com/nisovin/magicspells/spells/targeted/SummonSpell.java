@@ -99,7 +99,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 					target = players.get(0);
 				}
 			}
-			if (target == null) return noTarget(caster);
+			if (target == null) return noTarget(caster, args);
 
 			// Teleport player
 			String displayName = Util.getStringFromComponent(player.displayName());

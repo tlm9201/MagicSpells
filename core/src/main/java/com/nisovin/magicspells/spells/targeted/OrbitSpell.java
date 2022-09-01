@@ -134,10 +134,12 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		if (state == SpellCastState.NORMAL) {
 			if (requireEntityTarget) {
 				TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-				if (target == null) return noTarget(caster);
-				new OrbitTracker(caster, target.getTarget(), target.getPower(), args);
-				playSpellEffects(caster, target.getTarget(), power, args);
-				sendMessages(caster, target.getTarget(), args);
+				if (target.noTarget()) return noTarget(caster, args, target);
+
+				new OrbitTracker(caster, target.target(), target.power(), args);
+				playSpellEffects(caster, target.target(), target.power(), args);
+				sendMessages(caster, target.target(), args);
+
 				return PostCastAction.NO_MESSAGES;
 			}
 
@@ -152,11 +154,12 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 			}
 
-			if (block == null) return noTarget(caster);
+			if (block == null) return noTarget(caster, args);
 
 			new OrbitTracker(caster, block.getLocation().add(0.5, 0, 0.5), power, args);
 			return PostCastAction.HANDLE_NORMALLY;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

@@ -125,9 +125,7 @@ public abstract class TargetedSpell extends InstantSpell {
 	protected TargetInfo<LivingEntity> getTargetedEntity(LivingEntity caster, float power, boolean forceTargetPlayers, ValidTargetChecker checker, String[] args) {
 		if (targetSelf || validTargetList.canTargetSelf()) {
 			SpellTargetEvent event = new SpellTargetEvent(this, caster, caster, power, args);
-			if (!event.callEvent()) return null;
-
-			return new TargetInfo<>(event.getTarget(), event.getPower());
+			return new TargetInfo<>(event.callEvent() ? event.getTarget() : null, event.getPower(), event.isCastCancelled());
 		}
 
 		return super.getTargetedEntity(caster, power, forceTargetPlayers, checker, args);
@@ -140,9 +138,43 @@ public abstract class TargetedSpell extends InstantSpell {
 	 * @return the appropriate PostCastAction value
 	 */
 	protected PostCastAction noTarget(LivingEntity livingEntity) {
-		return noTarget(livingEntity, strNoTarget);
+		return noTarget(livingEntity, strNoTarget, null, null);
 	}
-	
+
+	/**
+	 * This should be called if a target should not be found. It sends the no target message
+	 * and returns the appropriate return value.
+	 * @param livingEntity the casting living entity
+	 * @param args arguments of spell
+	 * @return the appropriate PostCastAction value
+	 */
+	protected PostCastAction noTarget(LivingEntity livingEntity, String[] args) {
+		return noTarget(livingEntity, strNoTarget, args, null);
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the no target message
+	 * and returns the appropriate return value.
+	 * @param livingEntity the casting living entity
+	 * @param info targeting info
+	 * @return the appropriate PostCastAction value
+	 */
+	protected PostCastAction noTarget(LivingEntity livingEntity, TargetInfo<?> info) {
+		return noTarget(livingEntity, strNoTarget, null, info);
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the no target message
+	 * and returns the appropriate return value.
+	 * @param livingEntity the casting living entity
+	 * @param args arguments of spell
+	 * @param info targeting info
+	 * @return the appropriate PostCastAction value
+	 */
+	protected PostCastAction noTarget(LivingEntity livingEntity, String[] args, TargetInfo<?> info) {
+		return noTarget(livingEntity, strNoTarget, args, info);
+	}
+
 	/**
 	 * This should be called if a target should not be found. It sends the provided message
 	 * and returns the appropriate return value.
@@ -151,10 +183,48 @@ public abstract class TargetedSpell extends InstantSpell {
 	 * @return the appropriate PostCastAction value
 	 */
 	protected PostCastAction noTarget(LivingEntity livingEntity, String message) {
+		return noTarget(livingEntity, message, null, null);
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the provided message
+	 * and returns the appropriate return value.
+	 * @param livingEntity the casting living entity
+	 * @param message the message to send
+	 * @param args arguments of spell
+	 * @return the appropriate PostCastAction value
+	 */
+	protected PostCastAction noTarget(LivingEntity livingEntity, String message, String[] args) {
+		return noTarget(livingEntity, message, args, null);
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the provided message
+	 * and returns the appropriate return value.
+	 * @param livingEntity the casting living entity
+	 * @param message the message to send
+	 * @param info targeting info
+	 * @return the appropriate PostCastAction value
+	 */
+	protected PostCastAction noTarget(LivingEntity livingEntity, String message, TargetInfo<?> info) {
+		return noTarget(livingEntity, message, null, info);
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the provided message
+	 * and returns the appropriate return value.
+	 * @param livingEntity the casting living entity
+	 * @param message the message to send
+	 * @param args arguments of spell
+	 * @param info targeting info
+	 * @return the appropriate PostCastAction value
+	 */
+	protected PostCastAction noTarget(LivingEntity livingEntity, String message, String[] args, TargetInfo<?> info) {
+		if (info != null && info.cancelled()) return PostCastAction.ALREADY_HANDLED;
 		fizzle(livingEntity);
-		sendMessage(message, livingEntity, MagicSpells.NULL_ARGS);
+		sendMessage(message, livingEntity, args);
 		if (spellOnFail != null) spellOnFail.cast(livingEntity, 1.0F);
 		return alwaysActivate ? PostCastAction.NO_MESSAGES : PostCastAction.ALREADY_HANDLED;
 	}
-	
+
 }

@@ -28,11 +28,15 @@ public class EntitySelectSpell extends TargetedSpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null || targetInfo.getTarget() == null) return noTarget(caster);
-			
-			targets.put(caster.getUniqueId(), new WeakReference<>(targetInfo.getTarget()));
-			sendMessages(caster, targetInfo.getTarget(), args);
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+
+			targets.put(caster.getUniqueId(), new WeakReference<>(targetInfo.target()));
+			playSpellEffects(caster, targetInfo.target(), targetInfo.power(), args);
+			sendMessages(caster, targetInfo.target(), args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

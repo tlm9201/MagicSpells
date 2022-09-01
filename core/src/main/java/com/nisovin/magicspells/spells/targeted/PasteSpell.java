@@ -90,10 +90,10 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			Block target = pasteAtCaster ? caster.getLocation().getBlock() : getTargetedBlock(caster, power, args);
-			if (target == null) return noTarget(caster);
+			if (target == null) return noTarget(caster, args);
 			Location loc = target.getLocation();
 			boolean ok = castAtLocation(caster, loc, power, args);
-			if (!ok) return noTarget(caster);
+			if (!ok) return noTarget(caster, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

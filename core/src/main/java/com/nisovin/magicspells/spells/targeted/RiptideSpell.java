@@ -23,64 +23,51 @@ public class RiptideSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state != SpellCastState.NORMAL) return PostCastAction.HANDLE_NORMALLY;
+		if (state == SpellCastState.NORMAL) {
+			TargetInfo<Player> info = getTargetedPlayer(caster, power, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
 
-		TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-		if (targetInfo == null) return noTarget(caster);
+			Player target = info.target();
+			power = info.power();
 
-		Player target = targetInfo.getTarget();
-		if (target == null) return noTarget(caster);
+			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration.get(caster, target, power, args));
+			playSpellEffects(caster, target, power, args);
+			sendMessages(caster, target, args);
 
-		power = targetInfo.getPower();
-
-		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(target, duration.get(caster, target, power, args));
-		playSpellEffects(caster, target, power, args);
+			return PostCastAction.NO_MESSAGES;
+		}
 
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (target instanceof Player player && validTargetList.canTarget(caster, target)) {
-			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(caster, target, power, args));
-			playSpellEffects(caster, target, power, args);
-			return true;
-		}
+		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
 
-		return false;
+		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(caster, target, power, args));
+		playSpellEffects(caster, target, power, args);
+
+		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (target instanceof Player player && validTargetList.canTarget(caster, target)) {
-			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(caster, target, power, null));
-			playSpellEffects(caster, target, power, null);
-			return true;
-		}
-
-		return false;
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (target instanceof Player player && validTargetList.canTarget(target)) {
-			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(null, target, power, args));
-			playSpellEffects(EffectPosition.TARGET, target, power, args);
-			return true;
-		}
+		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
 
-		return false;
+		MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(null, target, power, args));
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
+
+		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (target instanceof Player player && validTargetList.canTarget(target)) {
-			MagicSpells.getVolatileCodeHandler().startAutoSpinAttack(player, duration.get(null, target, power, null));
-			playSpellEffects(EffectPosition.TARGET, target, power, null);
-			return true;
-		}
-
-		return false;
+		return castAtEntity(target, power, null);
 	}
 
 }

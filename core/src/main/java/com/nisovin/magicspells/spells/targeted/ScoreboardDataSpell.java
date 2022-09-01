@@ -51,18 +51,18 @@ public class ScoreboardDataSpell extends TargetedSpell implements TargetedEntity
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player player) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(player, power, args);
-			if (targetInfo == null) return noTarget(player);
+	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
+		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
+			TargetInfo<LivingEntity> info = getTargetedEntity(player, power, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
 
-			LivingEntity target = targetInfo.getTarget();
-			if (target == null) return noTarget(player);
+			setScore(player, info.target());
+			playSpellEffects(player, info.target(), info.power(), args);
+			sendMessages(caster, info.target(), args);
 
-			setScore(player, target);
-
-			playSpellEffects(player, target, power, args);
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
@@ -71,8 +71,8 @@ public class ScoreboardDataSpell extends TargetedSpell implements TargetedEntity
 		if (!(caster instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
 
 		setScore(player, target);
-
 		playSpellEffects(caster, target, power, args);
+
 		return true;
 	}
 

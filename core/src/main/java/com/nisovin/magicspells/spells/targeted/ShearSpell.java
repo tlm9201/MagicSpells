@@ -12,13 +12,16 @@ import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 //This spell currently support the shearing of sheep at the moment.
 //Future tweaks for the shearing of other mobs will be added.
 
 public class ShearSpell extends TargetedSpell implements TargetedEntitySpell {
 
+	private static final ValidTargetChecker SHEEP = entity -> entity instanceof Sheep;
 	private static final DyeColor[] colors = DyeColor.values();
 
 	private DyeColor dye;
@@ -59,16 +62,16 @@ public class ShearSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return PostCastAction.ALREADY_HANDLED;
-			if (!(target.getTarget() instanceof Sheep sheep)) return PostCastAction.ALREADY_HANDLED;
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, SHEEP, args);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			boolean done = shear(caster, sheep, power, args);
-			if (!done) return noTarget(caster);
+			boolean done = shear(caster, (Sheep) target.target(), target.power(), args);
+			if (!done) return noTarget(caster, args);
 
-			sendMessages(caster, target.getTarget(), args);
+			sendMessages(caster, target.target(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
@@ -106,9 +109,7 @@ public class ShearSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	private boolean shear(LivingEntity caster, Sheep sheep, float power, String[] args) {
-		if (!configuredCorrectly) return false;
-		if (sheep.isSheared()) return false;
-		if (!sheep.isAdult()) return false;
+		if (!configuredCorrectly || sheep.isSheared() || !sheep.isAdult()) return false;
 
 		DyeColor color = null;
 		if (forceWoolColor) {
@@ -127,6 +128,10 @@ public class ShearSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		sheep.setSheared(true);
 		sheep.getWorld().dropItemNaturally(sheep.getLocation().add(0, dropOffset.get(caster, sheep, power, args), 0), new ItemStack(woolColor, count));
+
+		if (caster != null) playSpellEffects(caster, sheep, power, args);
+		else playSpellEffects(EffectPosition.TARGET, sheep, power, args);
+
 		return true;
 	}
 

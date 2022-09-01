@@ -11,12 +11,16 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 //This spell currently support the shearing of sheep at the moment.
 //Future tweaks for the shearing of other mobs will be added.
 
 public class RegrowSpell extends TargetedSpell implements TargetedEntitySpell {
+
+	private static final ValidTargetChecker SHEEP = entity -> entity instanceof Sheep;
 
 	private DyeColor dye;
 
@@ -50,41 +54,56 @@ public class RegrowSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return PostCastAction.ALREADY_HANDLED;
-			if (!(target.getTarget() instanceof Sheep sheep)) return PostCastAction.ALREADY_HANDLED;
+			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, SHEEP, args);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			boolean done = grow(sheep);
-			if (!done) return noTarget(caster);
+			boolean done = grow(caster, (Sheep) target.target(), power, args);
+			if (!done) return noTarget(caster, args);
 
-			sendMessages(caster, target.getTarget(), args);
+			sendMessages(caster, target.target(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(target instanceof Sheep sheep) || !validTargetList.canTarget(caster, target)) return false;
-		return grow(sheep);
+		return grow(caster, sheep, power, args);
+	}
+
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!(target instanceof Sheep sheep) || !validTargetList.canTarget(target)) return false;
+		return grow(null, sheep, power, args);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Sheep sheep) || !validTargetList.canTarget(target)) return false;
-		return grow(sheep);
+		return castAtEntity(target, power, null);
 	}
 
-	private boolean grow(Sheep sheep) {
+	private boolean grow(LivingEntity caster, Sheep target, float power, String[] args) {
 		if (!configuredCorrectly) return false;
-		if (!sheep.isSheared()) return false;
-		if (!sheep.isAdult()) return false;
+		if (!target.isSheared()) return false;
+		if (!target.isAdult()) return false;
 
 		//If we are forcing a specific random wool color, lets set its color to this.
-		if (forceWoolColor && randomWoolColor) sheep.setColor(randomizeDyeColor());
-		else if (forceWoolColor && dye != null) sheep.setColor(dye);
+		if (forceWoolColor && randomWoolColor) target.setColor(randomizeDyeColor());
+		else if (forceWoolColor && dye != null) target.setColor(dye);
 
-		sheep.setSheared(false);
+		target.setSheared(false);
+
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
+
 		return true;
 	}
 

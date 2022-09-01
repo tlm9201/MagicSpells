@@ -237,10 +237,10 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			switch (location.toLowerCase()) {
 				case "focus" -> {
 					loc = getRandomLocationFrom(caster.getLocation(), 3);
-					TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-					if (targetInfo == null) return noTarget(caster);
-					target = targetInfo.getTarget();
-					power = targetInfo.getPower();
+					TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
+					if (info.noTarget()) return noTarget(caster, args, info);
+					target = info.target();
+					power = info.power();
 				}
 				case "target" -> {
 					Block block = getTargetedBlock(caster, power, args);
@@ -259,7 +259,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				}
 			}
 
-			if (loc == null) return noTarget(caster);
+			if (loc == null) return noTarget(caster, args);
 			spawnMob(caster, caster.getLocation(), loc, target, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;

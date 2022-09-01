@@ -8,6 +8,7 @@ import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class SlotSelectSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -38,12 +39,15 @@ public class SlotSelectSpell extends TargetedSpell implements TargetedEntitySpel
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && caster instanceof Player) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			Player target = targetInfo.getTarget();
-			if (target == null) return noTarget(caster);
-			slotChange(caster, target, power, args);
+			TargetInfo<Player> info = getTargetedPlayer(caster, power, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
+
+			if (!slotChange(caster, info.target(), info.power(), args)) return noTarget(caster, args);
+
+			sendMessages(caster, info.target(), args);
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
@@ -69,12 +73,14 @@ public class SlotSelectSpell extends TargetedSpell implements TargetedEntitySpel
 
 	private boolean slotChange(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(target instanceof Player player)) return false;
+
 		int newSlot = -1;
 		if (isVariable) {
 			if (variable == null || variable.isEmpty() || MagicSpells.getVariableManager().getVariable(variable) == null) {
 				MagicSpells.error("SlotSelectSpell '" + internalName + "' has an invalid variable specified in 'slot'!");
 			} else newSlot = (int) Math.round(MagicSpells.getVariableManager().getValue(variable, player));
 		} else newSlot = slot;
+
 		try {
 			player.getInventory().setHeldItemSlot(newSlot);
 		} catch(IllegalArgumentException e) {
@@ -82,6 +88,10 @@ public class SlotSelectSpell extends TargetedSpell implements TargetedEntitySpel
 				MagicSpells.error("SlotSelectSpell '" + internalName + "' attempted to set to a slot outside bounds (0-8)! If this is intended, set 'ignore-slot-bounds' to true.");
 			}
 		}
+
+		if (caster != null) playSpellEffects(caster, target, power, args);
+		else playSpellEffects(EffectPosition.TARGET, target, power, args);
+
 		return true;
 	}
 

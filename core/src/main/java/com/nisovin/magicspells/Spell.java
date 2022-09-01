@@ -1220,10 +1220,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return the targeted Player, or null if none was found
 	 */
 	protected TargetInfo<Player> getTargetedPlayer(LivingEntity livingEntity, float power, String[] args) {
-		TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power, true, null, args);
-		if (target == null) return null;
-		if (!(target.getTarget() instanceof Player)) return null;
-		return new TargetInfo<>((Player) target.getTarget(), target.getPower());
+		TargetInfo<LivingEntity> target = getTargetedEntity(livingEntity, power, true, e -> e instanceof Player, args);
+		return new TargetInfo<>((Player) target.target(), target.power(), target.cancelled());
 	}
 
 	protected TargetInfo<Player> getTargetPlayer(LivingEntity caster, float power) {
@@ -1264,13 +1262,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			entities = validTargetList.filterTargetListCastingAsLivingEntities(caster, nearbyEntities);
 		}
 
+		if (checker != null) entities.removeIf(entity -> !checker.isValidTarget(entity));
+
 		// Find target
 		BlockIterator blockIterator;
 		try {
 			blockIterator = new BlockIterator(caster, currentRange);
 		} catch (IllegalStateException e) {
 			DebugHandler.debugIllegalState(e);
-			return null;
+			return new TargetInfo<>(null, power, false);
 		}
 
 		Block block;
@@ -1356,8 +1356,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 				// Call event listeners
 				SpellTargetEvent spellTargetEvent = new SpellTargetEvent(this, caster, target, power, args);
-				EventUtil.call(spellTargetEvent);
-				if (spellTargetEvent.isCancelled()) {
+				spellTargetEvent.callEvent();
+
+				if (spellTargetEvent.isCastCancelled()) return new TargetInfo<>(null, spellTargetEvent.getPower(), true);
+				else if (spellTargetEvent.isCancelled()) {
 					blacklistedEntities.add(target);
 					continue;
 				} else {
@@ -1376,17 +1378,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					}
 				}
 
-				// Run checker
-				if (target != null && checker != null && !checker.isValidTarget(target)) {
-					blacklistedEntities.add(target);
-					continue;
-				}
-
-				return new TargetInfo<>(target, power);
+				return new TargetInfo<>(target, power, false);
 			}
 
 		}
-		return null;
+
+		return new TargetInfo<>(null, power, false);
 	}
 
 	protected Block getTargetedBlock(LivingEntity entity, float power) {

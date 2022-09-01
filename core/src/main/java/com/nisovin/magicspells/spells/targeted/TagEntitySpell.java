@@ -28,12 +28,14 @@ public class TagEntitySpell extends TargetedSpell implements TargetedEntitySpell
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			LivingEntity target = targetInfo.getTarget();
-			if (target == null) return noTarget(caster);
-			tag(caster, target);
-			playSpellEffects(caster, target, power, args);
+			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
+
+			tag(caster, info.target(), args);
+			playSpellEffects(caster, info.target(), info.power(), args);
+			sendMessages(caster, info.target(), args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
 
 		return PostCastAction.HANDLE_NORMALLY;
@@ -42,40 +44,39 @@ public class TagEntitySpell extends TargetedSpell implements TargetedEntitySpell
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		tag(caster, target);
+		tag(caster, target, args);
 		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		tag(caster, target);
-		playSpellEffects(caster, target, power, null);
-		return true;
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(target)) return false;
-		tag(target, target);
+		tag(null, target, args);
 		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		tag(target, target);
-		playSpellEffects(EffectPosition.TARGET, target, power, null);
-		return true;
+		return castAtEntity(target, power, null);
 	}
 
-	private void tag(LivingEntity caster, LivingEntity target) {
+	private void tag(LivingEntity caster, LivingEntity target, String[] args) {
 		String varTag = tag;
-		if (caster instanceof Player && varTag.contains("%")) {
-			varTag = MagicSpells.doVariableReplacements((Player) caster, varTag);
+		if (varTag.contains("%")) {
+			varTag = MagicSpells.doTargetedVariableReplacements(
+				caster instanceof Player player ? player : null,
+				target instanceof Player player ? player : null,
+				MagicSpells.doArgumentSubstitution(tag, args)
+			);
 		}
+
 		switch (operation) {
 			case "add", "insert" -> target.addScoreboardTag(varTag);
 			case "remove", "take" -> target.removeScoreboardTag(varTag);

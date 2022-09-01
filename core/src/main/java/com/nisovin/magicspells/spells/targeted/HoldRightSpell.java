@@ -19,6 +19,8 @@ import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
+import org.checkerframework.checker.units.qual.C;
+
 public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
 	private ConfigData<Integer> resetTime;
@@ -72,13 +74,14 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 
 			if (targetEntity) {
 				TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-				if (target != null) data = new CastData(caster, target.getTarget(), target.getPower(), args);
-				else return noTarget(caster);
+				if (target.noTarget()) return noTarget(caster, args, target);
+
+				data = new CastData(caster, target.target(), target.power(), args);
 			} else if (targetLocation) {
 				Block block = getTargetedBlock(caster, power, args);
-				if (block != null && block.getType() != Material.AIR)
-					data = new CastData(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
-				else return noTarget(caster);
+				if (block == null || block.getType().isAir()) return noTarget(caster, args);
+
+				data = new CastData(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
 			} else data = new CastData(caster, power, args);
 
 			data.cast(caster);

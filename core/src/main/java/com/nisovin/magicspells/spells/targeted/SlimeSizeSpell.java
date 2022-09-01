@@ -15,6 +15,8 @@ import com.nisovin.magicspells.util.config.ConfigData;
 
 public class SlimeSizeSpell extends TargetedSpell implements TargetedEntitySpell {
 
+	private static final ValidTargetChecker SLIME = entity -> entity instanceof Slime;
+
 	private VariableMod variableMod;
 
 	private String size;
@@ -43,40 +45,32 @@ public class SlimeSizeSpell extends TargetedSpell implements TargetedEntitySpell
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
+			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, SLIME, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
 
-			setSize(caster, targetInfo.getTarget(), targetInfo.getPower(), args);
+			if (!setSize(caster, info.target(), info.power(), args)) return noTarget(caster, args);
+
+			sendMessages(caster, info.target(), args);
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		setSize(caster, target, power, args);
-		return true;
+		return setSize(caster, target, power, args);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		setSize(caster, target, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		setSize(null, target, power, args);
-		return true;
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		setSize(null, target, power, null);
-		return true;
+		return false;
 	}
 
 	@Override
@@ -84,9 +78,8 @@ public class SlimeSizeSpell extends TargetedSpell implements TargetedEntitySpell
 		return isSlimeChecker;
 	}
 
-	private void setSize(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(target instanceof Slime slime)) return;
-		if (!(caster instanceof Player player)) return;
+	private boolean setSize(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		if (!(target instanceof Slime slime) || !(caster instanceof Player player)) return false;
 
 		int minSize = this.minSize.get(caster, target, power, args);
 		int maxSize = this.maxSize.get(caster, target, power, args);
@@ -97,6 +90,10 @@ public class SlimeSizeSpell extends TargetedSpell implements TargetedEntitySpell
 		double rawOutputValue = variableMod.getValue(player, null, slime.getSize(), power, args);
 		int finalSize = Util.clampValue(minSize, maxSize, (int) rawOutputValue);
 		slime.setSize(finalSize);
+
+		playSpellEffects(caster, target, power, args);
+
+		return true;
 	}
 
 }

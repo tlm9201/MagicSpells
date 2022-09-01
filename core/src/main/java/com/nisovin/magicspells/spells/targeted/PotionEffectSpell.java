@@ -164,13 +164,16 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 			LivingEntity target;
 			if (targeted) {
 				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-				if (targetInfo == null) return noTarget(caster);
+				if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
 
-				target = targetInfo.getTarget();
-				power = targetInfo.getPower();
+				target = targetInfo.target();
+				power = targetInfo.power();
 			} else {
 				SpellTargetEvent targetEvent = new SpellTargetEvent(this, caster, caster, power, args);
-				if (!targetEvent.callEvent()) return noTarget(caster);
+				targetEvent.callEvent();
+
+				if (targetEvent.isCastCancelled()) return PostCastAction.ALREADY_HANDLED;
+				else if (targetEvent.isCancelled()) return noTarget(caster, args);
 
 				target = targetEvent.getTarget();
 				power = targetEvent.getPower();
@@ -182,6 +185,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

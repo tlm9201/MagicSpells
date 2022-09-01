@@ -51,13 +51,15 @@ public class CombustSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
-			boolean combusted = combust(caster, target.getTarget(), target.getPower(), args);
-			if (!combusted) return noTarget(caster);
+			if (target.noTarget()) return noTarget(caster, args, target);
 
-			sendMessages(caster, target.getTarget(), args);
+			boolean combusted = combust(caster, target.target(), target.power(), args);
+			if (!combusted) return noTarget(caster, args);
+
+			sendMessages(caster, target.target(), args);
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

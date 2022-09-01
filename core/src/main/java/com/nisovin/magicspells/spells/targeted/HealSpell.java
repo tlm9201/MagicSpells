@@ -46,12 +46,17 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, checker, args);
-			if (targetInfo == null) return noTarget(caster);
-			LivingEntity target = targetInfo.getTarget();
-			power = targetInfo.getPower();
-			if (cancelIfFull && target.getHealth() == Util.getMaxHealth(target)) return noTarget(caster, formatMessage(strMaxHealth, "%t", getTargetName(target)));
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+
+			LivingEntity target = targetInfo.target();
+			power = targetInfo.power();
+
+			if (cancelIfFull && target.getHealth() == Util.getMaxHealth(target))
+				return noTarget(caster, formatMessage(strMaxHealth, "%t", getTargetName(target)), args);
+
 			boolean healed = heal(caster, target, power, args);
-			if (!healed) return noTarget(caster);
+			if (!healed) return noTarget(caster, args);
+
 			sendMessages(caster, target, args);
 			return PostCastAction.NO_MESSAGES;
 		}

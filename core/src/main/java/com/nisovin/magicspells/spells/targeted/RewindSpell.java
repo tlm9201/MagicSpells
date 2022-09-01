@@ -74,28 +74,26 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			if (targetSelf) new Rewinder(caster, caster, power, args);
-			else {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-				if (targetInfo == null) return noTarget(caster);
-				sendMessages(caster, targetInfo.getTarget(), args);
-				new Rewinder(caster, targetInfo.getTarget(), targetInfo.getPower(), args);
-			}
-			playSpellEffects(EffectPosition.CASTER, caster, power, args);
+			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
+
+			LivingEntity target = info.target();
+			power = info.power();
+
+			new Rewinder(caster, target, power, args);
+			playSpellEffects(caster, target, power, args);
+			sendMessages(caster, target, args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float v, String[] args) {
-		new Rewinder(caster, target, v, args);
-		sendMessages(caster, target, args);
-
-		SpellData data = new SpellData(caster, target, v, args);
-		playSpellEffects(EffectPosition.CASTER, caster, data);
-		playSpellEffects(EffectPosition.TARGET, target, data);
-		playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
-
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		new Rewinder(caster, target, power, args);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
@@ -105,9 +103,9 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity target, float v, String[] args) {
-		new Rewinder(null, target, v, args);
-		playSpellEffects(EffectPosition.TARGET, target, v, args);
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		new Rewinder(null, target, power, args);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 

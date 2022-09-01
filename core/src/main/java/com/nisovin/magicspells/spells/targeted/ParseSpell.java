@@ -83,13 +83,16 @@ public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
 			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
-			Player target = targetInfo.getTarget();
-			if (target == null) return noTarget(caster);
+			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+			Player target = targetInfo.target();
 
 			parse(target);
-			playSpellEffects(caster, target, power, args);
+			playSpellEffects(caster, target, targetInfo.power(), args);
+			sendMessages(caster, target, args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

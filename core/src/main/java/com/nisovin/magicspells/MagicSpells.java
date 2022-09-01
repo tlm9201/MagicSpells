@@ -1409,14 +1409,14 @@ public class MagicSpells extends JavaPlugin {
 		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
 
 		Matcher matcher = chatVarMatchPattern.matcher(string);
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder builder = new StringBuilder();
 
 		while (matcher.find()) {
 			String varName = matcher.group(1), place = matcher.group(2);
 
 			Variable variable = plugin.variableManager.getVariable(varName);
 			if (variable == null) {
-				matcher.appendReplacement(buffer, "0");
+				matcher.appendReplacement(builder, "0");
 				continue;
 			}
 
@@ -1431,10 +1431,10 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(player);
 			}
 
-			matcher.appendReplacement(buffer, Matcher.quoteReplacement(value));
+			matcher.appendReplacement(builder, Matcher.quoteReplacement(value));
 		}
 
-		return matcher.appendTail(buffer).toString();
+		return matcher.appendTail(builder).toString();
 	}
 
 	private static final Pattern chatPlayerVarMatchPattern = Pattern.compile("%playervar:(" + RegexUtil.USERNAME_REGEXP + "):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
@@ -1443,14 +1443,14 @@ public class MagicSpells extends JavaPlugin {
 		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
 
 		Matcher matcher = chatPlayerVarMatchPattern.matcher(string);
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder builder = new StringBuilder();
 
 		while (matcher.find()) {
 			String variableOwnerName = matcher.group(1), varName = matcher.group(2), place = matcher.group(3);
 
 			Variable variable = plugin.variableManager.getVariable(varName);
 			if (variable == null) {
-				matcher.appendReplacement(buffer, "0");
+				matcher.appendReplacement(builder, "0");
 				continue;
 			}
 
@@ -1465,10 +1465,10 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(variableOwnerName);
 			}
 
-			matcher.appendReplacement(buffer, Matcher.quoteReplacement(value));
+			matcher.appendReplacement(builder, Matcher.quoteReplacement(value));
 		}
 
-		return matcher.appendTail(buffer).toString();
+		return matcher.appendTail(builder).toString();
 	}
 
 	private static final Pattern chatTargetedVarMatchPattern = Pattern.compile("%(castervar|targetvar):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
@@ -1476,14 +1476,14 @@ public class MagicSpells extends JavaPlugin {
 		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
 
 		Matcher matcher = chatTargetedVarMatchPattern.matcher(string);
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder builder = new StringBuilder();
 		Player varOwner;
 
 		while (matcher.find()) {
 			String varName = matcher.group(2);
 			Variable variable = plugin.variableManager.getVariable(varName);
 			if (variable == null) {
-				matcher.appendReplacement(buffer, "0");
+				matcher.appendReplacement(builder, "0");
 				continue;
 			}
 
@@ -1501,10 +1501,10 @@ public class MagicSpells extends JavaPlugin {
 				value = variable.getStringValue(varOwner);
 			}
 
-			matcher.appendReplacement(buffer, Matcher.quoteReplacement(value));
+			matcher.appendReplacement(builder, Matcher.quoteReplacement(value));
 		}
 
-		return matcher.appendTail(buffer).toString();
+		return matcher.appendTail(builder).toString();
 	}
 
 	//%arg:(index):defaultValue%
@@ -1513,7 +1513,7 @@ public class MagicSpells extends JavaPlugin {
 		if (string == null || string.isEmpty()) return string;
 
 		Matcher matcher = argumentSubstitutionPattern.matcher(string);
-		StringBuffer buffer = new StringBuffer();
+		StringBuilder builder = new StringBuilder();
 
 		while (matcher.find()) {
 			int argIndex = Integer.parseInt(matcher.group(1)) - 1;
@@ -1521,10 +1521,10 @@ public class MagicSpells extends JavaPlugin {
 			String newValue = matcher.group(2);
 			if (args != null && argIndex >= 0 && argIndex < args.length) newValue = args[argIndex];
 
-			matcher.appendReplacement(buffer, Matcher.quoteReplacement(newValue));
+			matcher.appendReplacement(builder, Matcher.quoteReplacement(newValue));
 		}
 
-		return matcher.appendTail(buffer).toString();
+		return matcher.appendTail(builder).toString();
 	}
 
 	public static String doArgumentAndVariableSubstitution(String string, Player player, String[] args) {

@@ -8,6 +8,7 @@ import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class SkinSpell extends TargetedSpell implements TargetedEntitySpell {
 	
@@ -24,26 +25,43 @@ public class SkinSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo == null || targetInfo.getTarget() == null) return noTarget(caster);
+			TargetInfo<Player> info = getTargetedPlayer(caster, power, args);
+			if (info.noTarget()) return noTarget(caster, args);
 
-			Util.setSkin(targetInfo.getTarget(), texture, signature);
+			Util.setSkin(info.target(), texture, signature);
+			playSpellEffects(caster, info.target(), info.power(), args);
+			sendMessages(caster, info.target(), args);
+
+			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
 		Util.setSkin(player, texture, signature);
+		playSpellEffects(caster, target, power, args);
+		return true;
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(caster, target, power, null);
+	}
+
+	@Override
+	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
+		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
+		Util.setSkin(player, texture, signature);
+		playSpellEffects(EffectPosition.TARGET, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
-		Util.setSkin(player, texture, signature);
-		return true;
+		return castAtEntity(target, power, null);
 	}
 
 }

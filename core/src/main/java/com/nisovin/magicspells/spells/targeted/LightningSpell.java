@@ -25,6 +25,8 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
+import com.mojang.datafixers.kinds.IdF;
+
 public class LightningSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	private ConfigData<Double> additionalDamage;
@@ -54,45 +56,39 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 			LivingEntity entityTarget = null;
 			if (requireEntityTarget) {
 				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-				if (targetInfo != null) {
-					entityTarget = targetInfo.getTarget();
-					power = targetInfo.getPower();
-				}
+				if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+
+				entityTarget = targetInfo.target();
+				power = targetInfo.power();
 
 				double additionalDamage = this.additionalDamage.get(caster, entityTarget, power, args);
 
 				if (checkPlugins) {
 					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, entityTarget, DamageCause.ENTITY_ATTACK, 1 + additionalDamage, this);
-					EventUtil.call(event);
-					if (event.isCancelled()) entityTarget = null;
+					if (!event.callEvent()) return noTarget(caster, args);
 				}
-				if (entityTarget != null) {
-					target = entityTarget.getLocation().getBlock();
-					if (additionalDamage > 0) entityTarget.damage(additionalDamage * power, caster);
-				} else return noTarget(caster);
-			} else {
-				try {
-					target = getTargetedBlock(caster, power, args);
-				} catch (IllegalStateException e) {
-					DebugHandler.debugIllegalState(e);
-					target = null;
-				}
-				if (target != null) {
-					SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power, args);
-					EventUtil.call(event);
 
-					target = event.isCancelled() ? null : event.getTargetLocation().getBlock();
-				}
+				target = entityTarget.getLocation().getBlock();
+				if (additionalDamage > 0) entityTarget.damage(additionalDamage * power, caster);
+			} else {
+				target = getTargetedBlock(caster, power, args);
+				if (target == null) return noTarget(caster, args);
+
+				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power, args);
+				if (!event.callEvent()) return noTarget(caster, args);
+
+				target = event.getTargetLocation().getBlock();
 			}
-			if (target != null) {
-				lightning(target.getLocation());
-				playSpellEffects(caster, target.getLocation(), power, args);
-				if (entityTarget != null) {
-					sendMessages(caster, entityTarget, args);
-					return PostCastAction.NO_MESSAGES;
-				}
-			} else return noTarget(caster);
+
+			lightning(target.getLocation());
+			playSpellEffects(caster, target.getLocation(), power, args);
+
+			if (entityTarget != null) {
+				sendMessages(caster, entityTarget, args);
+				return PostCastAction.NO_MESSAGES;
+			}
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

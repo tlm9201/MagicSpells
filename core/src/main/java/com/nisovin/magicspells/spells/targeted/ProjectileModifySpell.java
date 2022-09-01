@@ -233,7 +233,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 					if (block != null && !BlockUtils.isAir(block.getType())) loc = block.getLocation();
 				} catch (IllegalStateException ignored) {}
 			}
-			if (loc == null) return noTarget(caster);
+			if (loc == null) return noTarget(caster, args);
 
 			modify(caster, loc, power, args);
 		}

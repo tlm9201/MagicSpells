@@ -55,12 +55,16 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	@Override
 	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target == null) return noTarget(caster);
-			chain(caster, caster.getLocation(), target.getTarget(), target.getPower(), args);
-			sendMessages(caster, target.getTarget(), args);
+			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
+			if (info.noTarget()) return noTarget(caster, args, info);
+			LivingEntity target = info.target();
+
+			chain(caster, caster.getLocation(), target, info.power(), args);
+			sendMessages(caster, target, args);
+
 			return PostCastAction.NO_MESSAGES;
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 

@@ -4,6 +4,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Collection;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.LinkedListMultimap;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
@@ -11,13 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import ru.xezard.glow.data.glow.Glow;
 import ru.xezard.glow.data.glow.Glow.GlowBuilder;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.LinkedListMultimap;
-
-import org.apache.commons.math3.util.FastMath;
-
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
@@ -70,14 +67,13 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
 		if (state == SpellCastState.NORMAL && livingEntity instanceof Player caster) {
-
 			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo == null) return noTarget(caster);
+			if (targetInfo == null) return noTarget(caster, args);
+			LivingEntity target = targetInfo.target();
 
-			LivingEntity target = targetInfo.getTarget();
-
+			glow(caster, target, targetInfo.power(), args);
+			playSpellEffects(caster, target, power, args);
 			sendMessages(caster, target, args);
-			glow(caster, target, powerAffectsDuration ? targetInfo.getPower() : 1F, args);
 
 			return PostCastAction.NO_MESSAGES;
 		}
@@ -86,26 +82,25 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		if (!(caster instanceof Player pl)) return false;
-
-		glow(pl, target, powerAffectsDuration ? power : 1F, args);
+		if (!validTargetList.canTarget(caster, target) || !(caster instanceof Player player)) return false;
+		glow(player, target, power, args);
+		playSpellEffects(caster, target, power, args);
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, powerAffectsDuration ? power : 1F, null);
+		return castAtEntity(caster, target, power, null);
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean castAtEntity(LivingEntity target, float power) {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -114,7 +109,9 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	private void glow(Player caster, LivingEntity target, float power, String[] args) {
-		SpellData data = new SpellData(caster, target, power, args);
+		int duration = this.duration.get(caster, target, power, args);
+		if (powerAffectsDuration) duration = Math.round(duration * power);
+
 		Collection<GlowData> glows = glowing.get(caster.getUniqueId());
 		for (GlowData glowData : glows) {
 			// That entity is glowing for the caster
@@ -140,7 +137,7 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 				glowData.getGlow().destroy();
 				glowing.remove(caster.getUniqueId(), glowData);
-			}, FastMath.round(duration.get(data) * power)));
+			}, duration));
 
 			return;
 		}
@@ -168,7 +165,7 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 			glow.destroy();
 			glowing.remove(caster.getUniqueId(), glowData);
-		}, FastMath.round(duration.get(data) * power)));
+		}, duration));
 
 		// If target is a vanished player, make the caster see the target with vanish
 		if (target instanceof Player targetPlayer) {

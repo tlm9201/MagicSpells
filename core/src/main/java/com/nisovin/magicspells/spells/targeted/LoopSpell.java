@@ -227,11 +227,10 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			if (targeted) {
 				if (requireEntityTarget) {
 					TargetInfo<LivingEntity> info = getTargetedEntity(caster, power);
+					if (info.noTarget()) return noTarget(caster, args, info);
 
-					if (info != null) {
-						entityTarget = info.getTarget();
-						power = info.getPower();
-					}
+					entityTarget = info.target();
+					power = info.power();
 				} else if (pointBlank) {
 					locationTarget = caster.getLocation();
 				} else {
@@ -242,14 +241,14 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 						locationTarget.add(0.5, yOffset + 0.5, 0.5);
 
 						SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, locationTarget, power, args);
-						if (!event.callEvent()) return noTarget(caster);
+						if (!event.callEvent()) return noTarget(caster, args);
 
 						locationTarget = event.getTargetLocation();
 						power = event.getPower();
 					}
 				}
 
-				if (entityTarget == null && locationTarget == null) return noTarget(caster);
+				if (entityTarget == null && locationTarget == null) return noTarget(caster, args);
 			}
 
 			initLoop(caster, entityTarget, locationTarget, power, args);
