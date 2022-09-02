@@ -406,7 +406,7 @@ public class Util {
 		return false;
 	}
 
-	public static void rotateVector(Vector v, float degrees) {
+	public static void rotateVector(Vector v, double degrees) {
 		double rad = FastMath.toRadians(degrees);
 		double sin = FastMath.sin(rad);
 		double cos = FastMath.cos(rad);

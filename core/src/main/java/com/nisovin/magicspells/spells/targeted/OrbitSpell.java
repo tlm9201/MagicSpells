@@ -49,6 +49,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	private ConfigData<Float> horizExpandRadius;
 	private ConfigData<Float> secondsPerRevolution;
 
+	private boolean followYaw;
 	private boolean stopOnHitEntity;
 	private boolean stopOnHitGround;
 	private boolean counterClockwise;
@@ -85,6 +86,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		horizExpandRadius = getConfigDataFloat("horiz-expand-radius", 0);
 		secondsPerRevolution = getConfigDataFloat("seconds-per-revolution", 3F);
 
+		followYaw = getConfigBoolean("follow-yaw", false);
 		stopOnHitEntity = getConfigBoolean("stop-on-hit-entity", false);
 		stopOnHitGround = getConfigBoolean("stop-on-hit-ground", false);
 		counterClockwise = getConfigBoolean("counter-clockwise", false);
@@ -245,6 +247,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		private float power;
 		private float orbRadius;
 		private float orbHeight;
+		private float previousYaw;
 		private float distancePerTick;
 
 		private double maxDuration;
@@ -278,10 +281,12 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			internalName = OrbitSpell.this.internalName;
 			startTime = System.currentTimeMillis();
-			currentPosition = targetLoc.getDirection().setY(0);
+			currentPosition = targetLoc.getDirection().setY(0).normalize();
 			Util.rotateVector(currentPosition, horizOffset.get(caster, target, power, args));
 			orbRadius = orbitRadius.get(caster, target, power, args);
 			orbHeight = yOffset.get(caster, target, power, args);
+
+			if (target != null) previousYaw = targetLoc.getYaw();
 
 			immune = new HashSet<>();
 
@@ -324,8 +329,6 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				stop(true);
 				return;
 			}
-
-			if (target != null) targetLoc = target.getLocation();
 
 			Location loc = getLocation();
 
@@ -399,10 +402,25 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		}
 
 		private Location getLocation() {
+			if (target != null) {
+				targetLoc = target.getLocation();
+
+				if (followYaw) {
+					float currentYaw = targetLoc.getYaw();
+
+					if (previousYaw != currentYaw) {
+						Util.rotateVector(currentPosition, currentYaw - previousYaw);
+						previousYaw = currentYaw;
+					}
+				}
+			}
+
 			Vector perp;
 			if (counterClockwise) perp = new Vector(currentPosition.getZ(), 0, -currentPosition.getX());
 			else perp = new Vector(-currentPosition.getZ(), 0, currentPosition.getX());
+
 			currentPosition.add(perp.multiply(distancePerTick)).normalize();
+
 			return targetLoc.clone().add(0, orbHeight, 0).add(currentPosition.clone().multiply(orbRadius)).setDirection(perp);
 		}
 
