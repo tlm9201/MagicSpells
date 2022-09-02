@@ -39,7 +39,6 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
-	private final static ThreadLocalRandom random = ThreadLocalRandom.current();
 	private static boolean deathRegistered;
 
 	private final Multimap<UUID, Loop> activeLoops = HashMultimap.create();

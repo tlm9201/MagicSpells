@@ -61,7 +61,7 @@ import net.kyori.adventure.text.Component;
 
 public abstract class Spell implements Comparable<Spell>, Listener {
 
-	protected Random random = ThreadLocalRandom.current();
+	protected static final Random random = ThreadLocalRandom.current();
 
 	protected MagicConfig config;
 
