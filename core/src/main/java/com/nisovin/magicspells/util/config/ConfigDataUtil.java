@@ -487,7 +487,7 @@ public class ConfigDataUtil {
 														 @NotNull String sizePath,
 														 @Nullable DustOptions def) {
 		String colorHex = config.getString(colorPath);
-		Color color = colorHex != null ? ColorUtil.getColorFromHexString(colorHex) : (def != null ? def.getColor() : null);
+		Color color = colorHex != null ? ColorUtil.getColorFromHexString(colorHex, false) : (def != null ? def.getColor() : null);
 
 		if (color != null) {
 			if (config.isInt(sizePath) || config.isLong(sizePath) || config.isDouble(sizePath)) {
@@ -520,7 +520,7 @@ public class ConfigDataUtil {
 
 				@Override
 				public DustOptions get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args));
+					Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args), false);
 					if (c == null) return def;
 
 					return new DustOptions(c, size);
@@ -539,7 +539,7 @@ public class ConfigDataUtil {
 
 			@Override
 			public DustOptions get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-				Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args));
+				Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args), false);
 				if (c == null) return def;
 
 				return new DustOptions(c, size.get(caster, target, power, args));
@@ -561,12 +561,12 @@ public class ConfigDataUtil {
 															   @Nullable DustTransition def) {
 		Color color = null;
 		String colorHex = config.getString(colorPath);
-		if (colorHex != null) color = ColorUtil.getColorFromHexString(colorHex);
+		if (colorHex != null) color = ColorUtil.getColorFromHexString(colorHex, false);
 		else if (def != null) color = def.getColor();
 
 		Color toColor = null;
 		String toColorHex = config.getString(toColorPath);
-		if (toColorHex != null) toColor = ColorUtil.getColorFromHexString(toColorHex);
+		if (toColorHex != null) toColor = ColorUtil.getColorFromHexString(toColorHex, false);
 		else if (def != null) toColor = def.getToColor();
 
 		final Color finalColor = color;
@@ -611,7 +611,7 @@ public class ConfigDataUtil {
 
 					@Override
 					public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-						Color c = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args));
+						Color c = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args), false);
 						if (c == null) {
 							if (def != null) c = def.getToColor();
 							else return null;
@@ -635,7 +635,7 @@ public class ConfigDataUtil {
 
 					@Override
 					public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-						Color c = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args));
+						Color c = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args), false);
 						if (c == null) c = def.getToColor();
 
 						return new DustTransition(finalColor, c, size);
@@ -654,7 +654,7 @@ public class ConfigDataUtil {
 
 				@Override
 				public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					Color c = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args));
+					Color c = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args), false);
 					if (c == null) {
 						if (def != null) c = def.getToColor();
 						else return null;
@@ -683,7 +683,7 @@ public class ConfigDataUtil {
 
 					@Override
 					public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-						Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args));
+						Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args), false);
 						if (c == null) {
 							if (def != null) c = def.getColor();
 							else return null;
@@ -707,7 +707,7 @@ public class ConfigDataUtil {
 
 					@Override
 					public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-						Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args));
+						Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args), false);
 						if (c == null) c = def.getToColor();
 
 						return new DustTransition(c, finalToColor, size);
@@ -726,7 +726,7 @@ public class ConfigDataUtil {
 
 				@Override
 				public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args));
+					Color c = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args), false);
 					if (c == null) {
 						if (def != null) c = def.getColor();
 						else return null;
@@ -753,13 +753,13 @@ public class ConfigDataUtil {
 
 				@Override
 				public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					Color col = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args));
+					Color col = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args), false);
 					if (col == null) {
 						if (def != null) col = def.getColor();
 						else return null;
 					}
 
-					Color toCol = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args));
+					Color toCol = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args), false);
 					if (toCol == null) {
 						if (def != null) toCol = def.getColor();
 						else return null;
@@ -783,10 +783,10 @@ public class ConfigDataUtil {
 
 				@Override
 				public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					Color col = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args));
+					Color col = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args), false);
 					if (col == null) return def;
 
-					Color toCol = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args));
+					Color toCol = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args), false);
 					if (toCol == null) return def;
 
 					return new DustTransition(col, toCol, size);
@@ -805,13 +805,13 @@ public class ConfigDataUtil {
 
 			@Override
 			public DustTransition get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-				Color col = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args));
+				Color col = ColorUtil.getColorFromHexString(colorSupplier.get(caster, target, power, args), false);
 				if (col == null) {
 					if (def != null) col = def.getColor();
 					else return null;
 				}
 
-				Color toCol = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args));
+				Color toCol = ColorUtil.getColorFromHexString(toColorSupplier.get(caster, target, power, args), false);
 				if (toCol == null) {
 					if (def != null) toCol = def.getColor();
 					else return null;

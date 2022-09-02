@@ -10,18 +10,22 @@ public class ColorUtil {
 
 	public static final Pattern HEX_PATTERN = Pattern.compile("&(#\\w{6})");
 
-	public static Color getColorFromHexString(String hex) {
+	public static Color getColorFromHexString(String hex, boolean debug) {
 		if (hex == null) return null;
 		String working = hex.replace("#", "");
 		try {
 			int value = Integer.parseInt(working, 16);
 			return Color.fromRGB(value);
 		} catch (IllegalArgumentException e) {
-			DebugHandler.debugIllegalArgumentException(e);
+			if (debug) DebugHandler.debugIllegalArgumentException(e);
 			return null;
 		}
 	}
-	
+
+	public static Color getColorFromHexString(String hex) {
+		return getColorFromHexString(hex, true);
+	}
+
 	public static Color getColorFromRGBString(String value) {
 		if (value == null) return null;
 		String[] splits = value.split(",");
