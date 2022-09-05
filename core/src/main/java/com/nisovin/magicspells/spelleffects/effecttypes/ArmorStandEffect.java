@@ -57,6 +57,8 @@ public class ArmorStandEffect extends SpellEffect {
 
 	@Override
 	protected ArmorStand playArmorStandEffectLocation(Location location, SpellData data) {
+		if (!entityData.isVisible()) location.setY(450);
+
 		ArmorStand armorStand = (ArmorStand) entityData.spawn(location);
 		armorStand.addScoreboardTag(ENTITY_TAG);
 		armorStand.setGravity(gravity);
@@ -67,6 +69,7 @@ public class ArmorStandEffect extends SpellEffect {
 		if (headItem != null) armorStand.setItem(EquipmentSlot.HEAD, headItem);
 		if (mainhandItem != null) armorStand.setItem(EquipmentSlot.HAND, mainhandItem);
 		if (offhandItem != null) armorStand.setItem(EquipmentSlot.OFF_HAND, offhandItem);
+
 		return armorStand;
 	}
 
