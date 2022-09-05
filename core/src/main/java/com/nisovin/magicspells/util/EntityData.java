@@ -554,6 +554,14 @@ public class EntityData {
 		this.entityType = entityType;
 	}
 
+	public boolean isVisible() {
+		return visible;
+	}
+
+	public void setVisible(boolean visible) {
+		this.visible = visible;
+	}
+
 	public Material getMaterial() {
 		return material;
 	}
