@@ -14,15 +14,19 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.config.ConfigData;
 
 import me.libraryaddict.disguise.DisguiseAPI;
 import me.libraryaddict.disguise.disguisetypes.*;
 import me.libraryaddict.disguise.disguisetypes.watchers.*;
+import me.libraryaddict.disguise.utilities.parser.DisguiseParser;
 
 // NOTE: LIBSDISGUISES IS REQUIRED FOR THIS
 public class DisguiseSpell extends BuffSpell {
 
 	private final Set<UUID> entities;
+
+	private ConfigData<String> disguiseData;
 
 	private EntityData entityData;
 
@@ -49,13 +53,21 @@ public class DisguiseSpell extends BuffSpell {
 		burning = getConfigBoolean("burning", false);
 		glowing = getConfigBoolean("glowing", false);
 
-		ConfigurationSection disguiseSection = getConfigSection("disguise");
-		if (disguiseSection != null) entityData = new EntityData(disguiseSection);
+		if (isConfigSection("disguise")) {
+			ConfigurationSection disguiseSection = getConfigSection("disguise");
+			if (disguiseSection != null) entityData = new EntityData(disguiseSection);
+
+			MagicSpells.error("DisguiseSpell '" + internalName + "' is using the legacy 'disguise' section, which is planned for removal. Please switch to a 'disguise' string.");
+		} else {
+			disguiseData = getConfigDataString("disguise", null);
+		}
 	}
 
 	@Override
 	public void initialize() {
 		super.initialize();
+
+		if (disguiseData != null) return;
 
 		if (entityData == null || entityData.getEntityType() == null) {
 			MagicSpells.error("DisguiseSpell '" + internalName + "' has an invalid disguise defined!");
@@ -69,7 +81,22 @@ public class DisguiseSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.add(entity.getUniqueId());
+		// STRING
+		if (disguiseData != null) {
+			try {
+				disguise = DisguiseParser.parseDisguise(disguiseData.get(entity, entity, power, args));
+			} catch (Throwable e) {
+				throw new RuntimeException(e);
+			}
+
+			if (disguise == null) return false;
+
+			DisguiseAPI.disguiseEntity(entity, disguise);
+			entities.add(entity.getUniqueId());
+			return true;
+		}
+
+		// CONFIG SECTION
 		if (disguise == null) return false;
 
 		FlagWatcher watcher = disguise.getWatcher();
@@ -120,6 +147,7 @@ public class DisguiseSpell extends BuffSpell {
 		}
 
 		DisguiseAPI.disguiseEntity(entity, disguise);
+		entities.add(entity.getUniqueId());
 		return true;
 	}
 
