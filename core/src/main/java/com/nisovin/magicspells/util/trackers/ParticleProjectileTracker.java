@@ -14,6 +14,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.block.BlockFace;
+import org.bukkit.util.EulerAngle;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 
@@ -372,6 +373,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 		if (armorStandSet != null || entitySet != null) {
 			// Changing the effect location
+			EulerAngle angle;
+
 			Vector dir = currentLocation.getDirection().normalize();
 			Vector horizOffset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
 			Location effectLoc = currentLocation.clone();
@@ -381,9 +384,14 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 			effectLoc = Util.makeFinite(effectLoc);
 
+			angle = EulerAngle.ZERO.setX(FastMath.toRadians(effectLoc.getPitch()));
+
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
 					armorStand.teleportAsync(effectLoc);
+					armorStand.setHeadPose(angle);
+					armorStand.setLeftArmPose(angle);
+					armorStand.setRightArmPose(angle);
 				}
 			}
 
