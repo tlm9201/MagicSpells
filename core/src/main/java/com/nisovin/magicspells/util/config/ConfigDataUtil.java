@@ -313,12 +313,10 @@ public class ConfigDataUtil {
 
 		boolean argReplacement = value.contains("%arg");
 		boolean varReplacement = value.contains("%var") || value.contains("%playervar");
-
-		boolean targeted = value.contains("%targetvar");
-		boolean targetedReplacement = targeted || value.contains("%castervar");
+		boolean targetedReplacement = value.contains("%castervar") || value.contains("%targetvar");
 
 		if (argReplacement || varReplacement || targetedReplacement)
-			return new StringData(value, varReplacement, targetedReplacement, argReplacement, targeted);
+			return new StringData(value, varReplacement, targetedReplacement, argReplacement);
 
 		return (caster, target, power, args) -> value;
 	}
