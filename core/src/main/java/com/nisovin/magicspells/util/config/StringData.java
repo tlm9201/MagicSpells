@@ -10,15 +10,13 @@ public class StringData implements ConfigData<String> {
 	private final boolean varReplacement;
 	private final boolean argReplacement;
 
-	private final boolean targeted;
 	private final String value;
 
-	public StringData(String value, boolean varReplacement, boolean targetedReplacement, boolean argReplacement, boolean targeted) {
+	public StringData(String value, boolean varReplacement, boolean targetedReplacement, boolean argReplacement) {
 		this.targetedReplacement = targetedReplacement;
 		this.varReplacement = varReplacement;
 		this.argReplacement = argReplacement;
 
-		this.targeted = targeted;
 		this.value = value;
 	}
 
@@ -28,8 +26,8 @@ public class StringData implements ConfigData<String> {
 
 		if (argReplacement) ret = MagicSpells.doArgumentSubstitution(ret, args);
 
-		Player playerCaster = caster instanceof Player ? (Player) caster : null;
-		Player playerTarget = target instanceof Player ? (Player) target : null;
+		Player playerCaster = caster instanceof Player p ? p : null;
+		Player playerTarget = target instanceof Player p ? p : null;
 
 		if (varReplacement) ret = MagicSpells.doVariableReplacements(playerCaster, ret);
 		if (targetedReplacement) ret = MagicSpells.doTargetedVariableReplacements(playerCaster, playerTarget, ret);
@@ -39,7 +37,7 @@ public class StringData implements ConfigData<String> {
 
 	@Override
 	public boolean isConstant() {
-		return argReplacement || varReplacement || targetedReplacement;
+		return !argReplacement && !varReplacement && !targetedReplacement;
 	}
 
 }

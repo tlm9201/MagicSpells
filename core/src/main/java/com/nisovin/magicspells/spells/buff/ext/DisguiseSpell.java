@@ -14,7 +14,9 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 import me.libraryaddict.disguise.DisguiseAPI;
 import me.libraryaddict.disguise.disguisetypes.*;
@@ -26,7 +28,7 @@ public class DisguiseSpell extends BuffSpell {
 
 	private final Set<UUID> entities;
 
-	private ConfigData<String> disguiseData;
+	private ConfigData<Disguise> disguiseData;
 
 	private EntityData entityData;
 
@@ -58,9 +60,37 @@ public class DisguiseSpell extends BuffSpell {
 			if (disguiseSection != null) entityData = new EntityData(disguiseSection);
 
 			MagicSpells.error("DisguiseSpell '" + internalName + "' is using the legacy 'disguise' section, which is planned for removal. Please switch to a 'disguise' string.");
-		} else {
-			disguiseData = getConfigDataString("disguise", null);
+			return;
 		}
+
+		String disguiseString = getConfigString("disguise", null);
+		if (disguiseString == null) {
+			MagicSpells.error("DisguiseSpell '" + internalName + "' has an invalid or no 'disguise' defined.");
+			disguiseData = null;
+			return;
+		}
+
+		ConfigData<String> supplier = ConfigDataUtil.getString(disguiseString);
+		if (supplier.isConstant()) {
+			try {
+				Disguise disguise = DisguiseParser.parseDisguise(disguiseString);
+				disguiseData = (caster, target, power, args) -> disguise;
+			} catch (Throwable t) {
+				MagicSpells.error("DisguiseSpell '" + internalName + "' has an invalid 'disguise' defined.");
+				DebugHandler.debug(t);
+				disguiseData = null;
+			}
+
+			return;
+		}
+
+		disguiseData = (caster, target, power, args) -> {
+			try {
+				return DisguiseParser.parseDisguise(supplier.get(caster, target, power, args));
+			} catch (Throwable ignored) {
+				return null;
+			}
+		};
 	}
 
 	@Override
@@ -83,16 +113,12 @@ public class DisguiseSpell extends BuffSpell {
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
 		// STRING
 		if (disguiseData != null) {
-			try {
-				disguise = DisguiseParser.parseDisguise(disguiseData.get(entity, entity, power, args));
-			} catch (Throwable e) {
-				throw new RuntimeException(e);
-			}
-
+			Disguise disguise = disguiseData.get(entity, null, power, args);
 			if (disguise == null) return false;
 
 			DisguiseAPI.disguiseEntity(entity, disguise);
 			entities.add(entity.getUniqueId());
+
 			return true;
 		}
 
