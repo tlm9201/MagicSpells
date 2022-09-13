@@ -57,20 +57,19 @@ public class ArmorStandEffect extends SpellEffect {
 
 	@Override
 	protected ArmorStand playArmorStandEffectLocation(Location location, SpellData data) {
-		if (!entityData.isVisible()) location.setY(450);
+		return (ArmorStand) entityData.spawn(location, entity -> {
+			ArmorStand armorStand = (ArmorStand) entity;
 
-		ArmorStand armorStand = (ArmorStand) entityData.spawn(location);
-		armorStand.addScoreboardTag(ENTITY_TAG);
-		armorStand.setGravity(gravity);
-		armorStand.setSilent(true);
-		armorStand.setCustomName(customName);
-		armorStand.setCustomNameVisible(customNameVisible);
+			armorStand.addScoreboardTag(ENTITY_TAG);
+			armorStand.setGravity(gravity);
+			armorStand.setSilent(true);
+			armorStand.setCustomName(customName);
+			armorStand.setCustomNameVisible(customNameVisible);
 
-		if (headItem != null) armorStand.setItem(EquipmentSlot.HEAD, headItem);
-		if (mainhandItem != null) armorStand.setItem(EquipmentSlot.HAND, mainhandItem);
-		if (offhandItem != null) armorStand.setItem(EquipmentSlot.OFF_HAND, offhandItem);
-
-		return armorStand;
+			if (headItem != null) armorStand.setItem(EquipmentSlot.HEAD, headItem);
+			if (mainhandItem != null) armorStand.setItem(EquipmentSlot.HAND, mainhandItem);
+			if (offhandItem != null) armorStand.setItem(EquipmentSlot.OFF_HAND, offhandItem);
+		});
 	}
 
 }
