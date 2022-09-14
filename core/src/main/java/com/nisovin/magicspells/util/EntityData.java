@@ -6,6 +6,7 @@ import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
+import org.bukkit.util.Consumer;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.configuration.ConfigurationSection;
@@ -675,6 +676,10 @@ public class EntityData {
 	}
 
 	public Entity spawn(Location location) {
+		return spawn(location, null);
+	}
+
+	public Entity spawn(Location location, Consumer<Entity> consumer) {
 		if (location == null) throw new NullPointerException("location");
 
 		Location startLoc = location.clone();
@@ -684,84 +689,85 @@ public class EntityData {
 		startLoc.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
 		startLoc.add(startLoc.getDirection().clone().multiply(relativeOffset.getX()));
 		startLoc.setY(startLoc.getY() + relativeOffset.getY());
-		
-		Entity entity = switch (entityType) {
+
+		return switch (entityType) {
 			case FALLING_BLOCK -> startLoc.getWorld().spawnFallingBlock(startLoc, material.createBlockData());
 			case DROPPED_ITEM -> startLoc.getWorld().dropItem(startLoc, new ItemStack(material));
-			default -> startLoc.getWorld().spawnEntity(startLoc, entityType);
+			default -> startLoc.getWorld().spawn(startLoc, (Class<Entity>) entityType.getEntityClass(), entity -> {
+				if (entity instanceof Ageable ageable) {
+					if (baby) ageable.setBaby();
+					else ageable.setAdult();
+				}
+
+				if (entity instanceof AbstractHorse horse && isSaddled())
+					horse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
+
+				if (entity instanceof ChestedHorse horse)
+					horse.setCarryingChest(isChested());
+
+				if (entity instanceof Slime slime)
+					slime.setSize(getSize());
+
+				if (entity instanceof Phantom phantom)
+					phantom.setSize(getSize());
+
+				switch (entityType) {
+					case ARMOR_STAND -> {
+						((ArmorStand) entity).setSmall(small);
+						((ArmorStand) entity).setArms(hasArms);
+						((ArmorStand) entity).setMarker(marker);
+						((ArmorStand) entity).setVisible(visible);
+						((ArmorStand) entity).setBasePlate(hasBasePlate);
+						((ArmorStand) entity).setHeadPose(headAngle);
+						((ArmorStand) entity).setBodyPose(bodyAngle);
+						((ArmorStand) entity).setLeftArmPose(leftArmAngle);
+						((ArmorStand) entity).setRightArmPose(rightArmAngle);
+						((ArmorStand) entity).setLeftLegPose(leftLegAngle);
+						((ArmorStand) entity).setRightLegPose(rightLegAngle);
+					}
+					case CREEPER -> ((Creeper) entity).setPowered(isPowered());
+					case ENDERMAN -> ((Enderman) entity).setCarriedBlock(material.createBlockData());
+					case WOLF -> {
+						((Wolf) entity).setAngry(isAngry());
+						((Wolf) entity).setTamed(isTamed());
+						if (tamed) ((Wolf) entity).setCollarColor(dyeColor);
+					}
+					case VILLAGER -> ((Villager) entity).setProfession(profession);
+					case PIG -> ((Pig) entity).setSaddle(saddled);
+					case SHEEP -> {
+						((Sheep) entity).setSheared(sheared);
+						((Sheep) entity).setColor(dyeColor);
+					}
+					case RABBIT -> ((Rabbit) entity).setRabbitType(rabbitType);
+					case HORSE -> {
+						((Horse) entity).setColor(horseColor);
+						((Horse) entity).setStyle(horseStyle);
+					}
+					case LLAMA -> {
+						((Llama) entity).setColor(llamaColor);
+						((Llama) entity).getInventory().setDecor(new ItemStack(material));
+					}
+					case PUFFERFISH -> ((PufferFish) entity).setPuffState(size);
+					case TROPICAL_FISH -> {
+						((TropicalFish) entity).setBodyColor(dyeColor);
+						((TropicalFish) entity).setPatternColor(patternDyeColor);
+						((TropicalFish) entity).setPattern(fishPattern);
+					}
+					case PARROT -> ((Parrot) entity).setVariant(parrotVariant);
+					case FOX -> ((Fox) entity).setFoxType(foxType);
+					case CAT -> ((Cat) entity).setCatType(catType);
+					case MUSHROOM_COW -> ((MushroomCow) entity).setVariant(cowVariant);
+					case PANDA -> {
+						((Panda) entity).setMainGene(mainGene);
+						((Panda) entity).setHiddenGene(hiddenGene);
+					}
+					case FROG -> ((Frog) entity).setVariant(frogVariant);
+					case AXOLOTL -> ((Axolotl) entity).setVariant(axolotlVariant);
+				}
+
+				if (consumer != null) consumer.accept(entity);
+			});
 		};
-
-		if (entity instanceof Ageable) {
-			if (isBaby()) ((Ageable) entity).setBaby();
-			else ((Ageable) entity).setAdult();
-		}
-
-		if (entity instanceof AbstractHorse && isSaddled()) ((AbstractHorse) entity).getInventory().setSaddle(new ItemStack(Material.SADDLE));
-
-		if (entity instanceof ChestedHorse) ((ChestedHorse) entity).setCarryingChest(isChested());
-
-		if (entity instanceof Slime) ((Slime) entity).setSize(getSize());
-
-		if (entity instanceof Phantom) ((Phantom) entity).setSize(getSize());
-
-		switch (entityType) {
-			case ARMOR_STAND -> {
-				((ArmorStand) entity).setSmall(small);
-				((ArmorStand) entity).setArms(hasArms);
-				((ArmorStand) entity).setMarker(marker);
-				((ArmorStand) entity).setVisible(visible);
-				((ArmorStand) entity).setBasePlate(hasBasePlate);
-				((ArmorStand) entity).setHeadPose(headAngle);
-				((ArmorStand) entity).setBodyPose(bodyAngle);
-				((ArmorStand) entity).setLeftArmPose(leftArmAngle);
-				((ArmorStand) entity).setRightArmPose(rightArmAngle);
-				((ArmorStand) entity).setLeftLegPose(leftLegAngle);
-				((ArmorStand) entity).setRightLegPose(rightLegAngle);
-			}
-			case ZOMBIE -> {
-				if (isBaby()) ((Ageable) entity).setBaby();
-			}
-			case CREEPER -> ((Creeper) entity).setPowered(isPowered());
-			case ENDERMAN -> ((Enderman) entity).setCarriedBlock(material.createBlockData());
-			case WOLF -> {
-				((Wolf) entity).setAngry(isAngry());
-				((Wolf) entity).setTamed(isTamed());
-				if (isTamed()) ((Wolf) entity).setCollarColor(getDyeColor());
-			}
-			case VILLAGER -> ((Villager) entity).setProfession(getProfession());
-			case PIG -> ((Pig) entity).setSaddle(isSaddled());
-			case SHEEP -> {
-				((Sheep) entity).setSheared(isSheared());
-				((Sheep) entity).setColor(getDyeColor());
-			}
-			case RABBIT -> ((Rabbit) entity).setRabbitType(getRabbitType());
-			case HORSE -> {
-				((Horse) entity).setColor(getHorseColor());
-				((Horse) entity).setStyle(getHorseStyle());
-			}
-			case LLAMA -> {
-				((Llama) entity).setColor(getLlamaColor());
-				((Llama) entity).getInventory().setDecor(new ItemStack(getMaterial()));
-			}
-			case PUFFERFISH -> ((PufferFish) entity).setPuffState(getSize());
-			case TROPICAL_FISH -> {
-				((TropicalFish) entity).setBodyColor(getDyeColor());
-				((TropicalFish) entity).setPatternColor(getPatternDyeColor());
-				((TropicalFish) entity).setPattern(getFishPattern());
-			}
-			case PARROT -> ((Parrot) entity).setVariant(getParrotVariant());
-			case FOX -> ((Fox) entity).setFoxType(getFoxType());
-			case CAT -> ((Cat) entity).setCatType(getCatType());
-			case MUSHROOM_COW -> ((MushroomCow) entity).setVariant(getCowVariant());
-			case PANDA -> {
-				((Panda) entity).setMainGene(getMainGene());
-				((Panda) entity).setHiddenGene(getMainGene());
-			}
-			case FROG -> ((Frog) entity).setVariant(getFrogVariant());
-			case AXOLOTL -> ((Axolotl) entity).setVariant(getAxolotlVariant());
-		}
-
-		return entity;
 	}
 
 }

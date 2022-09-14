@@ -377,31 +377,35 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		if (entityData.isPlayer()) return;
 
 		loc.setYaw((float) (Math.random() * 360));
-		LivingEntity entity = (LivingEntity) entityData.spawn(loc.add(0.5, yOffset.get(caster, target, power, args), 0.5));
+		LivingEntity entity = (LivingEntity) entityData.spawn(
+			loc.add(0.5, yOffset.get(caster, target, power, args), 0.5),
+			e -> {
+				LivingEntity preSpawned = (LivingEntity) e;
+				prepMob(caster, target, preSpawned, power, args);
 
-		prepMob(caster, target, entity, power, args);
+				int fireTicks = this.fireTicks.get(caster, target, power, args);
+				if (fireTicks > 0) preSpawned.setFireTicks(fireTicks);
+				if (potionEffects != null) preSpawned.addPotionEffects(potionEffects);
 
-		int fireTicks = this.fireTicks.get(caster, target, power, args);
-		if (fireTicks > 0) entity.setFireTicks(fireTicks);
-		if (potionEffects != null) entity.addPotionEffects(potionEffects);
+				// Apply attributes
+				if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(preSpawned, attributes);
 
-		// Apply attributes
-		if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(entity, attributes);
-
-		if (removeAI) {
-			if (addLookAtPlayerAI) {
-				if (entity instanceof Mob mob) {
-					MobGoals mobGoals = Bukkit.getMobGoals();
-					mobGoals.removeAllGoals(mob);
-					mobGoals.addGoal(mob, 1, new LookAtEntityGoal(mob, HumanEntity.class, 10.0F, 1.0F));
+				if (removeAI) {
+					if (addLookAtPlayerAI) {
+						if (preSpawned instanceof Mob mob) {
+							MobGoals mobGoals = Bukkit.getMobGoals();
+							mobGoals.removeAllGoals(mob);
+							mobGoals.addGoal(mob, 1, new LookAtEntityGoal(mob, HumanEntity.class, 10.0F, 1.0F));
+						}
+					} else {
+						preSpawned.setAI(false);
+					}
 				}
-			} else {
-				entity.setAI(false);
-			}
-		}
-		if (noAI) entity.setAI(false);
+				if (noAI) preSpawned.setAI(false);
 
-		if (target != null) MobUtil.setTarget(entity, target);
+				if (target != null) MobUtil.setTarget(preSpawned, target);
+			}
+		);
 
 		int targetInterval = this.targetInterval.get(caster, null, power, args);
 		if (targetInterval > 0) new Targeter(caster, entity, power, args);

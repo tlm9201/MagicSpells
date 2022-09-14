@@ -33,12 +33,13 @@ public class EntityEffect extends SpellEffect {
 
 	@Override
 	protected Entity playEntityEffectLocation(Location location, SpellData data) {
-		Entity entity = entityData.spawn(location);
-		entity.addScoreboardTag(ENTITY_TAG);
-		entity.setGravity(gravity);
-		entity.setSilent(silent);
-		if (entity instanceof LivingEntity) ((LivingEntity) entity).setAI(enableAI);
-		return entity;
+		return entityData.spawn(location, entity -> {
+			entity.addScoreboardTag(ENTITY_TAG);
+			entity.setGravity(gravity);
+			entity.setSilent(silent);
+
+			if (entity instanceof LivingEntity livingEntity) livingEntity.setAI(enableAI);
+		});
 	}
 
 }
