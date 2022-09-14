@@ -117,6 +117,7 @@ public class ValidTargetList {
 	}
 	
 	public boolean canTarget(LivingEntity caster, Entity target) {
+		if (caster == null) return canTarget(target);
 		return canTarget(caster, target, targetPlayers);
 	}
 	

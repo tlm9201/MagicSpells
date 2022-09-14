@@ -102,7 +102,9 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 
 		SpellData data = new SpellData(caster, basePower, args);
 		if (validTargetList.canTargetOnlyCaster()) {
-			if (caster == null || caster.getLocation().distanceSquared(location) > radiusSquared) return;
+			if (caster == null) return;
+			if (!caster.getWorld().equals(location.getWorld())) return;
+			if (caster.getLocation().distanceSquared(location) > radiusSquared) return;
 
 			bomb(caster, caster, location, basePower, args);
 
@@ -113,8 +115,8 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 
 		Collection<LivingEntity> entities = location.getWorld().getLivingEntities();
 		for (LivingEntity entity : entities) {
-			if (caster == null && !validTargetList.canTarget(entity)) continue;
-			if (caster != null && !validTargetList.canTarget(caster, entity)) continue;
+			if (!validTargetList.canTarget(caster, entity)) continue;
+			if (!entity.getWorld().equals(location.getWorld())) continue;
 			if (entity.getLocation().distanceSquared(location) > radiusSquared) continue;
 
 			bomb(caster, entity, location, basePower, args);
@@ -125,8 +127,6 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 	}
 
 	private void bomb(LivingEntity caster, LivingEntity target, Location location, float basePower, String[] args) {
-		if (!target.getLocation().getWorld().equals(location.getWorld())) return;
-
 		float power = basePower;
 		if (callTargetEvents && caster != null) {
 			SpellTargetEvent event = new SpellTargetEvent(this, caster, target, power, args);
