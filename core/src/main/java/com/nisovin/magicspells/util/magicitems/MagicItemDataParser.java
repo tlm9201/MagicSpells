@@ -70,20 +70,27 @@ public class MagicItemDataParser {
 			return magicItemData;
 		}
 
+		String base = args[0].trim();
 		args[1] = "{" + args[1];
 
-		Material type;
+		MagicItemData data;
 
-		type = Util.getMaterial(args[0].trim());
-		if (type == null) return null;
+		Material type = Util.getMaterial(base);
+		if (type != null) {
+			data = new MagicItemData();
+			data.setAttribute(TYPE, type);
+
+			if (type.isAir()) return data;
+		} else {
+			MagicItem magicItem = MagicItems.getMagicItems().get(base);
+			if (magicItem == null) return null;
+			data = magicItem.getMagicItemData().clone();
+
+			if (data.hasAttribute(TYPE) && ((Material) data.getAttribute(TYPE)).isAir()) return data;
+		}
 
 		JsonReader jsonReader = new JsonReader(new StringReader(args[1]));
 		jsonReader.setLenient(true);
-
-		MagicItemData data = new MagicItemData();
-		data.setAttribute(TYPE, type);
-
-		if (type.isAir()) return data;
 
 		try {
 			while (jsonReader.peek() != JsonToken.END_DOCUMENT) {
