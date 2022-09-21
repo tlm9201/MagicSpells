@@ -118,7 +118,9 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 			}
 
 			process(caster, target, power, args);
-			sendMessages(caster, target, args);
+
+			if (target != null) sendMessages(caster, target, args);
+			else sendMessages(caster, args);
 
 			return PostCastAction.NO_MESSAGES;
 		}
