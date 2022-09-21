@@ -325,6 +325,9 @@ public class MagicItems {
 				if (section.isBoolean("strict-enchants"))
 					magicItem.getMagicItemData().setStrictEnchants(section.getBoolean("strict-enchants"));
 
+				if (section.isBoolean("strict-durability"))
+					magicItem.getMagicItemData().setStrictDurability(section.getBoolean("strict-durability"));
+
 				if (section.isBoolean("strict-enchant-level"))
 					magicItem.getMagicItemData().setStrictEnchantLevel(section.getBoolean("strict-enchant-level"));
 
@@ -523,6 +526,9 @@ public class MagicItems {
 
 			if (section.isBoolean("strict-enchants"))
 				itemData.setStrictEnchants(section.getBoolean("strict-enchants"));
+
+			if (section.isBoolean("strict-durability"))
+				itemData.setStrictDurability(section.getBoolean("strict-durability"));
 
 			if (section.isBoolean("strict-enchant-level"))
 				itemData.setStrictEnchantLevel(section.getBoolean("strict-enchant-level"));

@@ -60,7 +60,7 @@ public class MagicItemDataParser {
 		String[] args = str.split("\\{", 2);
 		// check if it contains additional data
 		if (args.length < 2) {
-			// it doesnt, check if its a material type
+			// it doesn't, check if it's a material type
 			Material type = Util.getMaterial(str.trim());
 			if (type == null) return null;
 
@@ -431,6 +431,11 @@ public class MagicItemDataParser {
 						case "strict-enchants":
 						case "strict_enchants":
 							data.setStrictEnchants(value.getAsBoolean());
+							break;
+						case "strictdurability":
+						case "strict-durability":
+						case "strict_durability":
+							data.setStrictDurability(value.getAsBoolean());
 							break;
 						case "strictenchantlevel":
 						case "strict-enchant-level":

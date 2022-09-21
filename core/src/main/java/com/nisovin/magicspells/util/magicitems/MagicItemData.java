@@ -34,6 +34,7 @@ public class MagicItemData {
     private final EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
 
     private boolean strictEnchantLevel = true;
+    private boolean strictDurability = true;
     private boolean strictEnchants = true;
 
     public Object getAttribute(MagicItemAttribute attr) {
@@ -69,6 +70,14 @@ public class MagicItemData {
 
     public void setStrictEnchantLevel(boolean strictEnchantLevel) {
         this.strictEnchantLevel = strictEnchantLevel;
+    }
+
+    public boolean isStrictDurability() {
+        return strictDurability;
+    }
+
+    public void setStrictDurability(boolean strictDurability) {
+        this.strictDurability = strictDurability;
     }
 
     public boolean isStrictEnchants() {
@@ -144,6 +153,13 @@ public class MagicItemData {
                 case ATTRIBUTES -> {
                     if (!hasEqualAttributes(data)) return false;
                 }
+                case DURABILITY -> {
+                    Integer durabilitySelf = (Integer) itemAttributes.get(attr);
+                    Integer durabilityOther = (Integer) data.itemAttributes.get(attr);
+
+                    int compare = durabilitySelf.compareTo(durabilityOther);
+                    if (strictDurability ? compare != 0 : compare < 0) return false;
+                }
                 case ENCHANTS -> {
                     if (strictEnchants && strictEnchantLevel) {
                         if (!itemAttributes.get(attr).equals(data.itemAttributes.get(attr)))
@@ -164,7 +180,7 @@ public class MagicItemData {
                         Integer levelOther = enchantsOther.get(enchant);
 
                         int compare = levelSelf.compareTo(levelOther);
-                        if ((strictEnchantLevel && compare != 0) || (!strictEnchantLevel && compare > 0)) return false;
+                        if (strictEnchantLevel ? compare != 0 : compare > 0) return false;
                     }
                 }
                 default -> {
@@ -752,6 +768,14 @@ public class MagicItemData {
             else output.append('{');
 
             output.append("\"strict-enchants\": false");
+            previous = true;
+        }
+
+        if (!strictDurability) {
+            if (previous) output.append(',');
+            else output.append('{');
+
+            output.append("\"strict-durability\": false");
             previous = true;
         }
 
