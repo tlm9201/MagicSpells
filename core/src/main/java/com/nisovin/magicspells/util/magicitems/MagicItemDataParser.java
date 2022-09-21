@@ -60,7 +60,7 @@ public class MagicItemDataParser {
 		String[] args = str.split("\\{", 2);
 		// check if it contains additional data
 		if (args.length < 2) {
-			// it doesnt, check if its a material type
+			// it doesn't, check if it's a material type
 			Material type = Util.getMaterial(str.trim());
 			if (type == null) return null;
 
@@ -70,20 +70,27 @@ public class MagicItemDataParser {
 			return magicItemData;
 		}
 
+		String base = args[0].trim();
 		args[1] = "{" + args[1];
 
-		Material type;
+		MagicItemData data;
 
-		type = Util.getMaterial(args[0].trim());
-		if (type == null) return null;
+		Material type = Util.getMaterial(base);
+		if (type != null) {
+			data = new MagicItemData();
+			data.setAttribute(TYPE, type);
+
+			if (type.isAir()) return data;
+		} else {
+			MagicItem magicItem = MagicItems.getMagicItems().get(base);
+			if (magicItem == null) return null;
+			data = magicItem.getMagicItemData().clone();
+
+			if (data.hasAttribute(TYPE) && ((Material) data.getAttribute(TYPE)).isAir()) return data;
+		}
 
 		JsonReader jsonReader = new JsonReader(new StringReader(args[1]));
 		jsonReader.setLenient(true);
-
-		MagicItemData data = new MagicItemData();
-		data.setAttribute(TYPE, type);
-
-		if (type.isAir()) return data;
 
 		try {
 			while (jsonReader.peek() != JsonToken.END_DOCUMENT) {
@@ -431,6 +438,11 @@ public class MagicItemDataParser {
 						case "strict-enchants":
 						case "strict_enchants":
 							data.setStrictEnchants(value.getAsBoolean());
+							break;
+						case "strictdurability":
+						case "strict-durability":
+						case "strict_durability":
+							data.setStrictDurability(value.getAsBoolean());
 							break;
 						case "strictenchantlevel":
 						case "strict-enchant-level":

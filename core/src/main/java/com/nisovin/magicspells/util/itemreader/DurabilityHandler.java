@@ -28,7 +28,6 @@ public class DurabilityHandler {
 
 	public static void processMagicItemData(ItemMeta meta, MagicItemData data) {
 		if (!(meta instanceof Damageable damageableMeta)) return;
-		if (!damageableMeta.hasDamage()) return;
 		data.setAttribute(DURABILITY, damageableMeta.getDamage());
 	}
 
