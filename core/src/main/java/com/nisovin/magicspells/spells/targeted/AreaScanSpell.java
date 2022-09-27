@@ -281,30 +281,29 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 						}
 
 						Location target = origin.clone().add(xOffset, yOffset, zOffset);
+						if (!check(target.getBlock().getBlockData())) continue;
 
-						if (check(target.getBlock().getBlockData())) {
-							if (playerCaster != null) {
-								if (xVariable != null) manager.set(xVariable, playerCaster, target.getX());
-								if (yVariable != null) manager.set(yVariable, playerCaster, target.getY());
-								if (zVariable != null) manager.set(zVariable, playerCaster, target.getZ());
-							}
-
-							SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target, power, args);
-							if (!event.callEvent()) continue;
-
-							float subPower = event.getPower();
-							target = event.getTargetLocation();
-							found = true;
-
-							if (spell != null) {
-								if (spell.isTargetedLocationSpell()) spell.castAtLocation(caster, target, subPower);
-								else spell.cast(caster, subPower);
-							}
-
-							SpellData effectData = power == subPower ? data : new SpellData(caster, subPower, args);
-							playSpellEffects(EffectPosition.TARGET, target, effectData);
-							playSpellEffectsTrail(origin, target, effectData);
+						if (playerCaster != null) {
+							if (xVariable != null) manager.set(xVariable, playerCaster, target.getX());
+							if (yVariable != null) manager.set(yVariable, playerCaster, target.getY());
+							if (zVariable != null) manager.set(zVariable, playerCaster, target.getZ());
 						}
+
+						SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target, power, args);
+						if (!event.callEvent()) continue;
+
+						float subPower = event.getPower();
+						target = event.getTargetLocation();
+						found = true;
+
+						if (spell != null) {
+							if (spell.isTargetedLocationSpell()) spell.castAtLocation(caster, target, subPower);
+							else spell.cast(caster, subPower);
+						}
+
+						SpellData effectData = power == subPower ? data : new SpellData(caster, subPower, args);
+						playSpellEffects(EffectPosition.TARGET, target, effectData);
+						playSpellEffectsTrail(origin, target, effectData);
 
 						if (count == 1) break loop;
 						else if (count > 0) count--;
@@ -317,11 +316,6 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 		if (success && caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
 
 		return success;
-	}
-
-	private float zeroMultiply(int offset, float inverse) {
-		if (offset == 0) return 0;
-		return offset * inverse;
 	}
 
 	private boolean check(BlockData data) {
