@@ -1,9 +1,10 @@
 package com.nisovin.magicspells.util.trackers;
 
-import net.kyori.adventure.text.Component;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
+
+import net.kyori.adventure.text.Component;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -123,7 +124,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 		projectile.setVelocity(currentVelocity);
 		projectile.setGravity(gravity);
 		projectile.setShooter(caster);
-		if (projectileName != null) {
+		if (projectileName != null && !Util.getPlainString(projectileName).isEmpty()) {
 			projectile.customName(projectileName);
 			projectile.setCustomNameVisible(true);
 		}
