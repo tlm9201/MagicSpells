@@ -14,6 +14,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.player.PlayerAnimationType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
@@ -149,19 +150,19 @@ public class CastListener implements Listener {
 
 	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
 	public void onPlayerAnimation(PlayerAnimationEvent event) {
-		if (MagicSpells.isCastingOnAnimate()) {
-			Player player = event.getPlayer();
+		if (!MagicSpells.isCastingOnAnimate() || event.getAnimationType() != PlayerAnimationType.ARM_SWING) return;
 
-			InventoryType type = player.getOpenInventory().getType();
-			if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) return;
+		Player player = event.getPlayer();
 
-			if (MagicSpells.areBowCycleButtonsReversed()) {
-				ItemStack inHand = player.getInventory().getItemInMainHand();
-				if (isBow(inHand.getType())) return;
-			}
+		InventoryType type = player.getOpenInventory().getType();
+		if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) return;
 
-			castSpell(player);
+		if (MagicSpells.areBowCycleButtonsReversed()) {
+			ItemStack inHand = player.getInventory().getItemInMainHand();
+			if (isBow(inHand.getType())) return;
 		}
+
+		castSpell(player);
 	}
 	
 	@EventHandler
