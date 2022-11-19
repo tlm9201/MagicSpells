@@ -15,6 +15,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerAnimationType;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
@@ -164,7 +165,13 @@ public class CastListener implements Listener {
 
 		castSpell(player);
 	}
-	
+
+	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
+	public void onPlayerDrop(PlayerDropItemEvent event) {
+		if (!MagicSpells.isCastingOnAnimate()) return;
+		noCastUntil.put(event.getPlayer().getName(), System.currentTimeMillis() + 150);
+	}
+
 	@EventHandler
 	public void onPlayerShootBow(EntityShootBowEvent event) {
 		if (!(event.getEntity() instanceof Player player)) return;
