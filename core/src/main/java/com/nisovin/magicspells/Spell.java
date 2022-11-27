@@ -1446,20 +1446,33 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		playSpellEffectsTrail(caster.getLocation(), target, data);
 	}
 
-	@Deprecated
-	protected void playSpellEffects(Location startLoc, Entity target) {
-		playSpellEffects(startLoc, target, null);
+	protected void playSpellEffects(Entity caster, Location from, Entity target, float power, String[] args) {
+		SpellData data = new SpellData(caster instanceof LivingEntity le ? le : null, target instanceof LivingEntity le ? le : null, power, args);
+		playSpellEffects(caster, from, target, data);
 	}
 
-	protected void playSpellEffects(Location startLoc, Entity target, float power, String[] args) {
-		SpellData data = new SpellData(null, target instanceof LivingEntity le ? le : null, power, args);
-		playSpellEffects(startLoc, target, data);
-	}
-
-	protected void playSpellEffects(Location startLoc, Entity target, SpellData data) {
-		playSpellEffects(EffectPosition.START_POSITION, startLoc, data);
+	protected void playSpellEffects(Entity caster, Location from, Entity target, SpellData data) {
+		playSpellEffects(EffectPosition.CASTER, caster, data);
 		playSpellEffects(EffectPosition.TARGET, target, data);
-		playSpellEffectsTrail(startLoc, target.getLocation(), data);
+		playSpellEffects(EffectPosition.START_POSITION, from, data);
+		playSpellEffects(EffectPosition.END_POSITION, target, data);
+		playSpellEffectsTrail(from, target.getLocation(), data);
+	}
+
+	@Deprecated
+	protected void playSpellEffects(Location from, Entity target) {
+		playSpellEffects(from, target, null);
+	}
+
+	protected void playSpellEffects(Location from, Entity target, float power, String[] args) {
+		SpellData data = new SpellData(null, target instanceof LivingEntity le ? le : null, power, args);
+		playSpellEffects(from, target, data);
+	}
+
+	protected void playSpellEffects(Location from, Entity target, SpellData data) {
+		playSpellEffects(EffectPosition.START_POSITION, from, data);
+		playSpellEffects(EffectPosition.TARGET, target, data);
+		playSpellEffectsTrail(from, target.getLocation(), data);
 	}
 
 	@Deprecated

@@ -382,7 +382,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
 		setupTracker(tracker, caster, target, power, args);
 		tracker.startTarget(from, target);
-		playSpellEffects(from, target, tracker.getSpellData());
+		playSpellEffects(caster, from, target, tracker.getSpellData());
 		return true;
 	}
 
