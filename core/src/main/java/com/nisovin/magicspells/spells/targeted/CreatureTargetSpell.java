@@ -1,18 +1,14 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import org.bukkit.Location;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
-import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
+import com.nisovin.magicspells.spells.InstantSpell;
 
-public class CreatureTargetSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
+public class CreatureTargetSpell extends InstantSpell {
 
 	private String targetSpellName;
 	private Subspell targetSpell;
@@ -42,68 +38,14 @@ public class CreatureTargetSpell extends TargetedSpell implements TargetedEntity
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		castSpells(caster, power, args);
-		return true;
-	}
+	private void castSpells(LivingEntity caster, float power, String[] args) {
+		if (!(caster instanceof Creature creature)) return;
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		castSpells(caster, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		playSpellEffects(EffectPosition.TARGET, target, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		castSpells(caster, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		castSpells(caster, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		playSpellEffects(from, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		playSpellEffects(from, target, power, null);
-		return true;
-	}
-
-	private void castSpells(LivingEntity livingEntity, float power, String[] args) {
-		if (!(livingEntity instanceof Creature caster)) return;
-		LivingEntity target = caster.getTarget();
+		LivingEntity target = creature.getTarget();
 		if (target == null || !target.isValid()) return;
 
 		playSpellEffects(caster, target, power, args);
+
 		if (targetSpell == null) return;
 		if (targetSpell.isTargetedEntityFromLocationSpell()) targetSpell.castAtEntityFromLocation(caster, caster.getLocation(), target, power);
 		else if (targetSpell.isTargetedLocationSpell()) targetSpell.castAtLocation(caster, target.getLocation(), power);

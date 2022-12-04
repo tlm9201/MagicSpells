@@ -418,7 +418,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			MagicSpells.scheduleDelayedTask(() -> HandlerList.unregisterAll(monitor), duration > 0 ? duration : 12000);
 		}
 
-		if (caster != null) playSpellEffects(caster, entity, power, args);
+		if (caster != null) playSpellEffects(caster, source, entity, power, args);
 		else playSpellEffects(source, entity, power, args);
 
 		entities.add(entity);

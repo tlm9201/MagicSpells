@@ -89,14 +89,14 @@ public class DummySpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		playSpellEffects(from, target, new SpellData(caster, target, power, args));
+		playSpellEffects(caster, from, target, new SpellData(caster, target, power, args));
 		return true;
 	}
 
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		playSpellEffects(from, target, new SpellData(caster, target, power, null));
+		playSpellEffects(caster, from, target, new SpellData(caster, target, power, null));
 		return true;
 	}
 

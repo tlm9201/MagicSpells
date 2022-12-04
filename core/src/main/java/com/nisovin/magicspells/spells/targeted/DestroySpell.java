@@ -152,7 +152,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
 		doIt(caster, target, from, target.getLocation(), power, args);
-		playSpellEffects(from, target, new SpellData(caster, target, power, args));
+		playSpellEffects(caster, from, target, new SpellData(caster, target, power, args));
 		return true;
 	}
 
