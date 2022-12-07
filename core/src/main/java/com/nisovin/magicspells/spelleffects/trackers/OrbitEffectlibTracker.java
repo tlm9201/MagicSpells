@@ -55,7 +55,7 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 		orbitZAxis = effect.getOrbitZAxis().get(data);
 		distancePerTick = 6.28f * effect.getEffectInterval().get(data) / effect.getSecondsPerRevolution().get(data) / 20f;
 
-		float horizRadius = effect.getVertExpandRadius().get(data);
+		float horizRadius = effect.getHorizExpandRadius().get(data);
 		int horizDelay = effect.getHorizExpandDelay().get(data);
 		if (horizDelay > 0 && horizRadius != 0)
 			repeatingHorizTask = Bukkit.getScheduler().runTaskTimerAsynchronously(MagicSpells.getInstance(),
