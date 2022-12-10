@@ -209,6 +209,7 @@ public class Subspell {
 	}
 
 	public boolean castAtEntity(final LivingEntity caster, final LivingEntity target, final float power, final boolean passTargeting) {
+		if ((chance > 0 && chance < 1) && random.nextDouble() > chance) return false;
 		if (delay < 0) return castAtEntityReal(caster, target, power, passTargeting);
 		MagicSpells.scheduleDelayedTask(() -> castAtEntityReal(caster, target, power, passTargeting), delay);
 		return true;
@@ -309,6 +310,7 @@ public class Subspell {
 	}
 
 	public boolean castAtLocation(final LivingEntity caster, final Location target, final float power) {
+		if ((chance > 0 && chance < 1) && random.nextDouble() > chance) return false;
 		if (delay < 0) return castAtLocationReal(caster, target, power);
 		MagicSpells.scheduleDelayedTask(() -> castAtLocationReal(caster, target, power), delay);
 		return true;
@@ -386,6 +388,7 @@ public class Subspell {
 	}
 
 	public boolean castAtEntityFromLocation(final LivingEntity caster, final Location from, final LivingEntity target, final float power, final boolean passTargeting) {
+		if ((chance > 0 && chance < 1) && random.nextDouble() > chance) return false;
 		if (delay < 0) return castAtEntityFromLocationReal(caster, from, target, power, passTargeting);
 		MagicSpells.scheduleDelayedTask(() -> castAtEntityFromLocationReal(caster, from, target, power, passTargeting), delay);
 		return true;
