@@ -1,6 +1,5 @@
-package com.nisovin.magicspells.volatilecode.v1_19_R1
+package com.nisovin.magicspells.volatilecode.v1_19_R2
 
-/*
 import org.bukkit.Bukkit
 import org.bukkit.entity.*
 import org.bukkit.Location
@@ -8,10 +7,10 @@ import org.bukkit.util.Vector
 import org.bukkit.inventory.ItemStack
 import org.bukkit.event.entity.ExplosionPrimeEvent
 
-import org.bukkit.craftbukkit.v1_19_R1.entity.*
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld
-import org.bukkit.craftbukkit.v1_19_R1.CraftServer
-import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack
+import org.bukkit.craftbukkit.v1_19_R2.entity.*
+import org.bukkit.craftbukkit.v1_19_R2.CraftWorld
+import org.bukkit.craftbukkit.v1_19_R2.CraftServer
+import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack
 
 import net.minecraft.world.phys.Vec3
 import net.minecraft.network.chat.Component
@@ -29,7 +28,7 @@ import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 
 private typealias nmsItemStack = net.minecraft.world.item.ItemStack
 
-class VolatileCode1_19_R1: VolatileCodeHandle {
+class VolatileCode1_19_R2: VolatileCodeHandle {
 
     private var entityLivingPotionEffectColor: EntityDataAccessor<Int>? = null
 
@@ -40,7 +39,7 @@ class VolatileCode1_19_R1: VolatileCodeHandle {
             entityLivingPotionEffectColorField.isAccessible = true
             entityLivingPotionEffectColor = entityLivingPotionEffectColorField.get(null) as EntityDataAccessor<Int>
         } catch (e: Exception) {
-            MagicSpells.error("THIS OCCURRED WHEN CREATING THE VOLATILE CODE HANDLE FOR 1.19.2, THE FOLLOWING ERROR IS MOST LIKELY USEFUL IF YOU'RE RUNNING THE LATEST VERSION OF MAGICSPELLS.")
+            MagicSpells.error("THIS OCCURRED WHEN CREATING THE VOLATILE CODE HANDLE FOR 1.19.3, THE FOLLOWING ERROR IS MOST LIKELY USEFUL IF YOU'RE RUNNING THE LATEST VERSION OF MAGICSPELLS.")
             e.printStackTrace()
         }
     }
@@ -131,4 +130,3 @@ class VolatileCode1_19_R1: VolatileCodeHandle {
     }
 
 }
-*/
