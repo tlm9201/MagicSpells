@@ -34,6 +34,7 @@ import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.events.SpellbookReloadEvent;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 @CommandAlias("ms|magicspells")
@@ -251,7 +252,11 @@ public class MagicCommand extends BaseCommand {
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_RELOAD_SPELLBOOK)) return;
 		Player player = ACFBukkitUtil.findPlayerSmart(issuer, args[0]);
 		if (player == null) return;
-		MagicSpells.getSpellbooks().put(player.getName(), new Spellbook(player));
+
+		Spellbook spellbook = new Spellbook(player);
+		MagicSpells.getSpellbooks().put(player.getName(), spellbook);
+		Bukkit.getPluginManager().callEvent(new SpellbookReloadEvent(player, spellbook));
+
 		issuer.sendMessage(MagicSpells.getTextColor() + TxtUtil.getPossessiveName(player.getName()) + " spellbook has been reloaded.");
 
 	}
