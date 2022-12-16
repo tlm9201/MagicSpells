@@ -31,7 +31,7 @@ public class ItemSprayEffect extends SpellEffect {
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
-		material = ConfigDataUtil.getEnum(config, "type", Material.class, null);
+		material = ConfigDataUtil.getMaterial(config, "type", null);
 
 		force = ConfigDataUtil.getDouble(config, "force", 1);
 

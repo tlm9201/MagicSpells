@@ -8,21 +8,22 @@ import java.util.regex.Pattern;
 
 import de.slikey.exp4j.Expression;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.Particle.DustTransition;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.Particle.DustOptions;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.Particle.DustTransition;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ColorUtil;
 import com.nisovin.magicspells.util.ParticleUtil;
-import com.nisovin.magicspells.util.Util;
 
 public class ConfigDataUtil {
 
@@ -387,6 +388,35 @@ public class ConfigDataUtil {
 
 			};
 		}
+	}
+
+	public static ConfigData<Material> getMaterial(@NotNull ConfigurationSection config, @NotNull String path, @Nullable Material def) {
+		String value = config.getString(path);
+		if (value == null) return (caster, target, power, args) -> def;
+
+		Material val = Util.getMaterial(value);
+		if (val != null) return (caster, target, power, args) -> val;
+
+		ConfigData<String> supplier = getString(value);
+		if (supplier.isConstant()) return (caster, target, power, args) -> def;
+
+		return new ConfigData<>() {
+
+			@Override
+			public Material get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+				String val = supplier.get(caster, target, power, args);
+				if (val == null) return def;
+
+				Material material = Util.getMaterial(val);
+				return material == null ? def : material;
+			}
+
+			@Override
+			public boolean isConstant() {
+				return false;
+			}
+
+		};
 	}
 
 	@NotNull
