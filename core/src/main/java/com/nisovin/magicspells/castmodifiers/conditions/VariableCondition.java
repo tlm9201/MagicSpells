@@ -28,7 +28,7 @@ public class VariableCondition extends OperatorCondition {
 		else return false;
 
 		String number = var.substring(variableName.length());
-		if (!super.initialize(number)) return false;
+		if (number.length() < 2 || !super.initialize(number)) return false;
 
 		variable = variableName;
 
@@ -36,7 +36,6 @@ public class VariableCondition extends OperatorCondition {
 			value = Double.parseDouble(number.substring(1));
 			return true;
 		} catch (NumberFormatException e) {
-
 			variableCompared = number.substring(1);
 			if (MagicSpells.getVariableManager().getVariable(variableCompared) != null) return true;
 			else variableCompared = null;
