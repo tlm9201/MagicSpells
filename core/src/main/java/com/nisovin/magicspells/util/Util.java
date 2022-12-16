@@ -73,9 +73,7 @@ public class Util {
 	}
 
 	public static Material getMaterial(String name) {
-		Material m = Material.getMaterial(name.toUpperCase());
-		if (m == null) m = Material.matchMaterial(name.toUpperCase());
-		return m;
+		return Material.matchMaterial(name);
 	}
 
 	// - <potionEffectType> (level) (duration) (ambient)
