@@ -366,6 +366,7 @@ public class ConfigDataUtil {
 			return (caster, target, power, args) -> val;
 		} catch (IllegalArgumentException e) {
 			ConfigData<String> supplier = getString(value);
+			if (supplier.isConstant()) return (caster, target, power, args) -> def;
 
 			return new ConfigData<>() {
 
@@ -383,7 +384,7 @@ public class ConfigDataUtil {
 
 				@Override
 				public boolean isConstant() {
-					return supplier.isConstant();
+					return false;
 				}
 
 			};
@@ -428,6 +429,8 @@ public class ConfigDataUtil {
 		if (type != null) return (caster, target, power, args) -> type;
 
 		ConfigData<String> supplier = getString(value);
+		if (supplier.isConstant()) return (caster, target, power, args) -> def;
+
 		return new ConfigData<>() {
 
 			@Override
@@ -441,7 +444,7 @@ public class ConfigDataUtil {
 
 			@Override
 			public boolean isConstant() {
-				return supplier.isConstant();
+				return false;
 			}
 
 		};
@@ -456,6 +459,8 @@ public class ConfigDataUtil {
 		if (val != null) return (caster, target, power, args) -> val;
 
 		ConfigData<String> supplier = getString(value);
+		if (supplier.isConstant()) return (caster, target, power, args) -> def;
+
 		return new ConfigData<>() {
 
 			@Override
@@ -469,7 +474,7 @@ public class ConfigDataUtil {
 
 			@Override
 			public boolean isConstant() {
-				return supplier.isConstant();
+				return false;
 			}
 
 		};
@@ -485,6 +490,7 @@ public class ConfigDataUtil {
 			return (caster, target, power, args) -> val;
 		} catch (IllegalArgumentException e) {
 			ConfigData<String> supplier = getString(value);
+			if (supplier.isConstant()) return (caster, target, power, args) -> def;
 
 			return new ConfigData<>() {
 
@@ -502,7 +508,7 @@ public class ConfigDataUtil {
 
 				@Override
 				public boolean isConstant() {
-					return supplier.isConstant();
+					return false;
 				}
 
 			};
