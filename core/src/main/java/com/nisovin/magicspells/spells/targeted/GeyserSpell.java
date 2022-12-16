@@ -14,18 +14,17 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.*;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private Material blockType;
-	private String blockTypeName;
+	private ConfigData<Material> blockType;
 
 	private ConfigData<Double> damage;
 	private ConfigData<Double> velocity;
@@ -41,13 +40,6 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 	public GeyserSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		blockTypeName = getConfigString("geyser-type", "water");
-		blockType = Util.getMaterial(blockTypeName);
-		if (blockType == null || !blockType.isBlock()) {
-			MagicSpells.error("GeyserSpell '" + internalName + "' has an invalid geyser-type defined!");
-			blockType = null;
-		}
-
 		damage = getConfigDataDouble("damage", 0);
 		velocity = getConfigDataDouble("velocity", 10);
 
@@ -58,6 +50,16 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 		checkPlugins = getConfigBoolean("check-plugins", true);
 		powerAffectsDamage = getConfigBoolean("power-affects-damage", true);
 		avoidDamageModification = getConfigBoolean("avoid-damage-modification", false);
+
+		ConfigData<String> blockName = ConfigDataUtil.getString(getConfigString("geyser-type", "water"));
+		blockType = (caster, target, power, args) -> {
+			try {
+				return Util.getMaterial(blockName.get(caster, target, power, args));
+			} catch (Throwable ignored) {
+				return null;
+			}
+		};
+
 	}
 
 	@Override
@@ -78,7 +80,9 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 	
 	private boolean geyser(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		double damage = this.damage.get(caster, target, power, args);
+		SpellData spellData = new SpellData(caster, target, power, args);
+
+		double damage = this.damage.get(spellData);
 		if (powerAffectsDamage) damage *= power;
 		
 		if (caster != null && checkPlugins && damage > 0) {
@@ -100,21 +104,24 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 			}
 		}
 		
-		double velocity = this.velocity.get(caster, target, power, args) / 10;
+		double velocity = this.velocity.get(spellData) / 10;
 		if (velocity > 0) target.setVelocity(new Vector(0, velocity * power, 0));
 		
-		int geyserHeight = this.geyserHeight.get(caster, target, power, args);
+		int geyserHeight = this.geyserHeight.get(spellData);
 		if (geyserHeight > 0) {
 			List<Entity> allNearby = target.getNearbyEntities(50, 50, 50);
 			allNearby.add(target);
+
 			List<Player> playersNearby = new ArrayList<>();
 			for (Entity e : allNearby) {
 				if (!(e instanceof Player)) continue;
 				playersNearby.add((Player) e);
 			}
 
-			int animationSpeed = this.animationSpeed.get(caster, target, power, args);
-			new GeyserAnimation(target.getLocation(), playersNearby, animationSpeed, geyserHeight);
+			int animationSpeed = this.animationSpeed.get(spellData);
+
+			Material blockType = this.blockType.get(spellData);
+			new GeyserAnimation(blockType, target.getLocation(), playersNearby, animationSpeed, geyserHeight);
 		}
 		
 		return true;
@@ -148,20 +155,29 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private class GeyserAnimation extends SpellAnimation {
 
+		private Material blockMaterial;
 		private final List<Player> nearby;
 		private final int geyserHeight;
 		private final Location start;
 
-		private GeyserAnimation(Location start, List<Player> nearby, int animationSpeed, int geyserHeight) {
+		private GeyserAnimation(Material blockMaterial, Location start, List<Player> nearby, int animationSpeed, int geyserHeight) {
 			super(0, animationSpeed, true);
 
+			this.blockMaterial = blockMaterial;
 			this.start = start;
 			this.nearby = nearby;
 			this.geyserHeight = geyserHeight;
+
+			if (blockMaterial != null && !blockMaterial.isBlock()) this.blockMaterial = null;
 		}
 
 		@Override
 		protected void onTick(int tick) {
+			if (blockMaterial == null) {
+				stop(true);
+				return;
+			}
+
 			if (tick > geyserHeight << 1) {
 				stop(true);
 				return;
@@ -170,7 +186,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (tick < geyserHeight) {
 				Block block = start.clone().add(0, tick, 0).getBlock();
 				if (!BlockUtils.isAir(block.getType())) return;
-				for (Player p : nearby) p.sendBlockChange(block.getLocation(), blockType.createBlockData());
+				for (Player p : nearby) p.sendBlockChange(block.getLocation(), blockMaterial.createBlockData());
 				return;
 			}
 
