@@ -10,6 +10,7 @@ import com.google.common.base.CaseFormat;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -79,7 +80,13 @@ public class EffectLibEffect extends SpellEffect {
 				options.put(path + actualKey, ConfigDataUtil.getDouble(section, actualKey, 0));
 			else if (type.equals(boolean.class) || type.equals(Boolean.class))
 				options.put(path + actualKey, ConfigDataUtil.getBoolean(section, actualKey, false));
-			else if (Enum.class.isAssignableFrom(type) || type.equals(String.class) || type.equals(Color.class) || type.equals(Font.class) || type.equals(CustomSound.class)) {
+			else if (Enum.class.isAssignableFrom(type)
+					|| type.equals(String.class)
+					|| type.equals(Color.class)
+					|| type.equals(Font.class)
+					|| type.equals(CustomSound.class)
+					|| type.equals(BlockData.class)) {
+
 				ConfigData<?> data = ConfigDataUtil.getString(section, actualKey, null);
 				if (!data.isConstant()) options.put(path + actualKey, data);
 			} else if (ConfigurationSection.class.isAssignableFrom(type)) {
