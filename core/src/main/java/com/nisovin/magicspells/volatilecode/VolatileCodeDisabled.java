@@ -5,10 +5,10 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.inventory.ItemStack;
 
-public class VolatileCodeDisabled implements VolatileCodeHandle {
+public class VolatileCodeDisabled extends VolatileCodeHandle {
 
 	public VolatileCodeDisabled() {
-
+		super(null);
 	}
 
 	@Override

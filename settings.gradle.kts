@@ -7,6 +7,10 @@ include("shop")
 include("teams")
 include("towny")
 
+include(":nms:shared")
+include(":nms:v1_19_R1")
+include(":nms:v1_19_R2")
+
 startParameter.isParallelProjectExecutionEnabled = true
 
 pluginManagement {
