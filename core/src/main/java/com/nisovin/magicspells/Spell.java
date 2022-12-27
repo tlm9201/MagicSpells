@@ -23,6 +23,7 @@ import org.bukkit.util.BlockIterator;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -803,6 +804,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected <T extends Enum<T>> ConfigData<T> getConfigDataEnum(String key, Class<T> type, T def) {
 		return ConfigDataUtil.getEnum(config.getMainConfig(), "spells." + internalName + '.' + key, type, def);
+	}
+
+	protected ConfigData<BlockData> getConfigDataBlockData(String key, BlockData def) {
+		return ConfigDataUtil.getBlockData(config.getMainConfig(), "spells." + internalName + '.' + key, def);
 	}
 
 	protected boolean isConfigString(String key) {

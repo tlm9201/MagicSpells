@@ -55,7 +55,7 @@ public class ParticlesEffect extends SpellEffect {
 	public void loadFromConfig(ConfigurationSection config) {
 		particle = ConfigDataUtil.getParticle(config, "particle-name", Particle.EXPLOSION_NORMAL);
 
-		material = ConfigDataUtil.getEnum(config, "material", Material.class, null);
+		material = ConfigDataUtil.getMaterial(config, "material", null);
 		blockData = ConfigDataUtil.getBlockData(config, "material", null);
 		dustOptions = ConfigDataUtil.getDustOptions(config, "color", "size", new DustOptions(Color.RED, 1));
 		dustTransition = ConfigDataUtil.getDustTransition(config, "color", "to-color", "size", new DustTransition(Color.RED, Color.BLACK, 1));

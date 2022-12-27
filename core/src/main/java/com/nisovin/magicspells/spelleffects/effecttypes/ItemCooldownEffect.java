@@ -19,7 +19,7 @@ public class ItemCooldownEffect extends SpellEffect {
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		duration = ConfigDataUtil.getInteger(config, "duration", TimeUtil.TICKS_PER_SECOND);
-		type = ConfigDataUtil.getEnum(config, "item", Material.class, Material.STONE);
+		type = ConfigDataUtil.getMaterial(config, "item", Material.STONE);
 	}
 
 	@Override
