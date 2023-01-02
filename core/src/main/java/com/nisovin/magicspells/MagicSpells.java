@@ -247,12 +247,7 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		// Construct volatile handler
-		try {
-			volatileCodeHandle = ManagerVolatile.INSTANCE.constructVolatileCodeHandler();
-		} catch (Throwable t) {
-			MagicSpells.log("Volatile code handler not found, using fallback.");
-			volatileCodeHandle = new VolatileCodeDisabled();
-		}
+		volatileCodeHandle = ManagerVolatile.INSTANCE.constructVolatileCodeHandler();
 
 		String path = "general.";
 		String manaPath = "mana.";

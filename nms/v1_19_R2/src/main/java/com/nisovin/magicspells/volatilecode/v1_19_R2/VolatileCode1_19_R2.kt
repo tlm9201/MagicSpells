@@ -21,14 +21,12 @@ import net.minecraft.world.item.alchemy.PotionUtils
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 
-import com.nisovin.magicspells.MagicSpells
-import com.nisovin.magicspells.util.BoundingBox
-import com.nisovin.magicspells.util.compat.EventUtil
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
+import com.nisovin.magicspells.volatilecode.VolatileCodeHelper
 
 private typealias nmsItemStack = net.minecraft.world.item.ItemStack
 
-class VolatileCode1_19_R2: VolatileCodeHandle {
+class VolatileCode1_19_R2(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
 
     private var entityLivingPotionEffectColor: EntityDataAccessor<Int>? = null
 
@@ -39,7 +37,7 @@ class VolatileCode1_19_R2: VolatileCodeHandle {
             entityLivingPotionEffectColorField.isAccessible = true
             entityLivingPotionEffectColor = entityLivingPotionEffectColorField.get(null) as EntityDataAccessor<Int>
         } catch (e: Exception) {
-            MagicSpells.error("THIS OCCURRED WHEN CREATING THE VOLATILE CODE HANDLE FOR 1.19.3, THE FOLLOWING ERROR IS MOST LIKELY USEFUL IF YOU'RE RUNNING THE LATEST VERSION OF MAGICSPELLS.")
+            helper.error("THIS OCCURRED WHEN CREATING THE VOLATILE CODE HANDLE FOR 1.19.3, THE FOLLOWING ERROR IS MOST LIKELY USEFUL IF YOU'RE RUNNING THE LATEST VERSION OF MAGICSPELLS.")
             e.printStackTrace()
         }
     }
@@ -50,7 +48,7 @@ class VolatileCode1_19_R2: VolatileCodeHandle {
         entityData.set(entityLivingPotionEffectColor, color)
 
         if (duration > 0) {
-            MagicSpells.scheduleDelayedTask({
+            helper.scheduleDelayedTask({
                 var c = 0
                 if (livingEntity.getActiveEffects().isNotEmpty()) {
                     c = PotionUtils.getColor(livingEntity.getActiveEffects())
@@ -73,7 +71,7 @@ class VolatileCode1_19_R2: VolatileCodeHandle {
         val e = PrimedTnt((target.world as CraftWorld).handle, target.x, target.y, target.z, (source as CraftLivingEntity).handle)
         val c = CraftTNTPrimed(Bukkit.getServer() as CraftServer, e)
         val event = ExplosionPrimeEvent(c, explosionSize, fire)
-        EventUtil.call(event)
+        Bukkit.getPluginManager().callEvent(event)
         return event.isCancelled
     }
 
@@ -91,17 +89,15 @@ class VolatileCode1_19_R2: VolatileCodeHandle {
         val entityEventPacket = ClientboundEntityEventPacket(dragon, 3)
         val removeEntityPacket = ClientboundRemoveEntitiesPacket(dragon.id)
 
-        val box = BoundingBox(location, 64.0)
         val players = ArrayList<Player>()
-        for (player in location.world!!.players) {
-            if (!box.contains(player)) continue
+        for (player in location.getNearbyPlayers(64.0)) {
             players.add(player)
             (player as CraftPlayer).handle.connection.send(addMobPacket)
             player.handle.connection.send(addMobPacket)
             player.handle.connection.send(entityEventPacket)
         }
 
-        MagicSpells.scheduleDelayedTask({
+        helper.scheduleDelayedTask({
             for (player in players) {
                 if (!player.isValid) continue
                 (player as CraftPlayer).handle.connection.send(removeEntityPacket)
