@@ -56,6 +56,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	private final boolean stopOnFail;
 	private final boolean cancelOnDeath;
 	private final boolean passTargeting;
+	private final boolean stopOnSuccess;
 	private final boolean requireEntityTarget;
 	private final boolean castRandomSpellInstead;
 	private final boolean skipFirstLoopModifiers;
@@ -103,6 +104,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		stopOnFail = getConfigBoolean("stop-on-fail", false);
 		passTargeting = getConfigBoolean("pass-targeting", true);
 		cancelOnDeath = getConfigBoolean("cancel-on-death", false);
+		stopOnSuccess = getConfigBoolean("stop-on-success", false);
 		requireEntityTarget = getConfigBoolean("require-entity-target", false);
 		castRandomSpellInstead = getConfigBoolean("cast-random-spell-instead", false);
 
@@ -481,7 +483,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				success = action == PostCastAction.HANDLE_NORMALLY || action == PostCastAction.NO_MESSAGES;
 			}
 
-			if (stopOnFail && !success) {
+			if (stopOnSuccess && success || stopOnFail && !success) {
 				cancel();
 				return false;
 			}
