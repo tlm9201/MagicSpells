@@ -3,8 +3,7 @@ package com.nisovin.magicspells.util.config;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
 import de.slikey.exp4j.Expression;
 
@@ -12,7 +11,6 @@ import org.bukkit.Color;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.Particle.DustOptions;
@@ -21,15 +19,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ColorUtil;
 import com.nisovin.magicspells.util.ParticleUtil;
 
 public class ConfigDataUtil {
-
-	private static final Pattern ARGUMENT_MATCHER = Pattern.compile("%arg:(\\d+):(\\w+)%", Pattern.CASE_INSENSITIVE);
-	private static final Pattern CASTER_MATCHER = Pattern.compile("%(var|castervar):(\\w+)%", Pattern.CASE_INSENSITIVE);
-	private static final Pattern TARGET_MATCHER = Pattern.compile("%targetvar:(\\w+)%", Pattern.CASE_INSENSITIVE);
 
 	@NotNull
 	public static ConfigData<Integer> getInteger(@NotNull ConfigurationSection config, @NotNull String path, int def) {
@@ -247,79 +240,15 @@ public class ConfigDataUtil {
 	public static ConfigData<String> getString(@Nullable String value) {
 		if (value == null) return (caster, target, power, args) -> null;
 
-		Matcher matcher = ARGUMENT_MATCHER.matcher(value);
-		if (matcher.matches()) {
-			try {
-				int index = Integer.parseInt(matcher.group(1)) - 1;
-				String defaultString = matcher.group(2);
+		StringData data = new StringData(value);
+		if (data.isConstant()) return (caster, target, power, args) -> value;
 
-				return new ConfigData<>() {
+		List<ConfigData<String>> values = data.getValues();
+		List<String> fragments = data.getFragments();
+		if (values.size() == 1 && fragments.size() == 2 && fragments.get(0).isEmpty() && fragments.get(1).isEmpty())
+			return values.get(0);
 
-					@Override
-					public String get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-						if (args != null && args.length > index) return args[index];
-						else return defaultString;
-					}
-
-					@Override
-					public boolean isConstant() {
-						return false;
-					}
-
-				};
-			} catch (NumberFormatException e) {
-				return (caster, target, power, args) -> value;
-			}
-		}
-
-		matcher = CASTER_MATCHER.matcher(value);
-		if (matcher.matches()) {
-			String variable = matcher.group(2);
-
-			return new ConfigData<>() {
-
-				@Override
-				public String get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					if (!(caster instanceof Player player)) return null;
-					return MagicSpells.getVariableManager().getStringValue(variable, player);
-				}
-
-				@Override
-				public boolean isConstant() {
-					return false;
-				}
-
-			};
-		}
-
-		matcher = TARGET_MATCHER.matcher(value);
-		if (matcher.matches()) {
-			String variable = matcher.group(1);
-
-			return new ConfigData<>() {
-
-				@Override
-				public String get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					if (!(target instanceof Player player)) return null;
-					return MagicSpells.getVariableManager().getStringValue(variable, player);
-				}
-
-				@Override
-				public boolean isConstant() {
-					return false;
-				}
-
-			};
-		}
-
-		boolean argReplacement = value.contains("%arg");
-		boolean varReplacement = value.contains("%var") || value.contains("%playervar");
-		boolean targetedReplacement = value.contains("%castervar") || value.contains("%targetvar");
-
-		if (argReplacement || varReplacement || targetedReplacement)
-			return new StringData(value, varReplacement, targetedReplacement, argReplacement);
-
-		return (caster, target, power, args) -> value;
+		return data;
 	}
 
 	public static ConfigData<Boolean> getBoolean(@NotNull ConfigurationSection config, @NotNull String path, boolean def) {
