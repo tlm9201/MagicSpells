@@ -55,8 +55,7 @@ public class StringData implements ConfigData<String> {
 	}
 
 	private static ConfigData<String> createData(Matcher matcher) {
-		String placeholder = matcher.group(1);
-		if (placeholder != null) {
+		if (matcher.group(1) != null) {
 			String owner = matcher.group(2);
 			String variable = matcher.group(3);
 			String placesString = matcher.group(4);
@@ -71,12 +70,11 @@ public class StringData implements ConfigData<String> {
 			}
 
 			return owner.equalsIgnoreCase("targetvar") ?
-				new TargetVariableData(placeholder, variable, places) :
-				new CasterVariableData(placeholder, variable, places);
+				new TargetVariableData(matcher.group(), variable, places) :
+				new CasterVariableData(matcher.group(), variable, places);
 		}
 
-		placeholder = matcher.group(5);
-		if (placeholder != null) {
+		if (matcher.group(5) != null) {
 			String player = matcher.group(6);
 			String variable = matcher.group(7);
 			String placesString = matcher.group(8);
@@ -90,11 +88,10 @@ public class StringData implements ConfigData<String> {
 				}
 			}
 
-			return new PlayerVariableData(placeholder, variable, player, places);
+			return new PlayerVariableData(matcher.group(), variable, player, places);
 		}
 
-		placeholder = matcher.group(9);
-		if (placeholder != null) {
+		if (matcher.group(9) != null) {
 			String def = matcher.group(11);
 
 			int index;
@@ -108,22 +105,20 @@ public class StringData implements ConfigData<String> {
 			return new ArgumentData(index - 1, def);
 		}
 
-		placeholder = matcher.group(12);
-		if (placeholder != null) {
+		if (matcher.group(12) != null) {
 			String owner = matcher.group(13);
 			String papiPlaceholder = '%' + matcher.group(14) + '%';
 
 			return owner.equalsIgnoreCase("targetpapi") ?
-				new TargetPAPIData(placeholder, papiPlaceholder) :
-				new CasterPAPIData(placeholder, papiPlaceholder);
+				new TargetPAPIData(matcher.group(), papiPlaceholder) :
+				new CasterPAPIData(matcher.group(), papiPlaceholder);
 		}
 
-		placeholder = matcher.group(15);
-		if (placeholder != null) {
+		if (matcher.group(15) != null) {
 			String player = matcher.group(16);
 			String papiPlaceholder = '%' + matcher.group(17) + '%';
 
-			return new PlayerPAPIData(placeholder, papiPlaceholder, player);
+			return new PlayerPAPIData(matcher.group(), papiPlaceholder, player);
 		}
 
 		return null;
@@ -143,6 +138,11 @@ public class StringData implements ConfigData<String> {
 		return builder.toString();
 	}
 
+	@Override
+	public boolean isConstant() {
+		return values.isEmpty();
+	}
+
 	public List<ConfigData<String>> getValues() {
 		return values;
 	}
@@ -156,7 +156,7 @@ public class StringData implements ConfigData<String> {
 		protected final String placeholder;
 
 		public PlaceholderData(String placeholder) {
-			this.placeholder = '%' + placeholder + '%';
+			this.placeholder = placeholder;
 		}
 
 		@Override
@@ -340,11 +340,6 @@ public class StringData implements ConfigData<String> {
 			return PlaceholderAPI.setPlaceholders(Bukkit.getOfflinePlayer(player), papiPlaceholder);
 		}
 
-	}
-
-	@Override
-	public boolean isConstant() {
-		return values.isEmpty();
 	}
 
 }
