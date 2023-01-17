@@ -4,8 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
-import de.slikey.exp4j.Expression;
+import java.util.function.Function;
 
 import org.bukkit.Color;
 import org.bukkit.Bukkit;
@@ -32,10 +31,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return (caster, target, power, args) -> def;
+			FunctionData<Integer> data = FunctionData.build(config.getString(path), Double::intValue, def);
+			if (data == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.IntegerData(ex, def);
+			return data;
 		}
 
 		return (caster, target, power, args) -> def;
@@ -49,10 +48,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return def;
+			FunctionData<Integer> data = FunctionData.build(config.getString(path), Double::intValue, def);
+			if (data == null) return def;
 
-			return new FunctionData.IntegerData(ex, def);
+			return data;
 		}
 
 		return def;
@@ -66,10 +65,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return (caster, target, power, args) -> def;
+			FunctionData<Long> data = FunctionData.build(config.getString(path), Double::longValue, def);
+			if (data == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.LongData(ex, def);
+			return data;
 		}
 
 		return (caster, target, power, args) -> def;
@@ -83,10 +82,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return def;
+			FunctionData<Long> data = FunctionData.build(config.getString(path), Double::longValue, def);
+			if (data == null) return def;
 
-			return new FunctionData.LongData(ex, def);
+			return data;
 		}
 
 		return def;
@@ -100,10 +99,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return (caster, target, power, args) -> def;
+			FunctionData<Short> data = FunctionData.build(config.getString(path), Double::shortValue, def);
+			if (data == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.ShortData(ex, def);
+			return data;
 		}
 
 		return (caster, target, power, args) -> def;
@@ -117,10 +116,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return def;
+			FunctionData<Short> data = FunctionData.build(config.getString(path), Double::shortValue, def);
+			if (data == null) return def;
 
-			return new FunctionData.ShortData(ex, def);
+			return data;
 		}
 
 		return def;
@@ -134,10 +133,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return (caster, target, power, args) -> def;
+			FunctionData<Byte> data = FunctionData.build(config.getString(path), Double::byteValue, def);
+			if (data == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.ByteData(ex, def);
+			return data;
 		}
 
 		return (caster, target, power, args) -> def;
@@ -151,10 +150,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return def;
+			FunctionData<Byte> data = FunctionData.build(config.getString(path), Double::byteValue, def);
+			if (data == null) return def;
 
-			return new FunctionData.ByteData(ex, def);
+			return data;
 		}
 
 		return def;
@@ -168,10 +167,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return (caster, target, power, args) -> def;
+			FunctionData<Double> data = FunctionData.build(config.getString(path), Function.identity(), def);
+			if (data == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.DoubleData(ex, def);
+			return data;
 		}
 
 		return (caster, target, power, args) -> def;
@@ -185,10 +184,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return def;
+			FunctionData<Double> data = FunctionData.build(config.getString(path), Function.identity(), def);
+			if (data == null) return def;
 
-			return new FunctionData.DoubleData(ex, def);
+			return data;
 		}
 
 		return def;
@@ -202,10 +201,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path));
-			if (ex == null) return (caster, target, power, args) -> def;
+			FunctionData<Float> data = FunctionData.build(config.getString(path), Double::floatValue, def);
+			if (data == null) return (caster, target, power, args) -> def;
 
-			return new FunctionData.FloatData(ex, def);
+			return data;
 		}
 
 		return (caster, target, power, args) -> def;
@@ -219,10 +218,10 @@ public class ConfigDataUtil {
 		}
 
 		if (config.isString(path)) {
-			Expression ex = FunctionData.buildExpression(config.getString(path, ""));
-			if (ex == null) return def;
+			FunctionData<Float> data = FunctionData.build(config.getString(path), Double::floatValue, def);
+			if (data == null) return def;
 
-			return new FunctionData.FloatData(ex, def);
+			return data;
 		}
 
 		return def;

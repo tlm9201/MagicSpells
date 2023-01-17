@@ -1,15 +1,15 @@
 package com.nisovin.magicspells.castmodifiers.customdata;
 
-import org.apache.commons.math3.util.Pair;
-
 import org.bukkit.entity.LivingEntity;
 
-import de.slikey.exp4j.Expression;
-
-import com.nisovin.magicspells.events.*;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.events.ManaChangeEvent;
+import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.config.FunctionData;
+import com.nisovin.magicspells.events.SpellTargetLocationEvent;
+import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
 public class CustomDataFloat extends CustomData {
 
@@ -23,13 +23,17 @@ public class CustomDataFloat extends CustomData {
 			return;
 		}
 
-		Expression expression = FunctionData.buildExpression(data);
-		if (expression == null) {
-			invalidText = "Number or function is invalid.";
-			return;
+		try {
+			float value = Float.parseFloat(data);
+			customData = (caster, target, power, args) -> value;
+		} catch (NumberFormatException e) {
+			customData = FunctionData.build(data, Double::floatValue, 0f);
+			if (customData == null) {
+				invalidText = "Number or function is invalid.";
+				return;
+			}
 		}
 
-		customData = new FunctionData.FloatData(expression, 0f);
 		isValid = true;
 	}
 

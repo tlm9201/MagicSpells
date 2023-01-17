@@ -2,12 +2,11 @@ package com.nisovin.magicspells.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.function.Function;
 import java.util.function.BinaryOperator;
 import java.util.concurrent.ThreadLocalRandom;
 
-import de.slikey.exp4j.Expression;
 import org.apache.commons.math3.util.FastMath;
-import org.apache.commons.math3.util.Pair;
 
 import org.bukkit.entity.Player;
 
@@ -91,12 +90,7 @@ public class VariableMod {
 				if (owner != null && owner.equalsIgnoreCase("target:")) variableOwner = VariableOwner.TARGET;
 
 				modifyingVariableName = matcher.group(2);
-			} else {
-				Expression ex = FunctionData.buildExpression(data, true);
-				if (ex == null) return;
-
-				functionModifier = new FunctionData.DoubleData(ex, 0d);
-			}
+			} else functionModifier = FunctionData.build(data, Function.identity(), 0d, true);
 		}
 	}
 
