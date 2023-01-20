@@ -335,7 +335,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	private Component translateRawComponent(Component component, Player player, String[] args) {
 		String text = Util.getStringFromComponent(component);
-		text = MagicSpells.doArgumentAndVariableSubstitution(text, player, args);
+		text = MagicSpells.doReplacements(text, player, args);
 		return Util.getMiniMessage(text);
 	}
 

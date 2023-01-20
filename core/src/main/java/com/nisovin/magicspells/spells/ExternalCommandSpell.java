@@ -166,13 +166,18 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 				}
 				
 				int delay = 0;
-				Player varOwner;
-				if (!useTargetVariablesInstead) varOwner = sender instanceof Player player ? player : null;
-				else varOwner = target;
+				LivingEntity varOwner, varTarget;
+				if (useTargetVariablesInstead) {
+					varOwner = target;
+					varTarget = sender instanceof Player player ? player : null;
+				} else {
+					varOwner = sender instanceof Player player ? player : null;
+					varTarget = target;
+				}
 
 				for (String comm : commandToExecute) {
 					if (comm == null || comm.isEmpty()) continue;
-					if (doVariableReplacement) comm = MagicSpells.doArgumentAndVariableSubstitution(comm, varOwner, args);
+					if (doVariableReplacement) comm = MagicSpells.doReplacements(comm, varOwner, varTarget, args);
 					if (args != null && args.length > 0) {
 						for (int i = 0; i < args.length; i++) {
 							comm = comm.replace("%" + (i + 1), args[i]);

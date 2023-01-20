@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -9,12 +8,16 @@ import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class HasScoreboardTagCondition extends Condition {
 
+    private boolean doReplacement;
     private String tag;
 
     @Override
     public boolean initialize(String var) {
         if (var == null || var.isEmpty()) return false;
+
+        doReplacement = MagicSpells.requireReplacement(var);
         tag = var;
+
         return true;
     }
 
@@ -33,10 +36,8 @@ public class HasScoreboardTagCondition extends Condition {
         return false;
     }
 
-    // TODO: Add functionality to check both caster and target variables
     private boolean checkTags(LivingEntity caster, LivingEntity target) {
-        String localTag = tag;
-        if (caster instanceof Player && localTag.contains("%")) localTag = MagicSpells.doVariableReplacements((Player) caster, localTag);
+        String localTag = doReplacement ? MagicSpells.doReplacements(tag, caster, target) : tag;
         return target.getScoreboardTags().contains(localTag);
     }
 

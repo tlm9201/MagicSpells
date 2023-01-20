@@ -1,51 +1,45 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
-import com.nisovin.magicspells.util.Util;
 
-import net.kyori.adventure.text.Component;
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class CustomNameCondition extends Condition {
 
-	private Component name;
-	private boolean isVar;
+	private boolean requireReplacement;
+	private String name;
 
 	@Override
 	public boolean initialize(String var) {
 		if (var == null || var.isEmpty()) return false;
-		if (var.contains("%var:") || var.contains("%playervar")) isVar = true;
 
-		name = Util.getMiniMessage(var);
+		requireReplacement = MagicSpells.requireReplacement(var);
+		name = var.replace("__", " ");
+
 		return true;
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
+	public boolean check(LivingEntity caster) {
 		return false;
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return checkName(livingEntity, target);
+	public boolean check(LivingEntity caster, LivingEntity target) {
+		return checkName(caster, target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean checkName(LivingEntity livingEntity, LivingEntity target) {
-		if (!(livingEntity instanceof Player pl)) return false;
-
-		String checkedName = Util.getStringFromComponent(name);
-
-		if (isVar) checkedName = Util.doVarReplacement(pl, checkedName);
-		else checkedName = checkedName.replace("__", " ");
-
+	private boolean checkName(LivingEntity caster, LivingEntity target) {
+		String checkedName = requireReplacement ? MagicSpells.doReplacements(name, caster, target) : name;
 		return target.customName() != null && Util.getMiniMessage(checkedName).equals(target.customName());
 	}
 

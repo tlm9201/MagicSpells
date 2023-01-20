@@ -345,8 +345,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			loc.setYaw(caster.getLocation().getYaw());
 			armorStand = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
 			if (!totemName.isEmpty()) {
-				if (caster instanceof Player pl) armorStand.customName(Util.getMiniMessage(MagicSpells.doArgumentAndVariableSubstitution(totemName, pl, null)));
-				else armorStand.customName(Util.getMiniMessage(totemName));
+				armorStand.customName(Util.getMiniMessage(MagicSpells.doReplacements(totemName, caster, args)));
 				armorStand.setCustomNameVisible(totemNameVisible);
 			}
 			EntityEquipment totemEquipment = armorStand.getEquipment();

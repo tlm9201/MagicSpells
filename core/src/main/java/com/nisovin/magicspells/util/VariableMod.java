@@ -120,13 +120,11 @@ public class VariableMod {
 	}
 
 	public String getStringValue(Player caster, Player target) {
-		String ret = MagicSpells.doTargetedVariableReplacements(caster, target, value);
-		return MagicSpells.doVariableReplacements(caster, ret);
+		return MagicSpells.doReplacements(value, caster, target);
 	}
 
 	public String getStringValue(Player caster, Player target, String[] args) {
-		String ret = MagicSpells.doTargetedVariableReplacements(caster, target, value);
-		return MagicSpells.doArgumentAndVariableSubstitution(ret, caster, args);
+		return MagicSpells.doReplacements(value, caster, target, args);
 	}
 
 	public String getValue() {

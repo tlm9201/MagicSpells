@@ -1,7 +1,5 @@
 package com.nisovin.magicspells.spells;
 
-import java.util.regex.Pattern;
-
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,14 +9,10 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.ValidTargetChecker;
 
 public abstract class TargetedSpell extends InstantSpell {
-
-	private static final Pattern chatVarCasterMatchPattern = Pattern.compile("%castervar:[A-Za-z0-9_]+(:[0-9]+)?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-	private static final Pattern chatVarTargetMatchPattern = chatVarCasterMatchPattern;
 
 	protected boolean targetSelf;
 	protected boolean alwaysActivate;
@@ -63,31 +57,11 @@ public abstract class TargetedSpell extends InstantSpell {
 	
 	public void sendMessages(LivingEntity caster, LivingEntity target, String[] args) {
 		String casterName = getTargetName(caster);
-		Player playerCaster = null;
-		if (caster instanceof Player player) playerCaster = player;
-
 		String targetName = getTargetName(target);
-		Player playerTarget = null;
-		if (target instanceof Player player) playerTarget = player;
 
-		if (playerCaster != null)
-			sendMessage(prepareMessage(strCastSelf, playerCaster, playerTarget), caster, args,
-				"%a", casterName, "%t", targetName);
-
-		if (playerTarget != null)
-			sendMessage(prepareMessage(strCastTarget, playerCaster, playerTarget), target, args,
-				"%a", casterName, "%t", targetName);
-
-		sendMessageNear(caster, playerTarget, prepareMessage(strCastOthers, playerCaster, playerTarget), broadcastRange, args,
-			"%a", casterName, "%t", targetName);
-	}
-
-	protected String prepareMessage(String message, Player caster, Player playerTarget) {
-		if (message == null || message.isEmpty()) return message;
-
-		message = MagicSpells.doTargetedVariableReplacements(caster, playerTarget, message);
-
-		return message;
+		sendMessage(strCastSelf, caster, caster, target, args, "%a", casterName, "%t", targetName);
+		sendMessage(strCastTarget, target, caster, target, args, "%a", casterName, "%t", targetName);
+		sendMessageNear(caster, target, strCastOthers, args, "%a", casterName, "%t", targetName);
 	}
 
 	protected String getTargetName(LivingEntity target) {

@@ -30,6 +30,7 @@ import org.bukkit.Material;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Event;
 import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.event.Listener;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
@@ -42,6 +43,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.configuration.ConfigurationSection;
+
+import me.clip.placeholderapi.PlaceholderAPI;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.events.*;
@@ -65,7 +68,6 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.storage.types.TXTFileStorage;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
-import com.nisovin.magicspells.volatilecode.VolatileCodeDisabled;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
@@ -1339,64 +1341,60 @@ public class MagicSpells extends JavaPlugin {
 		plugin.storageHandler = handler;
 	}
 
-	/**
-	 * Formats a string by performing the specified replacements.
-	 * @param message the string to format
-	 * @param replacements the replacements to make, in pairs.
-	 * @return the formatted string
-	 */
-	public static String formatMessage(String message, String... replacements) {
-		if (message == null || replacements == null || replacements.length == 0) return message;
-
-		String msg = message;
-		for (int i = 0; i < replacements.length; i += 2) {
-			if (replacements[i] == null) continue;
-
-			if (replacements[i + 1] != null) msg = msg.replace(replacements[i], replacements[i + 1]);
-			else msg = msg.replace(replacements[i], "");
-		}
-		return msg;
+	public static void sendMessage(Player recipient, String message) {
+		sendMessageAndFormat(message, recipient, recipient, null, null);
 	}
 
 	/**
 	 * Sends a message to a player, first making the specified replacements. This method also does color replacement and has multi-line functionality.
-	 * @param player the player to send the message to
-	 * @param message the message to send
+	 *
+	 * @param recipient    the player to send the message to
+	 * @param message      the message to send
 	 * @param replacements the replacements to be made, in pairs
 	 */
-	public static void sendMessageAndFormat(Player player, String message, String... replacements) {
-		sendMessageAndFormat(message, player, null, replacements);
-	}
-
-	/**
-	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
-	 * @param message the message to send
-	 * @param livingEntity the player to send the message to
-	 * @param args the arguments of associated spell cast
-	 * @param replacements the replacements to be made, in pairs
-	 */
-	public static void sendMessageAndFormat(String message, LivingEntity livingEntity, String[] args, String... replacements) {
-		if (!(livingEntity instanceof Player)) return;
-		if (message == null || message.isEmpty()) return;
-		//Do var replacements
-		message = doArgumentAndVariableSubstitution(message, (Player) livingEntity, args);
-		//Format
-		message = formatMessage(message, replacements);
-		//Send messages
-		livingEntity.sendMessage(Util.getMiniMessage(getTextColor() + message));
-	}
-
-	public static void sendMessage(Player player, String message) {
-		sendMessageAndFormat(message, player, null);
+	public static void sendMessageAndFormat(Player recipient, String message, String... replacements) {
+		sendMessageAndFormat(message, recipient, recipient, null, null, replacements);
 	}
 
 	/**
 	 * Sends a message to a player. This method also does color replacement and has multi-line functionality.
-	 * @param livingEntity the living entity to send the message to
-	 * @param message the message to send
+	 *
+	 * @param recipient the living entity to send the message to
+	 * @param message   the message to send
+	 * @param args      spell arguments
 	 */
-	public static void sendMessage(String message, LivingEntity livingEntity, String[] args) {
-		sendMessageAndFormat(message, livingEntity, args);
+	public static void sendMessage(String message, LivingEntity recipient, String[] args) {
+		sendMessageAndFormat(message, recipient, recipient, null, args);
+	}
+
+	/**
+	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
+	 *
+	 * @param message      the message to send
+	 * @param recipient    the player to send the message to
+	 * @param args         the arguments of associated spell cast
+	 * @param replacements the replacements to be made, in pairs
+	 */
+	public static void sendMessageAndFormat(String message, LivingEntity recipient, String[] args, String... replacements) {
+		sendMessageAndFormat(message, recipient, recipient, null, args, replacements);
+	}
+
+	/**
+	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
+	 *
+	 * @param message      the message to send
+	 * @param recipient    the player to send the message to
+	 * @param caster       the caster of associated spell cast
+	 * @param target       the target of associated spell cast
+	 * @param args         the arguments of associated spell cast
+	 * @param replacements the replacements to be made, in pairs
+	 */
+	public static void sendMessageAndFormat(String message, LivingEntity recipient, LivingEntity caster, LivingEntity target, String[] args, String... replacements) {
+		if (!(recipient instanceof Player) || message == null || message.isEmpty()) return;
+
+		message = doReplacements(message, caster, target, args, replacements);
+
+		recipient.sendMessage(Util.getMiniMessage(getTextColor() + message));
 	}
 
 	private static final Pattern chatVarMatchPattern = Pattern.compile("%var:(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
@@ -1502,12 +1500,38 @@ public class MagicSpells extends JavaPlugin {
 		return matcher.appendTail(builder).toString();
 	}
 
-	//%arg:(index):defaultValue%
-	private static final Pattern argumentSubstitutionPattern = Pattern.compile("%arg:(\\d+):(\\w+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	public static String doArgumentAndVariableSubstitution(String string, Player player, String[] args) {
+		return doVariableReplacements(player, doArgumentSubstitution(string, args));
+	}
+
+	public static String doReplacements(String message, LivingEntity caster) {
+		return doReplacements(message, caster, null, null, (String[]) null);
+	}
+
+	public static String doReplacements(String message, LivingEntity caster, LivingEntity target) {
+		return doReplacements(message, caster, target, null, (String[]) null);
+	}
+
+	public static String doReplacements(String message, LivingEntity caster, String[] args, String... replacements) {
+		return doReplacements(message, caster, null, args, replacements);
+	}
+
+	public static String doReplacements(String message, LivingEntity caster, LivingEntity target, String[] args, String... replacements) {
+		if (message == null || message.isEmpty()) return message;
+
+		message = doArgumentSubstitution(message, args);
+		message = doVariableReplacements(message, caster, target);
+		message = doPlaceholderReplacements(message, caster, target);
+		message = formatMessage(message, replacements);
+
+		return message;
+	}
+
+	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("%arg:(\\d+):(\\w+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doArgumentSubstitution(String string, String[] args) {
 		if (string == null || string.isEmpty()) return string;
 
-		Matcher matcher = argumentSubstitutionPattern.matcher(string);
+		Matcher matcher = ARGUMENT_PATTERN.matcher(string);
 		StringBuilder builder = new StringBuilder();
 
 		while (matcher.find()) {
@@ -1522,8 +1546,131 @@ public class MagicSpells extends JavaPlugin {
 		return matcher.appendTail(builder).toString();
 	}
 
-	public static String doArgumentAndVariableSubstitution(String string, Player player, String[] args) {
-		return doVariableReplacements(player, doArgumentSubstitution(string, args));
+	private static final Pattern VARIABLE_PATTERN = Pattern.compile("%(var|castervar|targetvar|playervar:(" + RegexUtil.USERNAME_REGEXP + ")):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	public static String doVariableReplacements(String message, LivingEntity caster, LivingEntity target) {
+		if (message == null || message.isEmpty()) return message;
+
+		Player playerCaster = caster instanceof Player player ? player : null;
+		Player playerTarget = target instanceof Player player ? player : null;
+
+		Matcher matcher = VARIABLE_PATTERN.matcher(message);
+		StringBuilder builder = new StringBuilder();
+
+		while (matcher.find()) {
+			String placeString = matcher.group(4);
+
+			Variable variable = getVariableManager().getVariable(matcher.group(3));
+			if (variable == null) continue;
+
+			int place = -1;
+			if (placeString != null) {
+				try {
+					place = Integer.parseInt(placeString);
+				} catch (NumberFormatException ignored) {
+					continue;
+				}
+			}
+
+			String value = switch (matcher.group(1).toLowerCase()) {
+				case "var", "castervar" -> {
+					if (playerCaster == null) yield null;
+
+					if (place != -1) {
+						if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
+							yield TxtUtil.getStringNumber(variable.getStringValue(playerCaster), place);
+
+						yield TxtUtil.getStringNumber(variable.getValue(playerCaster), place);
+					}
+
+					yield variable.getStringValue(playerCaster);
+				}
+				case "targetvar" -> {
+					if (playerTarget == null) yield null;
+
+					if (place != -1) {
+						if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
+							yield TxtUtil.getStringNumber(variable.getStringValue(playerTarget), place);
+
+						yield TxtUtil.getStringNumber(variable.getValue(playerTarget), place);
+					}
+
+					yield variable.getStringValue(playerTarget);
+				}
+				default -> {
+					String player = matcher.group(2);
+
+					if (place != -1) {
+						if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
+							yield TxtUtil.getStringNumber(variable.getStringValue(player), place);
+
+						yield TxtUtil.getStringNumber(variable.getValue(player), place);
+					}
+
+					yield variable.getStringValue(player);
+				}
+			};
+			if (value == null) continue;
+
+			matcher.appendReplacement(builder, Matcher.quoteReplacement(value));
+		}
+
+		return matcher.appendTail(builder).toString();
+	}
+
+	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(papi|casterpapi|targetpapi|playerpapi:(" + RegexUtil.USERNAME_REGEXP + ")):([^%]+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	public static String doPlaceholderReplacements(String message, LivingEntity caster, LivingEntity target) {
+		if (message == null || message.isEmpty() || !Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
+			return message;
+
+		Player playerCaster = caster instanceof Player player ? player : null;
+		Player playerTarget = target instanceof Player player ? player : null;
+
+		Matcher matcher = PLACEHOLDER_PATTERN.matcher(message);
+		StringBuilder builder = new StringBuilder();
+
+		while (matcher.find()) {
+			OfflinePlayer owner = switch (matcher.group(1).toLowerCase()) {
+				case "papi", "casterpapi" -> playerCaster;
+				case "targetpapi" -> playerTarget;
+				default -> Bukkit.getOfflinePlayer(matcher.group(2));
+			};
+			if (owner == null) continue;
+
+			String placeholder = '%' + matcher.group(3) + '%';
+			matcher.appendReplacement(builder, Matcher.quoteReplacement(PlaceholderAPI.setPlaceholders(owner, placeholder)));
+		}
+
+		return matcher.appendTail(builder).toString();
+	}
+
+	/**
+	 * Formats a string by performing the specified replacements.
+	 * @param message the string to format
+	 * @param replacements the replacements to make, in pairs.
+	 * @return the formatted string
+	 */
+	public static String formatMessage(String message, String... replacements) {
+		if (message == null || message.isEmpty() || replacements == null || replacements.length == 0) return message;
+
+		String msg = message;
+		for (int i = 0; i < replacements.length; i += 2) {
+			if (replacements[i] == null) continue;
+
+			if (replacements[i + 1] != null) msg = msg.replace(replacements[i], replacements[i + 1]);
+			else msg = msg.replace(replacements[i], "");
+		}
+		return msg;
+	}
+
+	public static boolean requireReplacement(String message) {
+		Matcher matcher = ARGUMENT_PATTERN.matcher(message);
+		if (matcher.find()) return true;
+
+		matcher = VARIABLE_PATTERN.matcher(message);
+		if (matcher.find()) return true;
+
+		matcher = PLACEHOLDER_PATTERN.matcher(message);
+		return matcher.find();
 	}
 
 	public static void registerEvents(final Listener listener) {

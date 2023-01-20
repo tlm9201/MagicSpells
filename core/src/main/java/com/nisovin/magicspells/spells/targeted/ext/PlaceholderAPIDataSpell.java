@@ -58,8 +58,7 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 			if (targetInfo.noTarget()) return noTarget(player, args, null);
 			Player target = targetInfo.target();
 
-			String value = MagicSpells.doArgumentSubstitution(placeholderAPITemplate, args);
-			setPlaceholders(player, target, value, targetInfo.power(), args);
+			setPlaceholders(player, target, targetInfo.power(), args);
 			sendMessages(caster, target, args);
 
 			return PostCastAction.NO_MESSAGES;
@@ -72,7 +71,7 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (!(caster instanceof Player casterPlayer) || !(target instanceof Player targetPlayer)) return false;
 		if (!validTargetList.canTarget(caster, target)) return false;
-		setPlaceholders(casterPlayer, targetPlayer, placeholderAPITemplate, power, args);
+		setPlaceholders(casterPlayer, targetPlayer, power, args);
 		return true;
 	}
 
@@ -86,10 +85,22 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 		return false;
 	}
 
-	private void setPlaceholders(Player caster, Player target, String value, float power, String[] args) {
-		value = MagicSpells.doVariableReplacements(useTargetVariables ? target : caster, value);
+	private void setPlaceholders(Player caster, Player target, float power, String[] args) {
+		String value = MagicSpells.doArgumentSubstitution(placeholderAPITemplate, args);
+
+		Player variableCaster, variableTarget;
+		if (useTargetVariables) {
+			variableCaster = target;
+			variableTarget = caster;
+		} else {
+			variableCaster = caster;
+			variableTarget = target;
+		}
+
+		value = MagicSpells.doVariableReplacements(value, variableCaster, variableTarget);
 		value = PlaceholderAPI.setBracketPlaceholders(setTargetPlaceholders ? target : caster, value);
 		value = PlaceholderAPI.setPlaceholders(setTargetPlaceholders ? target : caster, value);
+
 		MagicSpells.getVariableManager().set(variableName, setTargetVariable ? target : caster, value);
 		playSpellEffects(caster, target, power, args);
 	}

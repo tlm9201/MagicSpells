@@ -949,9 +949,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	// TODO can this safely be made varargs?
-	public void sendMessages(LivingEntity livingEntity, String[] args) {
-		sendMessage(strCastSelf, livingEntity, args, "%a", livingEntity.getName());
-		sendMessageNear(livingEntity, formatMessage(strCastOthers, "%a", livingEntity.getName()));
+	public void sendMessages(LivingEntity caster, String[] args) {
+		sendMessage(strCastSelf, caster, args, "%a", caster.getName());
+		sendMessageNear(caster, strCastOthers, args, "%a", caster.getName());
 	}
 
 	// TODO can this safely be made varargs?
@@ -1825,9 +1825,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	/**
 	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
-	 * @param message the message to send
+	 *
+	 * @param message      the message to send
 	 * @param livingEntity the player to send the message to
-	 * @param args the arguments of associated spell cast
+	 * @param args         the arguments of associated spell cast
 	 * @param replacements the replacements to be made, in pairs
 	 */
 	protected void sendMessage(String message, LivingEntity livingEntity, String[] args, String... replacements) {
@@ -1835,45 +1836,90 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	/**
+	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
+	 *
+	 * @param message      the message to send
+	 * @param caster       the player to send the message to
+	 * @param target       the target of associated spell cast
+	 * @param args         the arguments of associated spell cast
+	 * @param replacements the replacements to be made, in pairs
+	 */
+	protected void sendMessage(String message, LivingEntity caster, LivingEntity target, String[] args, String... replacements) {
+		MagicSpells.sendMessageAndFormat(message, caster, caster, target, args, replacements);
+	}
+
+	/**
+	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
+	 *
+	 * @param message      the message to send
+	 * @param recipient    the player to send the message to
+	 * @param caster       the caster of the associated spell cast
+	 * @param target       the target of the associated spell cast
+	 * @param args         the arguments of associated spell cast
+	 * @param replacements the replacements to be made, in pairs
+	 */
+	protected void sendMessage(String message, LivingEntity recipient, LivingEntity caster, LivingEntity target, String[] args, String... replacements) {
+		MagicSpells.sendMessageAndFormat(message, recipient, caster, target, args, replacements);
+	}
+
+	/**
 	 * Sends a message to all players near the specified player, within the configured broadcast range.
-	 * @param livingEntity the "center" living entity used to find nearby players
+	 *
+	 * @param caster  the caster that caused the message to be sent, and the "center" of the broadcast range
 	 * @param message the message to send
 	 */
-	protected void sendMessageNear(LivingEntity livingEntity, String message) {
-		sendMessageNear(livingEntity, null, message, broadcastRange, MagicSpells.NULL_ARGS);
+	protected void sendMessageNear(LivingEntity caster, String message) {
+		sendMessageNear(caster, null, message, broadcastRange, null, (String[]) null);
 	}
 
 	/**
 	 * Sends a message to all players near the specified player, within the specified broadcast range.
-	 * @param livingEntity the "center" living entity used to find nearby players
-	 * @param message the message to send
-	 * @param range the broadcast range
-	 */
-	protected void sendMessageNear(LivingEntity livingEntity, Player ignore, String message, int range, String[] args) {
-		sendMessageNear(livingEntity, ignore, message, range, args, (String[]) null);
-	}
-
-	/**
-	 * Sends a message to all players near the specified player, within the specified broadcast range.
-	 * @param livingEntity the "center" living entity used to find nearby players
-	 * @param ignore player to ignore when sending messages
-	 * @param message the message to send
-	 * @param range the broadcast range
-	 * @param args cast arguments
+	 *
+	 * @param caster       the caster that caused the message to be sent, and the "center" of the broadcast range
+	 * @param message      the message to send
+	 * @param args         cast arguments
 	 * @param replacements replacements to be done on message
 	 */
-	protected void sendMessageNear(LivingEntity livingEntity, Player ignore, String message, int range, String[] args, String... replacements) {
-		if (message == null) return;
-		if (message.isEmpty()) return;
-		if (Perm.SILENT.has(livingEntity)) return;
+	protected void sendMessageNear(LivingEntity caster, String message, String[] args, String... replacements) {
+		sendMessageNear(caster, null, message, broadcastRange, args, replacements);
+	}
+
+	/**
+	 * Sends a message to all players near the specified player, within the specified broadcast range.
+	 *
+	 * @param caster       the caster that caused the message to be sent, and the "center" of the broadcast range
+	 * @param target       the target, if applicable, which the message will not be sent to
+	 * @param message      the message to send
+	 * @param args         cast arguments
+	 * @param replacements replacements to be done on message
+	 */
+	protected void sendMessageNear(LivingEntity caster, LivingEntity target, String message, String[] args, String... replacements) {
+		sendMessageNear(caster, target, message, broadcastRange, args, replacements);
+	}
+
+	/**
+	 * Sends a message to all players near the specified player, within the specified broadcast range.
+	 *
+	 * @param caster       the caster that caused the message to be sent, and the "center" of the broadcast range
+	 * @param target       the target, if applicable, which the message will not be sent to
+	 * @param message      the message to send
+	 * @param range        the broadcast range
+	 * @param args         cast arguments
+	 * @param replacements replacements to be done on message
+	 */
+	protected void sendMessageNear(LivingEntity caster, LivingEntity target, String message, int range, String[] args, String... replacements) {
+		if (message == null || message.isEmpty() || Perm.SILENT.has(caster)) return;
+
+		message = MagicSpells.doReplacements(message, caster, target, args, replacements);
+		Component msg = Util.getMiniMessage(MagicSpells.getTextColor() + message);
 
 		int rangeDoubled = range << 1;
-		Collection<Player> players = livingEntity.getLocation().getNearbyPlayers(rangeDoubled);
+		Collection<Player> players = caster.getLocation().getNearbyPlayers(rangeDoubled);
 		for (Player player : players) {
-			if (player == livingEntity) continue;
-			if (player == ignore) continue;
+			if (player == caster) continue;
+			if (player == target) continue;
 
-			sendMessage(message, player, args, replacements);
+			player.sendMessage(msg);
 		}
 	}
 
