@@ -139,23 +139,25 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		int attempts = 0;
 		while (targets.size() < bounces && attempts++ < bounces << 1) {
 			List<Entity> entities = current.getNearbyEntities(bounceRange, bounceRange, bounceRange);
-			for (Entity e : entities) {
-				if (!(e instanceof LivingEntity)) continue;
-				if (targets.contains(e)) continue;
+			for (Entity entity : entities) {
+				if (!(entity instanceof LivingEntity livingEntity)) continue;
+				if (targets.contains(livingEntity)) continue;
 
-				if (!validTargetList.canTarget(caster, target)) continue;
+				if (!validTargetList.canTarget(caster, livingEntity)) continue;
 
-				float thisPower = power;
+				float subPower = power;
 				if (caster != null) {
-					SpellTargetEvent event = new SpellTargetEvent(this, caster, (LivingEntity) e, thisPower, args);
-					EventUtil.call(event);
-					if (event.isCancelled()) continue;
-					thisPower = event.getPower();
+					SpellTargetEvent event = new SpellTargetEvent(this, caster, livingEntity, subPower, args);
+					if (!event.callEvent()) continue;
+
+					livingEntity = event.getTarget();
+					subPower = event.getPower();
 				}
 
-				targets.add((LivingEntity) e);
-				targetPowers.add(thisPower);
-				current = (LivingEntity) e;
+				targets.add(livingEntity);
+				targetPowers.add(subPower);
+				current = livingEntity;
+
 				break;
 			}
 		}
