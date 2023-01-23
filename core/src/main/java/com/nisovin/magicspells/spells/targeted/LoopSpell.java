@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.HashMultimap;
@@ -519,19 +518,11 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			else if (caster != null) playSpellEffects(EffectPosition.DELAYED, caster, data);
 
 			if (caster != null || targetEntity != null) {
-				Player playerCaster = caster instanceof Player p ? p : null;
-				Player playerTarget = targetEntity instanceof Player p ? p : null;
-
 				String casterName = caster != null ? getTargetName(caster) : "";
 				String targetName = targetEntity != null ? getTargetName(targetEntity) : "";
 
-				if (playerCaster != null)
-					sendMessage(prepareMessage(strFadeSelf, playerCaster, playerTarget), playerCaster, data.args(),
-						"%a", casterName, "%t", targetName);
-
-				if (playerTarget != null)
-					sendMessage(prepareMessage(strFadeTarget, playerCaster, playerTarget), playerTarget, data.args(),
-						"%a", casterName, "%t", targetName);
+				sendMessage(strFadeSelf, caster, caster, targetEntity, data.args(), "%a", casterName, "%t", targetName);
+				sendMessage(strFadeTarget, targetEntity, caster, targetEntity, data.args(), "%a", casterName, "%t", targetName);
 			}
 
 			if (spellOnEnd != null) {

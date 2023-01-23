@@ -3,7 +3,6 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.Set;
 import java.util.HashSet;
 
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
@@ -17,12 +16,15 @@ public class TagEntitySpell extends TargetedSpell implements TargetedEntitySpell
 	private final String operation;
 	private final String tag;
 
+	private final boolean doReplacements;
+
 	public TagEntitySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		tag = getConfigString("tag", null);
 		operation = getConfigString("operation", "add");
 
+		doReplacements = MagicSpells.requireReplacement(tag);
 	}
 
 	@Override
@@ -68,14 +70,7 @@ public class TagEntitySpell extends TargetedSpell implements TargetedEntitySpell
 	}
 
 	private void tag(LivingEntity caster, LivingEntity target, String[] args) {
-		String varTag = tag;
-		if (varTag.contains("%")) {
-			varTag = MagicSpells.doTargetedVariableReplacements(
-				caster instanceof Player player ? player : null,
-				target instanceof Player player ? player : null,
-				MagicSpells.doArgumentSubstitution(tag, args)
-			);
-		}
+		String varTag = doReplacements ? MagicSpells.doReplacements(tag, caster, target, args) : tag;
 
 		switch (operation) {
 			case "add", "insert" -> target.addScoreboardTag(varTag);

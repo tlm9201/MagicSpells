@@ -24,7 +24,7 @@ public class TitleEffect extends SpellEffect {
 	private static Duration milisOfTicks(int ticks) {
 		return Duration.ofMillis(TimeUtil.MILLISECONDS_PER_SECOND * (ticks / TimeUtil.TICKS_PER_SECOND));
 	}
-	
+
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		title = config.getString("title", "");
@@ -33,11 +33,11 @@ public class TitleEffect extends SpellEffect {
 		int fadeIn = config.getInt("fade-in", 10);
 		int stay = config.getInt("stay", 40);
 		int fadeOut = config.getInt("fade-out", 10);
-		times = Title.Times.of(milisOfTicks(fadeIn), milisOfTicks(stay), milisOfTicks(fadeOut));
+		times = Title.Times.times(milisOfTicks(fadeIn), milisOfTicks(stay), milisOfTicks(fadeOut));
 
 		broadcast = config.getBoolean("broadcast", false);
 	}
-	
+
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
 		String[] args = data == null ? null : data.args();

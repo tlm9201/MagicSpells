@@ -707,12 +707,12 @@ public class Util {
 
 	public static Component getMiniMessageWithVars(Player player, String input) {
 		if (input.isEmpty()) return Component.text("");
-		return getMiniMessage(MagicSpells.doVariableReplacements(player, input));
+		return getMiniMessage(MagicSpells.doReplacements(input, player));
 	}
 
 	public static Component getMiniMessageWithArgsAndVars(Player player, String input, String[] args) {
 		if (input.isEmpty()) return Component.text("");
-		return getMiniMessage(MagicSpells.doArgumentAndVariableSubstitution(input, player, args));
+		return getMiniMessage(MagicSpells.doReplacements(input, player, args));
 	}
 
 	public static String getStringFromComponent(Component component) {
@@ -743,13 +743,11 @@ public class Util {
 	}
 
 	public static String doVarReplacementAndColorize(Player player, String string) {
-		if (string.isEmpty()) return "";
-		return colorize(MagicSpells.doVariableReplacements(player, string));
+		return colorize(MagicSpells.doReplacements(string, player));
 	}
 
 	public static String doVarReplacement(Player player, String string) {
-		if (string.isEmpty()) return "";
-		return MagicSpells.doVariableReplacements(player, string);
+		return MagicSpells.doReplacements(string, player);
 	}
 
 	public static void setInventoryTitle(Player player, String title) {

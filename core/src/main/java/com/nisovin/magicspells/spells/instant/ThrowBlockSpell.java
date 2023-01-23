@@ -4,8 +4,6 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.apache.commons.math3.util.Pair;
-
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -20,8 +18,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
-
-import de.slikey.exp4j.Expression;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
@@ -81,10 +77,8 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 				int fuse = Integer.parseInt(split[1]);
 				tntFuse = (caster, target, power, args) -> fuse;
 			} catch (NumberFormatException e) {
-				Expression ex = FunctionData.buildExpression(split[1]);
-
-				tntFuse = ex == null ? null : new FunctionData.IntegerData(ex, 0);
-				if (ex == null) MagicSpells.error("Invalid tnt fuse '" + split[1] + "' for ThrowBlockSpell '" + internalName + "'.");
+				tntFuse = FunctionData.build(split[1], Double::intValue, 0);
+				if (tntFuse == null) MagicSpells.error("Invalid tnt fuse '" + split[1] + "' for ThrowBlockSpell '" + internalName + "'.");
 			}
 		} else {
 			material = Util.getMaterial(materialName);

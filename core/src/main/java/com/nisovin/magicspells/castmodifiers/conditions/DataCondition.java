@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 import java.util.function.Function;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import com.nisovin.magicspells.util.data.DataLivingEntity;
 
@@ -21,10 +20,8 @@ public class DataCondition extends OperatorCondition {
 	private String compare;
 
 	private boolean constantValue;
+	private boolean doReplacement;
 	private double value;
-
-	private boolean doTargetedReplacement = false;
-	private boolean doVarReplacement = false;
 
 	@Override
 	public boolean initialize(String var) {
@@ -43,10 +40,8 @@ public class DataCondition extends OperatorCondition {
 			constantValue = true;
 		} catch (NumberFormatException e) {
 			constantValue = false;
+			doReplacement = MagicSpells.requireReplacement(compare);
 		}
-
-		if (compare.contains("%var") || compare.contains("%playervar")) doVarReplacement = true;
-		if (compare.contains("%castervar") || compare.contains("%targetvar")) doTargetedReplacement = true;
 
 		return true;
 	}
@@ -60,17 +55,7 @@ public class DataCondition extends OperatorCondition {
 	public boolean check(LivingEntity caster, LivingEntity target) {
 		if (dataElement == null) return false;
 
-		String localCompare = compare;
-
-		Player playerCaster = caster instanceof Player ? (Player) caster : null;
-		if (doVarReplacement) {
-			localCompare = MagicSpells.doVariableReplacements(playerCaster, localCompare);
-		}
-
-		if (doTargetedReplacement) {
-			Player playerTarget = target instanceof Player ? (Player) target : null;
-			localCompare = MagicSpells.doTargetedVariableReplacements(playerCaster, playerTarget, localCompare);
-		}
+		String localCompare = !constantValue && doReplacement ? MagicSpells.doReplacements(compare, caster, target) : compare;
 
 		String data = dataElement.apply(target);
 		try {

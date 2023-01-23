@@ -139,23 +139,25 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		int attempts = 0;
 		while (targets.size() < bounces && attempts++ < bounces << 1) {
 			List<Entity> entities = current.getNearbyEntities(bounceRange, bounceRange, bounceRange);
-			for (Entity e : entities) {
-				if (!(e instanceof LivingEntity)) continue;
-				if (targets.contains(e)) continue;
+			for (Entity entity : entities) {
+				if (!(entity instanceof LivingEntity livingEntity)) continue;
+				if (targets.contains(livingEntity)) continue;
 
-				if (!validTargetList.canTarget(caster, target)) continue;
+				if (!validTargetList.canTarget(caster, livingEntity)) continue;
 
-				float thisPower = power;
+				float subPower = power;
 				if (caster != null) {
-					SpellTargetEvent event = new SpellTargetEvent(this, caster, (LivingEntity) e, thisPower, args);
-					EventUtil.call(event);
-					if (event.isCancelled()) continue;
-					thisPower = event.getPower();
+					SpellTargetEvent event = new SpellTargetEvent(this, caster, livingEntity, subPower, args);
+					if (!event.callEvent()) continue;
+
+					livingEntity = event.getTarget();
+					subPower = event.getPower();
 				}
 
-				targets.add((LivingEntity) e);
-				targetPowers.add(thisPower);
-				current = (LivingEntity) e;
+				targets.add(livingEntity);
+				targetPowers.add(subPower);
+				current = livingEntity;
+
 				break;
 			}
 		}
@@ -182,15 +184,12 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		} else new ChainBouncer(caster, start, targets, targetPowers, interval, args);
 	}
 
-	private boolean castSpellAt(LivingEntity caster, Location from, LivingEntity target, float power) {
+	private void castSpellAt(LivingEntity caster, Location from, LivingEntity target, float power) {
 		if (spellToCast.isTargetedEntityFromLocationSpell() && from != null)
-			return spellToCast.castAtEntityFromLocation(caster, from, target, power);
-		if (spellToCast.isTargetedEntitySpell())
-			return spellToCast.castAtEntity(caster, target, power);
-		if (spellToCast.isTargetedLocationSpell())
-			return spellToCast.castAtLocation(caster, target.getLocation(), power);
-
-		return true;
+			spellToCast.castAtEntityFromLocation(caster, from, target, power);
+		if (spellToCast.isTargetedEntitySpell()) spellToCast.castAtEntity(caster, target, power);
+		if (spellToCast.isTargetedLocationSpell()) spellToCast.castAtLocation(caster, target.getLocation(), power);
+		else spellToCast.cast(caster, power);
 	}
 
 	private class ChainBouncer implements Runnable {

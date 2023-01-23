@@ -116,11 +116,11 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 		return castAtLocation(null, target, power, null);
 	}
 
-	private static Component createComponent(String raw, Player player, String displayName) {
+	private static Component createComponent(String raw, Player player, String displayName, String[] args) {
 		if (player != null) {
 			raw = RegexUtil.replaceAll(NAME_VARIABLE_PATTERN, raw, player.getName());
 			if (displayName != null) raw = RegexUtil.replaceAll(DISPLAY_NAME_VARIABLE_PATTERN, raw, displayName);
-			raw = MagicSpells.doVariableReplacements(player, raw);
+			raw = MagicSpells.doReplacements(raw, player, args);
 		}
 		return Util.getMiniMessage(raw);
 	}
@@ -149,17 +149,17 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 
 		List<Component> pagesRaw = new ArrayList<>();
 		for (String page : pages) {
-			pagesRaw.add(createComponent(page, player, playerDisplayName));
+			pagesRaw.add(createComponent(page, player, playerDisplayName, args));
 		}
 		List<Component> loreRaw = new ArrayList<>();
 		for (String line : lore) {
-			loreRaw.add(createComponent(line, player, playerDisplayName));
+			loreRaw.add(createComponent(line, player, playerDisplayName, args));
 		}
 
 		ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) ((BookMeta) item.getItemMeta())
-				.title(createComponent(title, player, playerDisplayName))
-				.author(createComponent(author, player, playerDisplayName))
+				.title(createComponent(title, player, playerDisplayName, args))
+				.author(createComponent(author, player, playerDisplayName, args))
 				.pages(pagesRaw);
 		meta.lore(loreRaw);
 		item.setItemMeta(meta);
