@@ -547,39 +547,45 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			inRange.add(entity);
 		}
 
-		for (int i = 0; i < inRange.size(); i++) {
-			LivingEntity e = inRange.get(i);
-			if (e.isDead()) continue;
+		LivingEntity target;
+		ParticleProjectileHitEvent projectileEvent;
+		SpellTargetEvent event;
 
-			ParticleProjectileHitEvent projectileEvent = new ParticleProjectileHitEvent(caster, e, tracker, spell, power);
+		for (int i = 0; i < inRange.size(); i++) {
+			target = inRange.get(i);
+			if (target.isDead()) continue;
+
+			projectileEvent = new ParticleProjectileHitEvent(caster, target, tracker, spell, power);
 			EventUtil.call(projectileEvent);
+
 			if (stopped) return;
+
 			if (projectileEvent.isCancelled()) {
 				inRange.remove(i);
 				break;
 			}
 
+			float power = this.power;
+
+			event = new SpellTargetEvent(spell, caster, target, power, args);
+			EventUtil.call(event);
+			if (event.isCancelled()) {
+				inRange.remove(i);
+				break;
+			} else {
+				target = event.getTarget();
+				power = event.getPower();
+			}
+
 			if (entitySpell != null && entitySpell.isTargetedEntitySpell()) {
 				entitySpellChecker = entitySpell.getSpell().getValidTargetChecker();
-				if (entitySpellChecker != null && !entitySpellChecker.isValidTarget(e)) {
+				if (entitySpellChecker != null && !entitySpellChecker.isValidTarget(target)) {
 					inRange.remove(i);
 					break;
 				}
 
-				float power = this.power;
-
-				SpellTargetEvent event = new SpellTargetEvent(spell, caster, e, power, args);
-				EventUtil.call(event);
-				if (event.isCancelled()) {
-					inRange.remove(i);
-					break;
-				} else {
-					e = event.getTarget();
-					power = event.getPower();
-				}
-
-				entitySpell.castAtEntity(caster, e, power);
-				if (spell != null) spell.playEffects(EffectPosition.TARGET, e, data);
+				entitySpell.castAtEntity(caster, target, power);
+				if (spell != null) spell.playEffects(EffectPosition.TARGET, target, data);
 			} else if (entitySpell != null && entitySpell.isTargetedLocationSpell()) {
 				entitySpell.castAtLocation(caster, currentLoc.clone(), power);
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLoc, data);
@@ -588,7 +594,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, currentLoc, power);
 
 			inRange.remove(i);
-			immune.add(e);
+			immune.add(target);
 			maxHitLimit++;
 
 			if (maxEntitiesHit > 0 && maxHitLimit >= maxEntitiesHit) stop();
