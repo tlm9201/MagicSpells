@@ -206,24 +206,23 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			entities.sort(comparator);
 		}
 
-		for (LivingEntity e : entities) {
+		for (LivingEntity target : entities) {
 			if (circleShape) {
-				double hDistance = NumberConversions.square(e.getLocation().getX() - location.getX()) + NumberConversions.square(e.getLocation().getZ() - location.getZ());
+				double hDistance = NumberConversions.square(target.getLocation().getX() - location.getX()) + NumberConversions.square(target.getLocation().getZ() - location.getZ());
 				if (hDistance > hRadiusSquared) continue;
-				double vDistance = NumberConversions.square(e.getLocation().getY() - location.getY());
+				double vDistance = NumberConversions.square(target.getLocation().getY() - location.getY());
 				if (vDistance > vRadiusSquared) continue;
 			}
+
 			if (pointBlank && cone > 0) {
-				Vector dir = e.getLocation().toVector().subtract(finalLoc.toVector());
+				Vector dir = target.getLocation().toVector().subtract(finalLoc.toVector());
 				if (FastMath.toDegrees(FastMath.abs(dir.angle(finalLoc.getDirection()))) > cone) continue;
 			}
 
-			LivingEntity target = e;
 			float power = basePower;
 
 			if (target.isDead()) continue;
-			if (caster == null && !validTargetList.canTarget(target)) continue;
-			if (caster != null && !validTargetList.canTarget(caster, target)) continue;
+			if (!validTargetList.canTarget(caster, target)) continue;
 
 			SpellTargetEvent event = new SpellTargetEvent(this, caster, target, power, args);
 			EventUtil.call(event);
@@ -236,6 +235,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 			SpellData data = new SpellData(caster, target, power, args);
 			playSpellEffects(EffectPosition.TARGET, target, data);
+
 			if (spellSourceInCenter) playSpellEffectsTrail(location, target.getLocation(), data);
 			else if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
 

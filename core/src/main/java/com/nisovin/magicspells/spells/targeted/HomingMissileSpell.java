@@ -382,6 +382,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				effectLoc.add(offset.multiply(effectOffset.getZ())).getBlock().getLocation();
 				effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
 				effectLoc.setY(effectLoc.getY() + effectOffset.getY());
+				effectLoc = Util.makeFinite(effectLoc);
 
 				if (armorStandSet != null) {
 					for (ArmorStand armorStand : armorStandSet) {
