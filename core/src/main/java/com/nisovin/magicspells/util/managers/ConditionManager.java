@@ -69,6 +69,7 @@ public class ConditionManager {
 		addCondition("onblock", OnBlockCondition.class);
 		addCondition("inblock", InBlockCondition.class);
 		addCondition("onground", OnGroundCondition.class);
+		addCondition("overground", OverGroundCondition.class);
 		addCondition("underblock", UnderBlockCondition.class);
 		addCondition("overblock", OverBlockCondition.class);
 		addCondition("inregion", InRegionCondition.class);
