@@ -14,9 +14,9 @@ public class TimeCondition extends Condition {
 	@Override
 	public boolean initialize(String var) {
 		try {
-			String[] vardata = var.split("-");
-			start = Integer.parseInt(vardata[0]);
-			end = Integer.parseInt(vardata[1]);
+			String[] varData = var.split("-");
+			start = Integer.parseInt(varData[0]);
+			end = Integer.parseInt(varData[1]);
 			return true;
 		} catch (Exception e) {
 			DebugHandler.debugNumberFormat(e);
