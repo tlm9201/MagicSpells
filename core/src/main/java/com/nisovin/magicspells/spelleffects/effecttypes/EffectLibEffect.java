@@ -27,6 +27,8 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class EffectLibEffect extends SpellEffect {
 
+	private static final Set<String> CLASS_STRINGS = Set.of("class", "effectClass", "subEffectClass", "subEffectAtEndClass", "subEffectAtEndCachedClass");
+
 	protected EffectManager manager;
 	protected String className;
 
@@ -59,7 +61,7 @@ public class EffectLibEffect extends SpellEffect {
 			if (!section.isString(actualKey) && !section.isConfigurationSection(actualKey)) continue;
 
 			String key = formatKey(actualKey);
-			if (key.equals("class") || key.equals("effectClass") || key.equals("subEffectClass")) continue;
+			if (CLASS_STRINGS.contains(key)) continue;
 
 			Field field;
 			try {
@@ -81,11 +83,11 @@ public class EffectLibEffect extends SpellEffect {
 			else if (type.equals(boolean.class) || type.equals(Boolean.class))
 				options.put(path + actualKey, ConfigDataUtil.getBoolean(section, actualKey, false));
 			else if (Enum.class.isAssignableFrom(type)
-					|| type.equals(String.class)
-					|| type.equals(Color.class)
-					|| type.equals(Font.class)
-					|| type.equals(CustomSound.class)
-					|| type.equals(BlockData.class)) {
+				|| type.equals(String.class)
+				|| type.equals(Color.class)
+				|| Font.class.isAssignableFrom(type)
+				|| CustomSound.class.isAssignableFrom(type)
+				|| BlockData.class.isAssignableFrom(type)) {
 
 				ConfigData<?> data = ConfigDataUtil.getString(section, actualKey, null);
 				if (!data.isConstant()) options.put(path + actualKey, data);
@@ -93,26 +95,25 @@ public class EffectLibEffect extends SpellEffect {
 				ConfigurationSection subSection = section.getConfigurationSection(actualKey);
 				if (subSection == null) continue;
 
-				if (key.equals("subEffect")) {
-					String subEffectClassString = findStringByFormattedKey(subSection, "subEffectClass");
-					if (subEffectClassString == null) continue;
-
-					Effect subEffect = manager.getEffectByClassName(subEffectClassString);
-					if (subEffect == null) continue;
-
-					resolveOptions(subSection, subEffect.getClass(), options, path + actualKey + ".");
-				}
-
 				if (key.equals("effect") && ModifiedEffect.class.isAssignableFrom(effectClass)) {
-					String subEffectClassString = findStringByFormattedKey(section, "effectClass");
-					if (subEffectClassString == null) subEffectClassString = subSection.getString("class");
-					if (subEffectClassString == null) continue;
+					String classString = findStringByFormattedKey(section, "effectClass");
+					if (classString == null) classString = subSection.getString("class");
+					if (classString == null) continue;
 
-					Effect subEffect = manager.getEffectByClassName(subEffectClassString);
-					if (subEffect == null) continue;
+					Effect effect = manager.getEffectByClassName(classString);
+					if (effect == null) continue;
 
-					resolveOptions(subSection, subEffect.getClass(), options, path + actualKey + ".");
+					resolveOptions(subSection, effect.getClass(), options, path + actualKey + ".");
+					continue;
 				}
+
+				String classString = findStringByFormattedKey(subSection, key + "Class");
+				if (classString == null) continue;
+
+				Effect effect = manager.getEffectByClassName(classString);
+				if (effect == null) continue;
+
+				resolveOptions(subSection, effect.getClass(), options, path + actualKey + ".");
 			}
 
 			if (options.containsKey(actualKey)) effectLibSection.set(actualKey, null);
