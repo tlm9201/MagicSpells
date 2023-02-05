@@ -22,20 +22,14 @@ import org.bukkit.entity.LivingEntity;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
 public class FunctionData<T extends Number> implements ConfigData<T> {
 
-	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("""
-		%(?:\
-		((var|castervar|targetvar):(\\w+)(?::(\\d+))?)|\
-		(playervar:([a-zA-Z0-9_]{3,16}):(\\w+)(?::(\\d+))?)|\
-		(arg:(\\d+):(\\w+))|\
-		((papi|casterpapi|targetpapi):([^%]+))|\
-		(playerpapi:([a-zA-Z0-9_]{3,16}):([^%]+))\
-		)%""", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(?:((var|castervar|targetvar):(\\w+)(?::(\\d+))?)|(playervar:([a-zA-Z0-9_]{3,16}):(\\w+)(?::(\\d+))?)|(arg:(\\d+):(" + RegexUtil.DOUBLE_PATTERN + "))|((papi|casterpapi|targetpapi):([^%]+))|(playerpapi:([a-zA-Z0-9_]{3,16}):([^%]+)))%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	private final Map<String, ConfigData<Double>> variables;
 	private final Function<Double, T> converter;
