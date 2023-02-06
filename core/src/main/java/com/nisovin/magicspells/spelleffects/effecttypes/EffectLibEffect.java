@@ -170,8 +170,12 @@ public class EffectLibEffect extends SpellEffect {
 		if (options == null || effectLibSection == null) return effectLibSection;
 
 		ConfigurationSection parameters = new MemoryConfiguration();
-		for (String key : effectLibSection.getKeys(true))
-			parameters.set(key, effectLibSection.get(key));
+		for (String key : effectLibSection.getKeys(true)) {
+			Object value = effectLibSection.get(key);
+			if (value instanceof ConfigurationSection) continue;
+
+			parameters.set(key, value);
+		}
 
 		for (Map.Entry<String, ConfigData<?>> option : options.entrySet())
 			parameters.set(option.getKey(), option.getValue().get(data));
