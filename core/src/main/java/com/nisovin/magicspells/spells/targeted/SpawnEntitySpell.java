@@ -165,7 +165,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		retargetRange = getConfigDataDouble("retarget-range", 50);
 
 		location = getConfigString("location", "target");
-		nameplateText = Util.getMiniMessage(getConfigString("nameplate-text", ""));
+		nameplateText = Util.getMiniMessage(getConfigString("nameplate-text", null));
 
 		noAI = getConfigBoolean("no-ai", false);
 		gravity = getConfigBoolean("gravity", true);
