@@ -60,6 +60,8 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	private Subspell spellOnSneakRight;
 	private ModifierSet playerModifiers;
 
+	private static int maxPlayersPerPage = 50;
+
 	public PlayerMenuSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 		delay = getConfigInt("delay", 0);
@@ -157,8 +159,8 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		SpellData data = new SpellData(caster, opener, power, args);
 		spellData.put(opener.getUniqueId(), data);
 
-		if (delay > 0) MagicSpells.scheduleDelayedTask(() -> open(opener, data), delay);
-		else open(opener, data);
+		if (delay > 0) MagicSpells.scheduleDelayedTask(() -> open(opener, data, 0), delay);
+		else open(opener, data, 0);
 	}
 
 	private Component translate(Player player, Player target, String string) {
@@ -176,16 +178,16 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		subspell.cast(caster, power);
 	}
 
-	private void open(Player opener, SpellData data) {
+	private void open(Player opener, SpellData data, int page) {
 		List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
 		if (!addOpener) players.remove(opener);
 		if (playerModifiers != null) players.removeIf(player -> !playerModifiers.check(player));
 		if (radius > 0) players.removeIf(player -> opener.getLocation().distance(player.getLocation()) > radius);
 
-		int size = (int) Math.ceil((players.size()+1) / 9.0) * 9;
+		int size = (int) Math.ceil(Math.min((players.size()+1), 54) / 9.0) * 9;
 		Inventory inv = Bukkit.createInventory(opener, size, Component.text(internalName));
 
-		for (int i = 0; i < players.size(); i++) {
+		for (int i = (page * maxPlayersPerPage); i < Math.min(players.size(), (page + 1) * maxPlayersPerPage); i++) {
 			ItemStack head = new ItemStack(Material.PLAYER_HEAD);
 			ItemMeta itemMeta = head.getItemMeta();
 			SkullMeta skullMeta = (SkullMeta) itemMeta;
@@ -200,8 +202,29 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 				itemMeta.lore(lore);
 			}
 			head.setItemMeta(skullMeta);
-			inv.setItem(i, head);
+			inv.setItem(i%maxPlayersPerPage, head);
 		}
+
+		if (page > 0) {
+			ItemStack backButton = new ItemStack(Material.GREEN_WOOL, page);
+			ItemMeta itemMeta = backButton.getItemMeta();
+
+			itemMeta.displayName(Util.getMiniMessageWithVars(opener, "Previous Tab"));
+			backButton.setItemMeta(itemMeta);
+
+			inv.setItem(52, backButton);
+		}
+
+		if (players.size() > ((page + 1) * maxPlayersPerPage)) {
+			ItemStack forwardButton = new ItemStack(Material.GREEN_WOOL, page + 2);
+			ItemMeta itemMeta = forwardButton.getItemMeta();
+
+			itemMeta.displayName(Util.getMiniMessageWithVars(opener, "Next Tab"));
+			forwardButton.setItemMeta(itemMeta);
+
+			inv.setItem(53, forwardButton);
+		}
+
 		opener.openInventory(inv);
 		Util.setInventoryTitle(opener, title);
 
@@ -222,10 +245,17 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		ItemStack item = event.getCurrentItem();
 		if (item == null) return;
 		ItemMeta itemMeta = item.getItemMeta();
+
+		SpellData data = spellData.get(player.getUniqueId());
+
+		if (item.getType() == Material.GREEN_WOOL) {
+			open(player, data, item.getAmount() - 1);
+			return;
+		}
+
 		SkullMeta skullMeta = (SkullMeta) itemMeta;
 		if (skullMeta == null) return;
 		OfflinePlayer target = skullMeta.getOwningPlayer();
-		SpellData data = spellData.get(player.getUniqueId());
 		float power = data == null ? 1f : data.power();
 		if (target == null || !target.isOnline()) {
 			itemMeta.displayName(translate(player, null, skullNameOffline));
@@ -263,7 +293,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		if (variableTarget != null && !variableTarget.isEmpty() && MagicSpells.getVariableManager().getVariable(variableTarget) != null) {
 			MagicSpells.getVariableManager().set(variableTarget, player, target.getName());
 		}
-		if (stayOpen) open(player, data);
+		if (stayOpen) open(player, data, 0);
 		else {
 			player.closeInventory();
 			spellData.remove(player.getUniqueId());
