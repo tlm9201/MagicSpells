@@ -87,6 +87,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private boolean addLookAtPlayerAI;
 	private boolean allowSpawnInMidair;
 	private boolean nameplateFormatting;
+	private ConfigData<Boolean> attackSpellCancelsDefaultAttack;
+
 
 	private Subspell attackSpell;
 	private String attackSpellName;
@@ -174,6 +176,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		useCasterName = getConfigBoolean("use-caster-name", false);
 		addLookAtPlayerAI = getConfigBoolean("add-look-at-player-ai", false);
 		allowSpawnInMidair = getConfigBoolean("allow-spawn-in-midair", false);
+		attackSpellCancelsDefaultAttack = getConfigDataBoolean("attack-spell-cancels-default-attack", true);
 
 		attackSpellName = getConfigString("attack-spell", "");
 
@@ -488,6 +491,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		private final LivingEntity monster;
 		private final String[] args;
 		private final float power;
+		private final Boolean attackSpellCancelsDefaultAttack;
 
 		private LivingEntity target;
 
@@ -497,6 +501,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			this.target = target;
 			this.power = power;
 			this.args = args;
+			this.attackSpellCancelsDefaultAttack = SpawnEntitySpell.this.attackSpellCancelsDefaultAttack.get(caster, null, power, args);;
 		}
 
 		@EventHandler(ignoreCancelled = true)
@@ -520,7 +525,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				} else {
 					attackSpell.cast(caster, power);
 				}
-				event.setCancelled(true);
+				event.setCancelled(this.attackSpellCancelsDefaultAttack);
 			}
 		}
 
