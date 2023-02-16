@@ -501,7 +501,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			this.target = target;
 			this.power = power;
 			this.args = args;
-			this.attackSpellCancelsDefaultAttack = SpawnEntitySpell.this.attackSpellCancelsDefaultAttack.get(caster, null, power, args);;
+			this.attackSpellCancelsDefaultAttack = SpawnEntitySpell.this.attackSpellCancelsDefaultAttack.get(caster, null, power, args);
 		}
 
 		@EventHandler(ignoreCancelled = true)
@@ -531,7 +531,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 		@EventHandler
 		private void onTarget(EntityTargetEvent event) {
-			if (event.getEntity() == monster && event.getTarget() == caster) event.setCancelled(true);
+			if (event.getEntity() == monster && !validTargetList.canTarget(caster, event.getTarget())) event.setCancelled(true);
 			else if (event.getTarget() == null) retarget(null);
 			else if (target != null && event.getTarget() != target) event.setTarget(target);
 		}
@@ -552,7 +552,6 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			for (Entity e : monster.getNearbyEntities(retargetRange, retargetRange, retargetRange)) {
 				if (!(e instanceof LivingEntity)) continue;
 				if (!validTargetList.canTarget(caster, e)) continue;
-				if (e == caster) continue;
 				if (e == ignore) continue;
 
 				if (e instanceof Player p) {
