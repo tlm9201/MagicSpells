@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.spells;
 
+import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.NAME;
+
 import java.util.*;
 
 import net.kyori.adventure.text.Component;
@@ -20,8 +22,12 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
+import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.MenuData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
@@ -29,7 +35,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private Map<UUID, SpellData> spellData;
+	private Map<UUID, MenuData> menuData;
 
 	private final int delay;
 	private final String title;
@@ -60,7 +66,8 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	private Subspell spellOnSneakRight;
 	private ModifierSet playerModifiers;
 
-	private static int maxPlayersPerPage = 50;
+	private final ItemStack previousPageItem;
+	private final ItemStack nextPageItem;
 
 	public PlayerMenuSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -83,6 +90,9 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		spellOnSneakRightName = getConfigString("spell-on-sneak-right", "");
 		playerModifiersStrings = getConfigStringList("player-modifiers", null);
 		variableTarget = getConfigString("variable-target", null);
+
+		previousPageItem = createItem("previous-page-item", "Previous Page");
+		nextPageItem = createItem("next-page-item", "Next Page");
 	}
 
 	@Override
@@ -106,7 +116,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		spellOnSneakLeft = initSubspell(spellOnSneakLeftName, error + "spell-on-sneak-left defined!");
 		spellOnSneakRight = initSubspell(spellOnSneakRightName, error + "spell-on-sneak-right defined!");
 
-		spellData = new HashMap<>();
+		menuData = new HashMap<>();
 	}
 
 	@Override
@@ -155,9 +165,30 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		return true;
 	}
 
+	private ItemStack createItem(String path, String defaultName) {
+		ItemStack item = null;
+		if (isConfigSection(path)) {
+			MagicItem magicItem = MagicItems.getMagicItemFromSection(getConfigSection(path));
+			if (magicItem != null) item = magicItem.getItemStack();
+		} else {
+			MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString(path, ""));
+
+			if (magicItem == null) {
+				item = new ItemStack(Material.GREEN_WOOL);
+				ItemMeta itemMeta = item.getItemMeta();
+
+				itemMeta.setDisplayName("§6§t" + defaultName);
+				item.setItemMeta(itemMeta);
+			} else {
+				item = magicItem.getItemStack();
+			}
+		}
+		return item;
+	}
+
 	private void openDelay(LivingEntity caster, Player opener, float power, String[] args) {
-		SpellData data = new SpellData(caster, opener, power, args);
-		spellData.put(opener.getUniqueId(), data);
+		MenuData data = new MenuData(new SpellData(caster, opener, power, args), 0);
+		menuData.put(opener.getUniqueId(), data);
 
 		if (delay > 0) MagicSpells.scheduleDelayedTask(() -> open(opener, data, 0), delay);
 		else open(opener, data, 0);
@@ -178,7 +209,9 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		subspell.cast(caster, power);
 	}
 
-	private void open(Player opener, SpellData data, int page) {
+	private void open(Player opener, MenuData data, int page) {
+		SpellData spellData = data.spellData();
+
 		List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
 		if (!addOpener) players.remove(opener);
 		if (playerModifiers != null) players.removeIf(player -> !playerModifiers.check(player));
@@ -187,7 +220,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		int size = (int) Math.ceil(Math.min((players.size()+1), 54) / 9.0) * 9;
 		Inventory inv = Bukkit.createInventory(opener, size, Component.text(internalName));
 
-		for (int i = (page * maxPlayersPerPage); i < Math.min(players.size(), (page + 1) * maxPlayersPerPage); i++) {
+		for (int i = (page * 50); i < Math.min(players.size(), (page + 1) * 50); i++) {
 			ItemStack head = new ItemStack(Material.PLAYER_HEAD);
 			ItemMeta itemMeta = head.getItemMeta();
 			SkullMeta skullMeta = (SkullMeta) itemMeta;
@@ -202,39 +235,30 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 				itemMeta.lore(lore);
 			}
 			head.setItemMeta(skullMeta);
-			inv.setItem(i%maxPlayersPerPage, head);
+			inv.setItem(i%50, head);
 		}
 
 		if (page > 0) {
-			ItemStack backButton = new ItemStack(Material.GREEN_WOOL, page);
-			ItemMeta itemMeta = backButton.getItemMeta();
-
-			itemMeta.displayName(Util.getMiniMessageWithVars(opener, "Previous Tab"));
-			backButton.setItemMeta(itemMeta);
-
-			inv.setItem(52, backButton);
+			inv.setItem(52, previousPageItem);
 		}
 
-		if (players.size() > ((page + 1) * maxPlayersPerPage)) {
-			ItemStack forwardButton = new ItemStack(Material.GREEN_WOOL, page + 2);
-			ItemMeta itemMeta = forwardButton.getItemMeta();
-
-			itemMeta.displayName(Util.getMiniMessageWithVars(opener, "Next Tab"));
-			forwardButton.setItemMeta(itemMeta);
-
-			inv.setItem(53, forwardButton);
+		if (players.size() > ((page + 1) * 50)) {
+			inv.setItem(53, nextPageItem);
 		}
 
 		opener.openInventory(inv);
 		Util.setInventoryTitle(opener, title);
 
-		if (data.caster() != null) playSpellEffects(data.caster(), data.target(), data);
-		else playSpellEffects(EffectPosition.TARGET, data.target(), data);
+		if (spellData.caster() != null) playSpellEffects(spellData.caster(), spellData.target(), spellData);
+		else playSpellEffects(EffectPosition.TARGET, spellData.target(), spellData);
+
+		MenuData newMenuData = new MenuData(spellData, page);
+		menuData.put(opener.getUniqueId(), newMenuData);
 	}
 
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
-		spellData.remove(event.getPlayer().getUniqueId());
+		menuData.remove(event.getPlayer().getUniqueId());
 	}
 
 	@EventHandler
@@ -246,25 +270,29 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		if (item == null) return;
 		ItemMeta itemMeta = item.getItemMeta();
 
-		SpellData data = spellData.get(player.getUniqueId());
+		MenuData data = menuData.get(player.getUniqueId());
+		SpellData spellData = data.spellData();
 
-		if (item.getType() == Material.GREEN_WOOL) {
-			open(player, data, item.getAmount() - 1);
+		if (event.getRawSlot() == 52) {
+			open(player, data, data.page() - 1);
+			return;
+		} else if (event.getRawSlot() == 53) {
+			open(player, data, data.page() + 1);
 			return;
 		}
 
 		SkullMeta skullMeta = (SkullMeta) itemMeta;
 		if (skullMeta == null) return;
 		OfflinePlayer target = skullMeta.getOwningPlayer();
-		float power = data == null ? 1f : data.power();
+		float power = spellData == null ? 1f : spellData.power();
 		if (target == null || !target.isOnline()) {
 			itemMeta.displayName(translate(player, null, skullNameOffline));
 			if (spellOffline != null) spellOffline.cast(player, power);
 			if (stayOpen) item.setItemMeta(itemMeta);
 			else {
 				player.closeInventory();
-				spellData.remove(player.getUniqueId());
-				playSpellEffects(EffectPosition.DISABLED, player, data);
+				menuData.remove(player.getUniqueId());
+				playSpellEffects(EffectPosition.DISABLED, player, spellData);
 			}
 			return;
 		} else {
@@ -278,8 +306,8 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 			if (stayOpen) item.setItemMeta(itemMeta);
 			else {
 				player.closeInventory();
-				spellData.remove(player.getUniqueId());
-				playSpellEffects(EffectPosition.DISABLED, player, data);
+				menuData.remove(player.getUniqueId());
+				playSpellEffects(EffectPosition.DISABLED, player, spellData);
 			}
 			return;
 		}
@@ -293,11 +321,11 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		if (variableTarget != null && !variableTarget.isEmpty() && MagicSpells.getVariableManager().getVariable(variableTarget) != null) {
 			MagicSpells.getVariableManager().set(variableTarget, player, target.getName());
 		}
-		if (stayOpen) open(player, data, 0);
+		if (stayOpen) open(player, data, data.page());
 		else {
 			player.closeInventory();
-			spellData.remove(player.getUniqueId());
-			playSpellEffects(EffectPosition.DISABLED, player, data);
+			menuData.remove(player.getUniqueId());
+			playSpellEffects(EffectPosition.DISABLED, player, spellData);
 		}
 	}
 }
