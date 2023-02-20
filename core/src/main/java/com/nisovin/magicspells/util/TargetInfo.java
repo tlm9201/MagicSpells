@@ -12,4 +12,14 @@ public record TargetInfo<E extends Entity>(E target, float power, boolean cancel
 		return cancelled || target == null;
 	}
 
+	@Deprecated
+	public E getTarget() {
+		return target;
+	}
+
+	@Deprecated
+	public float getPower() {
+		return power;
+	}
+
 }
