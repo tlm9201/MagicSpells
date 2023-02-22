@@ -2,9 +2,7 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Set;
 import java.util.List;
-import java.util.Random;
 import java.util.ArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.destroystokyo.paper.entity.ai.MobGoals;
 
@@ -29,6 +27,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import net.kyori.adventure.text.Component;
+
+import org.apache.commons.math3.util.FastMath;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
@@ -83,6 +83,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private boolean gravity;
 	private boolean removeAI;
 	private boolean removeMob;
+	private boolean invulnerable;
 	private boolean useCasterName;
 	private boolean addLookAtPlayerAI;
 	private boolean allowSpawnInMidair;
@@ -93,8 +94,6 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 	private List<PotionEffect> potionEffects;
 	private Set<AttributeManager.AttributeInfo> attributes;
-
-	private Random random = ThreadLocalRandom.current();
 
 	// DEBUG INFO: level 2, invalid potion effect on internalname spell data
 	public SpawnEntitySpell(MagicConfig config, String spellName) {
@@ -171,6 +170,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		gravity = getConfigBoolean("gravity", true);
 		removeAI = getConfigBoolean("remove-ai", false);
 		removeMob = getConfigBoolean("remove-mob", true);
+		invulnerable = getConfigBoolean("invulnerable", false);
 		useCasterName = getConfigBoolean("use-caster-name", false);
 		addLookAtPlayerAI = getConfigBoolean("add-look-at-player-ai", false);
 		allowSpawnInMidair = getConfigBoolean("allow-spawn-in-midair", false);
@@ -376,7 +376,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		if (entityData == null || entityData.getEntityType() == null) return;
 		if (entityData.isPlayer()) return;
 
-		loc.setYaw((float) (Math.random() * 360));
+		loc.setYaw((float) (FastMath.random() * 360));
 		LivingEntity entity = (LivingEntity) entityData.spawn(
 			loc.add(0.5, yOffset.get(caster, target, power, args), 0.5),
 			e -> {
@@ -401,7 +401,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 						preSpawned.setAI(false);
 					}
 				}
-				if (noAI) preSpawned.setAI(false);
+				preSpawned.setAI(!noAI);
+				preSpawned.setInvulnerable(invulnerable);
 
 				if (target != null) MobUtil.setTarget(preSpawned, target);
 			}
