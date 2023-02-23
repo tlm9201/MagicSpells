@@ -148,8 +148,6 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	private boolean doAoe(LivingEntity caster, Location location, float basePower, String[] args) {
 		int count = 0;
 
-		Location finalLoc = caster != null ? caster.getLocation() : location;
-
 		location = Util.makeFinite(location);
 
 		int maxTargets = this.maxTargets.get(caster, null, basePower, args);
@@ -167,7 +165,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			LivingEntity target = caster;
 			float power = basePower;
 
-			if (!target.getWorld().equals(finalLoc.getWorld())) return false;
+			if (!target.getWorld().equals(location.getWorld())) return false;
 
 			double hDistance = NumberConversions.square(target.getLocation().getX() - location.getX()) + NumberConversions.square(target.getLocation().getZ() - location.getZ());
 			if (hDistance > hRadiusSquared) return false;
@@ -198,10 +196,11 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		if (useProximity) {
 			// check world before distance
 			for (LivingEntity entity : new ArrayList<>(entities)) {
-				if (entity.getWorld().equals(finalLoc.getWorld())) continue;
+				if (entity.getWorld().equals(location.getWorld())) continue;
 				entities.remove(entity);
 			}
-			Comparator<LivingEntity> comparator = Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(finalLoc));
+			Location finalLocation = location;
+			Comparator<LivingEntity> comparator = Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(finalLocation));
 			if (reverseProximity) comparator = comparator.reversed();
 			entities.sort(comparator);
 		}
@@ -214,9 +213,9 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 				if (vDistance > vRadiusSquared) continue;
 			}
 
-			if (pointBlank && cone > 0) {
-				Vector dir = target.getLocation().toVector().subtract(finalLoc.toVector());
-				if (FastMath.toDegrees(FastMath.abs(dir.angle(finalLoc.getDirection()))) > cone) continue;
+			if (cone > 0) {
+				Vector dir = target.getLocation().toVector().subtract(location.toVector());
+				if (FastMath.toDegrees(FastMath.abs(dir.angle(location.getDirection()))) > cone) continue;
 			}
 
 			float power = basePower;
