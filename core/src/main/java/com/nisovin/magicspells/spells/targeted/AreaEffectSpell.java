@@ -221,7 +221,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 				if (vDistance > vRadiusSquared) continue;
 			}
 
-			if (horizontalCone > 0 && horizontalAngle(location, target.getLocation()) > cone) continue;
+			if (horizontalCone > 0 && horizontalAngle(location, target.getLocation()) > horizontalCone) continue;
 
 			if (cone > 0) {
 				Vector dir = target.getLocation().toVector().subtract(location.toVector());
