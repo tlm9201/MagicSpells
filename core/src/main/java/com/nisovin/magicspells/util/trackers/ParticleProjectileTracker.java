@@ -647,6 +647,10 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		stopped = true;
 	}
 
+	public boolean isStopped() {
+		return stopped;
+	}
+
 	public LivingEntity getCaster() {
 		return caster;
 	}
