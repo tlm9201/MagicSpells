@@ -14,17 +14,21 @@ public class GlidingCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return livingEntity.isGliding();
+		return isGliding(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target.isGliding();
+		return isGliding(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean isGliding(LivingEntity livingEntity) {
+		return livingEntity.isGliding();
 	}
 
 }

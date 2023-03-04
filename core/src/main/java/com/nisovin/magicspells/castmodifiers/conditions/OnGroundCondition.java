@@ -14,17 +14,21 @@ public class OnGroundCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return onGround(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target.isOnGround();
+		return onGround(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean onGround(LivingEntity livingEntity) {
+		return livingEntity.isOnGround();
 	}
 
 }

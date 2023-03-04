@@ -20,19 +20,23 @@ public class InNoMagicZoneCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return checkZone(livingEntity.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return checkZone(target.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		NoMagicZoneManager man = MagicSpells.getNoMagicZoneManager();
-		if (man == null) return false;
-		return man.inZone(location, zone);
+		return checkZone(location);
+	}
+
+	private boolean checkZone(Location location) {
+		NoMagicZoneManager manager = MagicSpells.getNoMagicZoneManager();
+		if (manager == null) return false;
+		return manager.inZone(location, zone);
 	}
 
 }

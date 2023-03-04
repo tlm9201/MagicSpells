@@ -14,17 +14,21 @@ public class RiptidingCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return isRiptiding(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target.isRiptiding();
+		return isRiptiding(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean isRiptiding(LivingEntity livingEntity) {
+		return livingEntity.isRiptiding();
 	}
 
 }

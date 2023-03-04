@@ -117,18 +117,12 @@ public class DurabilityCondition extends Condition {
 
 		private boolean determineOperatorAndValue(String str) {
 			switch (str.charAt(0)) {
-				case '=':
-				case ':':
-					equals = true;
-					break;
-				case '<':
-					lessThan = true;
-					break;
-				case '>':
-					moreThan = true;
-					break;
-				default:
+				case '=', ':' -> equals = true;
+				case '<' -> lessThan = true;
+				case '>' -> moreThan = true;
+				default -> {
 					return false;
+				}
 			}
 
 			try {

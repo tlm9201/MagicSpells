@@ -20,7 +20,7 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
 /*
- * Just a heads up that for the modifier actions inside this, I recommend that you use
+ * Just a heads-up that for the modifier actions inside this, I recommend that you use
  * stop rather than denied most of the time, because the denied action will actually cancel
  * the event being processed whereas the stop action will just say that this specific check
  * counts as a fail.

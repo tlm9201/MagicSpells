@@ -29,8 +29,8 @@ public class HasTargetCondition extends Condition {
 	}
 
 	private boolean hasTarget(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Creature)) return false;
-		LivingEntity target = ((Creature) livingEntity).getTarget();
+		if (!(livingEntity instanceof Creature creature)) return false;
+		LivingEntity target = creature.getTarget();
 		return target != null && target.isValid();
 	}
 

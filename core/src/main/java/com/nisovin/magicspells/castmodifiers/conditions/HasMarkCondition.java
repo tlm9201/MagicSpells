@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
@@ -18,24 +17,28 @@ public class HasMarkCondition extends Condition {
 		Spell s = MagicSpells.getSpellByInternalName(var);
 		if (s == null) return false;
 		if (!(s instanceof MarkSpell)) return false;
+
 		spell = (MarkSpell) s;
 		return true;
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player)) return false;
-		return spell.getMarks().containsKey(livingEntity.getUniqueId());
+		return hasMark(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target);
+		return hasMark(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean hasMark(LivingEntity livingEntity) {
+		return spell.getMarks().containsKey(livingEntity.getUniqueId());
 	}
 
 }

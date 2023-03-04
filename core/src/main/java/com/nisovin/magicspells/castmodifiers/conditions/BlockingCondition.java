@@ -15,18 +15,22 @@ public class BlockingCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return blocking(livingEntity);
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		if (!(target instanceof Player)) return false;
-		return ((Player) target).isBlocking();
+		return blocking(target);
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean blocking(LivingEntity livingEntity) {
+		if (!(livingEntity instanceof Player pl)) return false;
+		return pl.isBlocking();
 	}
 	
 }

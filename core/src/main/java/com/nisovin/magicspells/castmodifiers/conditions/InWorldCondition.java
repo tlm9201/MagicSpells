@@ -17,16 +17,20 @@ public class InWorldCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return checkWorld(livingEntity.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return checkWorld(target.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return checkWorld(location);
+	}
+
+	private boolean checkWorld(Location location) {
 		return location.getWorld().getName().equalsIgnoreCase(world);
 	}
 

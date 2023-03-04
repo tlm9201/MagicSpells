@@ -2,8 +2,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
 
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.handlers.DebugHandler;

@@ -14,17 +14,21 @@ public class SwimmingCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return livingEntity.isSwimming();
+		return isSwimming(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target.isSwimming();
+		return isSwimming(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean isSwimming(LivingEntity livingEntity) {
+		return livingEntity.isSwimming();
 	}
 
 }

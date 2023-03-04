@@ -14,16 +14,20 @@ public class NightCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return night(livingEntity.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return night(target.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return night(location);
+	}
+
+	private boolean night(Location location) {
 		long time = location.getWorld().getTime();
 		return time > 13000 && time < 23000;
 	}

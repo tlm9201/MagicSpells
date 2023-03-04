@@ -23,16 +23,20 @@ public class RoofCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return hasRoof(livingEntity.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return hasRoof(target.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return hasRoof(location);
+	}
+
+	private boolean hasRoof(Location location) {
 		Block b = location.clone().add(0, 2, 0).getBlock();
 		for (int i = 0; i < height; i++) {
 			if (!BlockUtils.isAir(b.getType())) return true;

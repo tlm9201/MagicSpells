@@ -33,22 +33,27 @@ public class InRegionCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return checkRegion(livingEntity.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return checkRegion(target.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return checkRegion(location);
+	}
+
+	private boolean checkRegion(Location location) {
 		World world = Bukkit.getWorld(worldName);
 		if (world == null) return false;
 		if (world != location.getWorld()) return false;
 
 		RegionManager regionManager = WorldGuard.getInstance().getPlatform().getRegionContainer().get(BukkitAdapter.adapt(world));
 		if (regionManager == null) return false;
+
 		ProtectedRegion region = regionManager.getRegion(regionName);
 		return region != null && region.contains(location.getBlockX(), location.getBlockY(), location.getBlockZ());
 	}

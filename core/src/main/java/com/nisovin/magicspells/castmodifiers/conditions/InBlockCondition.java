@@ -5,8 +5,8 @@ import java.util.HashSet;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 

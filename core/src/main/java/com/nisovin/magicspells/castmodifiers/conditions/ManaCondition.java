@@ -54,9 +54,9 @@ public class ManaCondition extends OperatorCondition {
 	}
 
 	private boolean mana(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player)) return false;
-		double currentMana = mana.getMana((Player) livingEntity);
-		double percentMana = currentMana / mana.getMaxMana((Player) livingEntity) * 100;
+		if (!(livingEntity instanceof Player pl)) return false;
+		double currentMana = mana.getMana(pl);
+		double percentMana = currentMana / mana.getMaxMana(pl) * 100D;
 		if (equals) {
 			if (percent) return percentMana == amount;
 			return currentMana == amount;

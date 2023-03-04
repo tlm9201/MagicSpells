@@ -14,17 +14,21 @@ public class CanPickupItemsCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return canPickup(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target != null && target.getCanPickupItems();
+		return canPickup(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean canPickup(LivingEntity livingEntity) {
+		return livingEntity.getCanPickupItems();
 	}
 
 }

@@ -26,16 +26,20 @@ public class TimeCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return time(livingEntity.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return time(target.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return time(location);
+	}
+
+	private boolean time(Location location) {
 		long time = location.getWorld().getTime();
 		if (end >= start) return start <= time && time <= end;
 		return time >= start || time <= end;

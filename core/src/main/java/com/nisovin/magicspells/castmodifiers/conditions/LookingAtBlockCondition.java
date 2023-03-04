@@ -39,20 +39,24 @@ public class LookingAtBlockCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return lookingAt(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		Block block = BlockUtils.getTargetBlock(null, target, dist);
-		if (block == null) return false;
-
-		return block.getBlockData().matches(blockData);
+		return lookingAt(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean lookingAt(LivingEntity livingEntity) {
+		Block block = BlockUtils.getTargetBlock(null, livingEntity, dist);
+		if (block == null) return false;
+
+		return block.getBlockData().matches(blockData);
 	}
 
 }

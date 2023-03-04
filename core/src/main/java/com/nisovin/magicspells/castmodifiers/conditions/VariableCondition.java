@@ -13,7 +13,7 @@ import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
 public class VariableCondition extends OperatorCondition {
 
-	private static Pattern VARIABLE_NAME_PATTERN = Pattern.compile("[0-9a-zA-Z_]+");
+	private static final Pattern VARIABLE_NAME_PATTERN = Pattern.compile("[0-9a-zA-Z_]+");
 
 	private String variable;
 	private String variableCompared;
@@ -60,17 +60,17 @@ public class VariableCondition extends OperatorCondition {
 		return variableType(livingEntity);
 	}
 
+	private boolean variableType(LivingEntity livingEntity) {
+		if (!(livingEntity instanceof Player pl)) return false;
+		if (variableCompared != null) return variable(pl, MagicSpells.getVariableManager().getValue(variableCompared, pl));
+		return variable(pl, value);
+	}
+
 	private boolean variable(Player player, double v) {
 		if (equals) return MagicSpells.getVariableManager().getValue(variable, player) == v;
 		else if (moreThan) return MagicSpells.getVariableManager().getValue(variable, player) > v;
 		else if (lessThan) return MagicSpells.getVariableManager().getValue(variable, player) < v;
 		return false;
-	}
-
-	private boolean variableType(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player)) return false;
-		if (variableCompared != null) return variable((Player) livingEntity, MagicSpells.getVariableManager().getValue(variableCompared, (Player) livingEntity));
-		return variable((Player) livingEntity, value);
 	}
 
 }

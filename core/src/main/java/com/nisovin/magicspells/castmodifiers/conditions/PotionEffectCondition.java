@@ -24,8 +24,8 @@ public class PotionEffectCondition extends OperatorCondition {
 			} catch (NumberFormatException ignored) {
 				return false;
 			}
-		}
-		else matchOnlyType = true;
+		} else matchOnlyType = true;
+
 		effectType = Util.getPotionEffectType(splits[0]);
 		return effectType != null;
 	}
@@ -49,6 +49,7 @@ public class PotionEffectCondition extends OperatorCondition {
 		for (PotionEffect effect : target.getActivePotionEffects()) {
 			if (effect.getType() != effectType) continue;
 			if (matchOnlyType) return true;
+
 			int amplifier = effect.getAmplifier();
 			if (equals) return amplifier == value;
 			else if (moreThan) return amplifier > value;

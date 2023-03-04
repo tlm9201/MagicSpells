@@ -3,8 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
-import com.nisovin.magicspells.util.Util;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class DisplayNameCondition extends Condition {
@@ -20,18 +20,22 @@ public class DisplayNameCondition extends Condition {
 
     @Override
     public boolean check(LivingEntity livingEntity) {
-        return check(livingEntity, livingEntity);
+        return checkName(livingEntity);
     }
 
     @Override
     public boolean check(LivingEntity livingEntity, LivingEntity target) {
-        if (!(target instanceof Player player)) return false;
-        return Util.getStringFromComponent(player.displayName()).equals(displayName);
+        return checkName(target);
     }
 
     @Override
     public boolean check(LivingEntity livingEntity, Location location) {
         return false;
+    }
+
+    private boolean checkName(LivingEntity livingEntity) {
+        if (!(livingEntity instanceof Player pl)) return false;
+        return Util.getStringFromComponent(pl.displayName()).equals(displayName);
     }
 
 }

@@ -14,16 +14,20 @@ public class DayCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return checkTime(livingEntity.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target);
+		return checkTime(target.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return checkTime(location);
+	}
+
+	private boolean checkTime(Location location) {
 		long time = location.getWorld().getTime();
 		return !(time > 13000 && time < 23000);
 	}

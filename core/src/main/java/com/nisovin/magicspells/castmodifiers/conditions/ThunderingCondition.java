@@ -14,16 +14,20 @@ public class ThunderingCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return thundering(livingEntity.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return thundering(target.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return thundering(location);
+	}
+
+	private boolean thundering(Location location) {
 		return location.getWorld().isThundering();
 	}
 

@@ -24,21 +24,26 @@ public class SlotSelectedCondition extends OperatorCondition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player)) return false;
-		int theirSlot = ((Player) livingEntity).getInventory().getHeldItemSlot();
-		if (equals) return theirSlot == slot;
-		else if (moreThan) return theirSlot > slot;
-		else if (lessThan) return theirSlot < slot;
-		return false;
+		return slot(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity caster, LivingEntity target) {
-		return check(target);
+		return slot(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity caster, Location location) {
+		return false;
+	}
+
+	private boolean slot(LivingEntity livingEntity) {
+		if (!(livingEntity instanceof Player pl)) return false;
+		int theirSlot = pl.getInventory().getHeldItemSlot();
+
+		if (equals) return theirSlot == slot;
+		else if (moreThan) return theirSlot > slot;
+		else if (lessThan) return theirSlot < slot;
 		return false;
 	}
 

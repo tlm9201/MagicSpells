@@ -21,18 +21,12 @@ public class WearingPreciseCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return checkInventory(livingEntity);
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		EntityEquipment eq = target.getEquipment();
-		if (eq == null) return false;
-
-		if (check(eq.getHelmet())) return true;
-		if (check(eq.getChestplate())) return true;
-		if (check(eq.getLeggings())) return true;
-		return check(eq.getBoots());
+		return checkInventory(target);
 	}
 	
 	@Override
@@ -40,7 +34,17 @@ public class WearingPreciseCondition extends Condition {
 		return false;
 	}
 
-	private boolean check(ItemStack item) {
+	private boolean checkInventory(LivingEntity livingEntity) {
+		EntityEquipment eq = livingEntity.getEquipment();
+		if (eq == null) return false;
+
+		if (checkItem(eq.getHelmet())) return true;
+		if (checkItem(eq.getChestplate())) return true;
+		if (checkItem(eq.getLeggings())) return true;
+		return checkItem(eq.getBoots());
+	}
+
+	private boolean checkItem(ItemStack item) {
 		MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
 		if (data == null) return false;
 

@@ -14,17 +14,21 @@ public class FallingCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return livingEntity.getFallDistance() > 0;
+		return isFalling(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target.getFallDistance() > 0;
+		return isFalling(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean isFalling(LivingEntity livingEntity) {
+		return livingEntity.getFallDistance() > 0;
 	}
 
 }

@@ -14,16 +14,20 @@ public class RainingCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return isRaining(livingEntity.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return isRaining(target.getLocation());
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return isRaining(location);
+	}
+
+	private boolean isRaining(Location location) {
 		return location.getWorld().hasStorm();
 	}
 

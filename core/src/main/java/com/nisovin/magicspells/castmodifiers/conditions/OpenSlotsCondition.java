@@ -45,7 +45,7 @@ public class OpenSlotsCondition extends OperatorCondition {
 		int c = 0;
 		ItemStack[] inv;
 
-		if (livingEntity instanceof Player) inv = ((Player) livingEntity).getInventory().getContents();
+		if (livingEntity instanceof Player pl) inv = pl.getInventory().getContents();
 		else inv = InventoryUtil.getEquipmentItems(livingEntity.getEquipment());
 
 		if (inv == null) return false;

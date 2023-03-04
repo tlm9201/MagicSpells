@@ -41,8 +41,8 @@ public class GameModeCondition extends Condition {
 
 	private boolean gameMode(LivingEntity livingEntity) {
 		if (mode == null) return false;
-		if (!(livingEntity instanceof Player)) return false;
-		return ((Player) livingEntity).getGameMode() == mode;
+		if (!(livingEntity instanceof Player pl)) return false;
+		return pl.getGameMode() == mode;
 	}
 
 }

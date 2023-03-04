@@ -48,7 +48,7 @@ public class HealthCondition extends OperatorCondition {
 
 	private boolean health(LivingEntity livingEntity) {
 		double hp = livingEntity.getHealth();
-		double percentHp = hp / Util.getMaxHealth(livingEntity) * 100;
+		double percentHp = hp / Util.getMaxHealth(livingEntity) * 100D;
 		if (equals) {
 			if (percent) return percentHp == health;
 			return hp == health;

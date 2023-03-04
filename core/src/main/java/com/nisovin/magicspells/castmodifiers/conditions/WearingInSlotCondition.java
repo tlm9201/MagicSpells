@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.EntityEquipment;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.BlockUtils;
@@ -21,10 +22,12 @@ public class WearingInSlotCondition extends Condition {
 		try {
 			String[] data = var.split("=");
 			String s = data[0].toLowerCase();
+
 			if (s.startsWith("helm") || s.startsWith("hat") || s.startsWith("head")) slot = 0;
 			else if (s.startsWith("chest") || s.startsWith("tunic")) slot = 1;
 			else if (s.startsWith("leg") || s.startsWith("pant")) slot = 2;
 			else if (s.startsWith("boot") || s.startsWith("shoe") || s.startsWith("feet")) slot = 3;
+
 			if (slot == -1) return false;
 			if (data[1].equals("0") || data[1].equals("air") || data[1].equals("empty")) {
 				material = null;
@@ -41,19 +44,26 @@ public class WearingInSlotCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return checkSlot(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		ItemStack item = target.getEquipment().getArmorContents()[slot];
-		if (material == null && (item == null || BlockUtils.isAir(item.getType()))) return true;
-		return material != null && item != null && material == item.getType();
+		return checkSlot(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean checkSlot(LivingEntity livingEntity) {
+		EntityEquipment equipment = livingEntity.getEquipment();
+		if (equipment == null) return false;
+
+		ItemStack item = equipment.getArmorContents()[slot];
+		if (material == null && (item == null || BlockUtils.isAir(item.getType()))) return true;
+		return material != null && item != null && material == item.getType();
 	}
 
 }

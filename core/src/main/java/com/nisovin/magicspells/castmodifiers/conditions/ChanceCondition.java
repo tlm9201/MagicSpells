@@ -15,8 +15,8 @@ public class ChanceCondition extends Condition {
 	@Override
 	public boolean initialize(String var) {
 		try {
-			chance = Double.parseDouble(var) / 100;
-			return chance >= 0 && chance <= 1;
+			chance = Double.parseDouble(var) / 100D;
+			return chance >= 0D && chance <= 1D;
 		} catch (NumberFormatException e) {
 			DebugHandler.debugNumberFormat(e);
 			return false;
@@ -25,17 +25,21 @@ public class ChanceCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return chance != 0 && (chance == 1 || ThreadLocalRandom.current().nextDouble() < chance);
+		return chance();
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target);
+		return chance();
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		return check(livingEntity);
+		return chance();
+	}
+
+	private boolean chance() {
+		return chance != 0 && (chance == 1 || ThreadLocalRandom.current().nextDouble() < chance);
 	}
 
 }

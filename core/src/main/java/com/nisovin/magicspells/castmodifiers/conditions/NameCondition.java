@@ -19,17 +19,21 @@ public class NameCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return checkName(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return Util.getPlainString(target.name()).equals(name);
+		return checkName(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean checkName(LivingEntity livingEntity) {
+		return Util.getPlainString(livingEntity.name()).equals(name);
 	}
 
 }

@@ -68,9 +68,9 @@ public class UnderBlockCondition extends Condition {
 		for (int i = 0; i < height; i++) {
 			BlockData blockData = block.getBlockData();
 
-			for (BlockData data : blockDataSet)
-				if (blockData.matches(data))
-					return true;
+			for (BlockData data : blockDataSet) {
+				if (blockData.matches(data)) return true;
+			}
 
 			block = block.getRelative(BlockFace.UP);
 		}

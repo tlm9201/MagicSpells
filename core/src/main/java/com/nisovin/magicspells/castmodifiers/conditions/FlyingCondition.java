@@ -15,17 +15,21 @@ public class FlyingCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+		return isFlying(livingEntity);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return target instanceof Player && ((Player) target).isFlying();
+		return isFlying(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean isFlying(LivingEntity livingEntity) {
+		return livingEntity instanceof Player pl && pl.isFlying();
 	}
 
 }

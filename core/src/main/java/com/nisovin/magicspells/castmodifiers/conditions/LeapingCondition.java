@@ -22,17 +22,21 @@ public class LeapingCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return leapSpell.isJumping(livingEntity);
+		return isLeaping(livingEntity);
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return leapSpell.isJumping(target);
+		return isLeaping(target);
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
 		return false;
+	}
+
+	private boolean isLeaping(LivingEntity livingEntity) {
+		return leapSpell.isJumping(livingEntity);
 	}
 
 }

@@ -68,9 +68,9 @@ public class OverBlockCondition extends Condition {
 		for (int i = 0; i < depth; i++) {
 			BlockData blockData = block.getBlockData();
 
-			for (BlockData data : blockDataSet)
-				if (blockData.matches(data))
-					return true;
+			for (BlockData data : blockDataSet) {
+				if (blockData.matches(data)) return true;
+			}
 
 			block = block.getRelative(BlockFace.DOWN);
 		}

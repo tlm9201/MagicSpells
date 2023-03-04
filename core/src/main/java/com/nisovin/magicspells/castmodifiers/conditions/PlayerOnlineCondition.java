@@ -18,17 +18,21 @@ public class PlayerOnlineCondition extends Condition {
 	
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return PlayerNameUtils.getPlayerExact(name) != null;
+		return isOnline();
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(livingEntity);
+		return isOnline();
 	}
 	
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
-		return check(livingEntity);
+		return isOnline();
+	}
+
+	private boolean isOnline() {
+		return PlayerNameUtils.getPlayerExact(name) != null;
 	}
 
 }

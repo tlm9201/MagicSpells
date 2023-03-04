@@ -40,10 +40,10 @@ public class FoodCondition extends OperatorCondition {
 	}
 
 	private boolean food(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player)) return false;
-		if (equals) return ((Player) livingEntity).getFoodLevel() == food;
-		else if (moreThan) return ((Player) livingEntity).getFoodLevel() > food;
-		else if (lessThan) return ((Player) livingEntity).getFoodLevel() < food;
+		if (!(livingEntity instanceof Player pl)) return false;
+		if (equals) return pl.getFoodLevel() == food;
+		else if (moreThan) return pl.getFoodLevel() > food;
+		else if (lessThan) return pl.getFoodLevel() < food;
 		return false;
 	}
 

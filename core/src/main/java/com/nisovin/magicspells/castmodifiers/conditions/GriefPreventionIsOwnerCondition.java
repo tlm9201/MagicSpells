@@ -19,16 +19,20 @@ public class GriefPreventionIsOwnerCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity.getLocation());
+		return checkClaim(livingEntity, livingEntity.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return check(target, target.getLocation());
+		return checkClaim(target, target.getLocation());
 	}
 
 	@Override
 	public boolean check(LivingEntity livingEntity, Location location) {
+		return checkClaim(livingEntity, location);
+	}
+
+	private boolean checkClaim(LivingEntity livingEntity, Location location) {
 		if (livingEntity == null) return false;
 		Claim currentClaim = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
 		if (currentClaim == null) return false;
