@@ -20,17 +20,17 @@ public class PluginEnabledCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
+	public boolean check(LivingEntity caster) {
 		return checkPlugin();
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkPlugin();
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return checkPlugin();
 	}
 	

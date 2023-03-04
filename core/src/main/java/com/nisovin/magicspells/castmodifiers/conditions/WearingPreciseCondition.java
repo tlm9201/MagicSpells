@@ -20,22 +20,22 @@ public class WearingPreciseCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkInventory(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return checkInventory(caster);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkInventory(target);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean checkInventory(LivingEntity livingEntity) {
-		EntityEquipment eq = livingEntity.getEquipment();
+	private boolean checkInventory(LivingEntity target) {
+		EntityEquipment eq = target.getEquipment();
 		if (eq == null) return false;
 
 		if (checkItem(eq.getHelmet())) return true;

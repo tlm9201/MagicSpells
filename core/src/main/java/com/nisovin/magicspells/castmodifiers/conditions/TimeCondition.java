@@ -25,17 +25,17 @@ public class TimeCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return time(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return time(caster.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return time(target.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return time(location);
 	}
 

@@ -25,22 +25,22 @@ public class LevelCondition extends OperatorCondition {
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return level(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return level(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return level(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean level(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player pl)) return false;
+	private boolean level(LivingEntity target) {
+		if (!(target instanceof Player pl)) return false;
 		if (equals) return pl.getLevel() == level;
 		else if (moreThan) return pl.getLevel() > level;
 		else if (lessThan) return pl.getLevel() < level;

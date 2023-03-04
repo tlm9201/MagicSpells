@@ -19,17 +19,17 @@ public class InNoMagicZoneCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkZone(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return checkZone(caster.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkZone(target.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return checkZone(location);
 	}
 

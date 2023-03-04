@@ -48,17 +48,17 @@ public class OnBlockCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return onBlock(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return onBlock(caster.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return onBlock(target.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return onBlock(location.clone());
 	}
 

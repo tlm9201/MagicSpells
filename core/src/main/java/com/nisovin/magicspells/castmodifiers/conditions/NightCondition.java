@@ -13,17 +13,17 @@ public class NightCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return night(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return night(caster.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return night(target.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return night(location);
 	}
 

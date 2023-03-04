@@ -24,22 +24,22 @@ public class NamePatternCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return namePattern(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return namePattern(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return namePattern(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean namePattern(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player pl)) return false;
+	private boolean namePattern(LivingEntity target) {
+		if (!(target instanceof Player pl)) return false;
 		return RegexUtil.matches(compiledPattern, pl.getName()) || RegexUtil.matches(compiledPattern, Util.getLegacyFromComponent(pl.displayName()));
 
 	}

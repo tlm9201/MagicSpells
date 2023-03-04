@@ -17,17 +17,17 @@ public class PlayerOnlineCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity) {
+	public boolean check(LivingEntity caster) {
 		return isOnline();
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return isOnline();
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return isOnline();
 	}
 

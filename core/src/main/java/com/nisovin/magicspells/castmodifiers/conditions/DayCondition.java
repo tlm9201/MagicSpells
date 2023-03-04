@@ -13,17 +13,17 @@ public class DayCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkTime(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return checkTime(caster.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkTime(target.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return checkTime(location);
 	}
 

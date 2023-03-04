@@ -19,22 +19,22 @@ public class OnTeamCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return onTeam(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return onTeam(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return onTeam(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean onTeam(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player pl)) return false;
+	private boolean onTeam(LivingEntity target) {
+		if (!(target instanceof Player pl)) return false;
 		Team team = Bukkit.getScoreboardManager().getMainScoreboard().getEntryTeam(pl.getName());
 		return team != null && team.getName().equals(teamName);
 	}

@@ -38,22 +38,22 @@ public class MagicXpAboveCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return xpAbove(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return xpAbove(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return xpAbove(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean xpAbove(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player pl)) return false;
+	private boolean xpAbove(LivingEntity target) {
+		if (!(target instanceof Player pl)) return false;
 
 		for (int i = 0; i < school.length; i++) {
 			if (handler.getXp(pl, school[i]) < amount[i]) return false;

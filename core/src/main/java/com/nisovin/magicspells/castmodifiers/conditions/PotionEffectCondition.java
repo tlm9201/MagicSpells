@@ -31,17 +31,17 @@ public class PotionEffectCondition extends OperatorCondition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkPotionEffects(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return checkPotionEffects(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkPotionEffects(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 

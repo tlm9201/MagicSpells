@@ -67,22 +67,22 @@ public class WearingCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkInventory(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return checkInventory(caster);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkInventory(target);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean checkInventory(LivingEntity livingEntity) {
-		EntityEquipment equip = livingEntity.getEquipment();
+	private boolean checkInventory(LivingEntity target) {
+		EntityEquipment equip = target.getEquipment();
 		if (equip == null) return false;
 
 		if (checkItem(equip.getHelmet())) return true;

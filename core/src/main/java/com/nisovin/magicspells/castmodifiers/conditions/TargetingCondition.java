@@ -38,26 +38,26 @@ public class TargetingCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
+	public boolean check(LivingEntity caster) {
 		return false;
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return targeting(livingEntity, target);
+	public boolean check(LivingEntity caster, LivingEntity target) {
+		return targeting(caster, target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean targeting(LivingEntity livingEntity, LivingEntity target) {
+	private boolean targeting(LivingEntity caster, LivingEntity target) {
 		if (!(target instanceof Creature c)) return false;
 		LivingEntity creatureTarget = c.getTarget();
 		if (creatureTarget != null) {
 			if (anyType) return true;
-			if (targetingCaster && creatureTarget.equals(livingEntity)) return true;
+			if (targetingCaster && creatureTarget.equals(caster)) return true;
 			if (allowedTypes.contains(creatureTarget.getType())) return true;
 		}
 		return false;

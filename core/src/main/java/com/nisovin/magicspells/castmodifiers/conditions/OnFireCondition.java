@@ -20,26 +20,26 @@ public class OnFireCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return onFire(livingEntity, null);
+	public boolean check(LivingEntity caster) {
+		return onFire(caster, null);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return onFire(livingEntity, null);
+	public boolean check(LivingEntity caster, LivingEntity target) {
+		return onFire(target, null);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
-		return onFire(livingEntity, location);
+	public boolean check(LivingEntity caster, Location location) {
+		return onFire(caster, location);
 	}
 
-	private boolean onFire(LivingEntity livingEntity, Location location) {
+	private boolean onFire(LivingEntity target, Location location) {
 		if (location != null) {
 			Block b = location.getBlock();
 			return fireTypes.contains(b.getType()) || fireTypes.contains(b.getRelative(BlockFace.UP).getType());
 		}
-		return livingEntity.getFireTicks() > 0;
+		return target.getFireTicks() > 0;
 	}
 
 }

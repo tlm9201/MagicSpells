@@ -43,22 +43,22 @@ public class WearingInSlotCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkSlot(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return checkSlot(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkSlot(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean checkSlot(LivingEntity livingEntity) {
-		EntityEquipment equipment = livingEntity.getEquipment();
+	private boolean checkSlot(LivingEntity target) {
+		EntityEquipment equipment = target.getEquipment();
 		if (equipment == null) return false;
 
 		ItemStack item = equipment.getArmorContents()[slot];

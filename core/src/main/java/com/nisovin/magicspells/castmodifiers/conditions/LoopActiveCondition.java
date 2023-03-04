@@ -38,8 +38,8 @@ public class LoopActiveCondition extends Condition {
 		return false;
 	}
 
-	private boolean loopActive(LivingEntity livingEntity) {
-		return loop.isActive(livingEntity);
+	private boolean loopActive(LivingEntity target) {
+		return loop.isActive(target);
 	}
 
 }

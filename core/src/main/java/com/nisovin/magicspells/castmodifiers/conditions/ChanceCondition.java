@@ -24,17 +24,17 @@ public class ChanceCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
+	public boolean check(LivingEntity caster) {
 		return chance();
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return chance();
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return chance();
 	}
 

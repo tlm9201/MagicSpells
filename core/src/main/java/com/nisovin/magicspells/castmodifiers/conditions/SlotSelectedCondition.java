@@ -17,14 +17,14 @@ public class SlotSelectedCondition extends OperatorCondition {
 		try {
 			slot = Integer.parseInt(var.substring(1));
 			return slot >= 0 && slot <= 8;
-		} catch (NumberFormatException nfe) {
+		} catch (NumberFormatException exception) {
 			return false;
 		}
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return slot(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return slot(caster);
 	}
 
 	@Override
@@ -37,8 +37,8 @@ public class SlotSelectedCondition extends OperatorCondition {
 		return false;
 	}
 
-	private boolean slot(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player pl)) return false;
+	private boolean slot(LivingEntity target) {
+		if (!(target instanceof Player pl)) return false;
 		int theirSlot = pl.getInventory().getHeldItemSlot();
 
 		if (equals) return theirSlot == slot;

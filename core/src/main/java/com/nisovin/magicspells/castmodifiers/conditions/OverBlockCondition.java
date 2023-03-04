@@ -48,17 +48,17 @@ public class OverBlockCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return overBlock(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return overBlock(caster.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return overBlock(target.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return overBlock(location);
 	}
 

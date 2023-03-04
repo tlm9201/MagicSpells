@@ -25,22 +25,22 @@ public class LastDamageTypeCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkDamage(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return checkDamage(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkDamage(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean checkDamage(LivingEntity livingEntity) {
-		EntityDamageEvent event = livingEntity.getLastDamageCause();
+	private boolean checkDamage(LivingEntity target) {
+		EntityDamageEvent event = target.getLastDamageCause();
 		return event != null && event.getCause() == cause;
 	}
 

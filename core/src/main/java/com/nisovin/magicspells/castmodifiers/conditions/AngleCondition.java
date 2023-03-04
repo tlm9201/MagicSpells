@@ -27,18 +27,18 @@ public class AngleCondition extends OperatorCondition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
+	public boolean check(LivingEntity caster) {
 		return false;
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return angle(livingEntity.getLocation(), target.getLocation());
+	public boolean check(LivingEntity caster, LivingEntity target) {
+		return angle(caster.getLocation(), target.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
-		return angle(livingEntity.getLocation(), location);
+	public boolean check(LivingEntity caster, Location location) {
+		return angle(caster.getLocation(), location);
 	}
 
 	private boolean angle(Location from, Location to) {

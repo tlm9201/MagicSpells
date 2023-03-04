@@ -21,22 +21,22 @@ public class VariableMatchesCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return variableMatches(livingEntity, null);
+	public boolean check(LivingEntity caster) {
+		return variableMatches(caster, null);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return variableMatches(livingEntity, target);
+	public boolean check(LivingEntity caster, LivingEntity target) {
+		return variableMatches(caster, target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
-		return variableMatches(livingEntity, null);
+	public boolean check(LivingEntity caster, Location location) {
+		return variableMatches(caster, null);
 	}
 
-	private boolean variableMatches(LivingEntity livingEntity, LivingEntity target) {
-		if (!(livingEntity instanceof Player pl)) return false;
+	private boolean variableMatches(LivingEntity caster, LivingEntity target) {
+		if (!(caster instanceof Player pl)) return false;
 		String name = null;
 		if (target instanceof Player t) name = t.getName();
 		// Check against normal (default)

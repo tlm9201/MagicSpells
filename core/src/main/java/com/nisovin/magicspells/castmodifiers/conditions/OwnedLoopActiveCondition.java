@@ -41,10 +41,10 @@ public class OwnedLoopActiveCondition extends Condition {
 		return false;
 	}
 
-	private boolean checkLoop(LivingEntity livingEntity, LivingEntity target) {
+	private boolean checkLoop(LivingEntity caster, LivingEntity target) {
 		Collection<Loop> loops = loopSpell.getActiveLoops().get(target.getUniqueId());
 		for (Loop loop : loops) {
-			if (livingEntity.equals(loop.getCaster())) return true;
+			if (caster.equals(loop.getCaster())) return true;
 		}
 		return false;
 	}

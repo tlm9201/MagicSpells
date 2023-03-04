@@ -13,22 +13,22 @@ public class OnLeashCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return isLeashed(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return isLeashed(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return isLeashed(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean isLeashed(LivingEntity livingEntity) {
-		return livingEntity.isLeashed();
+	private boolean isLeashed(LivingEntity target) {
+		return target.isLeashed();
 	}
 
 }

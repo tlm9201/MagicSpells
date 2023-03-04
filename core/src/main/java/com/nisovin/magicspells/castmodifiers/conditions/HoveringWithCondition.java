@@ -22,22 +22,22 @@ public class HoveringWithCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkHovering(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return checkHovering(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkHovering(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean checkHovering(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player pl)) return false;
+	private boolean checkHovering(LivingEntity target) {
+		if (!(target instanceof Player pl)) return false;
 
 		ItemStack itemCursor = pl.getOpenInventory().getCursor();
 		if (itemCursor == null) return false;

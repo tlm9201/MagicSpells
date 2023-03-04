@@ -23,22 +23,22 @@ public class HasMarkCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return hasMark(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return hasMark(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return hasMark(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean hasMark(LivingEntity livingEntity) {
-		return spell.getMarks().containsKey(livingEntity.getUniqueId());
+	private boolean hasMark(LivingEntity target) {
+		return spell.getMarks().containsKey(target.getUniqueId());
 	}
 
 }

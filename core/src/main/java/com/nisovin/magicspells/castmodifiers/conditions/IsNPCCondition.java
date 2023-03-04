@@ -13,22 +13,22 @@ public class IsNPCCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return isNPC(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return isNPC(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return isNPC(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean isNPC(LivingEntity livingEntity) {
-		return livingEntity.hasMetadata("NPC");
+	private boolean isNPC(LivingEntity target) {
+		return target.hasMetadata("NPC");
 	}
 
 }

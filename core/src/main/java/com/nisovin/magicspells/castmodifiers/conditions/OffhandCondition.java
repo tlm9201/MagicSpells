@@ -65,22 +65,22 @@ public class OffhandCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return offHand(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return offHand(caster);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return offHand(target);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 	
-	private boolean offHand(LivingEntity livingEntity) {
-		EntityEquipment equipment = livingEntity.getEquipment();
+	private boolean offHand(LivingEntity target) {
+		EntityEquipment equipment = target.getEquipment();
 		if (equipment == null) return false;
 		ItemStack item = equipment.getItemInOffHand();
 

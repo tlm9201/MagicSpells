@@ -20,22 +20,22 @@ public class RicherThanCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
+	public boolean check(LivingEntity caster) {
 		return false;
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return richer(livingEntity, target);
+	public boolean check(LivingEntity caster, LivingEntity target) {
+		return richer(caster, target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean richer(LivingEntity livingEntity, LivingEntity target) {
-		if (!(livingEntity instanceof Player c) || !(target instanceof Player t)) return false;
+	private boolean richer(LivingEntity caster, LivingEntity target) {
+		if (!(caster instanceof Player c) || !(target instanceof Player t)) return false;
 		return MagicSpells.getMoneyHandler().checkMoney(c) > MagicSpells.getMoneyHandler().checkMoney(t);
 	}
 

@@ -13,22 +13,22 @@ public class CustomNameVisibleCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return nameVisible(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return nameVisible(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return nameVisible(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean nameVisible(LivingEntity livingEntity) {
-		return livingEntity.isCustomNameVisible();
+	private boolean nameVisible(LivingEntity target) {
+		return target.isCustomNameVisible();
 	}
 
 }

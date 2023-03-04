@@ -30,17 +30,17 @@ public class BiomeCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return biome(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return biome(caster.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return biome(target.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return biome(location);
 	}
 

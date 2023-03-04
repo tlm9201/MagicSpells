@@ -16,17 +16,17 @@ public class MoonPhaseCondition extends Condition {
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return moonPhase(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return moonPhase(caster.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return moonPhase(target.getLocation());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return moonPhase(location);
 	}
 

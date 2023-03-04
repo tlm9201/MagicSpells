@@ -64,17 +64,17 @@ public class InCuboidCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkCuboid(livingEntity.getLocation());
+	public boolean check(LivingEntity caster) {
+		return checkCuboid(caster.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkCuboid(target.getLocation());
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return checkCuboid(location);
 	}
 

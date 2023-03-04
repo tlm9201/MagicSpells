@@ -21,22 +21,22 @@ public class HoldingPreciseCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return checkHolding(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return checkHolding(caster);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return checkHolding(target);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 	
-	private boolean checkHolding(LivingEntity livingEntity) {
-		EntityEquipment equipment = livingEntity.getEquipment();
+	private boolean checkHolding(LivingEntity target) {
+		EntityEquipment equipment = target.getEquipment();
 		if (equipment == null) return false;
 
 		ItemStack item = equipment.getItemInMainHand();

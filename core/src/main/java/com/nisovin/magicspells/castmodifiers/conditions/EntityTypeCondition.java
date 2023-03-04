@@ -38,25 +38,25 @@ public class EntityTypeCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return entityType(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return entityType(caster);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return entityType(target);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		return false;
 	}
 
-	private boolean entityType(LivingEntity livingEntity) {
-		if (player && livingEntity instanceof Player) return true;
-		if (monster && livingEntity instanceof Monster) return true;
-		if (animal && livingEntity instanceof Animals) return true;
-		return types.contains(livingEntity.getType());
+	private boolean entityType(LivingEntity target) {
+		if (player && target instanceof Player) return true;
+		if (monster && target instanceof Monster) return true;
+		if (animal && target instanceof Animals) return true;
+		return types.contains(target.getType());
 	}
 
 }

@@ -25,19 +25,19 @@ public class HasItemPreciseCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return check(livingEntity, livingEntity);
+	public boolean check(LivingEntity caster) {
+		return check(caster, caster);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		if (target == null) return false;
 		if (target instanceof InventoryHolder holder) return checkInventory(holder.getInventory());
 		else return checkEquipment(target.getEquipment());
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
+	public boolean check(LivingEntity caster, Location location) {
 		BlockState targetState = location.getBlock().getState();
 		return targetState instanceof InventoryHolder holder && checkInventory(holder.getInventory());
 	}

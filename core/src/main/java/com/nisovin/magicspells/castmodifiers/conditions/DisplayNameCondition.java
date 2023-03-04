@@ -19,22 +19,22 @@ public class DisplayNameCondition extends Condition {
     }
 
     @Override
-    public boolean check(LivingEntity livingEntity) {
-        return checkName(livingEntity);
+    public boolean check(LivingEntity caster) {
+        return checkName(caster);
     }
 
     @Override
-    public boolean check(LivingEntity livingEntity, LivingEntity target) {
+    public boolean check(LivingEntity caster, LivingEntity target) {
         return checkName(target);
     }
 
     @Override
-    public boolean check(LivingEntity livingEntity, Location location) {
+    public boolean check(LivingEntity caster, Location location) {
         return false;
     }
 
-    private boolean checkName(LivingEntity livingEntity) {
-        if (!(livingEntity instanceof Player pl)) return false;
+    private boolean checkName(LivingEntity target) {
+        if (!(target instanceof Player pl)) return false;
         return Util.getStringFromComponent(pl.displayName()).equals(displayName);
     }
 

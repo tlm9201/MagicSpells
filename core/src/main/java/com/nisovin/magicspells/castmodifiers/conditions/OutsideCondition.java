@@ -13,23 +13,23 @@ public class OutsideCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return outside(livingEntity, null);
+	public boolean check(LivingEntity caster) {
+		return outside(caster, null);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
-		return outside(livingEntity, null);
+	public boolean check(LivingEntity caster, LivingEntity target) {
+		return outside(target, null);
 	}
 	
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
-		return outside(livingEntity, location);
+	public boolean check(LivingEntity caster, Location location) {
+		return outside(caster, location);
 	}
 
-	private boolean outside(LivingEntity livingEntity, Location location) {
+	private boolean outside(LivingEntity target, Location location) {
 		if (location != null) return location.getWorld().getHighestBlockYAt(location) <= location.getY();
-		return livingEntity.getWorld().getHighestBlockYAt(livingEntity.getLocation()) <= livingEntity.getEyeLocation().getY();
+		return target.getWorld().getHighestBlockYAt(target.getLocation()) <= target.getEyeLocation().getY();
 	}
 
 }

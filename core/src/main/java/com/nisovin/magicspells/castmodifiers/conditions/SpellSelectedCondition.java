@@ -50,22 +50,22 @@ public class SpellSelectedCondition extends Condition {
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity) {
-		return spellSelected(livingEntity);
+	public boolean check(LivingEntity caster) {
+		return spellSelected(caster);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, LivingEntity target) {
+	public boolean check(LivingEntity caster, LivingEntity target) {
 		return spellSelected(target);
 	}
 
 	@Override
-	public boolean check(LivingEntity livingEntity, Location location) {
-		return spellSelected(livingEntity);
+	public boolean check(LivingEntity caster, Location location) {
+		return spellSelected(caster);
 	}
 
-	private boolean spellSelected(LivingEntity livingEntity) {
-		if (!(livingEntity instanceof Player pl)) return false;
+	private boolean spellSelected(LivingEntity target) {
+		if (!(target instanceof Player pl)) return false;
 		Spellbook spellbook = MagicSpells.getSpellbook(pl);
 		ItemStack item = pl.getInventory().getItemInMainHand();
 
