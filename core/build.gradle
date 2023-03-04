@@ -1,11 +1,12 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.8.10"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.0"
 }
 
 dependencies {
     shadow(group: "org.apache.commons", name: "commons-math3", version: "3.6.1")
-    shadow(group: "com.github.Chronoken", name: "EffectLib", version: "738b0ff")
+    shadow(group: "com.github.Chronoken", name: "EffectLib", version: "94483c9")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.1-SNAPSHOT")
     shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.8.10")
 
@@ -13,7 +14,7 @@ dependencies {
     shadow(project(path: ":nms:v1_19_R1", configuration: "reobf"))
     shadow(project(path: ":nms:v1_19_R2", configuration: "reobf"))
 
-    implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.8.0") { transitive = false }
+    implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.0.0-SNAPSHOT") { transitive = false }
     implementation(group: "com.github.libraryaddict", name: "LibsDisguises", version: "v10.0.25") { transitive = false }
     implementation(group: "com.github.MilkBowl", name: "VaultAPI", version: "master-SNAPSHOT") { transitive = false }
     implementation(group: "com.github.PlaceholderAPI", name: "PlaceholderAPI", version: "master-SNAPSHOT") { transitive = false }
@@ -55,15 +56,15 @@ shadowJar {
 }
 
 compileKotlin {
-    kotlinOptions {
-        jvmTarget = "17"
-        javaParameters = true
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        javaParameters.set(true)
     }
 }
 
 compileTestKotlin {
-    kotlinOptions {
-        jvmTarget = "17"
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
