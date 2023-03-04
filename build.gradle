@@ -1,10 +1,16 @@
+plugins {
+  id("org.jetbrains.kotlin.jvm") version "1.8.10"
+  id("dev.magicspells.msjava")
+}
+
 wrapper {
-  gradleVersion = "7.6.1"
+  gradleVersion = "8.0.2"
   setDistributionType(Wrapper.DistributionType.ALL)
 }
 
 subprojects {
   apply plugin: "dev.magicspells.msjava"
+  apply plugin: "org.jetbrains.kotlin.jvm"
 
   dependencies {
     implementation(group: "io.papermc.paper", name: "paper-api", version: "1.19.3-R0.1-SNAPSHOT")
