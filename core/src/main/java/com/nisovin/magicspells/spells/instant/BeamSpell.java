@@ -22,7 +22,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
-import org.apache.commons.math3.util.FastMath;
+import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
 public class BeamSpell extends InstantSpell implements TargetedLocationSpell, TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
@@ -63,7 +63,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 	private NoMagicZoneManager zoneManager;
 
-	private static final double ANGLE_Y = FastMath.toRadians(-90);
+	private static final double ANGLE_Y = AccurateMath.toRadians(-90);
 
 	public BeamSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -258,8 +258,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		double verticalRotation = this.verticalRotation.get(caster, target, power, args);
 		double horizontalRotation = this.horizontalRotation.get(caster, target, power, args);
 
-		if (verticalRotation != 0) dir.rotateAroundAxis(angleZ, FastMath.toRadians(verticalRotation));
-		if (horizontalRotation != 0) dir.rotateAroundAxis(angleY, FastMath.toRadians(horizontalRotation));
+		if (verticalRotation != 0) dir.rotateAroundAxis(angleZ, AccurateMath.toRadians(verticalRotation));
+		if (horizontalRotation != 0) dir.rotateAroundAxis(angleY, AccurateMath.toRadians(horizontalRotation));
 
 		float beamVerticalSpread = this.beamVerticalSpread.get(caster, target, power, args);
 		float beamHorizontalSpread = this.beamHorizontalSpread.get(caster, target, power, args);
