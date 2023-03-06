@@ -28,7 +28,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import net.kyori.adventure.text.Component;
 
-import org.apache.commons.math3.util.FastMath;
+import org.apache.commons.math4.core.jdkmath.JdkMath;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
@@ -376,7 +376,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		if (entityData == null || entityData.getEntityType() == null) return;
 		if (entityData.isPlayer()) return;
 
-		loc.setYaw((float) (FastMath.random() * 360));
+		loc.setYaw((float) (JdkMath.random() * 360));
 		LivingEntity entity = (LivingEntity) entityData.spawn(
 			loc.add(0.5, yOffset.get(caster, target, power, args), 0.5),
 			e -> {

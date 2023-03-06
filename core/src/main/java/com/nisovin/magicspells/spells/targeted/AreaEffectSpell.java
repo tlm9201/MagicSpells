@@ -22,7 +22,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
-import org.apache.commons.math3.util.FastMath;
+import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
 public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSpell {
 
@@ -225,7 +225,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 			if (cone > 0) {
 				Vector dir = target.getLocation().toVector().subtract(location.toVector());
-				if (FastMath.toDegrees(FastMath.abs(dir.angle(location.getDirection()))) > cone) continue;
+				if (AccurateMath.toDegrees(AccurateMath.abs(dir.angle(location.getDirection()))) > cone) continue;
 			}
 
 			float power = basePower;
@@ -281,7 +281,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		Vector direction = endLoc.toVector().subtract(startLoc.toVector()).normalize();
 
-		return FastMath.toDegrees(direction.angle(startLoc.getDirection()));
+		return AccurateMath.toDegrees(direction.angle(startLoc.getDirection()));
 	}
 
 }

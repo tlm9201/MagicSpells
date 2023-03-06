@@ -10,7 +10,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.NumberConversions;
 
-import org.apache.commons.math3.util.FastMath;
+import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
@@ -325,7 +325,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 
 			if (pointBlank && cone > 0) {
 				Vector dir = currentLoc.toVector().subtract(vLoc);
-				if (FastMath.abs(dir.angle(facing)) > cone) continue;
+				if (AccurateMath.abs(dir.angle(facing)) > cone) continue;
 			}
 
 			if (projectileSpell != null) projectileSpell.castAtLocation(caster, currentLoc, 1F);
