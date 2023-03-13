@@ -1985,10 +1985,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return reagents;
 	}
 
-	public String getConsoleName() {
-		return MagicSpells.getConsoleName();
-	}
-
 	public String getStrWrongCastItem() {
 		return strWrongCastItem;
 	}
