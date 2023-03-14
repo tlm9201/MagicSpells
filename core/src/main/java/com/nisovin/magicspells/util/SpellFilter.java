@@ -3,6 +3,7 @@ package com.nisovin.magicspells.util;
 import java.util.Set;
 import java.util.List;
 import java.util.HashSet;
+import java.util.ArrayList;
 
 import com.nisovin.magicspells.Spell;
 
@@ -13,7 +14,7 @@ public class SpellFilter {
 	private Set<String> allowedTags = null;
 	private Set<String> disallowedTags = null;
 	
-	private boolean defaultReturn;
+	private final boolean defaultReturn;
 	private boolean emptyFilter = false;
 	
 	public SpellFilter(List<String> allowedSpells, List<String> blacklistedSpells, List<String> allowedTags, List<String> disallowedTags) {
@@ -41,7 +42,7 @@ public class SpellFilter {
 		// If there is a spell blacklist
 		if (blacklistedSpells != null) return true;
 		
-		// If all of the collections are null, then there is no filter
+		// If all the collections are null, then there is no filter
 		emptyFilter = true;
 		return true;
 	}
@@ -84,5 +85,38 @@ public class SpellFilter {
 		List<String> deniedTagList = config.getStringList(basePath + "denied-spell-tags", null);
 		return new SpellFilter(spells, deniedSpells, tagList, deniedTagList);
 	}
-	
+
+	/**
+	 * Create a {@link SpellFilter} instance out of a formatted string.
+	 * @param string Follows format: allowedSpell, !disallowedSpell, tag:allowedTag, !tag:disallowedTag
+	 */
+	public static SpellFilter fromString(String string) {
+		List<String> spells = new ArrayList<>();
+		List<String> deniedSpells = new ArrayList<>();
+		List<String> spellTags = new ArrayList<>();
+		List<String> deniedSpellTags = new ArrayList<>();
+
+		String[] split = string.split(",");
+		for (String s : split) {
+			boolean denied = false;
+			s = s.trim();
+
+			if (s.startsWith("!")) {
+				s = s.substring(1);
+				denied = true;
+			}
+
+			if (s.toLowerCase().startsWith("tag:")) {
+				s = s.substring(4);
+				if (denied) deniedSpellTags.add(s);
+				else spellTags.add(s);
+			} else {
+				if (denied) deniedSpells.add(s);
+				else spells.add(s);
+			}
+		}
+
+		return new SpellFilter(spells, deniedSpells, spellTags, deniedSpellTags);
+	}
+
 }
