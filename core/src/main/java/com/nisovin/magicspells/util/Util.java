@@ -160,7 +160,7 @@ public class Util {
 	}
 
 	public static Particle getParticle(String type) {
-		return ParticleUtil.ParticleEffect.getParticle(type);
+		return ParticleUtil.getParticle(type);
 	}
 
 	public static CastMode getCastMode(String type) {
