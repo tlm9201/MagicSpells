@@ -163,22 +163,23 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 
 	private ItemStack createItem(String path, String defaultName) {
 		ItemStack item = null;
-		if (isConfigSection(path)) {
-			MagicItem magicItem = MagicItems.getMagicItemFromSection(getConfigSection(path));
-			if (magicItem != null) item = magicItem.getItemStack();
-		} else {
-			MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString(path, ""));
+		MagicItem magicItem = null;
 
-			if (magicItem == null) {
-				item = new ItemStack(Material.GREEN_WOOL);
-				ItemMeta itemMeta = item.getItemMeta();
-
-				itemMeta.setDisplayName("§6§t" + defaultName);
-				item.setItemMeta(itemMeta);
-			} else {
-				item = magicItem.getItemStack();
-			}
+		if (MagicItems.getMagicItemFromString(getConfigString(path, "")) != null) {
+			magicItem = MagicItems.getMagicItemFromString(getConfigString(path, "")).clone();
 		}
+
+		if (magicItem == null) {
+			item = new ItemStack(Material.GREEN_WOOL);
+
+			ItemMeta itemMeta = item.getItemMeta();
+			itemMeta.displayName(Util.getMiniMessage("&6" + defaultName));
+
+			item.setItemMeta(itemMeta);
+		} else {
+			item = magicItem.getItemStack();
+		}
+
 		return item;
 	}
 
