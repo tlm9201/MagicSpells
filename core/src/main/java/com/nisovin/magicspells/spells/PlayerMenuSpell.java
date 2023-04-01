@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells;
 import java.util.*;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -162,23 +163,14 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	}
 
 	private ItemStack createItem(String path, String defaultName) {
-		ItemStack item = null;
-		MagicItem magicItem = null;
+		MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString(path, null));
+		if (magicItem != null) return magicItem.getItemStack().clone();
 
-		if (MagicItems.getMagicItemFromString(getConfigString(path, "")) != null) {
-			magicItem = MagicItems.getMagicItemFromString(getConfigString(path, "")).clone();
-		}
+		ItemStack item = new ItemStack(Material.GREEN_WOOL);
+		ItemMeta meta = item.getItemMeta();
 
-		if (magicItem == null) {
-			item = new ItemStack(Material.GREEN_WOOL);
-
-			ItemMeta itemMeta = item.getItemMeta();
-			itemMeta.displayName(Util.getMiniMessage("&6" + defaultName));
-
-			item.setItemMeta(itemMeta);
-		} else {
-			item = magicItem.getItemStack();
-		}
+		meta.displayName(Component.text(defaultName).color(NamedTextColor.GOLD));
+		item.setItemMeta(meta);
 
 		return item;
 	}
