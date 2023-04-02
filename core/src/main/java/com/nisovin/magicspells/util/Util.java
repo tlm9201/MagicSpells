@@ -746,10 +746,6 @@ public class Util {
 		return colorize(MagicSpells.doReplacements(string, player));
 	}
 
-	public static String doVarReplacement(Player player, String string) {
-		return MagicSpells.doReplacements(string, player);
-	}
-
 	public static void setInventoryTitle(Player player, String title) {
 		MagicSpells.getVolatileCodeHandler().setInventoryTitle(player, doVarReplacementAndColorize(player, title));
 	}
