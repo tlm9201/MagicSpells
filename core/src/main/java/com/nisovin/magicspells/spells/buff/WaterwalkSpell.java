@@ -122,10 +122,10 @@ public class WaterwalkSpell extends BuffSpell {
 
 				if (feet.getType() == Material.WATER) {
 					loc.setY(Math.floor(loc.getY() + 1) + 0.1);
-					pl.teleport(loc);
+					pl.teleportAsync(loc);
 				} else if (pl.isFlying() && BlockUtils.isAir(underfeet.getType())) {
 					loc.setY(Math.floor(loc.getY() - 1) + 0.1);
-					pl.teleport(loc);
+					pl.teleportAsync(loc);
 				}
 
 				feet = pl.getLocation().getBlock();
