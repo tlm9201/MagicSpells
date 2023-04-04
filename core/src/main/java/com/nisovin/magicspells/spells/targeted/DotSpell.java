@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 
-import org.bukkit.EntityEffect;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -228,7 +227,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 
 				target.setHealth(health);
 				target.setLastDamage(localDamage);
-				target.playEffect(EntityEffect.HURT);
+				MagicSpells.getVolatileCodeHandler().playHurtAnimation(target);
 			} else {
 				if (tryAvoidingAntiCheatPlugins) target.damage(localDamage);
 				else target.damage(localDamage, caster);
