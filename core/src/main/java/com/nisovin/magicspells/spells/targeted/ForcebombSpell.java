@@ -155,7 +155,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 		else target.setVelocity(v);
 
 		SpellData data = new SpellData(caster, target, power, args);
-		if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
+		if (caster != null) playSpellEffects(caster, location, target, data);
 		playSpellEffects(EffectPosition.TARGET, target, data);
 	}
 
