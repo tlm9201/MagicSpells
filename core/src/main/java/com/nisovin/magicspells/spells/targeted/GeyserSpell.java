@@ -7,7 +7,6 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
-import org.bukkit.EntityEffect;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
@@ -15,6 +14,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -87,7 +87,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 				double health = target.getHealth() - damage;
 				if (health < 0) health = 0;
 				target.setHealth(health);
-				target.playEffect(EntityEffect.HURT);
+				MagicSpells.getVolatileCodeHandler().playHurtAnimation(target);
 			} else {
 				if (caster != null) target.damage(damage, caster);
 				else target.damage(damage);

@@ -29,4 +29,6 @@ public abstract class VolatileCodeHandle {
 
 	public abstract void startAutoSpinAttack(Player player, int ticks);
 
+	public abstract void playHurtAnimation(LivingEntity entity);
+
 }

@@ -3,6 +3,7 @@ package com.nisovin.magicspells.volatilecode;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
+import org.bukkit.EntityEffect;
 import org.bukkit.inventory.ItemStack;
 
 public class VolatileCodeDisabled extends VolatileCodeHandle {
@@ -49,6 +50,11 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 	@Override
 	public void startAutoSpinAttack(Player player, int ticks) {
 
+	}
+
+	@Override
+	public void playHurtAnimation(LivingEntity entity) {
+		entity.playEffect(EntityEffect.HURT);
 	}
 
 }

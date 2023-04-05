@@ -4,6 +4,7 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.*
 import org.bukkit.Location
 import org.bukkit.util.Vector
+import org.bukkit.EntityEffect
 import org.bukkit.inventory.ItemStack
 import org.bukkit.event.entity.ExplosionPrimeEvent
 
@@ -123,6 +124,10 @@ class VolatileCode1_19_R1(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
     override fun startAutoSpinAttack(player: Player?, ticks: Int) {
         val entityPlayer = (player as CraftPlayer).handle
         entityPlayer.startAutoSpinAttack(ticks)
+    }
+
+    override fun playHurtAnimation(entity: LivingEntity?) {
+        entity!!.playEffect(EntityEffect.HURT)
     }
 
 }

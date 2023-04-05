@@ -1,11 +1,11 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import org.bukkit.EntityEffect;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.DamageSpell;
@@ -127,7 +127,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 
 			target.setHealth(health);
 			target.setLastDamage(localDamage);
-			target.playEffect(EntityEffect.HURT);
+			MagicSpells.getVolatileCodeHandler().playHurtAnimation(target);
 
 			if (caster != null) playSpellEffects(caster, target, power, args);
 			else playSpellEffects(EffectPosition.TARGET, target, power, args);

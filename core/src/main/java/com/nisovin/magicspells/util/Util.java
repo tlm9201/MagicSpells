@@ -170,7 +170,7 @@ public class Util {
 	public static void setFacing(Player player, Vector vector) {
 		Location loc = player.getLocation();
 		setLocationFacingFromVector(loc, vector);
-		player.teleport(loc);
+		player.teleportAsync(loc);
 	}
 
 	public static void setLocationFacingFromVector(Location location, Vector vector) {
