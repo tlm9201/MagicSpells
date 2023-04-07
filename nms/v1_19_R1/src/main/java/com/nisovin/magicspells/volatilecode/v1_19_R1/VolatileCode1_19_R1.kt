@@ -126,7 +126,7 @@ class VolatileCode1_19_R1(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
         entityPlayer.startAutoSpinAttack(ticks)
     }
 
-    override fun playHurtAnimation(entity: LivingEntity?) {
+    override fun playHurtAnimation(entity: LivingEntity?, yaw: Float) {
         entity!!.playEffect(EntityEffect.HURT)
     }
 

@@ -8,6 +8,7 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.spells.DamageSpell;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -127,7 +128,9 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell, Dam
 
 			target.setHealth(health);
 			target.setLastDamage(localDamage);
-			MagicSpells.getVolatileCodeHandler().playHurtAnimation(target);
+
+			if (caster != null) MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, LocationUtil.getRotatedLocation(caster.getLocation(), target.getLocation()).getYaw());
+			else MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, target.getLocation().getYaw());
 
 			if (caster != null) playSpellEffects(caster, target, power, args);
 			else playSpellEffects(EffectPosition.TARGET, target, power, args);

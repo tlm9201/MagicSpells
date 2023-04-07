@@ -87,7 +87,8 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 				double health = target.getHealth() - damage;
 				if (health < 0) health = 0;
 				target.setHealth(health);
-				MagicSpells.getVolatileCodeHandler().playHurtAnimation(target);
+				if (caster != null) MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, LocationUtil.getRotatedLocation(caster.getLocation(), target.getLocation()).getYaw());
+				else MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, target.getLocation().getYaw());
 			} else {
 				if (caster != null) target.damage(damage, caster);
 				else target.damage(damage);
