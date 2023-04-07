@@ -53,7 +53,7 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 	}
 
 	@Override
-	public void playHurtAnimation(LivingEntity entity) {
+	public void playHurtAnimation(LivingEntity entity, float yaw) {
 		entity.playEffect(EntityEffect.HURT);
 	}
 
