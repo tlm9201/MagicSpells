@@ -10,9 +10,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -30,9 +30,9 @@ public class NovaEffect extends SpellEffect {
 
 	private Random random;
 
-	private List<BlockData> blockDataList;
+	private List<ConfigData<BlockData>> blockDataList;
 
-	private BlockData blockData;
+	private ConfigData<BlockData> blockData;
 
 	private ConfigData<Double> range;
 
@@ -49,38 +49,10 @@ public class NovaEffect extends SpellEffect {
 		List<String> materialList = config.getStringList("types");
 		if (!materialList.isEmpty()) {
 			blockDataList = new ArrayList<>();
-
-			for (String str : materialList) {
-				BlockData data;
-				try {
-					data = Bukkit.createBlockData(str.toLowerCase());
-				} catch (IllegalArgumentException e) {
-					MagicSpells.error("Wrong nova type defined: '" + str + "'");
-					continue;
-				}
-
-				if (!data.getMaterial().isBlock()) {
-					MagicSpells.error("Wrong nova type defined: '" + str + "'");
-					continue;
-				}
-
-				blockDataList.add(data);
-			}
+			materialList.forEach(str -> blockDataList.add(ConfigDataUtil.getBlockData(config, str, Bukkit.createBlockData(Material.FIRE))));
 		}
 
-		String blockName = config.getString("type", "fire");
-
-		try {
-			blockData = Bukkit.createBlockData(blockName.toLowerCase());
-		} catch (IllegalArgumentException e) {
-			blockData = null;
-			MagicSpells.error("Wrong nova type defined: '" + blockName + "'");
-		}
-
-		if (blockData != null && !blockData.getMaterial().isBlock()) {
-			blockData = null;
-			MagicSpells.error("Wrong nova type defined: '" + blockName + "'");
-		}
+		blockData = ConfigDataUtil.getBlockData(config, "type", Bukkit.createBlockData(Material.FIRE));
 
 		range = ConfigDataUtil.getDouble(config, "range", 20);
 
@@ -103,36 +75,32 @@ public class NovaEffect extends SpellEffect {
 		double range = this.range.get(data);
 		range = Math.max(Math.min(range, MagicSpells.getGlobalRadius()), 1);
 
-		// Get nearby players
-		Collection<Entity> nearbyEntities = location.getWorld().getNearbyEntities(location, range, range, range);
-		List<Player> nearby = new ArrayList<>();
-		for (Entity e : nearbyEntities) {
-			if (!(e instanceof Player)) continue;
-			nearby.add((Player) e);
-		}
+		Collection<Player> nearbyPlayers = location.getWorld().getNearbyPlayers(location, range, range, range);
 
 		// Start animation
 		if (circleShape) {
 			if (blockDataList != null && !blockDataList.isEmpty())
-				new NovaAnimationCircle(nearby, location.getBlock(), blockDataList, data);
+				new NovaAnimationCircle(nearbyPlayers, location.getBlock(), blockDataList, data);
 			else
-				new NovaAnimationCircle(nearby, location.getBlock(), blockData, data);
+				new NovaAnimationCircle(nearbyPlayers, location.getBlock(), blockData, data);
 		} else {
 			if (blockDataList != null && !blockDataList.isEmpty())
-				new NovaAnimationSquare(nearby, location.getBlock(), blockDataList, data);
+				new NovaAnimationSquare(nearbyPlayers, location.getBlock(), blockDataList, data);
 			else
-				new NovaAnimationSquare(nearby, location.getBlock(), blockData, data);
+				new NovaAnimationSquare(nearbyPlayers, location.getBlock(), blockData, data);
 		}
 		return null;
 	}
 
 	private abstract class NovaAnimation extends SpellAnimation {
 
-		protected final List<Player> nearby;
+		protected final SpellData data;
+
+		protected final Collection<Player> nearby;
 		protected final Block center;
 
-		protected final List<BlockData> blockDataList;
-		protected final BlockData blockData;
+		protected final List<ConfigData<BlockData>> blockDataList;
+		protected final ConfigData<BlockData> blockData;
 
 		protected final Set<Block> blocks;
 
@@ -141,9 +109,10 @@ public class NovaEffect extends SpellEffect {
 		protected final int heightPerTick;
 		protected final int expandingRadiusChange;
 
-		public NovaAnimation(List<Player> nearby, Block center, BlockData blockData, List<BlockData> blockDataList, SpellData data) {
+		public NovaAnimation(Collection<Player> nearby, Block center, ConfigData<BlockData> blockData, List<ConfigData<BlockData>> blockDataList, SpellData data) {
 			super(expandInterval.get(data), true);
 
+			this.data = data;
 			this.nearby = nearby;
 			this.center = center;
 			this.blockData = blockData;
@@ -164,11 +133,11 @@ public class NovaEffect extends SpellEffect {
 
 	private class NovaAnimationSquare extends NovaAnimation {
 
-		public NovaAnimationSquare(List<Player> nearby, Block center, BlockData blockData, SpellData data) {
+		public NovaAnimationSquare(Collection<Player> nearby, Block center, ConfigData<BlockData> blockData, SpellData data) {
 			super(nearby, center, blockData, null, data);
 		}
 
-		public NovaAnimationSquare(List<Player> nearby, Block center, List<BlockData> blockDataList, SpellData data) {
+		public NovaAnimationSquare(Collection<Player> nearby, Block center, List<ConfigData<BlockData>> blockDataList, SpellData data) {
 			super(nearby, center, null, blockDataList, data);
 		}
 
@@ -189,7 +158,9 @@ public class NovaEffect extends SpellEffect {
 			if (tick > radius + 1) {
 				stop(true);
 				return;
-			} else if (tick > radius) {
+			}
+
+			if (tick > radius) {
 				return;
 			}
 
@@ -215,9 +186,9 @@ public class NovaEffect extends SpellEffect {
 
 					for (Player p : nearby) {
 						if (blockDataList != null && !blockDataList.isEmpty())
-							p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())));
+							p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())).get(data));
 						else if (blockData != null)
-							p.sendBlockChange(b.getLocation(), blockData);
+							p.sendBlockChange(b.getLocation(), blockData.get(data));
 					}
 
 					blocks.add(b);
@@ -241,11 +212,11 @@ public class NovaEffect extends SpellEffect {
 
 	private class NovaAnimationCircle extends NovaAnimation {
 
-		public NovaAnimationCircle(List<Player> nearby, Block center, BlockData blockData, SpellData data) {
+		public NovaAnimationCircle(Collection<Player> nearby, Block center, ConfigData<BlockData> blockData, SpellData data) {
 			super(nearby, center, blockData, null, data);
 		}
 
-		public NovaAnimationCircle(List<Player> nearby, Block center, List<BlockData> blockDataList, SpellData data) {
+		public NovaAnimationCircle(Collection<Player> nearby, Block center, List<ConfigData<BlockData>> blockDataList, SpellData data) {
 			super(nearby, center, null, blockDataList, data);
 		}
 
@@ -266,7 +237,9 @@ public class NovaEffect extends SpellEffect {
 			if (tick > radius + 1) {
 				stop(true);
 				return;
-			} else if (tick > radius) {
+			}
+
+			if (tick > radius) {
 				return;
 			}
 
@@ -288,9 +261,9 @@ public class NovaEffect extends SpellEffect {
 
 				for (Player p : nearby) {
 					if (blockDataList != null && !blockDataList.isEmpty())
-						p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())));
+						p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())).get(data));
 					else if (blockData != null)
-						p.sendBlockChange(b.getLocation(), blockData);
+						p.sendBlockChange(b.getLocation(), blockData.get(data));
 				}
 
 				blocks.add(b);
@@ -320,9 +293,9 @@ public class NovaEffect extends SpellEffect {
 
 				for (Player p : nearby) {
 					if (blockDataList != null && !blockDataList.isEmpty())
-						p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())));
+						p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())).get(data));
 					else if (blockData != null)
-						p.sendBlockChange(b.getLocation(), blockData);
+						p.sendBlockChange(b.getLocation(), blockData.get(data));
 				}
 
 				blocks.add(b);
