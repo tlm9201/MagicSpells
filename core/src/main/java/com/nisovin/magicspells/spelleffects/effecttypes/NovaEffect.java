@@ -30,7 +30,7 @@ public class NovaEffect extends SpellEffect {
 
 	private Random random;
 
-	private List<ConfigData<BlockData>> blockDataList;
+	private List<BlockData> blockDataList;
 
 	private ConfigData<BlockData> blockData;
 
@@ -49,7 +49,22 @@ public class NovaEffect extends SpellEffect {
 		List<String> materialList = config.getStringList("types");
 		if (!materialList.isEmpty()) {
 			blockDataList = new ArrayList<>();
-			materialList.forEach(str -> blockDataList.add(ConfigDataUtil.getBlockData(config, str, Bukkit.createBlockData(Material.FIRE))));
+			for (String str : materialList) {
+				BlockData data;
+				try {
+					data = Bukkit.createBlockData(str.toLowerCase());
+				} catch (IllegalArgumentException e) {
+					MagicSpells.error("Wrong nova type defined: '" + str + "'");
+					continue;
+				}
+
+				if (!data.getMaterial().isBlock()) {
+					MagicSpells.error("Wrong nova type defined: '" + str + "'");
+					continue;
+				}
+
+				blockDataList.add(data);
+			}
 		}
 
 		blockData = ConfigDataUtil.getBlockData(config, "type", Bukkit.createBlockData(Material.FIRE));
@@ -99,7 +114,7 @@ public class NovaEffect extends SpellEffect {
 		protected final Collection<Player> nearby;
 		protected final Block center;
 
-		protected final List<ConfigData<BlockData>> blockDataList;
+		protected final List<BlockData> blockDataList;
 		protected final ConfigData<BlockData> blockData;
 
 		protected final Set<Block> blocks;
@@ -109,7 +124,7 @@ public class NovaEffect extends SpellEffect {
 		protected final int heightPerTick;
 		protected final int expandingRadiusChange;
 
-		public NovaAnimation(Collection<Player> nearby, Block center, ConfigData<BlockData> blockData, List<ConfigData<BlockData>> blockDataList, SpellData data) {
+		public NovaAnimation(Collection<Player> nearby, Block center, ConfigData<BlockData> blockData, List<BlockData> blockDataList, SpellData data) {
 			super(expandInterval.get(data), true);
 
 			this.data = data;
@@ -137,7 +152,7 @@ public class NovaEffect extends SpellEffect {
 			super(nearby, center, blockData, null, data);
 		}
 
-		public NovaAnimationSquare(Collection<Player> nearby, Block center, List<ConfigData<BlockData>> blockDataList, SpellData data) {
+		public NovaAnimationSquare(Collection<Player> nearby, Block center, List<BlockData> blockDataList, SpellData data) {
 			super(nearby, center, null, blockDataList, data);
 		}
 
@@ -186,7 +201,7 @@ public class NovaEffect extends SpellEffect {
 
 					for (Player p : nearby) {
 						if (blockDataList != null && !blockDataList.isEmpty())
-							p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())).get(data));
+							p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())));
 						else if (blockData != null)
 							p.sendBlockChange(b.getLocation(), blockData.get(data));
 					}
@@ -216,7 +231,7 @@ public class NovaEffect extends SpellEffect {
 			super(nearby, center, blockData, null, data);
 		}
 
-		public NovaAnimationCircle(Collection<Player> nearby, Block center, List<ConfigData<BlockData>> blockDataList, SpellData data) {
+		public NovaAnimationCircle(Collection<Player> nearby, Block center, List<BlockData> blockDataList, SpellData data) {
 			super(nearby, center, null, blockDataList, data);
 		}
 
@@ -261,7 +276,7 @@ public class NovaEffect extends SpellEffect {
 
 				for (Player p : nearby) {
 					if (blockDataList != null && !blockDataList.isEmpty())
-						p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())).get(data));
+						p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())));
 					else if (blockData != null)
 						p.sendBlockChange(b.getLocation(), blockData.get(data));
 				}
@@ -293,7 +308,7 @@ public class NovaEffect extends SpellEffect {
 
 				for (Player p : nearby) {
 					if (blockDataList != null && !blockDataList.isEmpty())
-						p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())).get(data));
+						p.sendBlockChange(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())));
 					else if (blockData != null)
 						p.sendBlockChange(b.getLocation(), blockData.get(data));
 				}
