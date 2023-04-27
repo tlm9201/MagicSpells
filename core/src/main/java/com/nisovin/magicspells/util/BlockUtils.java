@@ -105,10 +105,6 @@ public class BlockUtils {
 		};
 	}
 
-	public static boolean isLiquid(Block block) {
-		return isLiquid(block.getType());
-	}
-
 	public static boolean isLiquid(Material m) {
 		return switch (m) {
 			case WATER, LAVA -> true;

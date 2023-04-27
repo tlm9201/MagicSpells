@@ -29,7 +29,7 @@ import de.slikey.effectlib.util.VectorUtils;
 
 public abstract class SpellEffect {
 
-	private final Random random = ThreadLocalRandom.current();
+	protected final Random random = ThreadLocalRandom.current();
 
 	private ConfigData<Integer> delay;
 
