@@ -75,7 +75,6 @@ public class NovaEffect extends SpellEffect {
 
 		circleShape = config.getBoolean("circle-shape", false);
 		removePreviousBlocks = config.getBoolean("remove-previous-blocks", true);
-
 	}
 
 	@Override
@@ -194,13 +193,15 @@ public class NovaEffect extends SpellEffect {
 			int bz = center.getZ();
 			y += tick * heightPerTick;
 
+			Block b;
+			Block under;
 			for (int x = bx - tick; x <= bx + tick; x++) {
 				for (int z = bz - tick; z <= bz + tick; z++) {
 					if (Math.abs(x - bx) != tick && Math.abs(z - bz) != tick) continue;
 
-					Block b = center.getWorld().getBlockAt(x, y, z);
+					b = center.getWorld().getBlockAt(x, y, z);
 					if (BlockUtils.isPathable(b) && !b.isLiquid()) {
-						Block under = b.getRelative(BlockFace.DOWN);
+						under = b.getRelative(BlockFace.DOWN);
 						if (BlockUtils.isPathable(under) && !under.isLiquid()) b = under;
 					} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !b.getRelative(BlockFace.UP).isLiquid()) {
 						b = b.getRelative(BlockFace.UP);
@@ -215,14 +216,15 @@ public class NovaEffect extends SpellEffect {
 						currentBlocks.put(b.getLocation(), blockData.get(data));
 					}
 
-					for (Player p : nearby) {
-						p.sendMultiBlockChange(currentBlocks, true);
-					}
-
-					currentBlocks.clear();
 					previousBlocks.put(b.getLocation(), b.getBlockData());
 				}
 			}
+
+			for (Player p : nearby) {
+				p.sendMultiBlockChange(currentBlocks, true);
+			}
+
+			currentBlocks.clear();
 		}
 
 	}
@@ -263,12 +265,13 @@ public class NovaEffect extends SpellEffect {
 			// Generate the bottom block
 			Location centerLocation = center.getLocation().clone();
 			centerLocation.add(0.5, tick * heightPerTick, 0.5);
-			Block b;
 
+			Block b;
+			Block under;
 			if (startRadius == 0 && tick == 0) {
-				b = centerLocation.getWorld().getBlockAt(centerLocation);
+				b = centerLocation.getBlock();
 				if (BlockUtils.isPathable(b) && !b.isLiquid()) {
-					Block under = b.getRelative(BlockFace.DOWN);
+					under = b.getRelative(BlockFace.DOWN);
 					if (BlockUtils.isPathable(under) && !under.isLiquid()) b = under;
 				} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !b.getRelative(BlockFace.UP).isLiquid()) {
 					b = b.getRelative(BlockFace.UP);
@@ -283,11 +286,6 @@ public class NovaEffect extends SpellEffect {
 					currentBlocks.put(b.getLocation(), blockData.get(data));
 				}
 
-				for (Player p : nearby) {
-					p.sendMultiBlockChange(currentBlocks, true);
-				}
-
-				currentBlocks.clear();
 				previousBlocks.put(b.getLocation(), b.getBlockData());
 			}
 
@@ -298,14 +296,17 @@ public class NovaEffect extends SpellEffect {
 			double inc = (2 * Math.PI) / amount;
 			for (int i = 0; i < amount; i++) {
 				angle = i * inc;
+
 				x = tick * Math.cos(angle);
 				z = tick * Math.sin(angle);
+
 				v = new Vector(x, 0, z);
-				b = center.getWorld().getBlockAt(centerLocation.add(v));
+
+				b = centerLocation.add(v).getBlock();
 				centerLocation.subtract(v);
 
 				if (BlockUtils.isPathable(b) && !b.isLiquid()) {
-					Block under = b.getRelative(BlockFace.DOWN);
+					under = b.getRelative(BlockFace.DOWN);
 					if (BlockUtils.isPathable(under) && !under.isLiquid()) b = under;
 				} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !b.getRelative(BlockFace.UP).isLiquid()) {
 					b = b.getRelative(BlockFace.UP);
@@ -320,13 +321,14 @@ public class NovaEffect extends SpellEffect {
 					currentBlocks.put(b.getLocation(), blockData.get(data));
 				}
 
-				for (Player p : nearby) {
-					p.sendMultiBlockChange(currentBlocks, true);
-				}
-
-				currentBlocks.clear();
 				previousBlocks.put(b.getLocation(), b.getBlockData());
 			}
+
+			for (Player p : nearby) {
+				p.sendMultiBlockChange(currentBlocks, true);
+			}
+
+			currentBlocks.clear();
 
 		}
 
