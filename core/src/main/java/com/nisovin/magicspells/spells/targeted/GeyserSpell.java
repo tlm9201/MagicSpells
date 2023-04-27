@@ -152,7 +152,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 		private final Location start;
 
 		private GeyserAnimation(BlockData blockData, Location start, List<Player> nearby, int animationSpeed, int geyserHeight) {
-			super(0, animationSpeed, true);
+			super(0, animationSpeed, true, false);
 
 			this.blockData = blockData;
 			this.start = start;
@@ -163,12 +163,12 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 		@Override
 		protected void onTick(int tick) {
 			if (blockData == null) {
-				stop(true);
+				stop();
 				return;
 			}
 
 			if (tick > geyserHeight << 1) {
-				stop(true);
+				stop();
 				return;
 			}
 

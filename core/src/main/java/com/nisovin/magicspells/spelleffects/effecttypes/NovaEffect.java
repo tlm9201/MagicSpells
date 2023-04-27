@@ -125,7 +125,7 @@ public class NovaEffect extends SpellEffect {
 		protected final int expandingRadiusChange;
 
 		public NovaAnimation(Collection<Player> nearby, Block center, ConfigData<BlockData> blockData, List<BlockData> blockDataList, SpellData data) {
-			super(expandInterval.get(data), true);
+			super(0, expandInterval.get(data), true, false);
 
 			this.data = data;
 			this.nearby = nearby;
@@ -167,11 +167,12 @@ public class NovaEffect extends SpellEffect {
 					for (Player p : nearby)
 						p.sendBlockChange(b.getLocation(), b.getBlockData());
 
+
 				blocks.clear();
 			}
 
 			if (tick > radius + 1) {
-				stop(true);
+				stop();
 				return;
 			}
 
@@ -212,8 +213,8 @@ public class NovaEffect extends SpellEffect {
 		}
 
 		@Override
-		public void stop(boolean removeEntry) {
-			super.stop(removeEntry);
+		public void stop() {
+			super.stop();
 
 			for (Block b : blocks) {
 				for (Player p : nearby)
@@ -250,7 +251,7 @@ public class NovaEffect extends SpellEffect {
 			}
 
 			if (tick > radius + 1) {
-				stop(true);
+				stop();
 				return;
 			}
 
@@ -319,8 +320,8 @@ public class NovaEffect extends SpellEffect {
 		}
 
 		@Override
-		public void stop(boolean removeEntry) {
-			super.stop(removeEntry);
+		public void stop() {
+			super.stop();
 
 			for (Block b : blocks)
 				for (Player p : nearby)
