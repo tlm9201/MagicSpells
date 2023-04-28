@@ -1504,6 +1504,11 @@ public class MagicSpells extends JavaPlugin {
 		return doVariableReplacements(player, doArgumentSubstitution(string, args));
 	}
 
+	public static String doReplacements(String message, SpellData data) {
+		if (data == null) return doReplacements(message, null, null, null, (String[]) null);
+		return doReplacements(message, data.caster(), data.target(), data.args(), (String[]) null);
+	}
+
 	public static String doReplacements(String message, LivingEntity caster) {
 		return doReplacements(message, caster, null, null, (String[]) null);
 	}

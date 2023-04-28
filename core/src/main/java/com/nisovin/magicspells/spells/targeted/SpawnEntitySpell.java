@@ -2,38 +2,39 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Set;
 import java.util.List;
+import java.util.Iterator;
 import java.util.ArrayList;
 
-import com.destroystokyo.paper.entity.ai.MobGoals;
-
-import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.Material;
-import org.bukkit.GameMode;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.meta.BlockDataMeta;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import net.kyori.adventure.text.Component;
-
-import org.apache.commons.math4.core.jdkmath.JdkMath;
+import com.destroystokyo.paper.entity.ai.MobGoals;
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.util.TargetInfo;
@@ -47,9 +48,10 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
+
 public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntityFromLocationSpell {
 
-	private List<LivingEntity> entities;
+	private final List<Entity> entities;
 
 	private EntityData entityData;
 
@@ -60,35 +62,35 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private ItemStack leggings;
 	private ItemStack boots;
 
-	private ConfigData<Float> mainHandItemDropChance;
-	private ConfigData<Float> offHandItemDropChance;
-	private ConfigData<Float> helmetDropChance;
-	private ConfigData<Float> chestplateDropChance;
-	private ConfigData<Float> leggingsDropChance;
-	private ConfigData<Float> bootsDropChance;
-	private ConfigData<Float> yOffset;
+	private final ConfigData<Float> mainHandItemDropChance;
+	private final ConfigData<Float> offHandItemDropChance;
+	private final ConfigData<Float> helmetDropChance;
+	private final ConfigData<Float> chestplateDropChance;
+	private final ConfigData<Float> leggingsDropChance;
+	private final ConfigData<Float> bootsDropChance;
+	private final ConfigData<Float> yOffset;
 
-	private ConfigData<Integer> duration;
-	private ConfigData<Integer> fireTicks;
-	private ConfigData<Integer> targetInterval;
+	private final ConfigData<Integer> duration;
+	private final ConfigData<Integer> fireTicks;
+	private final ConfigData<Integer> targetInterval;
 
 	private ConfigData<Double> targetRange;
 	private ConfigData<Double> retargetRange;
 
 	private String location;
 
-	private Component nameplateText;
+	private final String nameplateText;
 
-	private boolean noAI;
-	private boolean gravity;
-	private boolean removeAI;
-	private boolean removeMob;
-	private boolean invulnerable;
-	private boolean useCasterName;
-	private boolean addLookAtPlayerAI;
-	private boolean allowSpawnInMidair;
-	private boolean nameplateFormatting;
-	private boolean cancelAttack;
+	private final boolean noAI;
+	private final boolean gravity;
+	private final boolean removeAI;
+	private final boolean setOwner;
+	private final boolean removeMob;
+	private final boolean cancelAttack;
+	private final boolean invulnerable;
+	private final boolean useCasterName;
+	private final boolean addLookAtPlayerAI;
+	private final boolean allowSpawnInMidair;
 
 	private Subspell attackSpell;
 	private String attackSpellName;
@@ -165,10 +167,11 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		retargetRange = getConfigDataDouble("retarget-range", 50);
 
 		location = getConfigString("location", "target");
-		nameplateText = Util.getMiniMessage(getConfigString("nameplate-text", null));
+		nameplateText = getConfigString("nameplate-text", null);
 
 		noAI = getConfigBoolean("no-ai", false);
 		gravity = getConfigBoolean("gravity", true);
+		setOwner = getConfigBoolean("set-owner", true);
 		removeAI = getConfigBoolean("remove-ai", false);
 		removeMob = getConfigBoolean("remove-mob", true);
 		invulnerable = getConfigBoolean("invulnerable", false);
@@ -219,15 +222,18 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid attack-spell defined!");
 			attackSpell = null;
 		}
+		attackSpellName = null;
 	}
 
 	@Override
 	public void turnOff() {
-		for (LivingEntity entity : entities) {
+		Iterator<Entity> it = entities.iterator();
+		while (it.hasNext()) {
+			Entity entity = it.next();
+
+			it.remove();
 			entity.remove();
 		}
-
-		entities.clear();
 	}
 
 	@Override
@@ -261,30 +267,32 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				}
 			}
 
-			if (loc == null) return noTarget(caster, args);
-			spawnMob(caster, caster.getLocation(), loc, target, power, args);
+			if (loc == null || !spawnMob(caster, caster.getLocation(), loc, target, power, args))
+				return noTarget(caster, args);
 		}
+
 		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		switch (location.toLowerCase()) {
+		return switch (location.toLowerCase()) {
 			case "target" -> spawnMob(caster, caster.getLocation(), target, null, power, args);
 			case "caster" -> spawnMob(caster, caster.getLocation(), caster.getLocation(), null, power, args);
 			case "random" -> {
 				Location loc = getRandomLocationFrom(target, getRange(power));
-				if (loc != null) spawnMob(caster, caster.getLocation(), loc, null, power, args);
+				yield loc != null && spawnMob(caster, caster.getLocation(), loc, null, power, args);
 			}
 			case "offset" -> {
 				String[] split = location.split(":");
 				float y = Float.parseFloat(split[1]);
 				Location loc = target.clone().add(0, y, 0);
 				loc.setPitch(0);
-				spawnMob(caster, caster.getLocation(), loc, null, power, args);
+
+				yield spawnMob(caster, caster.getLocation(), loc, null, power, args);
 			}
-		}
-		return true;
+			default -> false;
+		};
 	}
 
 	@Override
@@ -294,21 +302,22 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 	@Override
 	public boolean castAtLocation(Location target, float power, String[] args) {
-		switch (location.toLowerCase()) {
+		return switch (location.toLowerCase()) {
 			case "target", "caster" -> spawnMob(null, target, target, null, power, args);
 			case "random" -> {
 				Location loc = getRandomLocationFrom(target, getRange(power));
-				if (loc != null) spawnMob(null, target, loc, null, power, args);
+				yield loc != null && spawnMob(null, target, loc, null, power, args);
 			}
 			case "offset" -> {
 				String[] split = location.split(":");
 				float y = Float.parseFloat(split[1]);
 				Location loc = target.clone().add(0, y, 0);
 				loc.setPitch(0);
-				spawnMob(null, target, loc, null, power, args);
+
+				yield spawnMob(null, target, loc, null, power, args);
 			}
-		}
-		return true;
+			default -> false;
+		};
 	}
 
 	@Override
@@ -374,51 +383,24 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		return null;
 	}
 
-	private void spawnMob(LivingEntity caster, Location source, Location loc, LivingEntity target, float power, String[] args) {
-		if (entityData == null || entityData.getEntityType() == null) return;
-		if (entityData.isPlayer()) return;
+	private boolean spawnMob(LivingEntity caster, Location source, Location loc, LivingEntity target, float power, String[] args) {
+		if (entityData == null) return false;
 
-		loc.setYaw((float) (JdkMath.random() * 360));
-		LivingEntity entity = (LivingEntity) entityData.spawn(
-			loc.add(0.5, yOffset.get(caster, target, power, args), 0.5),
-			e -> {
-				LivingEntity preSpawned = (LivingEntity) e;
-				prepMob(caster, target, preSpawned, power, args);
+		loc.add(0.5, yOffset.get(caster, target, power, args), 0.5).setYaw(random.nextFloat() * 360);
+		SpellData data = new SpellData(caster, target, power, args);
 
-				int fireTicks = this.fireTicks.get(caster, target, power, args);
-				if (fireTicks > 0) preSpawned.setFireTicks(fireTicks);
-				if (potionEffects != null) preSpawned.addPotionEffects(potionEffects);
-
-				// Apply attributes
-				if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(preSpawned, attributes);
-
-				if (removeAI) {
-					if (addLookAtPlayerAI) {
-						if (preSpawned instanceof Mob mob) {
-							MobGoals mobGoals = Bukkit.getMobGoals();
-							mobGoals.removeAllGoals(mob);
-							mobGoals.addGoal(mob, 1, new LookAtEntityGoal(mob, HumanEntity.class, 10.0F, 1.0F));
-						}
-					} else {
-						preSpawned.setAI(false);
-					}
-				}
-				preSpawned.setAI(!noAI);
-				preSpawned.setInvulnerable(invulnerable);
-
-				if (target != null) MobUtil.setTarget(preSpawned, target);
-			}
-		);
+		Entity entity = entityData.spawn(loc, data, mob -> prepMob(caster, target, mob, power, args));
+		if (entity == null) return false;
 
 		int targetInterval = this.targetInterval.get(caster, null, power, args);
-		if (targetInterval > 0) new Targeter(caster, entity, power, args);
+		if (targetInterval > 0 && entity instanceof Mob mob) new Targeter(caster, mob, power, args, targetInterval);
 
 		int duration = this.duration.get(caster, target, power, args);
-		if (attackSpell != null) {
-			AttackMonitor monitor = new AttackMonitor(caster, entity, target, power, args);
+		if (attackSpell != null && entity instanceof LivingEntity le) {
+			AttackMonitor monitor = new AttackMonitor(caster, le, target, power, args);
 			MagicSpells.registerEvents(monitor);
 
-			MagicSpells.scheduleDelayedTask(() -> HandlerList.unregisterAll(monitor), duration > 0 ? duration : 12000);
+			if (duration > 0) MagicSpells.scheduleDelayedTask(() -> HandlerList.unregisterAll(monitor), duration);
 		}
 
 		if (caster != null) playSpellEffects(caster, source, entity, power, args);
@@ -431,58 +413,74 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				entities.remove(entity);
 			}, duration);
 		}
+
+		return true;
 	}
 
 	private void prepMob(LivingEntity caster, LivingEntity target, Entity entity, float power, String[] args) {
 		entity.setGravity(gravity);
+		entity.setInvulnerable(invulnerable);
 
-		if (entityData.isTamed() && entity instanceof Tameable && caster != null && caster instanceof Player) {
-			((Tameable) entity).setOwner((Player) caster);
-		}
-
-		if (entity instanceof Enderman) {
-			if (mainHandItem != null && !BlockUtils.isAir(mainHandItem.getType())) {
-				((Enderman) entity).setCarriedMaterial(mainHandItem.getData());
-			}
-		} else if (entity instanceof LivingEntity) {
-			EntityEquipment entityEquipment = ((LivingEntity) entity).getEquipment();
-			if (mainHandItem != null && !BlockUtils.isAir(mainHandItem.getType())) {
-				entityEquipment.setItemInMainHand(mainHandItem);
-				entityEquipment.setItemInMainHandDropChance(mainHandItemDropChance.get(caster, target, power, args) / 100f);
-			}
-			if (offHandItem != null && !BlockUtils.isAir(offHandItem.getType())) {
-				entityEquipment.setItemInOffHand(offHandItem);
-				entityEquipment.setItemInOffHandDropChance(offHandItemDropChance.get(caster, target, power, args) / 100f);
-			}
-		}
-
-		final EntityEquipment equip = ((LivingEntity) entity).getEquipment();
-		equip.setHelmet(helmet);
-		equip.setChestplate(chestplate);
-		equip.setLeggings(leggings);
-		equip.setBoots(boots);
-		if (!(entity instanceof ArmorStand)) {
-			equip.setHelmetDropChance(helmetDropChance.get(caster, target, power, args) / 100f);
-			equip.setChestplateDropChance(chestplateDropChance.get(caster, target, power, args) / 100f);
-			equip.setLeggingsDropChance(leggingsDropChance.get(caster, target, power, args) / 100f);
-			equip.setBootsDropChance(bootsDropChance.get(caster, target, power, args) / 100f);
-		}
+		int fireTicks = this.fireTicks.get(caster, target, power, args);
+		if (fireTicks > 0) entity.setFireTicks(fireTicks);
 
 		if (useCasterName && caster != null) {
 			if (caster instanceof Player player) entity.customName(player.displayName());
 			else entity.customName(caster.name());
 			entity.setCustomNameVisible(true);
 		} else if (nameplateText != null) {
-			entity.customName(nameplateText);
+			entity.customName(Util.getMiniMessage(MagicSpells.doReplacements(nameplateText, caster, target, args)));
 			entity.setCustomNameVisible(true);
+		}
+
+		if (setOwner && entity instanceof Tameable tameable && tameable.isTamed() && caster instanceof AnimalTamer tamer)
+			tameable.setOwner(tamer);
+
+		if (entity instanceof Enderman enderman && mainHandItem != null) {
+			ItemMeta meta = mainHandItem.getItemMeta();
+
+			if (meta instanceof BlockDataMeta blockMeta)
+				enderman.setCarriedBlock(blockMeta.getBlockData(mainHandItem.getType()));
+		}
+
+		if (entity instanceof LivingEntity livingEntity) {
+			EntityEquipment equipment = livingEntity.getEquipment();
+			if (equipment != null) {
+				equipment.setItemInMainHand(mainHandItem);
+				equipment.setItemInOffHand(offHandItem);
+				equipment.setHelmet(helmet);
+				equipment.setChestplate(chestplate);
+				equipment.setLeggings(leggings);
+				equipment.setBoots(boots);
+
+				equipment.setItemInMainHandDropChance(mainHandItemDropChance.get(caster, target, power, args) / 100);
+				equipment.setItemInOffHandDropChance(offHandItemDropChance.get(caster, target, power, args) / 100);
+				equipment.setHelmetDropChance(helmetDropChance.get(caster, target, power, args) / 100);
+				equipment.setChestplateDropChance(chestplateDropChance.get(caster, target, power, args) / 100);
+				equipment.setLeggingsDropChance(leggingsDropChance.get(caster, target, power, args) / 100);
+				equipment.setBootsDropChance(bootsDropChance.get(caster, target, power, args) / 100);
+			}
+
+			if (potionEffects != null) livingEntity.addPotionEffects(potionEffects);
+			if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(livingEntity, attributes);
+
+			if (removeAI) {
+				if (addLookAtPlayerAI && livingEntity instanceof Mob mob) {
+					MobGoals mobGoals = Bukkit.getMobGoals();
+
+					mobGoals.removeAllGoals(mob);
+					mobGoals.addGoal(mob, 1, new LookAtEntityGoal(mob, HumanEntity.class, 10.0F, 1.0F));
+				} else livingEntity.setAI(false);
+			}
+
+			if (noAI) livingEntity.setAI(false);
+			if (livingEntity instanceof Mob mob) mob.setTarget(target);
 		}
 	}
 
 	@EventHandler
-	private void onEntityDeath(EntityDeathEvent event) {
-		LivingEntity entity = event.getEntity();
-		if (!entities.contains(entity)) return;
-		if (removeMob) entities.remove(entity);
+	private void onEntityRemove(EntityRemoveFromWorldEvent event) {
+		if (removeMob) entities.remove(event.getEntity());
 	}
 
 	private class AttackMonitor implements Listener {
@@ -504,108 +502,120 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 		@EventHandler(ignoreCancelled = true)
 		private void onDamage(EntityDamageByEntityEvent event) {
-			if (attackSpell == null || attackSpell.getSpell() == null || attackSpell.getSpell().onCooldown(caster))
-				return;
-
 			Entity damager = event.getDamager();
-			if (damager instanceof Projectile) {
-				if (((Projectile) damager).getShooter() != null && ((Projectile) damager).getShooter() instanceof Entity) {
-					damager = (Entity) ((Projectile) damager).getShooter();
-				}
-			}
-			if (event.getEntity() instanceof LivingEntity && damager == monster) {
-				if (attackSpell.isTargetedEntityFromLocationSpell()) {
-					attackSpell.castAtEntityFromLocation(caster, monster.getLocation(), (LivingEntity) event.getEntity(), power);
-				} else if (attackSpell.isTargetedEntitySpell()) {
-					attackSpell.castAtEntity(caster, (LivingEntity) event.getEntity(), power);
-				} else if (attackSpell.isTargetedLocationSpell()) {
-					attackSpell.castAtLocation(caster, event.getEntity().getLocation(), power);
-				} else {
+			if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Entity entity)
+				damager = entity;
+
+			if (damager != monster) return;
+
+			if (event.getEntity() instanceof LivingEntity damaged) {
+				if (attackSpell.isTargetedEntityFromLocationSpell())
+					attackSpell.castAtEntityFromLocation(caster, monster.getLocation(), damaged, power);
+				else if (attackSpell.isTargetedEntitySpell())
+					attackSpell.castAtEntity(caster, damaged, power);
+				else if (attackSpell.isTargetedLocationSpell())
+					attackSpell.castAtLocation(caster, damaged.getLocation(), power);
+				else
 					attackSpell.cast(caster, power);
-				}
-				event.setCancelled(SpawnEntitySpell.this.cancelAttack);
+
+				event.setCancelled(cancelAttack);
 			}
 		}
 
-		@EventHandler
+		@EventHandler(priority = EventPriority.LOWEST)
 		private void onTarget(EntityTargetEvent event) {
-			if (event.getEntity() == monster && !validTargetList.canTarget(caster, event.getTarget())) event.setCancelled(true);
-			else if (event.getTarget() == null) retarget(null);
-			else if (target != null && event.getTarget() != target) event.setTarget(target);
+			if (event.getEntity() != monster) return;
+
+			Entity newTarget = event.getTarget();
+			if (!validTargetList.canTarget(caster, newTarget)) {
+				if (target == null) retarget(null);
+				event.setTarget(target);
+			}
+		}
+
+		@EventHandler(priority = EventPriority.MONITOR)
+		private void onDeath(EntityDeathEvent event) {
+			LivingEntity entity = event.getEntity();
+			if (entity == monster) {
+				HandlerList.unregisterAll(this);
+				return;
+			}
+
+			if (entity != target) return;
+
+			retarget(entity);
+			if (target != null) MobUtil.setTarget(monster, target);
 		}
 
 		@EventHandler
-		private void onDeath(EntityDeathEvent event) {
-			if (event.getEntity() != target) return;
-			target = null;
-			retarget(event.getEntity());
+		public void onRemove(EntityRemoveFromWorldEvent event) {
+			Entity entity = event.getEntity();
+			if (entity == monster) {
+				HandlerList.unregisterAll(this);
+				return;
+			}
+
+			if (entity != target) return;
+
+			retarget(target);
+			if (target != null) MobUtil.setTarget(monster, target);
 		}
 
 		private void retarget(LivingEntity ignore) {
-			LivingEntity t = null;
-
 			double retargetRange = SpawnEntitySpell.this.retargetRange.get(caster, null, power, args);
-			double r = retargetRange * retargetRange;
+			double retargetRangeSq = retargetRange * retargetRange;
 
 			for (Entity e : monster.getNearbyEntities(retargetRange, retargetRange, retargetRange)) {
-				if (!(e instanceof LivingEntity)) continue;
-				if (!validTargetList.canTarget(caster, e)) continue;
-				if (e == ignore) continue;
+				if (e == ignore || !(e instanceof LivingEntity le) || !e.isValid()) continue;
+				if (!validTargetList.canTarget(caster, le)) continue;
 
-				if (e instanceof Player p) {
-					GameMode gamemode = p.getGameMode();
-					if (gamemode == GameMode.CREATIVE || gamemode == GameMode.SPECTATOR) continue;
-				}
-				int distanceSquared = (int) monster.getLocation().distanceSquared(e.getLocation());
-				if (distanceSquared < r) {
-					r = distanceSquared;
-					t = (LivingEntity) e;
-					if (r < 25) break;
+				double distanceSquared = monster.getLocation().distanceSquared(e.getLocation());
+				if (distanceSquared < retargetRangeSq) {
+					target = le;
+					return;
 				}
 			}
-			target = t;
-			if (t == null) return;
-			MobUtil.setTarget(monster, t);
 		}
 
 	}
 
 	private class Targeter implements Runnable {
 
+		private final Mob mob;
+
 		private final LivingEntity caster;
-		private final LivingEntity entity;
 		private final String[] args;
 		private final float power;
 		private final int taskId;
 
-		private Targeter(LivingEntity caster, LivingEntity entity, float power, String[] args) {
+		private Targeter(LivingEntity caster, Mob mob, float power, String[] args, int interval) {
 			this.caster = caster;
-			this.entity = entity;
 			this.power = power;
 			this.args = args;
+			this.mob = mob;
 
-			this.taskId = MagicSpells.scheduleRepeatingTask(this, 1, targetInterval.get(caster, null, power, args));
+			this.taskId = MagicSpells.scheduleRepeatingTask(this, 1, interval);
 		}
 
 		@Override
 		public void run() {
-			if (entity.isDead() || !entity.isValid()) {
+			if (!mob.isValid()) {
 				MagicSpells.cancelTask(taskId);
 				return;
 			}
 
 			double targetRange = SpawnEntitySpell.this.targetRange.get(caster, null, power, args);
-			List<Entity> list = entity.getNearbyEntities(targetRange, targetRange, targetRange);
-			List<LivingEntity> targetable = new ArrayList<>();
-			for (Entity e : list) {
-				if (!(e instanceof LivingEntity)) continue;
-				if (!validTargetList.canTarget(caster, e)) continue;
-				targetable.add((LivingEntity) e);
-			}
 
-			if (targetable.isEmpty()) return;
-			LivingEntity target = targetable.get(random.nextInt(targetable.size()));
-			MobUtil.setTarget(entity, target);
+			List<Entity> entities = mob.getNearbyEntities(targetRange, targetRange, targetRange);
+			List<LivingEntity> targets = new ArrayList<>();
+			for (Entity e : entities) {
+				if (!(e instanceof LivingEntity le) || !validTargetList.canTarget(caster, e)) continue;
+				targets.add(le);
+			}
+			if (targets.isEmpty()) return;
+
+			LivingEntity target = targets.get(random.nextInt(targets.size()));
+			mob.setTarget(target);
 		}
 
 	}
