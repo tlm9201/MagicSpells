@@ -95,6 +95,9 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private Subspell attackSpell;
 	private String attackSpellName;
 
+	private Subspell spellOnSpawn;
+	private String spellOnSpawnName;
+
 	private List<PotionEffect> potionEffects;
 	private Set<AttributeManager.AttributeInfo> attributes;
 
@@ -181,6 +184,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		cancelAttack = getConfigBoolean("cancel-attack", true);
 
 		attackSpellName = getConfigString("attack-spell", "");
+		spellOnSpawnName = getConfigString("spell-on-spawn", null);
 
 		// Attributes
 		// - [AttributeName] [Number] [Operation]
@@ -215,6 +219,17 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		if (entityData == null || entityData.getEntityType() == null) {
 			MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid entity defined!");
 			entityData = null;
+		}
+
+		if (spellOnSpawnName != null) {
+			spellOnSpawn = new Subspell(spellOnSpawnName);
+
+			if (!spellOnSpawn.process()) {
+				MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid spell-on-spawn '" + spellOnSpawnName + "' defined!");
+				spellOnSpawn = null;
+			}
+
+			spellOnSpawnName = null;
 		}
 
 		attackSpell = new Subspell(attackSpellName);
@@ -391,6 +406,15 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 		Entity entity = entityData.spawn(loc, data, mob -> prepMob(caster, target, mob, power, args));
 		if (entity == null) return false;
+
+		if (spellOnSpawn != null) {
+			if (spellOnSpawn.isTargetedEntitySpell() && entity instanceof LivingEntity le)
+				spellOnSpawn.castAtEntity(caster, le, power);
+			else if (spellOnSpawn.isTargetedLocationSpell())
+				spellOnSpawn.castAtLocation(caster, entity.getLocation(), power);
+			else
+				spellOnSpawn.cast(caster, power);
+		}
 
 		int targetInterval = this.targetInterval.get(caster, null, power, args);
 		if (targetInterval > 0 && entity instanceof Mob mob) new Targeter(caster, mob, power, args, targetInterval);
