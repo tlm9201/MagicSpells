@@ -10,6 +10,8 @@ import org.bukkit.Color;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.util.Vector;
+import org.bukkit.util.EulerAngle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.Particle.DustOptions;
@@ -441,6 +443,86 @@ public class ConfigDataUtil {
 
 			};
 		}
+	}
+
+	@NotNull
+	public static ConfigData<Vector> getVector(@NotNull ConfigurationSection config, @NotNull String path, @NotNull Vector def) {
+		if (config.isString(path)) {
+			String value = config.getString(path);
+			if (value == null) return (caster, target, power, args) -> def;
+
+			String[] data = value.split(",");
+			if (data.length != 3) return (caster, target, power, args) -> def;
+
+			try {
+				Vector vector = new Vector(Double.parseDouble(data[0]), Double.parseDouble(data[1]), Double.parseDouble(data[2]));
+				return (caster, target, power, args) -> vector;
+			} catch (NumberFormatException e) {
+				return (caster, target, power, args) -> def;
+			}
+		}
+
+		if (config.isConfigurationSection(path)) {
+			ConfigurationSection section = config.getConfigurationSection(path);
+			if (section == null) return (caster, target, power, args) -> def;
+
+			ConfigData<Double> x = getDouble(section, "x", def.getX());
+			ConfigData<Double> y = getDouble(section, "y", def.getY());
+			ConfigData<Double> z = getDouble(section, "z", def.getZ());
+
+			if (x.isConstant() && y.isConstant() && z.isConstant()) {
+				Vector vector = new Vector(x.get(null), y.get(null), z.get(null));
+				return (caster, target, power, args) -> vector;
+			}
+
+			return (caster, target, power, args) -> new Vector(
+				x.get(caster, target, power, args),
+				y.get(caster, target, power, args),
+				z.get(caster, target, power, args)
+			);
+		}
+
+		return (caster, target, power, args) -> def;
+	}
+
+	@NotNull
+	public static ConfigData<EulerAngle> getEulerAngle(@NotNull ConfigurationSection config, @NotNull String path, @NotNull EulerAngle def) {
+		if (config.isString(path)) {
+			String value = config.getString(path);
+			if (value == null) return (caster, target, power, args) -> def;
+
+			String[] data = value.split(",");
+			if (data.length != 3) return (caster, target, power, args) -> def;
+
+			try {
+				EulerAngle angle = new EulerAngle(Double.parseDouble(data[0]), Double.parseDouble(data[1]), Double.parseDouble(data[2]));
+				return (caster, target, power, args) -> angle;
+			} catch (NumberFormatException e) {
+				return (caster, target, power, args) -> def;
+			}
+		}
+
+		if (config.isConfigurationSection(path)) {
+			ConfigurationSection section = config.getConfigurationSection(path);
+			if (section == null) return (caster, target, power, args) -> def;
+
+			ConfigData<Double> x = getDouble(section, "x", def.getX());
+			ConfigData<Double> y = getDouble(section, "y", def.getY());
+			ConfigData<Double> z = getDouble(section, "z", def.getZ());
+
+			if (x.isConstant() && y.isConstant() && z.isConstant()) {
+				EulerAngle angle = new EulerAngle(x.get(null), y.get(null), z.get(null));
+				return (caster, target, power, args) -> angle;
+			}
+
+			return (caster, target, power, args) -> new EulerAngle(
+				x.get(caster, target, power, args),
+				y.get(caster, target, power, args),
+				z.get(caster, target, power, args)
+			);
+		}
+
+		return (caster, target, power, args) -> def;
 	}
 
 	@NotNull
