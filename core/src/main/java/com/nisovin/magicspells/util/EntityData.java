@@ -9,10 +9,8 @@ import java.util.function.BiConsumer;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 
+import org.bukkit.*;
 import org.bukkit.entity.*;
-import org.bukkit.Location;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.bukkit.util.Consumer;
 import org.bukkit.util.EulerAngle;
@@ -232,6 +230,50 @@ public class EntityData {
 			if (color != null) wolf.setCollarColor(color);
 		});
 
+		if (Bukkit.getMinecraftVersion().contains("1.19.4")) {
+			// Display shared
+
+			addEnum(transformers, config, "billboard", null, Display.class, Display.Billboard.class, (display, billboard) -> {
+				if (billboard != null) display.setBillboard(billboard);
+			});
+
+			//###setBRIGHTNESS
+			//###setGLOW_COLOR_OVERRIDE
+			//###setTRANSFORMATION
+
+			addFloat(transformers, config, "display-height", 0, Display.class, Display::setDisplayHeight);
+			addFloat(transformers, config, "display-width", 0, Display.class, Display::setDisplayWidth);
+
+			addInteger(transformers, config, "interpolation-delay", 0, Display.class, Display::setInterpolationDelay);
+			addInteger(transformers, config, "interpolation-duration", 0, Display.class, Display::setInterpolationDuration);
+
+			addFloat(transformers, config, "shadow-radius", 0, Display.class, Display::setShadowRadius);
+			addFloat(transformers, config, "shadow-strength", 0, Display.class, Display::setShadowStrength);
+
+			addFloat(transformers, config, "view-range", 0, Display.class, Display::setViewRange);
+
+			// Text Display
+			addEnum(transformers, config, "alignment", null, TextDisplay.class, TextDisplay.TextAlignment.class, (display, alignment) -> {
+				if (alignment != null) display.setAlignment(alignment);
+			});
+			//###setBackgroundColor
+			addBoolean(transformers, config, "default-background", false, TextDisplay.class, TextDisplay::setDefaultBackground);
+			addInteger(transformers, config, "line-width", 0, TextDisplay.class, TextDisplay::setLineWidth);
+			addBoolean(transformers, config, "see-through", false, TextDisplay.class, TextDisplay::setSeeThrough);
+			addBoolean(transformers, config, "shadowed", false, TextDisplay.class, TextDisplay::setShadowed);
+			addByte(transformers, config, "text-opacity", (byte) 0, TextDisplay.class, TextDisplay::setTextOpacity);
+			//###text
+
+			// Item Display
+			addEnum(transformers, config, "item-display-transform", null, ItemDisplay.class, ItemDisplay.ItemDisplayTransform.class, (display, transform) -> {
+				if (transform != null) display.setItemDisplayTransform(transform);
+			});
+			//###setItemstack
+
+			// Block Display
+			addBlockData(transformers, config, "block", null, BlockDisplay.class, BlockDisplay::setBlock);
+		}
+
 		for (EntityType entityType : EntityType.values()) {
 			Class<? extends Entity> entityClass = entityType.getEntityClass();
 			if (entityClass == null) continue;
@@ -312,6 +354,20 @@ public class EntityData {
 
 	private <T> ConfigData<Integer> addInteger(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, int def, Class<T> type, BiConsumer<T, Integer> setter) {
 		ConfigData<Integer> supplier = ConfigDataUtil.getInteger(config, name, def);
+		transformers.put(type, new Transformer<>(supplier, setter));
+
+		return supplier;
+	}
+
+	private <T> ConfigData<Float> addFloat(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, float def, Class<T> type, BiConsumer<T, Float> setter) {
+		ConfigData<Float> supplier = ConfigDataUtil.getFloat(config, name, def);
+		transformers.put(type, new Transformer<>(supplier, setter));
+
+		return supplier;
+	}
+
+	private <T> ConfigData<Byte> addByte(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, byte def, Class<T> type, BiConsumer<T, Byte> setter) {
+		ConfigData<Byte> supplier = ConfigDataUtil.getByte(config, name, def);
 		transformers.put(type, new Transformer<>(supplier, setter));
 
 		return supplier;
