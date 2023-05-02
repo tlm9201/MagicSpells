@@ -1589,20 +1589,20 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	@Deprecated
-	protected Set<Entity> playSpellEntityEffects(EffectPosition pos, Location location) {
+	protected Map<SpellEffect, Entity> playSpellEntityEffects(EffectPosition pos, Location location) {
 		return playSpellEntityEffects(pos, location, null);
 	}
 
-	protected Set<Entity> playSpellEntityEffects(EffectPosition pos, Location location, SpellData data) {
+	protected Map<SpellEffect, Entity> playSpellEntityEffects(EffectPosition pos, Location location, SpellData data) {
 		if (effects == null) return null;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return null;
-		Set<Entity> entities = new HashSet<>();
+		Map<SpellEffect, Entity> values = new HashMap<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof EntityEffect)) continue;
-			entities.add(effect.playEntityEffect(location, data));
+			values.put(effect, effect.playEntityEffect(location, data));
 		}
-		return entities;
+		return values;
 	}
 
 	@Deprecated
