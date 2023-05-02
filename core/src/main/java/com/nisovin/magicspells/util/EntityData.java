@@ -2,6 +2,7 @@ package com.nisovin.magicspells.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;
@@ -413,90 +414,92 @@ public class EntityData {
 		this.entityType = entityType;
 	}
 
+	@ApiStatus.Internal
 	public ConfigData<Material> getDroppedItemStack() {
 		return dropItemMaterial;
 	}
 
+	@ApiStatus.Internal
 	public ConfigData<BlockData> getFallingBlockData() {
 		return fallingBlockData;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Boolean> getBaby() {
 		return baby;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Boolean> getChested() {
 		return chested;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Boolean> getPowered() {
 		return powered;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<BlockData> getCarriedBlockData() {
 		return carriedBlockData;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Horse.Color> getHorseColor() {
 		return horseColor;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Horse.Style> getHorseStyle() {
 		return horseStyle;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Boolean> getSaddled() {
 		return saddled;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Llama.Color> getLlamaColor() {
 		return llamaColor;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Parrot.Variant> getParrotVariant() {
 		return parrotVariant;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Integer> getSize() {
 		return size;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Boolean> getSheared() {
 		return sheared;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<DyeColor> getColor() {
 		return color;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Boolean> getTamed() {
 		return tamed;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<TropicalFish.Pattern> getTropicalFishPattern() {
 		return tropicalFishPattern;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<DyeColor> getTropicalFishPatternColor() {
 		return tropicalFishPatternColor;
 	}
 
-	@Deprecated
+	@ApiStatus.Internal
 	public ConfigData<Villager.Profession> getProfession() {
 		return profession;
 	}
