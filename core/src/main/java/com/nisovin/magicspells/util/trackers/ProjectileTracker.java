@@ -39,6 +39,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 	private int tickInterval;
 	private int tickSpellInterval;
 	private int specialEffectInterval;
+	private int intermediateEffects;
+	private int intermediateHitboxes;
 
 	private float rotation;
 	private float velocity;
@@ -191,19 +193,58 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.castAtLocation(caster, currentLocation, power);
 
-		if (spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, spellData);
+		if (spell != null) {
+			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, spellData);
+			if (intermediateEffects > 0) playIntermediateEffects(previousLocation, currentVelocity);
+		}
 
 		counter++;
 
-		for (Entity e : projectile.getNearbyEntities(hitRadius, verticalHitRadius, hitRadius)) {
-			if (!(e instanceof LivingEntity livingEntity)) continue;
-			if (!targetList.canTarget(caster, e)) continue;
+		if (intermediateHitboxes > 0) checkIntermediateHitboxes(previousLocation, currentVelocity);
+		checkHitbox(currentLocation);
+	}
 
-			SpellTargetEvent event = new SpellTargetEvent(spell, caster, livingEntity, power, args);
+	public void playIntermediateEffects(Location old, Vector movement) {
+		if (old == null) return;
+		int divideFactor = intermediateEffects + 1;
+		Vector v = movement.clone();
+
+		v.setX(v.getX() / divideFactor);
+		v.setY(v.getY() / divideFactor);
+		v.setZ(v.getZ() / divideFactor);
+
+		for (int i = 0; i < intermediateEffects; i++) {
+			old = old.add(v).setDirection(v);
+			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, old, spellData);
+		}
+	}
+
+	public void checkIntermediateHitboxes(Location old, Vector movement) {
+		if (old == null) return;
+		int divideFactor = intermediateHitboxes + 1;
+		Vector v = movement.clone();
+
+		v.setX(v.getX() / divideFactor);
+		v.setY(v.getY() / divideFactor);
+		v.setZ(v.getZ() / divideFactor);
+
+		for (int i = 0; i < intermediateHitboxes; i++) {
+			old = old.add(v).setDirection(v);
+			checkHitbox(old);
+		}
+	}
+
+	public void checkHitbox(Location location) {
+		if (location == null) return;
+		if (caster == null) return;
+		for (LivingEntity entity : projectile.getLocation().getNearbyLivingEntities(hitRadius, verticalHitRadius, hitRadius)) {
+			if (!targetList.canTarget(caster, entity)) continue;
+
+			SpellTargetEvent event = new SpellTargetEvent(spell, caster, entity, power, args);
 			EventUtil.call(event);
 			if (event.isCancelled()) continue;
 
-			if (hitSpell != null) hitSpell.castAtEntity(caster, livingEntity, event.getPower());
+			if (hitSpell != null) hitSpell.castAtEntity(caster, entity, event.getPower());
 			if (entityLocationSpell != null) entityLocationSpell.castAtLocation(caster, currentLocation, event.getPower());
 
 			stop();
@@ -283,6 +324,22 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 	public void setSpecialEffectInterval(int specialEffectInterval) {
 		this.specialEffectInterval = specialEffectInterval;
+	}
+
+	public void setIntermediateEffects(int intermediateEffects) {
+		this.intermediateEffects = intermediateEffects;
+	}
+
+	public int getIntermediateEffects() {
+		return intermediateEffects;
+	}
+
+	public void setIntermediateHitboxes(int intermediateHitboxes) {
+		this.intermediateHitboxes = intermediateHitboxes;
+	}
+
+	public int getIntermediateHitboxes() {
+		return intermediateHitboxes;
 	}
 
 	public float getRotation() {
