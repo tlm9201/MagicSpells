@@ -41,6 +41,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.Subspell.CastMode;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 import net.kyori.adventure.text.Component;
@@ -155,9 +156,7 @@ public class Util {
 	}
 
 	public static PotionEffectType getPotionEffectType(String type) {
-		type = type.trim();
-		if (PotionEffectType.getByName(type) == null) return PotionEffectType.getByKey(NamespacedKey.minecraft(type));
-		return PotionEffectType.getByName(type);
+		return PotionEffectHandler.getPotionEffectType(type);
 	}
 
 	public static Particle getParticle(String type) {
