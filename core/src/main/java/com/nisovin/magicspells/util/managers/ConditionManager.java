@@ -66,6 +66,7 @@ public class ConditionManager {
 		addCondition("storm", StormCondition.class);
 		addCondition("moonphase", MoonPhaseCondition.class);
 		addCondition("lightlevel", LightLevelCondition.class);
+		addCondition("los", LineOfSightCondition.class);
 		addCondition("onblock", OnBlockCondition.class);
 		addCondition("inblock", InBlockCondition.class);
 		addCondition("onground", OnGroundCondition.class);
