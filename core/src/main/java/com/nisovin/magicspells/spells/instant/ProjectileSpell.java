@@ -1,9 +1,6 @@
 package com.nisovin.magicspells.spells.instant;
 
-import java.util.Set;
-import java.util.List;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -32,12 +29,14 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.trackers.ProjectileTracker;
 import com.nisovin.magicspells.util.projectile.ProjectileManager;
 import com.nisovin.magicspells.util.projectile.ProjectileManagers;
+import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 
 public class ProjectileSpell extends InstantSpell implements TargetedLocationSpell {
 
@@ -48,6 +47,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private ProjectileManager projectileManager;
 
 	private Vector relativeOffset;
+	private Vector effectOffset;
 
 	private ConfigData<Integer> tickInterval;
 	private ConfigData<Integer> tickSpellInterval;
@@ -62,6 +62,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private ConfigData<Float> horizSpread;
 	private ConfigData<Float> verticalHitRadius;
 
+	private boolean visible;
 	private boolean gravity;
 	private boolean charged;
 	private boolean incendiary;
@@ -97,6 +98,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		projectileManager = ProjectileManagers.getManager(getConfigString("projectile-type",  "arrow"));
 
 		relativeOffset = getConfigVector("relative-offset", "0,1.5,0");
+		effectOffset = getConfigVector("effect-offset", "0,0,0");
 
 		tickInterval = getConfigDataInt("tick-interval", 1);
 		tickSpellInterval = getConfigDataInt("spell-interval", 20);
@@ -111,6 +113,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		horizSpread = getConfigDataFloat("horizontal-spread", 0F);
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", 2F);
 
+		visible = getConfigBoolean("visible", true);
 		gravity = getConfigBoolean("gravity", true);
 		charged = getConfigBoolean("charged", false);
 		incendiary = getConfigBoolean("incendiary", false);
@@ -228,6 +231,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 		tracker.setProjectileManager(projectileManager);
 		tracker.setRelativeOffset(relativeOffset);
+		tracker.setEffectOffset(effectOffset);
 
 		tracker.setTickInterval(tickInterval.get(data));
 		tracker.setTickSpellInterval(tickSpellInterval.get(data));
@@ -242,6 +246,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		tracker.setHorizSpread(horizSpread.get(data));
 		tracker.setVerticalHitRadius(verticalHitRadius.get(data));
 
+		tracker.setVisible(visible);
 		tracker.setGravity(gravity);
 		tracker.setCharged(charged);
 		tracker.setIncendiary(incendiary);
@@ -376,6 +381,14 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		playSpellEffects(position, entity, data);
 	}
 
+	public Set<EffectlibSpellEffect> playEffectsProjectile(EffectPosition position, Location location, SpellData data) {
+		return playSpellEffectLibEffects(position, location, data);
+	}
+
+	public Map<SpellEffect, Entity> playEntityEffectsProjectile(EffectPosition position, Location location, SpellData data) {
+		return playSpellEntityEffects(position, location, data);
+	}
+
 	public static Set<ProjectileTracker> getProjectileTrackers() {
 		return trackerSet;
 	}
@@ -402,6 +415,22 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	public void setRelativeOffset(Vector relativeOffset) {
 		this.relativeOffset = relativeOffset;
+	}
+
+	public Vector getEffectOffset() {
+		return effectOffset;
+	}
+
+	public void setEffectOffset(Vector effectOffset) {
+		this.effectOffset = effectOffset;
+	}
+
+	public boolean isVisible() {
+		return visible;
+	}
+
+	public void setVisible(boolean visible) {
+		this.visible = visible;
 	}
 
 	public boolean hasGravity() {
