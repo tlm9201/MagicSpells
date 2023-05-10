@@ -199,7 +199,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 	}
 	
 	private boolean castTargetedSpells(Subspell spell, LivingEntity caster, Location center, LivingEntity targetEnt, Location targetLoc, float power) {
-		if (spell.isTargetedEntityFromLocationSpell() && targetEnt != null) {
+		if (spell.isTargetedEntityFromLocationSpell() && targetEnt != null && center != null) {
 			return spell.castAtEntityFromLocation(caster, center, targetEnt, power, passTargeting);
 		}
 
