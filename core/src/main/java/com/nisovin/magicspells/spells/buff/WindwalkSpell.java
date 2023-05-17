@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -85,11 +86,13 @@ public class WindwalkSpell extends BuffSpell {
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		players.remove(entity.getUniqueId());
-		((Player) entity).setFlying(false);
-		if (((Player) entity).getGameMode() != GameMode.CREATIVE) ((Player) entity).setAllowFlight(false);
-		((Player) entity).setFlySpeed(0.1F);
-		entity.setFallDistance(0);
+		Player pl = (Player) entity;
+
+		players.remove(pl.getUniqueId());
+		pl.setFlying(false);
+		if (pl.getGameMode() != GameMode.CREATIVE) pl.setAllowFlight(false);
+		pl.setFlySpeed(0.1F);
+		pl.setFallDistance(0);
 
 		if (heightMonitor != null && players.isEmpty()) {
 			heightMonitor.stop();
@@ -99,11 +102,16 @@ public class WindwalkSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
+		Player pl;
 		for (UUID id : players.keySet()) {
-			Player player = Bukkit.getPlayer(id);
-			if (player == null) continue;
-			if (!player.isValid()) continue;
-			turnOff(player);
+			pl = Bukkit.getPlayer(id);
+			if (pl == null) continue;
+			if (!pl.isValid()) continue;
+			if (pl.getGameMode() != GameMode.CREATIVE) pl.setAllowFlight(false);
+
+			pl.setFlying(false);
+			pl.setFlySpeed(0.1F);
+			pl.setFallDistance(0);
 		}
 
 		players.clear();
@@ -147,30 +155,43 @@ public class WindwalkSpell extends BuffSpell {
 
 		@Override
 		public void run() {
+			Player pl;
+			CastData data;
+
+			int yDiff;
+			int yLimit;
+			int altitudeLimit;
+
+			Location loc;
+			Vector v;
+
 			for (UUID id : players.keySet()) {
-				Player player = Bukkit.getPlayer(id);
-				if (player == null || !player.isValid()) continue;
+				pl = Bukkit.getPlayer(id);
+				if (pl == null || !pl.isValid()) continue;
 
-				addUseAndChargeCost(player);
+				addUseAndChargeCost(pl);
 
-				CastData data = players.get(id);
+				data = players.get(id);
 
-				int maxY = WindwalkSpell.this.maxY.get(player, null, data.power(), data.args());
-				if (maxY > 0) {
-					int ydiff = player.getLocation().getBlockY() - maxY;
-					if (ydiff > 0) {
-						player.setVelocity(player.getVelocity().setY(-ydiff * 1.5));
+				loc = pl.getLocation();
+				v = pl.getVelocity();
+
+				yLimit = maxY.get(pl, null, data.power(), data.args());
+				if (yLimit > 0) {
+					yDiff = loc.getBlockY() - yLimit;
+					if (yDiff > 0) {
+						pl.setVelocity(v.setY(-yDiff * 1.5));
 						continue;
 					}
 				}
 
-				int maxAltitude = WindwalkSpell.this.maxAltitude.get(player, null, data.power(), data.args());
-				if (maxAltitude > 0) {
-					int ydiff = player.getLocation().getBlockY() - player.getWorld().getHighestBlockYAt(player.getLocation()) - maxAltitude;
-					if (ydiff > 0) player.setVelocity(player.getVelocity().setY(-ydiff * 1.5));
+				altitudeLimit = maxAltitude.get(pl, null, data.power(), data.args());
+				if (altitudeLimit > 0) {
+					yDiff = loc.getBlockY() - pl.getWorld().getHighestBlockYAt(loc) - altitudeLimit;
+					if (yDiff > 0) pl.setVelocity(v.setY(-yDiff * 1.5));
 				}
 
-				player.setFlySpeed(flySpeed.get(player, null, data.power(), data.args()));
+				pl.setFlySpeed(flySpeed.get(pl, null, data.power(), data.args()));
 			}
 		}
 
