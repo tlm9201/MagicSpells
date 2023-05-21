@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
@@ -34,6 +35,7 @@ public class WindwalkSpell extends BuffSpell {
 	private final ConfigData<Float> flySpeed;
 	private final ConfigData<Float> launchSpeed;
 
+	private final boolean alwaysFly;
 	private boolean cancelOnLand;
 
 	private HeightMonitor heightMonitor;
@@ -48,6 +50,7 @@ public class WindwalkSpell extends BuffSpell {
 		flySpeed = getConfigDataFloat("fly-speed", 0.1F);
 		launchSpeed = getConfigDataFloat("launch-speed", 1F);
 
+		alwaysFly = getConfigBoolean("always-fly", false);
 		cancelOnLand = getConfigBoolean("cancel-on-land", true);
 
 		players = new HashMap<>();
@@ -57,7 +60,8 @@ public class WindwalkSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 
-		if (cancelOnLand) registerEvents(new SneakListener());
+		if (alwaysFly) registerEvents(new FlyDisableListener());
+		if (alwaysFly || cancelOnLand) registerEvents(new SneakListener());
 	}
 
 	@Override
@@ -134,6 +138,18 @@ public class WindwalkSpell extends BuffSpell {
 		this.cancelOnLand = cancelOnLand;
 	}
 
+	public class FlyDisableListener implements Listener {
+
+		@EventHandler(priority = EventPriority.MONITOR)
+		public void onPlayerToggleFlight(PlayerToggleFlightEvent event) {
+			Player player = event.getPlayer();
+			if (!isActive(player)) return;
+			if (event.isFlying()) return;
+			event.setCancelled(true);
+		}
+
+	}
+
 	public class SneakListener implements Listener {
 
 		@EventHandler(priority = EventPriority.MONITOR)
@@ -141,7 +157,11 @@ public class WindwalkSpell extends BuffSpell {
 			Player player = event.getPlayer();
 			if (!isActive(player)) return;
 			if (BlockUtils.isAir(player.getLocation().subtract(0, 1, 0).getBlock().getType())) return;
-			turnOff(player);
+			if (alwaysFly) {
+				player.teleportAsync(player.getLocation().add(0, 0.25, 0));
+				player.setFlying(true);
+			}
+			else if (cancelOnLand) turnOff(player);
 		}
 
 	}
