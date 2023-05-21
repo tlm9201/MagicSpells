@@ -83,7 +83,7 @@ public class BuffListener extends PassiveListener {
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
 		if (gameModes.contains(event.getNewGameMode())) off(event.getPlayer());
-		else on(event.getPlayer());
+		else MagicSpells.scheduleDelayedTask(() -> on(event.getPlayer()), 1);
 	}
 
 	@OverridePriority
