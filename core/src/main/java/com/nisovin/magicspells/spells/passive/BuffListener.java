@@ -22,7 +22,6 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellLearnEvent;
 import com.nisovin.magicspells.events.SpellForgetEvent;
@@ -113,9 +112,7 @@ public class BuffListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onSpellLearn(final SpellLearnEvent event) {
-		Spell spell = event.getSpell();
-		if (!(spell instanceof PassiveSpell)) return;
-		if (!spell.getInternalName().equalsIgnoreCase(passiveSpell.getInternalName())) return;
+		if (!passiveSpell.equals(event.getSpell())) return;
 		MagicSpells.scheduleDelayedTask(() -> on(event.getLearner()), 1);
 	}
 
@@ -123,8 +120,7 @@ public class BuffListener extends PassiveListener {
 	@EventHandler
 	public void onSpellForget(SpellForgetEvent event) {
 		Spell spell = event.getSpell();
-		if (!(spell instanceof PassiveSpell)) return;
-		if (!spell.getInternalName().equalsIgnoreCase(passiveSpell.getInternalName())) return;
+		if (spell != null && !passiveSpell.equals(spell)) return;
 		off(event.getForgetter());
 	}
 
