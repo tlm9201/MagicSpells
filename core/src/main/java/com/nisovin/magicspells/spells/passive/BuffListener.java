@@ -30,7 +30,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // No trigger variable currently used
 public class BuffListener extends PassiveListener {
 
-	private final EnumSet<GameMode> gameModes = EnumSet.of(GameMode.CREATIVE, GameMode.SPECTATOR);
+	private final EnumSet<GameMode> invalidGameModes = EnumSet.of(GameMode.CREATIVE, GameMode.SPECTATOR);
 
 	@Override
 	public void initialize(String var) {
@@ -81,7 +81,7 @@ public class BuffListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onGameModeChange(PlayerGameModeChangeEvent event) {
-		if (gameModes.contains(event.getNewGameMode())) off(event.getPlayer());
+		if (invalidGameModes.contains(event.getNewGameMode())) off(event.getPlayer());
 		else MagicSpells.scheduleDelayedTask(() -> on(event.getPlayer()), 1);
 	}
 
@@ -125,7 +125,7 @@ public class BuffListener extends PassiveListener {
 	}
 
 	private void on(LivingEntity entity) {
-		if (!canTrigger(entity, true)) return;
+		if (!canTrigger(entity, false)) return;
 		if (!hasSpell(entity)) return;
 
 		for (Subspell s : passiveSpell.getActivatedSpells()) {
@@ -136,7 +136,7 @@ public class BuffListener extends PassiveListener {
 	}
 
 	private void off(LivingEntity entity) {
-		if (!canTrigger(entity, true)) return;
+		if (!canTrigger(entity, false)) return;
 		if (!hasSpell(entity)) return;
 
 		for (Subspell s : passiveSpell.getActivatedSpells()) {
