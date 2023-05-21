@@ -25,7 +25,7 @@ import com.nisovin.magicspells.util.config.ConfigData;
 
 public class WindwalkSpell extends BuffSpell {
 
-	private final Map<UUID, CastData> players;
+	private final Map<UUID, FlyData> players;
 
 	private final boolean enableMaxY;
 	private final ConfigData<Integer> maxY;
@@ -68,7 +68,8 @@ public class WindwalkSpell extends BuffSpell {
 		if (launchSpeed > 0) entity.setVelocity(new Vector(0, launchSpeed, 0));
 		else entity.teleportAsync(entity.getLocation().add(0, 0.25, 0));
 
-		players.put(entity.getUniqueId(), new CastData(power, args));
+		FlyData flyData = new FlyData(new CastData(power, args), player.getAllowFlight(), player.getFlySpeed());
+		players.put(entity.getUniqueId(), flyData);
 
 		player.setAllowFlight(true);
 		player.setFlying(true);
@@ -88,10 +89,10 @@ public class WindwalkSpell extends BuffSpell {
 	public void turnOffBuff(LivingEntity entity) {
 		Player pl = (Player) entity;
 
-		players.remove(pl.getUniqueId());
+		FlyData flyData = players.remove(pl.getUniqueId());
 		pl.setFlying(false);
-		if (pl.getGameMode() != GameMode.CREATIVE) pl.setAllowFlight(false);
-		pl.setFlySpeed(0.1F);
+		pl.setAllowFlight(flyData.wasFlyingAllowed());
+		pl.setFlySpeed(flyData.oldFlySpeed());
 		pl.setFallDistance(0);
 
 		if (heightMonitor != null && players.isEmpty()) {
@@ -121,7 +122,7 @@ public class WindwalkSpell extends BuffSpell {
 		heightMonitor = null;
 	}
 
-	public Map<UUID, CastData> getPlayers() {
+	public Map<UUID, FlyData> getPlayers() {
 		return players;
 	}
 
@@ -171,7 +172,7 @@ public class WindwalkSpell extends BuffSpell {
 
 				addUseAndChargeCost(pl);
 
-				data = players.get(id);
+				data = players.get(id).castData();
 
 				loc = pl.getLocation();
 				v = pl.getVelocity();
@@ -200,5 +201,7 @@ public class WindwalkSpell extends BuffSpell {
 		}
 
 	}
+
+	private record FlyData(CastData castData, boolean wasFlyingAllowed, float oldFlySpeed) {}
 
 }
