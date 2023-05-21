@@ -177,6 +177,7 @@ public class ConditionManager {
 		addCondition("loopactive", LoopActiveCondition.class);
 		addCondition("ownedloopactive", OwnedLoopActiveCondition.class);
 		addCondition("always", AlwaysCondition.class);
+		addCondition("velocityactive", VelocityActiveCondition.class);
 	}
 
 }

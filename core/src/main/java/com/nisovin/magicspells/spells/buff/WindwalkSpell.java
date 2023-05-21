@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
@@ -25,14 +26,16 @@ import com.nisovin.magicspells.util.config.ConfigData;
 
 public class WindwalkSpell extends BuffSpell {
 
-	private final Map<UUID, CastData> players;
+	private final Map<UUID, FlyData> players;
 
-	private ConfigData<Integer> maxY;
-	private ConfigData<Integer> maxAltitude;
+	private final boolean enableMaxY;
+	private final ConfigData<Integer> maxY;
+	private final ConfigData<Integer> maxAltitude;
 
-	private ConfigData<Float> flySpeed;
-	private ConfigData<Float> launchSpeed;
+	private final ConfigData<Float> flySpeed;
+	private final ConfigData<Float> launchSpeed;
 
+	private final boolean alwaysFly;
 	private boolean cancelOnLand;
 
 	private HeightMonitor heightMonitor;
@@ -42,10 +45,12 @@ public class WindwalkSpell extends BuffSpell {
 
 		maxY = getConfigDataInt("max-y", 260);
 		maxAltitude = getConfigDataInt("max-altitude", 100);
+		enableMaxY = getConfigBoolean("enable-max-y", true);
 
 		flySpeed = getConfigDataFloat("fly-speed", 0.1F);
 		launchSpeed = getConfigDataFloat("launch-speed", 1F);
 
+		alwaysFly = getConfigBoolean("always-fly", false);
 		cancelOnLand = getConfigBoolean("cancel-on-land", true);
 
 		players = new HashMap<>();
@@ -55,7 +60,8 @@ public class WindwalkSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 
-		if (cancelOnLand) registerEvents(new SneakListener());
+		if (alwaysFly) registerEvents(new FlyDisableListener());
+		if (alwaysFly || cancelOnLand) registerEvents(new SneakListener());
 	}
 
 	@Override
@@ -63,12 +69,11 @@ public class WindwalkSpell extends BuffSpell {
 		if (!(entity instanceof Player player)) return false;
 
 		float launchSpeed = this.launchSpeed.get(entity, null, power, args);
-		if (launchSpeed > 0) {
-			entity.teleportAsync(entity.getLocation().add(0, 0.25, 0));
-			entity.setVelocity(new Vector(0, launchSpeed, 0));
-		}
+		if (launchSpeed > 0) entity.setVelocity(new Vector(0, launchSpeed, 0));
+		else entity.teleportAsync(entity.getLocation().add(0, 0.25, 0));
 
-		players.put(entity.getUniqueId(), new CastData(power, args));
+		FlyData flyData = new FlyData(new CastData(power, args), player.getAllowFlight(), player.getFlySpeed());
+		players.put(entity.getUniqueId(), flyData);
 
 		player.setAllowFlight(true);
 		player.setFlying(true);
@@ -88,10 +93,10 @@ public class WindwalkSpell extends BuffSpell {
 	public void turnOffBuff(LivingEntity entity) {
 		Player pl = (Player) entity;
 
-		players.remove(pl.getUniqueId());
+		FlyData flyData = players.remove(pl.getUniqueId());
 		pl.setFlying(false);
-		if (pl.getGameMode() != GameMode.CREATIVE) pl.setAllowFlight(false);
-		pl.setFlySpeed(0.1F);
+		pl.setAllowFlight(flyData.wasFlyingAllowed());
+		pl.setFlySpeed(flyData.oldFlySpeed());
 		pl.setFallDistance(0);
 
 		if (heightMonitor != null && players.isEmpty()) {
@@ -121,7 +126,7 @@ public class WindwalkSpell extends BuffSpell {
 		heightMonitor = null;
 	}
 
-	public Map<UUID, CastData> getPlayers() {
+	public Map<UUID, FlyData> getPlayers() {
 		return players;
 	}
 
@@ -133,6 +138,18 @@ public class WindwalkSpell extends BuffSpell {
 		this.cancelOnLand = cancelOnLand;
 	}
 
+	public class FlyDisableListener implements Listener {
+
+		@EventHandler(priority = EventPriority.MONITOR)
+		public void onPlayerToggleFlight(PlayerToggleFlightEvent event) {
+			Player player = event.getPlayer();
+			if (!isActive(player)) return;
+			if (event.isFlying()) return;
+			event.setCancelled(true);
+		}
+
+	}
+
 	public class SneakListener implements Listener {
 
 		@EventHandler(priority = EventPriority.MONITOR)
@@ -140,7 +157,11 @@ public class WindwalkSpell extends BuffSpell {
 			Player player = event.getPlayer();
 			if (!isActive(player)) return;
 			if (BlockUtils.isAir(player.getLocation().subtract(0, 1, 0).getBlock().getType())) return;
-			turnOff(player);
+			if (alwaysFly) {
+				player.teleportAsync(player.getLocation().add(0, 0.25, 0));
+				player.setFlying(true);
+			}
+			else if (cancelOnLand) turnOff(player);
 		}
 
 	}
@@ -171,13 +192,13 @@ public class WindwalkSpell extends BuffSpell {
 
 				addUseAndChargeCost(pl);
 
-				data = players.get(id);
+				data = players.get(id).castData();
 
 				loc = pl.getLocation();
 				v = pl.getVelocity();
 
 				yLimit = maxY.get(pl, null, data.power(), data.args());
-				if (yLimit > 0) {
+				if (enableMaxY) {
 					yDiff = loc.getBlockY() - yLimit;
 					if (yDiff > 0) {
 						pl.setVelocity(v.setY(-yDiff * 1.5));
@@ -200,5 +221,7 @@ public class WindwalkSpell extends BuffSpell {
 		}
 
 	}
+
+	private record FlyData(CastData castData, boolean wasFlyingAllowed, float oldFlySpeed) {}
 
 }
