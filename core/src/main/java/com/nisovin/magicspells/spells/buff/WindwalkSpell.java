@@ -63,10 +63,8 @@ public class WindwalkSpell extends BuffSpell {
 		if (!(entity instanceof Player player)) return false;
 
 		float launchSpeed = this.launchSpeed.get(entity, null, power, args);
-		if (launchSpeed > 0) {
-			entity.teleportAsync(entity.getLocation().add(0, 0.25, 0));
-			entity.setVelocity(new Vector(0, launchSpeed, 0));
-		}
+		if (launchSpeed > 0) entity.setVelocity(new Vector(0, launchSpeed, 0));
+		else entity.teleportAsync(entity.getLocation().add(0, 0.25, 0));
 
 		players.put(entity.getUniqueId(), new CastData(power, args));
 
