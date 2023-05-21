@@ -129,9 +129,8 @@ public class BuffListener extends PassiveListener {
 		if (!hasSpell(entity)) return;
 
 		for (Subspell s : passiveSpell.getActivatedSpells()) {
-			if (!(s.getSpell() instanceof BuffSpell buff)) continue;
-			if (buff.isActive(entity)) continue;
-			buff.castAtEntity(entity, entity, 1F);
+			if (s.getSpell() instanceof BuffSpell buff && buff.isActive(entity)) continue;
+			s.cast(entity, 1F);
 		}
 	}
 
