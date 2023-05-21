@@ -27,11 +27,12 @@ public class WindwalkSpell extends BuffSpell {
 
 	private final Map<UUID, CastData> players;
 
-	private ConfigData<Integer> maxY;
-	private ConfigData<Integer> maxAltitude;
+	private final boolean enableMaxY;
+	private final ConfigData<Integer> maxY;
+	private final ConfigData<Integer> maxAltitude;
 
-	private ConfigData<Float> flySpeed;
-	private ConfigData<Float> launchSpeed;
+	private final ConfigData<Float> flySpeed;
+	private final ConfigData<Float> launchSpeed;
 
 	private boolean cancelOnLand;
 
@@ -42,6 +43,7 @@ public class WindwalkSpell extends BuffSpell {
 
 		maxY = getConfigDataInt("max-y", 260);
 		maxAltitude = getConfigDataInt("max-altitude", 100);
+		enableMaxY = getConfigBoolean("enable-max-y", true);
 
 		flySpeed = getConfigDataFloat("fly-speed", 0.1F);
 		launchSpeed = getConfigDataFloat("launch-speed", 1F);
@@ -175,7 +177,7 @@ public class WindwalkSpell extends BuffSpell {
 				v = pl.getVelocity();
 
 				yLimit = maxY.get(pl, null, data.power(), data.args());
-				if (yLimit > 0) {
+				if (enableMaxY) {
 					yDiff = loc.getBlockY() - yLimit;
 					if (yDiff > 0) {
 						pl.setVelocity(v.setY(-yDiff * 1.5));
