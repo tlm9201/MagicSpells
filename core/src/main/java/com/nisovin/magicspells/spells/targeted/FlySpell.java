@@ -20,6 +20,7 @@ public class FlySpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final Set<UUID> wasAllowedFlight;
 
+	private final boolean setFlying;
 	private final TargetBooleanState targetBooleanState;
 
 	public FlySpell(MagicConfig config, String spellName) {
@@ -27,6 +28,7 @@ public class FlySpell extends TargetedSpell implements TargetedEntitySpell {
 
 		wasAllowedFlight = new HashSet<>();
 
+		setFlying = getConfigBoolean("set-flying", true);
 		targetBooleanState = TargetBooleanState.getFromName(getConfigString("target-state", "toggle"));
 	}
 
@@ -94,13 +96,13 @@ public class FlySpell extends TargetedSpell implements TargetedEntitySpell {
 				player.setAllowFlight(true);
 				wasAllowedFlight.add(uuid);
 			}
-			player.teleportAsync(player.getLocation().add(0, 0.25, 0));
+			if (setFlying) player.teleportAsync(player.getLocation().add(0, 0.25, 0));
 		}
 		else {
 			boolean wasAllowed = wasAllowedFlight.remove(uuid);
 			if (wasAllowed) player.setAllowFlight(false);
 		}
-		player.setFlying(newState);
+		if (setFlying) player.setFlying(newState);
 	}
 
 }
