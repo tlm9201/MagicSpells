@@ -506,11 +506,26 @@ public class EntityData {
 		return (caster, target, power, args) -> null;
 	}
 
-	private ConfigData<Quaternionf> getQuaternion(ConfigurationSection config, String name) {
-		ConfigData<Float> angle = ConfigDataUtil.getFloat(config, name + ".angle");
-		ConfigData<Float> axisX = ConfigDataUtil.getFloat(config, name + ".axis.x");
-		ConfigData<Float> axisY = ConfigDataUtil.getFloat(config, name + ".axis.y");
-		ConfigData<Float> axisZ = ConfigDataUtil.getFloat(config, name + ".axis.z");
+	private ConfigData<Quaternionf> getQuaternion(ConfigurationSection config, String path) {
+		if (config.isString(path)) {
+			String value = config.getString(path);
+			if (value == null) return (caster, target, power, args) -> null;
+
+			String[] data = value.split(",");
+			if (data.length != 4) return (caster, target, power, args) -> null;
+
+			try {
+				Quaternionf rot = new Quaternionf(Float.parseFloat(data[0]), Float.parseFloat(data[1]), Float.parseFloat(data[2]), Float.parseFloat(data[3]));
+				return (caster, target, power, args) -> rot;
+			} catch (NumberFormatException e) {
+				return (caster, target, power, args) -> null;
+			}
+		}
+
+		ConfigData<Float> angle = ConfigDataUtil.getFloat(config, path + ".angle");
+		ConfigData<Float> axisX = ConfigDataUtil.getFloat(config, path + ".axis.x");
+		ConfigData<Float> axisY = ConfigDataUtil.getFloat(config, path + ".axis.y");
+		ConfigData<Float> axisZ = ConfigDataUtil.getFloat(config, path + ".axis.z");
 		if (checkNull(angle) && checkNull(axisX) && checkNull(axisY) && checkNull(axisZ)) {
 			if (angle.isConstant() && axisX.isConstant() && axisY.isConstant() && axisZ.isConstant()) {
 				float a = angle.get(null);
@@ -551,10 +566,10 @@ public class EntityData {
 			};
 		}
 
-		ConfigData<Float> x = ConfigDataUtil.getFloat(config, name + ".x");
-		ConfigData<Float> y = ConfigDataUtil.getFloat(config, name + ".y");
-		ConfigData<Float> z = ConfigDataUtil.getFloat(config, name + ".z");
-		ConfigData<Float> w = ConfigDataUtil.getFloat(config, name + ".w");
+		ConfigData<Float> x = ConfigDataUtil.getFloat(config, path + ".x");
+		ConfigData<Float> y = ConfigDataUtil.getFloat(config, path + ".y");
+		ConfigData<Float> z = ConfigDataUtil.getFloat(config, path + ".z");
+		ConfigData<Float> w = ConfigDataUtil.getFloat(config, path + ".w");
 		if (checkNull(x) && checkNull(y) && checkNull(z) && checkNull(w)) {
 			if (x.isConstant() && y.isConstant() && z.isConstant() && w.isConstant()) {
 				float qx = x.get(null);
