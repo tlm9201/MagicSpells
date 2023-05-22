@@ -7,20 +7,32 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
+import org.joml.Vector3f;
+import org.joml.Quaternionf;
+
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 
-import org.bukkit.*;
+import net.kyori.adventure.text.Component;
+
+import org.bukkit.Color;
+import org.bukkit.Bukkit;
+import org.bukkit.DyeColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 import org.bukkit.util.Consumer;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Transformation;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class EntityData {
 
@@ -91,8 +103,7 @@ public class EntityData {
 			else ageable.setAdult();
 		});
 
-		if (config.contains("age"))
-			addInteger(transformers, config, "age", 0, Ageable.class, Ageable::setAge);
+		addOptInteger(transformers, config, "age", Ageable.class, Ageable::setAge);
 
 		// Tameable
 		tamed = addBoolean(transformers, config, "tamed", false, Tameable.class, Tameable::setTamed);
@@ -118,14 +129,10 @@ public class EntityData {
 		addEulerAngle(transformers, config, "right-leg-angle", def, ArmorStand.class, ArmorStand::setRightLegPose);
 
 		// Axolotl
-		addEnum(transformers, config, "type", null, Axolotl.class, Axolotl.Variant.class, (axolotl, variant) -> {
-			if (variant != null) axolotl.setVariant(variant);
-		});
+		addOptEnum(transformers, config, "type", Axolotl.class, Axolotl.Variant.class, Axolotl::setVariant);
 
 		// Cat
-		addEnum(transformers, config, "type", null, Cat.class, Cat.Type.class, (cat, type) -> {
-			if (type != null) cat.setCatType(type);
-		});
+		addOptEnum(transformers, config, "type", Cat.class, Cat.Type.class, Cat::setCatType);
 
 		// ChestedHorse
 		chested = addBoolean(transformers, config, "chested", false, ChestedHorse.class, ChestedHorse::setCarryingChest);
@@ -143,48 +150,28 @@ public class EntityData {
 		fallingBlockData = ConfigDataUtil.getBlockData(config, "material", null);
 
 		// Fox
-		addEnum(transformers, config, "type", null, Fox.class, Fox.Type.class, (fox, type) -> {
-			if (type != null) fox.setFoxType(type);
-		});
+		addOptEnum(transformers, config, "type", Fox.class, Fox.Type.class, Fox::setFoxType);
 
 		// Frog
-		addEnum(transformers, config, "type", null, Frog.class, Frog.Variant.class, (frog, variant) -> {
-			if (variant != null) frog.setVariant(variant);
-		});
+		addOptEnum(transformers, config, "type", Frog.class, Frog.Variant.class, Frog::setVariant);
 
 		// Horse
-		horseColor = addEnum(transformers, config, "color", null, Horse.class, Horse.Color.class, (horse, color) -> {
-			if (color != null) horse.setColor(color);
-		});
-		horseStyle = addEnum(transformers, config, "style", null, Horse.class, Horse.Style.class, (horse, style) -> {
-			if (style != null) horse.setStyle(style);
-		});
+		horseColor = addOptEnum(transformers, config, "color", Horse.class, Horse.Color.class, Horse::setColor);
+		horseStyle = addOptEnum(transformers, config, "style", Horse.class, Horse.Style.class, Horse::setStyle);
 
 		// Llama
-		llamaColor = addEnum(transformers, config, "color", null, Llama.class, Llama.Color.class, (llama, color) -> {
-			if (color != null) llama.setColor(color);
-		});
-		addMaterial(transformers, config, "material", null, Llama.class, (llama, material) -> {
-			if (material != null) llama.getInventory().setDecor(new ItemStack(material));
-		});
+		llamaColor = addOptEnum(transformers, config, "color", Llama.class, Llama.Color.class, Llama::setColor);
+		addOptMaterial(transformers, config, "material", Llama.class, (llama, material) -> llama.getInventory().setDecor(new ItemStack(material)));
 
 		// Mushroom Cow
-		addEnum(transformers, config, "type", null, MushroomCow.class, MushroomCow.Variant.class, (mushroomCow, variant) -> {
-			if (variant != null) mushroomCow.setVariant(variant);
-		});
+		addOptEnum(transformers, config, "type", MushroomCow.class, MushroomCow.Variant.class, MushroomCow::setVariant);
 
 		// Panda
-		addEnum(transformers, config, "main-gene", null, Panda.class, Panda.Gene.class, (panda, gene) -> {
-			if (gene != null) panda.setMainGene(gene);
-		});
-		addEnum(transformers, config, "hidden-gene", null, Panda.class, Panda.Gene.class, (panda, gene) -> {
-			if (gene != null) panda.setHiddenGene(gene);
-		});
+		addOptEnum(transformers, config, "main-gene", Panda.class, Panda.Gene.class, Panda::setMainGene);
+		addOptEnum(transformers, config, "hidden-gene", Panda.class, Panda.Gene.class, Panda::setHiddenGene);
 
 		// Parrot
-		parrotVariant = addEnum(transformers, config, "type", null, Parrot.class, Parrot.Variant.class, (parrot, variant) -> {
-			if (variant != null) parrot.setVariant(variant);
-		});
+		parrotVariant = addOptEnum(transformers, config, "type", Parrot.class, Parrot.Variant.class, Parrot::setVariant);
 
 		// Phantom
 		addInteger(transformers, config, "size", 0, Phantom.class, Phantom::setSize);
@@ -193,15 +180,11 @@ public class EntityData {
 		size = addInteger(transformers, config, "size", 0, PufferFish.class, PufferFish::setPuffState);
 
 		// Rabbit
-		addEnum(transformers, config, "type", null, Rabbit.class, Rabbit.Type.class, (rabbit, type) -> {
-			if (type != null) rabbit.setRabbitType(type);
-		});
+		addOptEnum(transformers, config, "type", Rabbit.class, Rabbit.Type.class, Rabbit::setRabbitType);
 
 		// Sheep
 		sheared = addBoolean(transformers, config, "sheared", false, Sheep.class, Sheep::setSheared);
-		color = addEnum(transformers, config, "color", null, Sheep.class, DyeColor.class, (sheep, color) -> {
-			if (color != null) sheep.setColor(color);
-		});
+		color = addOptEnum(transformers, config, "color", Sheep.class, DyeColor.class, Sheep::setColor);
 
 		// Slime
 		addInteger(transformers, config, "size", 0, Slime.class, Slime::setSize);
@@ -210,69 +193,110 @@ public class EntityData {
 		addBoolean(transformers, config, "saddled", false, Steerable.class, Steerable::setSaddle);
 
 		// Tropical Fish
-		addEnum(transformers, config, "color", null, TropicalFish.class, DyeColor.class, (tropicalFish, color) -> {
-			if (color != null) tropicalFish.setBodyColor(color);
-		});
-		tropicalFishPatternColor = addEnum(transformers, config, "pattern-color", null, TropicalFish.class, DyeColor.class, (tropicalFish, color) -> {
-			if (color != null) tropicalFish.setPatternColor(color);
-		});
-		tropicalFishPattern = addEnum(transformers, config, "type", null, TropicalFish.class, TropicalFish.Pattern.class, (tropicalFish, pattern) -> {
-			if (pattern != null) tropicalFish.setPattern(pattern);
-		});
+		addOptEnum(transformers, config, "color", TropicalFish.class, DyeColor.class, TropicalFish::setBodyColor);
+		tropicalFishPatternColor = addOptEnum(transformers, config, "pattern-color", TropicalFish.class, DyeColor.class, TropicalFish::setPatternColor);
+		tropicalFishPattern = addOptEnum(transformers, config, "type", TropicalFish.class, TropicalFish.Pattern.class, TropicalFish::setPattern);
 
 		// Villager
-		profession = addEnum(transformers, config, "type", null, Villager.class, Villager.Profession.class, (villager, profession) -> {
-			if (profession != null) villager.setProfession(profession);
-		});
+		profession = addOptEnum(transformers, config, "type", Villager.class, Villager.Profession.class, Villager::setProfession);
 
 		// Wolf
 		addBoolean(transformers, config, "angry", false, Wolf.class, Wolf::setAngry);
-		addEnum(transformers, config, "color", null, Wolf.class, DyeColor.class, (wolf, color) -> {
-			if (color != null) wolf.setCollarColor(color);
-		});
+		addOptEnum(transformers, config, "color", Wolf.class, DyeColor.class, Wolf::setCollarColor);
 
 		if (Bukkit.getMinecraftVersion().contains("1.19.4")) {
-			// Display shared
+			// Display
+			ConfigData<Quaternionf> leftRotation = getQuaternion(config, "transformation.left-rotation");
+			ConfigData<Quaternionf> rightRotation = getQuaternion(config, "transformation.right-rotation");
+			ConfigData<Vector3f> translation = getVector(config, "transformation.translation");
+			ConfigData<Vector3f> scale = getVector(config, "transformation.scale");
+			ConfigData<Transformation> transformation = (caster, target, power, args) -> null;
+			if (checkNull(leftRotation) && checkNull(rightRotation) && checkNull(translation) && checkNull(scale)) {
+				if (leftRotation.isConstant() && rightRotation.isConstant() && translation.isConstant() && scale.isConstant()) {
+					Quaternionf lr = leftRotation.get(null);
+					Quaternionf rr = rightRotation.get(null);
+					Vector3f t = translation.get(null);
+					Vector3f s = scale.get(null);
 
-			addEnum(transformers, config, "billboard", null, Display.class, Display.Billboard.class, (display, billboard) -> {
-				if (billboard != null) display.setBillboard(billboard);
-			});
+					Transformation transform = new Transformation(t, lr, s, rr);
+					transformation = (caster, target, power, args) -> transform;
+				} else {
+					transformation = (caster, target, power, args) -> {
+						Quaternionf lr = leftRotation.get(caster, target, power, args);
+						if (lr == null) return null;
 
-			//###setBRIGHTNESS
-			//###setGLOW_COLOR_OVERRIDE
-			//###setTRANSFORMATION
+						Quaternionf rr = rightRotation.get(caster, target, power, args);
+						if (rr == null) return null;
 
-			addFloat(transformers, config, "display-height", 0, Display.class, Display::setDisplayHeight);
-			addFloat(transformers, config, "display-width", 0, Display.class, Display::setDisplayWidth);
+						Vector3f t = translation.get(caster, target, power, args);
+						if (t == null) return null;
 
-			addInteger(transformers, config, "interpolation-delay", 0, Display.class, Display::setInterpolationDelay);
-			addInteger(transformers, config, "interpolation-duration", 0, Display.class, Display::setInterpolationDuration);
+						Vector3f s = scale.get(caster, target, power, args);
+						if (s == null) return null;
 
-			addFloat(transformers, config, "shadow-radius", 0, Display.class, Display::setShadowRadius);
-			addFloat(transformers, config, "shadow-strength", 0, Display.class, Display::setShadowStrength);
+						return new Transformation(t, lr, s, rr);
+					};
+				}
+			}
+			transformers.put(Display.class, new Transformer<>(transformation, Display::setTransformation, true));
 
-			addFloat(transformers, config, "view-range", 0, Display.class, Display::setViewRange);
+			addOptInteger(transformers, config, "interpolation-duration", Display.class, Display::setInterpolationDuration);
+			addOptFloat(transformers, config, "view-range", Display.class, Display::setViewRange);
+			addOptFloat(transformers, config, "shadow-radius", Display.class, Display::setShadowRadius);
+			addOptFloat(transformers, config, "shadow-strength", Display.class, Display::setShadowStrength);
+			addOptFloat(transformers, config, "width", Display.class, Display::setDisplayWidth);
+			addOptFloat(transformers, config, "height", Display.class, Display::setDisplayHeight);
+			addOptInteger(transformers, config, "interpolation-delay", Display.class, Display::setInterpolationDelay);
+			addOptEnum(transformers, config, "billboard", Display.class, Display.Billboard.class, Display::setBillboard);
+			addOptColor(transformers, config, "glow-color-override", Display.class, Display::setGlowColorOverride);
 
-			// Text Display
-			addEnum(transformers, config, "alignment", null, TextDisplay.class, TextDisplay.TextAlignment.class, (display, alignment) -> {
-				if (alignment != null) display.setAlignment(alignment);
-			});
-			//###setBackgroundColor
-			addBoolean(transformers, config, "default-background", false, TextDisplay.class, TextDisplay::setDefaultBackground);
-			addInteger(transformers, config, "line-width", 0, TextDisplay.class, TextDisplay::setLineWidth);
-			addBoolean(transformers, config, "see-through", false, TextDisplay.class, TextDisplay::setSeeThrough);
-			addBoolean(transformers, config, "shadowed", false, TextDisplay.class, TextDisplay::setShadowed);
-			addByte(transformers, config, "text-opacity", (byte) 0, TextDisplay.class, TextDisplay::setTextOpacity);
-			//###text
+			ConfigData<Integer> blockLight = ConfigDataUtil.getInteger(config, "brightness.block");
+			ConfigData<Integer> skyLight = ConfigDataUtil.getInteger(config, "brightness.sky");
+			ConfigData<Display.Brightness> brightness = (caster, target, power, args) -> null;
+			if (checkNull(blockLight) && checkNull(skyLight)) {
+				if (blockLight.isConstant() && skyLight.isConstant()) {
+					int bl = blockLight.get(null);
+					int sl = skyLight.get(null);
 
-			// Item Display
-			addEnum(transformers, config, "item-display-transform", null, ItemDisplay.class, ItemDisplay.ItemDisplayTransform.class, (display, transform) -> {
-				if (transform != null) display.setItemDisplayTransform(transform);
-			});
-			//###setItemstack
+					if (0 <= bl && bl <= 15 && 0 <= sl && sl <= 15) {
+						Display.Brightness b = new Display.Brightness(bl, sl);
+						brightness = (caster, target, power, args) -> b;
+					}
+				} else {
+					brightness = (caster, target, power, args) -> {
+						Integer bl = blockLight.get(caster, target, power, args);
+						if (bl == null || bl < 0 || bl > 15) return null;
 
-			// Block Display
-			addBlockData(transformers, config, "block", null, BlockDisplay.class, BlockDisplay::setBlock);
+						Integer sl = skyLight.get(caster, target, power, args);
+						if (sl == null || sl < 0 || sl > 15) return null;
+
+						return new Display.Brightness(bl, sl);
+					};
+				}
+			}
+			transformers.put(Display.class, new Transformer<>(brightness, Display::setBrightness, true));
+
+			// BlockDisplay
+			addOptBlockData(transformers, config, "block", BlockDisplay.class, BlockDisplay::setBlock);
+
+			// ItemDisplay
+			MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString("item"));
+			if (magicItem != null) {
+				ItemStack item = magicItem.getItemStack();
+				transformers.put(ItemDisplay.class, new Transformer<>((caster, target, power, args) -> item, ItemDisplay::setItemStack));
+			}
+
+			addOptEnum(transformers, config, "item-display-transform", ItemDisplay.class, ItemDisplay.ItemDisplayTransform.class, ItemDisplay::setItemDisplayTransform);
+
+			// TextDisplay
+			addOptComponent(transformers, config, "text", TextDisplay.class, TextDisplay::text);
+			addOptInteger(transformers, config, "line-width", TextDisplay.class, TextDisplay::setLineWidth);
+			addOptColor(transformers, config, "background", TextDisplay.class, TextDisplay::setBackgroundColor);
+			addOptByte(transformers, config, "text-opacity", TextDisplay.class, TextDisplay::setTextOpacity);
+			addOptBoolean(transformers, config, "shadow", TextDisplay.class, TextDisplay::setShadowed);
+			addOptBoolean(transformers, config, "see-through", TextDisplay.class, TextDisplay::setSeeThrough);
+			addOptBoolean(transformers, config, "default-background", TextDisplay.class, TextDisplay::setDefaultBackground);
+			addOptEnum(transformers, config, "alignment", TextDisplay.class, TextDisplay.TextAlignment.class, TextDisplay::setAlignment);
 		}
 
 		for (EntityType entityType : EntityType.values()) {
@@ -360,27 +384,6 @@ public class EntityData {
 		return supplier;
 	}
 
-	private <T> ConfigData<Float> addFloat(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, float def, Class<T> type, BiConsumer<T, Float> setter) {
-		ConfigData<Float> supplier = ConfigDataUtil.getFloat(config, name, def);
-		transformers.put(type, new Transformer<>(supplier, setter));
-
-		return supplier;
-	}
-
-	private <T> ConfigData<Byte> addByte(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, byte def, Class<T> type, BiConsumer<T, Byte> setter) {
-		ConfigData<Byte> supplier = ConfigDataUtil.getByte(config, name, def);
-		transformers.put(type, new Transformer<>(supplier, setter));
-
-		return supplier;
-	}
-
-	private <T> ConfigData<Material> addMaterial(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Material def, Class<T> type, BiConsumer<T, Material> setter) {
-		ConfigData<Material> supplier = ConfigDataUtil.getMaterial(config, name, def);
-		transformers.put(type, new Transformer<>(supplier, setter));
-
-		return supplier;
-	}
-
 	private <T> ConfigData<BlockData> addBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, BlockData def, Class<T> type, BiConsumer<T, BlockData> setter) {
 		ConfigData<BlockData> supplier = ConfigDataUtil.getBlockData(config, name, def);
 		transformers.put(type, new Transformer<>(supplier, setter));
@@ -388,18 +391,213 @@ public class EntityData {
 		return supplier;
 	}
 
-	private <T, E extends Enum<E>> ConfigData<E> addEnum(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, E def, Class<T> type, Class<E> enumType, BiConsumer<T, E> setter) {
-		ConfigData<E> supplier = ConfigDataUtil.getEnum(config, name, enumType, def);
+	private <T> void addEulerAngle(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EulerAngle def, Class<T> type, BiConsumer<T, EulerAngle> setter) {
+		ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, def);
 		transformers.put(type, new Transformer<>(supplier, setter));
+	}
+
+	private <T> void addOptBoolean(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Boolean> setter) {
+		ConfigData<Boolean> supplier = ConfigDataUtil.getBoolean(config, name);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+	private <T> void addOptByte(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Byte> setter) {
+		ConfigData<Byte> supplier = ConfigDataUtil.getByte(config, name);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+	private <T> void addOptInteger(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Integer> setter) {
+		ConfigData<Integer> supplier = ConfigDataUtil.getInteger(config, name);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+	private <T> void addOptFloat(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Float> setter) {
+		ConfigData<Float> supplier = ConfigDataUtil.getFloat(config, name);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+	private <T, E extends Enum<E>> ConfigData<E> addOptEnum(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, Class<E> enumType, BiConsumer<T, E> setter) {
+		ConfigData<E> supplier = ConfigDataUtil.getEnum(config, name, enumType, null);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
 
 		return supplier;
 	}
 
-	private <T> ConfigData<EulerAngle> addEulerAngle(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EulerAngle def, Class<T> type, BiConsumer<T, EulerAngle> setter) {
-		ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, def);
-		transformers.put(type, new Transformer<>(supplier, setter));
+	private <T> void addOptMaterial(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Material> setter) {
+		ConfigData<Material> supplier = ConfigDataUtil.getMaterial(config, name, null);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
 
-		return supplier;
+	private <T> void addOptColor(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
+		ConfigData<Color> supplier = ConfigDataUtil.getColor(config, name, null);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+
+	private <T> void addOptComponent(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Component> setter) {
+		ConfigData<Component> supplier = ConfigDataUtil.getComponent(config, name, null);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+	private <T> void addOptBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, BlockData> setter) {
+		ConfigData<BlockData> supplier = ConfigDataUtil.getBlockData(config, name, null);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+	public ConfigData<Vector3f> getVector(ConfigurationSection config, String path) {
+		if (config.isString(path)) {
+			String value = config.getString(path);
+			if (value == null) return (caster, target, power, args) -> null;
+
+			String[] data = value.split(",");
+			if (data.length != 3) return (caster, target, power, args) -> null;
+
+			try {
+				Vector3f vector = new Vector3f(Float.parseFloat(data[0]), Float.parseFloat(data[1]), Float.parseFloat(data[2]));
+				return (caster, target, power, args) -> vector;
+			} catch (NumberFormatException e) {
+				return (caster, target, power, args) -> null;
+			}
+		}
+
+		if (config.isConfigurationSection(path)) {
+			ConfigurationSection section = config.getConfigurationSection(path);
+			if (section == null) return (caster, target, power, args) -> null;
+
+			ConfigData<Float> x = ConfigDataUtil.getFloat(section, "x");
+			ConfigData<Float> y = ConfigDataUtil.getFloat(section, "y");
+			ConfigData<Float> z = ConfigDataUtil.getFloat(section, "z");
+
+			if (checkNull(x) && checkNull(y) && checkNull(z)) {
+				if (x.isConstant() && y.isConstant() && z.isConstant()) {
+					float vx = x.get(null);
+					float vy = y.get(null);
+					float vz = z.get(null);
+
+					Vector3f vector = new Vector3f(vx, vy, vz);
+					return (caster, target, power, args) -> vector;
+				}
+
+				return new ConfigData<>() {
+
+					@Override
+					public Vector3f get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+						Float vx = x.get(caster, target, power, args);
+						if (vx == null) return null;
+
+						Float vy = y.get(caster, target, power, args);
+						if (vy == null) return null;
+
+						Float vz = z.get(caster, target, power, args);
+						if (vz == null) return null;
+
+						return new Vector3f(vx, vy, vz);
+					}
+
+					@Override
+					public boolean isConstant() {
+						return false;
+					}
+
+				};
+			}
+		}
+
+		return (caster, target, power, args) -> null;
+	}
+
+	private ConfigData<Quaternionf> getQuaternion(ConfigurationSection config, String name) {
+		ConfigData<Float> angle = ConfigDataUtil.getFloat(config, name + ".angle");
+		ConfigData<Float> axisX = ConfigDataUtil.getFloat(config, name + ".axis.x");
+		ConfigData<Float> axisY = ConfigDataUtil.getFloat(config, name + ".axis.y");
+		ConfigData<Float> axisZ = ConfigDataUtil.getFloat(config, name + ".axis.z");
+		if (checkNull(angle) && checkNull(axisX) && checkNull(axisY) && checkNull(axisZ)) {
+			if (angle.isConstant() && axisX.isConstant() && axisY.isConstant() && axisZ.isConstant()) {
+				float a = angle.get(null);
+				float ax = axisX.get(null);
+				float ay = axisY.get(null);
+				float az = axisZ.get(null);
+
+				Quaternionf rot = new Quaternionf();
+				rot.setAngleAxis(a, ax, ay, az);
+
+				return (caster, target, power, args) -> rot;
+			}
+
+			return new ConfigData<>() {
+
+				@Override
+				public Quaternionf get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+					Float a = angle.get(caster, target, power, args);
+					if (a == null) return null;
+
+					Float ax = axisX.get(caster, target, power, args);
+					if (ax == null) return null;
+
+					Float ay = axisY.get(caster, target, power, args);
+					if (ay == null) return null;
+
+					Float az = axisZ.get(caster, target, power, args);
+					if (az == null) return null;
+
+					return new Quaternionf().setAngleAxis(a, ax, ay, az);
+				}
+
+				@Override
+				public boolean isConstant() {
+					return false;
+				}
+
+			};
+		}
+
+		ConfigData<Float> x = ConfigDataUtil.getFloat(config, name + ".x");
+		ConfigData<Float> y = ConfigDataUtil.getFloat(config, name + ".y");
+		ConfigData<Float> z = ConfigDataUtil.getFloat(config, name + ".z");
+		ConfigData<Float> w = ConfigDataUtil.getFloat(config, name + ".w");
+		if (checkNull(x) && checkNull(y) && checkNull(z) && checkNull(w)) {
+			if (x.isConstant() && y.isConstant() && z.isConstant() && w.isConstant()) {
+				float qx = x.get(null);
+				float qy = y.get(null);
+				float qz = z.get(null);
+				float qw = w.get(null);
+
+				Quaternionf rot = new Quaternionf(qx, qy, qz, qw);
+				return (caster, target, power, args) -> rot;
+			}
+
+			return new ConfigData<>() {
+
+				@Override
+				public Quaternionf get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+					Float qx = x.get(caster, target, power, args);
+					if (qx == null) return null;
+
+					Float qy = y.get(caster, target, power, args);
+					if (qy == null) return null;
+
+					Float qz = z.get(caster, target, power, args);
+					if (qz == null) return null;
+
+					Float qw = w.get(caster, target, power, args);
+					if (qw == null) return null;
+
+					return new Quaternionf(qx, qy, qz, qw);
+				}
+
+				@Override
+				public boolean isConstant() {
+					return false;
+				}
+
+			};
+		}
+
+		return (caster, target, power, args) -> null;
+	}
+
+	private boolean checkNull(ConfigData<?> data) {
+		return !data.isConstant() || data.get(null) != null;
 	}
 
 	public Multimap<EntityType, Transformer<?, ?>> getOptions() {
@@ -504,10 +702,15 @@ public class EntityData {
 		return profession;
 	}
 
-	public record Transformer<T, C>(ConfigData<C> supplier, BiConsumer<T, C> setter) {
+	public record Transformer<T, C>(ConfigData<C> supplier, BiConsumer<T, C> setter, boolean optional) {
+
+		public Transformer(ConfigData<C> supplier, BiConsumer<T, C> setter) {
+			this(supplier, setter, false);
+		}
 
 		public void apply(T entity, SpellData data) {
-			setter.accept(entity, supplier.get(data));
+			C value = supplier.get(data);
+			if (!optional || value != null) setter.accept(entity, value);
 		}
 
 	}
