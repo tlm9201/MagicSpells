@@ -523,18 +523,14 @@ public class EntityData {
 		}
 
 		ConfigData<Float> angle = ConfigDataUtil.getFloat(config, path + ".angle");
-		ConfigData<Float> axisX = ConfigDataUtil.getFloat(config, path + ".axis.x");
-		ConfigData<Float> axisY = ConfigDataUtil.getFloat(config, path + ".axis.y");
-		ConfigData<Float> axisZ = ConfigDataUtil.getFloat(config, path + ".axis.z");
-		if (checkNull(angle) && checkNull(axisX) && checkNull(axisY) && checkNull(axisZ)) {
-			if (angle.isConstant() && axisX.isConstant() && axisY.isConstant() && axisZ.isConstant()) {
-				float a = angle.get(null);
-				float ax = axisX.get(null);
-				float ay = axisY.get(null);
-				float az = axisZ.get(null);
+		ConfigData<Vector3f> axis = getVector(config, path + ".axis");
+		if (checkNull(angle) && checkNull(axis)) {
+			if (angle.isConstant() && axis.isConstant()) {
+				Vector3f ax = axis.get(null);
+				float ang = angle.get(null);
 
 				Quaternionf rot = new Quaternionf();
-				rot.setAngleAxis(a, ax, ay, az);
+				rot.setAngleAxis(ang, ax.x, ax.y, ax.z);
 
 				return (caster, target, power, args) -> rot;
 			}
@@ -543,19 +539,13 @@ public class EntityData {
 
 				@Override
 				public Quaternionf get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					Float a = angle.get(caster, target, power, args);
-					if (a == null) return null;
+					Float ang = angle.get(caster, target, power, args);
+					if (ang == null) return null;
 
-					Float ax = axisX.get(caster, target, power, args);
+					Vector3f ax = axis.get(null);
 					if (ax == null) return null;
 
-					Float ay = axisY.get(caster, target, power, args);
-					if (ay == null) return null;
-
-					Float az = axisZ.get(caster, target, power, args);
-					if (az == null) return null;
-
-					return new Quaternionf().setAngleAxis(a, ax, ay, az);
+					return new Quaternionf().setAngleAxis(ang, ax.x, ax.y, ax.z);
 				}
 
 				@Override
