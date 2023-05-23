@@ -336,24 +336,25 @@ public class EntityData {
 		if (entityType == null || (!entityType.isSpawnable() && entityType != EntityType.FALLING_BLOCK && entityType != EntityType.DROPPED_ITEM))
 			return null;
 
-		return switch (entityType) {
+		boolean[] displayHack = new boolean[] {false, false};
+		Entity entity = switch (entityType) {
 			case FALLING_BLOCK -> {
 				BlockData blockData = fallingBlockData.get(data);
 				if (blockData == null) yield null;
 
-				Entity entity = startLoc.getWorld().spawnFallingBlock(startLoc, blockData);
-				if (consumer != null) consumer.accept(entity);
+				Entity e = startLoc.getWorld().spawnFallingBlock(startLoc, blockData);
+				if (consumer != null) consumer.accept(e);
 
-				yield entity;
+				yield e;
 			}
 			case DROPPED_ITEM -> {
 				Material material = dropItemMaterial.get(data);
 				if (material == null) yield null;
 
-				Entity entity = startLoc.getWorld().dropItem(startLoc, new ItemStack(material));
-				if (consumer != null) consumer.accept(entity);
+				Entity e = startLoc.getWorld().dropItem(startLoc, new ItemStack(material));
+				if (consumer != null) consumer.accept(e);
 
-				yield entity;
+				yield e;
 			}
 			default -> {
 				Class<? extends Entity> entityClass = entityType.getEntityClass();
@@ -367,9 +368,23 @@ public class EntityData {
 						transformer.apply(e, data);
 
 					if (consumer != null) consumer.accept(e);
+
+					if (Bukkit.getMinecraftVersion().contains("1.19.4") && e instanceof Display) {
+						displayHack[0] = true;
+						displayHack[1] = e.isVisibleByDefault();
+
+						e.setVisibleByDefault(false);
+					}
 				});
 			}
 		};
+
+		if (displayHack[0]) {
+			entity.teleport(startLoc);
+			entity.setVisibleByDefault(displayHack[1]);
+		}
+
+		return entity;
 	}
 
 	private <T> ConfigData<Boolean> addBoolean(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, boolean def, Class<T> type, BiConsumer<T, Boolean> setter) {
