@@ -164,7 +164,6 @@ public class BlockUtils {
 	public static boolean isPathable(Material mat) {
 		String name = mat.name();
 
-		if (!mat.isCollidable()) return true;
 		if (mat.isAir()) return true;
 		if (isLiquid(mat)) return true;
 		if (isPressurePlate(mat)) return true;
