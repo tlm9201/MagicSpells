@@ -97,6 +97,8 @@ public class EntityData {
 
 		Multimap<Class<?>, Transformer<?, ?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
+		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
+
 		// Ageable
 		baby = addBoolean(transformers, config, "baby", false, Ageable.class, (ageable, baby) -> {
 			if (baby) ageable.setBaby();
@@ -611,6 +613,10 @@ public class EntityData {
 
 	public ConfigData<EntityType> getEntityType() {
 		return entityType;
+	}
+
+	public ConfigData<Vector> getRelativeOffset() {
+		return relativeOffset;
 	}
 
 	public void setEntityType(ConfigData<EntityType> entityType) {
