@@ -411,11 +411,6 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 		entities.add(entity);
 
-		if (Bukkit.getMinecraftVersion().contains("1.19.4") && entity instanceof Display display) {
-			display.teleport(Util.applyRelativeOffset(loc, entityData.getRelativeOffset().get(data)));
-			display.setVisibleByDefault(true);
-		}
-
 		int duration = this.duration.get(data);
 
 		if (duration > 0) {
