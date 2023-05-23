@@ -163,18 +163,22 @@ public class BlockUtils {
 
 	public static boolean isPathable(Material mat) {
 		String name = mat.name();
+
 		if (!mat.isCollidable()) return true;
+		if (mat.isAir()) return true;
+		if (isLiquid(mat)) return true;
+		if (isPressurePlate(mat)) return true;
+		if (isButton(mat)) return true;
+
 		if (name.contains("SIGN")) return true;
 		if (name.contains("CARPET")) return true;
-		if (name.contains("PRESSURE_PLATE")) return true;
-		if (name.contains("BUTTON")) return true;
 		if (name.contains("TULIP")) return true;
 		if (name.contains("SAPLING")) return true;
 		if (name.contains("RAIL")) return true;
 		if (name.contains("CORAL") && !name.endsWith("_BLOCK")) return true;
-		if (mat.isAir()) return true;
+
 		return switch (mat) {
-			case LIGHT, WATER, LAVA, TALL_GRASS, LARGE_FERN, GRASS, DEAD_BUSH, FERN, SEAGRASS, TALL_SEAGRASS, LILY_PAD,
+			case LIGHT, TALL_GRASS, LARGE_FERN, GRASS, DEAD_BUSH, FERN, SEAGRASS, TALL_SEAGRASS, LILY_PAD,
 					DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, OXEYE_DAISY, SUNFLOWER, LILAC, PEONY, ROSE_BUSH,
 					BROWN_MUSHROOM, RED_MUSHROOM, TORCH, FIRE, REDSTONE_WIRE, WHEAT, LADDER, LEVER, REDSTONE_TORCH, SNOW,
 					SUGAR_CANE, VINE, SCULK_VEIN, NETHER_WART -> true;
