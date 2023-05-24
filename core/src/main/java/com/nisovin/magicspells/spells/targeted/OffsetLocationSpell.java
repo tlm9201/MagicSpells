@@ -34,7 +34,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 		super.initialize();
 
 		spellToCast = new Subspell(spellToCastName);
-		if (!spellToCast.process() || !spellToCast.isTargetedLocationSpell()) {
+		if (!spellToCast.process()) {
 			MagicSpells.error("OffsetLocationSpell '" + internalName + "' has an invalid spell defined!");
 			spellToCast = null;
 		}
@@ -52,7 +52,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 
 			Location loc = Util.applyOffsets(baseTargetLocation.clone(), relativeOffset, absoluteOffset);
 
-			if (spellToCast != null) spellToCast.castAtLocation(caster, loc, power);
+			if (spellToCast != null) spellToCast.subcast(caster, loc, power);
 			playSpellEffects(caster, loc, power, args);
 
 			if (!info.empty()) {
@@ -66,7 +66,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (spellToCast != null) spellToCast.castAtLocation(caster, Util.applyOffsets(target.clone(), relativeOffset, absoluteOffset), power);
+		if (spellToCast != null) spellToCast.subcast(caster, Util.applyOffsets(target.clone(), relativeOffset, absoluteOffset), power);
 		playSpellEffects(caster, target, power, args);
 		return true;
 	}

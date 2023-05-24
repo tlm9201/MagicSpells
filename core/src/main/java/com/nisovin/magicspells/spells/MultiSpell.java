@@ -87,7 +87,7 @@ public final class MultiSpell extends InstantSpell {
 						delay += action.getDelay();
 					} else if (action.isSpell()) {
 						Subspell spell = action.getSpell();
-						if (delay == 0) spell.cast(caster, power);
+						if (delay == 0) spell.subcast(caster, power);
 						else MagicSpells.scheduleDelayedTask(new DelayedSpell(spell, caster, power), delay);
 					}
 				}
@@ -105,18 +105,18 @@ public final class MultiSpell extends InstantSpell {
 						s = (int) Math.round(s + actions.get(i++).getChance());
 					}
 					Action action = actions.get(Math.max(0, i - 1)).getAction();
-					if (action.isSpell()) action.getSpell().cast(caster, power);
+					if (action.isSpell()) action.getSpell().subcast(caster, power);
 				} else if (enableIndividualChances) {
 					for (ActionChance actionChance : actions) {
 						double chance = Math.random();
 						if ((actionChance.getChance() / 100.0D > chance) && actionChance.getAction().isSpell()) {
 							Action action = actionChance.getAction();
-							action.getSpell().cast(caster, power);
+							action.getSpell().subcast(caster, power);
 						}
 					}
 				} else {
 					Action action = actions.get(random.nextInt(actions.size())).getAction();
-					action.getSpell().cast(caster, power);
+					action.getSpell().subcast(caster, power);
 				}
 			}
 			playSpellEffects(EffectPosition.CASTER, caster, power, args);
@@ -240,7 +240,7 @@ public final class MultiSpell extends InstantSpell {
 		public void run() {
 			Entity entity = Bukkit.getEntity(casterUUID);
 			if (entity == null || !entity.isValid() || !(entity instanceof LivingEntity livingEntity)) return;
-			spell.cast(livingEntity, power);
+			spell.subcast(livingEntity, power);
 		}
 		
 	}

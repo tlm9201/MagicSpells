@@ -12,6 +12,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -35,7 +37,7 @@ public class Subspell {
 	private static final Random random = ThreadLocalRandom.current();
 
 	private Spell spell;
-	private String spellName;
+	private final String spellName;
 	private CastMode mode = CastMode.PARTIAL;
 	private CastTargeting targeting = CastTargeting.NORMAL;
 
@@ -43,6 +45,8 @@ public class Subspell {
 	private float subPower = 1F;
 	private double chance = -1D;
 	private String[] args = null;
+	private boolean invert = false;
+	private boolean passTargeting = false;
 
 	private boolean isTargetedEntity = false;
 	private boolean isTargetedLocation = false;
@@ -109,6 +113,8 @@ public class Subspell {
 							DebugHandler.debugNumberFormat(e);
 						}
 					}
+					case "invert" -> invert = Boolean.parseBoolean(keyValue[1].trim());
+					case "pass-targeting" -> passTargeting = Boolean.parseBoolean(keyValue[1].trim());
 					case "targeting" -> {
 						try {
 							targeting = CastTargeting.valueOf(keyValue[1].toUpperCase());
@@ -176,6 +182,108 @@ public class Subspell {
 		return isTargetedEntityFromLocation;
 	}
 
+	public boolean subcast(@Nullable LivingEntity caster, @NotNull Location location, @NotNull LivingEntity target, float power) {
+		return subcast(caster, location, target, power, passTargeting);
+	}
+
+	public boolean subcast(@Nullable LivingEntity caster, @NotNull Location location, @NotNull LivingEntity target, float power, boolean passTargeting) {
+		return subcast(caster, location, target, power, passTargeting, true);
+	}
+
+	public boolean subcast(@Nullable LivingEntity caster, @NotNull Location location, @NotNull LivingEntity target, float power, boolean passTargeting, boolean useTargetForLocation) {
+		if (invert) {
+			if (caster != null) {
+				LivingEntity temp = caster;
+				caster = target;
+				target = temp;
+			} else caster = target;
+		}
+
+		CastTargeting targeting = this.targeting;
+		if (targeting == CastTargeting.NORMAL) {
+			if (spell instanceof TargetedEntityFromLocationSpell) targeting = CastTargeting.ENTITY_FROM_LOCATION;
+			else if (spell instanceof TargetedEntitySpell) targeting = CastTargeting.ENTITY;
+			else if (spell instanceof TargetedLocationSpell) targeting = CastTargeting.LOCATION;
+			else targeting = CastTargeting.NONE;
+		}
+
+		return switch (targeting) {
+			case ENTITY_FROM_LOCATION -> spell instanceof TargetedEntityFromLocationSpell && castAtEntityFromLocation(caster, location, target, power, passTargeting);
+			case ENTITY -> spell instanceof TargetedEntitySpell && castAtEntity(caster, target, power, passTargeting);
+			case LOCATION -> spell instanceof TargetedLocationSpell && castAtLocation(caster, useTargetForLocation ? target.getLocation() : location, power);
+			case NONE -> {
+				if (caster == null) yield false;
+
+				PostCastAction action = cast(caster, power);
+				yield action == PostCastAction.HANDLE_NORMALLY || action == PostCastAction.NO_MESSAGES;
+			}
+			default -> false;
+		};
+	}
+
+	public boolean subcast(@Nullable LivingEntity caster, @NotNull LivingEntity target, float power) {
+		return subcast(caster, target, power, passTargeting);
+	}
+
+	public boolean subcast(@Nullable LivingEntity caster, @NotNull LivingEntity target, float power, boolean passTargeting) {
+		if (invert) {
+			if (caster != null) {
+				LivingEntity temp = caster;
+				caster = target;
+				target = temp;
+			} else caster = target;
+		}
+
+
+		CastTargeting targeting = this.targeting;
+		if (targeting == CastTargeting.NORMAL) {
+			if (spell instanceof TargetedEntitySpell) targeting = CastTargeting.ENTITY;
+			else if (spell instanceof TargetedLocationSpell) targeting = CastTargeting.LOCATION;
+			else targeting = CastTargeting.NONE;
+		}
+
+		return switch (targeting) {
+			case ENTITY -> spell instanceof TargetedEntitySpell && castAtEntity(caster, target, power, passTargeting);
+			case LOCATION -> spell instanceof TargetedLocationSpell && castAtLocation(caster, target.getLocation(), power);
+			case NONE -> {
+				if (caster == null) yield false;
+
+				PostCastAction action = cast(caster, power);
+				yield action == PostCastAction.HANDLE_NORMALLY || action == PostCastAction.NO_MESSAGES;
+			}
+			default -> false;
+		};
+	}
+
+	public boolean subcast(@Nullable LivingEntity caster, @NotNull Location target, float power) {
+		if (invert && caster != null) return subcast(caster, target, caster, power);
+
+		CastTargeting targeting = this.targeting;
+		if (targeting == CastTargeting.NORMAL) {
+			if (spell instanceof TargetedLocationSpell) targeting = CastTargeting.LOCATION;
+			else targeting = CastTargeting.NONE;
+		}
+
+		return switch (targeting) {
+			case LOCATION -> spell instanceof TargetedLocationSpell && castAtLocation(caster, target, power);
+			case NONE -> {
+				if (caster == null) yield false;
+
+				PostCastAction action = cast(caster, power);
+				yield action == PostCastAction.HANDLE_NORMALLY || action == PostCastAction.NO_MESSAGES;
+			}
+			default -> false;
+		};
+	}
+
+	public boolean subcast(@NotNull LivingEntity caster, float power) {
+		if (invert) return subcast(caster, caster, power);
+		if (targeting != CastTargeting.NORMAL && targeting != CastTargeting.NONE) return false;
+
+		PostCastAction action = cast(caster, power);
+		return action == PostCastAction.HANDLE_NORMALLY || action == PostCastAction.NO_MESSAGES;
+	}
+
 	public PostCastAction cast(final LivingEntity caster, final float power) {
 		if ((chance > 0 && chance < 1) && random.nextDouble() > chance) return PostCastAction.ALREADY_HANDLED;
 		if (delay < 0) return castReal(caster, power);
@@ -205,7 +313,7 @@ public class Subspell {
 	}
 
 	public boolean castAtEntity(final LivingEntity caster, final LivingEntity target, final float power) {
-		return castAtEntity(caster, target, power, true);
+		return castAtEntity(caster, target, power, passTargeting);
 	}
 
 	public boolean castAtEntity(final LivingEntity caster, final LivingEntity target, final float power, final boolean passTargeting) {
@@ -217,6 +325,8 @@ public class Subspell {
 
 	private boolean castAtEntityReal(LivingEntity caster, LivingEntity target, float basePower, boolean passTargeting) {
 		if (!isTargetedEntity) return isTargetedLocation && castAtLocationReal(caster, target.getLocation(), basePower);
+
+		passTargeting |= this.passTargeting;
 
 		return switch (mode) {
 			case HARD -> {
@@ -384,7 +494,7 @@ public class Subspell {
 	}
 
 	public boolean castAtEntityFromLocation(final LivingEntity caster, final Location from, final LivingEntity target, final float power) {
-		return castAtEntityFromLocation(caster, from, target, power, true);
+		return castAtEntityFromLocation(caster, from, target, power, passTargeting);
 	}
 
 	public boolean castAtEntityFromLocation(final LivingEntity caster, final Location from, final LivingEntity target, final float power, final boolean passTargeting) {
@@ -396,6 +506,8 @@ public class Subspell {
 
 	private boolean castAtEntityFromLocationReal(LivingEntity caster, Location from, LivingEntity target, float basePower, boolean passTargeting) {
 		if (!isTargetedEntityFromLocation) return false;
+
+		passTargeting |= this.passTargeting;
 
 		return switch (mode) {
 			case HARD -> {
@@ -506,7 +618,7 @@ public class Subspell {
 		PARTIAL("partial", "p"),
 		DIRECT("direct", "d");
 
-		private static Map<String, CastMode> nameMap = new HashMap<>();
+		private static final Map<String, CastMode> nameMap = new HashMap<>();
 
 		private final String[] names;
 

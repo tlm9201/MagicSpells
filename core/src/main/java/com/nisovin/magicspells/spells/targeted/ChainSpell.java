@@ -13,7 +13,6 @@ import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TargetInfo;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -185,11 +184,8 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	}
 
 	private void castSpellAt(LivingEntity caster, Location from, LivingEntity target, float power) {
-		if (spellToCast.isTargetedEntityFromLocationSpell() && from != null)
-			spellToCast.castAtEntityFromLocation(caster, from, target, power);
-		if (spellToCast.isTargetedEntitySpell()) spellToCast.castAtEntity(caster, target, power);
-		if (spellToCast.isTargetedLocationSpell()) spellToCast.castAtLocation(caster, target.getLocation(), power);
-		else spellToCast.cast(caster, power);
+		if (from != null) spellToCast.subcast(caster, from, target, power);
+		else spellToCast.subcast(caster, target, power);
 	}
 
 	private class ChainBouncer implements Runnable {

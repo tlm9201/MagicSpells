@@ -402,10 +402,15 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		UUID id = player.getUniqueId();
 		float power = option.power;
 		if (castPower.containsKey(id)) power *= castPower.get(id);
-		if (spell.isTargetedEntitySpell() && castEntityTarget.containsKey(id)) spell.castAtEntity(player, castEntityTarget.get(id), power);
-		else if (spell.isTargetedLocationSpell() && castLocTarget.containsKey(id)) spell.castAtLocation(player, castLocTarget.get(id), power);
-		else if (bypassNormalCast) spell.cast(player, power);
+
+		LivingEntity entityTarget = castEntityTarget.get(id);
+		Location locationTarget = castLocTarget.get(id);
+
+		if (entityTarget != null) spell.subcast(player, entityTarget, power);
+		else if (locationTarget != null) spell.subcast(player, locationTarget, power);
+		else if (bypassNormalCast) spell.subcast(player, power);
 		else spell.getSpell().cast(player, power, MagicSpells.NULL_ARGS);
+
 		return option.stayOpen ? "reopen" : "close";
 	}
 

@@ -283,15 +283,7 @@ public class MinionSpell extends BuffSpell {
 			minion.setHealth(health);
 		}
 
-		if (spawnSpell != null) {
-			if (spawnSpell.isTargetedLocationSpell()) {
-				spawnSpell.castAtLocation(player, minion.getLocation(), power);
-			} else if (spawnSpell.isTargetedEntityFromLocationSpell()) {
-				spawnSpell.castAtEntityFromLocation(player, minion.getLocation(), minion, power);
-			} else if (spawnSpell.isTargetedEntitySpell()) {
-				spawnSpell.castAtEntity(player, minion, power);
-			}
-		}
+		if (spawnSpell != null) spawnSpell.subcast(player, minion.getLocation(), minion, power);
 
 		// Apply potion effects
 		if (potionEffects != null) minion.addPotionEffects(potionEffects);
@@ -426,15 +418,8 @@ public class MinionSpell extends BuffSpell {
 				return;
 			}
 
-			if (((LivingEntity) entity).getHealth() - e.getFinalDamage() <= 0 && deathSpell != null) {
-				if (deathSpell.isTargetedLocationSpell()) {
-					deathSpell.castAtLocation(owner, minion.getLocation(), 1);
-				} else if (deathSpell.isTargetedEntityFromLocationSpell()) {
-					deathSpell.castAtEntityFromLocation(owner, minion.getLocation(), minion, 1);
-				} else if (deathSpell.isTargetedEntitySpell()) {
-					deathSpell.castAtEntity(owner, minion, 1);
-				}
-			}
+			if (((LivingEntity) entity).getHealth() - e.getFinalDamage() <= 0 && deathSpell != null)
+				deathSpell.subcast(owner, minion.getLocation(), minion, 1);
 
 			// If the minion is far away from the owner, forget about attacking
 			if (owner.getWorld().equals(minion.getWorld()) && owner.getLocation().distanceSquared(minion.getLocation()) > maxDistance * maxDistance) return;
@@ -488,15 +473,7 @@ public class MinionSpell extends BuffSpell {
 			Player owner = Bukkit.getPlayer(players.get(minion));
 			if (owner == null || !owner.isOnline() || !owner.isValid()) return;
 
-			if (attackSpell != null) {
-				if (attackSpell.isTargetedLocationSpell()) {
-					attackSpell.castAtLocation(owner, minion.getLocation(), 1);
-				} else if (attackSpell.isTargetedEntityFromLocationSpell()) {
-					attackSpell.castAtEntityFromLocation(owner, minion.getLocation(), (LivingEntity) entity, 1);
-				} else if (attackSpell.isTargetedEntitySpell()) {
-					attackSpell.castAtEntity(owner, (LivingEntity) entity, 1);
-				}
-			}
+			if (attackSpell != null) attackSpell.subcast(owner, minion.getLocation(), (LivingEntity) entity, 1);
 		}
 
 		// The target died, the minion will follow his owner

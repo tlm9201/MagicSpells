@@ -162,14 +162,14 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (spellNames != null && !spellNames.isEmpty()) {
 			for (String spellName : spellNames) {
 				Subspell spell = new Subspell(spellName);
-				if (!spell.process() || !spell.isTargetedLocationSpell()) continue;
+				if (!spell.process()) continue;
 				spells.add(spell);
 			}
 		}
 
 		if (!spellNameOnBreak.isEmpty()) {
 			spellOnBreak = new Subspell(spellNameOnBreak);
-			if (!spellOnBreak.process() || !spellOnBreak.isTargetedLocationSpell()) {
+			if (!spellOnBreak.process()) {
 				MagicSpells.error("TotemSpell '" + internalName + "' has an invalid spell-on-break defined");
 				spellOnBreak = null;
 			}
@@ -381,11 +381,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			});
 			totemLocation = armorStand.getLocation();
 
-			if (spellOnSpawn != null) {
-				if (spellOnSpawn.isTargetedEntitySpell()) spellOnSpawn.castAtEntity(caster, armorStand, power);
-				else if (spellOnSpawn.isTargetedLocationSpell()) spellOnSpawn.castAtLocation(caster, armorStand.getLocation(), power);
-				else spellOnSpawn.cast(caster, power);
-			}
+			if (spellOnSpawn != null) spellOnSpawn.subcast(caster, armorStand, power);
 		}
 
 		private boolean pulse() {
@@ -408,7 +404,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		private boolean activate() {
 			boolean activated = false;
 			for (Subspell spell : spells) {
-				activated = spell.castAtLocation(caster, totemLocation, power) || activated;
+				activated = spell.subcast(caster, totemLocation, power) || activated;
 			}
 
 			playSpellEffects(EffectPosition.SPECIAL, totemLocation, data);
@@ -426,7 +422,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			if (!totemLocation.getChunk().isLoaded()) totemLocation.getChunk().load();
 			armorStand.remove();
 			playSpellEffects(EffectPosition.DISABLED, totemLocation, data);
-			if (spellOnBreak != null) spellOnBreak.castAtLocation(caster, totemLocation, power);
+			if (spellOnBreak != null) spellOnBreak.subcast(caster, totemLocation, power);
 		}
 
 	}

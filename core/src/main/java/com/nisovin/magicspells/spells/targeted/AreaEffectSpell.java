@@ -85,11 +85,6 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 				continue;
 			}
 
-			if (!spell.isTargetedLocationSpell() && !spell.isTargetedEntityFromLocationSpell() && !spell.isTargetedEntitySpell()) {
-				MagicSpells.error("AreaEffectSpell '" + internalName + "' attempted to use non-targeted spell '" + spellName + '\'');
-				continue;
-			}
-
 			spells.add(spell);
 		}
 
@@ -269,11 +264,10 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	}
 
 	private void castSpells(LivingEntity caster, Location location, LivingEntity target, float power) {
+		Location source = spellSourceInCenter ? location : (caster == null ? null : caster.getLocation());
 		for (Subspell spell : spells) {
-			if (spellSourceInCenter && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(caster, location, target, power, passTargeting);
-			else if (caster != null && spell.isTargetedEntityFromLocationSpell()) spell.castAtEntityFromLocation(caster, caster.getLocation(), target, power, passTargeting);
-			else if (spell.isTargetedEntitySpell()) spell.castAtEntity(caster, target, power, passTargeting);
-			else if (spell.isTargetedLocationSpell()) spell.castAtLocation(caster, target.getLocation(), power);
+			if (source != null) spell.subcast(caster, source, target, power, passTargeting);
+			else spell.subcast(caster, target, power, passTargeting);
 		}
 	}
 

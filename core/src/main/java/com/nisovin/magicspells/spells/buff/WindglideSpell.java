@@ -66,14 +66,14 @@ public class WindglideSpell extends BuffSpell {
 		super.initialize();
 
 		glideSpell = new Subspell(glideSpellName);
-		if (!glideSpell.process() || !glideSpell.isTargetedLocationSpell()) {
+		if (!glideSpell.process()) {
 			glideSpell = null;
 			if (!glideSpellName.isEmpty())
 				MagicSpells.error("WindglideSpell " + internalName + " has an invalid spell defined: " + glideSpellName);
 		}
 
 		collisionSpell = new Subspell(collisionSpellName);
-		if (!collisionSpell.process() || !collisionSpell.isTargetedLocationSpell()) {
+		if (!collisionSpell.process()) {
 			collisionSpell = null;
 			if (!collisionSpellName.isEmpty())
 				MagicSpells.error("WindglideSpell " + internalName + " has an invalid collision-spell defined: " + collisionSpellName);
@@ -133,7 +133,7 @@ public class WindglideSpell extends BuffSpell {
 		if (!isActive(entity)) return;
 		if (blockCollisionDmg) e.setCancelled(true);
 		if (cancelOnCollision) turnOff(entity);
-		if (collisionSpell != null) collisionSpell.castAtLocation(entity, entity.getLocation(), 1F);
+		if (collisionSpell != null) collisionSpell.subcast(entity, entity.getLocation(), 1F);
 	}
 
 	public Subspell getGlideSpell() {
@@ -200,7 +200,7 @@ public class WindglideSpell extends BuffSpell {
 				Vector v = eLoc.getDirection().normalize().multiply(velocity).add(new Vector(0, height, 0));
 				entity.setVelocity(v);
 
-				if (glideSpell != null) glideSpell.castAtLocation(caster, eLoc, data.power());
+				if (glideSpell != null) glideSpell.subcast(caster, eLoc, data.power());
 				playSpellEffects(EffectPosition.SPECIAL, eLoc, data);
 				addUseAndChargeCost(caster);
 			}

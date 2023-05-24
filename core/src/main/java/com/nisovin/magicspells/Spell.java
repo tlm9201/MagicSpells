@@ -1928,12 +1928,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		message = MagicSpells.doReplacements(message, caster, target, args, replacements);
 		Component msg = Util.getMiniMessage(MagicSpells.getTextColor() + message);
 
-		int rangeDoubled = range << 1;
-		Collection<Player> players = caster.getLocation().getNearbyPlayers(rangeDoubled);
+		Collection<Player> players = caster.getLocation().getNearbyPlayers(range);
 		for (Player player : players) {
-			if (player == caster) continue;
-			if (player == target) continue;
-
+			if (player == caster || player == target) continue;
 			player.sendMessage(msg);
 		}
 	}
@@ -2251,10 +2248,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			unregisterEvents(this);
 
 			sendMessage(strInterrupted, caster, null);
-			if (spellOnInterrupt != null) {
-				if (spellOnInterrupt.isTargetedLocationSpell()) spellOnInterrupt.castAtLocation(caster, caster.getLocation(), spellCast.getPower());
-				else spellOnInterrupt.cast(caster, spellCast.getPower());
-			}
+			if (spellOnInterrupt != null) spellOnInterrupt.subcast(caster, caster.getLocation(), spellCast.getPower());
 		}
 
 	}
@@ -2345,10 +2339,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		private void interrupt() {
 			sendMessage(strInterrupted, caster, null);
 			end();
-			if (spellOnInterrupt != null) {
-				if (spellOnInterrupt.isTargetedLocationSpell()) spellOnInterrupt.castAtLocation(caster, caster.getLocation(), spellCast.getPower());
-				else spellOnInterrupt.cast(caster, spellCast.getPower());
-			}
+			if (spellOnInterrupt != null) spellOnInterrupt.subcast(caster, caster.getLocation(), spellCast.getPower());
 		}
 
 		private void end() {

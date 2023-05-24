@@ -163,8 +163,8 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 			return;
 		}
 
-		if (count % spellInterval == 0 && spellOnTick != null && spellOnTick.isTargetedLocationSpell()) {
-			spellOnTick.castAtLocation(caster, currentLocation.clone(), power);
+		if (count % spellInterval == 0 && spellOnTick != null) {
+			spellOnTick.subcast(caster, currentLocation.clone(), power);
 		}
 
 		for (Entity e : entity.getNearbyEntities(hitRadius, vertHitRadius, hitRadius)) {
@@ -175,7 +175,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 			EventUtil.call(event);
 			if (!event.isCancelled()) {
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, event.getTarget(), data);
-				if (spellOnHitEntity != null) spellOnHitEntity.castAtEntity(caster, event.getTarget(), event.getPower());
+				if (spellOnHitEntity != null) spellOnHitEntity.subcast(caster, event.getTarget(), event.getPower());
 				if (stopOnHitEntity) stop();
 				return;
 			}
@@ -183,7 +183,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 
 		if (entity.isOnGround()) {
 			if (spellOnHitGround != null && !groundSpellCasted) {
-				spellOnHitGround.castAtLocation(caster, entity.getLocation(), power);
+				spellOnHitGround.subcast(caster, entity.getLocation(), power);
 				groundSpellCasted = true;
 			}
 			if (stopOnHitGround) {
@@ -191,7 +191,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 				return;
 			}
 			if (!landed) MagicSpells.scheduleDelayedTask(() -> {
-				if (spellOnDelay != null) spellOnDelay.castAtLocation(caster, entity.getLocation(), power);
+				if (spellOnDelay != null) spellOnDelay.subcast(caster, entity.getLocation(), power);
 				stop();
 			}, spellDelay);
 			landed = true;

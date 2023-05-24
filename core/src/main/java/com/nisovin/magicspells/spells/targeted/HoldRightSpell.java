@@ -197,9 +197,9 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 
 		private void cast(LivingEntity caster) {
 			lastCast = System.currentTimeMillis();
-			if (targetEntity != null) spellToCast.castAtEntity(caster, targetEntity, power);
-			else if (targetLocation != null) spellToCast.castAtLocation(caster, targetLocation, power);
-			else spellToCast.cast(caster, power);
+			if (targetEntity != null) spellToCast.subcast(caster, targetEntity, power);
+			else if (targetLocation != null) spellToCast.subcast(caster, targetLocation, power);
+			else spellToCast.subcast(caster, power);
 		}
 
 	}

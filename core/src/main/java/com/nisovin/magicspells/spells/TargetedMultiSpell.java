@@ -197,23 +197,12 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 		}
 		return somethingWasDone;
 	}
-	
+
 	private boolean castTargetedSpells(Subspell spell, LivingEntity caster, Location center, LivingEntity targetEnt, Location targetLoc, float power) {
-		if (spell.isTargetedEntityFromLocationSpell() && targetEnt != null && center != null) {
-			return spell.castAtEntityFromLocation(caster, center, targetEnt, power, passTargeting);
-		}
-
-		if (spell.isTargetedEntitySpell() && targetEnt != null) {
-			return spell.castAtEntity(caster, targetEnt, power, passTargeting);
-		}
-
-		if (spell.isTargetedLocationSpell()) {
-			if (targetEnt != null) return spell.castAtLocation(caster, targetEnt.getLocation(), power);
-			if (targetLoc != null) return spell.castAtLocation(caster, targetLoc, power);
-		}
-
-		PostCastAction action = spell.cast(caster, power);
-		return action == PostCastAction.HANDLE_NORMALLY || action == PostCastAction.NO_MESSAGES;
+		if (targetEnt != null && center != null) return spell.subcast(caster, center, targetEnt, power, passTargeting);
+		if (targetEnt != null) return spell.subcast(caster, targetEnt, power, passTargeting);
+		if (targetLoc != null) return spell.subcast(caster, targetLoc, power);
+		return spell.subcast(caster, power);
 	}
 
 	@Override

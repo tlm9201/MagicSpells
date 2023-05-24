@@ -97,7 +97,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		if (spellNames != null && !spellNames.isEmpty()) {
 			for (String spellName : spellNames) {
 				Subspell spell = new Subspell(spellName);
-				if (!spell.process() || !spell.isTargetedLocationSpell()) continue;
+				if (!spell.process()) continue;
 				spells.add(spell);
 			}
 		}
@@ -319,7 +319,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		private boolean activate() {
 			boolean activated = false;
 			for (Subspell spell : spells) {
-				activated = spell.castAtLocation(caster, location, power) || activated;
+				activated = spell.subcast(caster, location, power) || activated;
 			}
 			playSpellEffects(EffectPosition.DELAYED, location, data);
 			if (totalPulses > 0 && (activated || !onlyCountOnSuccess)) {
@@ -336,10 +336,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			if (!block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) block.getChunk().load();
 			block.setType(Material.AIR);
 			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-			if (spellOnBreak != null) {
-				if (spellOnBreak.isTargetedLocationSpell()) spellOnBreak.castAtLocation(caster, location, power);
-				else spellOnBreak.cast(caster, power);
-			}
+			if (spellOnBreak != null) spellOnBreak.subcast(caster, location, power);
 		}
 
 	}
