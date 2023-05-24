@@ -101,7 +101,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		targeted = getConfigBoolean("targeted", true);
 		pointBlank = getConfigBoolean("point-blank", false);
 		stopOnFail = getConfigBoolean("stop-on-fail", false);
-		passTargeting = getConfigBoolean("pass-targeting", true);
+		passTargeting = getConfigBoolean("pass-targeting", false);
 		cancelOnDeath = getConfigBoolean("cancel-on-death", false);
 		stopOnSuccess = getConfigBoolean("stop-on-success", false);
 		requireEntityTarget = getConfigBoolean("require-entity-target", false);
