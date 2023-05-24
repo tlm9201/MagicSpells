@@ -1662,7 +1662,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (callbacks == null) return;
 		String key = p.getUniqueId().toString();
 		Map<EffectPosition, List<Runnable>> entry = new EnumMap<>(EffectPosition.class);
-		for (EffectPosition pos: EffectPosition.values()) {
+		for (EffectPosition pos : EffectPosition.values()) {
 			List<Runnable> runnables = new ArrayList<>();
 			entry.put(pos, runnables);
 		}
@@ -1671,7 +1671,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public void unloadPlayerEffectTracker(Player p) {
 		String uuid = p.getUniqueId().toString();
-		for (EffectPosition pos: EffectPosition.values()) {
+		for (EffectPosition pos : EffectPosition.values()) {
 			cancelEffects(pos, uuid);
 		}
 		callbacks.remove(uuid);
@@ -1690,7 +1690,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	public void cancelEffectForAllPlayers(EffectPosition pos) {
-		for (String key: callbacks.keySet()) {
+		for (String key : callbacks.keySet()) {
 			cancelEffects(pos, key);
 		}
 	}

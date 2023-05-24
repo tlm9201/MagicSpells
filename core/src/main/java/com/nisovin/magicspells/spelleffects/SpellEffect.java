@@ -513,6 +513,11 @@ public abstract class SpellEffect {
 		return new OrbitTracker(entity, checker, this, data);
 	}
 
+	// override if you need to do additional stuff when disabling spell effects
+	public void turnOff() {
+
+	}
+
 	@FunctionalInterface
 	public interface SpellEffectActiveChecker {
 		boolean isActive(Entity entity);
