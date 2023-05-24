@@ -296,13 +296,13 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			//check block collision
 			if (!isTransparent(loc.getBlock())) {
 				playSpellEffects(EffectPosition.DISABLED, loc, data);
-				if (groundSpell != null) groundSpell.subcast(caster, loc, power);
+				if (groundSpell != null) groundSpell.subcast(caster, loc, power, args);
 				if (stopOnHitGround) break;
 			}
 
 			playSpellEffects(EffectPosition.SPECIAL, loc, data);
 
-			if (travelSpell != null) travelSpell.subcast(caster, loc, power);
+			if (travelSpell != null) travelSpell.subcast(caster, loc, power, args);
 
 			//check entities in the beam range
 			for (LivingEntity e : loc.getNearbyLivingEntities(hitRadius, verticalHitRadius)) {
@@ -314,8 +314,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 				LivingEntity entity = event.getTarget();
 
-				if (hitSpell != null) hitSpell.subcast(caster, entity, event.getPower());
-				if (entityLocationSpell != null) entityLocationSpell.subcast(caster, loc, power);
+				if (hitSpell != null) hitSpell.subcast(caster, entity, event.getPower(), args);
+				if (entityLocationSpell != null) entityLocationSpell.subcast(caster, loc, power, args);
 
 				playSpellEffects(EffectPosition.TARGET, entity, data);
 				playSpellEffectsTrail(caster.getLocation(), entity.getLocation(), data);
@@ -328,7 +328,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		//end of the beam
 		if (!zoneManager.willFizzle(loc, this) && d >= maxDistance) {
 			playSpellEffects(EffectPosition.DELAYED, loc, data);
-			if (endSpell != null) endSpell.subcast(caster, loc, power);
+			if (endSpell != null) endSpell.subcast(caster, loc, power, args);
 		}
 	}
 

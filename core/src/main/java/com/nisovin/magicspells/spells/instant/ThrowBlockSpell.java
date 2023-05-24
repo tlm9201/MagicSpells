@@ -266,7 +266,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 						if (b.getType() == Material.AIR) BlockUtils.setBlockFromFallingBlock(b, block, true);
 					}
 					if (!info.spellActivated && spellOnLand != null) {
-						spellOnLand.subcast(info.caster, block.getLocation(), info.power);
+						spellOnLand.subcast(info.caster, block.getLocation(), info.power, info.args);
 						info.spellActivated = true;
 					}
 					block.remove();
@@ -274,7 +274,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			}
 			if (ensureSpellCast && block.isDead()) {
 				if (!info.spellActivated && spellOnLand != null) {
-					spellOnLand.subcast(info.caster, block.getLocation(), info.power);
+					spellOnLand.subcast(info.caster, block.getLocation(), info.power, info.args);
 					info.spellActivated = true;
 				}
 				MagicSpells.cancelTask(task);
@@ -325,7 +325,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			event.setDamage(damage);
 
 			if (spellOnLand != null && !info.spellActivated) {
-				spellOnLand.subcast(info.caster, target.getLocation(), power);
+				spellOnLand.subcast(info.caster, target.getLocation(), power, info.args);
 				info.spellActivated = true;
 			}
 		}
@@ -340,7 +340,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 				event.setCancelled(true);
 			}
 			if (spellOnLand != null && !info.spellActivated) {
-				spellOnLand.subcast(info.caster, event.getBlock().getLocation().add(0.5, 0.5, 0.5), info.power);
+				spellOnLand.subcast(info.caster, event.getBlock().getLocation().add(0.5, 0.5, 0.5), info.power, info.args);
 				info.spellActivated = true;
 			}
 		}
@@ -361,7 +361,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 				event.getEntity().remove();
 			}
 			if (spellOnLand != null && !info.spellActivated) {
-				spellOnLand.subcast(info.caster, entity.getLocation(), info.power);
+				spellOnLand.subcast(info.caster, entity.getLocation(), info.power, info.args);
 				info.spellActivated = true;
 			}
 		}

@@ -218,7 +218,7 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 					SpellTargetEvent event = new SpellTargetEvent(CarpetSpell.this, data.caster, player, data.power, data.args);
 					if (!event.callEvent()) continue;
 
-					spellOnTouch.subcast(data.caster, event.getTarget(), event.getPower());
+					spellOnTouch.subcast(data.caster, event.getTarget(), event.getPower(), data.args);
 				}
 			}
 		}

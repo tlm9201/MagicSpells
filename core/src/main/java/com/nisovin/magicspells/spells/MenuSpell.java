@@ -32,10 +32,8 @@ import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
 public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
-	private final Map<UUID, Float> castPower = new HashMap<>();
-	private final Map<UUID, Location> castLocTarget = new HashMap<>();
-	private final Map<UUID, LivingEntity> castEntityTarget = new HashMap<>();
 	private final Map<String, MenuOption> options = new LinkedHashMap<>();
+	private final Map<UUID, MenuData> menuData = new HashMap<>();
 
 	private int size;
 
@@ -279,10 +277,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	private void openMenu(Player caster, Player opener, LivingEntity entityTarget, Location locTarget, float power, String[] args) {
-		castPower.put(opener.getUniqueId(), power);
-		if (requireEntityTarget && entityTarget != null) castEntityTarget.put(opener.getUniqueId(), entityTarget);
-		if (requireLocationTarget && locTarget != null) castLocTarget.put(opener.getUniqueId(), locTarget);
-
+		menuData.put(opener.getUniqueId(), new MenuData(requireEntityTarget ? entityTarget : null, requireLocationTarget ? locTarget : null, power, args));
 
 		Inventory inv = Bukkit.createInventory(opener, size, Component.text(internalName));
 		applyOptionsToInventory(opener, inv, args);
@@ -364,9 +359,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		String closeState = castSpells(player, event.getCurrentItem(), event.getClick());
 
 		UUID id = player.getUniqueId();
-		castPower.remove(id);
-		castLocTarget.remove(id);
-		castEntityTarget.remove(id);
+		menuData.remove(id);
 
 		if (closeState.equals("ignore")) return;
 		if (closeState.equals("close")) {
@@ -399,16 +392,24 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	private String processClickSpell(Player player, Subspell spell, MenuOption option) {
 		if (spell == null) return option.stayOpen ? "ignore" : "close";
-		UUID id = player.getUniqueId();
+
+		LivingEntity entityTarget = null;
+		Location locationTarget = null;
 		float power = option.power;
-		if (castPower.containsKey(id)) power *= castPower.get(id);
+		String[] args = null;
 
-		LivingEntity entityTarget = castEntityTarget.get(id);
-		Location locationTarget = castLocTarget.get(id);
+		UUID id = player.getUniqueId();
+		MenuData data = menuData.get(id);
+		if (data != null) {
+			locationTarget = data.targetLocation;
+			entityTarget = data.targetEntity;
+			power *= data.power;
+			args = data.args;
+		}
 
-		if (entityTarget != null) spell.subcast(player, entityTarget, power);
-		else if (locationTarget != null) spell.subcast(player, locationTarget, power);
-		else if (bypassNormalCast) spell.subcast(player, power);
+		if (entityTarget != null) spell.subcast(player, entityTarget, power, args);
+		else if (locationTarget != null) spell.subcast(player, locationTarget, power, args);
+		else if (bypassNormalCast) spell.subcast(player, power, args);
 		else spell.getSpell().cast(player, power, MagicSpells.NULL_ARGS);
 
 		return option.stayOpen ? "reopen" : "close";
@@ -417,9 +418,10 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
 		UUID id = event.getPlayer().getUniqueId();
-		castPower.remove(id);
-		castLocTarget.remove(id);
-		castEntityTarget.remove(id);
+		menuData.remove(id);
+	}
+
+	private record MenuData(LivingEntity targetEntity, Location targetLocation, float power, String[] args) {
 	}
 
 	private static class MenuOption {

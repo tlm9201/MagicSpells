@@ -342,12 +342,14 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		private final double maxDistanceSq;
 		private final int totalPulses;
 		private final SpellData data;
+		private final String[] args;
 		private final float power;
 		private int pulseCount;
 
 		private Totem(LivingEntity caster, Location loc, float power, String[] args) {
 			this.caster = caster;
 			this.power = power;
+			this.args = args;
 
 			data = new SpellData(caster, power, args);
 
@@ -381,7 +383,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			});
 			totemLocation = armorStand.getLocation();
 
-			if (spellOnSpawn != null) spellOnSpawn.subcast(caster, armorStand, power);
+			if (spellOnSpawn != null) spellOnSpawn.subcast(caster, armorStand, power, args);
 		}
 
 		private boolean pulse() {
@@ -404,7 +406,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		private boolean activate() {
 			boolean activated = false;
 			for (Subspell spell : spells) {
-				activated = spell.subcast(caster, totemLocation, power) || activated;
+				activated = spell.subcast(caster, totemLocation, power, args) || activated;
 			}
 
 			playSpellEffects(EffectPosition.SPECIAL, totemLocation, data);
@@ -422,7 +424,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			if (!totemLocation.getChunk().isLoaded()) totemLocation.getChunk().load();
 			armorStand.remove();
 			playSpellEffects(EffectPosition.DISABLED, totemLocation, data);
-			if (spellOnBreak != null) spellOnBreak.subcast(caster, totemLocation, power);
+			if (spellOnBreak != null) spellOnBreak.subcast(caster, totemLocation, power, args);
 		}
 
 	}

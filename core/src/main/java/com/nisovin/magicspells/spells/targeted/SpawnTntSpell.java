@@ -145,7 +145,7 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 		LivingEntity caster = data.caster();
 		if (caster == null || !caster.isValid()) return;
 
-		spellToCast.subcast(caster, event.getEntity().getLocation(), data.power());
+		spellToCast.subcast(caster, event.getEntity().getLocation(), data.power(), data.args());
 	}
 
 }

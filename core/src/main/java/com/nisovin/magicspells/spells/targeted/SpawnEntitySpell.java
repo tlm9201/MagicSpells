@@ -421,8 +421,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		if (spellOnSpawn != null) {
-			if (entity instanceof LivingEntity livingEntity) spellOnSpawn.subcast(caster, livingEntity, power);
-			else spellOnSpawn.subcast(caster, entity.getLocation(), power);
+			if (entity instanceof LivingEntity livingEntity) spellOnSpawn.subcast(caster, livingEntity, power, args);
+			else spellOnSpawn.subcast(caster, entity.getLocation(), power, args);
 		}
 
 		int targetInterval = this.targetInterval.get(data);
@@ -535,7 +535,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			if (damager != monster) return;
 
 			if (event.getEntity() instanceof LivingEntity damaged) {
-				attackSpell.subcast(caster, monster.getLocation(), damaged, power);
+				attackSpell.subcast(caster, monster.getLocation(), damaged, power, args);
 				event.setCancelled(cancelAttack);
 			}
 		}

@@ -136,7 +136,7 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 						blocks.remove(block);
 						block.setType(Material.AIR);
 						playSpellEffects(EffectPosition.DELAYED, l, data);
-						if (targetSpell != null) targetSpell.subcast(livingEntity, l, power);
+						if (targetSpell != null) targetSpell.subcast(livingEntity, l, power, args);
 					}
 				} else if (!material.equals(block.getType())) stop(true);
 				else playSpellEffects(EffectPosition.SPECIAL, l, data);

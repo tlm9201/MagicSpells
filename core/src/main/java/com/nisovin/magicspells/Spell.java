@@ -2248,7 +2248,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			unregisterEvents(this);
 
 			sendMessage(strInterrupted, caster, null);
-			if (spellOnInterrupt != null) spellOnInterrupt.subcast(caster, caster.getLocation(), spellCast.getPower());
+			if (spellOnInterrupt != null) spellOnInterrupt.subcast(caster, caster.getLocation(), spellCast.getPower(), spellCast.getSpellArgs());
 		}
 
 	}
@@ -2339,7 +2339,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		private void interrupt() {
 			sendMessage(strInterrupted, caster, null);
 			end();
-			if (spellOnInterrupt != null) spellOnInterrupt.subcast(caster, caster.getLocation(), spellCast.getPower());
+			if (spellOnInterrupt != null) spellOnInterrupt.subcast(caster, caster.getLocation(), spellCast.getPower(), spellCast.getSpellArgs());
 		}
 
 		private void end() {

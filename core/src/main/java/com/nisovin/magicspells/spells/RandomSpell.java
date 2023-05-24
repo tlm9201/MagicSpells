@@ -75,7 +75,7 @@ public class RandomSpell extends InstantSpell {
 			}
 			if (!set.randomOptionSetOptions.isEmpty()) {
 				Subspell spell = set.choose();
-				return spell != null && spell.subcast(caster, power) ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED;
+				return spell != null && spell.subcast(caster, power, args) ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED;
 			}
 			return PostCastAction.ALREADY_HANDLED;
 		}

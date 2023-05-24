@@ -52,7 +52,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 
 			Location loc = Util.applyOffsets(baseTargetLocation.clone(), relativeOffset, absoluteOffset);
 
-			if (spellToCast != null) spellToCast.subcast(caster, loc, power);
+			if (spellToCast != null) spellToCast.subcast(caster, loc, power, args);
 			playSpellEffects(caster, loc, power, args);
 
 			if (!info.empty()) {
@@ -66,7 +66,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 
 	@Override
 	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (spellToCast != null) spellToCast.subcast(caster, Util.applyOffsets(target.clone(), relativeOffset, absoluteOffset), power);
+		if (spellToCast != null) spellToCast.subcast(caster, Util.applyOffsets(target.clone(), relativeOffset, absoluteOffset), power, args);
 		playSpellEffects(caster, target, power, args);
 		return true;
 	}

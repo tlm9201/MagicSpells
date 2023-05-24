@@ -181,14 +181,14 @@ public class ProjectileTracker implements Runnable, Tracker {
 			args = spellData.args();
 
 			if (!result.check()) {
-				if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power);
+				if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power, args);
 				if (stopOnModifierFail) stop();
 				return;
 			}
 		}
 
 		if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {
-			if (durationSpell != null) durationSpell.subcast(caster, currentLocation, power);
+			if (durationSpell != null) durationSpell.subcast(caster, currentLocation, power, args);
 			stop();
 			return;
 		}
@@ -203,7 +203,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 			if (stopped) return;
 		}
 
-		if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.subcast(caster, currentLocation, power);
+		if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.subcast(caster, currentLocation, power, args);
 
 		if (spell != null) {
 			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, spellData);
@@ -289,8 +289,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 			SpellTargetEvent event = new SpellTargetEvent(spell, caster, entity, power, args);
 			if (!event.callEvent()) continue;
 
-			if (hitSpell != null) hitSpell.subcast(caster, entity, event.getPower());
-			if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLocation, event.getPower());
+			if (hitSpell != null) hitSpell.subcast(caster, entity, event.getPower(), args);
+			if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLocation, event.getPower(), args);
 
 			stop();
 			return;

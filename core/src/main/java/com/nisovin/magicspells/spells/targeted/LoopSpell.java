@@ -101,7 +101,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		targeted = getConfigBoolean("targeted", true);
 		pointBlank = getConfigBoolean("point-blank", false);
 		stopOnFail = getConfigBoolean("stop-on-fail", false);
-		passTargeting = getConfigBoolean("pass-targeting", false);
+		passTargeting = getConfigBoolean("pass-targeting", true);
 		cancelOnDeath = getConfigBoolean("cancel-on-death", false);
 		stopOnSuccess = getConfigBoolean("stop-on-success", false);
 		requireEntityTarget = getConfigBoolean("require-entity-target", false);
@@ -461,9 +461,9 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private boolean cast(Subspell spell) {
 			boolean success;
 
-			if (targetEntity != null) success = spell.subcast(caster, targetEntity, data.power(), passTargeting);
-			else if (targetLocation != null) success = spell.subcast(caster, targetLocation, data.power());
-			else success = spell.subcast(caster, data.power());
+			if (targetEntity != null) success = spell.subcast(caster, targetEntity, data.power(), data.args(), passTargeting);
+			else if (targetLocation != null) success = spell.subcast(caster, targetLocation, data.power(), data.args());
+			else success = spell.subcast(caster, data.power(), data.args());
 
 			if (stopOnSuccess && success || stopOnFail && !success) {
 				cancel();
@@ -509,9 +509,9 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			}
 
 			if (spellOnEnd != null) {
-				if (targetEntity != null) spellOnEnd.subcast(caster, targetEntity, data.power(), passTargeting);
-				else if (targetLocation != null) spellOnEnd.subcast(caster, targetLocation, data.power());
-				else if (caster != null) spellOnEnd.subcast(caster, data.power());
+				if (targetEntity != null) spellOnEnd.subcast(caster, targetEntity, data.power(), data.args(), passTargeting);
+				else if (targetLocation != null) spellOnEnd.subcast(caster, targetLocation, data.power(), data.args());
+				else if (caster != null) spellOnEnd.subcast(caster, data.power(), data.args());
 			}
 		}
 

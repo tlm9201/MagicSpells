@@ -335,7 +335,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			Location loc = getLocation();
 
 			if (!isTransparent(loc.getBlock())) {
-				if (groundSpell != null) groundSpell.subcast(caster, loc, power);
+				if (groundSpell != null) groundSpell.subcast(caster, loc, power, args);
 				if (stopOnHitGround) {
 					stop(true);
 					return;
@@ -374,7 +374,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 			}
 
-			if (orbitSpell != null) orbitSpell.subcast(caster, loc, power);
+			if (orbitSpell != null) orbitSpell.subcast(caster, loc, power, args);
 
 			box.setCenter(loc);
 
@@ -390,7 +390,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				if (event.isCancelled()) continue;
 
 				immune.add(event.getTarget());
-				if (entitySpell != null) entitySpell.subcast(event.getCaster(), event.getTarget(), event.getPower());
+				if (entitySpell != null) entitySpell.subcast(event.getCaster(), event.getTarget(), event.getPower(), args);
 
 				SpellData data = new SpellData(caster, event.getTarget(), event.getPower(), args);
 				playSpellEffects(EffectPosition.TARGET, event.getTarget(), data);

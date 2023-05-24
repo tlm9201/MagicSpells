@@ -311,7 +311,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 			//check block collision
 			if (!isTransparent(loc.getBlock())) {
 				playSpellEffects(EffectPosition.DISABLED, loc, data);
-				if (groundSpell != null) groundSpell.subcast(caster, loc, power);
+				if (groundSpell != null) groundSpell.subcast(caster, loc, power, args);
 				if (stopOnHitGround) break;
 			}
 
@@ -350,7 +350,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 				LivingEntity subTarget = event.getTarget();
 				float subPower = event.getPower();
 
-				if (hitSpell != null) hitSpell.subcast(caster, subTarget, subPower);
+				if (hitSpell != null) hitSpell.subcast(caster, subTarget, subPower, args);
 
 				playSpellEffects(EffectPosition.TARGET, subTarget, data);
 				playSpellEffectsTrail(caster.getLocation(), subTarget.getLocation(), data);
@@ -363,7 +363,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 		//end of the beam
 		if (!zoneManager.willFizzle(loc, this) && d >= maxDistance) {
 			playSpellEffects(EffectPosition.DELAYED, loc, data);
-			if (endSpell != null) endSpell.subcast(caster, loc, power);
+			if (endSpell != null) endSpell.subcast(caster, loc, power, args);
 		}
 
 		entities.add(armorStandList);

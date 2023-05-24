@@ -265,7 +265,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 		if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {
 			if (hitAirAfterDuration && durationSpell != null) {
-				durationSpell.subcast(caster, currentLocation, power);
+				durationSpell.subcast(caster, currentLocation, power, args);
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLocation, data);
 			}
 			stop();
@@ -276,10 +276,9 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			ModifierResult result = projectileModifiers.apply(caster, data);
 			data = result.data();
 			power = data.power();
-			args = data.args();
 
 			if (!result.check()) {
-				if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power);
+				if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power, args);
 				if (stopOnModifierFail) stop();
 				return;
 			}
@@ -420,7 +419,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		// Cast spell mid air
 		if (hitAirDuring && counter % spellInterval == 0 && tickSpell != null) {
 			if (tickSpellLimit <= 0 || ticks < tickSpellLimit) {
-				tickSpell.subcast(caster, currentLocation.clone(), power);
+				tickSpell.subcast(caster, currentLocation.clone(), power, args);
 				ticks++;
 			}
 		}
@@ -434,7 +433,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			if (!groundMaterials.contains(b.getType()) || disallowedGroundMaterials.contains(b.getType())) continue;
 			if (hitGround && groundSpell != null) {
 				Util.setLocationFacingFromVector(previousLocation, currentVelocity);
-				groundSpell.subcast(caster, previousLocation, power);
+				groundSpell.subcast(caster, previousLocation, power, args);
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLocation, data);
 			}
 			if (stopOnHitGround) {
@@ -445,7 +444,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 		if (currentLocation.distanceSquared(startLocation) >= maxDistanceSquared) {
 			if (hitAirAtEnd && airSpell != null) {
-				airSpell.subcast(caster, currentLocation.clone(), power);
+				airSpell.subcast(caster, currentLocation.clone(), power, args);
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLocation, data);
 			}
 			stop();
@@ -475,7 +474,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			double z = (tracker.currentLocation.getZ() + collisionTracker.currentLocation.getZ()) / 2D;
 
 			Location middleLoc = new Location(tracker.currentLocation.getWorld(), x, y, z);
-			collisionSpell.subcast(tracker.caster, middleLoc, tracker.power);
+			collisionSpell.subcast(tracker.caster, middleLoc, tracker.power, tracker.args);
 			toRemove.add(collisionTracker);
 			toRemove.add(tracker);
 			collisionTracker.stop(false);
@@ -551,9 +550,9 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			target = targetEvent.getTarget();
 			subPower = targetEvent.getPower();
 
-			if (casterSpell != null && target.equals(caster)) casterSpell.subcast(caster, target, subPower);
-			if (entitySpell != null && !target.equals(caster)) entitySpell.subcast(caster, target, subPower);
-			if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLocation.clone(), subPower);
+			if (casterSpell != null && target.equals(caster)) casterSpell.subcast(caster, target, subPower, args);
+			if (entitySpell != null && !target.equals(caster)) entitySpell.subcast(caster, target, subPower, args);
+			if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLocation.clone(), subPower, args);
 
 			if (spell != null)
 				spell.playEffects(EffectPosition.TARGET, currentLoc, new SpellData(caster, target, subPower, args));

@@ -299,7 +299,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 		maxDistanceSquared *= maxDistanceSquared;
 
 		Location currentLoc;
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			ParticleProjectileTracker tracker = iterator.next();
 			if (tracker == null || tracker.isStopped()) continue;
 			currentLoc = tracker.getCurrentLocation();
@@ -323,7 +323,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 				if (AccurateMath.abs(dir.angle(facing)) > cone) continue;
 			}
 
-			if (projectileSpell != null) projectileSpell.subcast(caster, currentLoc, 1F);
+			if (projectileSpell != null) projectileSpell.subcast(caster, currentLoc, power, args);
 
 			if (stop.get(data)) {
 				playSpellEffects(EffectPosition.TARGET, currentLoc, data);

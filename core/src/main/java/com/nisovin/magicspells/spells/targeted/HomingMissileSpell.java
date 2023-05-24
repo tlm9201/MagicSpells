@@ -242,6 +242,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		private Location currentLocation;
 		private Vector currentVelocity;
 		private BoundingBox hitBox;
+		private String[] args;
 		private float power;
 		private long startTime;
 		private int taskId;
@@ -280,6 +281,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			this.caster = caster;
 			this.target = target;
 			this.power = power;
+			this.args = args;
 
 			data = new SpellData(caster, target, power, args);
 
@@ -343,14 +345,14 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				power = data.power();
 
 				if (!result.check()) {
-					if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power);
+					if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power, args);
 					if (stopOnModifierFail) stop();
 					return;
 				}
 			}
 
 			if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {
-				if (hitAirAfterDuration && durationSpell != null) durationSpell.subcast(caster, currentLocation, power);
+				if (hitAirAfterDuration && durationSpell != null) durationSpell.subcast(caster, currentLocation, power, args);
 				stop();
 				return;
 			}
@@ -396,13 +398,13 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			}
 
 			if (stopOnHitGround && !BlockUtils.isPathable(currentLocation.getBlock())) {
-				if (hitGround && groundSpell != null) groundSpell.subcast(caster, currentLocation, power);
+				if (hitGround && groundSpell != null) groundSpell.subcast(caster, currentLocation, power, args);
 				stop();
 				return;
 			}
 
 			if (hitAirDuring && airSpellInterval > 0 && counter % airSpellInterval == 0 && airSpell != null)
-				airSpell.subcast(caster, currentLocation, power);
+				airSpell.subcast(caster, currentLocation, power, args);
 
 			if (intermediateSpecialEffects > 0) playIntermediateEffectLocations(oldLocation, oldVelocity);
 
@@ -440,8 +442,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				// Should we bounce the missile back?
 				if (!preImpact.getRedirected()) {
 					// Apparently didn't get redirected, carry out the plans
-					if (hitSpell != null) hitSpell.subcast(caster, target, power);
-					if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLocation, power);
+					if (hitSpell != null) hitSpell.subcast(caster, target, power, args);
+					if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLocation, power, args);
 
 					playSpellEffects(EffectPosition.TARGET, target, data);
 					if (stopOnHitTarget) stop();

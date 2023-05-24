@@ -70,7 +70,7 @@ public class CastAtMarkSpell extends InstantSpell {
 				sendMessage(caster, strNoMark);
 				return PostCastAction.HANDLE_NORMALLY;
 			}
-			spellToCast.subcast(caster, effectiveMark, power);
+			spellToCast.subcast(caster, effectiveMark, power, args);
 		}
 		return PostCastAction.HANDLE_NORMALLY;
 	}

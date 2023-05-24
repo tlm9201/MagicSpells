@@ -283,7 +283,7 @@ public class MinionSpell extends BuffSpell {
 			minion.setHealth(health);
 		}
 
-		if (spawnSpell != null) spawnSpell.subcast(player, minion.getLocation(), minion, power);
+		if (spawnSpell != null) spawnSpell.subcast(player, minion.getLocation(), minion, power, args);
 
 		// Apply potion effects
 		if (potionEffects != null) minion.addPotionEffects(potionEffects);
@@ -419,7 +419,7 @@ public class MinionSpell extends BuffSpell {
 			}
 
 			if (((LivingEntity) entity).getHealth() - e.getFinalDamage() <= 0 && deathSpell != null)
-				deathSpell.subcast(owner, minion.getLocation(), minion, 1);
+				deathSpell.subcast(owner, minion.getLocation(), minion, 1, null);
 
 			// If the minion is far away from the owner, forget about attacking
 			if (owner.getWorld().equals(minion.getWorld()) && owner.getLocation().distanceSquared(minion.getLocation()) > maxDistance * maxDistance) return;
@@ -473,7 +473,7 @@ public class MinionSpell extends BuffSpell {
 			Player owner = Bukkit.getPlayer(players.get(minion));
 			if (owner == null || !owner.isOnline() || !owner.isValid()) return;
 
-			if (attackSpell != null) attackSpell.subcast(owner, minion.getLocation(), (LivingEntity) entity, 1);
+			if (attackSpell != null) attackSpell.subcast(owner, minion.getLocation(), (LivingEntity) entity, 1, null);
 		}
 
 		// The target died, the minion will follow his owner

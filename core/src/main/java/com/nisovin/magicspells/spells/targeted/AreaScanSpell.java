@@ -296,7 +296,7 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 						target = event.getTargetLocation();
 						found = true;
 
-						if (spell != null) spell.subcast(caster, target, subPower);
+						if (spell != null) spell.subcast(caster, target, subPower, args);
 
 						SpellData effectData = power == subPower ? data : new SpellData(caster, subPower, args);
 						playSpellEffects(EffectPosition.TARGET, target, effectData);

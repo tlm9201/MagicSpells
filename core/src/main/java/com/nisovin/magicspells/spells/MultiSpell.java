@@ -87,8 +87,8 @@ public final class MultiSpell extends InstantSpell {
 						delay += action.getDelay();
 					} else if (action.isSpell()) {
 						Subspell spell = action.getSpell();
-						if (delay == 0) spell.subcast(caster, power);
-						else MagicSpells.scheduleDelayedTask(new DelayedSpell(spell, caster, power), delay);
+						if (delay == 0) spell.subcast(caster, power, args);
+						else MagicSpells.scheduleDelayedTask(new DelayedSpell(spell, caster, power, args), delay);
 					}
 				}
 			} else {
@@ -105,18 +105,18 @@ public final class MultiSpell extends InstantSpell {
 						s = (int) Math.round(s + actions.get(i++).getChance());
 					}
 					Action action = actions.get(Math.max(0, i - 1)).getAction();
-					if (action.isSpell()) action.getSpell().subcast(caster, power);
+					if (action.isSpell()) action.getSpell().subcast(caster, power, args);
 				} else if (enableIndividualChances) {
 					for (ActionChance actionChance : actions) {
 						double chance = Math.random();
 						if ((actionChance.getChance() / 100.0D > chance) && actionChance.getAction().isSpell()) {
 							Action action = actionChance.getAction();
-							action.getSpell().subcast(caster, power);
+							action.getSpell().subcast(caster, power, args);
 						}
 					}
 				} else {
 					Action action = actions.get(random.nextInt(actions.size())).getAction();
-					action.getSpell().subcast(caster, power);
+					action.getSpell().subcast(caster, power, args);
 				}
 			}
 			playSpellEffects(EffectPosition.CASTER, caster, power, args);
@@ -226,21 +226,23 @@ public final class MultiSpell extends InstantSpell {
 
 	private static class DelayedSpell implements Runnable {
 		
-		private Subspell spell;
-		private UUID casterUUID;
-		private float power;
+		private final Subspell spell;
+		private final String[] args;
+		private final float power;
+		private final UUID casterUUID;
 
-		DelayedSpell(Subspell spell, LivingEntity livingEntity, float power) {
+		DelayedSpell(Subspell spell, LivingEntity caster, float power, String[] args) {
+			this.casterUUID = caster.getUniqueId();
 			this.spell = spell;
-			this.casterUUID = livingEntity.getUniqueId();
 			this.power = power;
+			this.args = args;
 		}
 
 		@Override
 		public void run() {
 			Entity entity = Bukkit.getEntity(casterUUID);
 			if (entity == null || !entity.isValid() || !(entity instanceof LivingEntity livingEntity)) return;
-			spell.subcast(livingEntity, power);
+			spell.subcast(livingEntity, power, args);
 		}
 		
 	}

@@ -258,7 +258,7 @@ public class BowSpell extends Spell {
 				playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster.getLocation(), projectile.getLocation(), caster, projectile, arrowData.spellData);
 			}
 
-			if (spellOnShoot != null) spellOnShoot.subcast(caster, castEvent.getPower());
+			if (spellOnShoot != null) spellOnShoot.subcast(caster, castEvent.getPower(), null);
 		} else if (cancelShotOnFail) event.setCancelled(true);
 
 		postCast(castEvent, PostCastAction.HANDLE_NORMALLY);
@@ -309,7 +309,7 @@ public class BowSpell extends Spell {
 					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(data.bowSpell, caster, proj.getLocation(), data.spellData.power());
 					if (!targetEvent.callEvent()) continue;
 
-					groundSpell.subcast(caster, targetEvent.getTargetLocation(), targetEvent.getPower());
+					groundSpell.subcast(caster, targetEvent.getTargetLocation(), targetEvent.getPower(), null);
 
 					if (data.bowSpell.removeArrow) remove = true;
 				}
@@ -351,8 +351,8 @@ public class BowSpell extends Spell {
 					LivingEntity subTarget = targetEvent.getTarget();
 					float subPower = targetEvent.getPower();
 
-					if (entitySpell != null) entitySpell.subcast(caster, caster.getLocation(), subTarget, subPower);
-					if (entityLocationSpell != null) entityLocationSpell.subcast(caster, arrow.getLocation(), subPower);
+					if (entitySpell != null) entitySpell.subcast(caster, caster.getLocation(), subTarget, subPower, null);
+					if (entityLocationSpell != null) entityLocationSpell.subcast(caster, arrow.getLocation(), subPower, null);
 
 					if (data.bowSpell.removeArrow) remove = true;
 				}

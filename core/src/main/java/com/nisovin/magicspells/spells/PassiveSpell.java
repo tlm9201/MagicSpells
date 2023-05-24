@@ -318,7 +318,7 @@ public class PassiveSpell extends Spell {
 			if (castWithoutTarget) {
 				MagicSpells.debug(3, "    Casting without target");
 
-				spell.subcast(caster, power);
+				spell.subcast(caster, power, null);
 				if (!spellEffectsDone) {
 					playSpellEffects(EffectPosition.CASTER, caster, power, null);
 					spellEffectsDone = true;
@@ -330,7 +330,7 @@ public class PassiveSpell extends Spell {
 			if (target != null && !isActuallyNonTargeted(spell.getSpell())) {
 				MagicSpells.debug(3, "    Casting with target entity");
 
-				spell.subcast(caster, target, power);
+				spell.subcast(caster, target, power, null);
 				if (!spellEffectsDone) {
 					playSpellEffects(caster, target, data);
 					spellEffectsDone = true;
@@ -342,7 +342,7 @@ public class PassiveSpell extends Spell {
 			if (location != null) {
 				MagicSpells.debug(3, "    Casting with target location");
 
-				spell.subcast(caster, location, power);
+				spell.subcast(caster, location, power, null);
 				if (!spellEffectsDone) {
 					playSpellEffects(caster, location, data);
 					spellEffectsDone = true;
@@ -353,7 +353,7 @@ public class PassiveSpell extends Spell {
 
 			MagicSpells.debug(3, "    Casting normally");
 
-			spell.subcast(caster, power);
+			spell.subcast(caster, power, null);
 			if (!spellEffectsDone) {
 				playSpellEffects(EffectPosition.CASTER, caster, data);
 				spellEffectsDone = true;

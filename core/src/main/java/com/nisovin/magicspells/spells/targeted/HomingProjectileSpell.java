@@ -228,7 +228,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			if (monitor.target == null) continue;
 			if (!monitor.target.equals(entity)) continue;
 
-			if (hitSpell != null) hitSpell.subcast(monitor.caster, entity, monitor.power);
+			if (hitSpell != null) hitSpell.subcast(monitor.caster, entity, monitor.power, monitor.args);
 			playSpellEffects(EffectPosition.TARGET, entity, monitor.data);
 			event.setCancelled(true);
 
@@ -246,7 +246,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			if (monitor.projectile == null) continue;
 			if (!monitor.projectile.equals(projectile)) continue;
 			if (monitor.caster == null) continue;
-			if (groundSpell != null) groundSpell.subcast(monitor.caster, projectile.getLocation(), monitor.power);
+			if (groundSpell != null) groundSpell.subcast(monitor.caster, projectile.getLocation(), monitor.power, monitor.args);
 			monitor.stop();
 		}
 
@@ -376,7 +376,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 				args = data.args();
 
 				if (!result.check()) {
-					if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power);
+					if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power, args);
 
 					if (stopOnModifierFail) stop();
 					return;
@@ -384,7 +384,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			}
 
 			if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {
-				if (durationSpell != null) durationSpell.subcast(caster, currentLocation, power);
+				if (durationSpell != null) durationSpell.subcast(caster, currentLocation, power, args);
 				stop();
 				return;
 			}
@@ -406,7 +406,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			projectile.setVelocity(currentVelocity);
 			currentLocation = projectile.getLocation();
 
-			if (counter % airSpellInterval == 0 && airSpell != null) airSpell.subcast(caster, currentLocation, power);
+			if (counter % airSpellInterval == 0 && airSpell != null) airSpell.subcast(caster, currentLocation, power, args);
 
 			if (intermediateSpecialEffects > 0) playIntermediateEffectLocations(previousLocation, oldVelocity);
 
@@ -423,7 +423,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 				float subPower = targetEvent.getPower();
 
 				playSpellEffects(EffectPosition.TARGET, subTarget, new SpellData(caster, subTarget, subPower, args));
-				if (hitSpell != null) hitSpell.subcast(caster, subTarget, subPower);
+				if (hitSpell != null) hitSpell.subcast(caster, subTarget, subPower, args);
 				stop();
 			}
 		}
