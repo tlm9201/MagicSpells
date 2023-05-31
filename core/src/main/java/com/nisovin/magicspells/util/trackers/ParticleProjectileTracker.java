@@ -552,7 +552,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 			if (casterSpell != null && target.equals(caster)) casterSpell.subcast(caster, target, subPower, args);
 			if (entitySpell != null && !target.equals(caster)) entitySpell.subcast(caster, target, subPower, args);
-			if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLocation.clone(), subPower, args);
+			if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLoc.clone(), subPower, args);
 
 			if (spell != null)
 				spell.playEffects(EffectPosition.TARGET, currentLoc, new SpellData(caster, target, subPower, args));
