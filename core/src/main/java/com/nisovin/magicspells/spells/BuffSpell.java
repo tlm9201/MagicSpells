@@ -338,7 +338,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 */
 	protected int addUse(LivingEntity entity) {
 		// Run spell on use increment first thing in case we want to intervene
-		if (spellOnUseIncrement != null) spellOnUseIncrement.cast(entity, 1f);
+		if (spellOnUseIncrement != null) spellOnUseIncrement.subcast(entity, 1f, null);
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) {
 
@@ -364,7 +364,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 */
 	protected boolean chargeUseCost(LivingEntity entity) {
 		// Run spell on cost first thing to dodge the early returns and allow intervention
-		if (spellOnCost != null) spellOnCost.cast(entity, 1f);
+		if (spellOnCost != null) spellOnCost.subcast(entity, 1f, null);
 
 		if (reagents == null) return true;
 		if (useCostInterval <= 0) return true;
@@ -417,7 +417,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		cancelEffects(EffectPosition.CASTER, entity.getUniqueId().toString());
 		stopEffects(entity);
 
-		if (spellOnEnd != null) spellOnEnd.cast(endSpellFromTarget ? entity : getLastCaster(entity), 1f);
+		if (spellOnEnd != null) spellOnEnd.subcast(endSpellFromTarget ? entity : getLastCaster(entity), 1f, null);
 		sendMessage(strFade, entity, null);
 
 		lastCaster.remove(entity.getUniqueId());
