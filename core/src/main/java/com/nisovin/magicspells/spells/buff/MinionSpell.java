@@ -2,7 +2,6 @@ package com.nisovin.magicspells.spells.buff;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -36,8 +35,6 @@ public class MinionSpell extends BuffSpell {
 	private final Map<UUID, LivingEntity> minions;
 	private final Map<LivingEntity, UUID> players;
 	private final Map<UUID, LivingEntity> targets;
-
-	private final Random random;
 
 	private final int[] chances;
 
@@ -85,7 +82,6 @@ public class MinionSpell extends BuffSpell {
 	public MinionSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		random = ThreadLocalRandom.current();
 		minions = new HashMap<>();
 		players = new HashMap<>();
 		targets = new ConcurrentHashMap<>();
@@ -536,7 +532,7 @@ public class MinionSpell extends BuffSpell {
 
 		if ((pl.getWorld().equals(minion.getWorld()) && pl.getLocation().distanceSquared(minion.getLocation()) > maxDistance * maxDistance) || targets.get(pl.getUniqueId()) == null || !targets.containsKey(pl.getUniqueId())) {
 
-			// The minion has a target but he is far away from his owner, remove his current target
+			// The minion has a target, but he is far away from his owner, remove his current target
 			if (targets.get(pl.getUniqueId()) != null) {
 				targets.remove(pl.getUniqueId());
 				MobUtil.setTarget(minion, null);
@@ -571,7 +567,6 @@ public class MinionSpell extends BuffSpell {
 			minion.teleport(owner);
 		}
 	}
-
 
 	public Map<UUID, LivingEntity> getMinions() {
 		return minions;
