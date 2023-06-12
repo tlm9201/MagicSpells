@@ -61,8 +61,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	protected boolean toggle;
 	protected boolean targeted;
-	protected boolean castWithItem;
-	protected boolean castByCommand;
 	protected boolean cancelOnJoin;
 	protected boolean cancelOnMove;
 	protected boolean cancelOnDeath;
@@ -105,11 +103,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		useCostInterval = getConfigInt("use-cost-interval", 0);
 
 		reagents = getConfigReagents("use-cost");
-
 		toggle = getConfigBoolean("toggle", true);
 		targeted = getConfigBoolean("targeted", false);
-		castWithItem = getConfigBoolean("can-cast-with-item", true);
-		castByCommand = getConfigBoolean("can-cast-by-command", true);
 		cancelOnJoin = getConfigBoolean("cancel-on-join", false);
 		cancelOnMove = getConfigBoolean("cancel-on-move", false);
 		cancelOnDeath = getConfigBoolean("cancel-on-death", false);
@@ -171,16 +166,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 			spellOnEnd = null;
 		}
 
-	}
-
-	@Override
-	public boolean canCastWithItem() {
-		return castWithItem;
-	}
-
-	@Override
-	public boolean canCastByCommand() {
-		return castByCommand;
 	}
 
 	@Override
@@ -531,7 +516,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		@EventHandler(ignoreCancelled = true)
 		public void onEntityDeath(EntityDeathEvent event) {
 			LivingEntity entity = getWhoToCancel(event.getEntity());
-			if (entity == null) return;
 			if (entity instanceof Player) return;
 			turnOff(entity);
 		}
@@ -605,6 +589,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		public void onSpellCast(SpellCastEvent event) {
 			if (thisSpell == event.getSpell()) return;
 			if (event.getSpellCastState() != SpellCastState.NORMAL) return;
+
 			LivingEntity entity = getWhoToCancel(event.getCaster());
 			if (entity == null) return;
 			if (filter.check(event.getSpell())) return;
@@ -643,7 +628,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		public void onMove(PlayerMoveEvent event) {
 			LivingEntity player = getWhoToCancel(event.getPlayer());
 			if (player == null) return;
-
 			if (LocationUtil.distanceLessThan(event.getFrom(), event.getTo(), MOTION_TOLERANCE)) return;
 
 			turnOff(player);
