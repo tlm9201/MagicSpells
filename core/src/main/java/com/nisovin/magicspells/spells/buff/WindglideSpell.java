@@ -106,12 +106,11 @@ public class WindglideSpell extends BuffSpell {
 
 		for (UUID id : entities.keySet()) {
 			Entity entity = Bukkit.getEntity(id);
-			if (entity == null) continue;
 			if (!(entity instanceof LivingEntity livingEntity)) continue;
 			if (!entity.isValid()) continue;
 
 			livingEntity.setGliding(false);
-			turnOffBuff(livingEntity);
+			turnOff(livingEntity);
 		}
 
 		entities.clear();
@@ -120,8 +119,7 @@ public class WindglideSpell extends BuffSpell {
 
 	@EventHandler
 	public void onEntityGlide(EntityToggleGlideEvent e) {
-		Entity entity = e.getEntity();
-		if (!(entity instanceof LivingEntity livingEntity)) return;
+		if (!(e.getEntity() instanceof LivingEntity livingEntity)) return;
 		if (!isActive(livingEntity)) return;
 		if (livingEntity.isGliding()) e.setCancelled(true);
 	}
@@ -189,18 +187,27 @@ public class WindglideSpell extends BuffSpell {
 
 		@Override
 		public void run() {
+			Entity entity;
+			SpellData data;
+
+			double velocity;
+			double height;
+
+			Location eLoc;
+			Vector v;
+
 			for (UUID id : entities.keySet()) {
-				Entity entity = Bukkit.getEntity(id);
+				entity = Bukkit.getEntity(id);
 				if (entity == null || !entity.isValid()) continue;
 				if (!(entity instanceof LivingEntity caster)) continue;
 
-				SpellData data = entities.get(id);
+				data = entities.get(id);
 
-				double velocity = WindglideSpell.this.velocity.get(caster, null, data.power(), data.args()) / 10;
-				double height = WindglideSpell.this.height.get(caster, null, data.power(), data.args());
+				velocity = WindglideSpell.this.velocity.get(caster, null, data.power(), data.args()) / 10;
+				height = WindglideSpell.this.height.get(caster, null, data.power(), data.args());
 
-				Location eLoc = entity.getLocation();
-				Vector v = eLoc.getDirection().normalize().multiply(velocity).add(new Vector(0, height, 0));
+				eLoc = entity.getLocation();
+				v = eLoc.getDirection().normalize().multiply(velocity).add(new Vector(0, height, 0));
 				entity.setVelocity(v);
 
 				if (glideSpell != null) glideSpell.subcast(caster, eLoc, data.power(), data.args());

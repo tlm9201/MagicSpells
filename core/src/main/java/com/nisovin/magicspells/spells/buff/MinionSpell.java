@@ -520,7 +520,7 @@ public class MinionSpell extends BuffSpell {
 		}
 		Player pl = Bukkit.getPlayer(players.get(e.getEntity()));
 		if (pl == null || !pl.isValid() || !pl.isOnline()) return;
-		turnOffBuff(pl);
+		turnOff(pl);
 	}
 
 	@EventHandler(ignoreCancelled = true)
