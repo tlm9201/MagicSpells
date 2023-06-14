@@ -516,6 +516,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		@EventHandler(ignoreCancelled = true)
 		public void onEntityDeath(EntityDeathEvent event) {
 			LivingEntity entity = getWhoToCancel(event.getEntity());
+			if (entity == null) return;
 			if (entity instanceof Player) return;
 			turnOff(entity);
 		}
