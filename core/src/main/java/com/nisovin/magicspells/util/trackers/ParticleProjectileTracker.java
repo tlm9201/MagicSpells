@@ -524,6 +524,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		for (int i = 0; i < intermediateHitboxes; i++) {
 			old = LocationUtil.setDirection(old.add(v), v);
 			checkHitbox(old);
+			if (stopped) return;
 		}
 	}
 
