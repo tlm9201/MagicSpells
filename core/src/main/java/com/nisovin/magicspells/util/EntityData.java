@@ -96,6 +96,7 @@ public class EntityData {
 
 		Multimap<Class<?>, Transformer<?, ?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
+		addOptBoolean(transformers, config, "glowing", Entity.class, Entity::setGlowing);
 		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
 
 		// Ageable
