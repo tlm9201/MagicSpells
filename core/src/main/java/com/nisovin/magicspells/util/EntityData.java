@@ -16,7 +16,6 @@ import com.google.common.collect.MultimapBuilder;
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.Color;
-import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -206,7 +205,7 @@ public class EntityData {
 		addBoolean(transformers, config, "angry", false, Wolf.class, Wolf::setAngry);
 		addOptEnum(transformers, config, "color", Wolf.class, DyeColor.class, Wolf::setCollarColor);
 
-		if (Bukkit.getMinecraftVersion().contains("1.19.4")) {
+		if (EntityType.valueOf("BLOCK_DISPLAY") != null) {
 			// Display
 			ConfigData<Quaternionf> leftRotation = getQuaternion(config, "transformation.left-rotation");
 			ConfigData<Quaternionf> rightRotation = getQuaternion(config, "transformation.right-rotation");
@@ -369,7 +368,7 @@ public class EntityData {
 
 					if (consumer != null) consumer.accept(e);
 
-					if (Bukkit.getMinecraftVersion().contains("1.19.4") && e instanceof Display) {
+					if (EntityType.valueOf("BLOCK_DISPLAY") != null && e instanceof Display) {
 						displayHack[0] = true;
 						displayHack[1] = e.isVisibleByDefault();
 
