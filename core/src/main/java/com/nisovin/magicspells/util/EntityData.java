@@ -96,6 +96,7 @@ public class EntityData {
 
 		Multimap<Class<?>, Transformer<?, ?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
+		addOptBoolean(transformers, config, "glowing", Entity.class, Entity::setGlowing);
 		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
 
 		// Ageable
@@ -249,7 +250,7 @@ public class EntityData {
 			addOptFloat(transformers, config, "height", Display.class, Display::setDisplayHeight);
 			addOptInteger(transformers, config, "interpolation-delay", Display.class, Display::setInterpolationDelay);
 			addOptEnum(transformers, config, "billboard", Display.class, Display.Billboard.class, Display::setBillboard);
-			addOptColor(transformers, config, "glow-color-override", Display.class, Display::setGlowColorOverride);
+			addOptARGBColor(transformers, config, "glow-color-override", Display.class, Display::setGlowColorOverride);
 
 			ConfigData<Integer> blockLight = ConfigDataUtil.getInteger(config, "brightness.block");
 			ConfigData<Integer> skyLight = ConfigDataUtil.getInteger(config, "brightness.sky");
@@ -292,7 +293,7 @@ public class EntityData {
 			// TextDisplay
 			addOptComponent(transformers, config, "text", TextDisplay.class, TextDisplay::text);
 			addOptInteger(transformers, config, "line-width", TextDisplay.class, TextDisplay::setLineWidth);
-			addOptColor(transformers, config, "background", TextDisplay.class, TextDisplay::setBackgroundColor);
+			addOptARGBColor(transformers, config, "background", TextDisplay.class, TextDisplay::setBackgroundColor);
 			addOptByte(transformers, config, "text-opacity", TextDisplay.class, TextDisplay::setTextOpacity);
 			addOptBoolean(transformers, config, "shadow", TextDisplay.class, TextDisplay::setShadowed);
 			addOptBoolean(transformers, config, "see-through", TextDisplay.class, TextDisplay::setSeeThrough);
@@ -444,11 +445,10 @@ public class EntityData {
 		transformers.put(type, new Transformer<>(supplier, setter, true));
 	}
 
-	private <T> void addOptColor(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
-		ConfigData<Color> supplier = ConfigDataUtil.getColor(config, name, null);
+	private <T> void addOptARGBColor(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
+		ConfigData<Color> supplier = ConfigDataUtil.getARGBColor(config, name, null);
 		transformers.put(type, new Transformer<>(supplier, setter, true));
 	}
-
 
 	private <T> void addOptComponent(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Component> setter) {
 		ConfigData<Component> supplier = ConfigDataUtil.getComponent(config, name, null);
