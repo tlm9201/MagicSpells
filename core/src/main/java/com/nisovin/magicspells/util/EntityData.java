@@ -558,7 +558,7 @@ public class EntityData {
 					Float ang = angle.get(caster, target, power, args);
 					if (ang == null) return null;
 
-					Vector3f ax = axis.get(null);
+					Vector3f ax = axis.get(caster, target, power, args);
 					if (ax == null) return null;
 
 					return new Quaternionf().setAngleAxis(ang, ax.x, ax.y, ax.z);
