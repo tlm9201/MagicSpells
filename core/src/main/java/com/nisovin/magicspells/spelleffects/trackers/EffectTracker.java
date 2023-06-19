@@ -15,12 +15,15 @@ public class EffectTracker implements Runnable {
 	protected SpellEffect effect;
 	protected SpellEffectActiveChecker checker;
 
+	protected SpellData data;
+
 	protected int effectTrackerTaskId;
 
 	public EffectTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
 		this.entity = entity;
 		this.checker = checker;
 		this.effect = effect;
+		this.data = data;
 
 		int interval = effect.getEffectInterval().get(data);
 		effectTrackerTaskId = MagicSpells.scheduleRepeatingTask(this, 0, interval);
@@ -44,6 +47,10 @@ public class EffectTracker implements Runnable {
 
 	public int getEffectTrackerTaskId() {
 		return effectTrackerTaskId;
+	}
+
+	public SpellData getData() {
+		return data;
 	}
 
 	public void setBuffSpell(BuffSpell spell) {

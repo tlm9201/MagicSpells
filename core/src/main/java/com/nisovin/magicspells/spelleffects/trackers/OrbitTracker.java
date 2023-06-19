@@ -16,8 +16,6 @@ import de.slikey.effectlib.util.VectorUtils;
 
 public class OrbitTracker extends EffectTracker implements Runnable {
 
-	private SpellData data;
-
 	private Vector currentPosition;
 
 	private int repeatingHorizTaskId;
@@ -35,10 +33,12 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 	private final float orbitZAxis;
 	private final float distancePerTick;
 
+	private Location loc;
+
+	private ModifierResult result;
+
 	public OrbitTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
 		super(entity, checker, effect, data);
-
-		this.data = data;
 
 		currentPosition = entity.getLocation().getDirection().setY(0);
 		Util.rotateVector(currentPosition, effect.getHorizOffset().get(data));
@@ -73,10 +73,10 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 		yAxis += orbitYAxis;
 		zAxis += orbitZAxis;
 
-		Location loc = getLocation();
+		loc = getLocation();
 
 		if (entity instanceof LivingEntity livingEntity && effect.getModifiers() != null) {
-			ModifierResult result = effect.getModifiers().apply(livingEntity, data);
+			result = effect.getModifiers().apply(livingEntity, data);
 			data = result.data();
 
 			if (!result.check()) return;
