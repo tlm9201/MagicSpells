@@ -18,8 +18,8 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 
 	private Vector currentPosition;
 
-	private int repeatingHorizTaskId;
-	private int repeatingVertTaskId;
+	private int horizontalTaskId;
+	private int verticalTaskId;
 
 	private float orbRadius;
 	private float orbHeight;
@@ -33,7 +33,7 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 	private final float orbitZAxis;
 	private final float distancePerTick;
 
-	private Location loc;
+	private Location location;
 
 	private ModifierResult result;
 
@@ -54,12 +54,12 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 		float horizRadius = effect.getHorizExpandRadius().get(data);
 		int horizDelay = effect.getHorizExpandDelay().get(data);
 		if (horizDelay > 0 && horizRadius != 0)
-			repeatingHorizTaskId = MagicSpells.scheduleRepeatingTask(() -> orbRadius += horizRadius, horizDelay, horizDelay);
+			horizontalTaskId = MagicSpells.scheduleRepeatingTask(() -> orbRadius += horizRadius, horizDelay, horizDelay);
 
 		float vertRadius = effect.getVertExpandRadius().get(data);
 		int vertDelay = effect.getVertExpandDelay().get(data);
 		if (vertDelay > 0 && vertRadius != 0)
-			repeatingVertTaskId = MagicSpells.scheduleRepeatingTask(() -> orbHeight += vertRadius, vertDelay, vertDelay);
+			verticalTaskId = MagicSpells.scheduleRepeatingTask(() -> orbHeight += vertRadius, vertDelay, vertDelay);
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 		yAxis += orbitYAxis;
 		zAxis += orbitZAxis;
 
-		loc = getLocation();
+		location = getLocation();
 
 		if (entity instanceof LivingEntity livingEntity && effect.getModifiers() != null) {
 			result = effect.getModifiers().apply(livingEntity, data);
@@ -82,7 +82,27 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 			if (!result.check()) return;
 		}
 
-		effect.playEffect(loc, data);
+		effect.playEffect(location, data);
+		playEffects(location, data);
+	}
+
+	private void playEffects(Location location, SpellData data) {
+		if (!isEntityEffect) {
+			effect.playEffect(location, data);
+			return;
+		}
+
+		if (!effect.isDraggingEntity().get(data)) {
+			effect.playEffect(location, data);
+			return;
+		}
+
+		if (effectEntity == null) {
+			effectEntity = effect.playEntityEffect(location, data);
+			return;
+		}
+
+		effectEntity.teleport(location);
 	}
 
 	private Location getLocation() {
@@ -97,8 +117,8 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 	@Override
 	public void stop() {
 		super.stop();
-		MagicSpells.cancelTask(repeatingHorizTaskId);
-		MagicSpells.cancelTask(repeatingVertTaskId);
+		MagicSpells.cancelTask(horizontalTaskId);
+		MagicSpells.cancelTask(verticalTaskId);
 		currentPosition = null;
 	}
 

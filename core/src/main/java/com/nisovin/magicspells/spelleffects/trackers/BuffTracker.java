@@ -30,7 +30,26 @@ public class BuffTracker extends EffectTracker implements Runnable {
 			if (!result.check()) return;
 		}
 
-		effect.playEffect(entity, data);
+		playEffects(entity, data);
+	}
+
+	private void playEffects(Entity entity, SpellData data) {
+		if (!isEntityEffect) {
+			effect.playEffect(entity, data);
+			return;
+		}
+
+		if (!effect.isDraggingEntity().get(data)) {
+			effect.playEffect(entity, data);
+			return;
+		}
+
+		if (effectEntity == null) {
+			effectEntity = effect.playEntityEffect(entity.getLocation(), data);
+			return;
+		}
+
+		effectEntity.teleport(effect.applyOffsets(entity.getLocation()));
 	}
 
 	@Override
