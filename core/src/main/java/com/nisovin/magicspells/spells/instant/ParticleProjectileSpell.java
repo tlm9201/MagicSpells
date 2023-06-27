@@ -376,8 +376,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	@Override
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
 		if (!validTargetList.canTarget(caster, target)) return false;
-		if (!caster.getLocation().getWorld().equals(target.getLocation().getWorld())) return false;
 		Location targetLoc = from.clone();
+		if (!targetLoc.getWorld().equals(target.getLocation().getWorld())) return false;
 		if (Float.isNaN(targetLoc.getPitch())) targetLoc.setPitch(0);
 		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
 		setupTracker(tracker, caster, target, power, args);
