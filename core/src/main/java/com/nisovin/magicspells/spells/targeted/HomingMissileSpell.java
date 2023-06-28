@@ -270,7 +270,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		private MissileTracker(LivingEntity caster, Location startLocation, LivingEntity target, float power, String[] args) {
 			currentLocation = startLocation.clone();
 			if (Float.isNaN(currentLocation.getPitch())) currentLocation.setPitch(0);
-			currentVelocity = target.getLocation().clone().toVector().subtract(currentLocation.toVector()).normalize();
+			currentVelocity = target.getLocation().clone().toVector().subtract(currentLocation.toVector());
+			if (!currentVelocity.isZero()) currentVelocity.normalize();
 			init(caster, target, power, args);
 
 			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
@@ -369,9 +370,11 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 			// Move projectile and calculate new vector
 			currentLocation.add(currentVelocity);
-			Vector oldVelocity = new Vector(currentVelocity.getX(), currentVelocity.getY(), currentVelocity.getZ());
+			Vector oldVelocity = currentVelocity.clone();
+
 			currentVelocity.multiply(projectileInertia);
-			currentVelocity.add(targetLoc.clone().subtract(currentLocation).toVector().normalize());
+			Vector force = targetLoc.clone().subtract(currentLocation).toVector();
+			if (!force.isZero()) currentVelocity.add(force.normalize());
 			currentVelocity.normalize().multiply(velocityPerTick);
 
 			if (armorStandSet != null || entityMap != null) {
