@@ -243,6 +243,7 @@ public class MagicSpells extends JavaPlugin {
 			if (!new File(getDataFolder(), "spells-command.yml").exists()) saveResource("spells-command.yml", false);
 			if (!new File(getDataFolder(), "spells-regular.yml").exists()) saveResource("spells-regular.yml", false);
 			if (!new File(getDataFolder(), "zones.yml").exists()) saveResource("zones.yml", false);
+			if (!new File(getDataFolder(), "defaults.yml").exists()) saveResource("defaults.yml", false);
 		}
 		config = new MagicConfig();
 		if (!config.isLoaded()) {

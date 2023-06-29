@@ -75,6 +75,22 @@ public class MagicConfig {
 				}
 			}
 
+			// Load default spell values
+			File defaultsConfigFile = new File(folder, "defaults.yml");
+			if (defaultsConfigFile.exists()) {
+				YamlConfiguration defaultsConfig = new YamlConfiguration();
+				try {
+					defaultsConfig.load(defaultsConfigFile);
+					Set<String> keys = defaultsConfig.getKeys(true);
+					for (String key : keys) {
+						mainConfig.set("defaults." + key, defaultsConfig.get(key));
+					}
+				} catch (Exception e) {
+					MagicSpells.error("Error loading config file defaults.yml");
+					MagicSpells.handleException(e);
+				}
+			}
+
 			// Load spell folders
 			for (File directoryFile : folder.listFiles(DIRECTORY_FILTER)) {
 				if (!directoryFile.isDirectory()) continue;
@@ -133,18 +149,21 @@ public class MagicConfig {
 			if (file.isDirectory()) {
 				// Recurse into folders
 				loadSpellConfigs(file);
-			} else if (file.getName().endsWith(".yml")) {
-				name = file.getName().replace(".yml", "");
-				conf = new YamlConfiguration();
-				try {
-					conf.load(file);
-					for (String key : conf.getKeys(false)) {
-						mainConfig.set("spells." + name + '.' + key, conf.get(key));
-					}
-				} catch (Exception e) {
-					MagicSpells.error("Error reading spell config file: " + file.getName());
-					e.printStackTrace();
+				continue;
+			}
+
+			if (!file.getName().endsWith(".yml")) continue;
+
+			name = file.getName().replace(".yml", "");
+			conf = new YamlConfiguration();
+			try {
+				conf.load(file);
+				for (String key : conf.getKeys(false)) {
+					mainConfig.set("spells." + name + '.' + key, conf.get(key));
 				}
+			} catch (Exception e) {
+				MagicSpells.error("Error reading spell config file: " + file.getName());
+				e.printStackTrace();
 			}
 		}
 	}
@@ -218,30 +237,22 @@ public class MagicConfig {
 
 	public List<Integer> getIntList(String path, List<Integer> def) {
 		if (!mainConfig.contains(path)) return def;
-		List<Integer> l = mainConfig.getIntegerList(path);
-		if (l != null) return l;
-		return def;
+		return mainConfig.getIntegerList(path);
 	}
 
 	public List<Byte> getByteList(String path, List<Byte> def) {
 		if (!mainConfig.contains(path)) return def;
-		List<Byte> l = mainConfig.getByteList(path);
-		if (l != null) return l;
-		return def;
+		return mainConfig.getByteList(path);
 	}
 
 	public List<String> getStringList(String path, List<String> def) {
 		if (!mainConfig.contains(path)) return def;
-		List<String> l = mainConfig.getStringList(path);
-		if (l != null) return l;
-		return def;
+		return mainConfig.getStringList(path);
 	}
 
 	public List<?> getList(String path, List<?> def) {
 		if (!mainConfig.contains(path)) return def;
-		List<?> l = mainConfig.getList(path);
-		if (l != null) return l;
-		return def;
+		return mainConfig.getList(path);
 	}
 
 	public Set<String> getKeys(String path) {

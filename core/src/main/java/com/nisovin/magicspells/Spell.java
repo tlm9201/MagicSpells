@@ -182,9 +182,21 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected float minCooldown = -1F;
 	protected float maxCooldown = -1F;
 
+	private final String internalKey;
+	private final String className;
+
+	private final ConfigurationSection defaultSection;
+
 	public Spell(MagicConfig config, String spellName) {
 		this.config = config;
 		this.internalName = spellName;
+
+		internalKey = "spells." + internalName + '.';
+		className = getClass().getCanonicalName().replace("com.nisovin.magicspells.spells", "");
+
+		Set<String> zoneNodes = config.getKeys("defaults");
+		if (zoneNodes != null) defaultSection = config.getSection("defaults." + className);
+		else defaultSection = null;
 
 		callbacks = new HashMap<>();
 		loadConfigData(config, spellName, "spells");
@@ -650,67 +662,67 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected boolean configKeyExists(String key) {
-		return config.contains("spells." + internalName + '.' + key);
+		return config.contains(internalKey + key);
 	}
 
 	/**
 	 * Access an integer config value for this spell.
 	 *
 	 * @param key The key of the config value
-	 * @param defaultValue The value to return if it does not exist in the config
+	 * @param def The value to return if it does not exist in the config
 	 *
 	 * @return The config value, or defaultValue if it does not exist
 	 */
-	protected int getConfigInt(String key, int defaultValue) {
-		return config.getInt("spells." + internalName + '.' + key, defaultValue);
+	protected int getConfigInt(String key, int def) {
+		return config.getInt(internalKey + key, getDefaultInt(key, def));
 	}
 
 	/**
 	 * Access a long config value for this spell.
 	 *
 	 * @param key The key of the config value
-	 * @param defaultValue The value to return if it does not exist in the config
+	 * @param def The value to return if it does not exist in the config
 	 *
 	 * @return The config value, or defaultValue if it does not exist
 	 */
-	protected long getConfigLong(String key, long defaultValue) {
-		return config.getLong("spells." + internalName + '.' + key, defaultValue);
+	protected long getConfigLong(String key, long def) {
+		return config.getLong(internalKey + key, getDefaultLong(key, def));
 	}
 
 	/**
 	 * Access a boolean config value for this spell.
 	 *
 	 * @param key The key of the config value
-	 * @param defaultValue The value to return if it does not exist in the config
+	 * @param def The value to return if it does not exist in the config
 	 *
 	 * @return The config value, or defaultValue if it does not exist
 	 */
-	protected boolean getConfigBoolean(String key, boolean defaultValue) {
-		return config.getBoolean("spells." + internalName + '.' + key, defaultValue);
+	protected boolean getConfigBoolean(String key, boolean def) {
+		return config.getBoolean(internalKey + key, getDefaultBoolean(key, def));
 	}
 
 	/**
 	 * Access a String config value for this spell.
 	 *
 	 * @param key The key of the config value
-	 * @param defaultValue The value to return if it does not exist in the config
+	 * @param def The value to return if it does not exist in the config
 	 *
 	 * @return The config value, or defaultValue if it does not exist
 	 */
-	protected String getConfigString(String key, String defaultValue) {
-		return config.getString("spells." + internalName + '.' + key, defaultValue);
+	protected String getConfigString(String key, String def) {
+		return config.getString(internalKey + key, getDefaultString(key, def));
 	}
 
 	/**
 	 * Access a Vector config value for this spell.
 	 *
 	 * @param key The key of the config value
-	 * @param defaultValue The value to return if it does not exist in the config
+	 * @param def The value to return if it does not exist in the config
 	 *
 	 * @return The config value, or defaultValue if it does not exist
 	 */
-	protected Vector getConfigVector(String key, String defaultValue) {
-		String[] vecStrings = getConfigString(key, defaultValue).split(",");
+	protected Vector getConfigVector(String key, String def) {
+		String[] vecStrings = getConfigString(key, getDefaultString(key, def)).split(",");
 		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
 	}
 
@@ -718,104 +730,104 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * Access a float config value for this spell.
 	 *
 	 * @param key The key of the config value
-	 * @param defaultValue The value to return if it does not exist in the config
+	 * @param def The value to return if it does not exist in the config
 	 *
 	 * @return The config value, or defaultValue if it does not exist
 	 */
-	protected float getConfigFloat(String key, float defaultValue) {
-		return (float) config.getDouble("spells." + internalName + '.' + key, defaultValue);
+	protected float getConfigFloat(String key, float def) {
+		return (float) config.getDouble(internalKey + key, getDefaultFloat(key, def));
 	}
 
 	/**
 	 * Access a double config value for this spell.
 	 *
 	 * @param key The key of the config value
-	 * @param defaultValue The value to return if it does not exist in the config
+	 * @param def The value to return if it does not exist in the config
 	 *
 	 * @return The config value, or defaultValue if it does not exist
 	 */
-	protected double getConfigDouble(String key, double defaultValue) {
-		return config.getDouble("spells." + internalName + '.' + key, defaultValue);
+	protected double getConfigDouble(String key, double def) {
+		return config.getDouble(internalKey + key, getDefaultDouble(key, def));
 	}
 
-	protected List<?> getConfigList(String key, List<?> defaultValue) {
-		return config.getList("spells." + internalName + "." + key, defaultValue);
+	protected List<?> getConfigList(String key, List<?> def) {
+		return config.getList(internalKey + key, getDefaultList(key, def));
 	}
 
-	protected List<Integer> getConfigIntList(String key, List<Integer> defaultValue) {
-		return config.getIntList("spells." + internalName + '.' + key, defaultValue);
+	protected List<Integer> getConfigIntList(String key, List<Integer> def) {
+		return config.getIntList(internalKey + key, getDefaultIntList(key, def));
 	}
 
-	protected List<String> getConfigStringList(String key, List<String> defaultValue) {
-		return config.getStringList("spells." + internalName + '.' + key, defaultValue);
+	protected List<String> getConfigStringList(String key, List<String> def) {
+		return config.getStringList(internalKey + key, getDefaultStringList(key, def));
 	}
 
 	protected Set<String> getConfigKeys(String key) {
-		return config.getKeys("spells." + internalName + '.' + key);
+		return config.getKeys(internalKey + key);
 	}
 
 	protected ConfigurationSection getConfigSection(String key) {
-		return config.getSection("spells." + internalName + '.' + key);
+		return config.getSection(internalKey + key);
 	}
 
 	protected ConfigData<Boolean> getConfigDataBoolean(String key, boolean def) {
-		return ConfigDataUtil.getBoolean(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getBoolean(config.getMainConfig(), internalKey + key, getDefaultBoolean(key, def));
 	}
 
 	protected ConfigData<Boolean> getConfigDataBoolean(String key, ConfigData<Boolean> def) {
-		return ConfigDataUtil.getBoolean(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getBoolean(config.getMainConfig(), internalKey + key, getDefaultBoolean(key, def));
 	}
 
 	protected ConfigData<Integer> getConfigDataInt(String key, int def) {
-		return ConfigDataUtil.getInteger(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getInteger(config.getMainConfig(), internalKey + key, getDefaultInt(key, def));
 	}
 
 	protected ConfigData<Integer> getConfigDataInt(String key, ConfigData<Integer> def) {
-		return ConfigDataUtil.getInteger(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getInteger(config.getMainConfig(), internalKey + key, getDefaultInt(key, def));
 	}
 
 	protected ConfigData<Double> getConfigDataDouble(String key, double def) {
-		return ConfigDataUtil.getDouble(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getDouble(config.getMainConfig(), internalKey + key, getDefaultDouble(key, def));
 	}
 
 	protected ConfigData<Double> getConfigDataDouble(String key, ConfigData<Double> def) {
-		return ConfigDataUtil.getDouble(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getDouble(config.getMainConfig(), internalKey + key, getDefaultDouble(key, def));
 	}
 
 	protected ConfigData<Float> getConfigDataFloat(String key, float def) {
-		return ConfigDataUtil.getFloat(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getFloat(config.getMainConfig(), internalKey + key, getDefaultFloat(key, def));
 	}
 
 	protected ConfigData<Float> getConfigDataFloat(String key, ConfigData<Float> def) {
-		return ConfigDataUtil.getFloat(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getFloat(config.getMainConfig(), internalKey + key, getDefaultFloat(key, def));
 	}
 
 	protected ConfigData<Long> getConfigDataLong(String key, long def) {
-		return ConfigDataUtil.getLong(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getLong(config.getMainConfig(), internalKey + key, getDefaultLong(key, def));
 	}
 
 	protected ConfigData<Long> getConfigDataLong(String key, ConfigData<Long> def) {
-		return ConfigDataUtil.getLong(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getLong(config.getMainConfig(), internalKey + key, getDefaultLong(key, def));
 	}
 
 	protected ConfigData<String> getConfigDataString(String key, String def) {
-		return ConfigDataUtil.getString(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getString(config.getMainConfig(), internalKey + key, getDefaultString(key, def));
 	}
 
 	protected <T extends Enum<T>> ConfigData<T> getConfigDataEnum(String key, Class<T> type, T def) {
-		return ConfigDataUtil.getEnum(config.getMainConfig(), "spells." + internalName + '.' + key, type, def);
+		return ConfigDataUtil.getEnum(config.getMainConfig(), internalKey + key, type, getDefaultEnum(key, type, def));
 	}
 
 	protected ConfigData<BlockData> getConfigDataBlockData(String key, BlockData def) {
-		return ConfigDataUtil.getBlockData(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getBlockData(config.getMainConfig(), internalKey + key, getDefaultBlockData(key, def));
 	}
 
 	/**
-	 * @param path Path for the keys to be read from. If the path is set to something like "filter", the keys will
+	 * @param key Path for the keys to be read from. If the path is set to something like "filter", the keys will
 	 *             be read from spell config section under the "filter" section.
 	 */
-	protected SpellFilter getConfigSpellFilter(String path) {
-		return SpellFilter.fromConfig(config.getMainConfig(), "spells." + internalName + '.' + path);
+	protected SpellFilter getConfigSpellFilter(String key) {
+		return SpellFilter.fromConfig(config.getMainConfig(), internalKey + key);
 	}
 
 	/**
@@ -826,11 +838,110 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected boolean isConfigString(String key) {
-		return config.isString("spells." + internalName + '.' + key);
+		return config.isString(internalKey + key);
 	}
 
 	protected boolean isConfigSection(String key) {
-		return config.isSection("spells." + internalName + '.' + key);
+		return config.isSection(internalKey + key);
+	}
+
+	private int getDefaultInt(String key, int def) {
+		if (defaultSection == null) return def;
+		return defaultSection.getInt(key, def);
+	}
+
+	private long getDefaultLong(String key, long def) {
+		if (defaultSection == null) return def;
+		return defaultSection.getLong(key, def);
+	}
+
+	private boolean getDefaultBoolean(String key, boolean def) {
+		if (defaultSection == null) return def;
+		return defaultSection.getBoolean(key, def);
+	}
+
+	private String getDefaultString(String key, String def) {
+		if (defaultSection == null) return def;
+		return defaultSection.getString(key, def);
+	}
+
+	private float getDefaultFloat(String key, float def) {
+		if (defaultSection == null) return def;
+		return (float) defaultSection.getDouble(key, def);
+	}
+
+	private double getDefaultDouble(String key, double def) {
+		if (defaultSection == null) return def;
+		return defaultSection.getDouble(key, def);
+	}
+
+	private ConfigData<Boolean> getDefaultBoolean(String key, ConfigData<Boolean> def) {
+		if (defaultSection == null) return def;
+		return ConfigDataUtil.getBoolean(defaultSection, key, def);
+	}
+
+	private ConfigData<Integer> getDefaultInt(String key, ConfigData<Integer> def) {
+		if (defaultSection == null) return def;
+		return ConfigDataUtil.getInteger(defaultSection, key, def);
+	}
+
+	private ConfigData<Double> getDefaultDouble(String key, ConfigData<Double> def) {
+		if (defaultSection == null) return def;
+		return ConfigDataUtil.getDouble(defaultSection, key, def);
+	}
+
+	private ConfigData<Float> getDefaultFloat(String key, ConfigData<Float> def) {
+		if (defaultSection == null) return def;
+		return ConfigDataUtil.getFloat(defaultSection, key, def);
+	}
+
+	private ConfigData<Long> getDefaultLong(String key, ConfigData<Long> def) {
+		if (defaultSection == null) return def;
+		return ConfigDataUtil.getLong(defaultSection, key, def);
+	}
+
+	private <T extends Enum<T>> T getDefaultEnum(String key, Class<T> type, T def) {
+		if (defaultSection == null) return def;
+		String value = defaultSection.getString(key);
+		if (value == null) return def;
+
+		try {
+			return Enum.valueOf(type, value.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			return def;
+		}
+	}
+
+	private BlockData getDefaultBlockData(String key, BlockData def) {
+		if (defaultSection == null) return def;
+		String value = defaultSection.getString(key);
+		if (value == null) return def;
+
+		try {
+			return Bukkit.createBlockData(value.trim().toLowerCase());
+		} catch (IllegalArgumentException e) {
+			return def;
+		}
+	}
+
+	private List<?> getDefaultList(String key, List<?> def) {
+		if (defaultSection == null) return def;
+		return defaultSection.getList(key, def);
+	}
+
+	private List<Integer> getDefaultIntList(String key, List<Integer> def) {
+		if (defaultSection == null || !defaultSection.contains(key, true)) return def;
+		return defaultSection.getIntegerList(key);
+	}
+
+	private List<String> getDefaultStringList(String key, List<String> def) {
+		if (defaultSection == null || !defaultSection.contains(key, true)) return def;
+		return defaultSection.getStringList(key);
+	}
+
+	private ConfigurationSection getDefaultConfigSection(String key, ConfigurationSection def) {
+		if (defaultSection == null || !defaultSection.contains(key, true)) return def;
+		return defaultSection.getConfigurationSection(key);
 	}
 
 	public final SpellCastResult cast(LivingEntity livingEntity) {

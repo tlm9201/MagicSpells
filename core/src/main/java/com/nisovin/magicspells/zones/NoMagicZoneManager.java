@@ -28,7 +28,7 @@ public class NoMagicZoneManager {
 		zoneTypes.put("worldguard", NoMagicZoneWorldGuard.class);
 	}
 
-	// DEBUG INFO: level 3, loaded no magic zone, zonename
+	// DEBUG INFO: level 3, loaded no magic zone, zoneName
 	// DEBUG INFO: level 1, no magic zones loaded #
 	public void load(MagicConfig config) {
 		// Get zones
@@ -37,31 +37,36 @@ public class NoMagicZoneManager {
 
 		Set<String> zoneNodes = config.getKeys("no-magic-zones");
 		if (zoneNodes != null) {
+
+			ConfigurationSection zoneConfig;
+			String type;
+			Class<? extends NoMagicZone> clazz;
+			NoMagicZone zone;
+
 			for (String node : zoneNodes) {
-				ConfigurationSection zoneConfig = config.getSection("no-magic-zones." + node);
+				zoneConfig = config.getSection("no-magic-zones." + node);
 
 				// Check enabled
 				if (!zoneConfig.getBoolean("enabled", true)) continue;
 
 				// Get zone type
-				String type = zoneConfig.getString("type", "");
+				type = zoneConfig.getString("type", "");
 				if (type.isEmpty()) {
-					MagicSpells.error("Invalid no-magic zone type '" + type + "' on zone '" + node + '\'');
+					MagicSpells.error("Invalid no-magic zone type '" + type + "' on zone '" + node + "'");
 					continue;
 				}
 
-				Class<? extends NoMagicZone> clazz = zoneTypes.get(type);
+				clazz = zoneTypes.get(type);
 				if (clazz == null) {
-					MagicSpells.error("Invalid no-magic zone type '" + type + "' on zone '" + node + '\'');
+					MagicSpells.error("Invalid no-magic zone type '" + type + "' on zone '" + node + "'");
 					continue;
 				}
 
 				// Create zone
-				NoMagicZone zone;
 				try {
 					zone = clazz.getDeclaredConstructor().newInstance();
 				} catch (Exception e) {
-					MagicSpells.error("Failed to create no-magic zone '" + node + '\'');
+					MagicSpells.error("Failed to create no-magic zone '" + node + "'");
 					e.printStackTrace();
 					continue;
 				}
