@@ -972,7 +972,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected SpellCastState getCastState(LivingEntity livingEntity) {
-		if (livingEntity instanceof Player && !MagicSpells.getSpellbook((Player) livingEntity).canCast(this)) return SpellCastState.CANT_CAST;
+		if (livingEntity instanceof Player pl && !MagicSpells.getSpellbook(pl).canCast(this)) return SpellCastState.CANT_CAST;
 		if (worldRestrictions != null && !worldRestrictions.contains(livingEntity.getWorld().getName())) return SpellCastState.WRONG_WORLD;
 		if (MagicSpells.getNoMagicZoneManager() != null && MagicSpells.getNoMagicZoneManager().willFizzle(livingEntity, this)) return SpellCastState.NO_MAGIC_ZONE;
 		if (onCooldown(livingEntity)) return SpellCastState.ON_COOLDOWN;
@@ -1453,7 +1453,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (!(blockZ - zLower <= entityZ && entityZ <= blockZ + zUpper)) continue;
 
 				// Check for invalid target
-				if (target instanceof Player && (((Player) target).getGameMode() == GameMode.CREATIVE || ((Player) target).getGameMode() == GameMode.SPECTATOR)) {
+				if (target instanceof Player pl && (pl.getGameMode() == GameMode.CREATIVE || pl.getGameMode() == GameMode.SPECTATOR)) {
 					blacklistedEntities.add(target);
 					continue;
 				}
@@ -1774,8 +1774,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		String key = p.getUniqueId().toString();
 		Map<EffectPosition, List<Runnable>> entry = new EnumMap<>(EffectPosition.class);
 		for (EffectPosition pos : EffectPosition.values()) {
-			List<Runnable> runnables = new ArrayList<>();
-			entry.put(pos, runnables);
+			entry.put(pos, new ArrayList<>());
 		}
 		callbacks.put(key, entry);
 	}
@@ -2300,18 +2299,20 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		@Override
 		public void run() {
-			if (caster.isValid() && !caster.isDead()) {
-				if (!interruptOnMove || inBounds(caster.getLocation())) {
-					unregisterEvents(this);
+			if (!caster.isValid() || caster.isDead()) {
+				unregisterEvents(this);
+				return;
+			}
 
-					spellCast.setSpellCastState(getCastState(caster));
-					spellCast.getSpell().handleCast(spellCast);
-				} else interrupt();
-
+			if (interruptOnMove && !inBounds(caster.getLocation())) {
+				interrupt();
 				return;
 			}
 
 			unregisterEvents(this);
+
+			spellCast.setSpellCastState(getCastState(caster));
+			spellCast.getSpell().handleCast(spellCast);
 		}
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
@@ -2384,27 +2385,33 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			caster = spellCast.getCaster();
 			from = caster.getLocation();
 
-			if (caster instanceof Player) MagicSpells.getExpBarManager().lock((Player) caster, this);
+			if (caster instanceof Player pl) MagicSpells.getExpBarManager().lock(pl, this);
 			taskId = scheduleRepeatingTask(this, interval, interval);
 			registerEvents(this);
 		}
 
 		@Override
 		public void run() {
-			if (caster.isValid() && !caster.isDead()) {
-				elapsed += interval;
+			if (!caster.isValid() || caster.isDead()) {
+				end();
+				return;
+			}
 
-				if (!interruptOnMove || inBounds(caster.getLocation())) {
-					if (elapsed >= castTime) {
-						end();
+			elapsed += interval;
 
-						spellCast.setSpellCastState(getCastState(caster));
-						spellCast.getSpell().handleCast(spellCast);
-					}
+			if (interruptOnMove && !inBounds(caster.getLocation())) {
+				interrupt();
+				return;
+			}
 
-					if (caster instanceof Player) MagicSpells.getExpBarManager().update((Player) caster, 0, (float) elapsed / (float) castTime, this);
-				} else interrupt();
-			} else end();
+			if (elapsed >= castTime) {
+				end();
+
+				spellCast.setSpellCastState(getCastState(caster));
+				spellCast.getSpell().handleCast(spellCast);
+			}
+
+			if (caster instanceof Player pl) MagicSpells.getExpBarManager().update(pl, 0, (float) elapsed / (float) castTime, this);
 		}
 
 		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
@@ -2457,11 +2464,11 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			MagicSpells.cancelTask(taskId);
 			unregisterEvents(this);
 
-			if (caster instanceof Player) {
-				MagicSpells.getExpBarManager().unlock((Player) caster, this);
-				MagicSpells.getExpBarManager().update((Player) caster, ((Player) caster).getLevel(), ((Player) caster).getExp());
+			if (caster instanceof Player pl) {
+				MagicSpells.getExpBarManager().unlock(pl, this);
+				MagicSpells.getExpBarManager().update(pl, pl.getLevel(), pl.getExp());
 				ManaHandler mana = MagicSpells.getManaHandler();
-				if (mana != null) mana.showMana((Player) caster);
+				if (mana != null) mana.showMana(pl);
 			}
 		}
 
