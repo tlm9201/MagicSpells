@@ -62,28 +62,34 @@ public class TXTFileStorage extends StorageHandler {
 
 			if (!file.exists()) return;
 
+			String line;
+			Spell spell;
+			String[] data;
+			List<CastItem> items;
+			String[] split;
+			CastItem castItem;
 			Scanner scanner = new Scanner(file, StandardCharsets.UTF_8);
 			while (scanner.hasNext()) {
-				String line = scanner.nextLine();
+				line = scanner.nextLine();
 				if (line.isEmpty()) continue;
 
 				if (!line.contains(":")) {
-					Spell spell = MagicSpells.getSpellByInternalName(line);
+					spell = MagicSpells.getSpellByInternalName(line);
 					if (spell == null) continue;
 					spellbook.addSpell(spell);
 				}
 
-				String[] data = line.split(":", 2);
-				Spell spell = MagicSpells.getSpellByInternalName(data[0]);
+				data = line.split(":", 2);
+				spell = MagicSpells.getSpellByInternalName(data[0]);
 
 				if (spell == null) continue;
 				if (data.length <= 1) continue;
 
-				List<CastItem> items = new ArrayList<>();
-				String[] s = data[1].split(MagicItemDataParser.DATA_REGEX);
-				for (String value : s) {
+				items = new ArrayList<>();
+				split = data[1].split(MagicItemDataParser.DATA_REGEX);
+				for (String value : split) {
 					try {
-						CastItem castItem = new CastItem(value);
+						castItem = new CastItem(value);
 						items.add(castItem);
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -118,25 +124,27 @@ public class TXTFileStorage extends StorageHandler {
 				file = new File(plugin.getDataFolder(), path + id + ".txt");
 			}
 
+			Set<CastItem> items;
+			StringBuilder builder;
+			CastItem castItem;
 			Writer writer = new OutputStreamWriter(new FileOutputStream(file, false), StandardCharsets.UTF_8);
 			for (Spell spell : spellbook.getSpells()) {
-				if (spellbook.isTemporary(spell)) continue;
 				writer.append(spell.getInternalName());
 
 				if (spellbook.getCustomBindings().containsKey(spell)) {
-					Set<CastItem> items = spellbook.getCustomBindings().get(spell);
-					StringBuilder s = new StringBuilder();
+					items = spellbook.getCustomBindings().get(spell);
+					builder = new StringBuilder();
 					for (CastItem item : items) {
-						s.append((s.length() == 0) ? "" : "|").append(item);
+						builder.append((builder.length() == 0) ? "" : "|").append(item);
 					}
 
 					// When you unbind an item with no binds left, restore the original cast item.
-					CastItem castItem = (CastItem) items.toArray()[0];
+					castItem = (CastItem) items.toArray()[0];
 					if (items.size() == 1 && castItem.getType() == null) {
 						writer.write("\n");
 						continue;
 					}
-					writer.append(":").append(s.toString());
+					writer.append(":").append(builder.toString());
 				}
 				writer.write("\n");
 			}

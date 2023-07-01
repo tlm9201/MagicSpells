@@ -45,6 +45,7 @@ import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -709,6 +710,16 @@ public class Util {
 
 		// Convert mini message component to a plain string and deserialize string to plain component.
 		return PlainTextComponentSerializer.plainText().deserialize(PlainTextComponentSerializer.plainText().serialize(component));
+	}
+
+	public static Component getSmoothComponent(Component component) {
+		return Component.empty().style(Style.style()
+				.decoration(TextDecoration.BOLD, false)
+				.decoration(TextDecoration.ITALIC, false)
+				.decoration(TextDecoration.STRIKETHROUGH, false)
+				.decoration(TextDecoration.OBFUSCATED, false)
+				.decoration(TextDecoration.UNDERLINED, false)
+				.build()).append(component).compact();
 	}
 
 	public static Component getMiniMessage(String input) {
