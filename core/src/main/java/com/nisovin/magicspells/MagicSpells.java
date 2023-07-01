@@ -781,7 +781,7 @@ public class MagicSpells extends JavaPlugin {
 				addPermission(pm, "learn." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
 				addPermission(pm, "cast." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
 				addPermission(pm, "teach." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
-				if (enableTempGrantPerms) addPermission(pm, "tempgrant." + permName, PermissionDefault.FALSE);
+				if (areTempGrantPermsEnabled()) addPermission(pm, "tempgrant." + permName, PermissionDefault.FALSE);
 
 				permLearnChildren.put(Perm.LEARN.getNode() + permName, true);
 				permCastChildren.put(Perm.CAST.getNode() + permName, true);
@@ -1142,7 +1142,7 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.checkScoreboardTeams;
 	}
 
-	public static boolean tempGrantPermsEnabled() {
+	public static boolean areTempGrantPermsEnabled() {
 		return plugin.enableTempGrantPerms;
 	}
 
