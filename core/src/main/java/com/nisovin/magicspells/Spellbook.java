@@ -271,7 +271,7 @@ public class Spellbook {
 			addSpell(spell);
 			return true;
 		}
-		return MagicSpells.tempGrantPermsEnabled() && Perm.TEMPGRANT.has(player, spell);
+		return MagicSpells.areTempGrantPermsEnabled() && Perm.TEMPGRANT.has(player, spell);
 	}
 
 	protected CastItem getCastItemForCycling(ItemStack item) {
