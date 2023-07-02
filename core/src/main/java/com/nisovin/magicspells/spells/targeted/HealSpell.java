@@ -102,7 +102,7 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (healPercent == 0) {
 			amount = this.healAmount.get(caster, target, power, args);
 			if (powerAffectsHealAmount) amount *= power;
-		} else amount = (Util.getMaxHealth(caster) - health) * (healPercent / 100);
+		} else amount = Util.getMaxHealth(target) * (healPercent / 100);
 
 		if (checkPlugins) {
 			MagicSpellsEntityRegainHealthEvent event = new MagicSpellsEntityRegainHealthEvent(target, amount, RegainReason.CUSTOM);
