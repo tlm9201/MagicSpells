@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells;
 
 import java.util.Map;
-import java.util.List;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -35,7 +34,6 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.SpellReagents;
-import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -49,8 +47,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	protected Map<UUID, Integer> useCounter;
 	protected Map<UUID, Long> durationEndTime;
 	protected Map<UUID, LivingEntity> lastCaster;
-
-	protected ValidTargetList targetList;
 
 	protected float duration;
 
@@ -90,12 +86,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		super(config, spellName);
 
 		thisSpell = this;
-
-		if (config.isList("spells." + internalName + '.' + "can-target")) {
-			List<String> defaultTargets = getConfigStringList("can-target", null);
-			if (defaultTargets.isEmpty()) defaultTargets.add("players");
-			targetList = new ValidTargetList(this, defaultTargets);
-		} else targetList = new ValidTargetList(this, getConfigString("can-target", "players"));
 
 		duration = getConfigFloat("duration", 0);
 
@@ -175,7 +165,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		if (targeted) {
 			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
 			if (info.noTarget()) return noTarget(caster, args, info);
-			if (!targetList.canTarget(info.target())) return noTarget(caster, args);
+			if (!validTargetList.canTarget(info.target())) return noTarget(caster, args);
 
 			target = info.target();
 			power = info.power();
