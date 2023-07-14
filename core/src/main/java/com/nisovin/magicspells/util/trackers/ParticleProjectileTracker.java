@@ -122,6 +122,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private int spellInterval;
 	private int tickSpellLimit;
 	private int maxEntitiesHit;
+	private int maxHeightCheck;
+	private int startHeightCheck;
 	private int accelerationDelay;
 	private int intermediateEffects;
 	private int intermediateHitboxes;
@@ -221,9 +223,17 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		}
 
 		if (hugSurface) {
-			currentLocation.setY(currentLocation.getY() + heightFromSurface);
 			currentVelocity.setY(0).normalize();
 			currentLocation.setPitch(0);
+
+			if (!checkGround(startHeightCheck)) {
+				stop();
+				return;
+			}
+
+			currentLocation.setY((int) currentLocation.getY() + heightFromSurface);
+			currentX = currentLocation.getBlockX();
+			currentZ = currentLocation.getBlockZ();
 		}
 
 		if (powerAffectsVelocity) currentVelocity.multiply(power);
@@ -309,28 +319,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		}
 
 		if (hugSurface && (currentLocation.getBlockX() != currentX || currentLocation.getBlockZ() != currentZ)) {
-			Block b = currentLocation.subtract(0, heightFromSurface, 0).getBlock();
-
-			int attempts = 0;
-			boolean ok = false;
-			while (attempts++ < 10) {
-				if (BlockUtils.isPathable(b)) {
-					b = b.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isPathable(b)) currentLocation.add(0, -1, 0);
-					else {
-						ok = true;
-						break;
-					}
-				} else {
-					b = b.getRelative(BlockFace.UP);
-					currentLocation.add(0, 1, 0);
-					if (BlockUtils.isPathable(b)) {
-						ok = true;
-						break;
-					}
-				}
-			}
-			if (!ok) {
+			if (!checkGround(maxHeightCheck)) {
 				stop();
 				return;
 			}
@@ -564,6 +553,33 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			if (maxEntitiesHit > 0 && maxHitLimit >= maxEntitiesHit) stop();
 			break;
 		}
+	}
+
+	private boolean checkGround(int maxAttempts) {
+		Block b = currentLocation.subtract(0, heightFromSurface, 0).getBlock();
+
+		int attempts = 0;
+		boolean ok = false;
+		while (attempts++ < maxAttempts) {
+			if (BlockUtils.isPathable(b)) {
+				b = b.getRelative(BlockFace.DOWN);
+				if (BlockUtils.isPathable(b)) currentLocation.add(0, -1, 0);
+				else {
+					ok = true;
+					break;
+				}
+				continue;
+			}
+
+			b = b.getRelative(BlockFace.UP);
+			currentLocation.add(0, 1, 0);
+			if (BlockUtils.isPathable(b)) {
+				ok = true;
+				break;
+			}
+		}
+
+		return ok;
 	}
 
 	@Override
@@ -1033,6 +1049,22 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	public void setMaxEntitiesHit(int maxEntitiesHit) {
 		this.maxEntitiesHit = maxEntitiesHit;
+	}
+
+	public int getMaxHeightCheck() {
+		return maxHeightCheck;
+	}
+
+	public void setMaxHeightCheck(int maxHeightCheck) {
+		this.maxHeightCheck = maxHeightCheck;
+	}
+
+	public int getStartHeightCheck() {
+		return startHeightCheck;
+	}
+
+	public void setStartHeightCheck(int startHeightCheck) {
+		this.startHeightCheck = startHeightCheck;
 	}
 
 	public int getAccelerationDelay() {
