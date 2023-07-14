@@ -62,6 +62,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private ConfigData<Integer> tickSpellLimit;
 	private ConfigData<Integer> intermediateHitboxes;
 	private ConfigData<Integer> maxEntitiesHit;
+	private ConfigData<Integer> maxHeightCheck;
+	private ConfigData<Integer> startHeightCheck;
 	private ConfigData<Float> hitRadius;
 	private ConfigData<Float> verticalHitRadius;
 	private ConfigData<Integer> groundHitRadius;
@@ -158,6 +160,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		tickSpellLimit = getConfigDataInt("tick-spell-limit", 0);
 		intermediateHitboxes = getConfigDataInt("intermediate-hitboxes", 0);
 		maxEntitiesHit = getConfigDataInt("max-entities-hit", 0);
+		maxHeightCheck = getConfigDataInt("max-height-check", 10);
+		startHeightCheck = getConfigDataInt("start-height-check", 10);
 		hitRadius = getConfigDataFloat("hit-radius", 1.5F);
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", hitRadius);
 		groundHitRadius = getConfigDataInt("ground-hit-radius", 0);
@@ -503,6 +507,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 		tracker.setTickSpellLimit(tickSpellLimit.get(caster, target, power, args));
 		tracker.setMaxEntitiesHit(maxEntitiesHit.get(caster, target, power, args));
+		tracker.setMaxHeightCheck(maxHeightCheck.get(caster, target, power, args));
+		tracker.setStartHeightCheck(startHeightCheck.get(caster, target, power, args));
 		tracker.setHorizontalHitRadius(hitRadius.get(caster, target, power, args));
 		tracker.setVerticalHitRadius(verticalHitRadius.get(caster, target, power, args));
 		tracker.setGroundHorizontalHitRadius(groundHitRadius.get(caster, target, power, args));
