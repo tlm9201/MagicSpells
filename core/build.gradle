@@ -8,7 +8,7 @@ dependencies {
     shadow(group: "org.apache.commons", name: "commons-math4-core", version: "4.0-beta1")
     shadow(group: "com.github.Chronoken", name: "EffectLib", version: "b00ca02")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.1-SNAPSHOT")
-    shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.8.22")
+    shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.9.0")
 
     shadow(project(path: ":nms:shared", configuration: "apiElements"))
     shadow(project(path: ":nms:v1_19_R1", configuration: "reobf"))
@@ -45,10 +45,13 @@ dependencies {
 
 }
 
+base {
+    archivesName = "MagicSpells"
+}
+
 shadowJar {
     configurations = [project.configurations.shadow]
 
-    setArchivesBaseName("MagicSpells")
     relocate("org.apache.commons.math4", "com.nisovin.magicspells.shaded.org.apache.commons.math4")
     relocate("de.slikey.effectlib", "com.nisovin.magicspells.shaded.effectlib")
     relocate("kotlin", "com.nisovin.magicspells.shaded.kotlin")
