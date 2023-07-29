@@ -4,20 +4,30 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.function.Function;
 
+import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
 public class DataLivingEntity {
 	
-	private static Map<String, Function<LivingEntity, String>> dataElements = new HashMap<>();
+	private static final Map<String, Function<LivingEntity, String>> dataElements = new HashMap<>();
 	
 	static {
 		dataElements.put("eyeheight", livingEntity -> livingEntity.getEyeHeight() + "");
 		dataElements.put("maxair", livingEntity -> livingEntity.getMaximumAir() + "");
 		dataElements.put("air", livingEntity -> livingEntity.getRemainingAir() + "");
 		dataElements.put("maxnodamageticks", livingEntity -> livingEntity.getMaximumNoDamageTicks() + "");
-		dataElements.put("targetedblock.x", livingEntity -> String.valueOf(livingEntity.getTargetBlockExact(32).getX()));
-		dataElements.put("targetedblock.y", livingEntity -> String.valueOf(livingEntity.getTargetBlockExact(32).getY()));
-		dataElements.put("targetedblock.z", livingEntity -> String.valueOf(livingEntity.getTargetBlockExact(32).getZ()));
+		dataElements.put("targetedblock.x", livingEntity -> {
+			Block block = livingEntity.getTargetBlockExact(32);
+			return block == null ? "" : block.getX() + "";
+		});
+		dataElements.put("targetedblock.y", livingEntity -> {
+			Block block = livingEntity.getTargetBlockExact(32);
+			return block == null ? "" : block.getY() + "";
+		});
+		dataElements.put("targetedblock.z", livingEntity -> {
+			Block block = livingEntity.getTargetBlockExact(32);
+			return block == null ? "" : block.getZ() + "";
+		});
 		dataElements.put("eyelocation", livingEntity -> livingEntity.getEyeLocation().toString());
 		dataElements.put("eyelocation.x", livingEntity -> livingEntity.getEyeLocation().getX() + "");
 		dataElements.put("eyelocation.y", livingEntity -> livingEntity.getEyeLocation().getY() + "");
