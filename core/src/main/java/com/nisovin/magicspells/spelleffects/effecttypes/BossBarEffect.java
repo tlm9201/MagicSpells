@@ -1,5 +1,9 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
+import java.util.Map;
+import java.util.HashMap;
+
+import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Entity;
@@ -15,6 +19,8 @@ import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
+
+	private final static Map<String, Integer> tasks = new HashMap<>();
 
 	private String namespaceKey;
 	private String title;
@@ -41,7 +47,10 @@ public class BossBarEffect extends SpellEffect {
 	protected void loadFromConfig(ConfigurationSection config) {
 		namespaceKey = config.getString("namespace-key");
 		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
-			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
+			MagicSpells.error("BossBarEffect '"
+					+ config.getCurrentPath()
+					+ "' has a wrong namespace-key '"
+					+ namespaceKey + "' defined!");
 		}
 
 		broadcast = config.getBoolean("broadcast", false);
@@ -61,14 +70,20 @@ public class BossBarEffect extends SpellEffect {
 			barColor = BarColor.valueOf(color.toUpperCase());
 		} catch (IllegalArgumentException ignored) {
 			barColor = BarColor.WHITE;
-			MagicSpells.error("Wrong bar color defined! '" + color + "'");
+			MagicSpells.error("BossBarEffect '"
+					+ config.getCurrentPath()
+					+ "' has a wrong bar color '"
+					+ color + "' defined!");
 		}
 
 		try {
 			barStyle = BarStyle.valueOf(style.toUpperCase());
 		} catch (IllegalArgumentException ignored) {
 			barStyle = BarStyle.SOLID;
-			MagicSpells.error("Wrong bar style defined! '" + style + "'");
+			MagicSpells.error("BossBarEffect '"
+					+ config.getCurrentPath()
+					+ "' has a wrong bar style '"
+					+ style + "' defined!");
 		}
 
 		duration = config.getInt("duration", 60);
@@ -97,15 +112,24 @@ public class BossBarEffect extends SpellEffect {
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
 		if (!remove && (barStyle == null || barColor == null)) return null;
+
 		if (broadcast) Util.forEachPlayerOnline(this::createBar);
-		else if (entity instanceof Player) createBar((Player) entity);
+		else if (entity instanceof Player pl) createBar(pl);
+
 		return null;
 	}
 
 	private void createBar(Player player) {
 		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey, !remove);
+		String key;
 		if (remove) {
-			if (bar != null) bar.remove();
+			if (bar == null) return;
+			key = bar.getNamespaceKey();
+			if (tasks.containsKey(key)) {
+				Bukkit.getScheduler().cancelTask(tasks.get(key));
+				tasks.remove(key);
+			}
+			bar.remove();
 			return;
 		}
 
@@ -113,14 +137,32 @@ public class BossBarEffect extends SpellEffect {
 		if (variable != null) {
 			progress = variable.getValue(player) / (maxVariable == null ? maxValue : maxVariable.getValue(player));
 
-			if (progress < 0d) progress = 0d;
-			if (progress > 1d) progress = 1d;
+			if (progress < 0D) progress = 0D;
+			if (progress > 1D) progress = 1D;
 		}
 
 		String title = Util.doVarReplacementAndColorize(player, this.title);
 		bar.set(title, progress, barStyle, barColor, visible);
+		key = bar.getNamespaceKey();
 
-		if (duration > 0) MagicSpells.scheduleDelayedTask(bar::remove, duration);
+		if (duration > 0) {
+			if (tasks.containsKey(key)) Bukkit.getScheduler().cancelTask(tasks.get(key));
+
+			int task = MagicSpells.scheduleDelayedTask(() -> {
+				tasks.remove(bar.getNamespaceKey());
+                bar.remove();
+            }, duration);
+
+			tasks.put(key, task);
+		}
+	}
+
+	@Override
+	public void turnOff() {
+		for (int i : tasks.values()) {
+			Bukkit.getScheduler().cancelTask(i);
+		}
+		tasks.clear();
 	}
 
 }

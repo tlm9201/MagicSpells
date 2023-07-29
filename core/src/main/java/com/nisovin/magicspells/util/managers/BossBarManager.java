@@ -91,6 +91,10 @@ public class BossBarManager {
 			bossbar.setVisible(visible);
 		}
 
+		public String getNamespaceKey() {
+			return namespaceKey;
+		}
+
 		public void addFlag(BarFlag flag) {
 			bossbar.addFlag(flag);
 		}
