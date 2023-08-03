@@ -87,10 +87,7 @@ public class PowerCondition extends OperatorCondition implements IModifier {
 	}
 
 	public boolean power(float spellPower) {
-		if (equals) return spellPower == power;
-		else if (moreThan) return spellPower > power;
-		else if (lessThan) return spellPower < power;
-		return false;
+		return compare(spellPower, power);
 	}
 
 }

@@ -57,17 +57,7 @@ public class ManaCondition extends OperatorCondition {
 		if (!(target instanceof Player pl)) return false;
 		double currentMana = mana.getMana(pl);
 		double percentMana = currentMana / mana.getMaxMana(pl) * 100D;
-		if (equals) {
-			if (percent) return percentMana == amount;
-			return currentMana == amount;
-		} else if (moreThan) {
-			if (percent) return percentMana > amount;
-			return currentMana > amount;
-		} else if (lessThan) {
-			if (percent) return percentMana < amount;
-			return currentMana < amount;
-		}
-		return false;
+		return compare(percent ? percentMana : currentMana, amount);
 	}
 
 }

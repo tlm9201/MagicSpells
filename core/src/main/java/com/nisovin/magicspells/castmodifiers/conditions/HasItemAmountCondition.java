@@ -3,7 +3,6 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.EntityEquipment;
@@ -45,55 +44,31 @@ public class HasItemAmountCondition extends OperatorCondition {
 	@Override
 	public boolean check(LivingEntity caster, LivingEntity target) {
 		if (target == null) return false;
-		if (target instanceof InventoryHolder holder) return checkInventory(holder.getInventory());
-		else return checkEquipment(target.getEquipment());
+		if (target instanceof InventoryHolder holder) return hasItem(holder.getInventory().getContents());
+		EntityEquipment equipment = target.getEquipment();
+		return equipment != null && hasItem(InventoryUtil.getEquipmentItems(equipment));
 	}
 
 	@Override
 	public boolean check(LivingEntity caster, Location location) {
 		BlockState targetState = location.getBlock().getState();
-		return targetState instanceof InventoryHolder holder && checkInventory(holder.getInventory());
+		return targetState instanceof InventoryHolder holder && hasItem(holder.getInventory().getContents());
 	}
 
-	private boolean checkInventory(Inventory inventory) {
-		int c = 0;
-		for (ItemStack i : inventory.getContents()) {
-			if (!isSimilar(i)) continue;
-			c += i.getAmount();
+	private boolean hasItem(ItemStack[] items) {
+		int counted = 0;
+		for (ItemStack item : items) {
+			if (item == null) continue;
+			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
+			if (data == null) continue;
+			if (!itemData.matches(data)) continue;
 
-			if (moreThan && c > amount) return true;
-			if (lessThan && c >= amount) return false;
+			counted += item.getAmount();
+
+			if (moreThan && counted > amount) return true;
+			if (lessThan && counted >= amount) return false;
 		}
-
-		if (equals) return c == amount;
-		if (moreThan) return c > amount;
-		if (lessThan) return c < amount;
-		return false;
-	}
-
-	private boolean checkEquipment(EntityEquipment entityEquipment) {
-		int c = 0;
-		for (ItemStack i : InventoryUtil.getEquipmentItems(entityEquipment)) {
-			if (!isSimilar(i)) continue;
-			c += i.getAmount();
-
-			if (moreThan && c > amount) return true;
-			if (lessThan && c >= amount) return false;
-		}
-
-		if (equals) return c == amount;
-		if (moreThan) return c > amount;
-		if (lessThan) return c < amount;
-		return false;
-	}
-
-	private boolean isSimilar(ItemStack item) {
-		if (item == null) return false;
-
-		MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(item);
-		if (magicItemData == null) return false;
-
-		return itemData.matches(magicItemData);
+		return compare(counted, amount);
 	}
 
 }

@@ -37,10 +37,7 @@ public class YawCondition extends OperatorCondition {
 	}
 
 	private boolean yaw(Location location) {
-		if (equals) return location.getYaw() == yaw;
-		else if (moreThan) return location.getYaw() > yaw;
-		else if (lessThan) return location.getYaw() < yaw;
-		return false;
+		return compare(location.getYaw(), yaw);
 	}
 
 }

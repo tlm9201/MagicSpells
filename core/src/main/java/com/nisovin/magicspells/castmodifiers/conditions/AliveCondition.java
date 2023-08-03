@@ -42,10 +42,7 @@ public class AliveCondition extends OperatorCondition {
 
 	private boolean alive(LivingEntity target) {
 		if (!(target instanceof Player p)) return false;
-		if (equals) return MagicSpells.getLifeLengthTracker().getCurrentLifeLength(p) == time;
-		else if (moreThan) return MagicSpells.getLifeLengthTracker().getCurrentLifeLength(p) > time;
-		else if (lessThan) return MagicSpells.getLifeLengthTracker().getCurrentLifeLength(p) < time;
-		return false;
+		return compare(MagicSpells.getLifeLengthTracker().getCurrentLifeLength(p), time);
 	}
 
 }

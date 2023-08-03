@@ -39,10 +39,7 @@ public class PitchCondition extends OperatorCondition {
 	}
 
 	private boolean pitch(Location location) {
-		if (equals) return location.getPitch() == pitch;
-		else if (moreThan) return location.getPitch() > pitch;
-		else if (lessThan) return location.getPitch() < pitch;
-		return false;
+		return compare(location.getPitch(), pitch);
 	}
 
 }

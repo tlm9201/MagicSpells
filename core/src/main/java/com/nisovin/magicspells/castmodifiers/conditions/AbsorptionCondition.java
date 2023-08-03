@@ -37,10 +37,7 @@ public class AbsorptionCondition extends OperatorCondition {
 	}
 
 	private boolean absorption(LivingEntity target) {
-		if (equals) return target.getAbsorptionAmount() == health;
-		else if (moreThan) return target.getAbsorptionAmount() > health;
-		else if (lessThan) return target.getAbsorptionAmount() < health;
-		return false;
+		return compare(target.getAbsorptionAmount(), health);
 	}
 	
 }

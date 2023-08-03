@@ -39,12 +39,7 @@ public class SlotSelectedCondition extends OperatorCondition {
 
 	private boolean slot(LivingEntity target) {
 		if (!(target instanceof Player pl)) return false;
-		int theirSlot = pl.getInventory().getHeldItemSlot();
-
-		if (equals) return theirSlot == slot;
-		else if (moreThan) return theirSlot > slot;
-		else if (lessThan) return theirSlot < slot;
-		return false;
+		return compare(pl.getInventory().getHeldItemSlot(), slot);
 	}
 
 }

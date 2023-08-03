@@ -39,10 +39,7 @@ public class SaturationCondition extends OperatorCondition {
 
 	private boolean saturation(LivingEntity livingEntity) {
 		if (!(livingEntity instanceof Player pl)) return false;
-		if (equals) return pl.getSaturation() == saturation;
-		else if (moreThan) return pl.getSaturation() > saturation;
-		else if (lessThan) return pl.getSaturation() < saturation;
-		return false;
+		return compare(pl.getSaturation(), saturation);
 	}
 
 }

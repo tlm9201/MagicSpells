@@ -54,10 +54,7 @@ public class OpenSlotsCondition extends OperatorCondition {
 			if (itemStack == null) c++;
 		}
 
-		if (equals) return c == slots;
-		else if (moreThan) return c > slots;
-		else if (lessThan) return c < slots;
-		return false;
+		return compare(c, slots);
 	}
 
 }

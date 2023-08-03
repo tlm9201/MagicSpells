@@ -59,10 +59,7 @@ public class LightLevelCondition extends OperatorCondition {
 			case BLOCK -> block.getLightFromBlocks();
 			case SKY -> block.getLightFromSky();
 		};
-		if (equals) return lightLevel == level;
-		else if (moreThan) return lightLevel > level;
-		else if (lessThan) return lightLevel < level;
-		return false;
+		return compare(lightLevel, level);
 	}
 
 	public enum LightType {

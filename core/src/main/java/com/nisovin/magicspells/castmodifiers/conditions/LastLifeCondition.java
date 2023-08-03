@@ -42,10 +42,7 @@ public class LastLifeCondition extends OperatorCondition {
 
 	private boolean lifeLength(LivingEntity target) {
 		if (!(target instanceof Player pl)) return false;
-		if (equals) return MagicSpells.getLifeLengthTracker().getLastLifeLength(pl) == time;
-		else if (moreThan) return MagicSpells.getLifeLengthTracker().getLastLifeLength(pl) > time;
-		else if (lessThan) return MagicSpells.getLifeLengthTracker().getLastLifeLength(pl) < time;
-		return false;
+		return compare(MagicSpells.getLifeLengthTracker().getLastLifeLength(pl), time);
 	}
 
 }

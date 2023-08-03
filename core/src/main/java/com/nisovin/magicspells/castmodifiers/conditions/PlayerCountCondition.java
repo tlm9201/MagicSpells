@@ -39,10 +39,7 @@ public class PlayerCountCondition extends OperatorCondition {
 	}
 
 	private boolean playerCount() {
-		if (equals) return Bukkit.getServer().getOnlinePlayers().size() == count;
-		else if (moreThan) return Bukkit.getServer().getOnlinePlayers().size() > count;
-		else if (lessThan) return Bukkit.getServer().getOnlinePlayers().size() < count;
-		return false;
+		return compare(Bukkit.getOnlinePlayers().size(), count);
 	}
 
 }

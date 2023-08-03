@@ -39,10 +39,7 @@ public class ElevationCondition extends OperatorCondition {
 	}
 
 	private boolean elevation(Location location) {
-		if (equals) return location.getY() == y;
-		else if (moreThan) return location.getY() > y;
-		else if (lessThan) return location.getY() < y;
-		return false;
+		return compare(location.getY(), y);
 	}
 
 }
