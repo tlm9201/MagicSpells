@@ -37,10 +37,7 @@ public class ReceivingRedstoneCondition extends OperatorCondition {
 	}
 
 	private boolean signal(Location location) {
-		if (equals) return location.getBlock().getBlockPower() == level;
-		else if (moreThan) return location.getBlock().getBlockPower() > level;
-		else if (lessThan) return location.getBlock().getBlockPower() < level;
-		return false;
+		return compare(location.getBlock().getBlockPower(), level);
 	}
 	
 }

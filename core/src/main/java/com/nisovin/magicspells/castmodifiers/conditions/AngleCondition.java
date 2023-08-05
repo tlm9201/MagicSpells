@@ -58,10 +58,7 @@ public class AngleCondition extends OperatorCondition {
 	}
 
 	private boolean checkAngle(double degrees) {
-		if (equals) return degrees == angle;
-		else if (moreThan) return degrees > angle;
-		else if (lessThan) return degrees < angle;
-		return false;
+		return compare(degrees, angle);
 	}
 
 }

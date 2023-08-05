@@ -41,11 +41,7 @@ public class RotationCondition extends OperatorCondition {
 	private boolean rotation(Location location) {
 		float yaw = location.getYaw();
 		if (yaw < 0) yaw += 360;
-
-		if (equals) return yaw == rotation;
-		else if (moreThan) return yaw > rotation;
-		else if (lessThan) return yaw < rotation;
-		return false;
+		return compare(yaw, rotation);
 	}
 
 }

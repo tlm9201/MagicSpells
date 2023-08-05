@@ -25,6 +25,13 @@ public class OperatorCondition extends Condition {
 		return true;
 	}
 
+	protected boolean compare(double a, double b) {
+		if (equals) return a == b;
+		else if (moreThan) return a > b;
+		else if (lessThan) return a < b;
+		return false;
+	}
+
 	@Override
 	public boolean check(LivingEntity livingEntity) {
 		return false;

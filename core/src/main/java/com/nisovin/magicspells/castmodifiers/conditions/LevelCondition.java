@@ -41,10 +41,7 @@ public class LevelCondition extends OperatorCondition {
 
 	private boolean level(LivingEntity target) {
 		if (!(target instanceof Player pl)) return false;
-		if (equals) return pl.getLevel() == level;
-		else if (moreThan) return pl.getLevel() > level;
-		else if (lessThan) return pl.getLevel() < level;
-		return false;
+		return compare(pl.getLevel(), level);
 	}
 
 }

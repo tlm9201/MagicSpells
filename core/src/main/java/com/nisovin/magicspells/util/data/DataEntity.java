@@ -9,10 +9,11 @@ import org.bukkit.entity.SpawnCategory;
 import org.bukkit.command.CommandSender;
 
 import com.nisovin.magicspells.util.Util;
+import org.bukkit.event.entity.EntityDamageEvent;
 
 public class DataEntity {
 	
-	private static Map<String, Function<Entity, String>> dataElements = new HashMap<>();
+	private static final Map<String, Function<Entity, String>> dataElements = new HashMap<>();
 	
 	static {
 		try {
@@ -32,8 +33,14 @@ public class DataEntity {
 		dataElements.put("class", entity -> entity.getClass().toString());
 		dataElements.put("class.canonicalname", entity -> entity.getClass().getCanonicalName());
 		dataElements.put("class.simplename", entity -> entity.getClass().getSimpleName());
-		dataElements.put("lastdamagecause.cause", entity -> entity.getLastDamageCause().getCause().name());
-		dataElements.put("lastdamagecause.amount", entity -> entity.getLastDamageCause().getDamage() + "");
+		dataElements.put("lastdamagecause.cause", entity -> {
+			EntityDamageEvent event = entity.getLastDamageCause();
+			return event == null ? "" : event.getCause().name();
+		});
+		dataElements.put("lastdamagecause.amount", entity -> {
+			EntityDamageEvent event = entity.getLastDamageCause();
+			return event == null ? "" : event.getDamage() + "";
+		});
 		dataElements.put("velocity", entity -> entity.getVelocity().toString());
 		dataElements.put("velocity.x", entity -> entity.getVelocity().getX() + "");
 		dataElements.put("velocity.y", entity -> entity.getVelocity().getY() + "");

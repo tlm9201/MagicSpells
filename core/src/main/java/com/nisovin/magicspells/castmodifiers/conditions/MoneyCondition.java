@@ -40,10 +40,7 @@ public class MoneyCondition extends OperatorCondition {
 
 	private boolean money(LivingEntity target) {
 		if (!(target instanceof Player pl)) return false;
-		if (equals) return MagicSpells.getMoneyHandler().checkMoney(pl) == money;
-		else if (moreThan) return MagicSpells.getMoneyHandler().checkMoney(pl) > money;
-		else if (lessThan) return MagicSpells.getMoneyHandler().checkMoney(pl) < money;
-		return false;
+		return compare(MagicSpells.getMoneyHandler().checkMoney(pl), money);
 	}
 
 }

@@ -47,30 +47,23 @@ public class VariableCondition extends OperatorCondition {
 
 	@Override
 	public boolean check(LivingEntity caster) {
-		return variableType(caster);
+		return variable(caster);
 	}
 
 	@Override
 	public boolean check(LivingEntity caster, LivingEntity target) {
-		return variableType(target);
+		return variable(target);
 	}
 
 	@Override
 	public boolean check(LivingEntity caster, Location location) {
-		return variableType(caster);
+		return variable(caster);
 	}
 
-	private boolean variableType(LivingEntity target) {
+	private boolean variable(LivingEntity target) {
 		if (!(target instanceof Player pl)) return false;
-		if (variableCompared != null) return variable(pl, MagicSpells.getVariableManager().getValue(variableCompared, pl));
-		return variable(pl, value);
-	}
-
-	private boolean variable(Player player, double v) {
-		if (equals) return MagicSpells.getVariableManager().getValue(variable, player) == v;
-		else if (moreThan) return MagicSpells.getVariableManager().getValue(variable, player) > v;
-		else if (lessThan) return MagicSpells.getVariableManager().getValue(variable, player) < v;
-		return false;
+		double with = variableCompared == null ? value : MagicSpells.getVariableManager().getValue(variableCompared, pl);
+		return compare(MagicSpells.getVariableManager().getValue(variable, pl), with);
 	}
 
 }

@@ -48,10 +48,7 @@ public class MaxManaCondition extends OperatorCondition {
 
 	private boolean maxMana(LivingEntity target) {
 		if (!(target instanceof Player pl)) return false;
-		if (equals) return mana.getMaxMana(pl) == amount;
-		else if (moreThan) return mana.getMaxMana(pl) > amount;
-		else if (lessThan) return mana.getMaxMana(pl) < amount;
-		return false;
+		return compare(mana.getMaxMana(pl), amount);
 	}
 
 }

@@ -183,6 +183,8 @@ public class ParticlesEffect extends SpellEffect {
 		if (type == BlockData.class) return blockData.get(data);
 		if (type == DustOptions.class) return dustOptions.get(data);
 		if (type == DustTransition.class) return dustTransition.get(data);
+		if (type == Float.class) return sculkChargeRotation.get(data);
+		if (type == Integer.class) return shriekDelay.get(data);
 
 		return null;
 	}

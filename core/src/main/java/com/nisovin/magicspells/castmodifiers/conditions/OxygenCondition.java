@@ -39,10 +39,7 @@ public class OxygenCondition extends OperatorCondition {
 	}
 
 	private boolean oxygen(LivingEntity target) {
-		if (equals) return target.getRemainingAir() == oxygen;
-		else if (moreThan) return target.getRemainingAir() > oxygen;
-		else if (lessThan) return target.getRemainingAir() < oxygen;
-		return false;
+		return compare(target.getRemainingAir(), oxygen);
 	}
 	
 }

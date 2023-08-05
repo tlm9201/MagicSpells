@@ -42,11 +42,7 @@ public class DistanceCondition extends OperatorCondition {
 	private boolean distance(Location from, Location to) {
 		if (from == null || to == null) return false;
 		if (!from.getWorld().equals(to.getWorld())) return false;
-
-		if (equals) return from.distanceSquared(to) == distanceSq;
-		else if (moreThan) return from.distanceSquared(to) > distanceSq;
-		else if (lessThan) return from.distanceSquared(to) < distanceSq;
-		return false;
+		return compare(from.distanceSquared(to), distanceSq);
 	}
 
 }

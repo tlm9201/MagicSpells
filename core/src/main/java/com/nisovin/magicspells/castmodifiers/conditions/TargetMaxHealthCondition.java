@@ -38,10 +38,7 @@ public class TargetMaxHealthCondition extends OperatorCondition {
 	}
 
 	private boolean maxHealth(LivingEntity target) {
-		if (equals) return Util.getMaxHealth(target) == health;
-		else if (moreThan) return Util.getMaxHealth(target) > health;
-		else if (lessThan) return Util.getMaxHealth(target) < health;
-		return false;
+		return compare(Util.getMaxHealth(target), health);
 	}
 
 }

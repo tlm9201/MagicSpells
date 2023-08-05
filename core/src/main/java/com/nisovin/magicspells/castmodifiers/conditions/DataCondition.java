@@ -70,10 +70,7 @@ public class DataCondition extends OperatorCondition {
 		try {
 			double dataDouble = Double.parseDouble(data);
 			double localDouble = constantValue ?  value : Double.parseDouble(localCompare);
-
-			if (equals) return dataDouble == localDouble;
-			if (lessThan) return dataDouble < localDouble;
-			if (moreThan) return dataDouble > localDouble;
+			return compare(dataDouble, localDouble);
 		} catch (NumberFormatException e) {
 			if (equals) return Objects.equals(data, localCompare);
 		}
