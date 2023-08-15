@@ -53,6 +53,7 @@ import com.nisovin.magicspells.listeners.*;
 import com.nisovin.magicspells.util.managers.*;
 import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaHandler;
+import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.commands.MagicCommand;
@@ -1930,6 +1931,7 @@ public class MagicSpells extends JavaPlugin {
 			EffectPosition position;
 			List<SpellEffect> spellEffects;
 			Iterator<SpellEffect> iterator;
+			SpellEffect effect;
 			if (spell.getEffects() != null) {
 				for (Map.Entry<EffectPosition, List<SpellEffect>> entry : spell.getEffects().entrySet()) {
 					if (entry == null) continue;
@@ -1940,11 +1942,13 @@ public class MagicSpells extends JavaPlugin {
 
 					iterator = spellEffects.iterator();
 					while (iterator.hasNext()) {
-						iterator.next().turnOff();
+						effect = iterator.next();
+						effect.turnOff();
 						iterator.remove();
 					}
 				}
 			}
+			if (spell instanceof BuffSpell buffSpell) buffSpell.stopAllEffects();
 
 			spell.turnOff();
 		}

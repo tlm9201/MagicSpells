@@ -401,7 +401,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public void stopEffects(LivingEntity livingEntity) {
 		Iterator<EffectTracker> trackerIterator = getEffectTrackers().iterator();
 		EffectTracker tracker;
-		while(trackerIterator.hasNext()) {
+		while (trackerIterator.hasNext()) {
 			tracker = trackerIterator.next();
 			if (tracker.getEntity() != null && !tracker.getEntity().equals(livingEntity)) continue;
 			tracker.stop();
@@ -410,7 +410,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		Iterator<AsyncEffectTracker> asyncTrackerIterator = getAsyncEffectTrackers().iterator();
 		AsyncEffectTracker asyncTracker;
-		while(asyncTrackerIterator.hasNext()) {
+		while (asyncTrackerIterator.hasNext()) {
 			asyncTracker = asyncTrackerIterator.next();
 			if (asyncTracker.getEntity() != null && !asyncTracker.getEntity().equals(livingEntity)) continue;
 			asyncTracker.stop();
@@ -421,7 +421,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public void stopAllEffects() {
 		Iterator<EffectTracker> trackerIterator = getEffectTrackers().iterator();
 		EffectTracker effectTracker;
-		while(trackerIterator.hasNext()) {
+		while (trackerIterator.hasNext()) {
 			effectTracker = trackerIterator.next();
 			effectTracker.stop();
 			trackerIterator.remove();
@@ -429,7 +429,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 		Iterator<AsyncEffectTracker> asyncTrackerIterator = getAsyncEffectTrackers().iterator();
 		AsyncEffectTracker asyncEffectTracker;
-		while(asyncTrackerIterator.hasNext()) {
+		while (asyncTrackerIterator.hasNext()) {
 			asyncEffectTracker = asyncTrackerIterator.next();
 			asyncEffectTracker.stop();
 			asyncTrackerIterator.remove();
