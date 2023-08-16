@@ -360,7 +360,7 @@ public class PassiveSpell extends Spell {
 
 		removeReagents(data.caster(), castEvent.getReagents());
 		sendMessage(strCastSelf, data.caster(), data);
-		SpellCastedEvent castedEvent = new SpellCastedEvent(this, data.caster(), SpellCastState.NORMAL, data.power(), null, castEvent.getCooldown(), castEvent.getReagents(), PostCastAction.HANDLE_NORMALLY);
+		SpellCastedEvent castedEvent = new SpellCastedEvent(castEvent, new CastResult(PostCastAction.HANDLE_NORMALLY, data));
 		EventUtil.call(castedEvent);
 		disabled = false;
 		return true;
