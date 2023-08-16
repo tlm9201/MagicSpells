@@ -7,33 +7,32 @@ import java.util.HashMap;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Map<Integer, SpellData> tnts;
+	private final Map<Integer, TNTData> tnts;
 
-	private ConfigData<Integer> fuse;
+	private final ConfigData<Integer> fuse;
 
-	private ConfigData<Float> velocity;
-	private ConfigData<Float> upVelocity;
+	private final ConfigData<Float> velocity;
+	private final ConfigData<Float> upVelocity;
 
-	private boolean cancelGravity;
-	private boolean cancelExplosion;
-	private boolean preventBlockDamage;
+	private final ConfigData<Boolean> cancelGravity;
+	private final ConfigData<Boolean> cancelExplosion;
+	private final ConfigData<Boolean> preventBlockDamage;
 
 	private String spellToCastName;
 	private Subspell spellToCast;
@@ -46,9 +45,9 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 		velocity = getConfigDataFloat("velocity", 0F);
 		upVelocity = getConfigDataFloat("up-velocity", velocity);
 
-		cancelGravity = getConfigBoolean("cancel-gravity", false);
-		cancelExplosion = getConfigBoolean("cancel-explosion", false);
-		preventBlockDamage = getConfigBoolean("prevent-block-damage", false);
+		cancelGravity = getConfigDataBoolean("cancel-gravity", false);
+		cancelExplosion = getConfigDataBoolean("cancel-explosion", false);
+		preventBlockDamage = getConfigDataBoolean("prevent-block-damage", false);
 
 		spellToCastName = getConfigString("spell", "");
 
@@ -65,87 +64,79 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 				MagicSpells.error("SpawnTntSpell '" + internalName + "' has an invalid spell defined!");
 			spellToCast = null;
 		}
+		spellToCastName = null;
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			List<Block> blocks = getLastTwoTargetedBlocks(caster, power, args);
-			if (blocks.size() == 2 && !blocks.get(0).getType().isSolid() && blocks.get(0).getType().isSolid()) {
-				Location loc = blocks.get(0).getLocation().add(0.5, 0.5, 0.5);
-				loc.setDirection(caster.getLocation().getDirection());
-			}
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		List<Block> blocks = getLastTwoTargetedBlocks(data);
+		if (blocks.size() != 2) return noTarget(data);
+
+		Block prev = blocks.get(0), last = blocks.get(1);
+		if (!last.isSolid()) return noTarget(data);
+
+		Location location = prev.getLocation().add(0.5, 0, 0.5);
+		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
+
+		SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, location);
+		if (!targetEvent.callEvent()) return noTarget(data);
+
+		return castAtLocation(targetEvent.getSpellData());
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		spawnTnt(caster, target.clone().add(0.5, 0.5, 0.5), power, args);
-		return true;
-	}
+	public CastResult castAtLocation(SpellData data) {
+		Location loc = data.location();
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		spawnTnt(caster, target.clone().add(0.5, 0.5, 0.5), power, null);
-		return true;
-	}
+		TNTPrimed tnt = loc.getWorld().spawn(loc, TNTPrimed.class, t -> {
+			if (cancelGravity.get(data)) t.setGravity(false);
+			t.setFuseTicks(fuse.get(data));
 
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		spawnTnt(null, target.clone().add(0.5, 0.5, 0.5), power, args);
-		return true;
-	}
+			float velocity = this.velocity.get(data);
+			float upVelocity = this.upVelocity.get(data);
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		spawnTnt(null, target.clone().add(0.5, 0.5, 0.5), power, null);
-		return true;
-	}
-
-	private void spawnTnt(LivingEntity caster, Location loc, float power, String[] args) {
-		TNTPrimed tnt = loc.getWorld().spawn(loc, TNTPrimed.class);
-		if (cancelGravity) tnt.setGravity(false);
-
-		SpellData data = new SpellData(caster, power, args);
+			if (velocity > 0) t.setVelocity(loc.getDirection().setY(0).normalize().multiply(velocity).setY(upVelocity));
+			else if (upVelocity > 0) t.setVelocity(new Vector(0, upVelocity, 0));
+		});
 
 		playSpellEffects(EffectPosition.PROJECTILE, tnt, data);
-		if (caster != null) playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster.getLocation(), tnt.getLocation(), caster, tnt, data);
+		if (data.hasCaster())
+			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, data.caster().getLocation(), tnt.getLocation(), data.caster(), tnt, data);
 
-		tnt.setFuseTicks(fuse.get(caster, null, power, args));
+		tnts.put(tnt.getEntityId(), new TNTData(data.noLocation(), cancelExplosion.get(data), preventBlockDamage.get(data)));
+		playSpellEffects(data);
 
-		float velocity = this.velocity.get(caster, null, power, args);
-		float upVelocity = this.upVelocity.get(caster, null, power, args);
-
-		if (velocity > 0) tnt.setVelocity(loc.getDirection().normalize().setY(0).multiply(velocity).setY(upVelocity));
-		else if (upVelocity > 0) tnt.setVelocity(new Vector(0, upVelocity, 0));
-
-		tnts.put(tnt.getEntityId(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@EventHandler
 	public void onEntityExplode(EntityExplodeEvent event) {
-		SpellData data = tnts.remove(event.getEntity().getEntityId());
+		Entity tnt = event.getEntity();
+
+		TNTData data = tnts.remove(tnt.getEntityId());
 		if (data == null) return;
 
-		if (cancelExplosion) {
+		if (data.cancelExplosion) {
 			event.setCancelled(true);
-			event.getEntity().remove();
+			tnt.remove();
 		}
 
-		if (preventBlockDamage) {
+		if (data.preventBlockDamage) {
 			event.blockList().clear();
 			event.setYield(0F);
 		}
 
-		for (Block b : event.blockList()) playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, b.getLocation(), data);
+		for (Block b : event.blockList()) {
+			Location location = b.getLocation();
+			SpellData subData = data.spellData.location(location);
+			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, location, subData);
+		}
+		if (spellToCast == null || data.spellData.hasCaster() && !data.spellData.caster().isValid()) return;
 
-		if (spellToCast == null) return;
+		spellToCast.subcast(data.spellData.location(tnt.getLocation()));
+	}
 
-		LivingEntity caster = data.caster();
-		if (caster == null || !caster.isValid()) return;
-
-		spellToCast.subcast(caster, event.getEntity().getLocation(), data.power(), data.args());
+	private record TNTData(SpellData spellData, boolean cancelExplosion, boolean preventBlockDamage) {
 	}
 
 }

@@ -18,10 +18,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.BlockUtils;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
 
 import io.papermc.paper.event.entity.EntityMoveEvent;
 
@@ -36,11 +34,11 @@ public class LilywalkSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
+	public boolean castBuff(SpellData data) {
 		Lilies lilies = new Lilies();
-		lilies.move(entity.getLocation().getBlock());
+		lilies.move(data.target().getLocation().getBlock());
 
-		entities.put(entity.getUniqueId(), lilies);
+		entities.put(data.target().getUniqueId(), lilies);
 		return true;
 	}
 

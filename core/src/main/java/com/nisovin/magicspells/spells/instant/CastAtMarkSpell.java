@@ -1,11 +1,12 @@
 package com.nisovin.magicspells.spells.instant;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 
@@ -62,17 +63,17 @@ public class CastAtMarkSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (!initialized) return PostCastAction.HANDLE_NORMALLY;
-		if (state == SpellCastState.NORMAL) {
-			Location effectiveMark = markSpell.getEffectiveMark(caster);
-			if (effectiveMark == null) {
-				sendMessage(caster, strNoMark);
-				return PostCastAction.HANDLE_NORMALLY;
-			}
-			spellToCast.subcast(caster, effectiveMark, power, args);
+	public CastResult cast(SpellData data) {
+		if (!initialized) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		Location effectiveMark = markSpell.getEffectiveMark(data.caster());
+		if (effectiveMark == null) {
+			sendMessage(strNoMark, data.caster(), data.args());
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		spellToCast.cast(data.location(effectiveMark));
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public String getStrNoMark() {

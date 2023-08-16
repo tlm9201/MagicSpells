@@ -1,13 +1,7 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
-
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
@@ -17,10 +11,8 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -33,23 +25,24 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 	private static final String METADATA_KEY = "MagicSpellsSource";
 
-	private ConfigData<Integer> fire;
-	private ConfigData<Integer> arrows;
-	private ConfigData<Integer> removeDelay;
-	private ConfigData<Integer> shootInterval;
-	private ConfigData<Integer> knockbackStrength;
+	private final ConfigData<Integer> fire;
+	private final ConfigData<Integer> arrows;
+	private final ConfigData<Integer> removeDelay;
+	private final ConfigData<Integer> shootInterval;
+	private final ConfigData<Integer> knockbackStrength;
 
-	private ConfigData<Float> speed;
-	private ConfigData<Float> spread;
+	private final ConfigData<Float> speed;
+	private final ConfigData<Float> spread;
 
-	private ConfigData<Double> damage;
-	private ConfigData<Double> yOffset;
+	private final ConfigData<Double> damage;
+	private final ConfigData<Double> yOffset;
 
-	private boolean gravity;
-	private boolean critical;
-	private boolean noTarget;
-	private boolean powerAffectsSpeed;
-	private boolean powerAffectsArrowCount;
+	private final ConfigData<Boolean> gravity;
+	private final ConfigData<Boolean> critical;
+	private final ConfigData<Boolean> noTarget;
+	private final ConfigData<Boolean> powerAffectsSpeed;
+	private final ConfigData<Boolean> powerAffectsArrowCount;
+	private final ConfigData<Boolean> resolveOptionsPerArrow;
 
 	public VolleySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -66,131 +59,42 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 		damage = getConfigDataDouble("damage", 4);
 		yOffset = getConfigDataDouble("y-offset", 3);
 
-		gravity = getConfigBoolean("gravity", true);
-		critical = getConfigBoolean("critical", false);
-		noTarget = getConfigBoolean("no-target", false);
-		powerAffectsSpeed = getConfigBoolean("power-affects-speed", false);
-		powerAffectsArrowCount = getConfigBoolean("power-affects-arrow-count", true);
+		gravity = getConfigDataBoolean("gravity", true);
+		critical = getConfigDataBoolean("critical", false);
+		noTarget = getConfigDataBoolean("no-target", false);
+		powerAffectsSpeed = getConfigDataBoolean("power-affects-speed", false);
+		powerAffectsArrowCount = getConfigDataBoolean("power-affects-arrow-count", true);
+		resolveOptionsPerArrow = getConfigDataBoolean("resolve-options-per-arrow", false);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			if (noTarget) {
-				volley(caster, null, caster.getLocation(), null, power, args);
-				return PostCastAction.HANDLE_NORMALLY;
-			}
-
-			Block target;
-			try {
-				target = getTargetedBlock(caster, power, args);
-			} catch (IllegalStateException e) {
-				target = null;
-			}
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster, args);
-			volley(caster, null, caster.getLocation(), target.getLocation(), power, args);
+	public CastResult cast(SpellData data) {
+		if (noTarget.get(data)) {
+			new ArrowShooter(data.caster().getLocation(), null, data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		TargetInfo<Location> info = getTargetedBlockLocation(data, false);
+		data = info.spellData();
+
+		new ArrowShooter(data.caster().getLocation(), info.target(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (noTarget) return false;
-		volley(caster, null, caster.getLocation(), target, power, args);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		if (!data.hasCaster() || noTarget.get(data)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		new ArrowShooter(data.caster().getLocation(), data.location(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		if (noTarget.get(data)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (noTarget || !validTargetList.canTarget(caster, target)) return false;
-		volley(caster, target, from, target.getLocation(), power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(caster, from, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		if (noTarget || !validTargetList.canTarget(target)) return false;
-		volley(null, target, from, target.getLocation(), power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(from, target, power, null);
-	}
-
-	private void volley(LivingEntity caster, LivingEntity target, Location from, Location targetLoc, float power, String[] args) {
-		Location spawn = from.clone().add(0, yOffset.get(caster, target, power, args), 0);
-		Vector v;
-
-		if (noTarget || targetLoc == null) v = from.getDirection();
-		else v = targetLoc.toVector().subtract(spawn.toVector()).normalize();
-
-		SpellData data = new SpellData(caster, target, power, args);
-		int shootInterval = this.shootInterval.get(caster, target, power, args);
-		if (shootInterval <= 0) {
-			List<Arrow> arrowList = new ArrayList<>();
-
-
-			int arrows = this.arrows.get(caster, target, power, args);
-			int removeDelay = this.removeDelay.get(caster, target, power, args);
-			int castingArrows = powerAffectsArrowCount ? Math.round(arrows * power) : arrows;
-			for (int i = 0; i < castingArrows; i++) {
-				float speed = this.speed.get(caster, target, power, args) / 10f;
-				if (powerAffectsSpeed) speed *= power;
-
-				float spread = this.spread.get(caster, target, power, args) / 10f;
-
-				Arrow arrow = from.getWorld().spawnArrow(spawn, v, speed, spread);
-				arrow.setKnockbackStrength(knockbackStrength.get(caster, target, power, args));
-				arrow.setCritical(critical);
-				arrow.setGravity(gravity);
-
-				double damage = this.damage.get(caster, target, power, args);
-				arrow.setDamage(damage);
-				arrow.setMetadata(METADATA_KEY, new FixedMetadataValue(MagicSpells.plugin, new VolleyData("VolleySpell" + internalName, damage)));
-
-				int fire = this.fire.get(caster, target, power, args);
-				if (fire > 0) arrow.setFireTicks(fire);
-
-				if (caster != null) arrow.setShooter(caster);
-
-				if (removeDelay > 0) arrowList.add(arrow);
-
-				playSpellEffects(EffectPosition.PROJECTILE, arrow, data);
-				playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, spawn, arrow.getLocation(), caster, arrow, data);
-			}
-
-			if (removeDelay > 0) {
-				MagicSpells.scheduleDelayedTask(() -> {
-					for (Arrow a : arrowList) a.remove();
-					arrowList.clear();
-				}, removeDelay);
-			}
-		} else new ArrowShooter(caster, target, spawn, v, power, args);
-
-		if (caster != null) {
-			if (targetLoc != null) playSpellEffects(caster, targetLoc, data);
-			else playSpellEffects(EffectPosition.CASTER, caster, data);
-		} else {
-			playSpellEffects(EffectPosition.CASTER, from, data);
-			if (targetLoc != null) playSpellEffects(EffectPosition.TARGET, targetLoc, data);
-		}
+		new ArrowShooter(data.location(), data.target().getLocation(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@EventHandler
@@ -219,89 +123,101 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 	private class ArrowShooter implements Runnable {
 
-		private final Map<Integer, Arrow> arrowMap;
-
-		private final LivingEntity caster;
-		private final LivingEntity target;
 		private final SpellData data;
-		private final Location spawn;
-		private final String[] args;
-		private final float power;
-		private final Vector dir;
+
+		private final Location from;
+		private final Location target;
+
+		private final int arrows;
 		private final int taskId;
+		private final boolean resolveOptionsPerArrow;
 
-		private final int castingArrows;
-		private final int removeDelay;
+		private boolean gravity;
+		private boolean critical;
 
+		private int fire;
 		private int count;
+		private int removeDelay;
+		private int knockbackStrength;
 
-		private ArrowShooter(LivingEntity caster, LivingEntity target, Location spawn, Vector dir, float power, String[] args) {
-			this.caster = caster;
+		private float speed;
+		private float spread;
+
+		private double damage;
+
+		private Vector dir;
+		private Location spawn;
+
+		public ArrowShooter(Location from, Location target, SpellData data) {
+			this.data = data;
+			this.from = from;
 			this.target = target;
-			this.spawn = spawn;
-			this.power = power;
-			this.args = args;
-			this.dir = dir;
 
-			data = new SpellData(caster, target, power, args);
+			if (target == null) dir = from.getDirection();
 
-			removeDelay = VolleySpell.this.removeDelay.get(caster, target, power, args);
+			resolveOptionsPerArrow = VolleySpell.this.resolveOptionsPerArrow.get(data);
 
-			int arrows = VolleySpell.this.arrows.get(caster, target, power, args);
-			if (powerAffectsArrowCount) arrows = Math.round(arrows * power);
-			castingArrows = arrows;
+			int arrows = VolleySpell.this.arrows.get(data);
+			if (powerAffectsArrowCount.get(data)) arrows = Math.round(arrows * data.power());
+			this.arrows = arrows;
 
-			this.count = 0;
+			if (!resolveOptionsPerArrow) resolveOptions();
 
-			if (removeDelay > 0) this.arrowMap = new HashMap<>();
-			else arrowMap = null;
+			int shootInterval = VolleySpell.this.shootInterval.get(data);
+			if (shootInterval <= 0) {
+				for (int i = 0; i < arrows; i++) run();
+				taskId = -1;
+			} else taskId = MagicSpells.scheduleRepeatingTask(this, 0, shootInterval);
+		}
 
-			this.taskId = MagicSpells.scheduleRepeatingTask(this, 0, shootInterval.get(caster, target, power, args));
+		public void resolveOptions() {
+			spawn = from.clone().add(0, yOffset.get(data), 0);
+			if (target != null) dir = target.toVector().subtract(spawn.toVector());
+
+			SpellData subData = data.location(spawn);
+
+			gravity = VolleySpell.this.gravity.get(subData);
+			critical = VolleySpell.this.critical.get(subData);
+
+			fire = VolleySpell.this.fire.get(subData);
+			removeDelay = VolleySpell.this.removeDelay.get(subData);
+			knockbackStrength = VolleySpell.this.knockbackStrength.get(subData);
+
+			speed = VolleySpell.this.speed.get(subData);
+			if (powerAffectsSpeed.get(subData)) speed *= subData.power();
+			spread = VolleySpell.this.spread.get(subData);
+
+			damage = VolleySpell.this.damage.get(subData);
 		}
 
 		@Override
 		public void run() {
-			if (count < castingArrows) {
-				float speed = VolleySpell.this.speed.get(caster, target, power, args) / 10f;
-				if (powerAffectsSpeed) speed *= power;
+			if (resolveOptionsPerArrow) resolveOptions();
 
-				float spread = VolleySpell.this.spread.get(caster, target, power, args) / 10f;
+			Arrow arrow = spawn.getWorld().spawnArrow(spawn, dir, speed, spread);
+			arrow.setKnockbackStrength(knockbackStrength);
+			arrow.setCritical(critical);
+			arrow.setGravity(gravity);
 
-				Arrow arrow = spawn.getWorld().spawnArrow(spawn, dir, speed, spread);
-				arrow.setKnockbackStrength(knockbackStrength.get(caster, target, power, args));
-				arrow.setCritical(critical);
-				arrow.setGravity(gravity);
+			arrow.setDamage(damage);
+			arrow.setMetadata(METADATA_KEY, new FixedMetadataValue(MagicSpells.plugin, new VolleyData("VolleySpell" + internalName, damage)));
 
-				double damage = VolleySpell.this.damage.get(caster, target, power, args);
-				arrow.setDamage(damage);
-				arrow.setMetadata(METADATA_KEY, new FixedMetadataValue(MagicSpells.plugin, new VolleyData("VolleySpell" + internalName, damage)));
+			if (fire > 0) arrow.setFireTicks(fire);
+			if (data.hasCaster()) arrow.setShooter(data.caster());
+			if (removeDelay > 0) MagicSpells.scheduleDelayedTask(arrow::remove, removeDelay);
 
-				int fire = VolleySpell.this.fire.get(caster, target, power, args);
-				if (fire > 0) arrow.setFireTicks(fire);
+			playSpellEffects(EffectPosition.PROJECTILE, arrow, data);
+			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, from, arrow.getLocation(), data.caster(), arrow, data);
 
-				if (caster != null) arrow.setShooter(caster);
-
-				if (removeDelay > 0) arrowMap.put(count, arrow);
-
-				playSpellEffects(EffectPosition.PROJECTILE, arrow, data);
-				playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster == null ? spawn : caster.getLocation(), arrow.getLocation(), caster, arrow, data);
+			if (taskId != -1) {
+				count++;
+				if (count >= arrows) MagicSpells.cancelTask(taskId);
 			}
-
-			if (removeDelay > 0) {
-				int old = count - removeDelay;
-				if (old >= 0) {
-					Arrow a = arrowMap.remove(old);
-					if (a != null) a.remove();
-				}
-			}
-
-			if (count >= castingArrows + removeDelay) MagicSpells.cancelTask(taskId);
-
-			count++;
 		}
 
 	}
 
-	private record VolleyData(String identifier, double damage) {}
+	private record VolleyData(String identifier, double damage) {
+	}
 
 }

@@ -18,11 +18,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
@@ -34,7 +32,7 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 	private boolean permanentMarks;
 	private boolean enableDefaultMarks;
 	private boolean useAsRespawnLocation;
-	
+
 	public MarkSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
@@ -62,42 +60,35 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 				MagicSpells.error("Invalid default mark on MarkSpell '" + spellName + '\'');
 			}
 		}
-		
+
 		if (permanentMarks) loadMarks();
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			marks.put(getKey(caster), new MagicLocation(caster.getLocation()));
-			if (permanentMarks) saveMarks();
-			playSpellEffects(EffectPosition.CASTER, caster, power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		marks.put(getKey(data.caster()), new MagicLocation(data.caster().getLocation()));
+		if (permanentMarks) saveMarks();
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		marks.put(getKey(caster), new MagicLocation(target));
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		marks.put(getKey(data.caster()), new MagicLocation(data.location()));
+		if (permanentMarks) saveMarks();
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
-	}
-	
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		if (!permanentMarks) marks.remove(getKey(event.getPlayer()));
 	}
-	
+
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		if (!useAsRespawnLocation) return;
@@ -137,16 +128,16 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 	public void setUseAsRespawnLocation(boolean useAsRespawnLocation) {
 		this.useAsRespawnLocation = useAsRespawnLocation;
 	}
-	
+
 	public Map<UUID, MagicLocation> getMarks() {
 		return marks;
 	}
-	
+
 	public void setMarks(Map<UUID, MagicLocation> newMarks) {
 		marks = newMarks;
 		if (permanentMarks) saveMarks();
 	}
-	
+
 	private void loadMarks() {
 		try {
 			Scanner scanner = new Scanner(new File(MagicSpells.plugin.getDataFolder(), "marks-" + internalName + ".txt"));
@@ -167,7 +158,7 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 			MagicSpells.debug("Failed to load marks file (does it exist?) " + e.getCause() + " " + e.getMessage());
 		}
 	}
-	
+
 	private void saveMarks() {
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(MagicSpells.plugin.getDataFolder(), "marks-" + internalName + ".txt"), false));
@@ -193,18 +184,18 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 			writer.close();
 		} catch (Exception e) {
 			MagicSpells.plugin.getServer().getLogger().severe("MagicSpells: Error saving marks");
-		}		
+		}
 	}
-	
+
 	public UUID getKey(LivingEntity livingEntity) {
 		if (livingEntity == null) return null;
 		return livingEntity.getUniqueId();
 	}
-	
+
 	public boolean usesDefaultMark() {
 		return enableDefaultMarks;
 	}
-	
+
 	public Location getEffectiveMark(LivingEntity livingEntity) {
 		MagicLocation m = marks.get(getKey(livingEntity));
 		if (m == null) {
@@ -213,7 +204,7 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 		}
 		return m.getLocation();
 	}
-	
+
 	public Location getEffectiveMark(String player) {
 		Player pl = Bukkit.getPlayer(player);
 		if (pl == null) return null;
@@ -225,5 +216,5 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 		}
 		return m.getLocation();
 	}
-	
+
 }

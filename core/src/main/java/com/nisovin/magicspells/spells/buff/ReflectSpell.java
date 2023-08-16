@@ -10,10 +10,9 @@ import java.util.ArrayList;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.CastData;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -22,14 +21,15 @@ import com.nisovin.magicspells.events.SpellPreImpactEvent;
 // NO API CHANGES - NEEDS TOTAL REWORK
 public class ReflectSpell extends BuffSpell {
 
-	private Map<UUID, CastData> reflectors;
-	private Set<String> shieldBreakerNames;
-	private Set<String> delayedReflectionSpells;
+	private final Map<UUID, ReflectData> reflectors;
+	private final Set<String> shieldBreakerNames;
+	private final Set<String> delayedReflectionSpells;
 
-	private ConfigData<Float> reflectedSpellPowerMultiplier;
+	private final ConfigData<Float> reflectedSpellPowerMultiplier;
 
-	private boolean spellPowerAffectsReflectedPower;
-	private boolean delayedReflectionSpellsUsePayloadShieldBreaker;
+	private final ConfigData<Boolean> spellPowerAffectsReflectedPower;
+	private final ConfigData<Boolean> constantReflectedSpellPowerMultiplier;
+	private final ConfigData<Boolean> delayedReflectionSpellsUsePayloadShieldBreaker;
 
 	public ReflectSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -43,13 +43,28 @@ public class ReflectSpell extends BuffSpell {
 
 		reflectedSpellPowerMultiplier = getConfigDataFloat("reflected-spell-power-multiplier", 1F);
 
-		spellPowerAffectsReflectedPower = getConfigBoolean("spell-power-affects-reflected-power", false);
-		delayedReflectionSpellsUsePayloadShieldBreaker = getConfigBoolean("delayed-reflection-spells-use-payload-shield-breaker", true);
+		spellPowerAffectsReflectedPower = getConfigDataBoolean("spell-power-affects-reflected-power", false);
+		constantReflectedSpellPowerMultiplier = getConfigDataBoolean("constant-reflected-spell-power-multiplier", true);
+		delayedReflectionSpellsUsePayloadShieldBreaker = getConfigDataBoolean("delayed-reflection-spells-use-payload-shield-breaker", true);
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		reflectors.put(entity.getUniqueId(), new CastData(power, args));
+	public boolean castBuff(SpellData data) {
+		boolean constantReflectedSpellPowerMultiplier = this.constantReflectedSpellPowerMultiplier.get(data);
+
+		float reflectedSpellPowerMultiplier = 0;
+		if (constantReflectedSpellPowerMultiplier) {
+			reflectedSpellPowerMultiplier = this.reflectedSpellPowerMultiplier.get(data);
+			if (spellPowerAffectsReflectedPower.get(data)) reflectedSpellPowerMultiplier *= data.power();
+		}
+
+		reflectors.put(data.target().getUniqueId(), new ReflectData(
+			data.builder().caster(data.target()).target(null).build(),
+			reflectedSpellPowerMultiplier,
+			constantReflectedSpellPowerMultiplier,
+			delayedReflectionSpellsUsePayloadShieldBreaker.get(data)
+		));
+
 		return true;
 	}
 
@@ -88,8 +103,17 @@ public class ReflectSpell extends BuffSpell {
 		addUseAndChargeCost(target);
 		event.setTarget(event.getCaster());
 
-		CastData data = reflectors.get(target.getUniqueId());
-		event.setPower(event.getPower() * reflectedSpellPowerMultiplier.get(target, event.getCaster(), data.power(), data.args()) * (spellPowerAffectsReflectedPower ? data.power() : 1));
+		ReflectData data = reflectors.get(target.getUniqueId());
+
+		float reflectPower = data.reflectPower;
+		if (!data.constantReflectPower) {
+			SpellData subData = data.spellData.target(event.getCaster());
+
+			reflectPower = reflectedSpellPowerMultiplier.get(subData);
+			if (spellPowerAffectsReflectedPower.get(data.spellData)) reflectPower *= data.spellData.power();
+		}
+
+		event.setPower(event.getPower() * reflectPower);
 	}
 
 	@EventHandler
@@ -115,17 +139,29 @@ public class ReflectSpell extends BuffSpell {
 			return;
 		}
 
-		if (!isActive(target)) return;
-		if (delayedReflectionSpellsUsePayloadShieldBreaker && (event.getSpell() != null && shieldBreakerNames.contains(event.getSpell().getInternalName()))) {
+		ReflectData data = reflectors.get(target.getUniqueId());
+		if (data == null) return;
+
+		if (data.delayedShieldBreaker && (event.getSpell() != null && shieldBreakerNames.contains(event.getSpell().getInternalName()))) {
 			turnOff(target);
 			return;
+		}
+
+		float reflectPower = data.reflectPower;
+		if (!data.constantReflectPower) {
+			SpellData subData = data.spellData.target(event.getCaster());
+
+			reflectPower = reflectedSpellPowerMultiplier.get(subData);
+			if (spellPowerAffectsReflectedPower.get(data.spellData)) reflectPower *= data.spellData.power();
 		}
 
 		addUseAndChargeCost(target);
 		event.setRedirected(true);
 
-		CastData data = reflectors.get(target.getUniqueId());
-		event.setPower(event.getPower() * reflectedSpellPowerMultiplier.get(target, event.getCaster(), data.power(), data.args()) * (spellPowerAffectsReflectedPower ? data.power() : 1));
+		event.setPower(event.getPower() * reflectPower);
+	}
+
+	private record ReflectData(SpellData spellData, float reflectPower, boolean constantReflectPower, boolean delayedShieldBreaker) {
 	}
 
 }

@@ -7,72 +7,43 @@ import java.util.HashSet;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.TargetBooleanState;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class FlySpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final Set<UUID> wasAllowedFlight;
 
-	private final boolean setFlying;
-	private final TargetBooleanState targetBooleanState;
+	private final ConfigData<Boolean> setFlying;
+	private final ConfigData<TargetBooleanState> targetBooleanState;
 
 	public FlySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		wasAllowedFlight = new HashSet<>();
 
-		setFlying = getConfigBoolean("set-flying", true);
-		targetBooleanState = TargetBooleanState.getFromName(getConfigString("target-state", "toggle"));
+		setFlying = getConfigDataBoolean("set-flying", true);
+		targetBooleanState = getConfigDataTargetBooleanState("target-state", TargetBooleanState.TOGGLE);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
-			Player target = targetInfo.target();
+	public CastResult cast(SpellData data) {
+		TargetInfo<Player> info = getTargetedPlayer(data);
+		if (info.noTarget()) return noTarget(info);
+		data = info.spellData();
 
-			setFlyingState(target);
-			playSpellEffects(caster, target, targetInfo.power(), args);
-			sendMessages(caster, target, args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		setFlyingState(info.target(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
-		setFlyingState(player);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
-		setFlyingState(player);
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
+	public CastResult castAtEntity(SpellData data) {
+		if (!(data.target() instanceof Player player)) return noTarget(data);
+		setFlyingState(player, data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
@@ -88,21 +59,25 @@ public class FlySpell extends TargetedSpell implements TargetedEntitySpell {
 		wasAllowedFlight.clear();
 	}
 
-	private void setFlyingState(Player player) {
-		boolean newState = targetBooleanState.getBooleanState(player.isFlying() || player.getAllowFlight());
-		UUID uuid = player.getUniqueId();
+	private void setFlyingState(Player target, SpellData data) {
+		boolean newState = targetBooleanState.get(data).getBooleanState(target.isFlying() || target.getAllowFlight());
+		boolean setFlying = this.setFlying.get(data);
+
+		UUID uuid = target.getUniqueId();
 		if (newState) {
-			if (!player.getAllowFlight()) {
-				player.setAllowFlight(true);
+			if (!target.getAllowFlight()) {
+				target.setAllowFlight(true);
 				wasAllowedFlight.add(uuid);
 			}
-			if (setFlying) player.teleportAsync(player.getLocation().add(0, 0.25, 0));
+			if (setFlying) target.teleportAsync(target.getLocation().add(0, 0.25, 0));
 		}
 		else {
 			boolean wasAllowed = wasAllowedFlight.remove(uuid);
-			if (wasAllowed) player.setAllowFlight(false);
+			if (wasAllowed) target.setAllowFlight(false);
 		}
-		if (setFlying) player.setFlying(newState);
+		if (setFlying) target.setFlying(newState);
+
+		playSpellEffects(data);
 	}
 
 }

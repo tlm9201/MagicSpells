@@ -27,7 +27,7 @@ public class ItemSprayEffect extends SpellEffect {
 	private ConfigData<Integer> amount;
 	private ConfigData<Integer> duration;
 
-	private boolean resolveForcePerItem;
+	private ConfigData<Boolean> resolveForcePerItem;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -38,7 +38,7 @@ public class ItemSprayEffect extends SpellEffect {
 		amount = ConfigDataUtil.getInteger(config, "amount", 15);
 		duration = ConfigDataUtil.getInteger(config, "duration", 10);
 
-		resolveForcePerItem = config.getBoolean("resolve-force-per-item", false);
+		resolveForcePerItem = ConfigDataUtil.getBoolean(config, "resolve-force-per-item", false);
 	}
 
 	@Override
@@ -51,6 +51,7 @@ public class ItemSprayEffect extends SpellEffect {
 		Random rand = ThreadLocalRandom.current();
 		Location loc = location.clone().add(0, 1, 0);
 
+		boolean resolveForcePerItem = this.resolveForcePerItem.get(data);
 		double force = resolveForcePerItem ? 0 : this.force.get(data);
 		int duration = this.duration.get(data);
 

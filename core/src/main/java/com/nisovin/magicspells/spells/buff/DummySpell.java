@@ -6,8 +6,9 @@ import java.util.HashSet;
 
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.spells.BuffSpell;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class DummySpell extends BuffSpell {
@@ -21,8 +22,8 @@ public class DummySpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.add(entity.getUniqueId());
+	public boolean castBuff(SpellData data) {
+		entities.add(data.target().getUniqueId());
 		return true;
 	}
 

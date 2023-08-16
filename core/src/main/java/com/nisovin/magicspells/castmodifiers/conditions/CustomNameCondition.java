@@ -5,6 +5,7 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class CustomNameCondition extends Condition {
@@ -38,7 +39,7 @@ public class CustomNameCondition extends Condition {
 	}
 
 	private boolean checkName(LivingEntity caster, LivingEntity target) {
-		String checkedName = requireReplacement ? MagicSpells.doReplacements(name, caster, target) : name;
+		String checkedName = requireReplacement ? MagicSpells.doReplacements(name, new SpellData(caster, target, 1f, null)) : name;
 		return target.customName() != null && Util.getMiniMessage(checkedName).equals(target.customName());
 	}
 

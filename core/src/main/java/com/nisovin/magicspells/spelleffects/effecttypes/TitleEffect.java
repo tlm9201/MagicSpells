@@ -12,14 +12,16 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class TitleEffect extends SpellEffect {
 
 	private String title;
 	private String subtitle;
 	private Title.Times times;
-	private boolean broadcast;
+	private ConfigData<Boolean> broadcast;
 
 	private static Duration milisOfTicks(int ticks) {
 		return Duration.ofMillis(TimeUtil.MILLISECONDS_PER_SECOND * (ticks / TimeUtil.TICKS_PER_SECOND));
@@ -35,14 +37,13 @@ public class TitleEffect extends SpellEffect {
 		int fadeOut = config.getInt("fade-out", 10);
 		times = Title.Times.times(milisOfTicks(fadeIn), milisOfTicks(stay), milisOfTicks(fadeOut));
 
-		broadcast = config.getBoolean("broadcast", false);
+		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
 	}
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
-		String[] args = data == null ? null : data.args();
-		if (broadcast) Util.forEachPlayerOnline(p -> send(p, args));
-		else if (entity instanceof Player player) send(player, args);
+		if (broadcast.get(data)) Util.forEachPlayerOnline(p -> send(p, data.args()));
+		else if (entity instanceof Player player) send(player, data.args());
 		return null;
 	}
 	

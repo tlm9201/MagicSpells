@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerAnimationEvent;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BowSpell;
 import com.nisovin.magicspells.util.BlockUtils;
 
@@ -201,7 +202,7 @@ public class CastListener implements Listener {
 		if (!checkGlobalCooldown(player, spell)) return;
 
 		// Cast spell
-		spell.cast(player);
+		spell.hardCast(new SpellData(player));
 	}
 
 	private boolean checkGlobalCooldown(Player player, Spell spell) {

@@ -10,17 +10,16 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
-import com.nisovin.magicspells.util.*;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import net.kyori.adventure.text.Component;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
@@ -33,38 +32,36 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class HomingProjectileSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
-	private HomingProjectileSpell thisSpell;
-
 	private NoMagicZoneManager zoneManager;
 
-	private List<HomingProjectileMonitor> monitors;
+	private final List<HomingProjectileMonitor> monitors;
 
-	private ProjectileManager projectileManager;
+	private final ConfigData<String> projectileType;
 
-	private Vector relativeOffset;
-	private Vector targetRelativeOffset;
+	private final ConfigData<Vector> relativeOffset;
+	private final ConfigData<Vector> targetRelativeOffset;
 
-	private ConfigData<Integer> tickInterval;
-	private ConfigData<Integer> airSpellInterval;
-	private ConfigData<Integer> specialEffectInterval;
-	private ConfigData<Integer> intermediateSpecialEffects;
+	private final ConfigData<Integer> tickInterval;
+	private final ConfigData<Integer> airSpellInterval;
+	private final ConfigData<Integer> specialEffectInterval;
+	private final ConfigData<Integer> intermediateSpecialEffects;
 
-	private ConfigData<Float> velocity;
-	private ConfigData<Float> hitRadius;
-	private ConfigData<Float> verticalHitRadius;
+	private final ConfigData<Float> velocity;
+	private final ConfigData<Float> hitRadius;
+	private final ConfigData<Float> verticalHitRadius;
 
-	private boolean stopOnModifierFail;
-	private boolean powerAffectsVelocity;
+	private final ConfigData<Boolean> stopOnModifierFail;
+	private final ConfigData<Boolean> powerAffectsVelocity;
 
-	private ConfigData<Double> maxDuration;
+	private final ConfigData<Double> maxDuration;
+
+	private final ConfigData<Component> projectileName;
 
 	private String hitSpellName;
 	private String airSpellName;
 	private String groundSpellName;
 	private String modifierSpellName;
 	private String durationSpellName;
-
-	private Component projectileName;
 
 	private Subspell hitSpell;
 	private Subspell airSpell;
@@ -78,14 +75,12 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	public HomingProjectileSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		thisSpell = this;
-
 		monitors = new ArrayList<>();
 
-		projectileManager = ProjectileManagers.getManager(getConfigString("projectile-type",  "arrow"));
+		projectileType = getConfigDataString("projectile-type", "arrow");
 
-		relativeOffset = getConfigVector("relative-offset", "0.5,0.5,0");
-		targetRelativeOffset = getConfigVector("target-relative-offset", "0,0.5,0");
+		relativeOffset = getConfigDataVector("relative-offset", new Vector(0.5, 0.5, 0));
+		targetRelativeOffset = getConfigDataVector("target-relative-offset", new Vector(0, 0.5, 0));
 
 		tickInterval = getConfigDataInt("tick-interval", 1);
 		airSpellInterval = getConfigDataInt("spell-interval", 20);
@@ -96,14 +91,14 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		hitRadius = getConfigDataFloat("hit-radius", 2F);
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", 2F);
 
-		stopOnModifierFail = getConfigBoolean("stop-on-modifier-fail", true);
-		powerAffectsVelocity = getConfigBoolean("power-affects-velocity", true);
+		stopOnModifierFail = getConfigDataBoolean("stop-on-modifier-fail", true);
+		powerAffectsVelocity = getConfigDataBoolean("power-affects-velocity", true);
 
 		maxDuration = getConfigDataDouble("max-duration", 10);
 
 		hitSpellName = getConfigString("spell", "");
 		airSpellName = getConfigString("spell-on-hit-air", "");
-		projectileName = Util.getMiniMessage(getConfigString("projectile-name", ""));
+		projectileName = getConfigDataComponent("projectile-name", Component.empty());
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		modifierSpellName = getConfigString("spell-on-modifier-fail", "");
 		durationSpellName = getConfigString("spell-after-duration", "");
@@ -128,91 +123,78 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		hitSpell = new Subspell(hitSpellName);
 		if (!hitSpell.process()) {
 			hitSpell = null;
-			if (!hitSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell defined!");
+			if (!hitSpellName.isEmpty())
+				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell defined!");
 		}
+		hitSpellName = null;
 
 		groundSpell = new Subspell(groundSpellName);
 		if (!groundSpell.process()) {
 			groundSpell = null;
-			if (!groundSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
+			if (!groundSpellName.isEmpty())
+				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
 		}
+		groundSpellName = null;
 
 		airSpell = new Subspell(airSpellName);
 		if (!airSpell.process()) {
 			airSpell = null;
-			if (!airSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-hit-air defined!");
+			if (!airSpellName.isEmpty())
+				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-hit-air defined!");
 		}
+		airSpellName = null;
 
 		durationSpell = new Subspell(durationSpellName);
 		if (!durationSpell.process()) {
 			durationSpell = null;
-			if (!durationSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-after-duration defined!");
+			if (!durationSpellName.isEmpty())
+				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-after-duration defined!");
 		}
+		durationSpellName = null;
 
 		modifierSpell = new Subspell(modifierSpellName);
 		if (!modifierSpell.process()) {
-			if (!modifierSpellName.isEmpty()) MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
+			if (!modifierSpellName.isEmpty())
+				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
 			modifierSpell = null;
 		}
+		modifierSpellName = null;
 
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 	}
 
 	@Override
 	public void turnOff() {
-		for (HomingProjectileMonitor monitor : monitors) {
-			monitor.stop();
-		}
-
+		for (HomingProjectileMonitor monitor : monitors) monitor.stop(false);
 		monitors.clear();
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
+		data = info.spellData().location(data.caster().getLocation());
 
-			new HomingProjectileMonitor(caster, targetInfo.target(), targetInfo.power(), args);
-			sendMessages(caster, targetInfo.target(), args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		new HomingProjectileMonitor(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		new HomingProjectileMonitor(caster, target, power, args);
-		return true;
+	public CastResult castAtEntity(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		data = data.location(data.caster().getLocation());
+		new HomingProjectileMonitor(data.location(data.caster().getLocation()));
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		new HomingProjectileMonitor(caster, from, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(caster, from, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		return false;
+		new HomingProjectileMonitor(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@EventHandler
@@ -223,16 +205,15 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		if (!(damagerEntity instanceof Projectile projectile)) return;
 
 		for (HomingProjectileMonitor monitor : monitors) {
-			if (monitor.projectile == null) continue;
 			if (!monitor.projectile.equals(projectile)) continue;
-			if (monitor.target == null) continue;
-			if (!monitor.target.equals(entity)) continue;
+			if (!entity.equals(monitor.data.target())) continue;
 
-			if (hitSpell != null) hitSpell.subcast(monitor.caster, entity, monitor.power, monitor.args);
+			if (hitSpell != null) hitSpell.subcast(monitor.data.noLocation());
 			playSpellEffects(EffectPosition.TARGET, entity, monitor.data);
-			event.setCancelled(true);
 
+			event.setCancelled(true);
 			monitor.stop();
+
 			break;
 		}
 	}
@@ -243,140 +224,129 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		Block block = e.getHitBlock();
 		if (block == null) return;
 		for (HomingProjectileMonitor monitor : monitors) {
-			if (monitor.projectile == null) continue;
-			if (!monitor.projectile.equals(projectile)) continue;
-			if (monitor.caster == null) continue;
-			if (groundSpell != null) groundSpell.subcast(monitor.caster, projectile.getLocation(), monitor.power, monitor.args);
+			if (!projectile.equals(monitor.projectile)) continue;
+
+			Location location = projectile.getLocation();
+			SpellData data = monitor.data.location(location);
+
+			if (groundSpell != null) groundSpell.subcast(data);
+			playSpellEffects(EffectPosition.TARGET, location, data);
+
 			monitor.stop();
+			break;
 		}
 
 	}
 
 	private class HomingProjectileMonitor implements Runnable {
 
-		private Projectile projectile;
-		private Location currentLocation;
-		private Location previousLocation;
-		private Location startLocation;
-		private LivingEntity caster;
-		private LivingEntity target;
-		private BoundingBox hitBox;
 		private Vector currentVelocity;
 		private SpellData data;
-		private String[] args;
-		private float power;
-		private long startTime;
 
-		private int airSpellInterval;
-		private int specialEffectInterval;
-		private int intermediateSpecialEffects;
+		private final Location currentLocation;
+		private final Projectile projectile;
+		private final BoundingBox hitBox;
+		private final long startTime;
+		private final int taskId;
 
-		private float velocity;
+		private final boolean stopOnModifierFail;
 
-		private double maxDuration;
+		private final int airSpellInterval;
+		private final int specialEffectInterval;
+		private final int intermediateSpecialEffects;
 
-		private int taskId;
+		private final float velocity;
+
+		private final double maxDuration;
+
+		private final Vector targetRelativeOffset;
+
 		private int counter = 0;
 
-		private HomingProjectileMonitor(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			this.caster = caster;
-			this.target = target;
-			this.power = power;
-			startLocation = caster.getLocation();
-
-			initialize(caster, target, power, args);
-		}
-
-		private HomingProjectileMonitor(LivingEntity caster, Location startLocation, LivingEntity target, float power, String[] args) {
-			this.caster = caster;
-			this.target = target;
-			this.power = power;
-			this.args = args;
-			this.startLocation = startLocation;
-
-			initialize(caster, target, power, args);
-		}
-
-		private void initialize(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		private HomingProjectileMonitor(SpellData data) {
 			startTime = System.currentTimeMillis();
 
-			data = new SpellData(caster, target, power, args);
+			currentLocation = data.location();
+			Vector relativeOffset = HomingProjectileSpell.this.relativeOffset.get(data);
 
-			Vector startDir = startLocation.clone().getDirection().normalize();
+			Vector startDir = currentLocation.getDirection();
 			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-			startLocation.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
-			startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
-			startLocation.setY(startLocation.getY() + relativeOffset.getY());
+			currentLocation.add(horizOffset.multiply(relativeOffset.getZ()));
+			currentLocation.add(startDir.multiply(relativeOffset.getX()));
+			currentLocation.setY(currentLocation.getY() + relativeOffset.getY());
+			data = data.location(currentLocation);
+			this.data = data;
 
-			airSpellInterval = HomingProjectileSpell.this.airSpellInterval.get(caster, target, power, args);
-			specialEffectInterval = HomingProjectileSpell.this.specialEffectInterval.get(caster, target, power, args);
-
-			intermediateSpecialEffects = HomingProjectileSpell.this.intermediateSpecialEffects.get(caster, target, power, args);
-			if (intermediateSpecialEffects < 0) intermediateSpecialEffects = 0;
-
-			velocity = HomingProjectileSpell.this.velocity.get(caster, target, power, args);
-			if (powerAffectsVelocity) velocity *= power;
-
-			maxDuration = HomingProjectileSpell.this.maxDuration.get(caster, target, power, args) * TimeUtil.MILLISECONDS_PER_SECOND;
-
-			float hitRadius = HomingProjectileSpell.this.hitRadius.get(caster, target, power, args);
-			float verticalHitRadius = HomingProjectileSpell.this.verticalHitRadius.get(caster, target, power, args);
-			hitBox = new BoundingBox(startLocation, hitRadius, verticalHitRadius);
-
-			playSpellEffects(EffectPosition.CASTER, startLocation, data);
-
-			projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass());
-
-			currentLocation = startLocation.clone();
+			ProjectileManager manager = ProjectileManagers.getManager(projectileType.get(data));
+			projectile = currentLocation.getWorld().spawn(currentLocation, manager.getProjectileClass());
 
 			if (projectileName != null) {
-				projectile.customName(projectileName);
+				projectile.customName(projectileName.get(data));
 				projectile.setCustomNameVisible(true);
 			}
 
-			currentVelocity = target.getLocation().add(0, 0.75, 0).toVector().subtract(projectile.getLocation().toVector()).normalize();
+			float hitRadius = HomingProjectileSpell.this.hitRadius.get(data);
+			float verticalHitRadius = HomingProjectileSpell.this.verticalHitRadius.get(data);
+			hitBox = new BoundingBox(currentLocation, hitRadius, verticalHitRadius);
+
+			stopOnModifierFail = HomingProjectileSpell.this.stopOnModifierFail.get(data);
+
+			airSpellInterval = HomingProjectileSpell.this.airSpellInterval.get(data);
+			specialEffectInterval = HomingProjectileSpell.this.specialEffectInterval.get(data);
+
+			intermediateSpecialEffects = Math.min(HomingProjectileSpell.this.intermediateSpecialEffects.get(data), 0);
+
+			float velocity = HomingProjectileSpell.this.velocity.get(data);
+			if (powerAffectsVelocity.get(data)) velocity *= data.power();
+			this.velocity = velocity;
+
+			maxDuration = HomingProjectileSpell.this.maxDuration.get(data) * TimeUtil.MILLISECONDS_PER_SECOND;
+
+			targetRelativeOffset = HomingProjectileSpell.this.targetRelativeOffset.get(data);
+
+			currentVelocity = data.target().getLocation().add(0, 0.75, 0).subtract(projectile.getLocation()).toVector().normalize();
 			currentVelocity.multiply(velocity);
 			currentVelocity.setY(currentVelocity.getY() + 0.15);
 			projectile.setVelocity(currentVelocity);
 
-			playSpellEffects(EffectPosition.PROJECTILE, projectile, data);
-			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile, data);
 			monitors.add(this);
 
-			int tickInterval = HomingProjectileSpell.this.tickInterval.get(caster, target, power, args);
+			int tickInterval = HomingProjectileSpell.this.tickInterval.get(data);
 			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
+
+			playSpellEffects(EffectPosition.CASTER, currentLocation, data);
+			playSpellEffects(EffectPosition.PROJECTILE, projectile, data);
+			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, currentLocation, projectile.getLocation(), data.caster(), projectile, data);
 		}
 
 		@Override
 		public void run() {
-			if ((caster != null && !caster.isValid()) || !target.isValid()) {
+			if (!data.caster().isValid() || !data.target().isValid()) {
 				stop();
 				return;
 			}
 
-			if (projectile == null || projectile.isDead()) {
+			if (!projectile.isValid()) {
 				stop();
 				return;
 			}
 
-			if (!projectile.getLocation().getWorld().equals(target.getWorld())) {
+			if (!projectile.getLocation().getWorld().equals(data.target().getWorld())) {
 				stop();
 				return;
 			}
 
-			if (zoneManager.willFizzle(currentLocation, thisSpell)) {
+			if (zoneManager.willFizzle(currentLocation, HomingProjectileSpell.this)) {
 				stop();
 				return;
 			}
 
 			if (homingModifiers != null) {
-				ModifierResult result = homingModifiers.apply(caster, data);
+				ModifierResult result = homingModifiers.apply(data.caster(), data);
 				data = result.data();
-				power = data.power();
-				args = data.args();
 
 				if (!result.check()) {
-					if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power, args);
+					if (modifierSpell != null) modifierSpell.subcast(data.noTarget());
 
 					if (stopOnModifierFail) stop();
 					return;
@@ -384,46 +354,47 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			}
 
 			if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {
-				if (durationSpell != null) durationSpell.subcast(caster, currentLocation, power, args);
+				if (durationSpell != null) durationSpell.subcast(data.noTarget());
 				stop();
 				return;
 			}
 
-			previousLocation = projectile.getLocation();
+			Location previousLocation = projectile.getLocation();
 
 			Vector oldVelocity = new Vector(currentVelocity.getX(), currentVelocity.getY(), currentVelocity.getZ());
 
-			Location targetLoc = target.getLocation().clone();
-			Vector startDir = targetLoc.clone().getDirection().normalize();
+			Location targetLoc = data.target().getLocation();
+			Vector startDir = targetLoc.getDirection();
 			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-			targetLoc.add(horizOffset.multiply(targetRelativeOffset.getZ())).getBlock().getLocation();
-			targetLoc.add(targetLoc.getDirection().multiply(targetRelativeOffset.getX()));
-			targetLoc.setY(target.getLocation().getY() + targetRelativeOffset.getY());
+			targetLoc.add(horizOffset.multiply(targetRelativeOffset.getZ()));
+			targetLoc.add(startDir.multiply(targetRelativeOffset.getX()));
+			targetLoc.setY(targetLoc.getY() + targetRelativeOffset.getY());
 
 			currentVelocity = targetLoc.toVector().subtract(projectile.getLocation().toVector()).normalize();
 			currentVelocity.multiply(velocity);
 			currentVelocity.setY(currentVelocity.getY() + 0.15);
 			projectile.setVelocity(currentVelocity);
-			currentLocation = projectile.getLocation();
+			projectile.getLocation(currentLocation);
+			data.location(currentLocation);
 
-			if (counter % airSpellInterval == 0 && airSpell != null) airSpell.subcast(caster, currentLocation, power, args);
+			if (counter % airSpellInterval == 0 && airSpell != null) airSpell.subcast(data.noTarget());
 
 			if (intermediateSpecialEffects > 0) playIntermediateEffectLocations(previousLocation, oldVelocity);
 
-			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) playSpellEffects(EffectPosition.SPECIAL, currentLocation, data);
+			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0)
+				playSpellEffects(EffectPosition.SPECIAL, currentLocation, data);
 
 			counter++;
 
 			hitBox.setCenter(currentLocation);
 			if (hitBox.contains(targetLoc)) {
-				SpellTargetEvent targetEvent = new SpellTargetEvent(thisSpell, caster, target, power, args);
+				SpellTargetEvent targetEvent = new SpellTargetEvent(HomingProjectileSpell.this, data);
 				if (!targetEvent.callEvent()) return;
+				data = targetEvent.getSpellData();
 
-				LivingEntity subTarget = targetEvent.getTarget();
-				float subPower = targetEvent.getPower();
+				if (hitSpell != null) hitSpell.subcast(data.noLocation());
+				playSpellEffects(EffectPosition.TARGET, data.target(), data);
 
-				playSpellEffects(EffectPosition.TARGET, subTarget, new SpellData(caster, subTarget, subPower, args));
-				if (hitSpell != null) hitSpell.subcast(caster, subTarget, subPower, args);
 				stop();
 			}
 		}
@@ -440,13 +411,14 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		}
 
 		private void stop() {
+			stop(true);
+		}
+
+		private void stop(boolean remove) {
 			playSpellEffects(EffectPosition.DELAYED, currentLocation, data);
 			MagicSpells.cancelTask(taskId);
-			caster = null;
-			target = null;
-			currentLocation = null;
-			if (projectile != null) projectile.remove();
-			projectile = null;
+			projectile.remove();
+			if (remove)monitors.remove(this);
 		}
 
 	}

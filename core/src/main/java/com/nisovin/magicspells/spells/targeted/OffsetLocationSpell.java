@@ -4,32 +4,30 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class OffsetLocationSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Vector relativeOffset;
-	private Vector absoluteOffset;
-	
+	private final ConfigData<Vector> relativeOffset;
+	private final ConfigData<Vector> absoluteOffset;
+
 	private Subspell spellToCast;
 	private String spellToCastName;
-	
+
 	public OffsetLocationSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		relativeOffset = getConfigVector("relative-offset", "0,0,0");
-		absoluteOffset = getConfigVector("absolute-offset", "0,0,0");
-		
+		relativeOffset = getConfigDataVector("relative-offset", new Vector());
+		absoluteOffset = getConfigDataVector("absolute-offset", new Vector());
+
 		spellToCastName = getConfigString("spell", "");
 	}
-	
-	@Override
+
 	public void initialize() {
 		super.initialize();
 
@@ -40,50 +38,39 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 		}
 	}
 
-	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location baseTargetLocation;
-			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-			if (info.cancelled()) return PostCastAction.ALREADY_HANDLED;
+		@Override
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> entityInfo = getTargetedEntity(data);
+		if (entityInfo.cancelled()) return noTarget(entityInfo);
 
-			if (!info.empty()) baseTargetLocation = info.target().getLocation();
-			else baseTargetLocation = getTargetedBlock(caster, power, args).getLocation();
-
-			Location loc = Util.applyOffsets(baseTargetLocation.clone(), relativeOffset, absoluteOffset);
-
-			if (spellToCast != null) spellToCast.subcast(caster, loc, power, args);
-			playSpellEffects(caster, loc, power, args);
-
-			if (!info.empty()) {
-				sendMessages(caster, info.target(), args);
-				return PostCastAction.NO_MESSAGES;
-			}
+		if (entityInfo.empty()) {
+			TargetInfo<Location> locationInfo = getTargetedBlockLocation(data);
+			if (locationInfo.noTarget()) return noTarget(locationInfo);
+			data = locationInfo.spellData();
+		} else {
+			data = entityInfo.spellData();
+			data = data.builder().target(null).location(data.target().getLocation()).build();
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtLocation(data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (spellToCast != null) spellToCast.subcast(caster, Util.applyOffsets(target.clone(), relativeOffset, absoluteOffset), power, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
+	public CastResult castAtLocation(SpellData data) {
+		Location location = data.location();
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
+		Vector relativeOffset = this.relativeOffset.get(data);
+		Util.applyRelativeOffset(location, relativeOffset);
+		data = data.location(location);
 
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return castAtLocation(null, target, power, args);
-	}
+		Vector absoluteOffset = this.absoluteOffset.get(data);
+		location.add(absoluteOffset);
+		data = data.location(location);
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(null, target, power, null);
+		playSpellEffects(data);
+		if (spellToCast != null) spellToCast.subcast(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

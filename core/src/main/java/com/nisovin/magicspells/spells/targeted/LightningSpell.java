@@ -3,7 +3,6 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.List;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.metadata.MetadataValue;
@@ -11,119 +10,108 @@ import org.bukkit.entity.LightningStrike;
 import org.bukkit.event.entity.PigZapEvent;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.entity.CreeperPowerEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class LightningSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private ConfigData<Double> additionalDamage;
+	private final ConfigData<Double> additionalDamage;
 
-	private boolean zapPigs;
-	private boolean noDamage;
-	private boolean checkPlugins;
-	private boolean chargeCreepers;
-	private boolean requireEntityTarget;
-	
+	private final ConfigData<Boolean> zapPigs;
+	private final ConfigData<Boolean> noDamage;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> chargeCreepers;
+	private final ConfigData<Boolean> requireEntityTarget;
+	private final ConfigData<Boolean> powerAffectsAdditionalDamage;
+
 	public LightningSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		additionalDamage = getConfigDataDouble("additional-damage", 0F);
 
-		zapPigs = getConfigBoolean("zap-pigs", true);
-		noDamage = getConfigBoolean("no-damage", false);
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		chargeCreepers = getConfigBoolean("charge-creepers", true);
-		requireEntityTarget = getConfigBoolean("require-entity-target", false);
+		zapPigs = getConfigDataBoolean("zap-pigs", true);
+		noDamage = getConfigDataBoolean("no-damage", false);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		chargeCreepers = getConfigDataBoolean("charge-creepers", true);
+		requireEntityTarget = getConfigDataBoolean("require-entity-target", false);
+		powerAffectsAdditionalDamage = getConfigDataBoolean("power-affects-additional-damage", true);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Block target;
-			LivingEntity entityTarget = null;
-			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-				if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+	public CastResult cast(SpellData data) {
+		if (requireEntityTarget.get(data)) {
+			TargetInfo<LivingEntity> info = getTargetedEntity(data);
+			if (info.noTarget()) return noTarget(info);
+			data = info.spellData();
 
-				entityTarget = targetInfo.target();
-				power = targetInfo.power();
-
-				double additionalDamage = this.additionalDamage.get(caster, entityTarget, power, args);
-
-				if (checkPlugins) {
-					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, entityTarget, DamageCause.ENTITY_ATTACK, 1 + additionalDamage, this);
-					if (!event.callEvent()) return noTarget(caster, args);
-				}
-
-				target = entityTarget.getLocation().getBlock();
-				if (additionalDamage > 0) entityTarget.damage(additionalDamage * power, caster);
-			} else {
-				target = getTargetedBlock(caster, power, args);
-				if (target == null) return noTarget(caster, args);
-
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power, args);
-				if (!event.callEvent()) return noTarget(caster, args);
-
-				target = event.getTargetLocation().getBlock();
+			if (noDamage.get(data)) {
+				data.target().getWorld().strikeLightningEffect(data.target().getLocation());
+				playSpellEffects(data);
+				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 			}
 
-			lightning(target.getLocation());
-			playSpellEffects(caster, target.getLocation(), power, args);
+			double additionalDamage = this.additionalDamage.get(data);
+			if (powerAffectsAdditionalDamage.get(data)) additionalDamage *= data.power();
 
-			if (entityTarget != null) {
-				sendMessages(caster, entityTarget, args);
-				return PostCastAction.NO_MESSAGES;
+			if (checkPlugins.get(data)) {
+				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(data.caster(), data.target(), DamageCause.LIGHTNING, additionalDamage, this);
+				if (!event.callEvent()) return noTarget(data);
 			}
+
+			ChargeOption option = new ChargeOption(additionalDamage, chargeCreepers.get(data), zapPigs.get(data));
+
+			LightningStrike strike = data.target().getWorld().strikeLightning(data.target().getLocation());
+			strike.setMetadata("MS" + internalName, new FixedMetadataValue(MagicSpells.plugin, option));
+
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		TargetInfo<Location> info = getTargetedBlockLocation(data);
+		if (info.noTarget()) return noTarget(data);
+
+		return castAtLocation(info.spellData());
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		lightning(target);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
+	public CastResult castAtLocation(SpellData data) {
+		Location target = data.location();
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		lightning(target);
-		playSpellEffects(caster, target, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		lightning(target);
-		playSpellEffects(EffectPosition.CASTER, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		lightning(target);
-		playSpellEffects(EffectPosition.CASTER, target, power, null);
-		return true;
-	}
-
-	private void lightning(Location target) {
-		if (noDamage) target.getWorld().strikeLightningEffect(target);
+		if (noDamage.get(data)) target.getWorld().strikeLightningEffect(target);
 		else {
+			double additionalDamage = this.additionalDamage.get(data);
+			if (powerAffectsAdditionalDamage.get(data)) additionalDamage *= data.power();
+			ChargeOption option = new ChargeOption(additionalDamage, chargeCreepers.get(data), zapPigs.get(data));
+
 			LightningStrike strike = target.getWorld().strikeLightning(target);
-			strike.setMetadata("MS" + internalName, new FixedMetadataValue(MagicSpells.plugin, new ChargeOption(chargeCreepers, zapPigs)));
+			strike.setMetadata("MS" + internalName, new FixedMetadataValue(MagicSpells.plugin, option));
+		}
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
+
+	@EventHandler
+	public void onLightningDamage(EntityDamageByEntityEvent event) {
+		if (event.getCause() != DamageCause.LIGHTNING || !(event.getDamager() instanceof LightningStrike strike)) return;
+
+		List<MetadataValue> data = strike.getMetadata("MS" + internalName);
+		if (data.isEmpty()) return;
+
+		for (MetadataValue val : data) {
+			ChargeOption option = (ChargeOption) val.value();
+			if (option != null && option.additionalDamage > 0)
+				event.setDamage(event.getDamage() + option.additionalDamage);
+			return;
 		}
 	}
-	
+
 	@EventHandler
 	public void onCreeperCharge(CreeperPowerEvent event) {
 		LightningStrike strike = event.getLightning();
@@ -137,19 +125,19 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 			break;
 		}
 	}
-	
+
 	@EventHandler
 	public void onPigZap(PigZapEvent event) {
 		LightningStrike strike = event.getLightning();
 		List<MetadataValue> data = strike.getMetadata("MS" + internalName);
 		if (data.isEmpty()) return;
-		for (MetadataValue val: data) {
+		for (MetadataValue val : data) {
 			ChargeOption option = (ChargeOption) val.value();
 			if (option == null) continue;
 			if (!option.changePig) event.setCancelled(true);
 		}
 	}
 
-	private record ChargeOption(boolean chargeCreeper, boolean changePig) {}
-	
+	private record ChargeOption(double additionalDamage, boolean chargeCreeper, boolean changePig) { }
+
 }

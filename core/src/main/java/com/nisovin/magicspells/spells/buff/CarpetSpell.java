@@ -20,11 +20,8 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import io.papermc.paper.event.entity.EntityMoveEvent;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.BlockPlatform;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class CarpetSpell extends BuffSpell {
@@ -33,31 +30,41 @@ public class CarpetSpell extends BuffSpell {
 
 	private final Set<UUID> falling;
 
-	private Material platformMaterial;
+	private final ConfigData<Material> platformMaterial;
 
-	private ConfigData<Integer> platformSize;
+	private final ConfigData<Integer> platformSize;
 
 	public CarpetSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		String materialName = getConfigString("platform-block", "GLASS");
-		platformMaterial = Util.getMaterial(materialName);
-
-		if (platformMaterial == null || !platformMaterial.isBlock()) {
-			platformMaterial = null;
-			MagicSpells.error("CarpetSpell " + internalName + " has an invalid platform-block defined! '" + materialName + "'");
-		}
+		platformMaterial = getConfigDataMaterial("platform-block", Material.GLASS);
 
 		platformSize = getConfigDataInt("size", 2);
 
 		entities = new HashMap<>();
 		falling = new HashSet<>();
 	}
-	
+
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new BlockPlatform(platformMaterial, Material.AIR, entity.getLocation().getBlock().getRelative(0, -1, 0), platformSize.get(entity, null, power, args), true, "square"));
+	public boolean castBuff(SpellData data) {
+		entities.put(data.target().getUniqueId(), new BlockPlatform(
+			platformMaterial.get(data),
+			Material.AIR,
+			data.target().getLocation().getBlock().getRelative(0, -1, 0),
+			platformSize.get(data),
+			true,
+			"square"
+		));
+
 		return true;
+	}
+
+	@Override
+	public boolean recastBuff(SpellData data) {
+		BlockPlatform old = entities.get(data.target().getUniqueId());
+		if (old != null) old.destroyPlatform();
+
+		return castBuff(data);
 	}
 
 	@Override
@@ -99,17 +106,17 @@ public class CarpetSpell extends BuffSpell {
 		}
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerMove(PlayerMoveEvent event) {
 		handleMove(event.getPlayer(), event.getTo());
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onEntityMove(EntityMoveEvent event) {
 		handleMove(event.getEntity(), event.getTo());
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
 		Player player = event.getPlayer();
 		if (!isActive(player)) return;
@@ -132,12 +139,11 @@ public class CarpetSpell extends BuffSpell {
 			addUseAndChargeCost(player);
 		}
 	}
-	
-	@EventHandler(priority=EventPriority.NORMAL, ignoreCancelled=true)
+
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
 		if (entities.isEmpty()) return;
 		final Block block = event.getBlock();
-		if (block.getType() != platformMaterial) return;
 		if (Util.containsValueParallel(entities, platform -> platform.blockInPlatform(block))) event.setCancelled(true);
 	}
 
@@ -147,14 +153,6 @@ public class CarpetSpell extends BuffSpell {
 
 	public Set<UUID> getFalling() {
 		return falling;
-	}
-
-	public Material getPlatformMaterial() {
-		return platformMaterial;
-	}
-
-	public void setPlatformMaterial(Material platformMaterial) {
-		this.platformMaterial = platformMaterial;
 	}
 
 }

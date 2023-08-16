@@ -7,23 +7,19 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.BlockIterator;
-import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class PhaseSpell extends InstantSpell {
 
 	private final List<Material> phasableBlocks;
 	private final List<Material> nonPhasableBlocks;
 
-	private ConfigData<Integer> maxDistance;
-	private boolean powerAffectsMaxDistance;
+	private final ConfigData<Integer> maxDistance;
+	private final ConfigData<Boolean> powerAffectsMaxDistance;
 	private String strCantPhase;
 
 	public PhaseSpell(MagicConfig config, String spellName) {
@@ -31,13 +27,13 @@ public class PhaseSpell extends InstantSpell {
 
 		maxDistance = getConfigDataInt("max-distance", 15);
 		strCantPhase = getConfigString("str-cant-phase", "Unable to find place to phase to.");
-		powerAffectsMaxDistance = getConfigBoolean("power-affects-max-distance", true);
+		powerAffectsMaxDistance = getConfigDataBoolean("power-affects-max-distance", true);
 
 		phasableBlocks = new ArrayList<>();
 		nonPhasableBlocks = new ArrayList<>();
 
-		processMaterials(phasableBlocks,"phasable-blocks");
-		processMaterials(nonPhasableBlocks,"non-phasable-blocks");
+		processMaterials(phasableBlocks, "phasable-blocks");
+		processMaterials(nonPhasableBlocks, "non-phasable-blocks");
 	}
 
 	private void processMaterials(List<Material> materials, String path) {
@@ -54,59 +50,60 @@ public class PhaseSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			int r = getRange(caster, power, args);
+	public CastResult cast(SpellData data) {
+		int r = getRange(data);
 
-			int distance = maxDistance.get(caster, null, power, args);
-			if (powerAffectsMaxDistance) distance = Math.round(distance * power);
+		int distance = maxDistance.get(data);
+		if (powerAffectsMaxDistance.get(data)) distance = Math.round(distance * data.power());
 
-			BlockIterator iter;
-			try {
-				iter = new BlockIterator(caster, distance << 1);
-			} catch (IllegalStateException e) {
-				sendMessage(strCantPhase, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
+		BlockIterator iter;
+		try {
+			iter = new BlockIterator(data.caster(), distance << 1);
+		} catch (IllegalStateException e) {
+			sendMessage(strCantPhase, data.caster(), data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
 
-			int i = 0;
-			Block start = null;
-			Location location = null;
+		int i = 0;
+		Block start = null;
+		Location location = null, casterLoc = data.caster().getLocation();
 
-			while (i++ < r << 1 && iter.hasNext()) {
-				Block b = iter.next();
-				if (BlockUtils.isAir(b.getType())) continue;
-				if (caster.getLocation().distanceSquared(b.getLocation()) >= r * r) continue;
-				start = b;
-				break;
-			}
+		while (i++ < r << 1 && iter.hasNext()) {
+			Block b = iter.next();
+			if (BlockUtils.isAir(b.getType())) continue;
+			if (casterLoc.distanceSquared(b.getLocation()) >= r * r) continue;
+			start = b;
+			break;
+		}
 
-			if (start != null) {
-				if (canPassThrough(start)) {
-					while (i++ < distance << 1 && iter.hasNext()) {
-						Block block = iter.next();
-						if (BlockUtils.isAir(block.getType()) && BlockUtils.isAir(block.getRelative(0, 1, 0).getType()) && caster.getLocation().distanceSquared(block.getLocation()) < distance * distance) {
-							location = block.getLocation();
-							break;
-						}
-						if (!canPassThrough(block)) break;
+		if (start != null) {
+			if (canPassThrough(start)) {
+				while (i++ < distance << 1 && iter.hasNext()) {
+					Block block = iter.next();
+					if (BlockUtils.isAir(block.getType()) && BlockUtils.isAir(block.getRelative(0, 1, 0).getType()) && casterLoc.distanceSquared(block.getLocation()) < distance * distance) {
+						location = block.getLocation();
+						break;
 					}
+					if (!canPassThrough(block)) break;
 				}
 			}
-
-			if (location == null) {
-				sendMessage(strCantPhase, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			location.setX(location.getX() + 0.5);
-			location.setZ(location.getZ() + 0.5);
-			location.setPitch(caster.getLocation().getPitch());
-			location.setYaw(caster.getLocation().getYaw());
-			playSpellEffects(caster, location, power, args);
-			caster.teleportAsync(location);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		if (location == null) {
+			sendMessage(strCantPhase, data.caster(), data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		location.setX(location.getX() + 0.5);
+		location.setZ(location.getZ() + 0.5);
+		location.setPitch(casterLoc.getPitch());
+		location.setYaw(casterLoc.getYaw());
+		data = data.location(location);
+
+		data.caster().teleportAsync(location);
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	private boolean canPassThrough(Block block) {

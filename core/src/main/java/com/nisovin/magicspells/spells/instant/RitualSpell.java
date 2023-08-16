@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -16,10 +15,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -28,25 +25,25 @@ public class RitualSpell extends InstantSpell {
 
 	private final Map<Player, ActiveRitual> activeRituals;
 
-	private ConfigData<Integer> tickInterval;
-	private ConfigData<Integer> effectInterval;
-	private ConfigData<Integer> ritualDuration;
-	private ConfigData<Integer> reqParticipants;
+	private final ConfigData<Integer> tickInterval;
+	private final ConfigData<Integer> effectInterval;
+	private final ConfigData<Integer> ritualDuration;
+	private final ConfigData<Integer> reqParticipants;
 
-	private boolean setCooldownForAll;
-	private boolean showProgressOnExpBar;
-	private boolean setCooldownImmediately;
-	private boolean needSpellToParticipate;
-	private boolean chargeReagentsImmediately;
+	private final ConfigData<Boolean> setCooldownForAll;
+	private final ConfigData<Boolean> showProgressOnExpBar;
+	private final ConfigData<Boolean> setCooldownImmediately;
+	private final ConfigData<Boolean> needSpellToParticipate;
+	private final ConfigData<Boolean> chargeReagentsImmediately;
 
 	private String spellToCastName;
 	private Spell spellToCast;
 
-	private String strRitualLeft;
-	private String strRitualJoined;
-	private String strRitualFailed;
-	private String strRitualSuccess;
-	private String strRitualInterrupted;
+	private final String strRitualLeft;
+	private final String strRitualJoined;
+	private final String strRitualFailed;
+	private final String strRitualSuccess;
+	private final String strRitualInterrupted;
 
 	public RitualSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -58,11 +55,11 @@ public class RitualSpell extends InstantSpell {
 		ritualDuration = getConfigDataInt("ritual-duration", 200);
 		reqParticipants = getConfigDataInt("req-participants", 3);
 
-		setCooldownForAll = getConfigBoolean("set-cooldown-for-all", true);
-		showProgressOnExpBar = getConfigBoolean("show-progress-on-exp-bar", true);
-		setCooldownImmediately = getConfigBoolean("set-cooldown-immediately", true);
-		needSpellToParticipate = getConfigBoolean("need-spell-to-participate", false);
-		chargeReagentsImmediately = getConfigBoolean("charge-reagents-immediately", true);
+		setCooldownForAll = getConfigDataBoolean("set-cooldown-for-all", true);
+		showProgressOnExpBar = getConfigDataBoolean("show-progress-on-exp-bar", true);
+		setCooldownImmediately = getConfigDataBoolean("set-cooldown-immediately", true);
+		needSpellToParticipate = getConfigDataBoolean("need-spell-to-participate", false);
+		chargeReagentsImmediately = getConfigDataBoolean("charge-reagents-immediately", true);
 
 		spellToCastName = getConfigString("spell", "");
 
@@ -79,22 +76,36 @@ public class RitualSpell extends InstantSpell {
 
 		spellToCast = MagicSpells.getSpellByInternalName(spellToCastName);
 		if (spellToCast == null) MagicSpells.error("RitualSpell '" + internalName + "' has an invalid spell defined!");
+		spellToCastName = null;
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (spellToCast == null || !(caster instanceof Player player)) return PostCastAction.ALREADY_HANDLED;
-		if (activeRituals.containsKey(player)) {
-			ActiveRitual channel = activeRituals.remove(player);
+	public CastResult cast(SpellCastState state, SpellData data) {
+		if (spellToCast == null || !(data.caster() instanceof Player caster))
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		if (activeRituals.containsKey(caster)) {
+			ActiveRitual channel = activeRituals.remove(caster);
 			channel.stop(strRitualInterrupted);
 		}
-		if (state == SpellCastState.NORMAL) {
-			activeRituals.put(player, new ActiveRitual(player, power, args));
-			if (!chargeReagentsImmediately && !setCooldownImmediately) return PostCastAction.MESSAGES_ONLY;
-			if (!chargeReagentsImmediately) return PostCastAction.NO_REAGENTS;
-			if (!setCooldownImmediately) return PostCastAction.NO_COOLDOWN;
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		if (state != SpellCastState.NORMAL) return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+
+		ActiveRitual ritual = new ActiveRitual(caster, data);
+		activeRituals.put(caster, ritual);
+
+		PostCastAction action;
+		if (!ritual.chargeReagentsImmediately && !ritual.setCooldownImmediately) action = PostCastAction.MESSAGES_ONLY;
+		else if (!ritual.chargeReagentsImmediately) action = PostCastAction.NO_REAGENTS;
+		else if (!ritual.setCooldownImmediately) action = PostCastAction.NO_COOLDOWN;
+		else action = PostCastAction.HANDLE_NORMALLY;
+
+		return new CastResult(action, data);
+	}
+
+	@Override
+	public CastResult cast(SpellData data) {
+		return cast(SpellCastState.NORMAL, data);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -105,9 +116,9 @@ public class RitualSpell extends InstantSpell {
 		ActiveRitual channel = activeRituals.get(player);
 		if (channel == null) return;
 
-		if (!needSpellToParticipate || hasThisSpell(event.getPlayer())) {
+		if (!channel.needSpellToParticipate || hasThisSpell(event.getPlayer())) {
 			channel.addChanneler(event.getPlayer());
-			sendMessage(strRitualJoined, event.getPlayer(), channel.args);
+			sendMessage(strRitualJoined, event.getPlayer(), channel.data.args());
 		}
 	}
 
@@ -134,13 +145,16 @@ public class RitualSpell extends InstantSpell {
 	private class ActiveRitual implements Runnable {
 
 		private final Player caster;
-
 		private final SpellData data;
-		private final String[] args;
-		private final float power;
 
 		private final Map<Player, Location> channelers;
 		private final int taskId;
+
+		private final boolean setCooldownForAll;
+		private final boolean showProgressOnExpBar;
+		private final boolean setCooldownImmediately;
+		private final boolean needSpellToParticipate;
+		private final boolean chargeReagentsImmediately;
 
 		private final int tickInterval;
 		private final int effectInterval;
@@ -149,20 +163,23 @@ public class RitualSpell extends InstantSpell {
 
 		private int duration = 0;
 
-		private ActiveRitual(Player caster, float power, String[] args) {
+		private ActiveRitual(Player caster, SpellData data) {
 			this.caster = caster;
-			this.power = power;
-			this.args = args;
-
-			data = new SpellData(caster, power, args);
+			this.data = data;
 
 			channelers = new HashMap<>();
 			channelers.put(caster, caster.getLocation());
 
-			tickInterval = RitualSpell.this.tickInterval.get(caster, null, power, args);
-			effectInterval = RitualSpell.this.effectInterval.get(caster, null, power, args);
-			ritualDuration = RitualSpell.this.ritualDuration.get(caster, null, power, args);
-			reqParticipants = RitualSpell.this.reqParticipants.get(caster, null, power, args);
+			setCooldownForAll = RitualSpell.this.setCooldownForAll.get(data);
+			showProgressOnExpBar = RitualSpell.this.showProgressOnExpBar.get(data);
+			setCooldownImmediately = RitualSpell.this.setCooldownImmediately.get(data);
+			needSpellToParticipate = RitualSpell.this.needSpellToParticipate.get(data);
+			chargeReagentsImmediately = RitualSpell.this.chargeReagentsImmediately.get(data);
+
+			tickInterval = RitualSpell.this.tickInterval.get(data);
+			effectInterval = RitualSpell.this.effectInterval.get(data);
+			ritualDuration = RitualSpell.this.ritualDuration.get(data);
+			reqParticipants = RitualSpell.this.reqParticipants.get(data);
 
 			taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(MagicSpells.plugin, this, tickInterval, tickInterval);
 
@@ -220,7 +237,7 @@ public class RitualSpell extends InstantSpell {
 
 			if (interrupted) {
 				stop(strRitualInterrupted);
-				if (spellOnInterrupt != null && caster.isValid()) spellOnInterrupt.subcast(caster, caster.getLocation(), power, args);
+				if (spellOnInterrupt != null && caster.isValid()) spellOnInterrupt.subcast(data.location(caster.getLocation()));
 			}
 
 			if (duration >= ritualDuration) {
@@ -229,10 +246,11 @@ public class RitualSpell extends InstantSpell {
 					if (chargeReagentsImmediately || hasReagents(caster)) {
 						stop(strRitualSuccess);
 						playSpellEffects(EffectPosition.DELAYED, caster, data);
-						PostCastAction action = spellToCast.castSpell(caster, SpellCastState.NORMAL, power, args);
-						if (!chargeReagentsImmediately && action.chargeReagents()) removeReagents(caster);
-						if (!setCooldownImmediately && action.setCooldown()) setCooldown(caster, cooldown);
-						if (setCooldownForAll && action.setCooldown()) {
+
+						CastResult result = spellToCast.cast(data);
+						if (!chargeReagentsImmediately && result.action().chargeReagents()) removeReagents(caster);
+						if (!setCooldownImmediately && result.action().setCooldown()) setCooldown(caster, cooldown);
+						if (setCooldownForAll && result.action().setCooldown()) {
 							for (Player p : channelers.keySet()) {
 								setCooldown(p, cooldown);
 							}
@@ -244,7 +262,7 @@ public class RitualSpell extends InstantSpell {
 
 		private void stop(String message) {
 			for (Player player : channelers.keySet()) {
-				sendMessage(message, player, args);
+				sendMessage(message, player, data.args());
 				resetManaBar(player);
 			}
 			channelers.clear();

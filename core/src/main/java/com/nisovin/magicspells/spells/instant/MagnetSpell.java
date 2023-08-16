@@ -1,35 +1,32 @@
 package com.nisovin.magicspells.spells.instant;
 
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.Entity;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
+import net.kyori.adventure.util.TriState;
+
 public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 
-	private ConfigData<Double> radius;
-	private ConfigData<Double> velocity;
+	private final ConfigData<Double> radius;
+	private final ConfigData<Double> velocity;
 
-	private boolean teleport;
-	private boolean forcePickup;
-	private boolean removeItemGravity;
-	private boolean powerAffectsRadius;
-	private boolean powerAffectsVelocity;
-	private boolean resolveVelocityPerItem;
+	private final ConfigData<Boolean> teleport;
+	private final ConfigData<Boolean> forcePickup;
+	private final ConfigData<Boolean> removeItemGravity;
+	private final ConfigData<Boolean> removeItemFriction;
+	private final ConfigData<Boolean> powerAffectsRadius;
+	private final ConfigData<Boolean> powerAffectsVelocity;
+	private final ConfigData<Boolean> resolveVelocityPerItem;
 
 	public MagnetSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -37,116 +34,73 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 		radius = getConfigDataDouble("radius", 5);
 		velocity = getConfigDataDouble("velocity", 1);
 
-		teleport = getConfigBoolean("teleport-items", false);
-		forcePickup = getConfigBoolean("force-pickup", false);
-		removeItemGravity = getConfigBoolean("remove-item-gravity", false);
-		powerAffectsRadius = getConfigBoolean("power-affects-radius", true);
-		powerAffectsVelocity = getConfigBoolean("power-affects-velocity", true);
-		resolveVelocityPerItem = getConfigBoolean("resolve-velocity-per-item", false);
+		teleport = getConfigDataBoolean("teleport-items", false);
+		forcePickup = getConfigDataBoolean("force-pickup", false);
+		removeItemGravity = getConfigDataBoolean("remove-item-gravity", false);
+		removeItemFriction = getConfigDataBoolean("remove-item-friction", false);
+		powerAffectsRadius = getConfigDataBoolean("power-affects-radius", true);
+		powerAffectsVelocity = getConfigDataBoolean("power-affects-velocity", true);
+		resolveVelocityPerItem = getConfigDataBoolean("resolve-velocity-per-item", false);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location location = caster.getLocation();
-
-			List<Item> items = getNearbyItems(caster, location, power, args);
-			magnet(caster, location, items, power, args);
-
-			playSpellEffects(EffectPosition.CASTER, caster, power, args);
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		return castAtLocation(data.location(data.caster().getLocation()));
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		Collection<Item> targetItems = getNearbyItems(caster, target, power, args);
-		magnet(caster, target, targetItems, power, args);
+	public CastResult castAtLocation(SpellData data) {
+		Location location = data.location();
 
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
-	}
-
-	private List<Item> getNearbyItems(LivingEntity caster, Location center, float power, String[] args) {
-		double radius = this.radius.get(caster, null, power, args);
-		if (powerAffectsRadius) radius *= power;
+		double radius = this.radius.get(data);
+		if (powerAffectsRadius.get(data)) radius *= data.power();
 		radius = Math.min(radius, MagicSpells.getGlobalRadius());
 
-		Collection<Entity> entities = center.getWorld().getNearbyEntities(center, radius, radius, radius);
-		List<Item> ret = new ArrayList<>();
-		for (Entity e : entities) {
-			if (!(e instanceof Item i)) continue;
-			ItemStack stack = i.getItemStack();
-			if (InventoryUtil.isNothing(stack)) continue;
-			if (i.isDead()) continue;
+		boolean teleport = this.teleport.get(data);
+		boolean forcePickup = this.forcePickup.get(data);
+		boolean removeItemGravity = this.removeItemGravity.get(data);
+		boolean removeItemFriction = this.removeItemFriction.get(data);
+		boolean powerAffectsVelocity = this.powerAffectsVelocity.get(data);
+		boolean resolveVelocityPerItem = this.resolveVelocityPerItem.get(data);
+
+		Collection<Item> items = location.getNearbyEntitiesByType(Item.class, radius, item -> {
+			if (!item.isValid() || InventoryUtil.isNothing(item.getItemStack())) return false;
 
 			if (forcePickup) {
-				i.setPickupDelay(0);
-				ret.add(i);
-			} else if (i.getPickupDelay() < i.getTicksLived()) {
-				ret.add(i);
+				item.setPickupDelay(0);
+				return true;
 			}
-		}
-		return ret;
-	}
 
-	private void magnet(LivingEntity caster, Location location, Collection<Item> items, float power, String[] args) {
+			return item.getPickupDelay() <= 0;
+		});
+
 		double velocity = 0;
 		if (!resolveVelocityPerItem) {
-			velocity = this.velocity.get(caster, null, power, args);
-			if (powerAffectsVelocity) velocity *= power;
+			velocity = this.velocity.get(data);
+			if (powerAffectsVelocity) velocity *= data.power();
 		}
 
-		SpellData data = new SpellData(caster, power, args);
-		for (Item i : items) magnet(caster, location, i, power, args, data, velocity);
-	}
+		for (Item item : items) {
+			if (removeItemGravity) item.setGravity(false);
+			if (removeItemFriction) item.setFrictionState(TriState.FALSE);
 
-	private void magnet(LivingEntity caster, Location origin, Item item, float power, String[] args, SpellData data, double velocity) {
-		if (removeItemGravity) item.setGravity(false);
-		if (teleport) item.teleportAsync(origin);
-		else {
-			if (resolveVelocityPerItem) {
-				velocity = this.velocity.get(caster, null, power, args);
-				if (powerAffectsVelocity) velocity *= power;
+			playSpellEffects(EffectPosition.PROJECTILE, item, data);
+
+			if (teleport) item.teleportAsync(location);
+			else {
+				if (resolveVelocityPerItem) {
+					velocity = this.velocity.get(data);
+					if (powerAffectsVelocity) velocity *= data.power();
+				}
+
+				Vector v = location.toVector().subtract(item.getLocation().toVector());
+				if (!v.isZero()) v.normalize().multiply(velocity);
+
+				item.setVelocity(v);
 			}
-
-			item.setVelocity(origin.toVector().subtract(item.getLocation().toVector()).normalize().multiply(velocity));
 		}
-		playSpellEffects(EffectPosition.PROJECTILE, item, data);
-	}
 
-	public boolean shouldTeleport() {
-		return teleport;
-	}
-
-	public void setTeleport(boolean teleport) {
-		this.teleport = teleport;
-	}
-
-	public boolean shouldForcePickup() {
-		return forcePickup;
-	}
-
-	public void setForcePickup(boolean forcePickup) {
-		this.forcePickup = forcePickup;
-	}
-
-	public boolean shouldRemoveItemGravity() {
-		return removeItemGravity;
-	}
-
-	public void setRemoveItemGravity(boolean removeItemGravity) {
-		this.removeItemGravity = removeItemGravity;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

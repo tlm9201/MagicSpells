@@ -25,7 +25,7 @@ public class CustomDataFloat extends CustomData {
 
 		try {
 			float value = Float.parseFloat(data);
-			customData = (caster, target, power, args) -> value;
+			customData = spellData -> value;
 		} catch (NumberFormatException e) {
 			customData = FunctionData.build(data, Double::floatValue, 0f);
 			if (customData == null) {
@@ -47,32 +47,32 @@ public class CustomDataFloat extends CustomData {
 		return invalidText;
 	}
 
-	public float get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		return customData.get(caster, target, power, args);
+	public float get(SpellData data) {
+		return customData.get(data);
 	}
 
 	public static float from(CustomData data, SpellData spellData) {
-		return ((CustomDataFloat) data).customData.get(spellData);
+		return ((CustomDataFloat) data).get(spellData);
 	}
 
 	public static float from(CustomData data, SpellCastEvent event) {
-		return ((CustomDataFloat) data).get(event.getCaster(), null, event.getPower(), event.getSpellArgs());
+		return ((CustomDataFloat) data).get(event.getSpellData());
 	}
 
 	public static float from(CustomData data, ManaChangeEvent event) {
-		return ((CustomDataFloat) data).get(event.getPlayer(), null, 1f, null);
+		return ((CustomDataFloat) data).get(new SpellData(event.getPlayer()));
 	}
 
 	public static float from(CustomData data, SpellTargetEvent event) {
-		return ((CustomDataFloat) data).get(event.getCaster(), event.getTarget(), event.getPower(), event.getSpellArgs());
+		return ((CustomDataFloat) data).get(event.getSpellData());
 	}
 
 	public static float from(CustomData data, SpellTargetLocationEvent event) {
-		return ((CustomDataFloat) data).get(event.getCaster(), null, event.getPower(), event.getSpellArgs());
+		return ((CustomDataFloat) data).get(event.getSpellData());
 	}
 
 	public static float from(CustomData data, MagicSpellsGenericPlayerEvent event) {
-		return ((CustomDataFloat) data).get(event.getPlayer(), null, 1f, null);
+		return ((CustomDataFloat) data).get(new SpellData(event.getPlayer()));
 	}
 
 }

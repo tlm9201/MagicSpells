@@ -38,8 +38,8 @@ public abstract class SpellEffect {
 	private ConfigData<Double> heightOffset;
 	private ConfigData<Double> forwardOffset;
 
-	private Vector offset;
-	private Vector relativeOffset;
+	private ConfigData<Vector> offset;
+	private ConfigData<Vector> relativeOffset;
 
 	// for line
 	private ConfigData<Double> maxDistance;
@@ -64,7 +64,7 @@ public abstract class SpellEffect {
 	private ConfigData<Integer> vertExpandDelay;
 	private ConfigData<Integer> effectInterval;
 
-	private boolean counterClockwise;
+	private ConfigData<Boolean> counterClockwise;
 
 	private List<String> modifiersList;
 	private List<String> casterModifiersList;
@@ -83,10 +83,8 @@ public abstract class SpellEffect {
 		heightOffset = ConfigDataUtil.getDouble(config, "height-offset", 0);
 		forwardOffset = ConfigDataUtil.getDouble(config, "forward-offset", 0);
 
-		String[] offsetStr = config.getString("offset", "0,0,0").split(",");
-		String[] relativeStr = config.getString("relative-offset", "0,0,0").split(",");
-		offset = new Vector(Double.parseDouble(offsetStr[0]), Double.parseDouble(offsetStr[1]), Double.parseDouble(offsetStr[2]));
-		relativeOffset = new Vector(Double.parseDouble(relativeStr[0]), Double.parseDouble(relativeStr[1]), Double.parseDouble(relativeStr[2]));
+		offset = ConfigDataUtil.getVector(config, "offset", new Vector());
+		relativeOffset = ConfigDataUtil.getVector(config, "relative-offset", new Vector());
 
 		maxDistance = ConfigDataUtil.getDouble(config, "max-distance", 100);
 		distanceBetween = ConfigDataUtil.getDouble(config, "distance-between", 1);
@@ -110,7 +108,7 @@ public abstract class SpellEffect {
 
 		dragEntity = ConfigDataUtil.getBoolean(config, "drag-entity", false);
 
-		counterClockwise = config.getBoolean(path + "counter-clockwise", false);
+		counterClockwise =  ConfigDataUtil.getBoolean(config, path + "counter-clockwise", false);
 
 		modifiersList = config.getStringList("modifiers");
 		casterModifiersList = config.getStringList("caster-modifiers");
@@ -143,8 +141,6 @@ public abstract class SpellEffect {
 	}
 
 	protected ModifierResult checkModifiers(SpellData data) {
-		if (data == null) return new ModifierResult(null, true);
-
 		ModifierResult result = null;
 		if (casterModifiers != null && data.caster() != null) {
 			result = casterModifiers.apply(data.caster(), data);
@@ -186,11 +182,11 @@ public abstract class SpellEffect {
 	protected abstract void loadFromConfig(ConfigurationSection config);
 
 	public Location applyOffsets(Location loc) {
-		return applyOffsets(loc, null);
+		return applyOffsets(loc, SpellData.NULL);
 	}
 
 	public Location applyOffsets(Location loc, SpellData data) {
-		return applyOffsets(loc, offset, relativeOffset, zOffset.get(data), heightOffset.get(data), forwardOffset.get(data));
+		return applyOffsets(loc, offset.get(data), relativeOffset.get(data), zOffset.get(data), heightOffset.get(data), forwardOffset.get(data));
 	}
 
 	public Location applyOffsets(Location loc, Vector offset, Vector relativeOffset, double zOffset, double heightOffset, double forwardOffset) {
@@ -214,7 +210,7 @@ public abstract class SpellEffect {
 	 */
 	@Deprecated
 	public Runnable playEffect(final Entity entity) {
-		return playEffect(entity, null);
+		return playEffect(entity, SpellData.NULL);
 	}
 
 	/**
@@ -248,7 +244,7 @@ public abstract class SpellEffect {
 
 	@Deprecated
 	protected Runnable playEffectEntity(Entity entity) {
-		return playEffectLocationReal(entity == null ? null : entity.getLocation(), null);
+		return playEffectLocationReal(entity == null ? null : entity.getLocation(), SpellData.NULL);
 	}
 
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
@@ -262,7 +258,7 @@ public abstract class SpellEffect {
 	 */
 	@Deprecated
 	public final Runnable playEffect(final Location location) {
-		return playEffect(location, (SpellData) null);
+		return playEffect(location, SpellData.NULL);
 	}
 
 	/**
@@ -290,7 +286,7 @@ public abstract class SpellEffect {
 
 	@Deprecated
 	public final Effect playEffectLib(final Location location) {
-		return playEffectLib(location, null);
+		return playEffectLib(location, SpellData.NULL);
 	}
 
 	public final Effect playEffectLib(final Location location, SpellData data) {
@@ -312,7 +308,7 @@ public abstract class SpellEffect {
 
 	@Deprecated
 	public final Entity playEntityEffect(final Location location) {
-		return playEntityEffect(location, null);
+		return playEntityEffect(location, SpellData.NULL);
 	}
 
 	public final Entity playEntityEffect(final Location location, SpellData data) {
@@ -334,7 +330,7 @@ public abstract class SpellEffect {
 
 	@Deprecated
 	public final ArmorStand playArmorStandEffect(final Location location) {
-		return playArmorStandEffect(location, null);
+		return playArmorStandEffect(location, SpellData.NULL);
 	}
 
 	public final ArmorStand playArmorStandEffect(final Location location, SpellData data) {
@@ -444,7 +440,7 @@ public abstract class SpellEffect {
 	 */
 	@Deprecated
 	public Runnable playEffect(Location startLoc, Location endLoc) {
-		return playEffect(startLoc, endLoc, null);
+		return playEffect(startLoc, endLoc, SpellData.NULL);
 	}
 
 	/**
@@ -483,7 +479,7 @@ public abstract class SpellEffect {
 
 	@Deprecated
 	public BuffEffectlibTracker playEffectlibEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new BuffEffectlibTracker(entity, checker, this, null);
+		return new BuffEffectlibTracker(entity, checker, this, SpellData.NULL);
 	}
 
 	public BuffEffectlibTracker playEffectlibEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker, SpellData data) {
@@ -492,7 +488,7 @@ public abstract class SpellEffect {
 
 	@Deprecated
 	public OrbitEffectlibTracker playEffectlibEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new OrbitEffectlibTracker(entity, checker, this, null);
+		return new OrbitEffectlibTracker(entity, checker, this, SpellData.NULL);
 	}
 
 	public OrbitEffectlibTracker playEffectlibEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker, SpellData data) {
@@ -501,7 +497,7 @@ public abstract class SpellEffect {
 
 	@Deprecated
 	public BuffTracker playEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new BuffTracker(entity, checker, this, null);
+		return new BuffTracker(entity, checker, this, SpellData.NULL);
 	}
 
 	public BuffTracker playEffectWhileActiveOnEntity(final Entity entity, final SpellEffectActiveChecker checker, SpellData data) {
@@ -510,7 +506,7 @@ public abstract class SpellEffect {
 
 	@Deprecated
 	public OrbitTracker playEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker) {
-		return new OrbitTracker(entity, checker, this, null);
+		return new OrbitTracker(entity, checker, this, SpellData.NULL);
 	}
 
 	public OrbitTracker playEffectWhileActiveOrbit(final Entity entity, final SpellEffectActiveChecker checker, final SpellData data) {
@@ -547,11 +543,11 @@ public abstract class SpellEffect {
 		return forwardOffset;
 	}
 
-	public Vector getOffset() {
+	public ConfigData<Vector> getOffset() {
 		return offset;
 	}
 
-	public Vector getRelativeOffset() {
+	public ConfigData<Vector> getRelativeOffset() {
 		return relativeOffset;
 	}
 
@@ -615,7 +611,7 @@ public abstract class SpellEffect {
 		return dragEntity;
 	}
 
-	public boolean isCounterClockwise() {
+	public ConfigData<Boolean> isCounterClockwise() {
 		return counterClockwise;
 	}
 

@@ -1,43 +1,41 @@
 package com.nisovin.magicspells.spells.instant;
 
-import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.HumanEntity;
 
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class FoodSpell extends InstantSpell {
 
-	private ConfigData<Integer> food;
+	private final ConfigData<Integer> food;
 
-	private ConfigData<Float> saturation;
-	private ConfigData<Float> maxSaturation;
-	
+	private final ConfigData<Float> saturation;
+	private final ConfigData<Float> maxSaturation;
+
 	public FoodSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
+
 		food = getConfigDataInt("food", 4);
 		saturation = getConfigDataFloat("saturation", 2.5F);
 		maxSaturation = getConfigDataFloat("max-saturation", 0F);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			int f = Math.min(player.getFoodLevel() + food.get(caster, null, power, args), 20);
-			player.setFoodLevel(f);
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof HumanEntity caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			float saturation = this.saturation.get(caster, null, power, args);
-			float maxSaturation = this.maxSaturation.get(caster, null, power, args);
+		int food = Math.max(Math.min(caster.getFoodLevel() + this.food.get(data), 20), 0);
+		caster.setFoodLevel(food);
 
-			float s = Math.min(player.getSaturation() + saturation, maxSaturation);
-			player.setSaturation(s);
+		float maxSaturation = this.maxSaturation.get(data);
+		float saturation = Math.max(Math.min(this.saturation.get(data), maxSaturation), 0);
+		caster.setSaturation(saturation);
 
-			playSpellEffects(EffectPosition.CASTER, player, power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

@@ -4,22 +4,24 @@ import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EntityEquipment;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
 
 public class EnchantSpell extends InstantSpell {
-	
+
 	private final Map<Enchantment, Integer> enchantments;
 
-	private boolean safeEnchants;
-	
+	private ConfigData<Boolean> safeEnchants;
+
 	public EnchantSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
@@ -27,7 +29,7 @@ public class EnchantSpell extends InstantSpell {
 
 		List<String> enchantmentList = getConfigStringList("enchantments", null);
 
-		safeEnchants = getConfigBoolean("safe-enchants", true);
+		safeEnchants = getConfigDataBoolean("safe-enchants", true);
 
 		if (enchantmentList != null && !enchantmentList.isEmpty()) {
 			for (String string : enchantmentList) {
@@ -40,25 +42,25 @@ public class EnchantSpell extends InstantSpell {
 			}
 		} else MagicSpells.error("EnchantSpell '" + internalName + "' has invalid enchantments defined!");
 	}
-	
+
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			ItemStack targetItem = caster.getEquipment().getItemInMainHand();
-			if (targetItem == null) return PostCastAction.ALREADY_HANDLED;
-			enchant(targetItem);
-			playSpellEffects(EffectPosition.CASTER, caster, power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		EntityEquipment eq = data.caster().getEquipment();
+		if (eq == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		ItemStack item = eq.getItemInMainHand();
+		if (item.getType().isAir()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		boolean safeEnchants = this.safeEnchants.get(data);
+		for (Enchantment e : enchantments.keySet())
+			enchant(item, safeEnchants, e, enchantments.get(e));
+
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
-	
-	private void enchant(ItemStack item) {
-		for (Enchantment e : enchantments.keySet()) {
-			enchant(item, e, enchantments.get(e));
-		}
-	}
-	
-	private void enchant(ItemStack item, Enchantment enchant, int level) {
+
+	private void enchant(ItemStack item, boolean safeEnchants, Enchantment enchant, int level) {
 		if (!enchant.canEnchantItem(item)) return;
 		if (safeEnchants && level > enchant.getMaxLevel()) level = enchant.getMaxLevel();
 		if (level <= 0) item.removeEnchantment(enchant);
@@ -70,14 +72,6 @@ public class EnchantSpell extends InstantSpell {
 
 	public Map<Enchantment, Integer> getEnchantments() {
 		return enchantments;
-	}
-
-	public boolean allowUnsafeEnchants() {
-		return !safeEnchants;
-	}
-
-	public void setSafeEnchants(boolean safeEnchants) {
-		this.safeEnchants = safeEnchants;
 	}
 
 }

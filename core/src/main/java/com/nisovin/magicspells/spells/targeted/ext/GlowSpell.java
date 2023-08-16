@@ -12,11 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import ru.xezard.glow.data.glow.Glow;
-import ru.xezard.glow.data.glow.Glow.GlowBuilder;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -31,13 +29,11 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final Multimap<UUID, GlowData> glowing;
 
-	private GlowBuilder glowBuilder;
-
-	private ChatColor color;
+	private ConfigData<ChatColor> color;
 
 	private final ConfigData<Integer> duration;
 
-	private final boolean powerAffectsDuration;
+	private final ConfigData<Boolean> powerAffectsDuration;
 
 	public GlowSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -46,63 +42,28 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		duration = getConfigDataInt("duration", 0);
 
-		powerAffectsDuration = getConfigBoolean("power-affects-duration", true);
+		powerAffectsDuration = getConfigDataBoolean("power-affects-duration", true);
 
-		String colorName = getConfigString("color", "");
-		try {
-			color = ChatColor.valueOf(colorName.toUpperCase());
-		} catch (IllegalArgumentException ignored) {
-			color = ChatColor.WHITE;
-			MagicSpells.log("GlowSpell '" + internalName + "' has an invalid color defined: '" + colorName + "'.");
-		}
+		color = getConfigDataEnum("color", ChatColor.class, ChatColor.WHITE);
 	}
 
 	@Override
-	public void initialize() {
-		super.initialize();
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		glowBuilder = Glow.builder().color(color).name(MagicSpells.getInstance().getName());
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
+
+		glow(caster, data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity livingEntity, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && livingEntity instanceof Player caster) {
-			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-			if (info.noTarget()) return noTarget(caster, args, info);
+	public CastResult castAtEntity(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			LivingEntity target = info.target();
-			power = info.power();
-
-			glow(caster, target, power, args);
-			playSpellEffects(caster, target, power, args);
-			sendMessages(caster, target, args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target) || !(caster instanceof Player player)) return false;
-		glow(player, target, power, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return false;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
+		glow(caster, data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
@@ -110,9 +71,11 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 		glowing.values().forEach(glowData -> glowData.getGlow().destroy());
 	}
 
-	private void glow(Player caster, LivingEntity target, float power, String[] args) {
-		int duration = this.duration.get(caster, target, power, args);
-		if (powerAffectsDuration) duration = Math.round(duration * power);
+	private void glow(Player caster, SpellData data) {
+		int duration = this.duration.get(data);
+		if (powerAffectsDuration.get(data)) duration = Math.round(duration * data.power());
+
+		LivingEntity target = data.target();
 
 		Collection<GlowData> glows = glowing.get(caster.getUniqueId());
 		for (GlowData glowData : glows) {
@@ -146,7 +109,10 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		GlowData glowData;
 
-		Glow glow = glowBuilder.name(target.getUniqueId().toString() + caster.getUniqueId().toString() + internalName).build();
+		String name = target.getUniqueId().toString() + caster.getUniqueId().toString() + internalName;
+		ChatColor color = this.color.get(data);
+
+		Glow glow = new Glow(color, name);
 		glow.addHolders(target);
 		glow.display(caster);
 

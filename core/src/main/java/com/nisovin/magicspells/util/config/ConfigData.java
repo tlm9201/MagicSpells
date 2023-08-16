@@ -1,20 +1,15 @@
 package com.nisovin.magicspells.util.config;
 
-import org.bukkit.entity.LivingEntity;
+import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.util.SpellData;
 
 public interface ConfigData<T> {
 
-	T get(LivingEntity caster, LivingEntity target, float power, String[] args);
+	T get(@NotNull SpellData data);
 
-	default T get(LivingEntity caster, float power, String[] args) {
-		return get(caster, null, power, args);
-	}
-
-	default T get(SpellData data) {
-		if (data == null) return get(null, null, 1f, null);
-		return get(data.caster(), data.target(), data.power(), data.args());
+	default T get() {
+		return get(SpellData.NULL);
 	}
 
 	default boolean isConstant() {

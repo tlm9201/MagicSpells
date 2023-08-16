@@ -13,12 +13,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MobUtil;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -33,16 +30,16 @@ public class DowseSpell extends InstantSpell {
 	private String playerName;
 	private String strNotFound;
 
-	private ConfigData<Integer> radius;
+	private final ConfigData<Integer> radius;
 
-	private boolean setCompass;
-	private boolean getDistance;
-	private boolean rotatePlayer;
-	private boolean powerAffectsRadius;
+	private final boolean getDistance;
+	private final ConfigData<Boolean> setCompass;
+	private final ConfigData<Boolean> rotatePlayer;
+	private final ConfigData<Boolean> powerAffectsRadius;
 
 	public DowseSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
+
 		String blockName = getConfigString("block-type", "");
 		String entityName = getConfigString("entity-type", "");
 
@@ -62,124 +59,132 @@ public class DowseSpell extends InstantSpell {
 
 		radius = getConfigDataInt("radius", 4);
 
-		setCompass = getConfigBoolean("set-compass", true);
-		rotatePlayer = getConfigBoolean("rotate-player", true);
-		powerAffectsRadius = getConfigBoolean("power-affects-radius", true);
+		setCompass = getConfigDataBoolean("set-compass", true);
+		rotatePlayer = getConfigDataBoolean("rotate-player", true);
+		powerAffectsRadius = getConfigDataBoolean("power-affects-radius", true);
 
 		getDistance = strCastSelf != null && strCastSelf.contains("%d");
 
-		if (material == null && entityType == null) MagicSpells.error("DowseSpell '" + internalName + "' has no dowse target (block or entity) defined!");
+		if (material == null && entityType == null)
+			MagicSpells.error("DowseSpell '" + internalName + "' has no dowse target (block or entity) defined!");
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			double radius = this.radius.get(caster, null, power, args);
-			if (powerAffectsRadius) radius *= power;
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			radius = Math.min(radius, MagicSpells.getGlobalRadius());
+		double radius = this.radius.get(data);
+		if (powerAffectsRadius.get(data)) radius *= data.power();
+		radius = Math.min(radius, MagicSpells.getGlobalRadius());
 
-			int distance = -1;
-			if (material != null) {
-				Block foundBlock = null;
-				
-				Location loc = player.getLocation();
-				World world = player.getWorld();
-				int cx = loc.getBlockX();
-				int cy = loc.getBlockY();
-				int cz = loc.getBlockZ();
-				
-				// Label to exit the search
-				search:
-				for (int r = 1; r <= radius; r++) {
-					for (int x = -r; x <= r; x++) {
-						for (int y = -r; y <= r; y++) {
-							for (int z = -r; z <= r; z++) {
-								if (x == r || y == r || z == r || -x == r || -y == r || -z == r) {
-									Block block = world.getBlockAt(cx + x, cy + y, cz + z);
-									if (material.equals(block.getType())) {
-										foundBlock = block;
-										break search;
-									}
+		int distance = -1;
+		if (material != null) {
+			Block foundBlock = null;
+
+			Location loc = caster.getLocation();
+			World world = caster.getWorld();
+
+			int cx = loc.getBlockX();
+			int cy = loc.getBlockY();
+			int cz = loc.getBlockZ();
+
+			// Label to exit the search
+			search:
+			for (int r = 1; r <= radius; r++) {
+				for (int x = -r; x <= r; x++) {
+					for (int y = -r; y <= r; y++) {
+						for (int z = -r; z <= r; z++) {
+							if (x == r || y == r || z == r || -x == r || -y == r || -z == r) {
+								Block block = world.getBlockAt(cx + x, cy + y, cz + z);
+								if (material.equals(block.getType())) {
+									foundBlock = block;
+									break search;
 								}
 							}
 						}
 					}
 				}
-							
-				if (foundBlock == null) {
-					sendMessage(strNotFound, player, args);
-					return PostCastAction.ALREADY_HANDLED;
-				} 
-				
-				if (rotatePlayer) {
-					Vector v = foundBlock.getLocation().add(0.5, 0.5, 0.5).subtract(player.getEyeLocation()).toVector().normalize();
-					Util.setFacing(player, v);
+			}
+
+			if (foundBlock == null) {
+				sendMessage(strNotFound, caster, data.args());
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+
+			if (rotatePlayer.get(data)) {
+				Vector v = foundBlock.getLocation().add(0.5, 0.5, 0.5).subtract(caster.getEyeLocation()).toVector().normalize();
+				Util.setFacing(caster, v);
+			}
+
+			if (setCompass.get(data)) caster.setCompassTarget(foundBlock.getLocation());
+
+			if (getDistance) distance = (int) Math.round(caster.getLocation().distance(foundBlock.getLocation()));
+		} else if (entityType != null) {
+			// Find entity
+			Entity foundEntity = null;
+			double distanceSq = radius * radius;
+			if (entityType == EntityType.PLAYER && playerName != null) {
+				// Find specific player
+				foundEntity = PlayerNameUtils.getPlayerExact(playerName);
+				if (foundEntity != null) {
+					if (!foundEntity.getWorld().equals(caster.getWorld())) foundEntity = null;
+					else if (radius > 0 && caster.getLocation().distanceSquared(foundEntity.getLocation()) > distanceSq)
+						foundEntity = null;
 				}
-				if (setCompass) player.setCompassTarget(foundBlock.getLocation());
-				if (getDistance) distance = (int) Math.round(player.getLocation().distance(foundBlock.getLocation()));
-			} else if (entityType != null) {
-				// Find entity
-				Entity foundEntity = null;
-				double distanceSq = radius * radius;
-				if (entityType == EntityType.PLAYER && playerName != null) {
-					// Find specific player
-					foundEntity = PlayerNameUtils.getPlayerExact(playerName);
-					if (foundEntity != null) {
-						if (!foundEntity.getWorld().equals(player.getWorld())) foundEntity = null;
-						else if (radius > 0 && player.getLocation().distanceSquared(foundEntity.getLocation()) > distanceSq) foundEntity = null;
+			} else {
+				// Find nearest entity
+				List<Entity> nearby = caster.getNearbyEntities(radius, radius, radius);
+				Location playerLoc = caster.getLocation();
+				TreeSet<NearbyEntity> ordered = new TreeSet<>();
+				for (Entity e : nearby) {
+					if (e.getType() == entityType) {
+						double d = e.getLocation().distanceSquared(playerLoc);
+						if (d < distanceSq) ordered.add(new NearbyEntity(e, d));
 					}
-				} else {
-					// Find nearest entity
-					List<Entity> nearby = player.getNearbyEntities(radius, radius, radius);
-					Location playerLoc = player.getLocation();
-					TreeSet<NearbyEntity> ordered = new TreeSet<>();
-					for (Entity e : nearby) {
-						if (e.getType() == entityType) {
-							double d = e.getLocation().distanceSquared(playerLoc);
-							if (d < distanceSq) ordered.add(new NearbyEntity(e, d));
-						}
-					}
-					if (!ordered.isEmpty()) {
-						for (NearbyEntity ne : ordered) {
-							if (ne.entity instanceof LivingEntity) {
-								SpellTargetEvent event = new SpellTargetEvent(this, player, (LivingEntity) ne.entity, power, args);
-								EventUtil.call(event);
-								if (!event.isCancelled()) {
-									foundEntity = ne.entity;
-									break;
-								}
-							} else {
-								foundEntity = ne.entity;
+				}
+				if (!ordered.isEmpty()) {
+					for (NearbyEntity ne : ordered) {
+						if (ne.entity instanceof LivingEntity le) {
+							SpellTargetEvent event = new SpellTargetEvent(this, data, le);
+							EventUtil.call(event);
+							if (!event.isCancelled()) {
+								foundEntity = event.getTarget();
+								data = event.getSpellData();
 								break;
 							}
+						} else {
+							foundEntity = ne.entity;
+							break;
 						}
 					}
 				}
-
-				if (foundEntity == null) {
-					sendMessage(strNotFound, player, args);
-					return PostCastAction.ALREADY_HANDLED;
-				}
-
-				if (rotatePlayer) {
-					Location l = foundEntity instanceof LivingEntity ? ((LivingEntity) foundEntity).getEyeLocation() : foundEntity.getLocation();
-					Vector v = l.subtract(player.getEyeLocation()).toVector().normalize();
-					Util.setFacing(player, v);
-				}
-				if (setCompass) player.setCompassTarget(foundEntity.getLocation());
-				if (getDistance) distance = (int) Math.round(player.getLocation().distance(foundEntity.getLocation()));
 			}
-			
-			playSpellEffects(EffectPosition.CASTER, player, power, args);
-			if (getDistance) {
-				sendMessage(strCastSelf, player, args, "%d", distance + "");
-				sendMessageNear(player, strCastOthers, args, "%d", String.valueOf(distance));
-				return PostCastAction.NO_MESSAGES;
+
+			if (foundEntity == null) {
+				sendMessage(strNotFound, caster, data.args());
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
+
+			if (rotatePlayer.get(data)) {
+				Location l = foundEntity instanceof LivingEntity ? ((LivingEntity) foundEntity).getEyeLocation() : foundEntity.getLocation();
+				Vector v = l.subtract(caster.getEyeLocation()).toVector().normalize();
+				Util.setFacing(caster, v);
+			}
+
+			if (setCompass.get(data)) caster.setCompassTarget(foundEntity.getLocation());
+
+			if (getDistance) distance = (int) Math.round(caster.getLocation().distance(foundEntity.getLocation()));
 		}
-		
-		return PostCastAction.HANDLE_NORMALLY;
+
+		playSpellEffects(EffectPosition.CASTER, caster, data);
+		if (getDistance) {
+			sendMessage(strCastSelf, caster, data.args(), "%d", String.valueOf(distance));
+			sendMessageNear(strCastOthers, data, broadcastRange, "%d", String.valueOf(distance));
+
+			return new CastResult(PostCastAction.NO_MESSAGES, data);
+		}
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public Material getMaterial() {
@@ -214,45 +219,21 @@ public class DowseSpell extends InstantSpell {
 		this.strNotFound = strNotFound;
 	}
 
-	public boolean shouldUpdateCompass() {
-		return setCompass;
-	}
-
-	public void setUpdateCompass(boolean setCompass) {
-		this.setCompass = setCompass;
-	}
-
-	public boolean shouldGetDistance() {
-		return getDistance;
-	}
-
-	public void setGetDistance(boolean getDistance) {
-		this.getDistance = getDistance;
-	}
-
-	public boolean shouldRotatePlayer() {
-		return rotatePlayer;
-	}
-
-	public void setRotatePlayer(boolean rotatePlayer) {
-		this.rotatePlayer = rotatePlayer;
-	}
-
 	private static class NearbyEntity implements Comparable<NearbyEntity> {
 
 		private Entity entity;
 		private double distanceSquared;
-		
+
 		private NearbyEntity(Entity entity, double distanceSquared) {
 			this.entity = entity;
 			this.distanceSquared = distanceSquared;
 		}
-		
+
 		@Override
 		public int compareTo(NearbyEntity e) {
 			return Double.compare(e.distanceSquared, this.distanceSquared);
 		}
-		
+
 	}
 
 }

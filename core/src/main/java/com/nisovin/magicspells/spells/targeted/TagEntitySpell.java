@@ -1,86 +1,60 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Set;
-import java.util.HashSet;
 
 import org.bukkit.entity.LivingEntity;
+
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class TagEntitySpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final String operation;
-	private final String tag;
-
-	private final boolean doReplacements;
+	private final ConfigData<String> operation;
+	private final ConfigData<String> tag;
 
 	public TagEntitySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		tag = getConfigString("tag", null);
-		operation = getConfigString("operation", "add");
-
-		doReplacements = MagicSpells.requireReplacement(tag);
+		tag = getConfigDataString("tag", null);
+		operation = getConfigDataString("operation", "add");
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-			if (info.noTarget()) return noTarget(caster, args, info);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			tag(caster, info.target(), args);
-			playSpellEffects(caster, info.target(), info.power(), args);
-			sendMessages(caster, info.target(), args);
+		return castAtEntity(info.spellData());
+	}
 
-			return PostCastAction.NO_MESSAGES;
+	@Override
+	public CastResult castAtEntity(SpellData data) {
+		String operation = this.operation.get(data).toLowerCase();
+		if (operation.equals("clear")) {
+			Set<String> tags = data.target().getScoreboardTags();
+			tags.forEach(data.target()::removeScoreboardTag);
+
+			playSpellEffects(data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		tag(caster, target, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		tag(null, target, args);
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	private void tag(LivingEntity caster, LivingEntity target, String[] args) {
-		String varTag = doReplacements ? MagicSpells.doReplacements(tag, caster, target, args) : tag;
+		String tag = this.tag.get(data);
+		if (tag == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		switch (operation) {
-			case "add", "insert" -> target.addScoreboardTag(varTag);
-			case "remove", "take" -> target.removeScoreboardTag(varTag);
-			case "clear" -> {
-				Set<String> tags = new HashSet<>(target.getScoreboardTags());
-				tags.forEach(target::removeScoreboardTag);
+			case "add", "insert" -> data.target().addScoreboardTag(tag);
+			case "remove", "take" -> data.target().removeScoreboardTag(tag);
+			default -> {
+				MagicSpells.error("TagEntitySpell '" + internalName + "' has an invalid operation defined!");
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
-			default -> MagicSpells.error("TagEntitySpell '" + internalName + "' has an invalid operation defined!");
 		}
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

@@ -12,14 +12,11 @@ import org.bukkit.inventory.ItemStack;
 
 import net.kyori.adventure.text.Component;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -37,36 +34,34 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 	private ItemStack item;
 
-	private Component itemName;
+	private final ConfigData<Component> itemName;
 
-	private ConfigData<Integer> spellDelay;
-	private ConfigData<Integer> pickupDelay;
-	private ConfigData<Integer> removeDelay;
-	private ConfigData<Integer> tickInterval;
-	private ConfigData<Integer> spellInterval;
-	private ConfigData<Integer> itemNameDelay;
-	private ConfigData<Integer> specialEffectInterval;
+	private final ConfigData<Integer> spellDelay;
+	private final ConfigData<Integer> pickupDelay;
+	private final ConfigData<Integer> removeDelay;
+	private final ConfigData<Integer> tickInterval;
+	private final ConfigData<Integer> spellInterval;
+	private final ConfigData<Integer> itemNameDelay;
+	private final ConfigData<Integer> specialEffectInterval;
 
-	private ConfigData<Float> speed;
-	private ConfigData<Float> yOffset;
-	private ConfigData<Float> hitRadius;
-	private ConfigData<Float> vertSpeed;
-	private ConfigData<Float> vertHitRadius;
-	private ConfigData<Float> rotationOffset;
+	private final ConfigData<Float> speed;
+	private final ConfigData<Float> yOffset;
+	private final ConfigData<Float> hitRadius;
+	private final ConfigData<Float> vertSpeed;
+	private final ConfigData<Float> vertHitRadius;
+	private final ConfigData<Float> rotationOffset;
 
-	private boolean checkPlugins;
-	private boolean stopOnHitGround;
-	private boolean stopOnHitEntity;
-	private boolean projectileHasGravity;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> stopOnHitGround;
+	private final ConfigData<Boolean> stopOnHitEntity;
+	private final ConfigData<Boolean> projectileHasGravity;
 
-	private Vector relativeOffset;
+	private final ConfigData<Vector> relativeOffset;
 
 	private Subspell spellOnTick;
 	private Subspell spellOnDelay;
 	private Subspell spellOnHitEntity;
 	private Subspell spellOnHitGround;
-
-	private NoMagicZoneManager zoneManager;
 
 	public ItemProjectileSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -91,49 +86,52 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 		vertHitRadius = getConfigDataFloat("vertical-hit-radius", 1.5F);
 		rotationOffset = getConfigDataFloat("rotation-offset", 0F);
 
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		stopOnHitGround = getConfigBoolean("stop-on-hit-ground", true);
-		stopOnHitEntity = getConfigBoolean("stop-on-hit-entity", true);
-		projectileHasGravity = getConfigBoolean("gravity", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		stopOnHitGround = getConfigDataBoolean("stop-on-hit-ground", true);
+		stopOnHitEntity = getConfigDataBoolean("stop-on-hit-entity", true);
+		projectileHasGravity = getConfigDataBoolean("gravity", true);
 
-		relativeOffset = getConfigVector("relative-offset", "0,0,0");
+		relativeOffset = getConfigDataVector("relative-offset", new Vector());
 
-		itemName = Util.getMiniMessage(getConfigString("item-name", ""));
+		itemName = getConfigDataComponent("item-name", null);
+
 		spellOnTickName = getConfigString("spell-on-tick", "");
 		spellOnDelayName = getConfigString("spell-on-delay", "");
 		spellOnHitEntityName = getConfigString("spell-on-hit-entity", "");
 		spellOnHitGroundName = getConfigString("spell-on-hit-ground", "");
 	}
-	
+
 	@Override
 	public void initialize() {
 		super.initialize();
 
 		spellOnTick = new Subspell(spellOnTickName);
 		if (!spellOnTick.process()) {
-			if (!spellOnTickName.isEmpty()) MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-tick defined!");
+			if (!spellOnTickName.isEmpty())
+				MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-tick defined!");
 			spellOnTick = null;
 		}
 
 		spellOnDelay = new Subspell(spellOnDelayName);
 		if (!spellOnDelay.process()) {
-			if (!spellOnDelayName.isEmpty()) MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-delay defined!");
+			if (!spellOnDelayName.isEmpty())
+				MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-delay defined!");
 			spellOnDelay = null;
 		}
 
 		spellOnHitEntity = new Subspell(spellOnHitEntityName);
 		if (!spellOnHitEntity.process()) {
-			if (!spellOnHitEntityName.isEmpty()) MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
+			if (!spellOnHitEntityName.isEmpty())
+				MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
 			spellOnHitEntity = null;
 		}
 
 		spellOnHitGround = new Subspell(spellOnHitGroundName);
 		if (!spellOnHitGround.process()) {
-			if (!spellOnHitGroundName.isEmpty()) MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
+			if (!spellOnHitGroundName.isEmpty())
+				MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
 			spellOnHitGround = null;
 		}
-
-		zoneManager = MagicSpells.getNoMagicZoneManager();
 	}
 
 	@Override
@@ -145,66 +143,61 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			ItemProjectileTracker tracker = new ItemProjectileTracker(caster, caster.getLocation(), power, args);
-			setupTracker(tracker, caster, power, args);
-			tracker.start();
-		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
+	public CastResult cast(SpellData data) {
+		data = data.location(data.caster().getLocation());
 
-	@Override
-	public boolean castAtLocation(LivingEntity livingEntity, Location target, float power, String[] args) {
-		ItemProjectileTracker tracker = new ItemProjectileTracker(livingEntity, target, power, args);
-		setupTracker(tracker, livingEntity, power, args);
+		ItemProjectileTracker tracker = new ItemProjectileTracker(data);
+		setupTracker(tracker, data);
 		tracker.start();
-		return true;
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
+	public CastResult castAtLocation(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		ItemProjectileTracker tracker = new ItemProjectileTracker(data);
+		setupTracker(tracker, data);
+		tracker.start();
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
-	}
-
-	private void setupTracker(ItemProjectileTracker tracker, LivingEntity caster, float power, String[] args) {
+	private void setupTracker(ItemProjectileTracker tracker, SpellData data) {
 		tracker.setSpell(this);
 
-		tracker.setItemName(itemName);
+		tracker.setItemName(itemName.get(data));
 		tracker.setItem(item);
 
-		tracker.setSpellDelay(spellDelay.get(caster, null, power, args));
-		tracker.setPickupDelay(pickupDelay.get(caster, null, power, args));
-		tracker.setRemoveDelay(removeDelay.get(caster, null, power, args));
-		tracker.setTickInterval(tickInterval.get(caster, null, power, args));
-		tracker.setSpellInterval(spellInterval.get(caster, null, power, args));
-		tracker.setItemNameDelay(itemNameDelay.get(caster, null, power, args));
-		tracker.setSpecialEffectInterval(specialEffectInterval.get(caster, null, power, args));
+		tracker.setSpellDelay(spellDelay.get(data));
+		tracker.setPickupDelay(pickupDelay.get(data));
+		tracker.setRemoveDelay(removeDelay.get(data));
+		tracker.setTickInterval(tickInterval.get(data));
+		tracker.setSpellInterval(spellInterval.get(data));
+		tracker.setItemNameDelay(itemNameDelay.get(data));
+		tracker.setSpecialEffectInterval(specialEffectInterval.get(data));
 
-		tracker.setSpeed(speed.get(caster, null, power, args));
+		tracker.setSpeed(speed.get(data));
 
-		float yOffset = this.yOffset.get(caster, null, power, args);
+		float yOffset = this.yOffset.get(data);
 		tracker.setYOffset(yOffset);
 
-		float vertSpeed = this.vertSpeed.get(caster, null, power, args);
+		float vertSpeed = this.vertSpeed.get(data);
 		tracker.setVertSpeed(vertSpeed);
 
-		tracker.setHitRadius(hitRadius.get(caster, null, power, args));
-		tracker.setVertHitRadius(vertHitRadius.get(caster, null, power, args));
-		tracker.setRotationOffset(rotationOffset.get(caster, null, power, args));
+		tracker.setHitRadius(hitRadius.get(data));
+		tracker.setVertHitRadius(vertHitRadius.get(data));
+		tracker.setRotationOffset(rotationOffset.get(data));
 
-		tracker.setCallEvents(checkPlugins);
+		tracker.setCallEvents(checkPlugins.get(data));
 		tracker.setVertSpeedUsed(vertSpeed != 0);
-		tracker.setStopOnHitGround(stopOnHitGround);
-		tracker.setStopOnHitEntity(stopOnHitEntity);
-		tracker.setProjectileHasGravity(projectileHasGravity);
+		tracker.setStopOnHitGround(stopOnHitGround.get(data));
+		tracker.setStopOnHitEntity(stopOnHitEntity.get(data));
+		tracker.setProjectileHasGravity(projectileHasGravity.get(data));
 
-		Vector relativeOffset = yOffset != 0 ? this.relativeOffset.clone().setY(yOffset) : this.relativeOffset;
+		Vector relativeOffset = this.relativeOffset.get(data);
+		if (yOffset != 0) relativeOffset.setY(yOffset);
 		tracker.setRelativeOffset(relativeOffset);
 
 		tracker.setSpellOnTick(spellOnTick);
@@ -225,54 +218,6 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 
 	public void setItem(ItemStack item) {
 		this.item = item;
-	}
-
-	public Component getItemName() {
-		return itemName;
-	}
-
-	public void setItemName(Component itemName) {
-		this.itemName = itemName;
-	}
-
-	public boolean shouldCheckPlugins() {
-		return checkPlugins;
-	}
-
-	public void setCheckPlugins(boolean checkPlugins) {
-		this.checkPlugins = checkPlugins;
-	}
-
-	public boolean shouldStopOnHitGround() {
-		return stopOnHitGround;
-	}
-
-	public void setStopOnHitGround(boolean stopOnHitGround) {
-		this.stopOnHitGround = stopOnHitGround;
-	}
-
-	public boolean shouldStopOnHitEntity() {
-		return stopOnHitEntity;
-	}
-
-	public void setStopOnHitEntity(boolean stopOnHitEntity) {
-		this.stopOnHitEntity = stopOnHitEntity;
-	}
-
-	public boolean shouldProjectileHaveGravity() {
-		return projectileHasGravity;
-	}
-
-	public void setProjectileHasGravity(boolean projectileHasGravity) {
-		this.projectileHasGravity = projectileHasGravity;
-	}
-
-	public Vector getRelativeOffset() {
-		return relativeOffset;
-	}
-
-	public void setRelativeOffset(Vector relativeOffset) {
-		this.relativeOffset = relativeOffset;
 	}
 
 	public Subspell getSpellOnTick() {

@@ -13,18 +13,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.CastData;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class WaterwalkSpell extends BuffSpell {
 
-	private final Map<UUID, CastData> entities;
+	private final Map<UUID, Float> entities;
 
-	private ConfigData<Float> speed;
+	private final ConfigData<Float> speed;
 
 	private Ticker ticker;
 
@@ -37,9 +35,9 @@ public class WaterwalkSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return false;
-		entities.put(entity.getUniqueId(), new CastData(power, args));
+	public boolean castBuff(SpellData data) {
+		if (!(data.target() instanceof Player target)) return false;
+		entities.put(target.getUniqueId(), speed.get(data));
 		startTicker();
 		return true;
 	}
@@ -87,7 +85,7 @@ public class WaterwalkSpell extends BuffSpell {
 		ticker = null;
 	}
 
-	public Map<UUID, CastData> getEntities() {
+	public Map<UUID, Float> getEntities() {
 		return entities;
 	}
 
@@ -110,14 +108,11 @@ public class WaterwalkSpell extends BuffSpell {
 			Block feet;
 			Block underfeet;
 			Location loc;
-			CastData data;
 			for (UUID id : entities.keySet()) {
 				pl = Bukkit.getPlayer(id);
 				if (pl == null) continue;
 				if (!pl.isValid()) continue;
 				if (!pl.isOnline()) continue;
-
-				data = entities.get(id);
 
 				loc = pl.getLocation();
 				feet = loc.getBlock();
@@ -138,7 +133,7 @@ public class WaterwalkSpell extends BuffSpell {
 					if (!pl.isFlying()) {
 						pl.setAllowFlight(true);
 						pl.setFlying(true);
-						pl.setFlySpeed(speed.get(pl, null, data.power(), data.args()));
+						pl.setFlySpeed(entities.get(id));
 					}
 					if (count == 0) addUseAndChargeCost(pl);
 					continue;

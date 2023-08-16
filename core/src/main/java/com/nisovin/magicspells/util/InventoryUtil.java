@@ -89,7 +89,7 @@ public class InventoryUtil {
 	
 	public static boolean isNothing(ItemStack itemStack) {
 		if (itemStack == null) return true;
-		if (BlockUtils.isAir(itemStack.getType())) return true;
+		if (itemStack.getType().isAir()) return true;
 		return itemStack.getAmount() == 0;
 	}
 

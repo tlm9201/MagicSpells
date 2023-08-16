@@ -19,13 +19,13 @@ public class BroadcastEffect extends SpellEffect {
 
 	private ConfigData<Double> range;
 
-	private boolean targeted;
+	private ConfigData<Boolean> targeted;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
 		message = config.getString("message", "");
 		range = ConfigDataUtil.getDouble(config, "range", 0);
-		targeted = config.getBoolean("targeted", false);
+		targeted = ConfigDataUtil.getBoolean(config, "targeted", false);
 	}
 
 	@Override
@@ -36,10 +36,8 @@ public class BroadcastEffect extends SpellEffect {
 
 	@Override
 	public Runnable playEffectEntity(Entity entity, SpellData data) {
-		if (targeted) {
-			if (entity instanceof Player player)
-				MagicSpells.sendMessage(message, player,  data == null ? null : data.args());
-
+		if (targeted.get(data)) {
+			if (entity instanceof Player player) MagicSpells.sendMessage(message, player, data);
 			return null;
 		}
 
@@ -55,11 +53,9 @@ public class BroadcastEffect extends SpellEffect {
 	}
 
 	private void broadcast(Location location, String message, SpellData data) {
-		String[] args =  data == null ? null : data.args();
-
 		double range = this.range.get(data);
 		if (range <= 0) {
-			Util.forEachPlayerOnline(player -> MagicSpells.sendMessage(message, player, args));
+			Util.forEachPlayerOnline(player -> MagicSpells.sendMessage(message, player, data));
 			return;
 		}
 
@@ -70,7 +66,7 @@ public class BroadcastEffect extends SpellEffect {
 			if (!player.getWorld().equals(location.getWorld())) continue;
 			if (player.getLocation().distanceSquared(location) > rangeSq) continue;
 
-			MagicSpells.sendMessage(message, player, args);
+			MagicSpells.sendMessage(message, player, data);
 		}
 	}
 

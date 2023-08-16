@@ -14,18 +14,14 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -33,20 +29,20 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private SpellFilter filter;
 
-	private String strSilenced;
+	private final String strSilenced;
 
-	private ConfigData<Integer> duration;
+	private final ConfigData<Integer> duration;
 
-	private boolean preventCast;
-	private boolean preventChat;
-	private boolean preventCommands;
-	private boolean notifyHelperSpells;
-	private boolean notifyPassiveSpells;
-	private boolean powerAffectsDuration;
+	private final boolean preventCast;
+	private final boolean preventChat;
+	private final boolean preventCommands;
+	private final boolean notifyHelperSpells;
+	private final boolean notifyPassiveSpells;
+	private final ConfigData<Boolean> powerAffectsDuration;
 
-	private final String preventCastSpellName;
-	private final String preventChatSpellName;
-	private final String preventCommandSpellName;
+	private String preventCastSpellName;
+	private String preventChatSpellName;
+	private String preventCommandSpellName;
 
 	private Subspell preventCastSpell;
 	private Subspell preventChatSpell;
@@ -64,7 +60,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		preventCommands = getConfigBoolean("prevent-commands", false);
 		notifyHelperSpells = getConfigBoolean("notify-helper-spells", false);
 		notifyPassiveSpells = getConfigBoolean("notify-passive-spells", false);
-		powerAffectsDuration = getConfigBoolean("power-affects-duration", true);
+		powerAffectsDuration = getConfigDataBoolean("power-affects-duration", true);
 
 		preventCastSpellName = getConfigString("spell-on-denied-cast", "");
 		preventChatSpellName = getConfigString("spell-on-denied-chat", "");
@@ -86,66 +82,41 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 			preventCastSpell = initSubspell(preventCastSpellName, "SilenceSpell '" + internalName + "' has an invalid spell-on-denied-cast defined.");
 			registerEvents(new CastListener());
 		}
+		preventCastSpellName = null;
+
 		if (preventChat) {
 			preventChatSpell = initSubspell(preventChatSpellName, "SilenceSpell '" + internalName + "' has an invalid spell-on-denied-chat defined.");
 			registerEvents(new ChatListener());
 		}
+		preventChatSpellName = null;
+
 		if (preventCommands) {
 			preventCommandSpell = initSubspell(preventCommandSpellName, "SilenceSpell '" + internalName + "' has an invalid spell-on-denied-command defined.");
 			registerEvents(new CommandListener());
 		}
+		preventCommandSpellName = null;
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target.noTarget()) return noTarget(caster, args, target);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			silence(caster, target.target(), target.power(), args);
-			playSpellEffects(caster, target.target(), target.power(), args);
-			sendMessages(caster, target.target(), args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		silence(caster, target, power, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
+	public CastResult castAtEntity(SpellData data) {
+		UUID uuid = data.target().getUniqueId();
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
+		Unsilencer unsilencer = silenced.get(uuid);
+		if (unsilencer != null) unsilencer.cancel();
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		silence(null, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return true;
-	}
+		int duration = this.duration.get(data);
+		if (powerAffectsDuration.get(data)) duration = Math.round(duration * data.power());
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	private void silence(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		Unsilencer u = silenced.get(target.getUniqueId());
-		if (u != null) u.cancel();
-
-		int duration = this.duration.get(caster, target, power, args);
-		if (powerAffectsDuration) duration = Math.round(duration * power);
-
-		silenced.put(target.getUniqueId(), new Unsilencer(target, duration));
+		silenced.put(uuid, new Unsilencer(uuid, duration));
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public boolean isSilenced(LivingEntity target) {
@@ -169,7 +140,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (filter.check(spell)) return;
 			event.setCancelled(true);
 			Bukkit.getScheduler().scheduleSyncDelayedTask(MagicSpells.plugin, () -> {
-				if (preventCastSpell != null) preventCastSpell.subcast(event.getCaster(), 1, null);
+				if (preventCastSpell != null) preventCastSpell.subcast(new SpellData(event.getCaster()));
 				if (spell.isHelperSpell() && !notifyHelperSpells) return;
 				if (spell instanceof PassiveSpell && !notifyPassiveSpells) return;
 				sendMessage(strSilenced, event.getCaster(), event.getSpellArgs());
@@ -184,7 +155,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		public void onChat(AsyncChatEvent event) {
 			if (!silenced.containsKey(event.getPlayer().getUniqueId())) return;
 			event.setCancelled(true);
-			if (preventChatSpell != null) preventChatSpell.subcast(event.getPlayer(), 1, null);
+			if (preventChatSpell != null) preventChatSpell.subcast(new SpellData(event.getPlayer()));
 			sendMessage(strSilenced, event.getPlayer(), MagicSpells.NULL_ARGS);
 		}
 
@@ -196,7 +167,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		public void onCommand(PlayerCommandPreprocessEvent event) {
 			if (!silenced.containsKey(event.getPlayer().getUniqueId())) return;
 			event.setCancelled(true);
-			if (preventCommandSpell != null) preventCommandSpell.subcast(event.getPlayer(), 1, null);
+			if (preventCommandSpell != null) preventCommandSpell.subcast(new SpellData(event.getPlayer()));
 			sendMessage(strSilenced, event.getPlayer(), MagicSpells.NULL_ARGS);
 		}
 
@@ -204,18 +175,18 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private class Unsilencer implements Runnable {
 
-		private UUID id;
-		private int taskId;
+		private final UUID uuid;
+		private final int taskId;
 		private boolean canceled = false;
 
-		private Unsilencer(LivingEntity livingEntity, int delay) {
-			id = livingEntity.getUniqueId();
+		private Unsilencer(UUID uuid, int delay) {
+			this.uuid = uuid;
 			taskId = MagicSpells.scheduleDelayedTask(this, delay);
 		}
 
 		@Override
 		public void run() {
-			if (!canceled) silenced.remove(id);
+			if (!canceled) silenced.remove(uuid);
 		}
 
 		private void cancel() {

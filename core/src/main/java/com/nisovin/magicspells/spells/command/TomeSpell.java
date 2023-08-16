@@ -8,21 +8,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.DataUtil;
-import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.CommandSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellLearnEvent;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 
@@ -33,12 +30,12 @@ public class TomeSpell extends CommandSpell {
 	private static final Pattern INT_PATTERN = Pattern.compile("^[0-9]+$");
 	
 	private boolean consumeBook;
-	private boolean allowOverwrite;
-	private boolean requireTeachPerm;
 	private boolean cancelReadOnLearn;
+	private ConfigData<Boolean> allowOverwrite;
+	private ConfigData<Boolean> requireTeachPerm;
 
-	private int maxUses;
-	private int defaultUses;
+	private ConfigData<Integer> maxUses;
+	private ConfigData<Integer> defaultUses;
 
 	private String strUsage;
 	private String strNoBook;
@@ -53,12 +50,12 @@ public class TomeSpell extends CommandSpell {
 		super(config, spellName);
 
 		consumeBook = getConfigBoolean("consume-book", false);
-		allowOverwrite = getConfigBoolean("allow-overwrite", false);
-		requireTeachPerm = getConfigBoolean("require-teach-perm", true);
+		allowOverwrite = getConfigDataBoolean("allow-overwrite", false);
+		requireTeachPerm = getConfigDataBoolean("require-teach-perm", true);
 		cancelReadOnLearn = getConfigBoolean("cancel-read-on-learn", true);
 
-		maxUses = getConfigInt("max-uses", 5);
-		defaultUses = getConfigInt("default-uses", -1);
+		maxUses = getConfigDataInt("max-uses", 5);
+		defaultUses = getConfigDataInt("default-uses", -1);
 
 		strUsage = getConfigString("str-usage", "Usage: While holding a written book, /cast " + name + " <spell> [uses]");
 		strNoBook = getConfigString("str-no-book", "You must be holding a written book.");
@@ -71,41 +68,42 @@ public class TomeSpell extends CommandSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			Spell spell;
-			if (args == null || args.length == 0) {
-				sendMessage(strUsage, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			spell = MagicSpells.getSpellByInGameName(args[0]);
-			if (spell == null || !spellbook.hasSpell(spell)) {
-				sendMessage(strNoSpell, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			if (requireTeachPerm && !MagicSpells.getSpellbook(player).canTeach(spell)) {
-				sendMessage(strCantTeach, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			ItemStack item = player.getInventory().getItemInMainHand();
-			if (item.getType() != Material.WRITTEN_BOOK) {
-				sendMessage(strNoBook, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			if (!allowOverwrite && DataUtil.getString(item, key) != null) {
-				sendMessage(strAlreadyHasSpell, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			int uses = defaultUses;
-			if (args.length > 1 && RegexUtil.matches(INT_PATTERN, args[1])) uses = Integer.parseInt(args[1]);
-			item = createTome(spell, uses, item);
-			player.getInventory().setItemInMainHand(item);
+		if (!data.hasArgs()) {
+			sendMessage(strUsage, player, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
+		if (spell == null || !spellbook.hasSpell(spell)) {
+			sendMessage(strNoSpell, player, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+		if (requireTeachPerm.get(data) && !MagicSpells.getSpellbook(player).canTeach(spell)) {
+			sendMessage(strCantTeach, player, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		ItemStack item = player.getInventory().getItemInMainHand();
+		if (item.getType() != Material.WRITTEN_BOOK) {
+			sendMessage(strNoBook, player, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		if (!allowOverwrite.get(data) && DataUtil.getString(item, key) != null) {
+			sendMessage(strAlreadyHasSpell, player, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		int uses = -1;
+		if (data.args().length > 1 && RegexUtil.matches(INT_PATTERN, data.args()[1])) uses = Integer.parseInt(data.args()[1]);
+		item = createTome(spell, uses, item, data);
+		player.getInventory().setItemInMainHand(item);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
@@ -118,15 +116,18 @@ public class TomeSpell extends CommandSpell {
 		return null;
 	}
 
-	public ItemStack createTome(Spell spell, int uses, ItemStack item) {
+	public ItemStack createTome(Spell spell, int uses, ItemStack item, SpellData data) {
+		int maxUses = this.maxUses.get(data);
 		if (maxUses > 0 && uses > maxUses) uses = maxUses;
-		else if (uses < 0) uses = defaultUses;
+		else if (uses < 0) uses = defaultUses.get(data);
+
 		if (item == null) {
 			item = new ItemStack(Material.WRITTEN_BOOK, 1);
 			BookMeta bookMeta = (BookMeta)item.getItemMeta();
 			bookMeta.setTitle(getName() + ": " + spell.getName());
 			item.setItemMeta(bookMeta);
 		}
+
 		DataUtil.setString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
 		return item;
 	}
@@ -190,44 +191,12 @@ public class TomeSpell extends CommandSpell {
 		this.consumeBook = consumeBook;
 	}
 
-	public boolean shouldAllowOverwrite() {
-		return allowOverwrite;
-	}
-
-	public void setAllowOverwrite(boolean allowOverwrite) {
-		this.allowOverwrite = allowOverwrite;
-	}
-
-	public boolean shouldRequireTeachPerm() {
-		return requireTeachPerm;
-	}
-
-	public void setRequireTeachPerm(boolean requireTeachPerm) {
-		this.requireTeachPerm = requireTeachPerm;
-	}
-
 	public boolean shouldCancelReadOnLearn() {
 		return cancelReadOnLearn;
 	}
 
 	public void setCancelReadOnLearn(boolean cancelReadOnLearn) {
 		this.cancelReadOnLearn = cancelReadOnLearn;
-	}
-
-	public int getMaxUses() {
-		return maxUses;
-	}
-
-	public void setMaxUses(int maxUses) {
-		this.maxUses = maxUses;
-	}
-
-	public int getDefaultUses() {
-		return defaultUses;
-	}
-
-	public void setDefaultUses(int defaultUses) {
-		this.defaultUses = defaultUses;
 	}
 
 	public String getStrUsage() {

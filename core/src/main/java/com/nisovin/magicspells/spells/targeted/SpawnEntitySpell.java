@@ -24,6 +24,8 @@ import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import net.kyori.adventure.text.Component;
+
 import com.destroystokyo.paper.entity.ai.MobGoals;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 
@@ -37,6 +39,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.managers.AttributeManager;
+import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntityFromLocationSpell {
@@ -64,23 +67,23 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private final ConfigData<Integer> fireTicks;
 	private final ConfigData<Integer> targetInterval;
 
-	private ConfigData<Double> targetRange;
-	private ConfigData<Double> retargetRange;
+	private final ConfigData<Double> targetRange;
+	private final ConfigData<Double> retargetRange;
 
-	private final String location;
-	private final String nameplateText;
+	private final ConfigData<String> location;
+	private final ConfigData<Component> nameplateText;
 
-	private final boolean noAI;
-	private final boolean gravity;
-	private final boolean removeAI;
-	private final boolean setOwner;
 	private final boolean removeMob;
-	private final boolean cancelAttack;
-	private final boolean invulnerable;
-	private final boolean useCasterName;
-	private final boolean centerLocation;
-	private final boolean addLookAtPlayerAI;
-	private final boolean allowSpawnInMidair;
+	private final ConfigData<Boolean> noAI;
+	private final ConfigData<Boolean> gravity;
+	private final ConfigData<Boolean> removeAI;
+	private final ConfigData<Boolean> setOwner;
+	private final ConfigData<Boolean> cancelAttack;
+	private final ConfigData<Boolean> invulnerable;
+	private final ConfigData<Boolean> useCasterName;
+	private final ConfigData<Boolean> centerLocation;
+	private final ConfigData<Boolean> addLookAtPlayerAI;
+	private final ConfigData<Boolean> allowSpawnInMidair;
 
 	private Subspell attackSpell;
 	private String attackSpellName;
@@ -159,20 +162,20 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		targetRange = getConfigDataDouble("target-range", 20);
 		retargetRange = getConfigDataDouble("retarget-range", 50);
 
-		location = getConfigString("location", "target");
-		nameplateText = getConfigString("nameplate-text", null);
+		location = getConfigDataString("location", "target");
+		nameplateText = getConfigDataComponent("nameplate-text", null);
 
-		noAI = getConfigBoolean("no-ai", false);
-		gravity = getConfigBoolean("gravity", true);
-		setOwner = getConfigBoolean("set-owner", true);
-		removeAI = getConfigBoolean("remove-ai", false);
+		noAI = getConfigDataBoolean("no-ai", false);
+		gravity = getConfigDataBoolean("gravity", true);
 		removeMob = getConfigBoolean("remove-mob", true);
-		invulnerable = getConfigBoolean("invulnerable", false);
-		useCasterName = getConfigBoolean("use-caster-name", false);
-		centerLocation = getConfigBoolean("center-location", false);
-		addLookAtPlayerAI = getConfigBoolean("add-look-at-player-ai", false);
-		allowSpawnInMidair = getConfigBoolean("allow-spawn-in-midair", false);
-		cancelAttack = getConfigBoolean("cancel-attack", true);
+		setOwner = getConfigDataBoolean("set-owner", true);
+		removeAI = getConfigDataBoolean("remove-ai", false);
+		invulnerable = getConfigDataBoolean("invulnerable", false);
+		useCasterName = getConfigDataBoolean("use-caster-name", false);
+		centerLocation = getConfigDataBoolean("center-location", false);
+		addLookAtPlayerAI = getConfigDataBoolean("add-look-at-player-ai", false);
+		allowSpawnInMidair = getConfigDataBoolean("allow-spawn-in-midair", false);
+		cancelAttack = getConfigDataBoolean("cancel-attack", true);
 
 		attackSpellName = getConfigString("attack-spell", "");
 		spellOnSpawnName = getConfigString("spell-on-spawn", null);
@@ -180,7 +183,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		// Attributes
 		// - [AttributeName] [Number] [Operation]
 		List<String> attributeList = getConfigStringList("attributes", null);
-		if (attributeList != null && !attributeList.isEmpty()) attributes = MagicSpells.getAttributeManager().getAttributes(attributeList);
+		if (attributeList != null && !attributeList.isEmpty())
+			attributes = MagicSpells.getAttributeManager().getAttributes(attributeList);
 
 		List<String> list = getConfigStringList("potion-effects", null);
 		if (list != null && !list.isEmpty()) {
@@ -247,126 +251,134 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			Entity entity = it.next();
 
 			it.remove();
-			entity.remove();
+			if (removeMob) entity.remove();
 		}
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location loc = null;
-			LivingEntity target = null;
+	public CastResult cast(SpellData data) {
+		String spawnLocation = this.location.get(data).toLowerCase();
 
-			switch (location.toLowerCase()) {
-				case "focus" -> {
-					loc = getRandomLocationFrom(caster.getLocation(), 3);
-					TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-					if (info.noTarget()) return noTarget(caster, args, info);
-					target = info.target();
-					power = info.power();
+		if (spawnLocation.startsWith("casteroffset:")) {
+			String[] split = spawnLocation.split(":", 2);
+
+			float y;
+			try {
+				y = Float.parseFloat(split[1]);
+			} catch (NumberFormatException e) {
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+
+			Location location = data.caster().getLocation().add(0, y, 0);
+			location.setPitch(0);
+
+			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, location);
+			if (!targetEvent.callEvent()) return noTarget(data);
+			data = targetEvent.getSpellData();
+		} else {
+			switch (spawnLocation) {
+				case "caster" -> {
+					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
+					if (!targetEvent.callEvent()) return noTarget(data);
+					data = targetEvent.getSpellData();
 				}
 				case "target" -> {
-					Block block = getTargetedBlock(caster, power, args);
-					if (block != null && !block.getType().isAir()) {
-						if (BlockUtils.isPathable(block)) loc = block.getLocation();
-						else if (BlockUtils.isPathable(block.getRelative(BlockFace.UP))) loc = block.getRelative(BlockFace.UP).getLocation();
+					Block block = getTargetedBlock(data);
+					if (block.getType().isAir()) return noTarget(data);
+
+					if (!block.isPassable()) {
+						Block upper = block.getRelative(BlockFace.UP);
+						if (!upper.isPassable()) return noTarget(data);
+						block = upper;
 					}
+
+					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, block.getLocation());
+					if (!targetEvent.callEvent()) return noTarget(data);
+					data = targetEvent.getSpellData();
 				}
-				case "caster" -> loc = caster.getLocation();
-				case "random" -> loc = getRandomLocationFrom(caster.getLocation(), getRange(power));
-				case "casteroffset" -> {
-					String[] split = location.split(":");
-					float y = Float.parseFloat(split[1]);
-					loc = caster.getLocation().add(0, y, 0);
-					loc.setPitch(0);
+				case "focus" -> {
+					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, getRandomLocationFrom(data.caster().getLocation(), data, 3));
+					if (!targetEvent.callEvent()) return noTarget(data);
+					data = targetEvent.getSpellData();
+
+					TargetInfo<LivingEntity> info = getTargetedEntity(data);
+					if (info.noTarget()) return noTarget(info);
+					data = info.spellData();
+				}
+				case "random" -> {
+					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, getRandomLocationFrom(data.caster().getLocation(), data, getRange(data)));
+					if (!targetEvent.callEvent()) return noTarget(data);
+					data = targetEvent.getSpellData();
+				}
+				default -> {
+					return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 				}
 			}
-
-			if (loc == null || !spawnMob(caster, caster.getLocation(), loc, target, power, args))
-				return noTarget(caster, args);
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		if (!data.hasLocation()) return noTarget(data);
+
+		return spawnMob(data.caster().getLocation(), data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		return switch (location.toLowerCase()) {
-			case "target" -> spawnMob(caster, caster.getLocation(), target, null, power, args);
-			case "caster" -> spawnMob(caster, caster.getLocation(), caster.getLocation(), null, power, args);
-			case "random" -> {
-				Location loc = getRandomLocationFrom(target, getRange(power));
-				yield loc != null && spawnMob(caster, caster.getLocation(), loc, null, power, args);
-			}
-			case "offset" -> {
-				String[] split = location.split(":");
-				float y = Float.parseFloat(split[1]);
-				Location loc = target.clone().add(0, y, 0);
-				loc.setPitch(0);
+	public CastResult castAtLocation(SpellData data) {
+		return castAtSpawnLocation(data, location.get(data).toLowerCase());
+	}
 
-				yield spawnMob(caster, caster.getLocation(), loc, null, power, args);
+	@Override
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		String loc = location.get(data).toLowerCase();
+		return loc.equals("focus") ? spawnMob(data.location(), data) : castAtSpawnLocation(data, loc);
+	}
+
+	private CastResult castAtSpawnLocation(SpellData data, String spawnLocation) {
+		if (spawnLocation.startsWith("offset:")) {
+			String[] split = spawnLocation.split(":", 2);
+
+			float y;
+			try {
+				y = Float.parseFloat(split[1]);
+			} catch (NumberFormatException e) {
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
-			default -> false;
+
+			Location location = data.location().add(0, y, 0);
+			location.setPitch(0);
+
+			Location source = data.hasCaster() ? data.caster().getLocation() : data.location();
+			data.location(location);
+
+			return spawnMob(source, data);
+		}
+
+		return switch (spawnLocation) {
+			case "caster" -> {
+				if (!data.hasCaster()) yield new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+				Location source = data.caster().getLocation();
+				data = data.location(source);
+
+				yield spawnMob(source, data);
+			}
+			case "target" -> {
+				Location source = data.hasCaster() ? data.caster().getLocation() : data.location();
+				yield spawnMob(source, data);
+			}
+			case "random" -> {
+				Location source = data.location();
+
+				Location location = getRandomLocationFrom(source, data, getRange(data));
+				if (location == null) yield noTarget(data);
+				data = data.location(location);
+
+				yield spawnMob(source, data);
+			}
+			default -> new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		};
 	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return switch (location.toLowerCase()) {
-			case "target", "caster" -> spawnMob(null, target, target, null, power, args);
-			case "random" -> {
-				Location loc = getRandomLocationFrom(target, getRange(power));
-				yield loc != null && spawnMob(null, target, loc, null, power, args);
-			}
-			case "offset" -> {
-				String[] split = location.split(":");
-				float y = Float.parseFloat(split[1]);
-				Location loc = target.clone().add(0, y, 0);
-				loc.setPitch(0);
-
-				yield spawnMob(null, target, loc, null, power, args);
-			}
-			default -> false;
-		};
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		if (location.equals("focus")) spawnMob(caster, from, from, target, power, args);
-		else castAtLocation(caster, from, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(caster, from, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		if (location.equals("focus")) spawnMob(null, from, from, target, power, args);
-		else castAtLocation(from, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(from, target, power, null);
-	}
-
-	private Location getRandomLocationFrom(Location location, int range) {
+	private Location getRandomLocationFrom(Location location, SpellData data, int range) {
 		World world = location.getWorld();
 		int x;
 		int y;
@@ -375,6 +387,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		Block block;
 		Block block2;
 
+		boolean allowSpawnInMidair = this.allowSpawnInMidair.get(data);
 		while (attempts < 10) {
 			x = location.getBlockX() + random.nextInt(range << 1) - range;
 			y = location.getBlockY() + 2;
@@ -398,16 +411,22 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		return null;
 	}
 
-	private boolean spawnMob(LivingEntity caster, Location source, Location loc, LivingEntity target, float power, String[] args) {
-		if (entityData == null) return false;
-		SpellData data = new SpellData(caster, target, power, args);
+	private CastResult spawnMob(Location source, SpellData data) {
+		if (entityData == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		Location loc = data.location();
 
 		loc.add(0, yOffset.get(data), 0);
-		if (centerLocation) loc = loc.toCenterLocation();
+		data = data.location(loc);
 
-		Entity entity = entityData.spawn(loc, data, mob -> prepMob(caster, target, mob, power, args));
+		if (centerLocation.get(data)) {
+			loc = loc.toBlockLocation().add(0.5, 0, 0.5);
+			data = data.location(loc);
+		}
 
-		if (entity == null) return false;
+		SpellData finalData = data;
+		Entity entity = entityData.spawn(loc, data, mob -> prepMob(mob, finalData));
+		if (entity == null) return noTarget(data);
 
 		entities.add(entity);
 
@@ -421,45 +440,43 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		if (spellOnSpawn != null) {
-			if (entity instanceof LivingEntity livingEntity) spellOnSpawn.subcast(caster, livingEntity, power, args);
-			else spellOnSpawn.subcast(caster, entity.getLocation(), power, args);
+			if (entity instanceof LivingEntity le) spellOnSpawn.subcast(data.retarget(le, null));
+			else spellOnSpawn.subcast(data.retarget(null, entity.getLocation()));
 		}
 
 		int targetInterval = this.targetInterval.get(data);
-		if (targetInterval > 0 && entity instanceof Mob mob) new Targeter(caster, mob, power, args, targetInterval);
+		if (targetInterval > 0 && entity instanceof Mob mob) new Targeter(mob, data, targetInterval);
 
 		if (attackSpell != null && entity instanceof LivingEntity livingEntity) {
-			AttackMonitor monitor = new AttackMonitor(caster, livingEntity, target, power, args);
+			AttackMonitor monitor = new AttackMonitor(livingEntity, data);
 			MagicSpells.registerEvents(monitor);
 
 			if (duration > 0) MagicSpells.scheduleDelayedTask(() -> HandlerList.unregisterAll(monitor), duration);
 		}
 
-		if (caster != null) playSpellEffects(caster, source, entity, data);
+		if (data.hasCaster()) playSpellEffects(data.caster(), source, entity, data);
 		else playSpellEffects(source, entity, data);
 
-		return true;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	private void prepMob(LivingEntity caster, LivingEntity target, Entity entity, float power, String[] args) {
-		SpellData data = new SpellData(caster, target, power, args);
-
-		entity.setGravity(gravity);
-		entity.setInvulnerable(invulnerable);
+	private void prepMob(Entity entity, SpellData data) {
+		entity.setGravity(gravity.get(data));
+		entity.setInvulnerable(invulnerable.get(data));
 
 		int fireTicks = this.fireTicks.get(data);
 		if (fireTicks > 0) entity.setFireTicks(fireTicks);
 
-		if (useCasterName && caster != null) {
-			if (caster instanceof Player player) entity.customName(player.displayName());
-			else entity.customName(caster.name());
+		if (useCasterName.get(data) && data.hasCaster()) {
+			if (data.caster() instanceof Player player) entity.customName(player.displayName());
+			else entity.customName(data.caster().name());
 			entity.setCustomNameVisible(true);
 		} else if (nameplateText != null) {
-			entity.customName(Util.getMiniMessage(MagicSpells.doReplacements(nameplateText, caster, target, args)));
+			entity.customName(nameplateText.get(data));
 			entity.setCustomNameVisible(true);
 		}
 
-		if (setOwner && entity instanceof Tameable tameable && tameable.isTamed() && caster instanceof AnimalTamer tamer)
+		if (setOwner.get(data) && entity instanceof Tameable tameable && tameable.isTamed() && data.caster() instanceof AnimalTamer tamer)
 			tameable.setOwner(tamer);
 
 		if (entity instanceof Enderman enderman && mainHandItem != null) {
@@ -490,8 +507,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			if (potionEffects != null) livingEntity.addPotionEffects(potionEffects);
 			if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(livingEntity, attributes);
 
-			if (removeAI) {
-				if (addLookAtPlayerAI && livingEntity instanceof Mob mob) {
+			if (removeAI.get(data)) {
+				if (addLookAtPlayerAI.get(data) && livingEntity instanceof Mob mob) {
 					MobGoals mobGoals = Bukkit.getMobGoals();
 
 					mobGoals.removeAllGoals(mob);
@@ -499,31 +516,33 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				} else livingEntity.setAI(false);
 			}
 
-			if (noAI) livingEntity.setAI(false);
-			if (livingEntity instanceof Mob mob) mob.setTarget(target);
+			if (noAI.get(data)) livingEntity.setAI(false);
+			if (livingEntity instanceof Mob mob && data.hasTarget()) mob.setTarget(data.target());
 		}
 	}
 
 	@EventHandler
 	private void onEntityRemove(EntityRemoveFromWorldEvent event) {
-		if (removeMob) entities.remove(event.getEntity());
+		Entity entity = event.getEntity();
+		if (!entity.isValid()) entities.remove(entity);
 	}
 
 	private class AttackMonitor implements Listener {
 
-		private final LivingEntity caster;
 		private final LivingEntity monster;
-		private final String[] args;
-		private final float power;
+		private final SpellData data;
+
+		private final boolean cancelAttack;
 
 		private LivingEntity target;
 
-		private AttackMonitor(LivingEntity caster, LivingEntity monster, LivingEntity target, float power, String[] args) {
-			this.caster = caster;
+		private AttackMonitor(LivingEntity monster, SpellData data) {
 			this.monster = monster;
-			this.target = target;
-			this.power = power;
-			this.args = args;
+			this.target = data.target();
+
+			this.cancelAttack = SpawnEntitySpell.this.cancelAttack.get(data);
+
+			this.data = data.noTargeting();
 		}
 
 		@EventHandler(ignoreCancelled = true)
@@ -535,7 +554,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			if (damager != monster) return;
 
 			if (event.getEntity() instanceof LivingEntity damaged) {
-				attackSpell.subcast(caster, monster.getLocation(), damaged, power, args);
+				attackSpell.subcast(data.retarget(damaged, monster.getLocation()));
 				event.setCancelled(cancelAttack);
 			}
 		}
@@ -545,7 +564,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			if (event.getEntity() != monster) return;
 
 			Entity newTarget = event.getTarget();
-			if (!validTargetList.canTarget(caster, newTarget)) {
+			if (!validTargetList.canTarget(data.caster(), newTarget)) {
 				if (target == null) retarget(null);
 				event.setTarget(target);
 			}
@@ -568,6 +587,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		@EventHandler(ignoreCancelled = true)
 		public void onRemove(EntityRemoveFromWorldEvent event) {
 			Entity entity = event.getEntity();
+			if (entity.isValid()) return;
+
 			if (entity == monster) {
 				HandlerList.unregisterAll(this);
 				return;
@@ -580,14 +601,14 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		private void retarget(LivingEntity ignore) {
-			double range = retargetRange.get(caster, null, power, args);
+			double range = retargetRange.get(data);
 			double rangeSquared = range * range;
 			double distanceSquared;
 
 			for (LivingEntity entity : monster.getLocation().getNearbyLivingEntities(range)) {
 				if (!entity.isValid()) continue;
 				if (entity.equals(ignore)) continue;
-				if (!validTargetList.canTarget(caster, entity)) continue;
+				if (!validTargetList.canTarget(data.caster(), entity)) continue;
 
 				distanceSquared = monster.getLocation().distanceSquared(entity.getLocation());
 				if (distanceSquared > rangeSquared) continue;
@@ -603,15 +624,11 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 		private final Mob mob;
 
-		private final LivingEntity caster;
-		private final String[] args;
-		private final float power;
+		private final SpellData data;
 		private final int taskId;
 
-		private Targeter(LivingEntity caster, Mob mob, float power, String[] args, int interval) {
-			this.caster = caster;
-			this.power = power;
-			this.args = args;
+		private Targeter(Mob mob, SpellData data, int interval) {
+			this.data = data.noTargeting();
 			this.mob = mob;
 
 			this.taskId = MagicSpells.scheduleRepeatingTask(this, 1, interval);
@@ -624,12 +641,12 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				return;
 			}
 
-			double range = targetRange.get(caster, null, power, args);
+			double range = targetRange.get(data);
 
 			List<LivingEntity> targets = new ArrayList<>(mob.getLocation().getNearbyLivingEntities(range));
 			Iterator<LivingEntity> iterator = targets.iterator();
 			while (iterator.hasNext()) {
-				if (validTargetList.canTarget(caster, iterator.next())) continue;
+				if (validTargetList.canTarget(data.caster(), iterator.next())) continue;
 				iterator.remove();
 			}
 

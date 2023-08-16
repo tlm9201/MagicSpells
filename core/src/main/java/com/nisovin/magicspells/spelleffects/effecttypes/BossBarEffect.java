@@ -10,159 +10,137 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
 
-	private final static Map<String, Integer> tasks = new HashMap<>();
+	private static final Map<String, Integer> tasks = new HashMap<>();
 
 	private String namespaceKey;
+
 	private String title;
-	private String color;
-	private String style;
 
-	private String strVar;
-	private Variable variable;
-	private String maxVar;
-	private Variable maxVariable;
-	private double maxValue;
+	private ConfigData<Boolean> remove;
+	private ConfigData<Boolean> visible;
+	private ConfigData<Boolean> broadcast;
+	private ConfigData<Boolean> useViewerAsTarget;
 
-	private BarColor barColor;
-	private BarStyle barStyle;
+	private ConfigData<Integer> duration;
 
-	private int duration;
-	private double progress;
+	private ConfigData<Double> progress;
+	private ConfigData<Double> maxValue;
 
-	private boolean remove;
-	private boolean visible;
-	private boolean broadcast;
+	private ConfigData<BarColor> barColor;
+	private ConfigData<BarStyle> barStyle;
+
+	private ConfigData<String> variable;
+	private ConfigData<String> maxVariable;
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		namespaceKey = config.getString("namespace-key");
 		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
-			MagicSpells.error("BossBarEffect '"
-					+ config.getCurrentPath()
-					+ "' has a wrong namespace-key '"
-					+ namespaceKey + "' defined!");
+			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
 		}
-
-		broadcast = config.getBoolean("broadcast", false);
-
-		remove = config.getBoolean("remove", false);
-		if (remove) return;
 
 		title = config.getString("title", "");
-		color = config.getString("color", "red");
-		style = config.getString("style", "solid");
-		strVar = config.getString("variable", "");
-		maxValue = config.getDouble("max-value", 100);
-		maxVar = config.getString("max-variable", "");
-		visible = config.getBoolean("visible", true);
 
-		try {
-			barColor = BarColor.valueOf(color.toUpperCase());
-		} catch (IllegalArgumentException ignored) {
-			barColor = BarColor.WHITE;
-			MagicSpells.error("BossBarEffect '"
-					+ config.getCurrentPath()
-					+ "' has a wrong bar color '"
-					+ color + "' defined!");
-		}
+		remove = ConfigDataUtil.getBoolean(config, "remove", false);
+		visible = ConfigDataUtil.getBoolean(config, "visible", true);
+		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
+		useViewerAsTarget = ConfigDataUtil.getBoolean(config, "use-viewer-as-target", false);
 
-		try {
-			barStyle = BarStyle.valueOf(style.toUpperCase());
-		} catch (IllegalArgumentException ignored) {
-			barStyle = BarStyle.SOLID;
-			MagicSpells.error("BossBarEffect '"
-					+ config.getCurrentPath()
-					+ "' has a wrong bar style '"
-					+ style + "' defined!");
-		}
+		duration = ConfigDataUtil.getInteger(config, "duration", 60);
 
-		duration = config.getInt("duration", 60);
-		progress = config.getDouble("progress", 1);
-		if (progress > 1) progress = 1;
-		if (progress < 0) progress = 0;
-	}
+		progress = ConfigDataUtil.getDouble(config, "progress", 1);
+		maxValue = ConfigDataUtil.getDouble(config, "max-value", 100);
 
-	@Override
-	public void initializeModifiers(Spell spell) {
-		super.initializeModifiers(spell);
+		barColor = ConfigDataUtil.getEnum(config, "color", BarColor.class, BarColor.RED);
+		barStyle = ConfigDataUtil.getEnum(config, "style", BarStyle.class, BarStyle.SOLID);
 
-		if (remove) return;
-
-		variable = MagicSpells.getVariableManager().getVariable(strVar);
-		if (variable == null && !strVar.isEmpty()) {
-			MagicSpells.error("Wrong variable defined! '" + strVar + "'");
-		}
-
-		maxVariable = MagicSpells.getVariableManager().getVariable(maxVar);
-		if (maxVariable == null && !maxVar.isEmpty()) {
-			MagicSpells.error("Wrong variable defined! '" + maxVar + "'");
-		}
+		variable = ConfigDataUtil.getString(config, "variable", null);
+		maxVariable = ConfigDataUtil.getString(config, "max-variable", null);
 	}
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
-		if (!remove && (barStyle == null || barColor == null)) return null;
+//		if (!remove && (barStyle == null || barColor == null)) return null;
+//		if (broadcast) Util.forEachPlayerOnline(this::createBar);
+//		else if (entity instanceof Player) createBar((Player) entity);
+//		return null;
+		boolean useViewerAsTarget = this.useViewerAsTarget.get(data);
 
-		if (broadcast) Util.forEachPlayerOnline(this::createBar);
-		else if (entity instanceof Player pl) createBar(pl);
+		if (broadcast.get(data)) {
+			Util.forEachPlayerOnline(player -> {
+				SpellData subData = useViewerAsTarget ? data.target(player) : data;
+				updateBar(player, subData);
+			});
+
+			return null;
+		}
+
+		if (entity instanceof Player player) updateBar(player, useViewerAsTarget ? data.target(player) : data);
 
 		return null;
 	}
 
-	private void createBar(Player player) {
+	@Override
+	public void turnOff() {
+		for (int i : tasks.values()) Bukkit.getScheduler().cancelTask(i);
+		tasks.clear();
+	}
+
+	private void updateBar(Player player, SpellData data) {
+		boolean remove = this.remove.get(data);
+
 		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey, !remove);
-		String key;
 		if (remove) {
-			if (bar == null) return;
-			key = bar.getNamespaceKey();
-			if (tasks.containsKey(key)) {
-				Bukkit.getScheduler().cancelTask(tasks.get(key));
-				tasks.remove(key);
-			}
-			bar.remove();
+			if (bar != null) bar.remove();
 			return;
 		}
 
-		double progress = this.progress;
-		if (variable != null) {
-			progress = variable.getValue(player) / (maxVariable == null ? maxValue : maxVariable.getValue(player));
+		double maxValue;
+		String maxVariable = this.maxVariable.get(data);
+		if (maxVariable != null) {
+			Variable maxVar = MagicSpells.getVariableManager().getVariable(maxVariable);
 
-			if (progress < 0D) progress = 0D;
-			if (progress > 1D) progress = 1D;
-		}
+			if (maxVar != null) maxValue = maxVar.getValue(player);
+			else maxValue = this.maxValue.get(data);
+		} else maxValue = this.maxValue.get(data);
+
+		double progress;
+		String variable = this.variable.get(data);
+		if (variable != null) {
+			Variable var = MagicSpells.getVariableManager().getVariable(variable);
+
+			if (var != null) progress = var.getValue(player) / maxValue;
+			else progress = this.progress.get(data);
+		} else progress = this.progress.get(data);
+
+		progress = Math.min(Math.max(progress, 0), 1);
 
 		String title = Util.doVarReplacementAndColorize(player, this.title);
-		bar.set(title, progress, barStyle, barColor, visible);
-		key = bar.getNamespaceKey();
+		bar.set(title, progress, barStyle.get(data), barColor.get(data), visible.get(data));
 
+		int duration = this.duration.get(data);
 		if (duration > 0) {
+			String key = bar.getNamespaceKey();
 			if (tasks.containsKey(key)) Bukkit.getScheduler().cancelTask(tasks.get(key));
 
 			int task = MagicSpells.scheduleDelayedTask(() -> {
-				tasks.remove(bar.getNamespaceKey());
-                bar.remove();
-            }, duration);
+				tasks.remove(key);
+				bar.remove();
+			}, duration);
 
 			tasks.put(key, task);
 		}
-	}
-
-	@Override
-	public void turnOff() {
-		for (int i : tasks.values()) {
-			Bukkit.getScheduler().cancelTask(i);
-		}
-		tasks.clear();
 	}
 
 }

@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerItemConsumeEvent;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.CastItem;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.Spell.SpellCastResult;
 
@@ -47,7 +48,7 @@ public class ConsumeListener implements Listener {
 		lastCast.put(player.getName(), System.currentTimeMillis());
 
 		if (MagicSpells.getSpellbook(player).canCast(spell)) {
-			SpellCastResult result = spell.cast(player);
+			SpellCastResult result = spell.hardCast(new SpellData(player));
 			if (result.state != SpellCastState.NORMAL) event.setCancelled(true);
 		}
 	}

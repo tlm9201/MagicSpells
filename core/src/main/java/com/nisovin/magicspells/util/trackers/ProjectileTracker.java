@@ -85,11 +85,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 	private Location previousLocation;
 	private Location currentLocation;
 	private Location startLocation;
-	private LivingEntity caster;
 	private Vector currentVelocity;
-	private SpellData spellData;
-	private String[] args;
-	private float power;
+	private SpellData data;
 	private long startTime;
 
 	private ValidTargetList targetList;
@@ -99,13 +96,9 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 	private boolean stopped = false;
 
-	public ProjectileTracker(LivingEntity caster, Location startLocation, float power, String[] args) {
-		this.caster = caster;
-		this.power = power;
-		this.args = args;
-		this.startLocation = startLocation;
-
-		spellData = new SpellData(caster, power, args);
+	public ProjectileTracker(SpellData data) {
+		this.startLocation = data.location();
+		this.data = data;
 	}
 
 	public void start() {
@@ -128,7 +121,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass());
 		currentVelocity = startLocation.getDirection();
-		currentVelocity.multiply(velocity * power);
+		currentVelocity.multiply(velocity * data.power());
 		if (rotation != 0) Util.rotateVector(currentVelocity, rotation);
 		if (horizSpread > 0 || vertSpread > 0) {
 			float rx = -1 + rand.nextFloat() * 2;
@@ -139,8 +132,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		projectile.setVisibleByDefault(visible);
 		projectile.setVelocity(currentVelocity);
+		projectile.setShooter(data.caster());
 		projectile.setGravity(gravity);
-		projectile.setShooter(caster);
 		if (projectileName != null && !Util.getPlainString(projectileName).isEmpty()) {
 			projectile.customName(projectileName);
 			projectile.setCustomNameVisible(true);
@@ -149,17 +142,18 @@ public class ProjectileTracker implements Runnable, Tracker {
 		if (projectile instanceof Explosive explosive) explosive.setIsIncendiary(incendiary);
 
 		if (spell != null) {
-			spell.playEffects(EffectPosition.CASTER, startLocation, spellData);
-			effectSet = spell.playEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, spellData);
-			entityMap = spell.playEntityEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, spellData);
-			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), caster, projectile, spellData);
+			spell.playEffects(EffectPosition.CASTER, startLocation, data);
+			effectSet = spell.playEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, data);
+			entityMap = spell.playEntityEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, data);
+			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), data.caster(), projectile, data);
 		}
+
 		ProjectileSpell.getProjectileTrackers().add(this);
 	}
 
 	@Override
 	public void run() {
-		if ((caster != null && !caster.isValid())) {
+		if (data.hasCaster() && !data.caster().isValid()) {
 			stop();
 			return;
 		}
@@ -175,20 +169,18 @@ public class ProjectileTracker implements Runnable, Tracker {
 		}
 
 		if (projectileModifiers != null) {
-			ModifierResult result = projectileModifiers.apply(caster, spellData);
-			spellData = result.data();
-			power = spellData.power();
-			args = spellData.args();
+			ModifierResult result = projectileModifiers.apply(data.caster(), data);
+			data = result.data();
 
 			if (!result.check()) {
-				if (modifierSpell != null) modifierSpell.subcast(caster, currentLocation, power, args);
+				if (modifierSpell != null) modifierSpell.subcast(data);
 				if (stopOnModifierFail) stop();
 				return;
 			}
 		}
 
 		if (maxDuration > 0 && startTime + maxDuration < System.currentTimeMillis()) {
-			if (durationSpell != null) durationSpell.subcast(caster, currentLocation, power, args);
+			if (durationSpell != null) durationSpell.subcast(data);
 			stop();
 			return;
 		}
@@ -203,10 +195,12 @@ public class ProjectileTracker implements Runnable, Tracker {
 			if (stopped) return;
 		}
 
-		if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.subcast(caster, currentLocation, power, args);
+		data = data.location(currentLocation);
+
+		if (counter % tickSpellInterval == 0 && tickSpell != null) tickSpell.subcast(data);
 
 		if (spell != null) {
-			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, spellData);
+			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, data);
 			if (intermediateEffects > 0) playIntermediateEffects(previousLocation, currentVelocity);
 		}
 
@@ -218,7 +212,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 				effect = spellEffect.getEffect();
 				if (effect == null) continue;
 
-				effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone(), spellData);
+				effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone(), data);
 				effect.setLocation(effectLoc);
 
 				if (effect instanceof ModifiedEffect mod) {
@@ -261,7 +255,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		for (int i = 0; i < intermediateEffects; i++) {
 			old = old.add(v).setDirection(v);
-			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, old, spellData);
+			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, old, data);
 		}
 	}
 
@@ -281,16 +275,17 @@ public class ProjectileTracker implements Runnable, Tracker {
 	}
 
 	public void checkHitbox(Location location) {
-		if (location == null) return;
-		if (caster == null) return;
-		for (LivingEntity entity : projectile.getLocation().getNearbyLivingEntities(hitRadius, verticalHitRadius, hitRadius)) {
-			if (!targetList.canTarget(caster, entity)) continue;
+		if (location == null || !data.hasCaster()) return;
 
-			SpellTargetEvent event = new SpellTargetEvent(spell, caster, entity, power, args);
+		for (LivingEntity entity : projectile.getLocation().getNearbyLivingEntities(hitRadius, verticalHitRadius, hitRadius)) {
+			if (!targetList.canTarget(data.caster(), entity)) continue;
+
+			SpellTargetEvent event = new SpellTargetEvent(spell, data, entity);
 			if (!event.callEvent()) continue;
 
-			if (hitSpell != null) hitSpell.subcast(caster, entity, event.getPower(), args);
-			if (entityLocationSpell != null) entityLocationSpell.subcast(caster, currentLocation, event.getPower(), args);
+			SpellData subData = event.getSpellData();
+			if (hitSpell != null) hitSpell.subcast(subData.noLocation());
+			if (entityLocationSpell != null) entityLocationSpell.subcast(subData.noTarget());
 
 			stop();
 			return;
@@ -304,7 +299,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 	public void stop(boolean removeTracker) {
 		if (spell != null) {
-			spell.playEffects(EffectPosition.DELAYED, currentLocation, spellData);
+			spell.playEffects(EffectPosition.DELAYED, currentLocation, data);
 			if (removeTracker) ProjectileSpell.getProjectileTrackers().remove(this);
 		}
 		MagicSpells.cancelTask(taskId);
@@ -322,7 +317,6 @@ public class ProjectileTracker implements Runnable, Tracker {
 			}
 			entityMap.clear();
 		}
-		caster = null;
 		currentLocation = null;
 		if (projectile != null) projectile.remove();
 		projectile = null;
@@ -602,11 +596,11 @@ public class ProjectileTracker implements Runnable, Tracker {
 	}
 
 	public LivingEntity getCaster() {
-		return caster;
+		return data.caster();
 	}
 
 	public void setCaster(LivingEntity caster) {
-		this.caster = caster;
+		data = data.caster(caster);
 	}
 
 	public Vector getCurrentVelocity() {
@@ -618,11 +612,11 @@ public class ProjectileTracker implements Runnable, Tracker {
 	}
 
 	public float getPower() {
-		return power;
+		return data.power();
 	}
 
 	public void setPower(float power) {
-		this.power = power;
+		data = data.power(power);
 	}
 
 	public long getStartTime() {
@@ -650,19 +644,19 @@ public class ProjectileTracker implements Runnable, Tracker {
 	}
 
 	public String[] getArgs() {
-		return args;
+		return data.args();
 	}
 
 	public void setArgs(String[] args) {
-		this.args = args;
+		data = data.args(args);
 	}
 
 	public SpellData getSpellData() {
-		return spellData;
+		return data;
 	}
 
-	public void setSpellData(SpellData spellData) {
-		this.spellData = spellData;
+	public void setSpellData(SpellData data) {
+		this.data = data;
 	}
 
 }

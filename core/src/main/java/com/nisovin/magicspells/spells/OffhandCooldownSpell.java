@@ -5,21 +5,18 @@ import java.util.Iterator;
 import java.util.ArrayList;
 
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class OffhandCooldownSpell extends InstantSpell {
 
-	private List<Player> players = new ArrayList<>();
-
+	private final List<Player> players = new ArrayList<>();
 
 	private ItemStack item;
 
@@ -45,6 +42,7 @@ public class OffhandCooldownSpell extends InstantSpell {
 		super.initialize();
 
 		spellToCheck = MagicSpells.getSpellByInternalName(spellToCheckName);
+		spellToCheckName = null;
 
 		if (spellToCheck == null || item == null) return;
 		
@@ -74,11 +72,13 @@ public class OffhandCooldownSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			players.add(player);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		players.add(caster);
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

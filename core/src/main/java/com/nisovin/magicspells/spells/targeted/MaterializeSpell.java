@@ -12,13 +12,9 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
@@ -143,136 +139,151 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			List<Block> lastTwo;
-			try {
-				lastTwo = getLastTwoTargetedBlocks(player, power, args);
-			} catch (IllegalStateException e) {
-				DebugHandler.debugIllegalState(e);
-				lastTwo = null;
-			}
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			if (lastTwo == null || lastTwo.size() != 2) return noTarget(player, args);
-			if (!BlockUtils.isAir(lastTwo.get(0).getType()) || BlockUtils.isAir(lastTwo.get(1).getType())) return noTarget(player, args);
+		List<Block> lastTwo;
+		try {
+			lastTwo = getLastTwoTargetedBlocks(data);
+		} catch (IllegalStateException e) {
+			DebugHandler.debugIllegalState(e);
+			lastTwo = null;
+		}
 
-			Block block = lastTwo.get(0);
-			Block against = lastTwo.get(1);
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, player, block.getLocation(), power, args);
-			EventUtil.call(event);
-			if (event.isCancelled()) return noTarget(player, strFailed, args);
-			block = event.getTargetLocation().getBlock();
-			power = event.getPower();
+		if (lastTwo == null || lastTwo.size() != 2) return noTarget(data);
+		if (!BlockUtils.isAir(lastTwo.get(0).getType()) || BlockUtils.isAir(lastTwo.get(1).getType()))
+			return noTarget(data);
 
-			if (!hasMiddle) {
-				boolean done = materialize(player, block, against, power, args);
-				if (!done) return noTarget(player, strFailed, args);
-				return PostCastAction.HANDLE_NORMALLY;
-			}
+		Block block = lastTwo.get(0);
+		Block against = lastTwo.get(1);
 
-			//Unfortunately, shape array placement is world relative, will fix later.
-			//This is the top-left edge of the shape array
-			Location patternStart = against.getLocation();
+		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation());
+		if (!event.callEvent()) return noTarget(strFailed, data);
 
-			patternStart.setX(against.getX() - Math.ceil(rowSize / 2F));
-			patternStart.setZ(against.getZ() - Math.ceil(columnSize / 2F));
+		data = event.getSpellData();
+		block = event.getTargetLocation().getBlock();
 
-			//spawnBlock is the current position in the loop where it will spawn the block
-			Location spawnBlock = patternStart;
+		if (!hasMiddle) {
+			boolean done = materialize(caster, block, against, data);
+			if (!done) return noTarget(strFailed, data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		}
 
-			Block air;
-			Block ground;
+		//Unfortunately, shape array placement is world relative, will fix later.
+		//This is the top-left edge of the shape array
+		Location patternStart = against.getLocation();
+
+		patternStart.setX(against.getX() - Math.ceil(rowSize / 2F));
+		patternStart.setZ(against.getZ() - Math.ceil(columnSize / 2F));
+
+		//spawnBlock is the current position in the loop where it will spawn the block
+		Location spawnBlock = patternStart;
+
+		Block air;
+		Block ground;
 
 			/*The row position dictates which block within a row pattern will be used
 			when placing the new block.*/
-			int rowPosition = 0;
+		int rowPosition = 0;
 
-			int height = this.height.get(caster, null, power, args);
+		int height = this.height.get(data);
 
-			//If height is 0, the code ceases to function. Lets not have that.
-			if (height == 0) height = 1;
+		//If height is 0, the code ceases to function. Lets not have that.
+		if (height == 0) height = 1;
 
-			//Lets start at the bottom floor then work our way up; or down if height is less than 0.
-			for (int y = 0; y < height; y++) {
+		//Lets start at the bottom floor then work our way up; or down if height is less than 0.
+		for (int y = 0; y < height; y++) {
 				/*The pattern position is the pattern being read for a specific row
 				This should always reset when it goes over into a new height.*/
-				int patternPosition = 0;
+			int patternPosition = 0;
 
-				//The block placement loop will start finish a row of coloumns then move down a row..
-				for (int z = 0; z < columnSize; z++) {
-					//Everytime a shape row is finished, we need to start at the topleft and move down 1 row.
-					spawnBlock = patternStart.clone().add(0, y, z);
+			//The block placement loop will start finish a row of coloumns then move down a row..
+			for (int z = 0; z < columnSize; z++) {
+				//Everytime a shape row is finished, we need to start at the topleft and move down 1 row.
+				spawnBlock = patternStart.clone().add(0, y, z);
 
-					//Lets parse the list of patterns for that row.
-					if (patterns != null && patternPosition >= patterns.size()) patternPosition = 0;
+				//Lets parse the list of patterns for that row.
+				if (patterns != null && patternPosition >= patterns.size()) patternPosition = 0;
 
-					int rowLength = getRowLength(patternPosition);
+				int rowLength = getRowLength(patternPosition);
 
-					//If they want the pattern to restart on each row, reset rowpositon to 0.
-					if (restartPatternEachRow) rowPosition = 0;
+				//If they want the pattern to restart on each row, reset rowpositon to 0.
+				if (restartPatternEachRow) rowPosition = 0;
 
-					//Lets spawn a block on each column before we move down a row.
-					for (int x = 0; x < rowSize; x++) {
-						ground = spawnBlock.getBlock();
-						air = ground.getRelative(BlockFace.UP);
+				//Lets spawn a block on each column before we move down a row.
+				for (int x = 0; x < rowSize; x++) {
+					ground = spawnBlock.getBlock();
+					air = ground.getRelative(BlockFace.UP);
 
 						/*Now if we are looking for a block outside of the rowlist range.
 						We need to go back to the start and repeat that row pattern*/
-						if (rowPosition >= rowLength) rowPosition = 0;
+					if (rowPosition >= rowLength) rowPosition = 0;
 
-						//Doesn't really become a pattern if you randomize it but ok!
-						if (!stretchPattern || y < 1)
-							material = blockGenerator(randomizePattern, patternPosition, rowPosition);
-						else material = ground.getType();
+					//Doesn't really become a pattern if you randomize it but ok!
+					if (!stretchPattern || y < 1)
+						material = blockGenerator(randomizePattern, patternPosition, rowPosition);
+					else material = ground.getType();
 
-						//Add one to the row position so that it will move to the next block.
-						rowPosition++;
+					//Add one to the row position so that it will move to the next block.
+					rowPosition++;
 
-						//As soon as a block can't be spawned, it will return an error.
-						boolean done = materialize(player, air, ground, power, args);
-						if (!done) return noTarget(player, strFailed, args);
+					//As soon as a block can't be spawned, it will return an error.
+					boolean done = materialize(caster, air, ground, data.location(block.getLocation()));
+					if (!done) return noTarget(strFailed, data);
 
-						//Done with placing that one block? Move on to the next one.
-						spawnBlock.setX((ground.getX() + 1));
-					}
-					//If multiple patterns were requested, lets move to the next line.
-					patternPosition++;
+					//Done with placing that one block? Move on to the next one.
+					spawnBlock.setX((ground.getX() + 1));
 				}
+				//If multiple patterns were requested, lets move to the next line.
+				patternPosition++;
+			}
+		}
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
+
+	@Override
+	public CastResult castAtLocation(SpellData data) {
+		if (!data.hasCaster()) {
+			Block block = data.location().getBlock();
+			if (block.getType().isAir()) {
+				boolean done = materialize(null, block, block, data);
+				return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
 			}
 
+			Block block2 = block.getRelative(BlockFace.UP);
+			if (block2.getType().isAir()) {
+				data = data.location(block2.getLocation());
+
+				boolean done = materialize(null, block2, block, data);
+				return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
+			}
+
+			return noTarget(strFailed, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (!(caster instanceof Player player)) return false;
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		Location target = data.location();
+
 		Block block = target.getBlock();
-		Block against = target.clone().add(target.getDirection()).getBlock();
+		Block against = target.add(target.getDirection()).getBlock();
 		if (block.equals(against)) against = block.getRelative(BlockFace.DOWN);
-		if (block.getType() == Material.AIR) return materialize(player, block, against, power, args);
+
+		if (block.getType().isAir()) {
+			boolean done = materialize(caster, block, against, data);
+			return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
+		}
+
 		Block block2 = block.getRelative(BlockFace.UP);
-		if (block2.getType() == Material.AIR) return materialize(null, block2, block, power, args);
-		return false;
-	}
+		if (block2.getType().isAir()) {
+			data = data.location(block2.getLocation());
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
+			boolean done = materialize(caster, block2, block, data);
+			return done ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strFailed, data);
+		}
 
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		Block block = target.getBlock();
-		if (block.getType() == Material.AIR) return materialize(null, block, block, power, args);
-		Block block2 = block.getRelative(BlockFace.UP);
-		if (block2.getType() == Material.AIR) return materialize(null, block2, block, power, args);
-		return false;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(target, power, null);
+		return noTarget(strFailed, data);
 	}
 
 	private int getRowLength(int patternPosition) {
@@ -320,7 +331,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		return mat;
 	}
 
-	private boolean materialize(Player player, Block block, Block against, float power, String[] args) {
+	private boolean materialize(Player player, Block block, Block against, SpellData data) {
 		BlockState blockState = block.getState();
 
 		if (checkPlugins && player != null) {
@@ -332,9 +343,8 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		}
 		if (!falling) block.setType(material, applyPhysics);
 		else
-			block.getLocation().getWorld().spawnFallingBlock(block.getLocation().add(0.5, fallHeight.get(player, null, power, args), 0.5), material.createBlockData());
+			block.getLocation().getWorld().spawnFallingBlock(block.getLocation().add(0.5, fallHeight.get(data), 0.5), material.createBlockData());
 
-		SpellData data = new SpellData(player, power, args);
 		playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
 		if (player != null) {
 			playSpellEffects(EffectPosition.CASTER, player, data);

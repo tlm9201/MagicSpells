@@ -1,49 +1,42 @@
 package com.nisovin.magicspells.spells.buff;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.util.Vector;
+import org.bukkit.block.BlockFace;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Stairs;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+
 import io.papermc.paper.event.entity.EntityMoveEvent;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
-
 import com.nisovin.magicspells.util.config.ConfigData;
+
 public class WalkwaySpell extends BuffSpell {
 
 	private final Map<UUID, Platform> entities;
 
-	private Material material;
+	private final ConfigData<BlockData> stairType;
+	private final ConfigData<BlockData> platformType;
 
-	private ConfigData<Integer> size;
+	private final ConfigData<Integer> size;
 
 	private WalkwayListener listener;
 
 	public WalkwaySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		String materialName = getConfigString("platform-type", "OAK_WOOD");
-		material = Util.getMaterial(materialName);
-		if (material == null || !material.isBlock()) {
-			MagicSpells.error("WalkwaySpell '" + internalName + "' has an invalid platform-type defined!");
-			material = null;
-		}
+		stairType = getConfigDataBlockData("stair-type", null);
+		platformType = getConfigDataBlockData("platform-type", Material.OAK_PLANKS.createBlockData());
 
 		size = getConfigDataInt("size", 6);
 
@@ -51,8 +44,8 @@ public class WalkwaySpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new Platform(entity, material, size.get(entity, null, power, args)));
+	public boolean castBuff(SpellData data) {
+		entities.put(data.target().getUniqueId(), new Platform(data));
 		registerListener();
 		return true;
 	}
@@ -95,22 +88,13 @@ public class WalkwaySpell extends BuffSpell {
 		return entities;
 	}
 
-	public Material getMaterial() {
-		return material;
-	}
-
-	public void setMaterial(Material material) {
-		this.material = material;
-	}
-
 	public class WalkwayListener implements Listener {
 
 		private void handleMove(LivingEntity entity) {
 			Platform carpet = entities.get(entity.getUniqueId());
 			if (carpet == null) return;
 
-			boolean moved = carpet.move();
-			if (moved) addUseAndChargeCost(entity);
+			carpet.move();
 		}
 
 		@EventHandler(priority = EventPriority.MONITOR)
@@ -118,7 +102,7 @@ public class WalkwaySpell extends BuffSpell {
 			handleMove(event.getPlayer());
 		}
 
-		@EventHandler(priority=EventPriority.MONITOR)
+		@EventHandler(priority = EventPriority.MONITOR)
 		public void onEntityMove(EntityMoveEvent event) {
 			handleMove(event.getEntity());
 		}
@@ -136,81 +120,97 @@ public class WalkwaySpell extends BuffSpell {
 
 	}
 
-	private static class Platform {
-		
-		private LivingEntity entity;
-		private Material materialPlatform;
-		private int sizePlatform;
-		private List<Block> platform;
+	private class Platform {
+
+		private static final double THRESHOLD = Math.nextDown(Math.sqrt(0.5));
+
+		private final List<Block> platform;
+		private final LivingEntity entity;
+
+		private final int size;
+		private final BlockData stairType;
+		private final BlockData platformType;
 
 		private int prevX;
 		private int prevZ;
-		private int prevDirX;
-		private int prevDirY;
-		private int prevDirZ;
+		private int prevModX;
+		private int prevModY;
+		private int prevModZ;
 
-		private Platform(LivingEntity entity, Material material, int size) {
-			this.entity = entity;
-			this.materialPlatform = material;
-			this.sizePlatform = size;
-			this.platform = new ArrayList<>();
+		private Platform(SpellData data) {
+			this.entity = data.target();
+
+			size = WalkwaySpell.this.size.get(data);
+
+			platformType = WalkwaySpell.this.platformType.get(data);
+
+			BlockData stairType = WalkwaySpell.this.stairType.get(data);
+			if (stairType == null) {
+				if (platformType.getMaterial() == Material.OAK_PLANKS)
+					this.stairType = Material.OAK_STAIRS.createBlockData();
+				else if (platformType.getMaterial() == Material.COBBLESTONE)
+					this.stairType = Material.COBBLESTONE_STAIRS.createBlockData();
+				else this.stairType = platformType;
+			} else this.stairType = stairType;
+
+			platform = new ArrayList<>();
 
 			move();
+			addUseAndChargeCost(data.target());
 		}
 
-		private boolean move() {
-			Block origin = entity.getLocation().subtract(0, 1, 0).getBlock();
+		private void move() {
+			Location location = entity.getLocation();
+			Block origin = location.getBlock().getRelative(BlockFace.DOWN);
 
-			int dirX = 0;
-			int dirY = 0;
-			int dirZ = 0;
+			float pitch = location.getPitch();
+			float yaw = location.getYaw();
 
-			int x = origin.getX();
-			int z = origin.getZ();
+			int x = location.getBlockX();
+			int z = location.getBlockZ();
 
-			Vector dir = entity.getLocation().getDirection().setY(0).normalize();
-			if (dir.getX() > .7) dirX = 1;
-			else if (dir.getX() < -.7) dirX = -1;
-			else dirX = 0;
+			double dirX = -Math.sin(Math.toRadians(yaw));
+			double dirZ = Math.cos(Math.toRadians(yaw));
 
-			if (dir.getZ() > .7) dirZ = 1;
-			else if (dir.getZ() < -.7) dirZ = -1;
-			else dirZ = 0;
+			int modX, modY, modZ;
 
-			double pitch = entity.getLocation().getPitch();
-			if (this.prevDirY == 0) {
-				if (pitch < -40) dirY = 1;
-				else if (pitch > 40) dirY = -1;
-				else dirY = prevDirY;
-			} else if (prevDirY == 1 && pitch > -10) dirY = 0;
-			else if (prevDirY == -1 && pitch < 10) dirY = 0;
-			else dirY = prevDirY;
+			if (dirX > THRESHOLD) modX = 1;
+			else if (dirX < -THRESHOLD) modX = -1;
+			else modX = 0;
 
-			if (x != prevX || z != prevZ || dirX != prevDirX || dirY != prevDirY || dirZ != prevDirZ) {
+			if (dirZ > THRESHOLD) modZ = 1;
+			else if (dirZ < -THRESHOLD) modZ = -1;
+			else modZ = 0;
 
-				if (BlockUtils.isAir(origin.getType())) {
-					// Check for weird stair positioning
-					Block up = origin.getRelative(0, 1, 0);
-					if (up != null && ((materialPlatform == Material.OAK_WOOD && up.getType() == Material.OAK_STAIRS) || (materialPlatform == Material.COBBLESTONE && up.getType() == Material.COBBLESTONE_STAIRS))) {
-						origin = up;
-					} else {
-						// Allow down movement when stepping out over an edge
-						Block down = origin.getRelative(0, -1, 0);
-						if (down != null && !BlockUtils.isAir(down.getType())) origin = down;
-					}
+			if (prevModY == 0) {
+				if (pitch < -40) modY = 1;
+				else if (pitch > 40) modY = -1;
+				else modY = prevModY;
+			} else if (prevModY == 1 && pitch > -10) modY = 0;
+			else if (prevModY == -1 && pitch < 10) modY = 0;
+			else modY = prevModY;
+
+			if (x == prevX && z == prevZ && modX == prevModX && modY == prevModY && modZ == prevModZ) return;
+
+			if (origin.getType().isAir()) {
+				// Check for weird stair positioning
+				Block up = origin.getRelative(0, 1, 0);
+				if (up.getType() == stairType.getMaterial()) origin = up;
+				else {
+					// Allow down movement when stepping out over an edge
+					Block down = origin.getRelative(0, -1, 0);
+					if (!down.getType().isAir()) origin = down;
 				}
-
-				drawCarpet(origin, dirX, dirY, dirZ);
-
-				prevX = x;
-				prevZ = z;
-				prevDirX = dirX;
-				prevDirY = dirY;
-				prevDirZ = dirZ;
-
-				return true;
 			}
-			return false;
+
+			drawCarpet(origin, modX, modY, modZ);
+			addUseAndChargeCost(entity);
+
+			prevX = x;
+			prevZ = z;
+			prevModX = modX;
+			prevModY = modY;
+			prevModZ = modZ;
 		}
 
 		private boolean blockInPlatform(Block block) {
@@ -218,23 +218,33 @@ public class WalkwaySpell extends BuffSpell {
 		}
 
 		public void remove() {
-			platform.stream().forEachOrdered(b -> b.setType(Material.AIR));
+			platform.forEach(b -> b.setType(Material.AIR));
 		}
 
-		private void drawCarpet(Block origin, int dirX, int dirY, int dirZ) {
-			// Determine block type and maybe stair direction
-			Material mat = materialPlatform;
-			if ((materialPlatform == Material.OAK_WOOD || materialPlatform == Material.COBBLESTONE) && dirY != 0) {
-				if (materialPlatform == Material.OAK_WOOD) mat = Material.OAK_STAIRS;
-				else if (materialPlatform == Material.COBBLESTONE) mat = Material.COBBLESTONE_STAIRS;
+		private void drawCarpet(Block origin, int modX, int modY, int modZ) {
+			BlockData blockData = platformType;
+			if (modY != 0) {
+				blockData = stairType;
+
+				if (blockData instanceof Stairs stairs) {
+					BlockFace facing;
+
+					if (modX == 1) facing = BlockFace.WEST;
+					else if (modX == -1) facing = BlockFace.EAST;
+					else if (modZ == 1) facing = BlockFace.NORTH;
+					else facing = BlockFace.SOUTH;
+					if (modY == 1) facing = facing.getOppositeFace();
+
+					stairs.setShape(Stairs.Shape.STRAIGHT);
+					stairs.setFacing(facing);
+				}
 			}
 
 			// Get platform blocks
 			List<Block> blocks = new ArrayList<>();
 			blocks.add(origin); // Add standing block
-			for (int i = 1; i < sizePlatform; i++) { // Add blocks ahead
-				Block b = origin.getRelative(dirX * i, dirY * i, dirZ * i);
-				if (b == null) continue;
+			for (int i = 1; i < size; i++) { // Add blocks ahead
+				Block b = origin.getRelative(modX * i, modY * i, modZ * i);
 				blocks.add(b);
 			}
 
@@ -251,7 +261,7 @@ public class WalkwaySpell extends BuffSpell {
 			// Set new blocks
 			for (Block b : blocks) {
 				if (platform.contains(b) || BlockUtils.isAir(b.getType())) {
-					BlockUtils.setTypeAndData(b, mat, mat.createBlockData(), false);
+					b.setBlockData(blockData);
 					platform.add(b);
 				}
 			}

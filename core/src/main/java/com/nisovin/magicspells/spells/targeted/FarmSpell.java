@@ -4,116 +4,88 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Material cropType;
-	private String materialName;
+	private final ConfigData<BlockData> cropType;
 
-	private ConfigData<Integer> radius;
-	private ConfigData<Integer> growth;
+	private final ConfigData<Integer> radius;
+	private final ConfigData<Integer> growth;
 
-	private boolean targeted;
-	private boolean growWart;
-	private boolean growWheat;
-	private boolean growCarrots;
-	private boolean growPotatoes;
-	private boolean growBeetroot;
-	private boolean powerAffectsRadius;
-	private boolean resolveGrowthPerCrop;
+	private final ConfigData<Boolean> targeted;
+	private final ConfigData<Boolean> growWart;
+	private final ConfigData<Boolean> growWheat;
+	private final ConfigData<Boolean> growCarrots;
+	private final ConfigData<Boolean> growPotatoes;
+	private final ConfigData<Boolean> growBeetroot;
+	private final ConfigData<Boolean> powerAffectsRadius;
+	private final ConfigData<Boolean> resolveGrowthPerCrop;
+	private final ConfigData<Boolean> resolveCropTypePerCrop;
 
 	public FarmSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("crop-type", "wheat");
-		cropType = Util.getMaterial(materialName);
-		if (cropType == null) MagicSpells.error("FarmSpell '" + internalName + "' has an invalid crop-type defined!");
+		cropType = getConfigDataBlockData("crop-type", Material.WHEAT.createBlockData());
 
 		radius = getConfigDataInt("radius", 3);
 		growth = getConfigDataInt("growth", 1);
 
-		targeted = getConfigBoolean("targeted", false);
-		growWart = getConfigBoolean("grow-wart", false);
-		growWheat = getConfigBoolean("grow-wheat", true);
-		growCarrots = getConfigBoolean("grow-carrots", true);
-		growPotatoes = getConfigBoolean("grow-potatoes", true);
-		growBeetroot = getConfigBoolean("grow-beetroot", false);
-		powerAffectsRadius = getConfigBoolean("power-affects-radius", true);
-		resolveGrowthPerCrop = getConfigBoolean("resolve-growth-per-crop", false);
+		targeted = getConfigDataBoolean("targeted", false);
+		growWart = getConfigDataBoolean("grow-wart", false);
+		growWheat = getConfigDataBoolean("grow-wheat", true);
+		growCarrots = getConfigDataBoolean("grow-carrots", true);
+		growPotatoes = getConfigDataBoolean("grow-potatoes", true);
+		growBeetroot = getConfigDataBoolean("grow-beetroot", false);
+		powerAffectsRadius = getConfigDataBoolean("power-affects-radius", true);
+		resolveGrowthPerCrop = getConfigDataBoolean("resolve-growth-per-crop", false);
+		resolveCropTypePerCrop = getConfigDataBoolean("resolve-crop-type-per-crop", false);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Block block;
-			if (targeted) block = getTargetedBlock(caster, power, args);
-			else block = caster.getLocation().subtract(0, 1, 0).getBlock();
-
-			if (block != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, block.getLocation(), power, args);
-				EventUtil.call(event);
-				if (event.isCancelled()) block = null;
-				else {
-					block = event.getTargetLocation().getBlock();
-					power = event.getPower();
-				}
-			}
-
-			if (block != null) {
-				boolean farmed = farm(caster, block, power, args);
-				if (!farmed) return noTarget(caster, args);
-
-				SpellData data = new SpellData(caster, power, args);
-				playSpellEffects(EffectPosition.CASTER, caster, data);
-				if (targeted) playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
-			} else return noTarget(caster, args);
-
+	public CastResult cast(SpellData data) {
+		if (targeted.get(data)) {
+			TargetInfo<Location> info = getTargetedBlockLocation(data);
+			if (!info.noTarget()) return noTarget(info);
+			data = info.spellData();
+		} else {
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, data.caster().getLocation().subtract(0, 1, 0));
+			if (!event.callEvent()) return noTarget(data);
+			data = event.getSpellData();
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		return castAtLocation(data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		return farm(caster, target.subtract(0, 1, 0).getBlock(), power, args);
-	}
+	public CastResult castAtLocation(SpellData data) {
+		Block center = data.location().getBlock();
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return farm(caster, target.subtract(0, 1, 0).getBlock(), power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return farm(null, target.getBlock(), power, args);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return farm(null, target.getBlock(), power, null);
-	}
-
-	private boolean farm(LivingEntity caster, Block center, float power, String[] args) {
-		int radius = this.radius.get(caster, null, power, args);
-		if (powerAffectsRadius) radius = Math.round(radius * power);
+		int radius = this.radius.get(data);
+		if (powerAffectsRadius.get(data)) radius = Math.round(radius * data.power());
 
 		int cx = center.getX();
 		int y = center.getY();
 		int cz = center.getZ();
 
-		int growth = resolveGrowthPerCrop ? 0 : this.growth.get(caster, null, power, args);
+		boolean growWart = this.growWart.get(data);
+		boolean growWheat = this.growWheat.get(data);
+		boolean growCarrots = this.growCarrots.get(data);
+		boolean growPotatoes = this.growPotatoes.get(data);
+		boolean growBeetroot = this.growBeetroot.get(data);
+
+		boolean resolveGrowthPerCrop = this.resolveGrowthPerCrop.get(data);
+		int growth = resolveGrowthPerCrop ? 0 : this.growth.get(data);
+
+		boolean resolveCropTypePerCrop = this.resolveCropTypePerCrop.get(data);
+		BlockData cropType = resolveCropTypePerCrop ? null : this.cropType.get(data);
 
 		int count = 0;
 		for (int x = cx - radius; x <= cx + radius; x++) {
@@ -123,55 +95,55 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 					b = b.getRelative(BlockFace.DOWN);
 					if (b.getType() != Material.FARMLAND && b.getType() != Material.SOUL_SAND) continue;
 				}
-
 				b = b.getRelative(BlockFace.UP);
-				if (BlockUtils.isAir(b.getType())) {
-					if (cropType != null) {
-						if (resolveGrowthPerCrop) growth = this.growth.get(caster, null, power, args);
 
-						b.setType(cropType);
-						if (growth > 1) BlockUtils.setGrowthLevel(b, growth - 1);
+				Material type = b.getType();
+				if (type.isAir()) {
+					if (resolveCropTypePerCrop) cropType = this.cropType.get(data);
+
+					if (cropType instanceof Ageable ageable) {
+						if (resolveGrowthPerCrop) growth = this.growth.get(data);
+						if (growth > 1) ageable.setAge(Math.max(Math.min(growth - 1, ageable.getMaximumAge()), 0));
+
+						b.setBlockData(ageable);
 						count++;
 					}
-				} else if ((isWheat(b) || isCarrot(b) || isPotato(b)) && BlockUtils.getGrowthLevel(b) < 7) {
-					if (resolveGrowthPerCrop) growth = this.growth.get(caster, null, power, args);
 
-					int newGrowth = BlockUtils.getGrowthLevel(b) + growth;
-					if (newGrowth > 7) newGrowth = 7;
-					BlockUtils.setGrowthLevel(b, newGrowth);
-					count++;
-				} else if ((isBeetroot(b) || isWart(b)) && BlockUtils.getGrowthLevel(b) < 3) {
-					if (resolveGrowthPerCrop) growth = this.growth.get(caster, null, power, args);
-
-					int newGrowth = BlockUtils.getGrowthLevel(b) + growth;
-					if (newGrowth > 3) newGrowth = 3;
-					BlockUtils.setGrowthLevel(b, newGrowth);
-					count++;
+					continue;
 				}
+
+				BlockData blockData = b.getBlockData();
+				if (!(blockData instanceof Ageable ageable)) continue;
+
+				switch (type) {
+					case NETHER_WART -> {
+						if (!growWart) continue;
+					}
+					case WHEAT -> {
+						if (!growWheat) continue;
+					}
+					case CARROTS -> {
+						if (!growCarrots) continue;
+					}
+					case POTATOES -> {
+						if (!growPotatoes) continue;
+					}
+					case BEETROOTS -> {
+						if (!growBeetroot) continue;
+					}
+				}
+
+				if (ageable.getAge() == ageable.getMaximumAge()) continue;
+
+				if (resolveGrowthPerCrop) growth = this.growth.get(data);
+				ageable.setAge(Math.max(Math.min(ageable.getAge() + growth, ageable.getMaximumAge()), 0));
+				count++;
 			}
 		}
+		if (count == 0) return noTarget(data);
 
-		return count > 0;
-	}
-
-	private boolean isWheat(Block b) {
-		return growWheat && b.getType() == Material.WHEAT;
-	}
-
-	private boolean isBeetroot(Block b) {
-		return growBeetroot && b.getType() == Material.BEETROOTS;
-	}
-
-	private boolean isCarrot(Block b) {
-		return growCarrots && b.getType() == Material.CARROTS;
-	}
-
-	private boolean isPotato(Block b) {
-		return growPotatoes && b.getType() == Material.POTATOES;
-	}
-
-	private boolean isWart(Block b) {
-		return growWart && b.getType() == Material.NETHER_WART;
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

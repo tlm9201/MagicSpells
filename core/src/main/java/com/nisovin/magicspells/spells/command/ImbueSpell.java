@@ -10,7 +10,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -20,6 +19,7 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.CommandSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 
 // Advanced perm is for specifying the number of uses if it isn't normally allowed
 
@@ -31,8 +31,8 @@ public class ImbueSpell extends CommandSpell {
 	private final Set<Material> allowedItemTypes;
 	private final List<Material> allowedItemMaterials;
 
-	private int maxUses;
-	private int defaultUses;
+	private final ConfigData<Integer> maxUses;
+	private final ConfigData<Integer> defaultUses;
 
 	private String strUsage;
 	private String strItemName;
@@ -43,10 +43,10 @@ public class ImbueSpell extends CommandSpell {
 	private boolean consumeItem;
 	private boolean leftClickCast;
 	private boolean rightClickCast;
-	private boolean allowSpecifyUses;
-	private boolean requireTeachPerm;
 	private boolean nameAndLoreHaveUses;
-	private boolean chargeReagentsForSpellPerUse;
+	private final ConfigData<Boolean> allowSpecifyUses;
+	private final ConfigData<Boolean> requireTeachPerm;
+	private final ConfigData<Boolean> chargeReagentsForSpellPerUse;
 
 	public ImbueSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -64,8 +64,8 @@ public class ImbueSpell extends CommandSpell {
 			}
 		}
 
-		maxUses = getConfigInt("max-uses", 10);
-		defaultUses = getConfigInt("default-uses", 5);
+		maxUses = getConfigDataInt("max-uses", 10);
+		defaultUses = getConfigDataInt("default-uses", 5);
 		strUsage = getConfigString("str-usage", "Usage: /cast imbue <spell> [uses]");
 		strItemName = getConfigString("str-item-name", "");
 		strItemLore = getConfigString("str-item-lore", "Imbued: %s");
@@ -75,82 +75,66 @@ public class ImbueSpell extends CommandSpell {
 		consumeItem = getConfigBoolean("consume-item", false);
 		leftClickCast = getConfigBoolean("left-click-cast", true);
 		rightClickCast = getConfigBoolean("right-click-cast", false);
-		allowSpecifyUses = getConfigBoolean("allow-specify-uses", true);
-		requireTeachPerm = getConfigBoolean("require-teach-perm", true);
-		chargeReagentsForSpellPerUse = getConfigBoolean("charge-reagents-for-spell-per-use", true);
+		allowSpecifyUses = getConfigDataBoolean("allow-specify-uses", true);
+		requireTeachPerm = getConfigDataBoolean("require-teach-perm", true);
+		chargeReagentsForSpellPerUse = getConfigDataBoolean("charge-reagents-for-spell-per-use", true);
 
 		nameAndLoreHaveUses = strItemName.contains("%u") || strItemLore.contains("%u");
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			if (args == null || args.length == 0) {
-				sendMessage(strUsage, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			// Get item
-			ItemStack inHand = player.getInventory().getItemInMainHand();
-			if (!allowedItemTypes.contains(inHand.getType())) {
-				sendMessage(strCantImbueItem, player, args);
-				return PostCastAction.ALREADY_HANDLED;
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		if (!data.hasArgs()) {
+			sendMessage(strUsage, caster, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		// Get item
+		ItemStack inHand = caster.getInventory().getItemInMainHand();
+		if (!allowedItemTypes.contains(inHand.getType())) {
+			sendMessage(strCantImbueItem, caster, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		if (!allowedItemTypes.contains(inHand.getType()) || DataUtil.getString(inHand, key) != null) {
+			sendMessage(strCantImbueItem, caster, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
+		if (spell == null || !MagicSpells.getSpellbook(caster).hasSpell(spell)) {
+			sendMessage(strCantImbueSpell, caster, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		if (requireTeachPerm.get(data) && !MagicSpells.getSpellbook(caster).canTeach(spell)) {
+			sendMessage(strCantImbueSpell, caster, data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		int uses = defaultUses.get(data), maxUses = this.maxUses.get(data);
+		if (data.args().length > 1 && RegexUtil.matches(CAST_ARG_USES_PATTERN, data.args()[1]) && (allowSpecifyUses.get(data) || Perm.ADVANCED_IMBUE.has(caster))) {
+			uses = Integer.parseInt(data.args()[1]);
+		}
+		uses = Math.max(Math.min(uses, maxUses), 1);
+
+		if (chargeReagentsForSpellPerUse.get(data) && !Perm.NO_REAGENTS.has(caster)) {
+			SpellReagents reagents = spell.getReagents().multiply(uses);
+			if (!hasReagents(caster, reagents)) {
+				sendMessage(strMissingReagents, caster, data.args());
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 
-			boolean allowed = false;
-			for (Material m : allowedItemMaterials) {
-				if (m == inHand.getType()) {
-					allowed = true;
-					break;
-				}
-			}
-			if (!allowed) {
-				sendMessage(strCantImbueItem, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			// Check for already imbued
-			if (DataUtil.getString(inHand, key) != null) {
-				sendMessage(strCantImbueItem, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			Spell spell = MagicSpells.getSpellByInGameName(args[0]);
-			if (spell == null) {
-				sendMessage(strCantImbueSpell, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			if (!MagicSpells.getSpellbook(player).hasSpell(spell)) {
-				sendMessage(strCantImbueSpell, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			if (requireTeachPerm && !MagicSpells.getSpellbook(player).canTeach(spell)) {
-				sendMessage(strCantImbueSpell, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			int uses = defaultUses;
-			if (args.length > 1 && RegexUtil.matches(CAST_ARG_USES_PATTERN, args[1]) && (allowSpecifyUses || Perm.ADVANCED_IMBUE.has(player))) {
-				uses = Integer.parseInt(args[1]);
-				if (uses > maxUses) uses = maxUses;
-				else if (uses <= 0) uses = 1;
-			}
-			
-			if (chargeReagentsForSpellPerUse && !Perm.NO_REAGENTS.has(player)) {
-				SpellReagents reagents = spell.getReagents().multiply(uses);
-				if (!hasReagents(player, reagents)) {
-					sendMessage(strMissingReagents, player, args);
-					return PostCastAction.ALREADY_HANDLED;
-				}
-				removeReagents(player, reagents);
-			}
-			
-			setItemNameAndLore(inHand, spell, uses);
-			DataUtil.setString(inHand, key, spell.getInternalName() + ',' + uses);
-			player.getInventory().setItemInMainHand(inHand);
+			removeReagents(caster, reagents);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		setItemNameAndLore(inHand, spell, uses);
+		DataUtil.setString(inHand, key, spell.getInternalName() + ',' + uses);
+		caster.getInventory().setItemInMainHand(inHand);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
@@ -158,7 +142,7 @@ public class ImbueSpell extends CommandSpell {
 		return false;
 	}
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onInteract(PlayerInteractEvent event) {
 		if (event.useItemInHand() == Result.DENY) return;
 		if (!event.hasItem()) return;
@@ -167,7 +151,7 @@ public class ImbueSpell extends CommandSpell {
 		ItemStack item = event.getItem();
 		if (item == null) return;
 		if (!allowedItemTypes.contains(item.getType())) return;
-		
+
 		boolean allowed = false;
 		for (Material m : allowedItemMaterials) {
 			if (m == item.getType()) {
@@ -176,7 +160,7 @@ public class ImbueSpell extends CommandSpell {
 			}
 		}
 		if (!allowed) return;
-		
+
 		String imbueData = DataUtil.getString(item, key);
 		if (imbueData == null || imbueData.isEmpty()) return;
 		String[] data = imbueData.split(",");
@@ -188,7 +172,7 @@ public class ImbueSpell extends CommandSpell {
 			return;
 		}
 
-		spell.castSpell(event.getPlayer(), SpellCastState.NORMAL, 1.0F, MagicSpells.NULL_ARGS);
+		spell.cast(new SpellData(event.getPlayer(), 1.0F, MagicSpells.NULL_ARGS));
 		uses--;
 		if (uses <= 0) {
 			if (consumeItem) event.getPlayer().getInventory().setItemInMainHand(null);
@@ -201,7 +185,7 @@ public class ImbueSpell extends CommandSpell {
 			DataUtil.setString(item, key, spell.getInternalName() + ',' + uses);
 		}
 	}
-	
+
 	private boolean actionAllowedForCast(Action action) {
 		return switch (action) {
 			case RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK -> rightClickCast;
@@ -209,11 +193,11 @@ public class ImbueSpell extends CommandSpell {
 			default -> false;
 		};
 	}
-	
+
 	private void setItemNameAndLore(ItemStack item, Spell spell, int uses) {
 		ItemMeta meta = item.getItemMeta();
 		if (!strItemName.isEmpty()) {
-			String displayName = strItemName.replace("%s", spell.getName()).replace("%u", uses+"");
+			String displayName = strItemName.replace("%s", spell.getName()).replace("%u", uses + "");
 			meta.displayName(Util.getMiniMessage(displayName));
 		}
 		if (!strItemLore.isEmpty()) {
@@ -238,22 +222,6 @@ public class ImbueSpell extends CommandSpell {
 
 	public List<Material> getAllowedItemMaterials() {
 		return allowedItemMaterials;
-	}
-
-	public int getMaxUses() {
-		return maxUses;
-	}
-
-	public void setMaxUses(int maxUses) {
-		this.maxUses = maxUses;
-	}
-
-	public int getDefaultUses() {
-		return defaultUses;
-	}
-
-	public void setDefaultUses(int defaultUses) {
-		this.defaultUses = defaultUses;
 	}
 
 	public String getStrUsage() {
@@ -320,36 +288,12 @@ public class ImbueSpell extends CommandSpell {
 		this.rightClickCast = rightClickCast;
 	}
 
-	public boolean shouldAllowSpecifyUses() {
-		return allowSpecifyUses;
-	}
-
-	public void setAllowSpecifyUses(boolean allowSpecifyUses) {
-		this.allowSpecifyUses = allowSpecifyUses;
-	}
-
-	public boolean shouldRequireTeachPerm() {
-		return requireTeachPerm;
-	}
-
-	public void setRequireTeachPerm(boolean requireTeachPerm) {
-		this.requireTeachPerm = requireTeachPerm;
-	}
-
 	public boolean shouldNameAndLoreHaveUses() {
 		return nameAndLoreHaveUses;
 	}
 
 	public void setNameAndLoreHaveUses(boolean nameAndLoreHasUses) {
 		this.nameAndLoreHaveUses = nameAndLoreHasUses;
-	}
-
-	public boolean shouldChargeReagentsForSpellPerUse() {
-		return chargeReagentsForSpellPerUse;
-	}
-
-	public void setChargeReagentsForSpellPerUse(boolean chargeReagentsForSpellPerUse) {
-		this.chargeReagentsForSpellPerUse = chargeReagentsForSpellPerUse;
 	}
 
 }

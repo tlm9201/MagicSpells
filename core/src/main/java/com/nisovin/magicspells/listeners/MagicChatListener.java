@@ -5,6 +5,7 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 
@@ -35,7 +36,7 @@ public class MagicChatListener implements Listener {
 				if (spellbook.hasSpell(spell)) {
 					String[] args = new String[split.length - 1];
 					System.arraycopy(split, 1, args, 0, args.length);
-					MagicSpells.scheduleDelayedTask(() -> spell.cast(player, args), 0);
+					MagicSpells.scheduleDelayedTask(() -> spell.hardCast(new SpellData(player, 1f, args)), 0);
 					return true;
 				}
 				return false;
@@ -45,7 +46,7 @@ public class MagicChatListener implements Listener {
 		if (spell != null) {
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			if (spellbook.hasSpell(spell)) {
-				MagicSpells.scheduleDelayedTask(() -> spell.cast(player), 0);
+				MagicSpells.scheduleDelayedTask(() -> spell.hardCast(new SpellData(player)), 0);
 				return true;
 			}
 		}

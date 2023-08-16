@@ -1,32 +1,34 @@
 package com.nisovin.magicspells.spells.targeted.ext;
 
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
 // NOTE: PLACEHOLDERAPI IS REQUIRED FOR THIS
 public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final String variableName;
 	private final String placeholderAPITemplate;
-	private final boolean useTargetVariables;
-	private final boolean setTargetVariable;
-	private final boolean setTargetPlaceholders;
+	private final ConfigData<String> variableName;
+
+	private final ConfigData<Boolean> setTargetVariable;
+	private final ConfigData<Boolean> useTargetVariables;
+	private final ConfigData<Boolean> setTargetPlaceholders;
 
 	public PlaceholderAPIDataSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		variableName = getConfigString("variable-name", null);
+
+		variableName = getConfigDataString("variable-name", null);
 		placeholderAPITemplate = getConfigString("placeholderapi-template", "An admin forgot to set placeholderapi-template");
-		useTargetVariables = getConfigBoolean("use-target-variables", true);
-		setTargetVariable = getConfigBoolean("set-target-variable", false);
-		setTargetPlaceholders = getConfigBoolean("set-target-placeholders", true);
+
+		useTargetVariables = getConfigDataBoolean("use-target-variables", true);
+		setTargetVariable = getConfigDataBoolean("set-target-variable", false);
+		setTargetPlaceholders = getConfigDataBoolean("set-target-placeholders", true);
 	}
 
 	@Override
@@ -39,11 +41,6 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 			return;
 		}
 
-		if (MagicSpells.getVariableManager().getVariable(variableName) == null) {
-			MagicSpells.error("Invalid variable-name on '" + internalName + "'");
-			return;
-		}
-
 		// You have to REALLY screw up for this to happen.
 		if (placeholderAPITemplate == null) {
 			MagicSpells.error("placeholderapi-template is null (you made it worse than the default) in '" + internalName + "'");
@@ -52,44 +49,31 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(player, power, args);
-			if (targetInfo.noTarget()) return noTarget(player, args, null);
-			Player target = targetInfo.target();
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			setPlaceholders(player, target, targetInfo.power(), args);
-			sendMessages(caster, target, args);
+		TargetInfo<Player> info = getTargetedPlayer(data);
+		if (info.noTarget()) return noTarget(info);
+		data = info.spellData();
 
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		setPlaceholders(caster, info.target(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(caster instanceof Player casterPlayer) || !(target instanceof Player targetPlayer)) return false;
-		if (!validTargetList.canTarget(caster, target)) return false;
-		setPlaceholders(casterPlayer, targetPlayer, power, args);
-		return true;
+	public CastResult castAtEntity(SpellData data) {
+		if (!(data.caster() instanceof Player caster) || !(data.target() instanceof Player target))
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		setPlaceholders(caster, target, data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
-	}
-
-	private void setPlaceholders(Player caster, Player target, float power, String[] args) {
-		String value = MagicSpells.doArgumentSubstitution(placeholderAPITemplate, args);
+	private void setPlaceholders(Player caster, Player target, SpellData data) {
+		String value = MagicSpells.doArgumentSubstitution(placeholderAPITemplate, data.args());
 
 		Player variableCaster, variableTarget;
-		if (useTargetVariables) {
+		if (useTargetVariables.get(data)) {
 			variableCaster = target;
 			variableTarget = caster;
 		} else {
@@ -97,12 +81,16 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 			variableTarget = target;
 		}
 
-		value = MagicSpells.doVariableReplacements(value, variableCaster, variableTarget);
+		String variableName = this.variableName.get(data);
+		boolean setTargetVariable = this.setTargetVariable.get(data);
+		boolean setTargetPlaceholders = this.setTargetPlaceholders.get(data);
+
+		value = MagicSpells.doVariableReplacements(value, variableCaster, variableCaster, variableTarget);
 		value = PlaceholderAPI.setBracketPlaceholders(setTargetPlaceholders ? target : caster, value);
 		value = PlaceholderAPI.setPlaceholders(setTargetPlaceholders ? target : caster, value);
 
 		MagicSpells.getVariableManager().set(variableName, setTargetVariable ? target : caster, value);
-		playSpellEffects(caster, target, power, args);
+		playSpellEffects(caster, target, data);
 	}
 
 }

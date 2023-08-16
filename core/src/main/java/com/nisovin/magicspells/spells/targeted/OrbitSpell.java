@@ -2,11 +2,9 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.List;
 import java.util.HashSet;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ArmorStand;
@@ -16,14 +14,12 @@ import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 
 import de.slikey.effectlib.Effect;
@@ -33,29 +29,28 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 	private static Set<OrbitTracker> trackerSet;
 
-	private ValidTargetList entityTargetList;
-	private List<String> targetList;
+	private final ValidTargetList entityTargetList;
 
-	private ConfigData<Double> maxDuration;
+	private final ConfigData<Double> maxDuration;
 
-	private ConfigData<Integer> tickInterval;
-	private ConfigData<Integer> vertExpandDelay;
-	private ConfigData<Integer> horizExpandDelay;
+	private final ConfigData<Integer> tickInterval;
+	private final ConfigData<Integer> vertExpandDelay;
+	private final ConfigData<Integer> horizExpandDelay;
 
-	private ConfigData<Float> yOffset;
-	private ConfigData<Float> hitRadius;
-	private ConfigData<Float> orbitRadius;
-	private ConfigData<Float> horizOffset;
-	private ConfigData<Float> vertExpandRadius;
-	private ConfigData<Float> verticalHitRadius;
-	private ConfigData<Float> horizExpandRadius;
-	private ConfigData<Float> secondsPerRevolution;
+	private final ConfigData<Float> yOffset;
+	private final ConfigData<Float> hitRadius;
+	private final ConfigData<Float> orbitRadius;
+	private final ConfigData<Float> horizOffset;
+	private final ConfigData<Float> vertExpandRadius;
+	private final ConfigData<Float> verticalHitRadius;
+	private final ConfigData<Float> horizExpandRadius;
+	private final ConfigData<Float> secondsPerRevolution;
 
-	private boolean followYaw;
-	private boolean stopOnHitEntity;
-	private boolean stopOnHitGround;
-	private boolean counterClockwise;
-	private boolean requireEntityTarget;
+	private final ConfigData<Boolean> followYaw;
+	private final ConfigData<Boolean> stopOnHitEntity;
+	private final ConfigData<Boolean> stopOnHitGround;
+	private final ConfigData<Boolean> counterClockwise;
+	private final ConfigData<Boolean> requireEntityTarget;
 
 	private String orbitSpellName;
 	private String groundSpellName;
@@ -70,8 +65,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 		trackerSet = new HashSet<>();
 
-		targetList = getConfigStringList("can-hit", null);
-		entityTargetList = new ValidTargetList(this, targetList);
+		entityTargetList = new ValidTargetList(this, getConfigStringList("can-hit", null));
 
 		maxDuration = getConfigDataDouble("max-duration", 20);
 
@@ -88,11 +82,11 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		horizExpandRadius = getConfigDataFloat("horiz-expand-radius", 0);
 		secondsPerRevolution = getConfigDataFloat("seconds-per-revolution", 3F);
 
-		followYaw = getConfigBoolean("follow-yaw", false);
-		stopOnHitEntity = getConfigBoolean("stop-on-hit-entity", false);
-		stopOnHitGround = getConfigBoolean("stop-on-hit-ground", false);
-		counterClockwise = getConfigBoolean("counter-clockwise", false);
-		requireEntityTarget = getConfigBoolean("require-entity-target", true);
+		followYaw = getConfigDataBoolean("follow-yaw", false);
+		stopOnHitEntity = getConfigDataBoolean("stop-on-hit-entity", false);
+		stopOnHitGround = getConfigDataBoolean("stop-on-hit-ground", false);
+		counterClockwise = getConfigDataBoolean("counter-clockwise", false);
+		requireEntityTarget = getConfigDataBoolean("require-entity-target", true);
 
 		orbitSpellName = getConfigString("spell", "");
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
@@ -109,6 +103,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			if (!orbitSpellName.isEmpty())
 				MagicSpells.error("OrbitSpell '" + internalName + "' has an invalid spell defined!");
 		}
+		orbitSpellName = null;
 
 		groundSpell = new Subspell(groundSpellName);
 		if (!groundSpell.process()) {
@@ -116,6 +111,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			if (!groundSpellName.isEmpty())
 				MagicSpells.error("OrbitSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
 		}
+		groundSpellName = null;
 
 		entitySpell = new Subspell(entitySpellName);
 		if (!entitySpell.process()) {
@@ -123,206 +119,151 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			if (!entitySpellName.isEmpty())
 				MagicSpells.error("OrbitSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
 		}
+		entitySpellName = null;
 	}
 
 	@Override
 	public void turnOff() {
-		for (OrbitTracker tracker : trackerSet) {
-			tracker.stop(false);
-		}
+		for (OrbitTracker tracker : trackerSet) tracker.stop(false);
 		trackerSet.clear();
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-				if (target.noTarget()) return noTarget(caster, args, target);
+	public CastResult cast(SpellData data) {
+		if (requireEntityTarget.get(data)) {
+			TargetInfo<LivingEntity> info = getTargetedEntity(data);
+			if (info.noTarget()) return noTarget(info);
+			data = info.spellData();
 
-				new OrbitTracker(caster, target.target(), target.power(), args);
-				playSpellEffects(caster, target.target(), target.power(), args);
-				sendMessages(caster, target.target(), args);
-
-				return PostCastAction.NO_MESSAGES;
-			}
-
-			Block block = getTargetedBlock(caster, power, args);
-			if (block != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, block.getLocation(), power, args);
-				EventUtil.call(event);
-				if (event.isCancelled()) block = null;
-				else {
-					block = event.getTargetLocation().getBlock();
-					power = event.getPower();
-				}
-			}
-
-			if (block == null) return noTarget(caster, args);
-
-			new OrbitTracker(caster, block.getLocation().add(0.5, 0, 0.5), power, args);
-			return PostCastAction.HANDLE_NORMALLY;
+			new OrbitTracker(data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 0, 0.5);
+		if (info.noTarget()) return noTarget(info);
+		data = info.spellData();
+
+		new OrbitTracker(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		new OrbitTracker(caster, target, power, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
+	public CastResult castAtEntity(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		data = data.location(data.target().getLocation());
+		new OrbitTracker(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		new OrbitTracker(caster, target, power, null);
-		playSpellEffects(caster, target, power, null);
-		return false;
-	}
+	public CastResult castAtLocation(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		new OrbitTracker(caster, target, power, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		new OrbitTracker(caster, target, power, null);
-		playSpellEffects(caster, target, power, null);
-		return false;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
+		new OrbitTracker(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public boolean hasOrbit(LivingEntity target) {
-		for (OrbitTracker orbitTracker : trackerSet) {
-			if (orbitTracker.target == null) continue;
-			if (orbitTracker.target.equals(target)) return true;
-		}
+		for (OrbitTracker orbitTracker : trackerSet)
+			if (this == orbitTracker.getOrbitSpell() && target.equals(orbitTracker.data.target()))
+				return true;
+
 		return false;
 	}
 
 	public void removeOrbits(LivingEntity target) {
-		Set<OrbitTracker> toRemove = new HashSet<>();
-		for (OrbitTracker tracker : trackerSet) {
-			if (tracker.target == null) continue;
-			if (!tracker.target.equals(target)) continue;
-			if (!internalName.equals(tracker.internalName)) continue;
-			tracker.stop(false);
-			toRemove.add(tracker);
-		}
+		trackerSet.removeIf(tracker -> {
+			if (OrbitSpell.this != tracker.getOrbitSpell()) return false;
+			if (!target.equals(tracker.data.target())) return false;
 
-		toRemove.forEach(tracker -> trackerSet.remove(tracker));
-		toRemove.clear();
+			tracker.stop(false);
+			return true;
+		});
 	}
 
 	private class OrbitTracker implements Runnable {
 
-		private String internalName;
-
-		private Set<EffectlibSpellEffect> effectSet;
-		private Map<SpellEffect, Entity> entityMap;
-		private Set<ArmorStand> armorStandSet;
-
-		private LivingEntity caster;
-		private LivingEntity target;
 		private SpellData data;
-		private Location targetLoc;
-		private Vector currentPosition;
-		private BoundingBox box;
-		private Set<LivingEntity> immune;
-		private String[] args;
 
-		private float power;
-		private float orbRadius;
-		private float orbHeight;
+		private final BoundingBox box;
+		private final Vector currentDirection;
+		private final Location currentLocation;
+
+		private final Set<LivingEntity> immune;
+		private final Set<ArmorStand> armorStandSet;
+		private final Map<SpellEffect, Entity> entityMap;
+		private final Set<EffectlibSpellEffect> effectSet;
+
+		private final boolean followYaw;
+		private final boolean stopOnHitEntity;
+		private final boolean stopOnHitGround;
+		private final boolean counterClockwise;
+
+		private final int taskId;
+		private final int repeatingVertTaskId;
+		private final int repeatingHorizTaskId;
+
+		private final long startTime;
+
+		private float yOffset;
 		private float previousYaw;
-		private float distancePerTick;
+		private float orbitRadius;
+		private final float distancePerTick;
 
-		private double maxDuration;
+		private final double maxDuration;
 
-		private int taskId;
-		private int repeatingHorizTaskId;
-		private int repeatingVertTaskId;
-
-		private long startTime;
-
-		private OrbitTracker(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			this.caster = caster;
-			this.target = target;
-			this.power = power;
-			this.args = args;
-
-			targetLoc = target.getLocation();
-			initialize(caster, target, power, args);
-		}
-
-		private OrbitTracker(LivingEntity caster, Location targetLoc, float power, String[] args) {
-			this.caster = caster;
-			this.targetLoc = targetLoc;
-			this.power = power;
-
-			initialize(caster, null, power, args);
-		}
-
-		private void initialize(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			data = new SpellData(caster, target, power, args);
-
-			internalName = OrbitSpell.this.internalName;
+		private OrbitTracker(SpellData data) {
 			startTime = System.currentTimeMillis();
-			currentPosition = targetLoc.getDirection().setY(0).normalize();
-			Util.rotateVector(currentPosition, horizOffset.get(caster, target, power, args));
-			orbRadius = orbitRadius.get(caster, target, power, args);
-			orbHeight = yOffset.get(caster, target, power, args);
 
-			if (target != null) previousYaw = targetLoc.getYaw();
+			currentLocation = data.location();
+			previousYaw = currentLocation.getYaw();
+			box = new BoundingBox(currentLocation, hitRadius.get(data), verticalHitRadius.get(data));
+
+			currentDirection = currentLocation.getDirection().setY(0).normalize();
+			Util.rotateVector(currentDirection, horizOffset.get(data));
+
+			followYaw = OrbitSpell.this.followYaw.get(data);
+			stopOnHitEntity = OrbitSpell.this.stopOnHitEntity.get(data);
+			stopOnHitGround = OrbitSpell.this.stopOnHitGround.get(data);
+			counterClockwise = OrbitSpell.this.counterClockwise.get(data);
+
+			int tickInterval = OrbitSpell.this.tickInterval.get(data);
+			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
+
+			orbitRadius = OrbitSpell.this.orbitRadius.get(data);
+			int horizExpandDelay = OrbitSpell.this.horizExpandDelay.get(data);
+			if (horizExpandDelay > 0) {
+				float horizExpandRadius = OrbitSpell.this.horizExpandRadius.get(data);
+				repeatingHorizTaskId = MagicSpells.scheduleRepeatingTask(() -> orbitRadius += horizExpandRadius, horizExpandDelay, horizExpandDelay);
+			} else repeatingHorizTaskId = -1;
+
+			yOffset = OrbitSpell.this.yOffset.get(data);
+			int vertExpandDelay = OrbitSpell.this.vertExpandDelay.get(data);
+			if (vertExpandDelay > 0) {
+				float vertExpandRadius = OrbitSpell.this.vertExpandRadius.get(data);
+				repeatingVertTaskId = MagicSpells.scheduleRepeatingTask(() -> yOffset += vertExpandRadius, vertExpandDelay, vertExpandDelay);
+			} else repeatingVertTaskId = -1;
+
+			distancePerTick = 6.28f * tickInterval / secondsPerRevolution.get(data) / 20;
+
+			maxDuration = OrbitSpell.this.maxDuration.get(data);
+
+			this.data = data;
 
 			immune = new HashSet<>();
 
-			box = new BoundingBox(targetLoc, hitRadius.get(caster, target, power, args), verticalHitRadius.get(caster, target, power, args));
+			entityMap = playSpellEntityEffects(EffectPosition.PROJECTILE, currentLocation, data);
+			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, currentLocation, data);
+			armorStandSet = playSpellArmorStandEffects(EffectPosition.PROJECTILE, currentLocation, data);
 
-			int tickInterval = OrbitSpell.this.tickInterval.get(caster, target, power, args);
-			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
-
-			int horizExpandDelay = OrbitSpell.this.horizExpandDelay.get(caster, target, power, args);
-			if (horizExpandDelay > 0) {
-				float horizExpandRadius = OrbitSpell.this.horizExpandRadius.get(caster, target, power, args);
-				repeatingHorizTaskId = MagicSpells.scheduleRepeatingTask(() -> orbRadius += horizExpandRadius, horizExpandDelay, horizExpandDelay);
-			}
-
-			int vertExpandDelay = OrbitSpell.this.vertExpandDelay.get(caster, target, power, args);
-			if (vertExpandDelay > 0) {
-				float vertExpandRadius = OrbitSpell.this.vertExpandRadius.get(caster, target, power, args);
-				repeatingVertTaskId = MagicSpells.scheduleRepeatingTask(() -> orbHeight += vertExpandRadius, vertExpandDelay, vertExpandDelay);
-			}
-
-			distancePerTick = 6.28f * tickInterval / secondsPerRevolution.get(caster, target, power, args) / 20;
-
-			maxDuration = OrbitSpell.this.maxDuration.get(caster, target, power, args) * TimeUtil.MILLISECONDS_PER_SECOND;
-
-			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, targetLoc, data);
-			entityMap = playSpellEntityEffects(EffectPosition.PROJECTILE, targetLoc, data);
-			armorStandSet = playSpellArmorStandEffects(EffectPosition.PROJECTILE, targetLoc, data);
-
-			trackerSet.add(this);
+			if (data.hasTarget()) playSpellEffects(data.caster(), data.target(), data);
+			else playSpellEffects(data.caster(), currentLocation, data);
 		}
 
 		@Override
 		public void run() {
-			if (!caster.isValid() || (target != null && !target.isValid())) {
+			if (!data.caster().isValid() || (data.hasTarget() && !data.target().isValid())) {
 				stop(true);
 				return;
 			}
@@ -333,9 +274,10 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			}
 
 			Location loc = getLocation();
+			data = data.location(loc);
 
 			if (!isTransparent(loc.getBlock())) {
-				if (groundSpell != null) groundSpell.subcast(caster, loc, power, args);
+				if (groundSpell != null) groundSpell.subcast(data.noTarget());
 				if (stopOnHitGround) {
 					stop(true);
 					return;
@@ -374,27 +316,27 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 			}
 
-			if (orbitSpell != null) orbitSpell.subcast(caster, loc, power, args);
+			if (orbitSpell != null) orbitSpell.subcast(data.noTarget());
 
 			box.setCenter(loc);
 
-			for (LivingEntity e : caster.getWorld().getLivingEntities()) {
-				if (e.equals(caster)) continue;
-				if (e.isDead()) continue;
+			for (LivingEntity e : data.caster().getWorld().getLivingEntities()) {
+				if (e.equals(data.caster())) continue;
+				if (!e.isValid()) continue;
 				if (immune.contains(e)) continue;
 				if (!box.contains(e)) continue;
 				if (entityTargetList != null && !entityTargetList.canTarget(e)) continue;
 
-				SpellTargetEvent event = new SpellTargetEvent(OrbitSpell.this, caster, e, power, args);
-				EventUtil.call(event);
-				if (event.isCancelled()) continue;
+				SpellTargetEvent event = new SpellTargetEvent(OrbitSpell.this, data, e);
+				if (!event.callEvent()) continue;
 
+				SpellData subData = event.getSpellData();
 				immune.add(event.getTarget());
-				if (entitySpell != null) entitySpell.subcast(event.getCaster(), event.getTarget(), event.getPower(), args);
 
-				SpellData data = new SpellData(caster, event.getTarget(), event.getPower(), args);
-				playSpellEffects(EffectPosition.TARGET, event.getTarget(), data);
-				playSpellEffectsTrail(targetLoc, event.getTarget().getLocation(), data);
+				if (entitySpell != null) entitySpell.subcast(subData.noLocation());
+
+				playSpellEffects(EffectPosition.TARGET, event.getTarget(), subData);
+				playSpellEffectsTrail(loc, event.getTarget().getLocation(), subData);
 
 				if (stopOnHitEntity) {
 					stop(true);
@@ -403,35 +345,41 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			}
 		}
 
+		private OrbitSpell getOrbitSpell() {
+			return OrbitSpell.this;
+		}
+
 		private Location getLocation() {
-			if (target != null) {
-				targetLoc = target.getLocation();
+			if (data.hasTarget()) {
+				data.target().getLocation(currentLocation);
 
 				if (followYaw) {
-					float currentYaw = targetLoc.getYaw();
+					float currentYaw = currentLocation.getYaw();
 
 					if (previousYaw != currentYaw) {
-						Util.rotateVector(currentPosition, currentYaw - previousYaw);
+						Util.rotateVector(currentDirection, currentYaw - previousYaw);
 						previousYaw = currentYaw;
 					}
 				}
 			}
 
 			Vector perp;
-			if (counterClockwise) perp = new Vector(currentPosition.getZ(), 0, -currentPosition.getX());
-			else perp = new Vector(-currentPosition.getZ(), 0, currentPosition.getX());
+			if (counterClockwise) perp = new Vector(currentDirection.getZ(), 0, -currentDirection.getX());
+			else perp = new Vector(-currentDirection.getZ(), 0, currentDirection.getX());
 
-			currentPosition.add(perp.multiply(distancePerTick)).normalize();
+			currentDirection.add(perp.multiply(distancePerTick)).normalize();
 
-			return targetLoc.clone().add(0, orbHeight, 0).add(currentPosition.clone().multiply(orbRadius)).setDirection(perp);
+			return currentLocation.clone().add(0, yOffset, 0).add(currentDirection.clone().multiply(orbitRadius)).setDirection(perp);
 		}
 
 
 		private void stop(boolean removeTracker) {
-			if (target != null && target.isValid()) playSpellEffects(EffectPosition.DELAYED, getLocation(), data);
+			playSpellEffects(EffectPosition.DELAYED, getLocation(), data);
+
 			MagicSpells.cancelTask(taskId);
 			MagicSpells.cancelTask(repeatingHorizTaskId);
 			MagicSpells.cancelTask(repeatingVertTaskId);
+
 			if (effectSet != null) {
 				for (EffectlibSpellEffect spellEffect : effectSet) {
 					if (spellEffect == null) continue;
@@ -440,20 +388,19 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 				effectSet.clear();
 			}
+
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
 					armorStand.remove();
 				}
 			}
+
 			if (entityMap != null) {
 				for (Entity entity : entityMap.values()) {
 					entity.remove();
 				}
 			}
-			caster = null;
-			target = null;
-			targetLoc = null;
-			currentPosition = null;
+
 			if (removeTracker) trackerSet.remove(this);
 		}
 

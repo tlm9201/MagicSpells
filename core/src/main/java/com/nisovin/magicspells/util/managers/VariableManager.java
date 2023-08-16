@@ -16,13 +16,10 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.configuration.ConfigurationSection;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.*;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.VariableMod;
 import com.nisovin.magicspells.variables.meta.*;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.variables.variabletypes.*;
 
@@ -589,23 +586,28 @@ public class VariableManager {
 		variables.clear();
 	}
 
-	public String processVariableMods(String var, VariableMod mod, Player playerToMod, Player caster, Player target, float power, String[] args) {
+	@Deprecated
+	public String processVariableMods(String var, VariableMod mod, Player playerToMod, Player caster, Player target) {
+		return processVariableMods(var, mod, playerToMod, new SpellData(caster, target, 1f, null));
+	}
+
+	public String processVariableMods(String var, VariableMod mod, Player playerToMod, SpellData data) {
 		if (mod == null) return 0 + "";
 		if (playerToMod == null) return 0 + "";
 
 		Variable variable = getVariable(var);
 		if (variable == null) return 0 + "";
 
-		return processVariableMods(variable, mod, playerToMod, caster, target, power, args);
+		return processVariableMods(variable, mod, playerToMod, data);
 	}
 
-	public String processVariableMods(Variable variable, VariableMod mod, Player playerToMod, Player caster, Player target, float power, String[] args) {
+	public String processVariableMods(Variable variable, VariableMod mod, Player playerToMod, SpellData data) {
 		VariableMod.Operation op = mod.getOperation();
 
 		if (variable instanceof PlayerStringVariable || variable instanceof GlobalStringVariable) {
 			switch (op) {
 				case SET -> {
-					String value = mod.getStringValue(caster, target, args);
+					String value = mod.getStringValue(data);
 
 					if (value.equals(variable.getDefaultStringValue())) reset(variable, playerToMod);
 					else set(variable, playerToMod.getName(), value);
@@ -613,7 +615,7 @@ public class VariableManager {
 					return value;
 				}
 				case ADD -> {
-					String value = variable.getStringValue(caster) + mod.getStringValue(caster, target, args);
+					String value = variable.getStringValue(playerToMod) + mod.getStringValue(data);
 
 					if (value.equals(variable.getDefaultStringValue())) reset(variable, playerToMod);
 					else set(variable, playerToMod.getName(), value);
@@ -621,8 +623,8 @@ public class VariableManager {
 					return value;
 				}
 				case MULTIPLY -> {
-					int count = (int) mod.getValue(caster, target, power, args);
-					String value = variable.getStringValue(caster).repeat(count);
+					int count = (int) mod.getValue(data);
+					String value = variable.getStringValue(playerToMod).repeat(count);
 
 					if (value.equals(variable.getDefaultStringValue())) reset(variable, playerToMod);
 					else set(variable, playerToMod.getName(), value);
@@ -632,7 +634,7 @@ public class VariableManager {
 			}
 		}
 
-		double value = op.applyTo(variable.getValue(playerToMod), mod.getValue(caster, target, power, args));
+		double value = op.applyTo(variable.getValue(playerToMod), mod.getValue(data));
 
 		if (value == variable.getDefaultValue() && !(variable instanceof MetaVariable)) {
 			reset(variable, playerToMod);

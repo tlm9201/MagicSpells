@@ -1,10 +1,10 @@
 package com.nisovin.magicspells.spells.instant;
 
 import org.bukkit.World;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -12,7 +12,7 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class TimeSpell extends InstantSpell implements TargetedLocationSpell {
 
-	private ConfigData<Integer> timeToSet;
+	private final ConfigData<Integer> timeToSet;
 
 	private String strAnnounce;
 		
@@ -24,41 +24,20 @@ public class TimeSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			World world = caster.getWorld();
-			setTime(caster, world, power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		setTime(data.caster().getWorld(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		setTime(caster, target.getWorld(), power, args);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		setTime(data.location().getWorld(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		setTime(caster, target.getWorld(), power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		setTime(null, target.getWorld(), power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		setTime(null, target.getWorld(), power, null);
-		return true;
-	}
-
-	private void setTime(LivingEntity caster, World world, float power, String[] args) {
-		world.setTime(timeToSet.get(caster, null, power, args));
-		for (Player p : world.getPlayers()) sendMessage(strAnnounce, p, args);
+	private void setTime(World world, SpellData data) {
+		world.setTime(timeToSet.get(data));
+		for (Player p : world.getPlayers()) sendMessage(strAnnounce, p, data.args());
 	}
 
 	public String getStrAnnounce() {

@@ -2,66 +2,49 @@ package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
 public class SwitchHealthSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private boolean requireLesserHealthPercent;
-	private boolean requireGreaterHealthPercent;
+	private final ConfigData<Boolean> requireLesserHealthPercent;
+	private final ConfigData<Boolean> requireGreaterHealthPercent;
 
 	public SwitchHealthSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		requireLesserHealthPercent = getConfigBoolean("require-lesser-health-percent", false);
-		requireGreaterHealthPercent = getConfigBoolean("require-greater-health-percent", false);
+		requireLesserHealthPercent = getConfigDataBoolean("require-lesser-health-percent", false);
+		requireGreaterHealthPercent = getConfigDataBoolean("require-greater-health-percent", false);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target.noTarget()) return noTarget(caster, args, target);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			boolean ok = switchHealth(caster, target.target(), target.power(), args);
-			if (!ok) return noTarget(caster, args);
-
-			sendMessages(caster, target.target(), args);
-			return PostCastAction.NO_MESSAGES;
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return switchHealth(caster, target, power, args);
-	}
+	public CastResult castAtEntity(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return switchHealth(caster, target, power, null);
-	}
+		double casterMax = Util.getMaxHealth(data.caster());
+		double targetMax = Util.getMaxHealth(data.target());
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
-	}
+		double casterPct = data.caster().getHealth() / casterMax;
+		double targetPct = data.target().getHealth() / targetMax;
 
-	private boolean switchHealth(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (caster.isDead() || target.isDead()) return false;
-		double casterPct = caster.getHealth() / Util.getMaxHealth(caster);
-		double targetPct = target.getHealth() / Util.getMaxHealth(target);
-		if (requireGreaterHealthPercent && casterPct < targetPct) return false;
-		if (requireLesserHealthPercent && casterPct > targetPct) return false;
-		caster.setHealth(targetPct * Util.getMaxHealth(caster));
-		target.setHealth(casterPct * Util.getMaxHealth(target));
-		playSpellEffects(caster, target, power, args);
-		return true;
+		if (requireGreaterHealthPercent.get(data) && casterPct < targetPct) return noTarget(data);
+		if (requireLesserHealthPercent.get(data) && casterPct > targetPct) return noTarget(data);
+
+		data.caster().setHealth(targetPct * casterMax);
+		data.target().setHealth(casterPct * targetMax);
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

@@ -158,7 +158,7 @@ public class MultiCondition extends Condition implements IModifier {
 			else {
 				fail++;
 				String msg = m.getStrModifierFailed();
-				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), null);
+				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), event.getSpellData());
 			}
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
 		}
@@ -193,7 +193,7 @@ public class MultiCondition extends Condition implements IModifier {
 			else {
 				fail++;
 				String msg = m.getStrModifierFailed();
-				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), null);
+				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), event.getSpellData());
 			}
 
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
@@ -211,7 +211,7 @@ public class MultiCondition extends Condition implements IModifier {
 			else {
 				fail++;
 				String msg = m.getStrModifierFailed();
-				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), null);
+				if (msg != null) MagicSpells.sendMessage(msg, event.getCaster(), event.getSpellData());
 			}
 
 			if (!passCondition.shouldContinue(pass, fail)) return passCondition.hasPassed(pass, fail);
@@ -248,7 +248,7 @@ public class MultiCondition extends Condition implements IModifier {
 			else {
 				fail++;
 				String msg = m.getStrModifierFailed();
-				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data().args());
+				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data());
 			}
 			if (!passCondition.shouldContinue(pass, fail)) return new ModifierResult(data, passCondition.hasPassed(pass, fail));
 		}
@@ -266,7 +266,7 @@ public class MultiCondition extends Condition implements IModifier {
 			else {
 				fail++;
 				String msg = m.getStrModifierFailed();
-				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data().args());
+				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data());
 			}
 			if (!passCondition.shouldContinue(pass, fail)) return new ModifierResult(data, passCondition.hasPassed(pass, fail));
 		}
@@ -284,7 +284,7 @@ public class MultiCondition extends Condition implements IModifier {
 			else {
 				fail++;
 				String msg = m.getStrModifierFailed();
-				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data().args());
+				if (msg != null) MagicSpells.sendMessage(msg, caster, result.data());
 			}
 			if (!passCondition.shouldContinue(pass, fail)) return new ModifierResult(data, passCondition.hasPassed(pass, fail));
 		}

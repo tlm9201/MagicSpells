@@ -3,111 +3,74 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class TransmuteSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private List<Material> blockTypes;
+	private final List<BlockData> blockTypes;
 
-	private Material transmuteType;
+	private final ConfigData<BlockData> transmuteType;
 	
 	public TransmuteSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
-		List<String> list = getConfigStringList("transmutable-types", null);
+
 		blockTypes = new ArrayList<>();
+
+		List<String> list = getConfigStringList("transmutable-types", null);
 		if (list != null && !list.isEmpty()) {
 			for (String s : list) {
-				Material material = Util.getMaterial(s);
-				if (material == null || !material.isBlock()) continue;
-				blockTypes.add(material);
+			    try {
+					BlockData data = Bukkit.createBlockData(s.toLowerCase());
+					blockTypes.add(data);
+				} catch (IllegalArgumentException e) {
+					MagicSpells.error("Invalid transmutable type '" + s + "' in TransmuteSpell '" + internalName + "'.");
+				}
 			}
-		} else blockTypes.add(Material.IRON_BLOCK);
+		} else blockTypes.add(Material.IRON_BLOCK.createBlockData());
 
-		String materialName = getConfigString("transmute-type", "gold_block");
-		transmuteType = Util.getMaterial(materialName);
-		if (transmuteType == null || !transmuteType.isBlock()) {
-			MagicSpells.error("TransmuteSpell '" + internalName + "' has an transmute-type defined!");
-			transmuteType = null;
-		}
+		transmuteType = getConfigDataBlockData("transmute-type", Material.GOLD_BLOCK.createBlockData());
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Block block = getTargetedBlock(caster, power, args);
-			if (block == null) return noTarget(caster, args);
-			
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, block.getLocation(), power);
-			EventUtil.call(event);
-			if (event.isCancelled()) return noTarget(caster, args);
-			block = event.getTargetLocation().getBlock();
-			
-			if (!canTransmute(block)) return noTarget(caster, args);
+	public CastResult cast(SpellData data) {
+		TargetInfo<Location> info = getTargetedBlockLocation(data, false);
+		if (info.noTarget()) return noTarget(info);
 
-			block.setType(transmuteType);
-			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtLocation(info.spellData());
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		Block block = target.getBlock();
-		if (canTransmute(block)) {
-			block.setType(transmuteType);
-			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
-			return true;
-		}
+	public CastResult castAtLocation(SpellData data) {
+		Location location = data.location();
 
-		Vector v = target.getDirection();
-		block = target.clone().add(v).getBlock();
-		if (canTransmute(block)) {
-			block.setType(transmuteType);
-			playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
-			return true;
-		}
-		return false;
-	}
+		Block block = location.getBlock();
+		if (!canTransmute(block)) return noTarget(data);
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
+		data = data.location(location.toCenterLocation());
 
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		Block block = target.getBlock();
-		if (canTransmute(block)) {
-			block.setType(transmuteType);
-			playSpellEffects(EffectPosition.TARGET, block.getLocation().add(0.5, 0.5, 0.5), power, args);
-			return true;
-		}
-		return false;
-	}
+		block.setBlockData(transmuteType.get(data));
+		playSpellEffects(data);
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(target, power, null);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	private boolean canTransmute(Block block) {
-		for (Material m : blockTypes) {
-			if (m.equals(block.getType())) return true;
-		}
+		BlockData bd = block.getBlockData();
+
+		for (BlockData data : blockTypes)
+			if (bd.matches(data))
+				return true;
+
 		return false;
 	}
 

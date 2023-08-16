@@ -1,107 +1,64 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 
 import net.kyori.adventure.text.Component;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class ResourcePackSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private static final int HASH_LENGTH = 40;
 
-	private final String url;
-	private final String hash;
-	private final Component prompt;
-	private final boolean required;
+	private final ConfigData<String> url;
+	private final ConfigData<String> hash;
+	private final ConfigData<Boolean> required;
+	private final ConfigData<Component> prompt;
 
 	public ResourcePackSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		url = getConfigString("url", null);
-		hash = getConfigString("hash", null);
-		prompt = Util.getMiniMessage(getConfigString("prompt", ""));
-		required = getConfigBoolean("required", false);
+		url = getConfigDataString("url", null);
+		hash = getConfigDataString("hash", null);
+		prompt = getConfigDataComponent("prompt", Component.empty());
+		required = getConfigDataBoolean("required", false);
 	}
 
 	@Override
 	public void initialize() {
 		super.initialize();
-
-		if (hash != null && hash.length() != HASH_LENGTH) {
-			MagicSpells.error("ResourcePackSpell '" + internalName + "' has an incorrect hash length defined: '" + hash.length() + "' / " + HASH_LENGTH + ".");
-		}
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> info = getTargetedPlayer(caster, power, args);
-			if (info.noTarget()) return noTarget(caster, args, info);
-			Player target = info.target();
+	public CastResult cast(SpellData data) {
+		TargetInfo<Player> info = getTargetedPlayer(data);
+		if (info.noTarget()) return noTarget(info);
 
-			try {
-				target.setResourcePack(url, hash, required, prompt);
-			} catch (IllegalArgumentException e) {
-				DebugHandler.debugIllegalArgumentException(e);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			playSpellEffects(caster, target, info.power(), args);
-			sendMessages(caster, target, args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(target instanceof Player player) || !validTargetList.canTarget(caster, target)) return false;
+	public CastResult castAtEntity(SpellData data) {
+		if (!(data.target() instanceof Player player)) return noTarget(data);
+
+		String url = this.url.get(data);
+		if (url == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		String hash = this.hash.get(data);
+		if (hash == null || hash.length() != HASH_LENGTH) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		try {
-			player.setResourcePack(url, hash, required, prompt);
+			player.setResourcePack(url, hash, required.get(data), prompt.get(data));
 		} catch (IllegalArgumentException e) {
 			DebugHandler.debugIllegalArgumentException(e);
-			return false;
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!(target instanceof Player player) || !validTargetList.canTarget(target)) return false;
-
-		try {
-			player.setResourcePack(url, hash, required, prompt);
-		} catch (IllegalArgumentException e) {
-			DebugHandler.debugIllegalArgumentException(e);
-			return false;
-		}
-
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

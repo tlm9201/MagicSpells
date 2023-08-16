@@ -8,20 +8,18 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.MultipleFacing;
 
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellAnimation;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class VinesSpell extends TargetedSpell {
 
-	private ConfigData<Integer> up;
-	private ConfigData<Integer> down;
-	private ConfigData<Integer> width;
-	private ConfigData<Integer> animateInterval;
+	private final ConfigData<Integer> up;
+	private final ConfigData<Integer> down;
+	private final ConfigData<Integer> width;
+	private final ConfigData<Integer> animateInterval;
 	
 	public VinesSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -33,35 +31,33 @@ public class VinesSpell extends TargetedSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			List<Block> target = getLastTwoTargetedBlocks(caster, power, args);
-			if (target == null || target.size() != 2) return noTarget(caster, args);
-			if (target.get(0).getType() != Material.AIR || !target.get(1).getType().isSolid()) return noTarget(caster, args);
+	public CastResult cast(SpellData data) {
+		List<Block> target = getLastTwoTargetedBlocks(data);
+		if (target.size() != 2) return noTarget(data);
 
-			boolean success = growVines(caster, target.get(0), target.get(1), power, args);
-			if (!success) return noTarget(caster, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		Block air = target.get(0), solid = target.get(1);
+		if (!air.getType().isAir() || !solid.isSolid()) return noTarget(data);
+
+		return growVines(data, air, solid);
 	}
-	
-	private boolean growVines(LivingEntity caster, Block air, Block solid, float power, String[] args) {
+
+	private CastResult growVines(SpellData data, Block air, Block solid) {
 		BlockFace face = air.getFace(solid);
 		int x = 0;
 		int z = 0;
 
 		if (face == BlockFace.NORTH || face == BlockFace.SOUTH) x = 1;
 		else if (face == BlockFace.EAST || face == BlockFace.WEST) z = 1;
-		else return false;
+		else return noTarget(data);
 
 		TreeSet<VineBlock> blocks = new TreeSet<>();
 
 		blocks.add(new VineBlock(air, air));
-		int up = this.up.get(caster, null, power, args);
-		int down = this.down.get(caster, null, power, args);
+		int up = this.up.get(data);
+		int down = this.down.get(data);
 		growVinesVert(blocks, air, solid, air, up, down);
 
-		int width = this.width.get(caster, null, power, args);
+		int width = this.width.get(data);
 		if (width > 1) {
 			for (int i = 1; i <= width / 2; i++) {
 				Block a = air.getRelative(x * i, 0, z * i);
@@ -81,14 +77,14 @@ public class VinesSpell extends TargetedSpell {
 			}
 		}
 		
-		if (blocks.isEmpty()) return false;
+		if (blocks.isEmpty()) return noTarget(data);
 
-		int animateInterval = this.animateInterval.get(caster, null, power, args);
+		int animateInterval = this.animateInterval.get(data);
 		if (animateInterval <= 0) {
 			for (VineBlock vine : blocks) setBlockToVine(vine.block, face);
 		} else new VineAnimation(face, blocks, animateInterval);
 
-		return true;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 	
 	private void setBlockToVine(Block block, BlockFace face) {
@@ -120,8 +116,8 @@ public class VinesSpell extends TargetedSpell {
 	
 	private static class VineBlock implements Comparable<VineBlock> {
 
-		private Block block;
-		private double distanceSquared;
+		private final Block block;
+		private final double distanceSquared;
 
 		private VineBlock(Block block, Block center) {
 			this.block = block;
@@ -139,8 +135,8 @@ public class VinesSpell extends TargetedSpell {
 
 	private class VineAnimation extends SpellAnimation {
 
-		private BlockFace face;
-		private TreeSet<VineBlock> blocks;
+		private final BlockFace face;
+		private final TreeSet<VineBlock> blocks;
 
 		private VineAnimation(BlockFace face, TreeSet<VineBlock> blocks, int animateInterval) {
 			super(animateInterval, true);

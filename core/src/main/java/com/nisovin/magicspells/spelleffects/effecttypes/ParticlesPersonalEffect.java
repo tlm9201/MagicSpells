@@ -36,7 +36,7 @@ public class ParticlesPersonalEffect extends ParticlesEffect {
 				.offset(xSpread.get(data), ySpread.get(data), zSpread.get(data))
 				.extra(speed.get(data))
 				.data(getParticleData(particle, location, data))
-				.force(force)
+				.force(force.get(data))
 				.receivers(player)
 				.spawn();
 
@@ -55,7 +55,7 @@ public class ParticlesPersonalEffect extends ParticlesEffect {
 				.offset(xSpread.get(data), ySpread.get(data), zSpread.get(data))
 				.extra(speed.get(data))
 				.data(getParticleData(particle, location, data))
-				.force(force)
+				.force(force.get(data))
 				.receivers(player)
 				.spawn();
 

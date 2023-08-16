@@ -1,30 +1,25 @@
 package com.nisovin.magicspells.spells.instant;
 
-import java.util.List;
-
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class ForcepushSpell extends InstantSpell {
 
-	private ConfigData<Double> force;
-	private ConfigData<Double> radius;
-	private ConfigData<Double> yForce;
-	private ConfigData<Double> maxYForce;
+	private final ConfigData<Double> force;
+	private final ConfigData<Double> radius;
+	private final ConfigData<Double> yForce;
+	private final ConfigData<Double> maxYForce;
 
-	private boolean powerAffectsForce;
-	private boolean addVelocityInstead;
+	private final ConfigData<Boolean> powerAffectsForce;
+	private final ConfigData<Boolean> addVelocityInstead;
 
 	public ForcepushSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -34,65 +29,45 @@ public class ForcepushSpell extends InstantSpell {
 		yForce = getConfigDataDouble("additional-vertical-force", 15);
 		maxYForce = getConfigDataDouble("max-vertical-force", 20);
 
-		powerAffectsForce = getConfigBoolean("power-affects-force", true);
-		addVelocityInstead = getConfigBoolean("add-velocity-instead", false);
+		powerAffectsForce = getConfigDataBoolean("power-affects-force", true);
+		addVelocityInstead = getConfigDataBoolean("add-velocity-instead", false);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			knockback(caster, power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
+	public CastResult cast(SpellData data) {
+		double radius = Math.min(this.radius.get(data), MagicSpells.getGlobalRadius());
 
-	private void knockback(LivingEntity caster, float basePower, String[] args) {
-		double radius = Math.min(this.radius.get(caster, null, basePower, args), MagicSpells.getGlobalRadius());
-
-		List<Entity> entities = caster.getNearbyEntities(radius, radius, radius);
-		Vector e;
-		Vector v;
-		Vector p = caster.getLocation().toVector();
-		for (Entity entity : entities) {
+		Vector casterLoc = data.caster().getLocation().toVector();
+		for (Entity entity :  data.caster().getNearbyEntities(radius, radius, radius)) {
 			if (!(entity instanceof LivingEntity target)) continue;
-			if (!validTargetList.canTarget(caster, entity)) continue;
+			if (!validTargetList.canTarget(data.caster(), target)) continue;
 
-			SpellTargetEvent event = new SpellTargetEvent(this, caster, target, basePower, args);
-			EventUtil.call(event);
-			if (event.isCancelled()) continue;
+			SpellTargetEvent event = new SpellTargetEvent(this, data, target);
+			if (!event.callEvent()) continue;
 
-			float power = event.getPower();
+			SpellData subData = event.getSpellData();
 			target = event.getTarget();
 
-			double force = this.force.get(caster, target, power, args) / 10;
-			if (powerAffectsForce) force *= power;
+			double force = this.force.get(subData) / 10;
+			if (powerAffectsForce.get(subData)) force *= subData.power();
 
-			e = target.getLocation().toVector();
-			v = e.subtract(p).normalize().multiply(force);
+			Vector velocity = target.getLocation().toVector().subtract(casterLoc).normalize().multiply(force);
 
-			double yForce = this.yForce.get(caster, target, power, args) / 10;
-			if (powerAffectsForce) yForce *= power;
+			double yForce = this.yForce.get(subData) / 10;
+			if (powerAffectsForce.get(subData)) yForce *= subData.power();
 
-			v.setY(Math.min(v.getY() + yForce, maxYForce.get(caster, target, power, args) / 10));
-			v = Util.makeFinite(v);
+			velocity.setY(Math.min(velocity.getY() + yForce, maxYForce.get(subData) / 10));
+			velocity = Util.makeFinite(velocity);
 
-			if (addVelocityInstead) target.setVelocity(target.getVelocity().add(v));
-			else target.setVelocity(v);
+			if (addVelocityInstead.get(subData)) target.setVelocity(target.getVelocity().add(velocity));
+			else target.setVelocity(velocity);
 
-			SpellData data = new SpellData(caster, target, power, args);
-			playSpellEffects(EffectPosition.TARGET, target, data);
-			playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
+			playSpellEffects(EffectPosition.TARGET, target, subData);
+			playSpellEffectsTrail(data.caster().getLocation(), target.getLocation(), subData);
 		}
 
-		playSpellEffects(EffectPosition.CASTER, caster, basePower, args);
-	}
-
-	public boolean shouldAddVelocityInstead() {
-		return addVelocityInstead;
-	}
-
-	public void setAddVelocityInstead(boolean addVelocityInstead) {
-		this.addVelocityInstead = addVelocityInstead;
+		playSpellEffects(EffectPosition.CASTER, data.caster(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

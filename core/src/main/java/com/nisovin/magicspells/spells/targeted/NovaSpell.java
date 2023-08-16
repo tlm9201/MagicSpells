@@ -1,8 +1,9 @@
 package com.nisovin.magicspells.spells.targeted;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Collection;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -11,392 +12,306 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.BlockData;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntitySpell {
 
-	private ConfigData<BlockData> blockData;
+	private final ConfigData<BlockData> blockData;
 
-	private Vector relativeOffset;
+	private final ConfigData<Vector> relativeOffset;
+
+	private final ConfigData<Integer> radius;
+	private final ConfigData<Integer> startRadius;
+	private final ConfigData<Integer> heightPerTick;
+	private final ConfigData<Integer> expandInterval;
+	private final ConfigData<Integer> expandingRadiusChange;
+
+	private final ConfigData<Double> visibleRange;
+
+	private final ConfigData<Boolean> pointBlank;
+	private final ConfigData<Boolean> circleShape;
+	private final ConfigData<Boolean> removePreviousBlocks;
 
 	private Subspell spellOnEnd;
 	private Subspell locationSpell;
 	private Subspell spellOnWaveRemove;
+
 	private String spellOnEndName;
 	private String locationSpellName;
 	private String spellOnWaveRemoveName;
 
-	private ConfigData<Integer> radius;
-	private ConfigData<Integer> startRadius;
-	private ConfigData<Integer> heightPerTick;
-	private ConfigData<Integer> novaTickInterval;
-	private ConfigData<Integer> expandingRadiusChange;
-
-	private ConfigData<Double> visibleRange;
-
-	private boolean pointBlank;
-	private boolean circleShape;
-	private boolean removePreviousBlocks;
-	
 	public NovaSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		blockData = getConfigDataBlockData("type", Bukkit.createBlockData(Material.WATER));
-		
-		relativeOffset = getConfigVector("relative-offset", "0,0,0");
 
-		spellOnEndName = getConfigString("spell-on-end", "");
+		relativeOffset = getConfigDataVector("relative-offset", new Vector());
+
 		locationSpellName = getConfigString("spell", "");
+		spellOnEndName = getConfigString("spell-on-end", "");
 		spellOnWaveRemoveName = getConfigString("spell-on-wave-remove", "");
-		
+
 		radius = getConfigDataInt("radius", 3);
 		startRadius = getConfigDataInt("start-radius", 0);
 		heightPerTick = getConfigDataInt("height-per-tick", 0);
-		novaTickInterval = getConfigDataInt("expand-interval", 5);
+		expandInterval = getConfigDataInt("expand-interval", 5);
 		expandingRadiusChange = getConfigDataInt("expanding-radius-change", 1);
 
 		visibleRange = getConfigDataDouble("visible-range", 20);
 
-		pointBlank = getConfigBoolean("point-blank", true);
-		circleShape = getConfigBoolean("circle-shape", false);
-		removePreviousBlocks = getConfigBoolean("remove-previous-blocks", true);
-		
+		pointBlank = getConfigDataBoolean("point-blank", true);
+		circleShape = getConfigDataBoolean("circle-shape", false);
+		removePreviousBlocks = getConfigDataBoolean("remove-previous-blocks", true);
+
 	}
-	
+
 	@Override
 	public void initialize() {
 		super.initialize();
-		
+
 		locationSpell = new Subspell(locationSpellName);
 		if (!locationSpell.process()) {
-			if (!locationSpellName.isEmpty()) MagicSpells.error("NovaSpell " + internalName + " has an invalid spell defined!");
+			if (!locationSpellName.isEmpty())
+				MagicSpells.error("NovaSpell " + internalName + " has an invalid spell defined!");
 			locationSpell = null;
 		}
-		
+		locationSpellName = null;
+
 		spellOnWaveRemove = new Subspell(spellOnWaveRemoveName);
 		if (!spellOnWaveRemove.process()) {
-			if (!spellOnWaveRemoveName.isEmpty()) MagicSpells.error("NovaSpell " + internalName + " has an invalid spell-on-wave-remove defined!");
+			if (!spellOnWaveRemoveName.isEmpty())
+				MagicSpells.error("NovaSpell " + internalName + " has an invalid spell-on-wave-remove defined!");
 			spellOnWaveRemove = null;
 		}
-		
+		spellOnWaveRemoveName = null;
+
 		spellOnEnd = new Subspell(spellOnEndName);
 		if (!spellOnEnd.process()) {
-			if (!spellOnEndName.isEmpty()) MagicSpells.error("NovaSpell " + internalName + " has an invalid spell-on-end defined!");
+			if (!spellOnEndName.isEmpty())
+				MagicSpells.error("NovaSpell " + internalName + " has an invalid spell-on-end defined!");
 			spellOnEnd = null;
 		}
+		spellOnEndName = null;
 	}
-	
+
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState spellCastState, float power, String[] strings) {
-		if (spellCastState == SpellCastState.NORMAL) {
-			Location loc;
-			if (pointBlank) loc = caster.getLocation();
-			else loc = getTargetedBlock(caster, power, strings).getLocation();
-			
-			createNova(caster, null, loc, power, strings);
+	public CastResult cast(SpellData data) {
+		if (pointBlank.get(data)) {
+			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
+			if (!targetEvent.callEvent()) return noTarget(data);
+			data = targetEvent.getSpellData();
+		} else {
+			TargetInfo<Location> info = getTargetedBlockLocation(data);
+			if (info.noTarget()) return noTarget(info);
+			data = info.spellData();
 		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
-	
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		createNova(caster, target, target.getLocation(), power, args);
-		return true;
+
+		return castAtLocation(data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		createNova(caster, target, target.getLocation(), power, null);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		if (circleShape.get(data)) new NovaTrackerCircle(data);
+		else new NovaTrackerSquare(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity livingEntity, float v) {
-		return false;
-	}
-	
-	@Override
-	public boolean castAtLocation(LivingEntity livingEntity, Location location, float v, String[] args) {
-		createNova(livingEntity, null, location, v, args);
-		return true;
-	}
+	public CastResult castAtEntity(SpellData data) {
+		data = data.location(data.target().getLocation());
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		createNova(caster, null, target, power, null);
-		return true;
+		if (circleShape.get(data)) new NovaTrackerCircle(data);
+		else new NovaTrackerSquare(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(Location location, float v) {
-		return false;
-	}
+	private abstract class NovaTracker implements Runnable {
 
-	private void createNova(LivingEntity caster, LivingEntity target, Location loc, float power, String[] args) {
-		if (blockData == null) return;
-		// Relative offset
-		Location startLoc = loc.clone();
-		Vector direction = caster.getLocation().getDirection().normalize();
-		Vector horizOffset = new Vector(-direction.getZ(), 0.0, direction.getX()).normalize();
-		startLoc.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
-		startLoc.add(direction.setY(0).normalize().multiply(relativeOffset.getX()));
-		startLoc.add(0, relativeOffset.getY(), 0);
+		protected final SpellData data;
 
-		SpellData data = new SpellData(caster, target, power, args);
-		
-		// Get nearby players
-		double visibleRange = Math.min(Math.max(this.visibleRange.get(data), 20), MagicSpells.getGlobalRadius());
+		protected final Location center;
 
-		Collection<Player> nearbyPlayers = startLoc.getWorld().getNearbyPlayers(startLoc, visibleRange, visibleRange, visibleRange);
+		protected final Set<Block> blocks;
+		protected final Set<Player> nearby;
 
-		int radius = this.radius.get(data);
-		int startRadius = this.startRadius.get(data);
-		int heightPerTick = this.heightPerTick.get(data);
-		int novaTickInterval = this.novaTickInterval.get(data);
-		int expandingRadiusChange = this.expandingRadiusChange.get(data);
-		BlockData blockData = this.blockData.get(data);
-		if (expandingRadiusChange < 1) expandingRadiusChange = 1;
+		protected final boolean removePreviousBlocks;
 
-		// Start tracker
-		if (!circleShape) new NovaTrackerSquare(nearbyPlayers, startLoc.getBlock(), blockData, caster, radius, startRadius, heightPerTick, novaTickInterval, expandingRadiusChange, power, args);
-		else new NovaTrackerCircle(nearbyPlayers, startLoc.getBlock(), blockData, caster, radius, startRadius, heightPerTick, novaTickInterval, expandingRadiusChange, power, args);
-	}
-	
-	private class NovaTrackerSquare implements Runnable {
-		
-		private BlockData blockData;
-		private Collection<Player> nearby;
-		private Set<Block> blocks;
-		private LivingEntity caster;
-		private Block center;
-		private float power;
-		private String[] args;
-		private int radiusNova;
-		private int startRadius;
-		private int heightPerTick;
-		private int radiusChange;
-		private int taskId;
-		private int count;
-		private int temp;
+		protected final int taskId;
+		protected final int radius;
+		protected final int startRadius;
+		protected final int heightPerTick;
+		protected final int expandingRadiusChange;
 
-		private NovaTrackerSquare(Collection<Player> nearby, Block center, BlockData blockData, LivingEntity caster, int radius, int startRadius, int heightPerTick, int tickInterval, int activeRadiusChange, float power, String[] args) {
-			this.nearby = nearby;
-			this.center = center;
-			this.blockData = blockData;
-			this.caster = caster;
-			this.power = power;
-			this.args = args;
-			this.radiusNova = radius;
-			this.blocks = new HashSet<>();
-			this.radiusChange = activeRadiusChange;
-			this.startRadius = startRadius;
-			this.heightPerTick = heightPerTick;
+		protected final double visibleRange;
 
-			this.count = 0;
-			this.temp = 0;
+		protected final BlockData blockData;
 
-			this.taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
+		protected int currentRadius;
+		protected int count;
+
+		public NovaTracker(SpellData data) {
+			Vector relativeOffset = NovaSpell.this.relativeOffset.get(data);
+
+			center = data.location();
+			Vector startDir = center.getDirection();
+			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
+			center.add(horizOffset.multiply(relativeOffset.getZ()));
+			center.add(startDir.multiply(relativeOffset.getX()));
+			center.add(0, relativeOffset.getY(), 0);
+			data = data.location(center);
+
+			removePreviousBlocks = NovaSpell.this.removePreviousBlocks.get(data);
+
+			radius = NovaSpell.this.radius.get(data);
+			startRadius = NovaSpell.this.startRadius.get(data);
+			heightPerTick = NovaSpell.this.heightPerTick.get(data);
+			expandingRadiusChange = NovaSpell.this.expandingRadiusChange.get(data);
+
+			visibleRange = NovaSpell.this.visibleRange.get(data);
+
+			blockData = NovaSpell.this.blockData.get(data);
+
+			blocks = new HashSet<>();
+			nearby = new HashSet<>();
+
+			this.data = data.noTarget();
+			taskId = MagicSpells.scheduleRepeatingTask(this, 0, expandInterval.get(data));
 		}
-		
-		@Override
-		public void run() {
-			temp = count;
-			temp += startRadius;
-			temp *= radiusChange;
+
+		protected boolean step() {
+			currentRadius = (startRadius + count) * expandingRadiusChange;
 			count++;
-			
-			if (removePreviousBlocks) {
-				for (Block b : blocks) {
-					for (Player p : nearby) p.sendBlockChange(b.getLocation(), b.getBlockData());
-					if (spellOnWaveRemove != null) spellOnWaveRemove.subcast(caster, b.getLocation().add(0.5, 0, 0.5),  power, args);
-				}
-				blocks.clear();
-			}
-			
-			if (temp > radiusNova + 1) {
+
+			if (removePreviousBlocks) removeBlocks(spellOnWaveRemove);
+
+			if (currentRadius > radius + 1) {
 				stop();
-				return;
+				return true;
 			}
 
-			if (temp > radiusNova) {
-				return;
+			if (currentRadius <= radius) {
+				nearby.addAll(center.getNearbyPlayers(visibleRange));
+				return false;
 			}
-			
-			int bx = center.getX();
-			int y = center.getY();
-			int bz = center.getZ();
-			y += count * heightPerTick;
-			
-			for (int x = bx - temp; x <= bx + temp; x++) {
-				for (int z = bz - temp; z <= bz + temp; z++) {
-					if (Math.abs(x - bx) != temp && Math.abs(z - bz) != temp) continue;
-					
-					Block b = center.getWorld().getBlockAt(x, y, z);
-					if (BlockUtils.isAir(b.getType()) || b.getType() == Material.TALL_GRASS) {
-						Block under = b.getRelative(BlockFace.DOWN);
-						if (BlockUtils.isAir(under.getType()) || under.getType() == Material.TALL_GRASS) b = under;
-					} else if (BlockUtils.isAir(b.getRelative(BlockFace.UP).getType()) || b.getRelative(BlockFace.UP).getType() == Material.TALL_GRASS) {
-						b = b.getRelative(BlockFace.UP);
-					}
-					
-					if (!BlockUtils.isAir(b.getType()) && b.getType() != Material.TALL_GRASS) continue;
-					
-					if (blocks.contains(b)) continue;
-					for (Player p : nearby) p.sendBlockChange(b.getLocation(), blockData);
-					blocks.add(b);
-					if (locationSpell != null) locationSpell.subcast(caster, b.getLocation().add(0.5, 0, 0.5),  power, args);
-				}
-			}
-			
+
+			return true;
 		}
 
-		private void stop() {
-			for (Block b : blocks) {
-				for (Player p : nearby) p.sendBlockChange(b.getLocation(), b.getBlockData());
-				if (spellOnEnd != null) spellOnEnd.subcast(caster, b.getLocation().add(0.5, 0, 0.5),  power, args);
+		protected void removeBlocks(Subspell spell) {
+			Map<Location, BlockData> update = new HashMap<>();
+			for (Block block : blocks) {
+				update.put(block.getLocation(), block.getBlockData());
+
+				if (spell != null) {
+					SpellData subData = data.location(block.getLocation().add(0.5, 0, 0.5));
+					spell.subcast(subData);
+				}
 			}
+			for (Player p : nearby) p.sendMultiBlockChange(update);
+
 			blocks.clear();
+			nearby.clear();
+		}
+
+		protected void checkBlock(Block block, Map<Location, BlockData> update) {
+			if (block.isPassable()) {
+				Block under = block.getRelative(BlockFace.DOWN);
+				if (under.isPassable()) block = under;
+			} else {
+				Block upper = block.getRelative(BlockFace.UP);
+				if (upper.isPassable()) block = upper;
+			}
+			if (!block.isPassable() || blocks.contains(block)) return;
+
+			update.put(block.getLocation(), blockData);
+			blocks.add(block);
+
+			if (locationSpell != null) {
+				SpellData subData = data.location(block.getLocation().add(0.5, 0, 0.5));
+				locationSpell.subcast(subData);
+			}
+		}
+
+		protected void stop() {
+			removeBlocks(spellOnEnd);
 			MagicSpells.cancelTask(taskId);
 		}
-		
+
 	}
-	
-	private class NovaTrackerCircle implements Runnable {
 
-		private BlockData blockData;
-		private Collection<Player> nearby;
-		private Set<Block> blocks;
-		private LivingEntity caster;
-		private Block center;
-		private float power;
-		private String[] args;
-		private int radiusNova;
-		private int startRadius;
-		private int heightPerTick;
-		private int radiusChange;
-		private int taskId;
-		private int count;
-		private int temp;
+	private class NovaTrackerSquare extends NovaTracker {
 
-		private NovaTrackerCircle(Collection<Player> nearby, Block center, BlockData blockData, LivingEntity caster, int radius, int startRadius, int heightPerTick, int tickInterval, int activeRadiusChange, float power, String[] args) {
-			this.nearby = nearby;
-			this.center = center;
-			this.blockData = blockData;
-			this.caster = caster;
-			this.power = power;
-			this.args = args;
-			this.radiusNova = radius;
-			this.blocks = new HashSet<>();
-			this.startRadius = startRadius;
-			this.heightPerTick = heightPerTick;
-			this.radiusChange = activeRadiusChange;
-
-			this.count = 0;
-			this.temp = 0;
-
-			this.taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
+		public NovaTrackerSquare(SpellData data) {
+			super(data);
 		}
-		
+
 		@Override
 		public void run() {
-			temp = count;
-			temp += startRadius;
-			temp *= radiusChange;
-			count++;
-			
-			// Remove old blocks
-			if (removePreviousBlocks) {
-				for (Block b : blocks) {
-					for (Player p : nearby) p.sendBlockChange(b.getLocation(), b.getBlockData());
-					if (spellOnWaveRemove != null) spellOnWaveRemove.subcast(caster, b.getLocation().add(0.5, 0, 0.5),  power, args);
+			if (step()) return;
+
+			int bx = center.getBlockX();
+			int y = center.getBlockY() + count * heightPerTick;
+			int bz = center.getBlockZ();
+
+			Map<Location, BlockData> update = new HashMap<>();
+			for (int x = bx - currentRadius; x <= bx + currentRadius; x++) {
+				for (int z = bz - currentRadius; z <= bz + currentRadius; z++) {
+					if (Math.abs(x - bx) != currentRadius && Math.abs(z - bz) != currentRadius) continue;
+					checkBlock(center.getWorld().getBlockAt(x, y, z), update);
 				}
-				blocks.clear();
 			}
-			
-			if (temp > radiusNova + 1) {
-				stop();
+
+			for (Player p : nearby) p.sendMultiBlockChange(update);
+		}
+
+	}
+
+	private class NovaTrackerCircle extends NovaTracker {
+
+		public NovaTrackerCircle(SpellData data) {
+			super(data);
+		}
+
+		@Override
+		public void run() {
+			if (step()) return;
+
+			double cx = center.getBlockX() + 0.5;
+			int y = center.getBlockY() + count * heightPerTick;
+			double cz = center.getBlockZ() + 0.5;
+
+			Map<Location, BlockData> update = new HashMap<>();
+
+			if (startRadius == 0 && currentRadius == 0) {
+				checkBlock(center.getWorld().getBlockAt(Location.locToBlock(cx), y, Location.locToBlock(cz)), update);
+				for (Player p : nearby) p.sendMultiBlockChange(update);
 				return;
 			}
 
-			if (temp > radiusNova) {
-				return;
-			}
-			
-			// Generate the bottom block
-			Location centerLocation = center.getLocation().clone();
-			centerLocation.add(0.5, count * heightPerTick, 0.5);
-			Block b;
-			
-			if (startRadius == 0 && temp == 0) {
-				b = centerLocation.getWorld().getBlockAt(centerLocation);
-				
-				if (BlockUtils.isAir(b.getType()) || b.getType() == Material.TALL_GRASS) {
-					Block under = b.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isAir(under.getType()) || under.getType() == Material.TALL_GRASS) b = under;
-				} else if (BlockUtils.isAir(b.getRelative(BlockFace.UP).getType()) || b.getRelative(BlockFace.UP).getType() == Material.TALL_GRASS) {
-					b = b.getRelative(BlockFace.UP);
-				}
-				
-				if (!BlockUtils.isAir(b.getType()) && b.getType() != Material.TALL_GRASS) return;
-				
-				if (blocks.contains(b)) return;
-				for (Player p : nearby) p.sendBlockChange(b.getLocation(), blockData);
-				blocks.add(b);
-				if (locationSpell != null) locationSpell.subcast(caster, b.getLocation().add(0.5, 0, 0.5),  power, args);
-			}
-			
-			// Generate the circle
-			Vector v;
-			double angle, x, z;
-			double amount = temp * 64;
-			double inc = (2 * Math.PI) / amount;
+			int amount = currentRadius * 64;
+			double inc = 2 * Math.PI / amount;
 			for (int i = 0; i < amount; i++) {
-				angle = i * inc;
-				x = temp * Math.cos(angle);
-				z = temp * Math.sin(angle);
-				v = new Vector(x, 0, z);
-				b = center.getWorld().getBlockAt(centerLocation.add(v));
-				centerLocation.subtract(v);
-				
-				if (BlockUtils.isAir(b.getType()) || b.getType() == Material.TALL_GRASS) {
-					Block under = b.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isAir(under.getType()) || under.getType() == Material.TALL_GRASS) b = under;
-				} else if (BlockUtils.isAir(b.getRelative(BlockFace.UP).getType()) || b.getRelative(BlockFace.UP).getType() == Material.TALL_GRASS) {
-					b = b.getRelative(BlockFace.UP);
-				}
-				
-				if (!BlockUtils.isAir(b.getType()) && b.getType() != Material.TALL_GRASS) continue;
-				
-				if (blocks.contains(b)) continue;
-				for (Player p : nearby) p.sendBlockChange(b.getLocation(), blockData);
-				blocks.add(b);
-				if (locationSpell != null) locationSpell.subcast(caster, b.getLocation().add(0.5, 0, 0.5),  power, args);
+				double angle = i * inc;
+				int x = Location.locToBlock(cx + currentRadius * Math.cos(angle));
+				int z = Location.locToBlock(cz + currentRadius * Math.sin(angle));
+
+				checkBlock(center.getWorld().getBlockAt(x, y, z), update);
 			}
-			
+
+			for (Player p : nearby) p.sendMultiBlockChange(update);
 		}
 
-		private void stop() {
-			for (Block b : blocks) {
-				for (Player p : nearby) p.sendBlockChange(b.getLocation(), b.getBlockData());
-				if (spellOnEnd != null) spellOnEnd.subcast(caster, b.getLocation().add(0.5, 0, 0.5),  power, args);
-			}
-			blocks.clear();
-			MagicSpells.cancelTask(taskId);
-		}
-		
 	}
-	
+
 }

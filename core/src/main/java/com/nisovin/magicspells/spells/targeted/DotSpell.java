@@ -12,34 +12,32 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.spells.DamageSpell;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
-public class DotSpell extends TargetedSpell implements TargetedEntitySpell, DamageSpell {
+public class DotSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private Map<UUID, Dot> activeDots;
+	private final Map<UUID, Dot> activeDots;
 
-	private ConfigData<Integer> delay;
-	private ConfigData<Integer> interval;
-	private ConfigData<Integer> duration;
+	private final ConfigData<Integer> delay;
+	private final ConfigData<Integer> interval;
+	private final ConfigData<Integer> duration;
 
-	private ConfigData<Double> damage;
+	private final ConfigData<Double> damage;
 
-	private boolean ignoreArmor;
-	private boolean checkPlugins;
-	private boolean powerAffectsDamage;
-	private boolean avoidDamageModification;
-	private boolean tryAvoidingAntiCheatPlugins;
+	private final ConfigData<Boolean> ignoreArmor;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> powerAffectsDamage;
+	private final ConfigData<Boolean> avoidDamageModification;
+	private final ConfigData<Boolean> tryAvoidingAntiCheatPlugins;
 
-	private String spellDamageType;
-	private DamageCause damageType;
+	private final ConfigData<String> spellDamageType;
+	private final ConfigData<DamageCause> damageType;
 
 	public DotSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -50,70 +48,42 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 
 		damage = getConfigDataDouble("damage", 2);
 
-		ignoreArmor = getConfigBoolean("ignore-armor", false);
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		powerAffectsDamage = getConfigBoolean("power-affects-damage", true);
-		avoidDamageModification = getConfigBoolean("avoid-damage-modification", true);
-		tryAvoidingAntiCheatPlugins = getConfigBoolean("try-avoiding-anticheat-plugins", false);
+		ignoreArmor = getConfigDataBoolean("ignore-armor", false);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		powerAffectsDamage = getConfigDataBoolean("power-affects-damage", true);
+		avoidDamageModification = getConfigDataBoolean("avoid-damage-modification", true);
+		tryAvoidingAntiCheatPlugins = getConfigDataBoolean("try-avoiding-anticheat-plugins", false);
 
-		spellDamageType = getConfigString("spell-damage-type", "");
-		String damageTypeName = getConfigString("damage-type", "ENTITY_ATTACK");
-		try {
-			damageType = DamageCause.valueOf(damageTypeName.toUpperCase());
-		} catch (IllegalArgumentException ignored) {
-			DebugHandler.debugBadEnumValue(DamageCause.class, damageTypeName);
-			damageType = DamageCause.ENTITY_ATTACK;
-		}
+		spellDamageType = getConfigDataString("spell-damage-type", "");
+		damageType = getConfigDataEnum("damage-type", DamageCause.class, DamageCause.ENTITY_ATTACK);
 
 		activeDots = new HashMap<>();
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			applyDot(caster, targetInfo.target(), targetInfo.power(), args);
-			sendMessages(caster, targetInfo.target(), args);
+		return castAtEntity(info.spellData());
+	}
 
-			return PostCastAction.NO_MESSAGES;
+	@Override
+	public CastResult castAtEntity(SpellData data) {
+		Dot dot = activeDots.get(data.target().getUniqueId());
+
+		if (dot != null) {
+			dot.data = data;
+
+			dot.init();
+		} else {
+			dot = new Dot(data);
+			activeDots.put(data.target().getUniqueId(), dot);
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
-	}
+		playSpellEffects(data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		applyDot(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		applyDot(caster, target, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		applyDot(null, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		applyDot(null, target, power, null);
-		return true;
-	}
-
-	@Override
-	public String getSpellDamageType() {
-		return spellDamageType;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public boolean isActive(LivingEntity entity) {
@@ -126,23 +96,6 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 		dot.cancel();
 	}
 
-	private void applyDot(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		Dot dot = activeDots.get(target.getUniqueId());
-		if (dot != null) {
-			dot.caster = caster;
-			dot.power = power;
-			dot.args = args;
-
-			dot.init();
-		} else {
-			dot = new Dot(caster, target, power, args);
-			activeDots.put(target.getUniqueId(), dot);
-		}
-
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
-	}
-
 	@EventHandler
 	private void onDeath(PlayerDeathEvent event) {
 		Dot dot = activeDots.get(event.getEntity().getUniqueId());
@@ -151,21 +104,24 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 
 	private class Dot implements Runnable {
 
-		private final LivingEntity target;
-		private LivingEntity caster;
-		private String[] args;
-		private float power;
+		private SpellData data;
 
 		private int taskId = -1;
 		private int duration;
 		private int interval;
 		private int dur = 0;
 
-		private Dot(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			this.caster = caster;
-			this.target = target;
-			this.power = power;
-			this.args = args;
+		private boolean tryAvoidingAntiCheatPlugins;
+		private boolean avoidDamageModification;
+		private boolean powerAffectsDamage;
+		private boolean checkPlugins;
+		private boolean ignoreArmor;
+
+		private String spellDamageType;
+		private DamageCause damageType;
+
+		private Dot(SpellData data) {
+			this.data = data;
 
 			init();
 		}
@@ -173,11 +129,20 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 		private void init() {
 			if (taskId != -1) MagicSpells.cancelTask(taskId);
 
-			interval = DotSpell.this.interval.get(caster, target, power, args);
-			duration = DotSpell.this.duration.get(caster, target, power, args);
+			interval = DotSpell.this.interval.get(data);
+			duration = DotSpell.this.duration.get(data);
 			dur = 0;
 
-			taskId = MagicSpells.scheduleRepeatingTask(this, delay.get(caster, target, power, args), interval);
+			tryAvoidingAntiCheatPlugins = DotSpell.this.tryAvoidingAntiCheatPlugins.get(data);
+			avoidDamageModification = DotSpell.this.avoidDamageModification.get(data);
+			powerAffectsDamage = DotSpell.this.powerAffectsDamage.get(data);
+			checkPlugins = DotSpell.this.checkPlugins.get(data);
+			ignoreArmor = DotSpell.this.ignoreArmor.get(data);
+
+			spellDamageType = DotSpell.this.spellDamageType.get(data);
+			damageType = DotSpell.this.damageType.get(data);
+
+			taskId = MagicSpells.scheduleRepeatingTask(this, delay.get(data), interval);
 		}
 
 		@Override
@@ -188,57 +153,57 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell, Dama
 				return;
 			}
 
-			if (target.isDead() || !target.isValid()) {
+			if (!data.target().isValid()) {
 				cancel();
 				return;
 			}
 
-			double localDamage = damage.get(caster, target, power, args);
-			if (powerAffectsDamage) localDamage *= power;
+			double localDamage = damage.get(data);
+			if (powerAffectsDamage) localDamage *= data.power();
 
-			if (checkPlugins) {
-				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, localDamage, DotSpell.this);
-				EventUtil.call(event);
-				if (event.isCancelled()) return;
+			if (checkPlugins && data.hasCaster()) {
+				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(data.caster(), data.target(), damageType, localDamage, DotSpell.this);
+				if (!event.callEvent()) return;
+
 				if (!avoidDamageModification) localDamage = event.getDamage();
-				target.setLastDamageCause(event);
+				data.target().setLastDamageCause(event);
 			}
 
-			SpellApplyDamageEvent event = new SpellApplyDamageEvent(DotSpell.this, caster, target, localDamage, damageType, spellDamageType);
+			SpellApplyDamageEvent event = new SpellApplyDamageEvent(DotSpell.this, data.caster(), data.target(), localDamage, damageType, spellDamageType);
 			EventUtil.call(event);
 			localDamage = event.getFinalDamage();
 
 			if (ignoreArmor) {
-				double maxHealth = Util.getMaxHealth(target);
-				double health = target.getHealth();
+				double maxHealth = Util.getMaxHealth(data.target());
+				double health = data.target().getHealth();
 
 				if (health > maxHealth) health = maxHealth;
 				health -= localDamage;
 
 				if (health < 0) {
 					health = 0;
-					if (caster instanceof Player) target.setKiller((Player) caster);
+					if (data.caster() instanceof Player player) data.target().setKiller(player);
 				}
 
 				if (health > maxHealth) health = maxHealth;
 
-				target.setHealth(health);
-				target.setLastDamage(localDamage);
+				data.target().setHealth(health);
+				data.target().setLastDamage(localDamage);
 
-				if (caster != null) MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, LocationUtil.getRotatedLocation(caster.getLocation(), target.getLocation()).getYaw());
-				else MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, target.getLocation().getYaw());
+				if (data.hasCaster()) MagicSpells.getVolatileCodeHandler().playHurtAnimation(data.target(), LocationUtil.getRotatedLocation(data.caster().getLocation(), data.target().getLocation()).getYaw());
+				else MagicSpells.getVolatileCodeHandler().playHurtAnimation(data.target(), data.target().getLocation().getYaw());
 			} else {
-				if (tryAvoidingAntiCheatPlugins) target.damage(localDamage);
-				else target.damage(localDamage, caster);
+				if (tryAvoidingAntiCheatPlugins || !data.hasCaster()) data.target().damage(localDamage);
+				else data.target().damage(localDamage, data.caster());
 			}
 
-			playSpellEffects(EffectPosition.DELAYED, target, new SpellData(caster, target, power, args));
-			target.setNoDamageTicks(0);
+			playSpellEffects(EffectPosition.DELAYED, data.target(), data);
+			data.target().setNoDamageTicks(0);
 		}
 
 		private void cancel() {
 			MagicSpells.cancelTask(taskId);
-			activeDots.remove(target.getUniqueId());
+			activeDots.remove(data.target().getUniqueId());
 		}
 
 	}

@@ -1,98 +1,87 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.FunctionData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class SlotSelectSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private boolean isVariable = false;
+	private final String variable;
 
-	private String variable;
-	private int slot;
-	private final boolean ignoreSlotBounds;
+	private final ConfigData<Integer> slot;
+
+	private final ConfigData<Boolean> ignoreSlotBounds;
 
 	public SlotSelectSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		if (isConfigString("slot")) {
-			isVariable = true;
-			variable = getConfigString("slot", null);
-		} else slot = getConfigInt("slot", 0);
-		ignoreSlotBounds = getConfigBoolean("ignore-slot-bounds", false);
-	}
 
-	@Override
-	public void initializeVariables() {
-		super.initializeVariables();
+		ignoreSlotBounds = getConfigDataBoolean("ignore-slot-bounds", false);
 
-		if (isVariable && (variable == null || variable.isEmpty() || MagicSpells.getVariableManager().getVariable(variable) == null)) {
-			MagicSpells.error("SlotSelectSpell '" + internalName + "' has an invalid variable specified in 'slot'!");
-		}
-	}
+		String path = internalKey + "slot";
+		if (config.isString("slot")) {
+			String value = config.getString(path, null);
+			if (value == null) {
+				slot = data -> 0;
+				variable = null;
+				return;
+			}
 
-	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player) {
-			TargetInfo<Player> info = getTargetedPlayer(caster, power, args);
-			if (info.noTarget()) return noTarget(caster, args, info);
+			if (value.matches("\\w+")) {
+				slot = null;
+				variable = value;
+				return;
+			}
 
-			if (!slotChange(caster, info.target(), info.power(), args)) return noTarget(caster, args);
-
-			sendMessages(caster, info.target(), args);
-			return PostCastAction.NO_MESSAGES;
+			FunctionData<Integer> function = FunctionData.build(value, Double::intValue, 0);
+			slot = function == null ? data -> 0 : function;
+		} else {
+			int value = config.getInt(path, 0);
+			slot = data -> value;
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		variable = null;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		return validTargetList.canTarget(caster, target) && slotChange(caster, target, power, args);
+	public CastResult cast(SpellData data) {
+		TargetInfo<Player> info = getTargetedPlayer(data);
+		if (info.noTarget()) return noTarget(info);
+
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return validTargetList.canTarget(caster, target) && slotChange(caster, target, power, null);
-	}
+	public CastResult castAtEntity(SpellData data) {
+		if (!(data.target() instanceof Player target)) return noTarget(data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return validTargetList.canTarget(target) && slotChange(null, target, power, args);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return validTargetList.canTarget(target) && slotChange(null, target, power, null);
-	}
-
-	private boolean slotChange(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!(target instanceof Player player)) return false;
-
-		int newSlot = -1;
-		if (isVariable) {
-			if (variable == null || variable.isEmpty() || MagicSpells.getVariableManager().getVariable(variable) == null) {
+		int slot;
+		if (variable != null) {
+			Variable var = MagicSpells.getVariableManager().getVariable(variable);
+			if (var == null) {
 				MagicSpells.error("SlotSelectSpell '" + internalName + "' has an invalid variable specified in 'slot'!");
-			} else newSlot = (int) Math.round(MagicSpells.getVariableManager().getValue(variable, player));
-		} else newSlot = slot;
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+
+			slot = (int) Math.round(var.getValue(target));
+		} else slot = this.slot.get(data);
 
 		try {
-			player.getInventory().setHeldItemSlot(newSlot);
-		} catch(IllegalArgumentException e) {
-			if (!ignoreSlotBounds) {
+			target.getInventory().setHeldItemSlot(slot);
+		} catch (IllegalArgumentException e) {
+			if (!ignoreSlotBounds.get(data)) {
 				MagicSpells.error("SlotSelectSpell '" + internalName + "' attempted to set to a slot outside bounds (0-8)! If this is intended, set 'ignore-slot-bounds' to true.");
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 		}
 
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
-
-		return true;
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

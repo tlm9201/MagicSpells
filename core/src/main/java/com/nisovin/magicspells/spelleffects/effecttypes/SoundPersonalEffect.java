@@ -16,12 +16,12 @@ public class SoundPersonalEffect extends SoundEffect {
 
 	private ConfigData<SoundTarget> target;
 
-	private boolean broadcast;
-	private boolean useListenerAsTarget;
-	private boolean resolveSoundPerPlayer;
-	private boolean resolvePitchPerPlayer;
-	private boolean resolveVolumePerPlayer;
-	private boolean resolveCategoryPerPlayer;
+	private ConfigData<Boolean> broadcast;
+	private ConfigData<Boolean> useListenerAsTarget;
+	private ConfigData<Boolean> resolveSoundPerPlayer;
+	private ConfigData<Boolean> resolvePitchPerPlayer;
+	private ConfigData<Boolean> resolveVolumePerPlayer;
+	private ConfigData<Boolean> resolveCategoryPerPlayer;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -29,24 +29,24 @@ public class SoundPersonalEffect extends SoundEffect {
 
 		target = ConfigDataUtil.getEnum(config, "target", SoundTarget.class, SoundTarget.POSITION);
 
-		broadcast = config.getBoolean("broadcast", false);
-		useListenerAsTarget = config.getBoolean("use-listener-as-target", false);
-		resolveSoundPerPlayer = config.getBoolean("resolve-sound-per-player", false);
-		resolvePitchPerPlayer = config.getBoolean("resolve-pitch-per-player", false);
-		resolveVolumePerPlayer = config.getBoolean("resolve-volume-per-player", false);
-		resolveCategoryPerPlayer = config.getBoolean("resolve-category-per-player", false);
+		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
+		useListenerAsTarget = ConfigDataUtil.getBoolean(config, "use-listener-as-target", false);
+		resolveSoundPerPlayer = ConfigDataUtil.getBoolean(config, "resolve-sound-per-player", false);
+		resolvePitchPerPlayer = ConfigDataUtil.getBoolean(config, "resolve-pitch-per-player", false);
+		resolveVolumePerPlayer = ConfigDataUtil.getBoolean(config, "resolve-volume-per-player", false);
+		resolveCategoryPerPlayer = ConfigDataUtil.getBoolean(config, "resolve-category-per-player", false);
 	}
 
 	@Override
 	public Runnable playEffectEntity(Entity entity, SpellData data) {
-		if (broadcast) {
+		if (broadcast.get(data)) {
 			broadcast(data);
 			return null;
 		}
 
 		Player target = getTarget(entity, data);
 		if (target != null) {
-			if (useListenerAsTarget && data != null) data = new SpellData(data.caster(), target, data.power(), data.args());
+			if (useListenerAsTarget.get(data)) data = data.target(target);
 			target.playSound(applyOffsets(entity.getLocation(), data), sound.get(data), category.get(data), volume.get(data), pitch.get(data));
 		}
 
@@ -55,14 +55,14 @@ public class SoundPersonalEffect extends SoundEffect {
 
 	@Override
 	public Runnable playEffectLocation(Location location, SpellData data) {
-		if (broadcast) {
+		if (broadcast.get(data)) {
 			broadcast(data);
 			return null;
 		}
 
 		Player target = getTarget(null, data);
 		if (target != null) {
-			if (useListenerAsTarget && data != null) data = new SpellData(data.caster(), target, data.power(), data.args());
+			if (useListenerAsTarget.get(data)) data = data.target(target);
 			target.playSound(location, sound.get(data), category.get(data), volume.get(data), pitch.get(data));
 		}
 
@@ -72,14 +72,10 @@ public class SoundPersonalEffect extends SoundEffect {
 	private Player getTarget(Entity entity, SpellData data) {
 		return switch (target.get(data)) {
 			case CASTER -> {
-				if (data == null) yield null;
-
 				LivingEntity caster = data.caster();
 				yield caster instanceof Player player ? player : null;
 			}
 			case TARGET -> {
-				if (data == null) yield null;
-
 				LivingEntity target = data.target();
 				yield target instanceof Player player ? player : null;
 			}
@@ -88,14 +84,19 @@ public class SoundPersonalEffect extends SoundEffect {
 	}
 
 	private void broadcast(SpellData data) {
+		boolean useListenerAsTarget = this.useListenerAsTarget.get(data);
+		boolean resolvePitchPerPlayer = this.resolvePitchPerPlayer.get(data);
+		boolean resolveVolumePerPlayer = this.resolveVolumePerPlayer.get(data);
+		boolean resolveSoundPerPlayer = this.resolveSoundPerPlayer.get(data);
+		boolean resolveCategoryPerPlayer = this.resolveCategoryPerPlayer.get(data);
+
 		float pitch = resolvePitchPerPlayer ? 0 : this.pitch.get(data);
 		float volume = resolveVolumePerPlayer ? 0 : this.volume.get(data);
 		String sound = resolveSoundPerPlayer ? null : this.sound.get(data);
 		SoundCategory category = resolveCategoryPerPlayer ? null : this.category.get(data);
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (useListenerAsTarget && data != null)
-				data = new SpellData(data.caster(), player, data.power(), data.args());
+			if (useListenerAsTarget) data = data.target(player);
 
 			if (resolveSoundPerPlayer) sound = this.sound.get(data);
 			if (resolvePitchPerPlayer) pitch = this.pitch.get(data);

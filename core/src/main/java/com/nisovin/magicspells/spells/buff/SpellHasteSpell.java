@@ -8,22 +8,22 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.CastData;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class SpellHasteSpell extends BuffSpell {
 
-	private final Map<UUID, CastData> entities;
+	private final Map<UUID, HasteData> entities;
 
-	private ConfigData<Float> castTimeModAmt;
-	private ConfigData<Float> cooldownModAmt;
+	private final ConfigData<Float> castTimeModAmt;
+	private final ConfigData<Float> cooldownModAmt;
 
-	private boolean powerAffectsCastTimeModAmt;
-	private boolean powerAffectsCooldownModAmt;
+	private final ConfigData<Boolean> constantCastTimeModAmt;
+	private final ConfigData<Boolean> constantCooldownModAmt;
+	private final ConfigData<Boolean> powerAffectsCastTimeModAmt;
+	private final ConfigData<Boolean> powerAffectsCooldownModAmt;
 
 	private SpellFilter filter;
 
@@ -33,8 +33,10 @@ public class SpellHasteSpell extends BuffSpell {
 		castTimeModAmt = getConfigDataFloat("cast-time-mod-amt", -25);
 		cooldownModAmt = getConfigDataFloat("cooldown-mod-amt", -25);
 
-		powerAffectsCastTimeModAmt = getConfigBoolean("power-affects-cast-time-mod-amt", true);
-		powerAffectsCooldownModAmt = getConfigBoolean("power-affects-cooldown-mod-amt", true);
+		constantCastTimeModAmt = getConfigDataBoolean("constant-cast-time-mod-amt", true);
+		constantCooldownModAmt = getConfigDataBoolean("constant-cooldown-mod-amt", true);
+		powerAffectsCastTimeModAmt = getConfigDataBoolean("power-affects-cast-time-mod-amt", true);
+		powerAffectsCooldownModAmt = getConfigDataBoolean("power-affects-cooldown-mod-amt", true);
 
 		entities = new HashMap<>();
 
@@ -42,8 +44,26 @@ public class SpellHasteSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new CastData(power, args));
+	public boolean castBuff(SpellData data) {
+		boolean constantCastTimeModAmt = this.constantCastTimeModAmt.get(data);
+		boolean constantCooldownModAmt = this.constantCooldownModAmt.get(data);
+
+		float castTimeModAmt = 0;
+		if (constantCastTimeModAmt) {
+			castTimeModAmt = this.castTimeModAmt.get(data);
+			if (powerAffectsCastTimeModAmt.get(data)) castTimeModAmt *= data.power();
+			castTimeModAmt /= 100;
+		}
+
+		float cooldownModAmt = 0;
+		if (constantCooldownModAmt) {
+			cooldownModAmt = this.cooldownModAmt.get(data);
+			if (powerAffectsCooldownModAmt.get(data)) cooldownModAmt *= data.power();
+			cooldownModAmt /= 100;
+		}
+
+		entities.put(data.target().getUniqueId(), new HasteData(data, castTimeModAmt, cooldownModAmt, constantCastTimeModAmt, constantCooldownModAmt));
+
 		return true;
 	}
 
@@ -67,40 +87,45 @@ public class SpellHasteSpell extends BuffSpell {
 		if (!filter.check(event.getSpell())) return;
 
 		LivingEntity caster = event.getCaster();
-		if (!isActive(caster)) return;
-
-		CastData data = entities.get(event.getCaster().getUniqueId());
+		HasteData data = entities.get(caster.getUniqueId());
 		if (data == null) return;
 
 		boolean modified = false;
 
-		float castTimeModAmt = this.castTimeModAmt.get(caster, null, data.power(), data.args()) / 100f;
+		float castTimeModAmt = data.castTimeModAmt;
+		if (!data.constantCastTimeModAmt) {
+			castTimeModAmt = this.castTimeModAmt.get(data.spellData);
+			if (powerAffectsCastTimeModAmt.get(data.spellData)) castTimeModAmt *= data.spellData.power();
+			castTimeModAmt /= 100;
+		}
+
+		float cooldownModAmt = data.cooldownModAmt;
+		if (!data.constantCooldownModAmt) {
+			cooldownModAmt = this.cooldownModAmt.get(data.spellData);
+			if (powerAffectsCooldownModAmt.get(data.spellData)) cooldownModAmt *= data.spellData.power();
+			cooldownModAmt /= 100;
+		}
+
 		if (castTimeModAmt != 0) {
-			int ct = event.getCastTime();
+			int castTime = event.getCastTime();
+			castTime = Math.max(Math.round(castTime + castTime * castTimeModAmt), 0);
 
-			float newCT = ct + (powerAffectsCastTimeModAmt ? castTimeModAmt * ct * data.power() : castTimeModAmt * ct);
-			if (newCT < 0) newCT = 0;
-
-			event.setCastTime(Math.round(newCT));
+			event.setCastTime(castTime);
 			modified = true;
 		}
 
-		float cooldownModAmt = this.cooldownModAmt.get(caster, null, data.power(), data.args()) / 100f;
 		if (cooldownModAmt != 0) {
-			float cd = event.getCooldown();
+			float cooldown = event.getCooldown();
+			cooldown = Math.max(cooldown + cooldown * cooldownModAmt, 0);
 
-			float newCD = cd + (powerAffectsCooldownModAmt ? cooldownModAmt * cd * data.power() : cooldownModAmt * cd);
-			if (newCD < 0) newCD = 0;
-
-			event.setCooldown(newCD);
+			event.setCooldown(cooldown);
 			modified = true;
 		}
 
-		if (!modified) return;
-		addUseAndChargeCost(caster);
+		if (modified) addUseAndChargeCost(caster);
 	}
 
-	public Map<UUID, CastData> getEntities() {
+	public Map<UUID, HasteData> getEntities() {
 		return entities;
 	}
 
@@ -110,6 +135,9 @@ public class SpellHasteSpell extends BuffSpell {
 
 	public void setFilter(SpellFilter filter) {
 		this.filter = filter;
+	}
+
+	public record HasteData(SpellData spellData, float castTimeModAmt, float cooldownModAmt, boolean constantCastTimeModAmt, boolean constantCooldownModAmt) {
 	}
 
 }

@@ -6,22 +6,19 @@ import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
-	private ConfigData<Double> maxRange;
+	private final ConfigData<Double> maxRange;
 
-	private boolean useBedLocation;
-	private boolean allowCrossWorld;
+	private final ConfigData<Boolean> useBedLocation;
+	private final ConfigData<Boolean> allowCrossWorld;
 
 	private String strNoMark;
 	private String strTooFar;
@@ -36,8 +33,8 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
 		maxRange = getConfigDataDouble("max-range", 0);
 
-		useBedLocation = getConfigBoolean("use-bed-location", false);
-		allowCrossWorld = getConfigBoolean("allow-cross-world", true);
+		useBedLocation = getConfigDataBoolean("use-bed-location", false);
+		allowCrossWorld = getConfigDataBoolean("allow-cross-world", true);
 
 		strNoMark = getConfigString("str-no-mark", "You have no mark to recall to.");
 		strTooFar = getConfigString("str-too-far", "You mark is too far away.");
@@ -56,88 +53,65 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location markLocation = null;
-			if (args != null && args.length == 1 && caster.hasPermission("magicspells.advanced." + internalName)) {
-				Player target = PlayerNameUtils.getPlayer(args[0]);
-				if (useBedLocation && target != null) markLocation = target.getBedSpawnLocation();
-				else if (markSpell != null) {
-					Location loc = markSpell.getEffectiveMark(target != null ? target.getName().toLowerCase() : args[0].toLowerCase());
-					if (loc != null) markLocation = loc;
-				}
-			} else markLocation = getRecallLocation(caster);
+	public CastResult cast(SpellData data) {
+		Location markLocation = null;
 
-			if (markLocation == null) {
-				sendMessage(strNoMark, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
+		if (data.hasArgs() && data.args().length == 1 && data.caster().hasPermission("magicspells.advanced." + internalName)) {
+			Player target = PlayerNameUtils.getPlayer(data.args()[0]);
+
+			if (target != null) {
+				if (useBedLocation.get(data)) markLocation = target.getBedSpawnLocation();
+				else if (markSpell != null) markLocation = markSpell.getEffectiveMark(target);
 			}
+		} else markLocation = getRecallLocation(data.caster(), data);
 
-			Location from = caster.getLocation();
+		return recall(data, data.caster(), markLocation);
+	}
 
-			if (!allowCrossWorld && !LocationUtil.isSameWorld(markLocation, from)) {
-				sendMessage(strOtherWorld, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
+	@Override
+	public CastResult castAtEntity(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		return recall(data, data.target(), getRecallLocation(data.caster(), data));
+	}
 
-			double maxRange = this.maxRange.get(caster, null, power, args);
-			if (maxRange > 0 && markLocation.distanceSquared(from) > maxRange * maxRange) {
-				sendMessage(strTooFar, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			boolean canTeleport = (!(caster instanceof Vehicle)) && !caster.isDead();
-			if (!canTeleport) {
-				MagicSpells.error("Recall teleport blocked for " + caster.getName());
-				sendMessage(strRecallFailed, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			caster.teleportAsync(markLocation);
-
-			SpellData data = new SpellData(caster, power, args);
-			playSpellEffects(EffectPosition.CASTER, from, data);
-			playSpellEffects(EffectPosition.TARGET, markLocation, data);
+	private CastResult recall(SpellData data, LivingEntity entity, Location markLocation) {
+		if (markLocation == null) {
+			sendMessage(strNoMark, data.caster(), data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		Location from = entity.getLocation();
+
+		if (!allowCrossWorld.get(data) && !entity.getWorld().equals(markLocation.getWorld())) {
+			sendMessage(strOtherWorld, data.caster(), data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		double maxRange = this.maxRange.get(data);
+		if (maxRange > 0 && markLocation.distanceSquared(from) > maxRange * maxRange) {
+			sendMessage(strTooFar, data.caster(), data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		if (data.caster() instanceof Vehicle || !data.caster().isValid()) {
+			MagicSpells.error("Recall teleport blocked for " + data.caster().getName());
+			sendMessage(strRecallFailed, data.caster(), data.args());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		entity.teleportAsync(markLocation);
+		playSpellEffects(EffectPosition.CASTER, data.caster(), data);
+		playSpellEffects(EffectPosition.TARGET, markLocation, data);
+		playSpellEffects(EffectPosition.START_POSITION, from, data);
+		playSpellEffects(EffectPosition.END_POSITION, markLocation, data);
+		playSpellEffectsTrail(from, markLocation, data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-
-		Location mark = getRecallLocation(caster);
-		if (mark == null) return false;
-
-		target.teleportAsync(mark);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
-	}
-
-	private Location getRecallLocation(LivingEntity caster) {
-		if (useBedLocation && caster instanceof Player) return ((Player) caster).getBedSpawnLocation();
-		if (markSpell == null) return null;
-		return markSpell.getEffectiveMark(caster);
-	}
-
-	public boolean shouldUseBedLocation() {
-		return useBedLocation;
-	}
-
-	public void setUseBedLocation(boolean useBedLocation) {
-		this.useBedLocation = useBedLocation;
-	}
-
-	public boolean shouldAllowCrossWorld() {
-		return allowCrossWorld;
-	}
-
-	public void setAllowCrossWorld(boolean allowCrossWorld) {
-		this.allowCrossWorld = allowCrossWorld;
+	private Location getRecallLocation(LivingEntity entity, SpellData data) {
+		if (useBedLocation.get(data)) return entity instanceof Player player ? player.getBedSpawnLocation() : null;
+		return markSpell == null ? null : markSpell.getEffectiveMark(entity);
 	}
 
 	public String getStrNoMark() {

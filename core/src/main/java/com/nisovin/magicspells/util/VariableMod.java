@@ -7,6 +7,7 @@ import java.util.function.BinaryOperator;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -94,37 +95,42 @@ public class VariableMod {
 		}
 	}
 
+	@Deprecated
 	public double getValue(Player caster, Player target) {
-		return getValue(caster, target, 1f, null);
+		return getValue(new SpellData(caster, target, 1f, null));
 	}
 
-	public double getValue(Player caster, Player target, float power, String[] args) {
+	@Deprecated
+	public double getValue(Player caster, Player target, double baseValue) {
+		return getValue(new SpellData(caster, target, 1f, null), baseValue);
+	}
+
+	@Deprecated
+	public String getStringValue(Player caster, Player target) {
+		return getStringValue(new SpellData(caster, target, 1f, null));
+	}
+
+	public double getValue(SpellData data) {
 		int negationFactor = negate ? -1 : 1;
 		if (modifyingVariableName != null) {
-			Player variableHolder = variableOwner == VariableOwner.CASTER ? caster : target;
+			LivingEntity owner = variableOwner == VariableOwner.CASTER ? data.caster() : data.target();
+			Player variableHolder = owner instanceof Player p ? p : null;
+
 			return MagicSpells.getVariableManager().getValue(modifyingVariableName, variableHolder) * negationFactor;
 		}
 
-		if (functionModifier != null) return functionModifier.get(caster, target, power, args);
+		if (functionModifier != null) return functionModifier.get(data);
 
 		return constantModifier * negationFactor;
 	}
 
-	public double getValue(Player caster, Player target, double baseValue) {
-		return getValue(caster, target, baseValue, 1f, null);
-	}
-
-	public double getValue(Player caster, Player target, double baseValue, float power, String[] args) {
-		double secondValue = getValue(caster, target, power, args);
+	public double getValue(SpellData data, double baseValue) {
+		double secondValue = getValue(data);
 		return getOperation().applyTo(baseValue, secondValue);
 	}
 
-	public String getStringValue(Player caster, Player target) {
-		return MagicSpells.doReplacements(value, caster, target);
-	}
-
-	public String getStringValue(Player caster, Player target, String[] args) {
-		return MagicSpells.doReplacements(value, caster, target, args);
+	public String getStringValue(SpellData data) {
+		return MagicSpells.doReplacements(value, data);
 	}
 
 	public String getValue() {

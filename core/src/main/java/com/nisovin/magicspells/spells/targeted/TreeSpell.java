@@ -8,109 +8,68 @@ import org.bukkit.TreeType;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.BlockChangeDelegate;
-import org.bukkit.block.data.BlockData;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellAnimation;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class TreeSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private TreeType treeType;
+	private final ConfigData<TreeType> treeType;
 
-	private ConfigData<Integer> speed;
+	private final ConfigData<Integer> speed;
 	
 	public TreeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		try {
-			treeType = TreeType.valueOf(getConfigString("tree-type", "tree").toUpperCase().replace(" ", "_"));
-		}
-		catch (IllegalArgumentException ignored) {
-			treeType = TreeType.TREE;
-		}
+		treeType = getConfigDataEnum("tree-type", TreeType.class, TreeType.TREE);
 
 		speed = getConfigDataInt("animation-speed", 20);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Block target = getTargetedBlock(caster, power, args);
+	public CastResult cast(SpellData data) {
+		TargetInfo<Location> info = getTargetedBlockLocation(data, false);
+		if (info.noTarget()) return noTarget(info);
 
-			if (target != null && !BlockUtils.isAir(target.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
-				EventUtil.call(event);
-				if (event.isCancelled()) target = null;
-				else target = event.getTargetLocation().getBlock();
-			}
-			
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster, args);
-			
-			boolean grown = growTree(caster, target, power, args);
-			if (!grown) return noTarget(caster, args);
-
-			playSpellEffects(caster, target.getLocation(), power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtLocation(info.spellData());
 	}
 
-	private boolean growTree(LivingEntity caster, Block target, float power, String[] args) {
-		target = target.getRelative(BlockFace.UP);
-		if (!BlockUtils.isAir(target.getType())) return false;
-		
-		Location loc = target.getLocation();
+	@Override
+	public CastResult castAtLocation(SpellData data) {
+		Block target = data.location().getBlock().getRelative(BlockFace.UP);
+		if (!target.getType().isAir()) return noTarget(data);
 
-		int speed = this.speed.get(caster, null, power, args);
+		Location loc = target.getLocation();
+		data = data.location(loc);
+
+		TreeType treeType = this.treeType.get(data);
+
+		int speed = this.speed.get(data);
 		if (speed > 0) {
 			List<BlockState> blockStates = new ArrayList<>();
-			target.getWorld().generateTree(loc, treeType, new TreeWatch(loc, blockStates));
+			loc.getWorld().generateTree(loc, random, treeType, state -> {
+				blockStates.add(state);
+				return false;
+			});
+
 			if (!blockStates.isEmpty()) {
 				new GrowAnimation(loc.getBlockX(), loc.getBlockZ(), blockStates, speed);
-				return true;
+				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 			}
-			return false;
+
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		return target.getWorld().generateTree(loc, treeType);
-	}
-	
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		boolean ret = growTree(caster, target.getBlock(), power, args);
-		if (ret) playSpellEffects(caster, target, power, args);
-		return ret;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return growTree(null, target.getBlock(), power, args);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(target, power, null);
+		return new CastResult(loc.getWorld().generateTree(loc, random, treeType) ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED, data);
 	}
 
 	private static class GrowAnimation extends SpellAnimation {
 		
-		private List<BlockState> blockStates;
+		private final List<BlockState> blockStates;
 
-		private int blocksPerTick;
+		private final int blocksPerTick;
 
 		private GrowAnimation(final int centerX, final int centerZ, final List<BlockState> blocks, int speed) {
 			super(speed < 20 ? 20 / speed : 1, true);
@@ -137,42 +96,6 @@ public class TreeSpell extends TargetedSpell implements TargetedLocationSpell {
 					break;
 				}
 			}
-		}
-		
-	}
-	
-	private static class TreeWatch implements BlockChangeDelegate {
-
-		private Location loc;
-		private List<BlockState> blockStates;
-
-		private TreeWatch(Location loc, List<BlockState> blockStates) {
-			this.loc = loc;
-			this.blockStates = blockStates;
-		}
-		
-		@Override
-		public int getHeight() {
-			return loc.getWorld().getMaxHeight();
-		}
-
-		@Override
-		public boolean isEmpty(int x, int y, int z) {
-			return BlockUtils.isAir(loc.getWorld().getBlockAt(x, y, z).getType());
-		}
-
-		@Override
-		public boolean setBlockData(int x, int y, int z, @NotNull BlockData data) {
-			BlockState state = loc.getWorld().getBlockAt(x, y, z).getState();
-			state.setBlockData(data);
-			blockStates.add(state);
-			return true;
-		}
-		
-		@Override
-		@NotNull
-		public BlockData getBlockData(int x, int y, int z) {
-			return loc.getWorld().getBlockAt(x, y, z).getBlockData();
 		}
 		
 	}

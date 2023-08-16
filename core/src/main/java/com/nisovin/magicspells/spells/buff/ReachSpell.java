@@ -20,31 +20,29 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.CastData;
-import com.nisovin.magicspells.util.BlockUtils;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.MagicSpellsBlockBreakEvent;
 import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 
 // TODO this needs exemptions for anticheat
 public class ReachSpell extends BuffSpell {
 
-	private final Map<UUID, CastData> players;
+	private final Map<UUID, ReachData> players;
 
 	private final Set<Material> disallowedBreakBlocks;
 	private final Set<Material> disallowedPlaceBlocks;
 
-	private boolean dropBlocks;
-	private boolean consumeBlocks;
-	
+	private final ConfigData<Boolean> dropBlocks;
+	private final ConfigData<Boolean> consumeBlocks;
+
 	public ReachSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		dropBlocks = getConfigBoolean("drop-blocks", true);
-		consumeBlocks = getConfigBoolean("consume-blocks", true);
+		dropBlocks = getConfigDataBoolean("drop-blocks", true);
+		consumeBlocks = getConfigDataBoolean("consume-blocks", true);
 
 		players = new HashMap<>();
 		disallowedPlaceBlocks = new HashSet<>();
@@ -71,9 +69,9 @@ public class ReachSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return false;
-		players.put(entity.getUniqueId(), new CastData(power, args));
+	public boolean castBuff(SpellData data) {
+		if (!(data.target() instanceof Player target)) return false;
+		players.put(target.getUniqueId(), new ReachData(data.builder().caster(data.target()).target(null).build(), dropBlocks.get(data), consumeBlocks.get(data)));
 		return true;
 	}
 
@@ -102,11 +100,11 @@ public class ReachSpell extends BuffSpell {
 			return;
 		}
 
-		CastData data = players.get(player.getUniqueId());
+		ReachData data = players.get(player.getUniqueId());
 
 		// Get targeted block
 		Action action = event.getAction();
-		List<Block> targets = getLastTwoTargetedBlocks(player, data.power(), data.args());
+		List<Block> targets = getLastTwoTargetedBlocks(data.spellData);
 
 		Block airBlock;
 		Block targetBlock;
@@ -128,7 +126,7 @@ public class ReachSpell extends BuffSpell {
 			// Remove block
 			targetBlock.getWorld().playEffect(targetBlock.getLocation(), Effect.STEP_SOUND, targetBlock.getType());
 			// Drop item
-			if (dropBlocks && player.getGameMode() == GameMode.SURVIVAL) targetBlock.breakNaturally();
+			if (data.dropBlocks && player.getGameMode() == GameMode.SURVIVAL) targetBlock.breakNaturally();
 			else targetBlock.setType(Material.AIR);
 			addUseAndChargeCost(player);
 
@@ -159,7 +157,7 @@ public class ReachSpell extends BuffSpell {
 					return;
 				}
 				// Remove item from hand
-				if (consumeBlocks && player.getGameMode() != GameMode.CREATIVE) {
+				if (data.consumeBlocks && player.getGameMode() != GameMode.CREATIVE) {
 					if (inHand.getAmount() > 1) {
 						inHand.setAmount(inHand.getAmount() - 1);
 						player.getEquipment().setItemInMainHand(inHand);
@@ -174,7 +172,7 @@ public class ReachSpell extends BuffSpell {
 		}
 	}
 
-	public Map<UUID, CastData> getPlayers() {
+	public Map<UUID, ReachData> getPlayers() {
 		return players;
 	}
 
@@ -186,20 +184,7 @@ public class ReachSpell extends BuffSpell {
 		return disallowedPlaceBlocks;
 	}
 
-	public boolean shouldDropBlocks() {
-		return dropBlocks;
-	}
-
-	public void setDropBlocks(boolean dropBlocks) {
-		this.dropBlocks = dropBlocks;
-	}
-
-	public boolean shouldConsumeBlocks() {
-		return consumeBlocks;
-	}
-
-	public void setConsumeBlocks(boolean consumeBlocks) {
-		this.consumeBlocks = consumeBlocks;
+	public record ReachData(SpellData spellData, boolean dropBlocks, boolean consumeBlocks) {
 	}
 
 }

@@ -14,20 +14,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.FallingBlock;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsBlockBreakEvent;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
@@ -37,21 +31,22 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	private Set<Material> blockTypesToRemove;
 	private Set<FallingBlock> fallingBlocks;
 
-	private ConfigData<Integer> vertRadius;
-	private ConfigData<Integer> horizRadius;
-	private ConfigData<Integer> fallingBlockMaxHeight;
+	private final ConfigData<Integer> vertRadius;
+	private final ConfigData<Integer> horizRadius;
+	private final ConfigData<Integer> fallingBlockMaxHeight;
 
-	private ConfigData<Double> velocity;
+	private final ConfigData<Double> velocity;
 
-	private ConfigData<Float> fallingBlockDamage;
+	private final ConfigData<Float> fallingBlockDamage;
 
-	private boolean checkPlugins;
-	private boolean preventLandingBlocks;
-	private boolean resolveDamagePerBlock;
-	private boolean resolveVelocityPerBlock;
-	private boolean resolveMaxHeightPerBlock;
+	private final boolean preventLandingBlocks;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> resolveDamagePerBlock;
+	private final ConfigData<Boolean> resolveVelocityPerBlock;
+	private final ConfigData<Boolean> resolveMaxHeightPerBlock;
+	private final ConfigData<Boolean> resolveVelocityTypePerBlock;
 
-	private VelocityType velocityType;
+	private final ConfigData<VelocityType> velocityType;
 
 	public DestroySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -64,23 +59,14 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 
 		fallingBlockDamage = getConfigDataFloat("falling-block-damage", 0);
 
-		checkPlugins = getConfigBoolean("check-plugins", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
 		preventLandingBlocks = getConfigBoolean("prevent-landing-blocks", false);
-		resolveDamagePerBlock = getConfigBoolean("resolve-damage-per-block", false);
-		resolveVelocityPerBlock = getConfigBoolean("resolve-velocity-per-block", false);
-		resolveMaxHeightPerBlock = getConfigBoolean("resolve-max-height-per-block", false);
+		resolveDamagePerBlock = getConfigDataBoolean("resolve-damage-per-block", false);
+		resolveVelocityPerBlock = getConfigDataBoolean("resolve-velocity-per-block", false);
+		resolveMaxHeightPerBlock = getConfigDataBoolean("resolve-max-height-per-block", false);
+		resolveVelocityTypePerBlock = getConfigDataBoolean("resolve-velocity-type-per-block", false);
 
-		String vType = getConfigString("velocity-type", "none");
-
-		switch (vType) {
-			case "up" -> velocityType = VelocityType.UP;
-			case "random" -> velocityType = VelocityType.RANDOM;
-			case "randomup", "random_up" -> velocityType = VelocityType.RANDOM_UP;
-			case "down" -> velocityType = VelocityType.DOWN;
-			case "toward" -> velocityType = VelocityType.TOWARD;
-			case "away" -> velocityType = VelocityType.AWAY;
-			default -> velocityType = VelocityType.NONE;
-		}
+		velocityType = getConfigDataEnum("velocity-type", VelocityType.class, VelocityType.NONE);
 
 		fallingBlocks = new HashSet<>();
 
@@ -114,66 +100,29 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Block b = getTargetedBlock(caster, power, args);
-			if (b != null && !BlockUtils.isAir(b.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, b.getLocation(), power, args);
-				EventUtil.call(event);
-				if (event.isCancelled()) b = null;
-				else b = event.getTargetLocation().getBlock();
-			}
-			if (b != null && !BlockUtils.isAir(b.getType())) {
-				Location loc = b.getLocation().add(0.5, 0.5, 0.5);
-				doIt(caster, null, caster.getLocation(), loc, power, args);
-				playSpellEffects(caster, loc, power, args);
-			}
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 0.5, 0.5, false);
+		if (info.noTarget()) return noTarget(info);
+		data = info.spellData();
+
+		doIt(data.caster().getLocation(), info.target(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		doIt(caster, null, caster.getLocation(), target, power, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		doIt(data.caster().getLocation(), data.location(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		doIt(data.location(), data.target().getLocation(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		doIt(caster, target, from, target.getLocation(), power, args);
-		playSpellEffects(caster, from, target, new SpellData(caster, target, power, args));
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(caster, from, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		doIt(null, target, from, target.getLocation(), power, args);
-		playSpellEffects(from, target, new SpellData(null, target, power, args));
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(from, target, power, null);
-	}
-
-	private void doIt(LivingEntity caster, LivingEntity target, Location source, Location targetLocation, float power, String[] args) {
+	private void doIt(Location source, Location targetLocation, SpellData data) {
 		int centerX = targetLocation.getBlockX();
 		int centerY = targetLocation.getBlockY();
 		int centerZ = targetLocation.getBlockZ();
@@ -181,8 +130,10 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 		List<Block> blocksToThrow = new ArrayList<>();
 		List<Block> blocksToRemove = new ArrayList<>();
 
-		int vertRadius = this.vertRadius.get(caster, target, power, args);
-		int horizRadius = this.horizRadius.get(caster, target, power, args);
+		int vertRadius = this.vertRadius.get(data);
+		int horizRadius = this.horizRadius.get(data);
+
+		boolean checkPlugins = this.checkPlugins.get(data);
 
 		for (int y = centerY - vertRadius; y <= centerY + vertRadius; y++) {
 			for (int x = centerX - horizRadius; x <= centerX + horizRadius; x++) {
@@ -191,10 +142,9 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 					if (b.getType() == Material.BEDROCK) continue;
 					if (BlockUtils.isAir(b.getType())) continue;
 
-					if (checkPlugins && caster instanceof Player) {
-						MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(b, (Player) caster);
-						EventUtil.call(event);
-						if (event.isCancelled()) continue;
+					if (checkPlugins && data.caster() instanceof Player player) {
+						MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(b, player);
+						if (!event.callEvent()) continue;
 					}
 
 					if (blockTypesToThrow != null) {
@@ -210,15 +160,18 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 			}
 		}
 
-		for (Block b : blocksToRemove) {
-			b.setType(Material.AIR);
-		}
+		for (Block b : blocksToRemove) b.setType(Material.AIR);
 
-		double velocity = resolveVelocityPerBlock ? 0 : this.velocity.get(caster, target, power, args);
-		float fallingBlockDamage = resolveDamagePerBlock ? 0 : this.fallingBlockDamage.get(caster, target, power, args);
-		int fallingBlockHeight = resolveMaxHeightPerBlock ? 0 : this.fallingBlockMaxHeight.get(caster, target, power, args);
+		boolean resolveDamagePerBlock = this.resolveDamagePerBlock.get(data);
+		boolean resolveVelocityPerBlock = this.resolveVelocityPerBlock.get(data);
+		boolean resolveMaxHeightPerBlock = this.resolveMaxHeightPerBlock.get(data);
+		boolean resolveVelocityTypePerBlock = this.resolveVelocityTypePerBlock.get(data);
 
-		SpellData data = new SpellData(caster, target, power, args);
+		double velocity = resolveVelocityPerBlock ? 0 : this.velocity.get(data);
+		float fallingBlockDamage = resolveDamagePerBlock ? 0 : this.fallingBlockDamage.get(data);
+		int fallingBlockHeight = resolveMaxHeightPerBlock ? 0 : this.fallingBlockMaxHeight.get(data);
+		VelocityType velocityType = resolveVelocityTypePerBlock ? VelocityType.NONE : this.velocityType.get(data);
+
 		for (Block b : blocksToThrow) {
 			Material material = b.getType();
 			Location l = b.getLocation().clone().add(0.5, 0.5, 0.5);
@@ -227,30 +180,39 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 			playSpellEffects(EffectPosition.PROJECTILE, fb, data);
 			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, source, fb.getLocation(), null, fb, data);
 
-			Vector v;
-			if (resolveVelocityPerBlock) velocity = this.velocity.get(caster, target, power, args);
-			if (velocityType == VelocityType.UP) {
-				v = new Vector(0, velocity, 0);
-				v.setY(v.getY() + ((Math.random() - 0.5) / 4));
-			} else if (velocityType == VelocityType.RANDOM) {
-				v = new Vector(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
-				v.normalize().multiply(velocity);
-			} else if (velocityType == VelocityType.RANDOM_UP) {
-				v = new Vector(Math.random() - 0.5, Math.random() / 2, Math.random() - 0.5);
-				v.normalize().multiply(velocity);
-				fb.setVelocity(v);
-			} else if (velocityType == VelocityType.DOWN) v = new Vector(0, -velocity, 0);
-			else if (velocityType == VelocityType.TOWARD)
-				v = source.toVector().subtract(l.toVector()).normalize().multiply(velocity);
-			else if (velocityType == VelocityType.AWAY)
-				v = l.toVector().subtract(source.toVector()).normalize().multiply(velocity);
-			else v = new Vector(0, (Math.random() - 0.5) / 4, 0);
+			if (resolveVelocityPerBlock) velocity = this.velocity.get(data);
+			if (resolveVelocityTypePerBlock) velocityType = this.velocityType.get(data);
+
+			Vector v = switch (velocityType) {
+				case UP -> {
+					Vector vec = new Vector(0, velocity, 0);
+					vec.setY(vec.getY() + ((Math.random() - 0.5) / 4));
+
+					yield vec;
+				}
+				case RANDOM -> {
+					Vector vec = new Vector(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+					vec.normalize().multiply(velocity);
+
+					yield vec;
+				}
+				case RANDOM_UP -> {
+					Vector vec = new Vector(Math.random() - 0.5, Math.random() / 2, Math.random() - 0.5);
+					vec.normalize().multiply(velocity);
+
+					yield vec;
+				}
+				case DOWN -> new Vector(0, -velocity, 0);
+				case TOWARD -> source.toVector().subtract(l.toVector()).normalize().multiply(velocity);
+				case AWAY -> l.toVector().subtract(source.toVector()).normalize().multiply(velocity);
+				case NONE -> new Vector(0, (Math.random() - 0.5) / 4, 0);
+			};
 
 			fb.setVelocity(v);
 
-			if (resolveDamagePerBlock) fallingBlockDamage = this.fallingBlockDamage.get(caster, target, power, args);
+			if (resolveDamagePerBlock) fallingBlockDamage = this.fallingBlockDamage.get(data);
 			if (fallingBlockDamage > 0) {
-				if (resolveMaxHeightPerBlock) fallingBlockHeight = this.fallingBlockMaxHeight.get(caster, target, power, args);
+				if (resolveMaxHeightPerBlock) fallingBlockHeight = this.fallingBlockMaxHeight.get(data);
 				MagicSpells.getVolatileCodeHandler().setFallingBlockHurtEntities(fb, fallingBlockDamage, fallingBlockHeight);
 			}
 
@@ -258,6 +220,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 			b.setType(Material.AIR);
 		}
 
+		playSpellEffects(data);
 	}
 
 	private class FallingBlockListener implements Listener {

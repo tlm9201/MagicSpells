@@ -3,15 +3,10 @@ package com.nisovin.magicspells.spells.targeted;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsEntityRegainHealthEvent;
 
 public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
@@ -19,13 +14,12 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 	private final ConfigData<Double> healAmount;
 	private final ConfigData<Double> healPercent;
 
-	private final boolean checkPlugins;
-	private final boolean cancelIfFull;
-	private final boolean powerAffectsHealAmount;
+	private final ConfigData<Boolean> cancelIfFull;
+	private final ConfigData<Boolean> ignoreIfFull;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> powerAffectsHealAmount;
 
 	private final String strMaxHealth;
-
-	private final ValidTargetChecker checker;
 
 	public HealSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -33,91 +27,49 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 		healAmount = getConfigDataDouble("heal-amount", 10);
 		healPercent = getConfigDataDouble("heal-percent", 0);
 
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		cancelIfFull = getConfigBoolean("cancel-if-full", true);
-		powerAffectsHealAmount = getConfigBoolean("power-affects-heal-amount", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		cancelIfFull = getConfigDataBoolean("cancel-if-full", true);
+		ignoreIfFull = getConfigDataBoolean("ignore-if-full", false);
+		powerAffectsHealAmount = getConfigDataBoolean("power-affects-heal-amount", true);
 
 		strMaxHealth = getConfigString("str-max-health", "%t is already at max health.");
-
-		checker = (LivingEntity entity) -> entity.getHealth() < Util.getMaxHealth(entity);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, checker, args);
-			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+	public CastResult cast(SpellData data) {
+		ValidTargetChecker checker = ignoreIfFull.get(data) ? e -> e.getHealth() < Util.getMaxHealth(e) : null;
+		TargetInfo<LivingEntity> info = getTargetedEntity(data, checker);
+		if (info.noTarget()) return noTarget(data);
 
-			LivingEntity target = targetInfo.target();
-			power = targetInfo.power();
-
-			if (cancelIfFull && target.getHealth() == Util.getMaxHealth(target))
-				return noTarget(caster, formatMessage(strMaxHealth, "%t", getTargetName(target)), args);
-
-			boolean healed = heal(caster, target, power, args);
-			if (!healed) return noTarget(caster, args);
-
-			sendMessages(caster, target, args);
-			return PostCastAction.NO_MESSAGES;
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (validTargetList.canTarget(caster, target) && (!cancelIfFull || target.getHealth() < Util.getMaxHealth(target)))
-			return heal(caster, target, power, args);
+	public CastResult castAtEntity(SpellData data) {
+		double maxHealth = Util.getMaxHealth(data.target());
+		double health = data.target().getHealth();
 
-		return false;
-	}
+		if (cancelIfFull.get(data) && health >= maxHealth)
+			return noTarget(strMaxHealth, data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (validTargetList.canTarget(target) && (!cancelIfFull || target.getHealth() < Util.getMaxHealth(target)))
-			return heal(null, target, power, args);
-
-		return false;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	@Override
-	public ValidTargetChecker getValidTargetChecker() {
-		return checker;
-	}
-
-	private boolean heal(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		double health = target.getHealth();
-		double amount;
-
-		double healPercent = this.healPercent.get(caster, target, power, args);
+		double healAmount;
+		double healPercent = this.healPercent.get(data);
 		if (healPercent == 0) {
-			amount = this.healAmount.get(caster, target, power, args);
-			if (powerAffectsHealAmount) amount *= power;
-		} else amount = Util.getMaxHealth(target) * (healPercent / 100);
+			healAmount = this.healAmount.get(data);
+			if (powerAffectsHealAmount.get(data)) healAmount *= data.power();
+		} else healAmount = maxHealth * (healPercent / 100);
 
-		if (checkPlugins) {
-			MagicSpellsEntityRegainHealthEvent event = new MagicSpellsEntityRegainHealthEvent(target, amount, RegainReason.CUSTOM);
-			EventUtil.call(event);
-			if (event.isCancelled()) return false;
-			amount = event.getAmount();
+		if (checkPlugins.get(data)) {
+			MagicSpellsEntityRegainHealthEvent event = new MagicSpellsEntityRegainHealthEvent(data.target(), healAmount, RegainReason.CUSTOM);
+			if (!event.callEvent()) return noTarget(data);
+
+			healAmount = event.getAmount();
 		}
 
-		health += amount;
-		if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
-		target.setHealth(health);
+		data.target().setHealth(Math.max(Math.min(health + healAmount, maxHealth), 0));
+		playSpellEffects(data);
 
-		if (caster == null) playSpellEffects(EffectPosition.TARGET, target, power, args);
-		else playSpellEffects(caster, target, power, args);
-		return true;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

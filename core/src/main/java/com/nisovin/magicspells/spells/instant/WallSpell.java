@@ -1,12 +1,10 @@
 package com.nisovin.magicspells.spells.instant;
 
-import java.util.Map;
-import java.util.List;
-import java.util.UUID;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
 
-import org.bukkit.Bukkit;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
+
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -15,57 +13,54 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
+import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.TemporaryBlockSet;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 
-public class WallSpell extends InstantSpell implements TargetedLocationSpell {
+public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private final Map<UUID, TemporaryBlockSet> blockSets;
+	private static final Multimap<UUID, WallData> blockSets = MultimapBuilder.hashKeys().arrayListValues().build();
+	private static BreakListener breakListener;
 
 	private final List<Material> materials;
 
-	private String strNoTarget;
+	private final String strAtCap;
 
 	private final String spellOnBreakName;
 
 	private Subspell spellOnBreak;
 
-	private ConfigData<Integer> yOffset;
-	private ConfigData<Integer> distance;
-	private ConfigData<Integer> wallWidth;
-	private ConfigData<Integer> wallDepth;
-	private ConfigData<Integer> wallHeight;
-	private ConfigData<Integer> wallDuration;
+	private final int capPerEntity;
+	private final ConfigData<Integer> yOffset;
+	private final ConfigData<Integer> wallWidth;
+	private final ConfigData<Integer> wallDepth;
+	private final ConfigData<Integer> wallHeight;
+	private final ConfigData<Integer> wallDuration;
 
-	private boolean checkPlugins;
-	private boolean preventDrops;
-	private boolean alwaysOnGround;
-	private boolean preventBreaking;
-	private boolean checkPluginsPerBlock;
-	private boolean powerAffectsWallWidth;
-	private boolean powerAffectsWallHeight;
-	private boolean powerAffectsWallDuration;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> preventDrops;
+	private final ConfigData<Boolean> alwaysOnGround;
+	private final ConfigData<Boolean> preventBreaking;
+	private final ConfigData<Boolean> checkPluginsPerBlock;
+	private final ConfigData<Boolean> powerAffectsWallWidth;
+	private final ConfigData<Boolean> powerAffectsWallHeight;
+	private final ConfigData<Boolean> powerAffectsWallDuration;
 
 	public WallSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		blockSets = new HashMap<>();
-
 		materials = new ArrayList<>();
 
+		strAtCap = getConfigString("str-at-cap", "You have too many effects at once.");
 		strNoTarget = getConfigString("str-no-target", "Unable to create a wall.");
 
 		List<String> blocks = getConfigStringList("wall-types", null);
@@ -81,102 +76,104 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 		spellOnBreakName = getConfigString("spell-on-break", "");
 
 		yOffset = getConfigDataInt("y-offset", -1);
-		distance = getConfigDataInt("distance", 3);
 		wallWidth = getConfigDataInt("wall-width", 5);
 		wallDepth = getConfigDataInt("wall-depth", 1);
 		wallHeight = getConfigDataInt("wall-height", 3);
 		wallDuration = getConfigDataInt("wall-duration", 15);
+		capPerEntity = getConfigInt("cap-per-entity", 1);
 
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		preventDrops = getConfigBoolean("prevent-drops", true);
-		alwaysOnGround = getConfigBoolean("always-on-ground", false);
-		preventBreaking = getConfigBoolean("prevent-breaking", false);
-		checkPluginsPerBlock = getConfigBoolean("check-plugins-per-block", checkPlugins);
-		powerAffectsWallWidth = getConfigBoolean("power-affects-wall-width", true);
-		powerAffectsWallHeight = getConfigBoolean("power-affects-wall-height", true);
-		powerAffectsWallDuration = getConfigBoolean("power-affects-wall-duration", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		preventDrops = getConfigDataBoolean("prevent-drops", true);
+		alwaysOnGround = getConfigDataBoolean("always-on-ground", false);
+		preventBreaking = getConfigDataBoolean("prevent-breaking", false);
+		checkPluginsPerBlock = getConfigDataBoolean("check-plugins-per-block", checkPlugins);
+		powerAffectsWallWidth = getConfigDataBoolean("power-affects-wall-width", true);
+		powerAffectsWallHeight = getConfigDataBoolean("power-affects-wall-height", true);
+		powerAffectsWallDuration = getConfigDataBoolean("power-affects-wall-duration", true);
 	}
-	
+
 	@Override
 	public void initialize() {
 		super.initialize();
 
 		spellOnBreak = new Subspell(spellOnBreakName);
 		if (!spellOnBreak.process()) {
-			if (!spellOnBreakName.isEmpty()) MagicSpells.error("WallSpell '" + internalName + "' has an invalid spell-on-break defined!");
+			if (!spellOnBreakName.isEmpty())
+				MagicSpells.error("WallSpell '" + internalName + "' has an invalid spell-on-break defined!");
 			spellOnBreak = null;
 		}
 
-		if (preventBreaking || preventDrops || spellOnBreak != null) registerEvents(new BreakListener());
+		if (breakListener == null) {
+			breakListener = new BreakListener();
+			registerEvents(breakListener);
+		}
 	}
 
 	@Override
 	public void turnOff() {
-		for (TemporaryBlockSet set : blockSets.values()) {
-			set.remove();
-		}
-
+		breakListener = null;
+		for (WallData wallData : blockSets.values()) wallData.blockSet.remove();
 		blockSets.clear();
 	}
-	
-	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			if (materials == null || materials.isEmpty()) return PostCastAction.ALREADY_HANDLED;
 
-			int distance = this.distance.get(caster, null, power, args);
-			Block target = getTargetedBlock(caster, distance > 0 && distance < 15 ? distance : 3, args);
-			if (target == null || !BlockUtils.isAir(target.getType())) {
-				sendMessage(strNoTarget, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
+	@Override
+	public CastResult cast(SpellData data) {
+		if (checkAtCap(data)) return noTarget(strAtCap, data);
+
+		Block block = getTargetedBlock(data);
+		if (!block.getType().isAir()) noTarget(data);
+
+		Location location = block.getLocation();
+		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
+
+		SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, location);
+		if (!targetEvent.callEvent()) return noTarget(data);
+
+		return makeWall(targetEvent.getSpellData());
+	}
+
+	@Override
+	public CastResult castAtLocation(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		if (checkAtCap(data)) return noTarget(strAtCap, data);
+		return makeWall(data);
+	}
+
+	private boolean checkAtCap(SpellData data) {
+		if (capPerEntity > 0) {
+			int count = 0;
+
+			Collection<WallData> wallData = blockSets.get(data.caster().getUniqueId());
+			for (WallData wd : wallData) {
+				if (wd.wallSpell == this) {
+					count++;
+					if (count >= capPerEntity) return true;
+				}
 			}
-
-			makeWall(caster, target.getLocation(), caster.getLocation().getDirection(), power, args);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		makeWall(caster, target, target.getDirection(), power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		makeWall(caster, target, target.getDirection(), power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
 		return false;
 	}
 
-	private void makeWall(LivingEntity caster, Location location, Vector direction, float power, String[] args) {
-		if (blockSets.containsKey(caster.getUniqueId())) return;
-		if (materials == null || materials.isEmpty()) return;
-		if (location == null || direction == null) return;
+	private CastResult makeWall(SpellData data) {
+		if (materials == null || materials.isEmpty())
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		Block target = location.getBlock();
+		Location loc = data.location();
+		Block target = loc.getBlock();
 
-		if (checkPlugins && caster instanceof Player player) {
+		if (checkPlugins.get(data) && data.caster() instanceof Player caster) {
 			BlockState eventBlockState = target.getState();
 			target.setType(materials.get(0), false);
 
-			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(target, eventBlockState, target, player.getInventory().getItemInMainHand(), player, true);
-			EventUtil.call(event);
-
-			if (event.isCancelled()) {
-				sendMessage(caster, strNoTarget);
-				return;
-			}
+			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(target, eventBlockState, target, caster.getInventory().getItemInMainHand(), caster, true);
+			if (!event.callEvent()) return noTarget(data);
 
 			BlockUtils.setTypeAndData(target, Material.AIR, Material.AIR.createBlockData(), false);
 		}
 
-		int yOffset = this.yOffset.get(caster, null, power, args);
-		if (alwaysOnGround) {
+		int yOffset = this.yOffset.get(data);
+		if (alwaysOnGround.get(data)) {
 			yOffset = 0;
 
 			Block b = target.getRelative(0, -1, 0);
@@ -186,24 +183,23 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 			}
 		}
 
-		TemporaryBlockSet blockSet = new TemporaryBlockSet(Material.AIR, materials, checkPluginsPerBlock, caster);
-		Location loc = target.getLocation();
-		Vector dir = direction.clone();
+		TemporaryBlockSet blockSet = new TemporaryBlockSet(Material.AIR, materials, checkPluginsPerBlock.get(data), data.caster());
+		Vector dir = loc.getDirection();
 
-		int wallWidth = this.wallWidth.get(caster, null, power, args);
-		if (powerAffectsWallWidth) wallWidth = Math.round(wallWidth * power);
+		int wallWidth = this.wallWidth.get(data);
+		if (powerAffectsWallWidth.get(data)) wallWidth = Math.round(wallWidth * data.power());
 
-		int wallHeight = this.wallHeight.get(caster, null, power, args);
-		if (powerAffectsWallHeight) wallHeight = Math.round(wallHeight * power);
+		int wallHeight = this.wallHeight.get(data);
+		if (powerAffectsWallHeight.get(data)) wallHeight = Math.round(wallHeight * data.power());
 
-		int wallDepth = this.wallDepth.get(caster, null, power, args);
+		int wallDepth = this.wallDepth.get(data);
 
 		if (Math.abs(dir.getX()) > Math.abs(dir.getZ())) {
 			int depthDir = dir.getX() > 0 ? 1 : -1;
 			for (int z = loc.getBlockZ() - (wallWidth / 2); z <= loc.getBlockZ() + (wallWidth / 2); z++) {
 				for (int y = loc.getBlockY() + yOffset; y < loc.getBlockY() + wallHeight + yOffset; y++) {
 					for (int x = target.getX(); x < target.getX() + wallDepth && x > target.getX() - wallDepth; x += depthDir) {
-						blockSet.add(caster.getWorld().getBlockAt(x, y, z));
+						blockSet.add(loc.getWorld().getBlockAt(x, y, z));
 					}
 				}
 			}
@@ -212,53 +208,27 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 			for (int x = loc.getBlockX() - (wallWidth / 2); x <= loc.getBlockX() + (wallWidth / 2); x++) {
 				for (int y = loc.getBlockY() + yOffset; y < loc.getBlockY() + wallHeight + yOffset; y++) {
 					for (int z = target.getZ(); z < target.getZ() + wallDepth && z > target.getZ() - wallDepth; z += depthDir) {
-						blockSet.add(caster.getWorld().getBlockAt(x, y, z));
+						blockSet.add(loc.getWorld().getBlockAt(x, y, z));
 					}
 				}
 			}
 		}
 
-		int wallDuration = this.wallDuration.get(caster, null, power, args);
-		if (powerAffectsWallDuration) wallDuration = Math.round(wallDuration * power);
+		int wallDuration = this.wallDuration.get(data);
+		if (powerAffectsWallDuration.get(data)) wallDuration = Math.round(wallDuration * data.power());
 
 		if (wallDuration > 0) {
-			blockSets.put(caster.getUniqueId(), blockSet);
-			blockSet.removeAfter(wallDuration, (TemporaryBlockSet set) -> blockSets.remove(caster.getUniqueId()));
+			WallData wallData = new WallData(this, blockSet, data.noLocation(), preventDrops.get(data), preventBreaking.get(data));
+
+			blockSets.put(data.caster().getUniqueId(), wallData);
+			blockSet.removeAfter(wallDuration, set -> blockSets.remove(data.caster().getUniqueId(), wallData));
 		}
 
-		playSpellEffects(EffectPosition.CASTER, caster, power, args);
+		playSpellEffects(EffectPosition.CASTER, data.caster(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	private class BreakListener implements Listener {
-		
-		@EventHandler(ignoreCancelled=true)
-		private void onBlockBreak(BlockBreakEvent event) {
-			if (blockSets.isEmpty()) return;
-			Block block = event.getBlock();
-			Player player = event.getPlayer();
-
-			Player caster = null;
-			TemporaryBlockSet set = null;
-			for (TemporaryBlockSet blockSet : blockSets.values()) {
-				if (!blockSet.contains(block)) continue;
-				set = blockSet;
-				event.setCancelled(true);
-				if (!preventBreaking) block.setType(Material.AIR);
-			}
-
-			for (UUID id : blockSets.keySet()) {
-				if (!blockSets.get(id).equals(set)) continue;
-				caster = Bukkit.getPlayer(id);
-				if (caster == null) return;
-				if (!caster.isOnline()) return;
-			}
-
-			if (spellOnBreak != null) spellOnBreak.subcast(caster, block.getLocation().add(0.5, 0, 0.5), player, 1f, null, false, false);
-		}
-		
-	}
-
-	public Map<UUID, TemporaryBlockSet> getBlockSets() {
+	public Multimap<UUID, WallData> getBlockSets() {
 		return blockSets;
 	}
 
@@ -282,44 +252,41 @@ public class WallSpell extends InstantSpell implements TargetedLocationSpell {
 		this.spellOnBreak = spellOnBreak;
 	}
 
-	public boolean shouldCheckPlugins() {
-		return checkPlugins;
+	private static class BreakListener implements Listener {
+
+		@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+		private void onBlockBreak(BlockBreakEvent event) {
+			if (blockSets.isEmpty()) return;
+
+			Block block = event.getBlock();
+
+			WallData wallData = null;
+			for (WallData data : blockSets.values()) {
+				if (!data.blockSet.contains(block)) continue;
+
+				wallData = data;
+				break;
+			}
+			if (wallData == null) return;
+
+			if (wallData.preventBreaking || wallData.preventDrops) {
+				event.setCancelled(true);
+				if (!wallData.preventBreaking) {
+					block.setType(Material.AIR);
+					wallData.blockSet.untrack(block);
+				}
+			} else wallData.blockSet.untrack(block);
+
+			SpellData data = wallData.data;
+			if (!data.caster().isValid()) return;
+
+			if (wallData.wallSpell.spellOnBreak != null)
+				wallData.wallSpell.spellOnBreak.subcast(data.location(block.getLocation().add(0.5, 0, 0.5)), false, false);
+		}
+
 	}
 
-	public void setCheckPlugins(boolean checkPlugins) {
-		this.checkPlugins = checkPlugins;
-	}
-
-	public boolean shouldPreventDrop() {
-		return preventDrops;
-	}
-
-	public void setPreventDrops(boolean preventDrops) {
-		this.preventDrops = preventDrops;
-	}
-
-	public boolean isAlwaysOnGround() {
-		return alwaysOnGround;
-	}
-
-	public void setAlwaysOnGround(boolean alwaysOnGround) {
-		this.alwaysOnGround = alwaysOnGround;
-	}
-
-	public boolean shouldPreventBreaking() {
-		return preventBreaking;
-	}
-
-	public void setPreventBreaking(boolean preventBreaking) {
-		this.preventBreaking = preventBreaking;
-	}
-
-	public boolean shouldCheckPluginsPerBlock() {
-		return checkPluginsPerBlock;
-	}
-
-	public void setCheckPluginsPerBlock(boolean checkPluginsPerBlock) {
-		this.checkPluginsPerBlock = checkPluginsPerBlock;
+	private record WallData(WallSpell wallSpell, TemporaryBlockSet blockSet, SpellData data, boolean preventDrops, boolean preventBreaking) {
 	}
 
 }

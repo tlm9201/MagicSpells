@@ -4,18 +4,13 @@ import java.util.*;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.NumberConversions;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -29,20 +24,20 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	private List<Subspell> spells;
 	private List<String> spellNames;
 
-	private ConfigData<Integer> maxTargets;
+	private final ConfigData<Integer> maxTargets;
 
-	private ConfigData<Double> cone;
-	private ConfigData<Double> horizontalCone;
-	private ConfigData<Double> vRadius;
-	private ConfigData<Double> hRadius;
+	private final ConfigData<Double> cone;
+	private final ConfigData<Double> vRadius;
+	private final ConfigData<Double> hRadius;
+	private final ConfigData<Double> horizontalCone;
 
-	private boolean pointBlank;
-	private boolean circleShape;
-	private boolean useProximity;
-	private boolean passTargeting;
-	private boolean failIfNoTargets;
-	private boolean reverseProximity;
-	private boolean spellSourceInCenter;
+	private final ConfigData<Boolean> pointBlank;
+	private final ConfigData<Boolean> circleShape;
+	private final ConfigData<Boolean> useProximity;
+	private final ConfigData<Boolean> passTargeting;
+	private final ConfigData<Boolean> failIfNoTargets;
+	private final ConfigData<Boolean> reverseProximity;
+	private final ConfigData<Boolean> spellSourceInCenter;
 
 	public AreaEffectSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -57,13 +52,13 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		vRadius = getConfigDataDouble("vertical-radius", 5);
 		hRadius = getConfigDataDouble("horizontal-radius", 10);
 
-		pointBlank = getConfigBoolean("point-blank", true);
-		circleShape = getConfigBoolean("circle-shape", false);
-		useProximity = getConfigBoolean("use-proximity", false);
-		passTargeting = getConfigBoolean("pass-targeting", false);
-		failIfNoTargets = getConfigBoolean("fail-if-no-targets", true);
-		reverseProximity = getConfigBoolean("reverse-proximity", false);
-		spellSourceInCenter = getConfigBoolean("spell-source-in-center", false);
+		pointBlank = getConfigDataBoolean("point-blank", true);
+		circleShape = getConfigDataBoolean("circle-shape", false);
+		useProximity = getConfigDataBoolean("use-proximity", false);
+		passTargeting = getConfigDataBoolean("pass-targeting", false);
+		failIfNoTargets = getConfigDataBoolean("fail-if-no-targets", true);
+		reverseProximity = getConfigDataBoolean("reverse-proximity", false);
+		spellSourceInCenter = getConfigDataBoolean("spell-source-in-center", false);
 	}
 
 	@Override
@@ -93,108 +88,81 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location loc = null;
-			if (pointBlank) loc = caster.getLocation();
-			else {
-				try {
-					Block block = getTargetedBlock(caster, power, args);
-					if (block != null && !BlockUtils.isAir(block.getType())) loc = block.getLocation().add(0.5, 0, 0.5);
-				}
-				catch (IllegalStateException ignored) {}
-			}
+	public CastResult cast(SpellData data) {
+		if (pointBlank.get(data)) {
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
+			if (!event.callEvent()) return noTarget(data);
 
-			if (loc == null) return noTarget(caster, args);
+			data = event.getSpellData();
+		} else {
+			TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 0, 0.5, false);
+			if (info.noTarget()) return noTarget(info);
 
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, loc, power, args);
-			EventUtil.call(event);
-			if (event.isCancelled()) loc = null;
-			else {
-				loc = event.getTargetLocation();
-				power = event.getPower();
-			}
-
-			if (loc == null) return noTarget(caster, args);
-
-			boolean done = doAoe(caster, loc, power, args);
-			if (!done) return noTarget(caster, args);
+			data = info.spellData();
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		return doAoe(data) ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		return doAoe(caster, target, power, args);
+	public CastResult castAtLocation(SpellData data) {
+		return doAoe(data) ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(data);
 	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return doAoe(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return doAoe(null, target, power, args);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return doAoe(null, target, power, null);
-	}
-
-	private boolean doAoe(LivingEntity caster, Location location, float basePower, String[] args) {
+	private boolean doAoe(SpellData data) {
 		int count = 0;
 
-		location = Util.makeFinite(location);
+		LivingEntity caster = data.caster();
 
-		int maxTargets = this.maxTargets.get(caster, null, basePower, args);
+		Location location = Util.makeFinite(data.location());
+		data = data.location(location);
 
-		double cone = this.cone.get(caster, null, basePower, args);
-		double horizontalCone = this.horizontalCone.get(caster, null, basePower, args);
+		boolean spellSourceInCenter = this.spellSourceInCenter.get(data);
+		data = data.location(spellSourceInCenter ? location : (caster == null ? null : caster.getLocation()));
 
-		double vRadius = Math.min(this.vRadius.get(caster, null, basePower, args), MagicSpells.getGlobalRadius());
-		double hRadius = Math.min(this.hRadius.get(caster, null, basePower, args), MagicSpells.getGlobalRadius());
+		boolean circleShape = this.circleShape.get(data);
+		boolean useProximity = this.useProximity.get(data);
+		boolean passTargeting = this.passTargeting.get(data);
+		boolean failIfNoTargets = this.failIfNoTargets.get(data);
+		boolean reverseProximity = this.reverseProximity.get(data);
 
-		double vRadiusSquared = vRadius * vRadius;
+		int maxTargets = this.maxTargets.get(data);
+
+		double cone = this.cone.get(data);
+		double horizontalCone = this.horizontalCone.get(data);
+
+		double vRadius = Math.min(this.vRadius.get(data), MagicSpells.getGlobalRadius());
+		double hRadius = Math.min(this.hRadius.get(data), MagicSpells.getGlobalRadius());
 		double hRadiusSquared = hRadius * hRadius;
-
-		SpellTargetEvent event;
-		SpellData data;
-
-		float power;
-
-		double hDistance;
-		double vDistance;
 
 		if (validTargetList.canTargetOnlyCaster()) {
 			if (caster == null) return false;
 
 			LivingEntity target = caster;
-			power = basePower;
-
 			if (!target.getWorld().equals(location.getWorld())) return false;
 
-			hDistance = NumberConversions.square(target.getLocation().getX() - location.getX()) + NumberConversions.square(target.getLocation().getZ() - location.getZ());
-			if (hDistance > hRadiusSquared) return false;
-			vDistance = NumberConversions.square(target.getLocation().getY() - location.getY());
-			if (vDistance > vRadiusSquared) return false;
+			Location targetLocation = target.getLocation();
+			if (circleShape) {
+				double hDistance = NumberConversions.square(targetLocation.getX() - location.getX()) + NumberConversions.square(targetLocation.getZ() - location.getZ());
+				if (hDistance > hRadiusSquared) return false;
+			} else {
+				double hDistance = Math.abs(targetLocation.getX() - location.getX()) + Math.abs(targetLocation.getZ() - location.getZ());
+				if (hDistance > hRadius) return false;
+			}
 
-			event = new SpellTargetEvent(this, caster, target, power, args);
-			EventUtil.call(event);
-			if (event.isCancelled()) return false;
+			double vDistance = Math.abs(targetLocation.getY() - location.getY());
+			if (vDistance > vRadius) return false;
 
-			target = event.getTarget();
-			power = event.getPower();
+			SpellTargetEvent event = new SpellTargetEvent(this, data, target);
+			if (!event.callEvent()) return false;
 
-			castSpells(caster, location, target, power, args);
+			SpellData subData = event.getSpellData();
+			target = subData.target();
 
-			data = new SpellData(caster, target, power, args);
+			castSpells(subData, passTargeting);
 
-			playSpellEffects(EffectPosition.TARGET, target, data);
-			playSpellEffects(EffectPosition.SPECIAL, location, data);
-			if (spellSourceInCenter) playSpellEffects(caster, location, target, data);
-			else playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
+			if (spellSourceInCenter) playSpellEffects(caster, location, target, subData);
+			else playSpellEffects(caster, target, subData);
 
 			return true;
 		}
@@ -207,8 +175,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 				if (entity.getWorld().equals(location.getWorld())) continue;
 				entities.remove(entity);
 			}
-			Location finalLocation = location;
-			Comparator<LivingEntity> comparator = Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(finalLocation));
+			Comparator<LivingEntity> comparator = Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(location));
 			if (reverseProximity) comparator = comparator.reversed();
 			entities.sort(comparator);
 		}
@@ -218,10 +185,10 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			if (!validTargetList.canTarget(caster, target)) continue;
 
 			if (circleShape) {
-				hDistance = NumberConversions.square(target.getLocation().getX() - location.getX()) + NumberConversions.square(target.getLocation().getZ() - location.getZ());
+				Location targetLocation = target.getLocation();
+
+				double hDistance = NumberConversions.square(targetLocation.getX() - location.getX()) + NumberConversions.square(targetLocation.getZ() - location.getZ());
 				if (hDistance > hRadiusSquared) continue;
-				vDistance = NumberConversions.square(target.getLocation().getY() - location.getY());
-				if (vDistance > vRadiusSquared) continue;
 			}
 
 			if (horizontalCone > 0 && horizontalAngle(location, target.getLocation()) > horizontalCone) continue;
@@ -231,22 +198,23 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 				if (AccurateMath.toDegrees(AccurateMath.abs(dir.angle(location.getDirection()))) > cone) continue;
 			}
 
-			power = basePower;
+			SpellTargetEvent event = new SpellTargetEvent(this, data, target);
+			if (!event.callEvent()) continue;
 
-			event = new SpellTargetEvent(this, caster, target, power, args);
-			EventUtil.call(event);
-			if (event.isCancelled()) continue;
+			SpellData subData = event.getSpellData();
+			target = subData.target();
 
-			target = event.getTarget();
-			power = event.getPower();
+			castSpells(subData, passTargeting);
 
-			castSpells(caster, location, target, power, args);
-
-			data = new SpellData(caster, target, power, args);
-			playSpellEffects(EffectPosition.TARGET, target, data);
-
-			if (spellSourceInCenter) playSpellEffects(caster, location, target, data);
-			else if (caster != null) playSpellEffectsTrail(caster.getLocation(), target.getLocation(), data);
+			playSpellEffects(EffectPosition.TARGET, target, subData);
+			playSpellEffects(EffectPosition.END_POSITION, target, subData);
+			if (spellSourceInCenter) {
+				playSpellEffects(EffectPosition.START_POSITION, location, subData);
+				playSpellEffectsTrail(location, target.getLocation(), subData);
+			} else if (caster != null) {
+				playSpellEffects(EffectPosition.START_POSITION, caster, subData);
+				playSpellEffectsTrail(caster.getLocation(), target.getLocation(), subData);
+			}
 
 			count++;
 
@@ -255,7 +223,6 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		boolean success = count > 0 || !failIfNoTargets;
 		if (success) {
-			data = new SpellData(caster, basePower, args);
 			playSpellEffects(EffectPosition.SPECIAL, location, data);
 			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
 		}
@@ -263,12 +230,8 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		return success;
 	}
 
-	private void castSpells(LivingEntity caster, Location location, LivingEntity target, float power, String[] args) {
-		Location source = spellSourceInCenter ? location : (caster == null ? null : caster.getLocation());
-		for (Subspell spell : spells) {
-			if (source != null) spell.subcast(caster, source, target, power, args, passTargeting);
-			else spell.subcast(caster, target, power, args, passTargeting);
-		}
+	private void castSpells(SpellData data, boolean passTargeting) {
+		for (Subspell spell : spells) spell.subcast(data, passTargeting);
 	}
 
 	private double horizontalAngle(Location from, Location to) {

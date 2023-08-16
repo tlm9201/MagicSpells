@@ -1,17 +1,15 @@
 package com.nisovin.magicspells.spells;
 
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.MagicLocation;
 
 public class LocationSpell extends InstantSpell {
 
 	private MagicLocation location;
-	
+
 	private Subspell spellToCast;
 	private String spellToCastName;
 
@@ -36,7 +34,7 @@ public class LocationSpell extends InstantSpell {
 
 		spellToCastName = getConfigString("spell", "");
 	}
-	
+
 	@Override
 	public void initialize() {
 		super.initialize();
@@ -46,18 +44,19 @@ public class LocationSpell extends InstantSpell {
 			MagicSpells.error("LocationSpell '" + internalName + "' has an invalid spell defined!");
 			spellToCast = null;
 		}
+		spellToCastName = null;
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location loc = location.getLocation();
-			if (loc == null) return PostCastAction.ALREADY_HANDLED;
+	public CastResult cast(SpellData data) {
+		Location loc = location.getLocation();
+		if (loc == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			if (spellToCast != null) spellToCast.subcast(caster, loc, power, args);
-			playSpellEffects(caster, loc, power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		data = data.location(loc);
+		if (spellToCast != null) spellToCast.subcast(data);
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

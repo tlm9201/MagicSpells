@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -19,10 +18,8 @@ import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.CommandSpell;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -45,7 +42,7 @@ public class KeybindSpell extends CommandSpell {
 		MagicItem magicIconItem = MagicItems.getMagicItemFromString(getConfigString("default-spell-icon", "redstone"));
 		if (magicIconItem != null) defaultSpellIcon = magicIconItem.getItemStack();
 	}
-	
+
 	@Override
 	protected void initialize() {
 		super.initialize();
@@ -73,8 +70,8 @@ public class KeybindSpell extends CommandSpell {
 		}
 
 	}
-	
-	private void saveKeybinds(Keybinds keybinds) {		
+
+	private void saveKeybinds(Keybinds keybinds) {
 		File file = new File(MagicSpells.plugin.getDataFolder(), "spellbooks" + File.separator + "keybinds-" + keybinds.player.getName().toLowerCase() + ".txt");
 		YamlConfiguration conf = new YamlConfiguration();
 		Spell[] binds = keybinds.keybinds;
@@ -89,46 +86,49 @@ public class KeybindSpell extends CommandSpell {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			if (args.length != 1) {
-				player.sendMessage("Invalid args.");
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			Keybinds keybinds = playerKeybinds.computeIfAbsent(player.getName(), name -> new Keybinds(player));
-			
-			int slot = player.getInventory().getHeldItemSlot();
-			ItemStack item = player.getEquipment().getItemInMainHand();
-			
-			if (args[0].equalsIgnoreCase("clear")) {
-				keybinds.clearKeybind(slot);
-				saveKeybinds(keybinds);
-				return PostCastAction.HANDLE_NORMALLY;
-			}
-			if (args[0].equalsIgnoreCase("clearall")) {
-				keybinds.clearKeybinds();
-				saveKeybinds(keybinds);
-				return PostCastAction.HANDLE_NORMALLY;
-			}
-			if (!BlockUtils.isAir(item.getType())) {
-				player.sendMessage("Not empty.");
-				return PostCastAction.ALREADY_HANDLED;
-			}
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			Spell spell = MagicSpells.getSpellbook(player).getSpellByName(args[0]);
-			if (spell == null) {
-				player.sendMessage("No spell.");
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			keybinds.setKeybind(slot, spell);
-			keybinds.select(slot);
-			saveKeybinds(keybinds);
+		if (data.args().length != 1) {
+			sendMessage("Invalid args.", caster);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		Keybinds keybinds = playerKeybinds.computeIfAbsent(caster.getName(), name -> new Keybinds(caster));
+
+		int slot = caster.getInventory().getHeldItemSlot();
+		ItemStack item = caster.getEquipment().getItemInMainHand();
+
+		if (data.args()[0].equalsIgnoreCase("clear")) {
+			keybinds.clearKeybind(slot);
+			saveKeybinds(keybinds);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		}
+
+		if (data.args()[0].equalsIgnoreCase("clearall")) {
+			keybinds.clearKeybinds();
+			saveKeybinds(keybinds);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		}
+
+		if (!BlockUtils.isAir(item.getType())) {
+			caster.sendMessage("Not empty.");
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		Spell spell = MagicSpells.getSpellbook(caster).getSpellByName(data.args()[0]);
+		if (spell == null) {
+			caster.sendMessage("No spell.");
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		keybinds.setKeybind(slot, spell);
+		keybinds.select(slot);
+		saveKeybinds(keybinds);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class KeybindSpell extends CommandSpell {
 		keybinds.deselect(event.getPreviousSlot());
 		keybinds.select(event.getNewSlot());
 	}
-	
+
 	@EventHandler
 	public void onAnimate(PlayerAnimationEvent event) {
 		Keybinds keybinds = playerKeybinds.get(event.getPlayer().getName());
@@ -151,22 +151,22 @@ public class KeybindSpell extends CommandSpell {
 		boolean casted = keybinds.castKeybind(event.getPlayer().getInventory().getHeldItemSlot());
 		if (casted) event.setCancelled(true);
 	}
-	
+
 	@EventHandler(ignoreCancelled = true)
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		Keybinds keybinds = playerKeybinds.get(event.getPlayer().getName());
 		if (keybinds == null) return;
-		
+
 		if (keybinds.hasKeybind(event.getPlayer().getInventory().getHeldItemSlot())) {
 			event.setCancelled(true);
 		}
 	}
-	
-	@EventHandler(priority=EventPriority.MONITOR)
+
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		loadKeybinds(event.getPlayer());
 	}
-	
+
 	@Override
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		return null;
@@ -193,7 +193,7 @@ public class KeybindSpell extends CommandSpell {
 	}
 
 	private class Keybinds {
-		
+
 		private Player player;
 		private Spell[] keybinds;
 
@@ -224,7 +224,7 @@ public class KeybindSpell extends CommandSpell {
 		private boolean castKeybind(int slot) {
 			Spell spell = keybinds[slot];
 			if (spell == null) return false;
-			spell.cast(player);
+			spell.hardCast(new SpellData(player));
 			return true;
 		}
 
@@ -244,7 +244,7 @@ public class KeybindSpell extends CommandSpell {
 				MagicSpells.getVolatileCodeHandler().sendFakeSlotUpdate(player, i, null);
 			}
 		}
-		
+
 	}
 
 }

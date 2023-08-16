@@ -1,50 +1,39 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Animals;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell {
-	
-	private ConfigData<Integer> backfireChance;
 
-	private ConfigData<Float> explosionSize;
-	private ConfigData<Float> damageMultiplier;
+	private final ConfigData<Integer> backfireChance;
 
-	private boolean addFire;
-	private boolean simulateTnt;
-	private boolean ignoreCanceled;
-	private boolean preventBlockDamage;
-	private boolean preventPlayerDamage;
-	private boolean preventAnimalDamage;
-	private boolean powerAffectsExplosionSize;
-	private boolean powerAffectsDamageMultiplier;
+	private final ConfigData<Float> explosionSize;
+	private final ConfigData<Float> damageMultiplier;
 
+	private final ConfigData<Boolean> addFire;
+	private final ConfigData<Boolean> simulateTnt;
+	private final ConfigData<Boolean> ignoreCanceled;
+	private final ConfigData<Boolean> preventBlockDamage;
+	private final ConfigData<Boolean> preventPlayerDamage;
+	private final ConfigData<Boolean> preventAnimalDamage;
+	private final ConfigData<Boolean> powerAffectsExplosionSize;
+	private final ConfigData<Boolean> powerAffectsDamageMultiplier;
+
+	private SpellData currentData = null;
 	private long currentTick = 0;
-	private String[] currentArgs;
-	private float currentPower = 0;
-	private LivingEntity currentCaster;
 
 	public ExplodeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -54,108 +43,74 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 		explosionSize = getConfigDataFloat("explosion-size", 4);
 		damageMultiplier = getConfigDataFloat("damage-multiplier", 0);
 
-		addFire = getConfigBoolean("add-fire", false);
-		simulateTnt = getConfigBoolean("simulate-tnt", true);
-		ignoreCanceled = getConfigBoolean("ignore-cancelled", false);
-		preventBlockDamage = getConfigBoolean("prevent-block-damage", false);
-		preventPlayerDamage = getConfigBoolean("prevent-player-damage", false);
-		preventAnimalDamage = getConfigBoolean("prevent-animal-damage", false);
-		powerAffectsExplosionSize = getConfigBoolean("power-affects-explosion-size", true);
-		powerAffectsDamageMultiplier = getConfigBoolean("power-affects-damage-multiplier", true);
+		addFire = getConfigDataBoolean("add-fire", false);
+		simulateTnt = getConfigDataBoolean("simulate-tnt", true);
+		ignoreCanceled = getConfigDataBoolean("ignore-cancelled", false);
+		preventBlockDamage = getConfigDataBoolean("prevent-block-damage", false);
+		preventPlayerDamage = getConfigDataBoolean("prevent-player-damage", false);
+		preventAnimalDamage = getConfigDataBoolean("prevent-animal-damage", false);
+		powerAffectsExplosionSize = getConfigDataBoolean("power-affects-explosion-size", true);
+		powerAffectsDamageMultiplier = getConfigDataBoolean("power-affects-damage-multiplier", true);
 	}
-	
+
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Block target;
-			try {
-				target = getTargetedBlock(caster, power, args);
-			} catch (IllegalStateException e) {
-				DebugHandler.debugIllegalState(e);
-				target = null;
-			}
+	public CastResult cast(SpellData data) {
+		TargetInfo<Location> info = getTargetedBlockLocation(data, false);
+		if (info.noTarget()) return noTarget(info);
 
-			if (target != null && !BlockUtils.isAir(target.getType())) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power, args);
-				EventUtil.call(event);
-				if (event.isCancelled()) target = null;
-				else {
-					target = event.getTargetLocation().getBlock();
-					power = event.getPower();
-				}
-			}
-
-			if (target == null || BlockUtils.isAir(target.getType())) return noTarget(caster, args);
-			boolean exploded = explode(caster, target.getLocation(), power, args);
-			if (!exploded && !ignoreCanceled) return noTarget(caster, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtLocation(info.spellData());
 	}
-	
-	private boolean explode(LivingEntity caster, Location target, float power, String[] args) {
-		float explosionSize = this.explosionSize.get(caster, null, power, args);
-		if (powerAffectsExplosionSize) explosionSize *= power;
 
-		if (simulateTnt) {
-			boolean cancelled = MagicSpells.getVolatileCodeHandler().simulateTnt(target, caster, explosionSize, addFire);
-			if (cancelled) return false;
+	@Override
+	public CastResult castAtLocation(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		float explosionSize = this.explosionSize.get(data);
+		if (powerAffectsExplosionSize.get(data)) explosionSize *= data.power();
+
+		Location location = data.location();
+
+		if (simulateTnt.get(data)) {
+			boolean cancelled = MagicSpells.getVolatileCodeHandler().simulateTnt(location, data.caster(), explosionSize, addFire.get(data));
+			if (cancelled) return noTarget(data);
 		}
 
-		int backfireChance = this.backfireChance.get(caster, null, power, args);
-		if (backfireChance > 0) {
-			Random rand = ThreadLocalRandom.current();
-			if (rand.nextInt(10000) < backfireChance) target = caster.getLocation();
+		int backfireChance = this.backfireChance.get(data);
+		if (backfireChance > 0 && random.nextInt(10000) < backfireChance) {
+			location = data.caster().getLocation();
+			data.location(location);
 		}
 
 		currentTick = Bukkit.getWorlds().get(0).getFullTime();
-		currentCaster = caster;
-		currentPower = power;
-		currentArgs = args;
+		currentData = data;
 
-		boolean ret = target.getWorld().createExplosion(target, explosionSize, addFire, !preventBlockDamage, caster);
-		if (ret) playSpellEffects(caster, target, power, args);
+		boolean success = location.createExplosion(data.caster(), explosionSize, addFire.get(data), !preventBlockDamage.get(data));
+		if (!success && !ignoreCanceled.get(data)) return noTarget(data);
 
-		return ret;
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		return explode(caster, target, power, args);
-	}
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onEntityDamage(EntityDamageByEntityEvent event) {
+		if (event.getCause() != DamageCause.ENTITY_EXPLOSION) return;
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return explode(caster, target, power, null);
-	}
+		if (currentTick != Bukkit.getWorlds().get(0).getFullTime() || !currentData.caster().equals(event.getDamager()))
+			return;
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
-	}
+		SpellData data = currentData.target(event.getEntity() instanceof LivingEntity le ? le : null);
 
-	@EventHandler(priority=EventPriority.HIGH, ignoreCancelled = true)
-	public void onEntityDamage(EntityDamageEvent event) {
-		if (!(event.getCause() == DamageCause.BLOCK_EXPLOSION || event.getCause() == DamageCause.ENTITY_EXPLOSION)) return;
-		if (currentTick != Bukkit.getWorlds().get(0).getFullTime()) return;
-
-		float damageMultiplier = this.damageMultiplier.get(currentCaster, event.getEntity() instanceof LivingEntity le ? le : null, currentPower, currentArgs);
+		float damageMultiplier = this.damageMultiplier.get(data);
+		boolean preventPlayerDamage = this.preventPlayerDamage.get(data);
+		boolean preventAnimalDamage = this.preventAnimalDamage.get(data);
 		if (!(damageMultiplier > 0 || preventPlayerDamage || preventAnimalDamage)) return;
 
 		if (preventPlayerDamage && event.getEntity() instanceof Player) event.setCancelled(true);
 		else if (preventAnimalDamage && event.getEntity() instanceof Animals) event.setCancelled(true);
 		else if (damageMultiplier > 0) {
-			if (powerAffectsDamageMultiplier) damageMultiplier *= currentPower;
+			if (powerAffectsDamageMultiplier.get(data)) damageMultiplier *= data.power();
 			event.setDamage(damageMultiplier);
 		}
 	}
-	
-	@EventHandler
-	public void onExplode(EntityExplodeEvent event) {
-		if (event.isCancelled() || !preventBlockDamage) return;
-		if (currentTick == Bukkit.getWorlds().get(0).getFullTime()) {
-			event.blockList().clear();
-			event.setYield(0);
-		}
-	}
-	
+
 }
