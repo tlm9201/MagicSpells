@@ -38,7 +38,7 @@ public class GateSpell extends InstantSpell {
 
 		if (effectiveWorld == null) {
 			MagicSpells.error("GateSpell '" + internalName + "' has a non existent world defined!");
-			sendMessage(strGateFailed, data.caster(), data.args());
+			sendMessage(strGateFailed, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -79,7 +79,7 @@ public class GateSpell extends InstantSpell {
 
 		if (location == null) {
 			MagicSpells.error("GateSpell '" + internalName + "' has invalid coordinates defined!");
-			sendMessage(strGateFailed, data.caster(), data.args());
+			sendMessage(strGateFailed, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 		MagicSpells.debug(3, "Gate location: " + location);
@@ -87,7 +87,7 @@ public class GateSpell extends InstantSpell {
 		Block b = location.getBlock();
 		if (!BlockUtils.isPathable(b) || !BlockUtils.isPathable(b.getRelative(0, 1, 0))) {
 			MagicSpells.error("GateSpell '" + internalName + "' has landing spot blocked!");
-			sendMessage(strGateFailed, data.caster(), data.args());
+			sendMessage(strGateFailed, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -95,7 +95,7 @@ public class GateSpell extends InstantSpell {
 		boolean canTeleport = (!(data.caster() instanceof Vehicle)) && data.caster().isValid();
 		if (!canTeleport) {
 			MagicSpells.error("GateSpell '" + internalName + "': teleport prevented!");
-			sendMessage(strGateFailed, data.caster(), data.args());
+			sendMessage(strGateFailed, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 		data.caster().teleportAsync(location);

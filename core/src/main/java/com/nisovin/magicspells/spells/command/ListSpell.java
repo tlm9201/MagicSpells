@@ -62,7 +62,7 @@ public class ListSpell extends CommandSpell {
 		if (reloadGrantedSpells.get(data)) spellbook.addGrantedSpells();
 
 		if (spellbook.getSpells().isEmpty()) {
-			sendMessage(strNoSpells, caster, data.args());
+			sendMessage(strNoSpells, caster, data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 

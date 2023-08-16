@@ -75,13 +75,13 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		// Check usage
 		if (targetName.isEmpty()) {
 			// Fail -- show usage
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		// Check location
 		if (!BlockUtils.isSafeToStand(landLoc.clone())) {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -103,11 +103,11 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		// Teleport player
 		String displayName = Util.getStringFromComponent(caster.displayName());
 		if (requireAcceptance.get(data)) {
-			pending.put(target.getUniqueId(), new SummonData(landLoc, System.currentTimeMillis(), maxAcceptDelay.get(data), data.args()));
-			sendMessage(strSummonPending, target, data.args(), "%a", displayName);
+			pending.put(target.getUniqueId(), new SummonData(landLoc, System.currentTimeMillis(), maxAcceptDelay.get(data), data));
+			sendMessage(strSummonPending, target, data, "%a", displayName);
 		} else {
 			target.teleportAsync(landLoc);
-			sendMessage(strSummonAccepted, target, data.args(), "%a", displayName);
+			sendMessage(strSummonAccepted, target, data, "%a", displayName);
 		}
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
@@ -119,11 +119,11 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 		String displayName = getTargetName(data.caster());
 		if (requireAcceptance.get(data) && data.target() instanceof Player target) {
-			pending.put(target.getUniqueId(), new SummonData(data.caster().getLocation(), System.currentTimeMillis(), maxAcceptDelay.get(data), data.args()));
-			sendMessage(strSummonPending, target, data.args(), "%a", displayName);
+			pending.put(target.getUniqueId(), new SummonData(data.caster().getLocation(), System.currentTimeMillis(), maxAcceptDelay.get(data), data));
+			sendMessage(strSummonPending, target, data, "%a", displayName);
 		} else {
 			data.target().teleportAsync(data.caster().getLocation());
-			sendMessage(strSummonAccepted, data.target(), data.args(), "%a", displayName);
+			sendMessage(strSummonAccepted, data.target(), data, "%a", displayName);
 		}
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
@@ -135,11 +135,11 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 		String displayName = getTargetName(data.caster());
 		if (requireAcceptance.get(data) && data.target() instanceof Player target) {
-			pending.put(target.getUniqueId(), new SummonData(data.location(), System.currentTimeMillis(), maxAcceptDelay.get(data), data.args()));
-			sendMessage(strSummonPending, target, data.args(), "%a", displayName);
+			pending.put(target.getUniqueId(), new SummonData(data.location(), System.currentTimeMillis(), maxAcceptDelay.get(data), data));
+			sendMessage(strSummonPending, target, data, "%a", displayName);
 		} else {
 			data.target().teleportAsync(data.location());
-			sendMessage(strSummonAccepted, data.target(), data.args(), "%a", displayName);
+			sendMessage(strSummonAccepted, data.target(), data, "%a", displayName);
 		}
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
@@ -157,12 +157,12 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		event.setCancelled(true);
 
 		if (data.maxAcceptDelay > 0 && data.time + data.maxAcceptDelay * TimeUtil.MILLISECONDS_PER_SECOND < System.currentTimeMillis()) {
-			sendMessage(strSummonExpired, player, data.args);
+			sendMessage(strSummonExpired, player, data.spellData);
 			return;
 		}
 
 		player.teleportAsync(data.location);
-		sendMessage(strSummonAccepted, player, data.args);
+		sendMessage(strSummonAccepted, player, data.spellData);
 	}
 
 	@Override
@@ -171,7 +171,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		return tabCompletePlayerName(sender, partial);
 	}
 
-	private record SummonData(Location location, long time, int maxAcceptDelay, String[] args) {
+	private record SummonData(Location location, long time, int maxAcceptDelay, SpellData spellData) {
 	}
 
 }

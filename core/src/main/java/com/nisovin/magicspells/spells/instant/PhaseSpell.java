@@ -60,7 +60,7 @@ public class PhaseSpell extends InstantSpell {
 		try {
 			iter = new BlockIterator(data.caster(), distance << 1);
 		} catch (IllegalStateException e) {
-			sendMessage(strCantPhase, data.caster(), data.args());
+			sendMessage(strCantPhase, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -90,7 +90,7 @@ public class PhaseSpell extends InstantSpell {
 		}
 
 		if (location == null) {
-			sendMessage(strCantPhase, data.caster(), data.args());
+			sendMessage(strCantPhase, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 

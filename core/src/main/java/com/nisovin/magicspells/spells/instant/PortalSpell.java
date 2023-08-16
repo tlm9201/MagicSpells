@@ -112,14 +112,14 @@ public class PortalSpell extends InstantSpell {
 
 		Location locSecond;
 		if (loc == null) {
-			sendMessage(strNoMark, data.caster(), data.args());
+			sendMessage(strNoMark, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (usingSecondMarkSpell) {
 			locSecond = endMark.getEffectiveMark(data.caster());
 			if (locSecond == null) {
-				sendMessage(strNoMark, data.caster(), data.args());
+				sendMessage(strNoMark, data.caster(), data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 		} else locSecond = data.caster().getLocation();
@@ -131,13 +131,13 @@ public class PortalSpell extends InstantSpell {
 
 		if (maxDistanceSq > 0) {
 			if (!loc.getWorld().equals(locSecond.getWorld())) {
-				sendMessage(strTooFar, data.caster(), data.args());
+				sendMessage(strTooFar, data.caster(), data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 
 			distanceSq = locSecond.distanceSquared(loc);
 			if (distanceSq > maxDistanceSq) {
-				sendMessage(strTooFar, data.caster(), data.args());
+				sendMessage(strTooFar, data.caster(), data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 		}
@@ -148,7 +148,7 @@ public class PortalSpell extends InstantSpell {
 		if (minDistanceSq > 0 && loc.getWorld().equals(locSecond.getWorld())) {
 			if (distanceSq == 0) distanceSq = locSecond.distanceSquared(loc);
 			if (distanceSq < minDistanceSq) {
-				sendMessage(strTooClose, data.caster(), data.args());
+				sendMessage(strTooClose, data.caster(), data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 		}
@@ -355,7 +355,7 @@ public class PortalSpell extends InstantSpell {
 
 		private boolean checkCooldown(Player target) {
 			if (tpCooldowns.containsKey(target.getUniqueId()) && tpCooldowns.get(target.getUniqueId()) > System.currentTimeMillis()) {
-				sendMessage(strTeleportOnCooldown, target, data.args());
+				sendMessage(strTeleportOnCooldown, target, data);
 				return false;
 			}
 
@@ -371,14 +371,14 @@ public class PortalSpell extends InstantSpell {
 				if (SpellUtil.hasReagents(target, portal.portalCost())) {
 					payer = target;
 				} else {
-					sendMessage(strTeleportNoCost, target, data.args());
+					sendMessage(strTeleportNoCost, target, data);
 					return false;
 				}
 			} else {
 				if (SpellUtil.hasReagents(data.caster(), portal.portalCost())) {
 					payer = data.caster();
 				} else {
-					sendMessage(strTeleportNoCost, target, data.args());
+					sendMessage(strTeleportNoCost, target, data);
 					return false;
 				}
 			}

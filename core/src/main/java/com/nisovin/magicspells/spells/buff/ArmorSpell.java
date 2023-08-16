@@ -113,7 +113,7 @@ public class ArmorSpell extends BuffSpell {
 				(leggings != null && eq.getLeggings() != null) ||
 				(boots != null && eq.getBoots() != null))
 		) {
-			sendMessage(strHasArmor, data.caster(), data.args());
+			sendMessage(strHasArmor, data.caster(), data);
 			return false;
 		}
 

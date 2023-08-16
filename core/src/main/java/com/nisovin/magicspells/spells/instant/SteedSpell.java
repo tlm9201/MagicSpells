@@ -115,13 +115,13 @@ public class SteedSpell extends InstantSpell {
 	@Override
 	public CastResult cast(SpellData data) {
 		if (data.caster().getVehicle() != null) {
-			sendMessage(strAlreadyMounted, data.caster(), data.args());
+			sendMessage(strAlreadyMounted, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		Class<? extends Entity> entityClass = type.get(data).getEntityClass();
 		if (entityClass == null) {
-			sendMessage(strInvalidType, data.caster(), data.args());
+			sendMessage(strInvalidType, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 

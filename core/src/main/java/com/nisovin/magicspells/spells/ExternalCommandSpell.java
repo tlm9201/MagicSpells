@@ -238,7 +238,7 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 			if (!msg.startsWith("/" + commandToBlock)) continue;
 
 			event.setCancelled(true);
-			sendMessage(strCantUseCommand, event.getPlayer(), MagicSpells.NULL_ARGS);
+			sendMessage(strCantUseCommand, event.getPlayer(), SpellData.NULL);
 			return;
 		}
 	}

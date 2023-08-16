@@ -118,7 +118,7 @@ public class RitualSpell extends InstantSpell {
 
 		if (!channel.needSpellToParticipate || hasThisSpell(event.getPlayer())) {
 			channel.addChanneler(event.getPlayer());
-			sendMessage(strRitualJoined, event.getPlayer(), channel.data.args());
+			sendMessage(strRitualJoined, event.getPlayer(), channel.data);
 		}
 	}
 
@@ -223,7 +223,7 @@ public class RitualSpell extends InstantSpell {
 						iter.remove();
 						count--;
 						resetManaBar(player);
-						if (!strRitualLeft.isEmpty()) sendMessage(strRitualLeft, player, MagicSpells.NULL_ARGS);
+						if (!strRitualLeft.isEmpty()) sendMessage(strRitualLeft, player, data);
 						continue;
 					}
 				}
@@ -262,7 +262,7 @@ public class RitualSpell extends InstantSpell {
 
 		private void stop(String message) {
 			for (Player player : channelers.keySet()) {
-				sendMessage(message, player, data.args());
+				sendMessage(message, player, data);
 				resetManaBar(player);
 			}
 			channelers.clear();

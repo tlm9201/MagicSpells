@@ -377,7 +377,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		stopEffects(entity);
 
 		if (spellOnEnd != null) spellOnEnd.subcast(new SpellData(endSpellFromTarget ? entity : getLastCaster(entity)));
-		sendMessage(strFade, entity, null);
+		sendMessage(strFade, entity, SpellData.NULL);
 
 		lastCaster.remove(entity.getUniqueId());
 	}

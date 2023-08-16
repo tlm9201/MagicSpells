@@ -168,7 +168,7 @@ public class RepairSpell extends InstantSpell {
 		}
 
 		if (!repaired) {
-			sendMessage(strNothingToRepair, caster, data.args());
+			sendMessage(strNothingToRepair, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 

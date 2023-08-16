@@ -107,7 +107,7 @@ public class DowseSpell extends InstantSpell {
 			}
 
 			if (foundBlock == null) {
-				sendMessage(strNotFound, caster, data.args());
+				sendMessage(strNotFound, caster, data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 
@@ -161,7 +161,7 @@ public class DowseSpell extends InstantSpell {
 			}
 
 			if (foundEntity == null) {
-				sendMessage(strNotFound, caster, data.args());
+				sendMessage(strNotFound, caster, data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 
@@ -178,8 +178,9 @@ public class DowseSpell extends InstantSpell {
 
 		playSpellEffects(EffectPosition.CASTER, caster, data);
 		if (getDistance) {
-			sendMessage(strCastSelf, caster, data.args(), "%d", String.valueOf(distance));
-			sendMessageNear(strCastOthers, data, broadcastRange, "%d", String.valueOf(distance));
+			String[] replacements = getReplacements(data, "%d", String.valueOf(distance));
+			sendMessage(strCastSelf, caster, data, replacements);
+			sendMessageNear(strCastOthers, data, broadcastRange, replacements);
 
 			return new CastResult(PostCastAction.NO_MESSAGES, data);
 		}

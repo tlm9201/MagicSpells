@@ -57,7 +57,7 @@ public class RoarSpell extends InstantSpell {
 		}
 
 		if (cancelIfNoTargets.get(data) && count == 0) {
-			sendMessage(strNoTarget, data.caster(), data.args());
+			sendMessage(strNoTarget, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 

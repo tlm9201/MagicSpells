@@ -72,29 +72,29 @@ public class TomeSpell extends CommandSpell {
 		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (!data.hasArgs()) {
-			sendMessage(strUsage, player, data.args());
+			sendMessage(strUsage, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
 		if (spell == null || !spellbook.hasSpell(spell)) {
-			sendMessage(strNoSpell, player, data.args());
+			sendMessage(strNoSpell, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 		if (requireTeachPerm.get(data) && !MagicSpells.getSpellbook(player).canTeach(spell)) {
-			sendMessage(strCantTeach, player, data.args());
+			sendMessage(strCantTeach, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		ItemStack item = player.getInventory().getItemInMainHand();
 		if (item.getType() != Material.WRITTEN_BOOK) {
-			sendMessage(strNoBook, player, data.args());
+			sendMessage(strNoBook, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (!allowOverwrite.get(data) && DataUtil.getString(item, key) != null) {
-			sendMessage(strAlreadyHasSpell, player, data.args());
+			sendMessage(strAlreadyHasSpell, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 

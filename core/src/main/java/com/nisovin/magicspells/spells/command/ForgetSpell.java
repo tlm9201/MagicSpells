@@ -52,7 +52,7 @@ public class ForgetSpell extends CommandSpell {
 		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (!data.hasArgs() || data.args().length > 2) {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -63,12 +63,12 @@ public class ForgetSpell extends CommandSpell {
 		else if (data.args().length == 2 && casterSpellbook.hasAdvancedPerm("forget")) {
 			List<Player> players = MagicSpells.plugin.getServer().matchPlayer(data.args()[0]);
 			if (players.size() != 1) {
-				sendMessage(strNoTarget, caster, data.args());
+				sendMessage(strNoTarget, caster, data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 			target = players.get(0);
 		} else {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -79,18 +79,18 @@ public class ForgetSpell extends CommandSpell {
 		else spell = MagicSpells.getSpellByInGameName(spellName);
 
 		if (spell == null && !all) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (!all && !casterSpellbook.hasSpell(spell)) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		Spellbook targetSpellbook = MagicSpells.getSpellbook(target);
 		if (!all && !targetSpellbook.hasSpell(spell)) {
-			sendMessage(strDoesntKnow, caster, data.args());
+			sendMessage(strDoesntKnow, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -102,11 +102,11 @@ public class ForgetSpell extends CommandSpell {
 			targetSpellbook.removeSpell(spell);
 			targetSpellbook.save();
 			if (!caster.equals(target)) {
-				sendMessage(strCastTarget, target, data.args(), "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
-				sendMessage(strCastSelf, caster, data.args(), "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
+				sendMessage(strCastTarget, target, data, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
+				sendMessage(strCastSelf, caster, data, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
 				playSpellEffects(caster, target, data);
 			} else {
-				sendMessage(strCastSelfTarget, caster, data.args(), "%s", spell.getName());
+				sendMessage(strCastSelfTarget, caster, data, "%s", spell.getName());
 				playSpellEffects(EffectPosition.CASTER, caster, data);
 			}
 			return new CastResult(PostCastAction.NO_MESSAGES, data);
@@ -116,10 +116,10 @@ public class ForgetSpell extends CommandSpell {
 		targetSpellbook.save();
 
 		if (!caster.equals(target)) {
-			sendMessage(strResetTarget, caster, data.args(), "%t", targetDisplayName);
+			sendMessage(strResetTarget, caster, data, "%t", targetDisplayName);
 			playSpellEffects(caster, target, data);
 		} else {
-			sendMessage(strResetSelf, caster, data.args());
+			sendMessage(strResetSelf, caster, data);
 			playSpellEffects(EffectPosition.CASTER, caster, data);
 		}
 

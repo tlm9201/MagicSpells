@@ -52,7 +52,7 @@ public class UnbindSpell extends CommandSpell {
 		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		
 		if (!data.hasArgs()) {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -73,7 +73,7 @@ public class UnbindSpell extends CommandSpell {
 
 			spellbook.save();
 			spellbook.reload();
-			sendMessage(strUnbindAll, caster, data.args());
+			sendMessage(strUnbindAll, caster, data);
 			playSpellEffects(EffectPosition.CASTER, caster, data);
 
 			return new CastResult(PostCastAction.NO_MESSAGES, data);
@@ -81,33 +81,33 @@ public class UnbindSpell extends CommandSpell {
 
 		Spell spell = MagicSpells.getSpellByInGameName(Util.arrayJoin(data.args(), ' '));
 		if (spell == null) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (!spellbook.hasSpell(spell)) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (!spell.canCastWithItem()) {
-			sendMessage(strCantBindSpell, caster, data.args());
+			sendMessage(strCantBindSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (allowedSpells != null && !allowedSpells.contains(spell)) {
-			sendMessage(strCantUnbind, caster, data.args());
+			sendMessage(strCantUnbind, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		boolean removed = spellbook.removeCastItem(spell, item);
 		if (!removed) {
-			sendMessage(strNotBound, caster, data.args());
+			sendMessage(strNotBound, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		spellbook.save();
-		sendMessage(strCastSelf, caster, data.args(), "%s", spell.getName());
+		sendMessage(strCastSelf, caster, data, "%s", spell.getName());
 		playSpellEffects(EffectPosition.CASTER, caster, data);
 
 		return new CastResult(PostCastAction.NO_MESSAGES, data);

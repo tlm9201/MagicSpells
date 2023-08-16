@@ -87,30 +87,30 @@ public class ImbueSpell extends CommandSpell {
 		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (!data.hasArgs()) {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		// Get item
 		ItemStack inHand = caster.getInventory().getItemInMainHand();
 		if (!allowedItemTypes.contains(inHand.getType())) {
-			sendMessage(strCantImbueItem, caster, data.args());
+			sendMessage(strCantImbueItem, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (!allowedItemTypes.contains(inHand.getType()) || DataUtil.getString(inHand, key) != null) {
-			sendMessage(strCantImbueItem, caster, data.args());
+			sendMessage(strCantImbueItem, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
 		if (spell == null || !MagicSpells.getSpellbook(caster).hasSpell(spell)) {
-			sendMessage(strCantImbueSpell, caster, data.args());
+			sendMessage(strCantImbueSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (requireTeachPerm.get(data) && !MagicSpells.getSpellbook(caster).canTeach(spell)) {
-			sendMessage(strCantImbueSpell, caster, data.args());
+			sendMessage(strCantImbueSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -123,7 +123,7 @@ public class ImbueSpell extends CommandSpell {
 		if (chargeReagentsForSpellPerUse.get(data) && !Perm.NO_REAGENTS.has(caster)) {
 			SpellReagents reagents = spell.getReagents().multiply(uses);
 			if (!hasReagents(caster, reagents)) {
-				sendMessage(strMissingReagents, caster, data.args());
+				sendMessage(strMissingReagents, caster, data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 

@@ -1049,7 +1049,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (MagicSpells.useExpBarAsCastTimeBar()) new DelayedSpellCastWithBar(castEvent);
 		else new DelayedSpellCast(castEvent);
 
-		sendMessage(strCastStart, data.caster(), data.args());
+		sendMessage(strCastStart, data.caster(), data);
 		playSpellEffects(EffectPosition.START_CAST, data.caster(), data);
 
 		return new SpellCastResult(SpellCastState.NORMAL, PostCastAction.DELAYED, data);
@@ -2561,7 +2561,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			MagicSpells.cancelTask(taskId);
 			unregisterEvents(this);
 
-			sendMessage(strInterrupted, caster, null);
+			sendMessage(strInterrupted, caster, spellCast.getSpellData());
 			if (spellOnInterrupt != null)
 				spellOnInterrupt.subcast(new SpellData(caster, caster.getLocation(), spellCast.getPower(), spellCast.getSpellArgs()));
 		}

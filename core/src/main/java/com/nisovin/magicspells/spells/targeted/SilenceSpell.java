@@ -143,7 +143,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 				if (preventCastSpell != null) preventCastSpell.subcast(new SpellData(event.getCaster()));
 				if (spell.isHelperSpell() && !notifyHelperSpells) return;
 				if (spell instanceof PassiveSpell && !notifyPassiveSpells) return;
-				sendMessage(strSilenced, event.getCaster(), event.getSpellArgs());
+				sendMessage(strSilenced, event.getCaster(), event.getSpellData());
 			});
 		}
 
@@ -156,7 +156,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (!silenced.containsKey(event.getPlayer().getUniqueId())) return;
 			event.setCancelled(true);
 			if (preventChatSpell != null) preventChatSpell.subcast(new SpellData(event.getPlayer()));
-			sendMessage(strSilenced, event.getPlayer(), MagicSpells.NULL_ARGS);
+			sendMessage(strSilenced, event.getPlayer(), SpellData.NULL);
 		}
 
 	}
@@ -168,7 +168,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (!silenced.containsKey(event.getPlayer().getUniqueId())) return;
 			event.setCancelled(true);
 			if (preventCommandSpell != null) preventCommandSpell.subcast(new SpellData(event.getPlayer()));
-			sendMessage(strSilenced, event.getPlayer(), MagicSpells.NULL_ARGS);
+			sendMessage(strSilenced, event.getPlayer(), SpellData.NULL);
 		}
 
 	}

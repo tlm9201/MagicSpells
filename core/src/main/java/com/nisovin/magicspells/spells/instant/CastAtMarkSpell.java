@@ -68,7 +68,7 @@ public class CastAtMarkSpell extends InstantSpell {
 
 		Location effectiveMark = markSpell.getEffectiveMark(data.caster());
 		if (effectiveMark == null) {
-			sendMessage(strNoMark, data.caster(), data.args());
+			sendMessage(strNoMark, data.caster(), data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 

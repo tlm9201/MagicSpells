@@ -97,7 +97,7 @@ public class SpellbookSpell extends CommandSpell {
 		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (!data.hasArgs() || data.args().length > 2 || (data.args().length == 2 && !RegexUtil.matches(PATTERN_CAST_ARG_USAGE, data.args()[1]))) {
-			sendMessage(strUsage, player, data.args());
+			sendMessage(strUsage, player, data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
@@ -113,23 +113,23 @@ public class SpellbookSpell extends CommandSpell {
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
 		if (spell == null || !spellbook.hasSpell(spell)) {
-			sendMessage(strNoSpell, player, data.args());
+			sendMessage(strNoSpell, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (!MagicSpells.getSpellbook(player).canTeach(spell)) {
-			sendMessage(strCantTeach, player, data.args());
+			sendMessage(strCantTeach, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		Block target = getTargetedBlock(data);
 		if (target == null || !spellbookBlock.equals(target.getType())) {
-			sendMessage(strNoTarget, player, data.args());
+			sendMessage(strNoTarget, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (bookLocations.contains(new MagicLocation(target.getLocation()))) {
-			sendMessage(strHasSpellbook, player, data.args());
+			sendMessage(strHasSpellbook, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -140,7 +140,7 @@ public class SpellbookSpell extends CommandSpell {
 		else bookUses.add(Integer.parseInt(data.args()[1]));
 
 		saveSpellbooks();
-		sendMessage(strCastSelf, player, data.args(), "%s", spell.getName());
+		sendMessage(strCastSelf, player, data, "%s", spell.getName());
 		playSpellEffects(player, target.getLocation(), data);
 
 		return new CastResult(PostCastAction.NO_MESSAGES, data);
@@ -185,7 +185,7 @@ public class SpellbookSpell extends CommandSpell {
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		Spell spell = MagicSpells.getSpellByInternalName(bookSpells.get(i));
 		if (spell == null) {
-			sendMessage(strLearnError, player, MagicSpells.NULL_ARGS);
+			sendMessage(strLearnError, player, SpellData.NULL);
 			return;
 		}
 		if (!spellbook.canLearn(spell)) {
@@ -230,7 +230,7 @@ public class SpellbookSpell extends CommandSpell {
 		}
 
 		event.setCancelled(true);
-		sendMessage(strCantDestroy, pl, MagicSpells.NULL_ARGS);
+		sendMessage(strCantDestroy, pl, SpellData.NULL);
 	}
 
 	@Override

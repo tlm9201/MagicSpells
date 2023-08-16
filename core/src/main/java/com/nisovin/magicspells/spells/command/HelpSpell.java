@@ -37,7 +37,7 @@ public class HelpSpell extends CommandSpell {
 		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (!data.hasArgs()) {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -45,14 +45,14 @@ public class HelpSpell extends CommandSpell {
 		Spellbook spellbook = MagicSpells.getSpellbook(caster);
 
 		if (spell == null || requireKnownSpell.get(data) && !spellbook.hasSpell(spell)) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		sendMessage(strDescLine, caster, data.args(), "%s", spell.getName(), "%d", spell.getDescription());
+		sendMessage(strDescLine, caster, data, "%s", spell.getName(), "%d", spell.getDescription());
 
 		if (spell.getCostStr() != null && !spell.getCostStr().isEmpty())
-			sendMessage(strCostLine, caster, data.args(), "%c", spell.getCostStr());
+			sendMessage(strCostLine, caster, data, "%c", spell.getCostStr());
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}

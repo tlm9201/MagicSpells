@@ -32,7 +32,7 @@ public class VariableCastSpell extends InstantSpell {
 		String value = MagicSpells.getVariableManager().getStringValue(variableName, caster);
 		Spell toCast = MagicSpells.getSpellByInternalName(value);
 		if (toCast == null) {
-			sendMessage(caster, strDoesntContainSpell, data.args());
+			sendMessage(strDoesntContainSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 

@@ -122,24 +122,24 @@ public class ScrollSpell extends CommandSpell {
 		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (!data.hasArgs()) {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		ItemStack inHand = caster.getInventory().getItemInMainHand();
 		if (inHand.getAmount() != 1 || itemType != inHand.getType()) {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
 		Spellbook spellbook = MagicSpells.getSpellbook(caster);
 		if (spell == null || !spellbook.hasSpell(spell)) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 		if (requireTeachPerm && !spellbook.canTeach(spell)) {
-			sendMessage(strCantTeach, caster, data.args());
+			sendMessage(strCantTeach, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -150,7 +150,7 @@ public class ScrollSpell extends CommandSpell {
 		if (chargeReagentsForSpellPerCharge && uses > 0) {
 			SpellReagents reagents = spell.getReagents().multiply(uses);
 			if (!hasReagents(caster, reagents)) {
-				sendMessage(strMissingReagents, caster, data.args());
+				sendMessage(strMissingReagents, caster, data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 			removeReagents(caster, reagents);
@@ -159,7 +159,7 @@ public class ScrollSpell extends CommandSpell {
 		inHand = createScroll(spell, uses, inHand);
 		caster.getInventory().setItemInMainHand(inHand);
 
-		sendMessage(strCastSelf, caster, data.args(), "%s", spell.getName());
+		sendMessage(strCastSelf, caster, data, "%s", spell.getName());
 		return new CastResult(PostCastAction.NO_MESSAGES, data);
 	}
 
@@ -258,7 +258,7 @@ public class ScrollSpell extends CommandSpell {
 		if (scrollData.length > 1 && RegexUtil.matches(SCROLL_DATA_USES_PATTERN, scrollData[1])) uses = Integer.parseInt(scrollData[1]);
 
 		if (requireScrollCastPermOnUse && !MagicSpells.getSpellbook(player).canCast(this)) {
-			sendMessage(strUseFail, player, MagicSpells.NULL_ARGS);
+			sendMessage(strUseFail, player, SpellData.NULL);
 			return;
 		}
 

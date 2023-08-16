@@ -67,7 +67,7 @@ public class BindSpell extends CommandSpell {
 		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (!data.hasArgs()) {
-			sendMessage(strUsage, caster, data.args());
+			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -75,27 +75,27 @@ public class BindSpell extends CommandSpell {
 		Spellbook spellbook = MagicSpells.getSpellbook(caster);
 
 		if (spell == null) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (spell.isHelperSpell()) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (!spellbook.hasSpell(spell)) {
-			sendMessage(strNoSpell, caster, data.args());
+			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (!spell.canCastWithItem()) {
-			sendMessage(strCantBindSpell, caster, data.args());
+			sendMessage(strCantBindSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (allowedSpells != null && !allowedSpells.contains(spell)) {
-			sendMessage(strSpellCantBind, caster, data.args());
+			sendMessage(strSpellCantBind, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -103,12 +103,12 @@ public class BindSpell extends CommandSpell {
 		MagicSpells.debug(3, "Trying to bind spell '" + spell.getInternalName() + "' to cast item " + castItem + "...");
 
 		if (BlockUtils.isAir(castItem.getType()) && !allowBindToFist.get(data)) {
-			sendMessage(strCantBindItem, caster, data.args());
+			sendMessage(strCantBindItem, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (bindableItems != null && !bindableItems.contains(castItem)) {
-			sendMessage(strCantBindItem, caster, data.args());
+			sendMessage(strCantBindItem, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -116,7 +116,7 @@ public class BindSpell extends CommandSpell {
 			String msg = spell.getCantBindError();
 			if (msg == null) msg = strCantBindItem;
 
-			sendMessage(msg, caster, data.args());
+			sendMessage(msg, caster, data);
 			return new CastResult(PostCastAction.NO_MESSAGES, data);
 		}
 
@@ -125,7 +125,7 @@ public class BindSpell extends CommandSpell {
 		spellbook.save();
 		MagicSpells.debug(3, "    Bind successful.");
 
-		sendMessage(strCastSelf, caster, data.args(), "%s", spell.getName());
+		sendMessage(strCastSelf, caster, data, "%s", spell.getName());
 		playSpellEffects(EffectPosition.CASTER, caster, data);
 
 		return new CastResult(PostCastAction.NO_MESSAGES, data);

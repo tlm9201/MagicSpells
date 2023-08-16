@@ -76,26 +76,26 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
 	private CastResult recall(SpellData data, LivingEntity entity, Location markLocation) {
 		if (markLocation == null) {
-			sendMessage(strNoMark, data.caster(), data.args());
+			sendMessage(strNoMark, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		Location from = entity.getLocation();
 
 		if (!allowCrossWorld.get(data) && !entity.getWorld().equals(markLocation.getWorld())) {
-			sendMessage(strOtherWorld, data.caster(), data.args());
+			sendMessage(strOtherWorld, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		double maxRange = this.maxRange.get(data);
 		if (maxRange > 0 && markLocation.distanceSquared(from) > maxRange * maxRange) {
-			sendMessage(strTooFar, data.caster(), data.args());
+			sendMessage(strTooFar, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		if (data.caster() instanceof Vehicle || !data.caster().isValid()) {
 			MagicSpells.error("Recall teleport blocked for " + data.caster().getName());
-			sendMessage(strRecallFailed, data.caster(), data.args());
+			sendMessage(strRecallFailed, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
