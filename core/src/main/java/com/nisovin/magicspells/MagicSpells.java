@@ -1645,7 +1645,7 @@ public class MagicSpells extends JavaPlugin {
 		if (message == null || message.isEmpty() || !Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
 			return message;
 
-		Player playerRecipient = caster instanceof Player player ? player : null;
+		Player playerRecipient = recipient instanceof Player player ? player : null;
 		Player playerCaster = caster instanceof Player player ? player : null;
 		Player playerTarget = target instanceof Player player ? player : null;
 
