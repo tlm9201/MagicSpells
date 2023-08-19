@@ -12,6 +12,7 @@ import com.nisovin.magicspells.util.CastItem;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
+import com.nisovin.magicspells.events.SpellSelectionChangeEvent;
 import com.nisovin.magicspells.events.SpellSelectionChangedEvent;
 
 public class Spellbook {
@@ -296,10 +297,15 @@ public class Spellbook {
 		List<Spell> spells = itemSpells.get(castItem); // Get all the spells for the cast item
 		if (!(spells.size() > 1 || i.equals(-1) || MagicSpells.canCycleToNoSpell() || MagicSpells.showMessageOnCycle())) return null;
 		int count = 0;
+		SpellSelectionChangeEvent event;
 		while (count++ < spells.size()) {
 			i++;
 			if (i >= spells.size()) {
 				if (MagicSpells.canCycleToNoSpell()) {
+					event = new SpellSelectionChangeEvent(null, player, castItem, this);
+					EventUtil.call(event);
+					if (event.isCancelled()) return null;
+
 					activeSpells.put(castItem, -1);
 					EventUtil.call(new SpellSelectionChangedEvent(null, player, castItem, this));
 					MagicSpells.sendMessage(MagicSpells.getSpellChangeEmptyMessage(), player, MagicSpells.NULL_ARGS);
@@ -309,6 +315,10 @@ public class Spellbook {
 				}
 			}
 			if (!MagicSpells.cycleToCastableSpells() || canCast(spells.get(i))) {
+				event = new SpellSelectionChangeEvent(spells.get(i), player, castItem, this);
+				EventUtil.call(event);
+				if (event.isCancelled()) return null;
+
 				activeSpells.put(castItem, i);
 				EventUtil.call(new SpellSelectionChangedEvent(spells.get(i), player, castItem, this));
 				return spells.get(i);
@@ -330,10 +340,15 @@ public class Spellbook {
 		List<Spell> spells = itemSpells.get(castItem); // Get all the spells for the cast item
 		if (spells.size() > 1 || i.equals(-1) || MagicSpells.canCycleToNoSpell()) {
 			int count = 0;
+			SpellSelectionChangeEvent event;
 			while (count++ < spells.size()) {
 				i--;
 				if (i < 0) {
 					if (MagicSpells.canCycleToNoSpell() && i == -1) {
+						event = new SpellSelectionChangeEvent(null, player, castItem, this);
+						EventUtil.call(event);
+						if (event.isCancelled()) return null;
+
 						activeSpells.put(castItem, -1);
 						EventUtil.call(new SpellSelectionChangedEvent(null, player, castItem, this));
 						MagicSpells.sendMessage(MagicSpells.getSpellChangeEmptyMessage(), player, MagicSpells.NULL_ARGS);
@@ -343,6 +358,10 @@ public class Spellbook {
 					}
 				}
 				if (!MagicSpells.cycleToCastableSpells() || canCast(spells.get(i))) {
+					event = new SpellSelectionChangeEvent(spells.get(i), player, castItem, this);
+					EventUtil.call(event);
+					if (event.isCancelled()) return null;
+
 					activeSpells.put(castItem, i);
 					EventUtil.call(new SpellSelectionChangedEvent(spells.get(i), player, castItem, this));
 					return spells.get(i);
