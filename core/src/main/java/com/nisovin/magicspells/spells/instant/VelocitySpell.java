@@ -110,6 +110,8 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 
 		private final Multimap<LivingEntity, VelocityData> jumping = ArrayListMultimap.create();
 		private final List<VelocityData> queue = new ArrayList<>();
+
+		private boolean running = false;
 		private int taskId = -1;
 
 		public void add(VelocityData data) {
@@ -137,24 +139,28 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 
 		@Override
 		public void run() {
+			running = true;
+
 			Iterator<Map.Entry<LivingEntity, Collection<VelocityData>>> it = jumping.asMap().entrySet().iterator();
 			while (it.hasNext()) {
 				Map.Entry<LivingEntity, Collection<VelocityData>> entry = it.next();
 
-				LivingEntity caster = entry.getKey();
-				if (!caster.isValid()) {
+				LivingEntity target = entry.getKey();
+				if (!target.isValid()) {
 					it.remove();
 					continue;
 				}
 
-				if (!caster.isOnGround()) continue;
+				if (!target.isOnGround()) continue;
 
 				Collection<VelocityData> velocityData = entry.getValue();
 				for (VelocityData data : velocityData)
-					data.velocitySpell.playSpellEffects(EffectPosition.SPECIAL, caster.getLocation(), data.spellData);
+					data.velocitySpell.playSpellEffects(EffectPosition.SPECIAL, target.getLocation(), data.spellData);
 
 				it.remove();
 			}
+
+			running = false;
 
 			for (VelocityData data : queue) jumping.put(data.spellData.target(), data);
 			queue.clear();
@@ -165,14 +171,22 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 		@EventHandler(priority = EventPriority.LOWEST)
 		public void onFall(EntityDamageEvent event) {
 			if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-			if (!(event.getEntity() instanceof LivingEntity caster) || !caster.isOnGround()) return;
+			if (!(event.getEntity() instanceof LivingEntity target) || !target.isOnGround()) return;
 
-			Collection<VelocityData> jumpingData = jumping.get(caster);
-			for (VelocityData data : jumpingData) {
+			Collection<VelocityData> jumpingData = jumping.get(target);
+			Iterator<VelocityData> it = jumpingData.iterator();
+
+			while (it.hasNext()) {
+				VelocityData data = it.next();
 				if (data.cancelDamage) {
 					event.setCancelled(true);
-					return;
+					if (running) return;
 				}
+
+				if (running) continue;
+
+				data.velocitySpell.playSpellEffects(EffectPosition.SPECIAL, target.getLocation(), data.spellData);
+				it.remove();
 			}
 		}
 

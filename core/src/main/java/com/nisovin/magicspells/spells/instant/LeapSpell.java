@@ -122,6 +122,8 @@ public class LeapSpell extends InstantSpell {
 
 		private final Multimap<LivingEntity, LeapData> jumping = ArrayListMultimap.create();
 		private final List<LeapData> queue = new ArrayList<>();
+
+		private boolean running = false;
 		private int taskId = -1;
 
 		public void add(LeapData data) {
@@ -149,6 +151,8 @@ public class LeapSpell extends InstantSpell {
 
 		@Override
 		public void run() {
+			running = true;
+
 			Iterator<Map.Entry<LivingEntity, Collection<LeapData>>> it = jumping.asMap().entrySet().iterator();
 			while (it.hasNext()) {
 				Map.Entry<LivingEntity, Collection<LeapData>> entry = it.next();
@@ -170,8 +174,11 @@ public class LeapSpell extends InstantSpell {
 				it.remove();
 			}
 
+			running = false;
+
 			for (LeapData data : queue) jumping.put(data.spellData.caster(), data);
 			queue.clear();
+
 
 			if (jumping.isEmpty()) stop();
 		}
@@ -182,11 +189,21 @@ public class LeapSpell extends InstantSpell {
 			if (!(event.getEntity() instanceof LivingEntity caster) || !caster.isOnGround()) return;
 
 			Collection<LeapData> jumpingData = jumping.get(caster);
-			for (LeapData data : jumpingData) {
+			Iterator<LeapData> it = jumpingData.iterator();
+
+			while (it.hasNext()) {
+				LeapData data = it.next();
 				if (data.cancelDamage) {
 					event.setCancelled(true);
-					return;
+					if (running) return;
 				}
+
+				if (running) continue;
+
+				if (data.leapSpell.landSpell != null) data.leapSpell.landSpell.subcast(data.spellData);
+				data.leapSpell.playSpellEffects(EffectPosition.TARGET, caster.getLocation(), data.spellData);
+
+				it.remove();
 			}
 		}
 
