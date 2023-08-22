@@ -83,85 +83,84 @@ public class RepairSpell extends InstantSpell {
 		int repairAmt = resolveRepairAmtPerItem ? 0 : this.repairAmt.get(data);
 		PlayerInventory inventory = caster.getInventory();
 
+		boolean heldRepaired = false;
 		boolean repaired = false;
+
 		for (RepairSelector selector : toRepair) {
 			switch (selector) {
 				case HELD, MAINHAND -> {
-					ItemStack item = inventory.getItemInMainHand();
-					item = repair(item, data, repairAmt, resolveRepairAmtPerItem);
-					if (item == null) continue;
+					if (heldRepaired) break;
 
-					inventory.setItemInMainHand(item);
+					ItemStack mainHand = repair(inventory.getItemInMainHand(), data, repairAmt, resolveRepairAmtPerItem);
+					if (mainHand == null) continue;
+
+					inventory.setItemInMainHand(mainHand);
+					heldRepaired = true;
 					repaired = true;
 				}
 				case OFFHAND -> {
-					ItemStack item = inventory.getItemInOffHand();
-					item = repair(item, data, repairAmt, resolveRepairAmtPerItem);
-					if (item == null) continue;
+					ItemStack offHand = repair(inventory.getItemInOffHand(), data, repairAmt, resolveRepairAmtPerItem);
+					if (offHand == null) continue;
 
-					inventory.setItemInOffHand(item);
+					inventory.setItemInOffHand(offHand);
 					repaired = true;
 				}
 				case HOTBAR -> {
 					ItemStack[] contents = inventory.getContents();
-					boolean modified = false;
+					int held = inventory.getHeldItemSlot();
 
+					boolean modified = false;
 					for (int i = 0; i < 9; i++) {
-						ItemStack item = contents[i];
-						item = repair(item, data, repairAmt, resolveRepairAmtPerItem);
+						if (heldRepaired && i == held) continue;
+
+						ItemStack item = repair(contents[i], data, repairAmt, resolveRepairAmtPerItem);
 						if (item == null) continue;
 
-						repaired = true;
 						modified = true;
+						repaired = true;
+						heldRepaired = true;
 					}
-
 					if (modified) inventory.setContents(contents);
 				}
 				case INVENTORY -> {
 					ItemStack[] contents = inventory.getContents();
-					boolean modified = false;
 
+					boolean modified = false;
 					for (int i = 9; i < 36; i++) {
-						ItemStack item = contents[i];
-						item = repair(item, data, repairAmt, resolveRepairAmtPerItem);
+						ItemStack item = repair(contents[i], data, repairAmt, resolveRepairAmtPerItem);
 						if (item == null) continue;
 
-						repaired = true;
 						modified = true;
+						repaired = true;
 					}
-
 					if (modified) inventory.setContents(contents);
 				}
 				case HELMET -> {
-					ItemStack item = inventory.getHelmet();
-					item = repair(item, data, repairAmt, resolveRepairAmtPerItem);
-					if (item == null) continue;
+					ItemStack helmet = repair(inventory.getHelmet(), data, repairAmt, resolveRepairAmtPerItem);
+					if (helmet == null) continue;
 
-					inventory.setHelmet(item);
+					inventory.setHelmet(helmet);
 					repaired = true;
 				}
 				case CHESTPLATE -> {
-					ItemStack item = inventory.getChestplate();
-					item = repair(item, data, repairAmt, resolveRepairAmtPerItem);
-					if (item == null) continue;
+					ItemStack chestplate = repair(inventory.getChestplate(), data, repairAmt, resolveRepairAmtPerItem);
+					if (chestplate == null) continue;
 
-					inventory.setHelmet(item);
+					inventory.setHelmet(chestplate);
 					repaired = true;
 				}
 				case LEGGINGS -> {
-					ItemStack item = inventory.getLeggings();
-					item = repair(item, data, repairAmt, resolveRepairAmtPerItem);
-					if (item == null) continue;
+					ItemStack leggings = repair(inventory.getLeggings(), data, repairAmt, resolveRepairAmtPerItem);
+					if (leggings == null) continue;
 
-					inventory.setLeggings(item);
+					inventory.setLeggings(leggings);
 					repaired = true;
 				}
 				case BOOTS -> {
-					ItemStack item = inventory.getBoots();
-					item = repair(item, data, repairAmt, resolveRepairAmtPerItem);
-					if (item == null) continue;
+					ItemStack boots = repair(inventory.getBoots(), data, repairAmt, resolveRepairAmtPerItem);
+					if (boots == null) continue;
 
-					inventory.setBoots(item);
+					inventory.setBoots(boots);
 					repaired = true;
 				}
 			}
