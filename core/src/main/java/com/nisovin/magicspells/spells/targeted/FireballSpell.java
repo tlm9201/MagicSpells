@@ -49,6 +49,7 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 	private final ConfigData<Boolean> fireballGravity;
 	private final ConfigData<Boolean> noExplosionEffect;
 	private final ConfigData<Boolean> requireEntityTarget;
+	private final ConfigData<Boolean> doOffsetTargetingCorrections;
 	private final ConfigData<Boolean> powerAffectsDamageMultiplier;
 	private final ConfigData<Boolean> powerAffectsNoExplosionDamage;
 	private final ConfigData<Boolean> useRelativeCastLocationOffset;
@@ -75,6 +76,7 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 		fireballGravity = getConfigDataBoolean("gravity", false);
 		noExplosionEffect = getConfigDataBoolean("no-explosion-effect", true);
 		requireEntityTarget = getConfigDataBoolean("require-entity-target", false);
+		doOffsetTargetingCorrections = getConfigDataBoolean("do-offset-targeting-corrections", true);
 		powerAffectsDamageMultiplier = getConfigDataBoolean("power-affects-damage-multiplier", true);
 		powerAffectsNoExplosionDamage = getConfigDataBoolean("power-affects-no-explosion-damage", true);
 		useRelativeCastLocationOffset = getConfigDataBoolean("use-relative-cast-location-offset", false);
@@ -104,7 +106,17 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 				if (!event.callEvent()) return noTarget(info);
 			}
 
-			return castAtEntityFromLocation(data.location(data.caster().getEyeLocation()));
+			Location origin = data.caster().getEyeLocation();
+			if (data.caster().equals(data.target())) {
+				origin.add(origin.getDirection().setY(0).multiply(2));
+				origin.setYaw(origin.getYaw() + 180);
+				origin.setPitch(0);
+
+				launchFireball(origin, data.location(origin));
+				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+			}
+
+			return castAtEntityFromLocation(data.location(origin));
 		}
 
 		Location origin = data.caster().getEyeLocation();
@@ -120,11 +132,13 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 	@Override
 	public CastResult castAtEntityFromLocation(SpellData data) {
 		Location origin = data.location();
-		data = applyOffsets(origin, data);
 
 		Vector facing = data.target().getLocation().subtract(origin).toVector();
 		origin.setDirection(facing);
-		if (!facing.isZero()) origin.add(facing.normalize().multiply(2));
+
+		data = applyOffsets(origin, data.location(origin));
+
+		origin.add(origin.getDirection().multiply(2));
 		data = data.location(origin);
 
 		launchFireball(origin, data);
@@ -153,6 +167,12 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 
 		if (useAbsoluteCastLocationOffset.get(data)) {
 			Util.applyAbsoluteOffset(location, absoluteCastLocationOffset.get(data));
+			data = data.location(location);
+		}
+
+		if (data.hasTarget() && doOffsetTargetingCorrections.get(data)) {
+			Vector dir = data.target().getLocation().subtract(location).toVector();
+			location.setDirection(dir);
 			data = data.location(location);
 		}
 
