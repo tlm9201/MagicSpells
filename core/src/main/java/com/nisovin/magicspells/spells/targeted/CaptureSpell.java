@@ -59,18 +59,18 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (q > 1) item.setAmount(q);
 		}
 
-		String entityName = MagicSpells.getEntityNames().get(target.getType());
 		if (itemName != null || itemLore != null) {
-			if (entityName == null) entityName = "unknown";
-			ItemMeta meta = item.getItemMeta();
-			if (itemName != null) meta.displayName(Util.getMiniMessage(MagicSpells.doReplacements(itemName, data, "%name%", entityName)));
-			if (itemLore != null) {
-				List<Component> lore = new ArrayList<>();
-				for (String l : itemLore) lore.add(Util.getMiniMessage(MagicSpells.doReplacements(l, data, "%name%", entityName)));
-				meta.lore(lore);
-			}
+			String[] replacements = getReplacements(data, "%name%", getTargetName(target));
 
-			item.setItemMeta(meta);
+			item.editMeta(meta -> {
+				if (itemName != null) meta.displayName(Util.getMiniMessage(itemName, data, replacements));
+
+				if (itemLore != null) {
+					List<Component> lore = new ArrayList<>();
+					for (String line : itemLore) lore.add(Util.getMiniMessage(itemName, data, replacements));
+					meta.lore(lore);
+				}
+			});
 		}
 
 		target.remove();
