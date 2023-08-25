@@ -123,7 +123,7 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				float power = targetPowers.get(i);
 
 				SpellData subData = data.builder().target(target).location(from).power(power).build();
-				spellToCast.subcast(subData);
+				if (spellToCast != null) spellToCast.subcast(subData);
 
 				if (from != null) playSpellEffectsTrail(from, target.getLocation(), subData);
 				playSpellEffects(EffectPosition.TARGET, target, subData);
@@ -159,7 +159,7 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			float power = targetPowers.get(current);
 
 			SpellData subData = data.builder().target(target).location(from).power(power).build();
-			spellToCast.subcast(subData);
+			if (spellToCast != null) spellToCast.subcast(subData);
 
 			if (from != null) playSpellEffectsTrail(from.add(0, 0.5, 0), target.getLocation().add(0, 0.5, 0), subData);
 			playSpellEffects(EffectPosition.TARGET, target, subData);
