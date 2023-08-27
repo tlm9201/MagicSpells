@@ -111,12 +111,14 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 			ItemStack inHand2 = getItemInHand(target);
 			if (inHand2 == null || inHand2.getType() == Material.AIR) {
 				setItemInHand(target, inHand);
-			} else if (target instanceof Player) {
-				int slot = ((Player) target).getInventory().firstEmpty();
-				if (slot >= 0) ((Player) target).getInventory().setItem(slot, inHand);
+			} else if (target instanceof Player player) {
+				int slot = player.getInventory().firstEmpty();
+				if (slot >= 0) player.getInventory().setItem(slot, inHand);
 				else {
 					Item item = target.getWorld().dropItem(target.getLocation(), inHand);
 					item.setPickupDelay(0);
+
+					if (preventTheft.get(data)) disarmedItems.put(item, target.getUniqueId());
 				}
 			}
 		}, disarmDuration);
