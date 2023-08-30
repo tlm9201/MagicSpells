@@ -95,6 +95,7 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 		}
 
 		castData = new CastData(data);
+		castData.cast();
 		casting.put(data.caster().getUniqueId(), castData);
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
@@ -111,6 +112,7 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 		}
 
 		castData = new CastData(data);
+		castData.cast();
 		casting.put(data.caster().getUniqueId(), castData);
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
