@@ -25,7 +25,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 
 	private final ConfigData<Boolean> addFire;
 	private final ConfigData<Boolean> simulateTnt;
-	private final ConfigData<Boolean> ignoreCanceled;
+	private final ConfigData<Boolean> ignoreCancelled;
 	private final ConfigData<Boolean> preventBlockDamage;
 	private final ConfigData<Boolean> preventPlayerDamage;
 	private final ConfigData<Boolean> preventAnimalDamage;
@@ -45,7 +45,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 
 		addFire = getConfigDataBoolean("add-fire", false);
 		simulateTnt = getConfigDataBoolean("simulate-tnt", true);
-		ignoreCanceled = getConfigDataBoolean("ignore-cancelled", false);
+		ignoreCancelled = getConfigDataBoolean("ignore-cancelled", false);
 		preventBlockDamage = getConfigDataBoolean("prevent-block-damage", false);
 		preventPlayerDamage = getConfigDataBoolean("prevent-player-damage", false);
 		preventAnimalDamage = getConfigDataBoolean("prevent-animal-damage", false);
@@ -65,6 +65,8 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 	public CastResult castAtLocation(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
+		boolean ignoreCancelled = this.ignoreCancelled.get(data);
+
 		float explosionSize = this.explosionSize.get(data);
 		if (powerAffectsExplosionSize.get(data)) explosionSize *= data.power();
 
@@ -72,23 +74,25 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 
 		if (simulateTnt.get(data)) {
 			boolean cancelled = MagicSpells.getVolatileCodeHandler().simulateTnt(location, data.caster(), explosionSize, addFire.get(data));
-			if (cancelled) return noTarget(data);
+			if (cancelled) {
+				if (!ignoreCancelled) return noTarget(data);
+				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+			}
 		}
 
 		int backfireChance = this.backfireChance.get(data);
 		if (backfireChance > 0 && random.nextInt(10000) < backfireChance) {
 			location = data.caster().getLocation();
-			data.location(location);
+			data = data.location(location);
 		}
 
 		currentTick = Bukkit.getWorlds().get(0).getFullTime();
 		currentData = data;
 
 		boolean success = location.createExplosion(data.caster(), explosionSize, addFire.get(data), !preventBlockDamage.get(data));
-		if (!success && !ignoreCanceled.get(data)) return noTarget(data);
+		if (success) playSpellEffects(data);
 
-		playSpellEffects(data);
-		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		return success || ignoreCancelled ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(data);
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
