@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.event.block.BlockBreakEvent;
 
 import com.nisovin.magicspells.util.*;
@@ -23,7 +24,7 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 	
 	private final Set<Block> blocks;
 
-	private final ConfigData<Material> material;
+	private final ConfigData<BlockData> blockType;
 	
 	private final ConfigData<Integer> duration;
 
@@ -36,7 +37,7 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 	public EntombSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		material = getConfigDataMaterial("block-type", Material.GLASS);
+		blockType = getConfigDataBlockData("block-type", Material.GLASS.createBlockData());
 
 		duration = getConfigDataInt("duration", 20);
 
@@ -97,11 +98,11 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 			tempBlocks.add(feet.getRelative(0, 2, 0));
 		}
 
-		Material material = this.material.get(data);
+		BlockData blockType = this.blockType.get(data);
 		for (Block b : tempBlocks) {
 			if (!BlockUtils.isAir(b.getType())) continue;
 			tombBlocks.add(b);
-			b.setType(material);
+			b.setBlockData(blockType);
 			playSpellEffects(EffectPosition.SPECIAL, b.getLocation().add(0.5, 0.5, 0.5), data);
 		}
 
