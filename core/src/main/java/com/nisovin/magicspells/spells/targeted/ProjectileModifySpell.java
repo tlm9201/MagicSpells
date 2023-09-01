@@ -282,7 +282,10 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 
 		boolean stop = this.stop.get(data);
 		boolean hugSurface = this.hugSurface.get(data);
+		boolean circleShape = this.circleShape.get(data);
 		boolean claimProjectiles = this.claimProjectiles.get(data);
+		boolean affectOwnedProjectiles = this.affectOwnedProjectiles.get(data);
+		boolean affectEnemyProjectiles = this.affectEnemyProjectiles.get(data);
 
 		Location currentLoc;
 		while (iterator.hasNext()) {
@@ -294,10 +297,10 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 			if (!box.contains(currentLoc)) continue;
 			if (tracker.getSpell() != null && !filter.check(tracker.getSpell())) continue;
 
-			if (!affectOwnedProjectiles.get(data) && tracker.getCaster() != null && tracker.getCaster().equals(data.caster())) continue;
-			if (!affectEnemyProjectiles.get(data) && (tracker.getCaster() == null || !tracker.getCaster().equals(data.caster()))) continue;
+			if (!affectOwnedProjectiles && tracker.getCaster() != null && tracker.getCaster().equals(data.caster())) continue;
+			if (!affectEnemyProjectiles && (tracker.getCaster() == null || !tracker.getCaster().equals(data.caster()))) continue;
 
-			if (circleShape.get(data)) {
+			if (circleShape) {
 				double hDistance = NumberConversions.square(currentLoc.getX() - location.getX()) + NumberConversions.square(currentLoc.getZ() - location.getZ());
 				if (hDistance > hRadiusSquared) continue;
 				double vDistance = NumberConversions.square(currentLoc.getY() - location.getY());
@@ -309,12 +312,14 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 				if (AccurateMath.abs(dir.angle(facing)) > cone) continue;
 			}
 
-			if (projectileSpell != null) projectileSpell.subcast(data);
+			SpellData subData = data.location(currentLoc);
+
+			if (projectileSpell != null) projectileSpell.subcast(subData);
 
 			if (stop) {
-				playSpellEffects(EffectPosition.TARGET, currentLoc, data);
-				playSpellEffectsTrail(location, currentLoc, data);
-				if (data.hasCaster()) playSpellEffectsTrail(data.caster().getLocation(), currentLoc, data);
+				playSpellEffects(EffectPosition.TARGET, currentLoc, subData);
+				playSpellEffectsTrail(location, currentLoc, subData);
+				if (subData.hasCaster()) playSpellEffectsTrail(subData.caster().getLocation(), currentLoc, subData);
 
 				count++;
 
@@ -324,37 +329,37 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 				continue;
 			}
 
-			if (claimProjectiles) tracker.setCaster(data.caster());
+			if (claimProjectiles) tracker.setCaster(subData.caster());
 
-			tracker.setAcceleration(acceleration.get(data));
-			tracker.setAccelerationDelay(accelerationDelay.get(data));
+			tracker.setAcceleration(acceleration.get(subData));
+			tracker.setAccelerationDelay(accelerationDelay.get(subData));
 
-			tracker.setProjectileTurn(projectileTurn.get(data));
-			tracker.setProjectileVertGravity(projectileVertGravity.get(data));
-			tracker.setProjectileHorizGravity(projectileHorizGravity.get(data));
-			tracker.setTickInterval(tickInterval.get(data));
-			tracker.setSpellInterval(spellInterval.get(data));
-			tracker.setIntermediateEffects(intermediateEffects.get(data));
-			tracker.setIntermediateHitboxes(intermediateHitboxes.get(data));
-			tracker.setSpecialEffectInterval(specialEffectInterval.get(data));
+			tracker.setProjectileTurn(projectileTurn.get(subData));
+			tracker.setProjectileVertGravity(projectileVertGravity.get(subData));
+			tracker.setProjectileHorizGravity(projectileHorizGravity.get(subData));
+			tracker.setTickInterval(tickInterval.get(subData));
+			tracker.setSpellInterval(spellInterval.get(subData));
+			tracker.setIntermediateEffects(intermediateEffects.get(subData));
+			tracker.setIntermediateHitboxes(intermediateHitboxes.get(subData));
+			tracker.setSpecialEffectInterval(specialEffectInterval.get(subData));
 			tracker.setMaxDistanceSquared(maxDistanceSquared);
-			tracker.setMaxDuration(maxDuration.get(data) * TimeUtil.MILLISECONDS_PER_SECOND);
-			tracker.setMaxEntitiesHit(maxEntitiesHit.get(data));
-			tracker.setHorizontalHitRadius(hitRadius.get(data));
-			tracker.setVerticalHitRadius(verticalHitRadius.get(data));
-			tracker.setGroundHorizontalHitRadius(groundHitRadius.get(data));
-			tracker.setGroundVerticalHitRadius(groundVerticalHitRadius.get(data));
+			tracker.setMaxDuration(maxDuration.get(subData) * TimeUtil.MILLISECONDS_PER_SECOND);
+			tracker.setMaxEntitiesHit(maxEntitiesHit.get(subData));
+			tracker.setHorizontalHitRadius(hitRadius.get(subData));
+			tracker.setVerticalHitRadius(verticalHitRadius.get(subData));
+			tracker.setGroundHorizontalHitRadius(groundHitRadius.get(subData));
+			tracker.setGroundVerticalHitRadius(groundVerticalHitRadius.get(subData));
 			tracker.setHugSurface(hugSurface);
-			tracker.setHeightFromSurface(hugSurface ? heightFromSurface.get(data) : 0);
-			tracker.setControllable(controllable.get(data));
-			tracker.setHitGround(hitGround.get(data));
-			tracker.setHitAirAtEnd(hitAirAtEnd.get(data));
-			tracker.setHitAirDuring(hitAirDuring.get(data));
-			tracker.setHitAirAfterDuration(hitAirAfterDuration.get(data));
-			tracker.setStopOnHitGround(stopOnHitGround.get(data));
-			tracker.setStopOnModifierFail(stopOnModifierFail.get(data));
+			tracker.setHeightFromSurface(hugSurface ? heightFromSurface.get(subData) : 0);
+			tracker.setControllable(controllable.get(subData));
+			tracker.setHitGround(hitGround.get(subData));
+			tracker.setHitAirAtEnd(hitAirAtEnd.get(subData));
+			tracker.setHitAirDuring(hitAirDuring.get(subData));
+			tracker.setHitAirAfterDuration(hitAirAfterDuration.get(subData));
+			tracker.setStopOnHitGround(stopOnHitGround.get(subData));
+			tracker.setStopOnModifierFail(stopOnModifierFail.get(subData));
 			tracker.setProjectileModifiers(projModifiers);
-			tracker.setTickSpellLimit(tickSpellLimit.get(data));
+			tracker.setTickSpellLimit(tickSpellLimit.get(subData));
 			if (airSpell != null) tracker.setAirSpell(airSpell);
 			if (tickSpell != null) tracker.setTickSpell(tickSpell);
 			if (selfSpell != null) tracker.setCasterSpell(selfSpell);
@@ -364,11 +369,11 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 			if (modifierSpell != null) tracker.setModifierSpell(modifierSpell);
 			if (entityLocationSpell != null) tracker.setEntityLocationSpell(entityLocationSpell);
 
-			tracker.getCurrentVelocity().multiply(velocity.get(data));
+			tracker.getCurrentVelocity().multiply(velocity.get(subData));
 
-			playSpellEffects(EffectPosition.TARGET, currentLoc, data);
-			playSpellEffectsTrail(location, currentLoc, data);
-			if (data.hasCaster()) playSpellEffectsTrail(data.caster().getLocation(), currentLoc, data);
+			playSpellEffects(EffectPosition.TARGET, currentLoc, subData);
+			playSpellEffectsTrail(location, currentLoc, subData);
+			if (subData.hasCaster()) playSpellEffectsTrail(subData.caster().getLocation(), currentLoc, subData);
 
 			count++;
 
