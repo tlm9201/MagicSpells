@@ -16,8 +16,8 @@ import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final String spellDamageType;
-	private final DamageCause damageType;
+	private final ConfigData<String> spellDamageType;
+	private final ConfigData<DamageCause> damageType;
 
 	private final ConfigData<Double> damage;
 
@@ -30,17 +30,9 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 	public PainSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		spellDamageType = getConfigString("spell-damage-type", "");
+		spellDamageType = getConfigDataString("spell-damage-type", "");
 
-		String damageTypeName = getConfigString("damage-type", "ENTITY_ATTACK");
-		DamageCause damageType;
-		try {
-		    damageType = DamageCause.valueOf(damageTypeName.toUpperCase());
-		} catch (IllegalArgumentException ignored) {
-			DebugHandler.debugBadEnumValue(DamageCause.class, damageTypeName);
-			damageType = DamageCause.ENTITY_ATTACK;
-		}
-		this.damageType = damageType;
+		damageType = getConfigDataEnum("damage-type", DamageCause.class, DamageCause.ENTITY_ATTACK);
 
 		damage = getConfigDataDouble("damage", 4);
 
@@ -55,14 +47,11 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 	public CastResult cast(SpellData data) {
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
 		if (info.noTarget()) return noTarget(data);
-		data = info.spellData();
 
-		if (data.caster() instanceof Player caster) {
-			SpellData finalData = data;
-			return CompatBasics.exemptAction(() -> castAtEntity(finalData), caster, CompatBasics.activeExemptionAssistant.getPainExemptions());
-		}
+		if (data.caster() instanceof Player caster)
+			return CompatBasics.exemptAction(() -> castAtEntity(info.spellData()), caster, CompatBasics.activeExemptionAssistant.getPainExemptions());
 
-		return castAtEntity(data);
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
@@ -72,11 +61,14 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 		double damage = this.damage.get(data);
 		if (powerAffectsDamage.get(data)) damage *= data.power();
 
+		DamageCause damageType = this.damageType.get(data);
+		String spellDamageType = this.spellDamageType.get(data);
+
 		if (checkPlugins.get(data)) {
 			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(data.caster(), data.target(), damageType, damage, this);
 			if (!event.callEvent()) return noTarget(data);
 
-			if (!avoidDamageModification.get(data)) event.getDamage();
+			if (!avoidDamageModification.get(data)) damage = event.getDamage();
 			data.target().setLastDamageCause(event);
 		}
 
@@ -88,7 +80,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 			double maxHealth = Util.getMaxHealth(data.target());
 
 			double health = Math.min(data.target().getHealth(), maxHealth);
-			health = Math.min(health - damage, maxHealth);
+			health = Math.max(Math.min(health - damage, maxHealth), 0);
 
 			if (health == 0 && data.caster() instanceof Player player) data.target().setKiller(player);
 			data.target().setHealth(health);
