@@ -124,11 +124,6 @@ public class ArmorSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean recastBuff(SpellData data) {
-		return castBuff(data);
-	}
-
-	@Override
 	public boolean isActive(LivingEntity entity) {
 		return entities.contains(entity.getUniqueId());
 	}

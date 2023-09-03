@@ -80,6 +80,7 @@ public class DodgeSpell extends BuffSpell {
 
 	@Override
 	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
 		return castBuff(data);
 	}
 

@@ -51,6 +51,16 @@ public class WalkwaySpell extends BuffSpell {
 	}
 
 	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+
+		Platform platform = entities.remove(data.target().getUniqueId());
+		platform.remove();
+
+		return castBuff(data);
+	}
+
+	@Override
 	public boolean isActive(LivingEntity entity) {
 		return entities.containsKey(entity.getUniqueId());
 	}

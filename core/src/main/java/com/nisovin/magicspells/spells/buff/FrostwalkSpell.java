@@ -53,6 +53,8 @@ public class FrostwalkSpell extends BuffSpell {
 
 	@Override
 	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+
 		BlockPlatform old = entities.get(data.target().getUniqueId());
 		if (old != null) old.destroyPlatform();
 

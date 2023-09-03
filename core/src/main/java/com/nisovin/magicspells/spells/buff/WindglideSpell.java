@@ -108,6 +108,12 @@ public class WindglideSpell extends BuffSpell {
 	}
 
 	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		return castBuff(data);
+	}
+
+	@Override
 	public boolean isActive(LivingEntity entity) {
 		return entities.containsKey(entity.getUniqueId());
 	}

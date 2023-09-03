@@ -64,6 +64,7 @@ public class HasteSpell extends BuffSpell {
 
 	@Override
 	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
 		turnOffBuff(data.target());
 		return castBuff(data);
 	}

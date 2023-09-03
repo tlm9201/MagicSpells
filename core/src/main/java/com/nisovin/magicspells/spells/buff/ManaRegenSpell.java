@@ -46,6 +46,12 @@ public class ManaRegenSpell extends BuffSpell {
 	}
 
 	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		return castBuff(data);
+	}
+
+	@Override
 	public boolean isActive(LivingEntity entity) {
 		return players.containsKey(entity.getUniqueId());
 	}

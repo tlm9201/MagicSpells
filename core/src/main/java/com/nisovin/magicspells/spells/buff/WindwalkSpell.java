@@ -110,6 +110,33 @@ public class WindwalkSpell extends BuffSpell {
 	}
 
 	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		if (!(data.target() instanceof Player target)) return false;
+
+		FlyData oldData = players.remove(target.getUniqueId());
+
+		boolean constantMaxY = this.constantMaxY.get(data);
+		boolean constantMaxAltitude = this.constantMaxAltitude.get(data);
+
+		FlyData flyData = new FlyData(
+			data,
+			constantMaxY ? maxY.get(data) : 0,
+			constantMaxAltitude ? maxAltitude.get(data) : 0,
+			flySpeed.get(data),
+			enableMaxY.get(data),
+			constantMaxY,
+			constantMaxAltitude,
+			constantFlySpeed.get(data),
+			oldData.wasFlyingAllowed,
+			oldData.oldFlySpeed
+		);
+		players.put(target.getUniqueId(), flyData);
+
+		return true;
+	}
+
+	@Override
 	public boolean isActive(LivingEntity entity) {
 		return players.containsKey(entity.getUniqueId());
 	}

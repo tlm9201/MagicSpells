@@ -56,13 +56,12 @@ public class GillsSpell extends BuffSpell {
 	public boolean castBuff(SpellData data) {
 		GillData gillData;
 		if (headEffect.get(data)) {
-			Material headMaterial = this.headMaterial.get(data);
-			if (headMaterial.getEquipmentSlot() != EquipmentSlot.HEAD && !headMaterial.isBlock()) return false;
-
 			EntityEquipment eq = data.target().getEquipment();
 			if (eq == null) return false;
 
-			ItemStack item = new ItemStack(headMaterial);
+			ItemStack item = getHelmet(data);
+			if (item == null) return false;
+
 			item.editMeta(meta -> meta.getPersistentDataContainer().set(MARKER, PersistentDataType.BYTE, (byte) 1));
 
 			gillData = new GillData(refillAirBar.get(data), true, eq.getHelmet());
@@ -75,8 +74,41 @@ public class GillsSpell extends BuffSpell {
 
 	@Override
 	public boolean recastBuff(SpellData data) {
-		turnOffBuff(data.target());
-		return castBuff(data);
+		stopEffects(data.target());
+
+		GillData oldData = entities.remove(data.target().getUniqueId());
+		if (!oldData.headEffect) return castBuff(data);
+
+		GillData gillData;
+		if (headEffect.get(data)) {
+			EntityEquipment eq = data.target().getEquipment();
+			if (eq == null) return false;
+
+			ItemStack item = getHelmet(data);
+			if (item == null) return false;
+
+			gillData = new GillData(refillAirBar.get(data), true, oldData.helmet);
+			eq.setHelmet(item);
+		} else {
+			EntityEquipment eq = data.target().getEquipment();
+			if (eq == null) return false;
+
+			eq.setHelmet(oldData.helmet);
+			gillData = new GillData(refillAirBar.get(data), false, null);
+		}
+
+		entities.put(data.target().getUniqueId(), gillData);
+		return true;
+	}
+
+	private ItemStack getHelmet(SpellData data) {
+		Material headMaterial = this.headMaterial.get(data);
+		if (headMaterial.getEquipmentSlot() != EquipmentSlot.HEAD && !headMaterial.isBlock()) return null;
+
+		ItemStack helmet = new ItemStack(headMaterial);
+		helmet.editMeta(meta -> meta.getPersistentDataContainer().set(MARKER, PersistentDataType.BYTE, (byte) 1));
+
+		return helmet;
 	}
 
 	@Override
