@@ -100,20 +100,20 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected boolean beneficial;
 	protected boolean helperSpell;
 	protected boolean alwaysGranted;
-	protected boolean interruptOnMove;
-	protected boolean interruptOnCast;
-	protected boolean interruptOnDamage;
 	protected boolean castWithLeftClick;
 	protected boolean castWithRightClick;
 	protected boolean usePreciseCooldowns;
-	protected boolean interruptOnTeleport;
 	protected boolean ignoreGlobalCooldown;
-	protected boolean spellPowerAffectsRange;
 	protected boolean requireCastItemOnCommand;
 
 	protected ConfigData<Boolean> targetSelf;
 	protected ConfigData<Boolean> alwaysActivate;
+	protected ConfigData<Boolean> interruptOnMove;
+	protected ConfigData<Boolean> interruptOnCast;
 	protected ConfigData<Boolean> playFizzleSound;
+	protected ConfigData<Boolean> interruptOnDamage;
+	protected ConfigData<Boolean> interruptOnTeleport;
+	protected ConfigData<Boolean> spellPowerAffectsRange;
 
 	protected CastItem[] castItems;
 	protected CastItem[] consumeCastItems;
@@ -174,9 +174,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected ConfigData<Integer> minRange;
 
 	protected int charges;
-	protected int castTime;
-	protected int experience;
-	protected int broadcastRange;
+	protected ConfigData<Integer> castTime;
+	protected ConfigData<Integer> experience;
+	protected ConfigData<Integer> broadcastRange;
 
 	protected float cooldown;
 	protected float serverCooldown;
@@ -299,21 +299,21 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		} else spellIcon = null;
 
-		experience = config.getInt(path + "experience", 0);
-		broadcastRange = config.getInt(path + "broadcast-range", MagicSpells.getBroadcastRange());
+		experience = getConfigDataInt("experience", 0);
+		broadcastRange = getConfigDataInt("broadcast-range", MagicSpells.getBroadcastRange());
 
 		// Cast time
-		castTime = config.getInt(path + "cast-time", 0);
-		interruptOnMove = config.getBoolean(path + "interrupt-on-move", true);
-		interruptOnCast = config.getBoolean(path + "interrupt-on-cast", true);
-		interruptOnDamage = config.getBoolean(path + "interrupt-on-damage", false);
-		interruptOnTeleport = config.getBoolean(path + "interrupt-on-teleport", true);
+		castTime = getConfigDataInt(path + "cast-time", 0);
+		interruptOnMove = getConfigDataBoolean("interrupt-on-move", true);
+		interruptOnCast = getConfigDataBoolean("interrupt-on-cast", true);
+		interruptOnDamage = getConfigDataBoolean("interrupt-on-damage", false);
+		interruptOnTeleport = getConfigDataBoolean("interrupt-on-teleport", true);
 		spellNameOnInterrupt = config.getString(path + "spell-on-interrupt", null);
 
 		// Targeting
 		minRange = getConfigDataInt("min-range", 0);
 		range = getConfigDataInt("range", 20);
-		spellPowerAffectsRange = config.getBoolean(path + "spell-power-affects-range", false);
+		spellPowerAffectsRange = getConfigDataBoolean("spell-power-affects-range", false);
 		obeyLos = config.getBoolean(path + "obey-los", true);
 		if (config.contains(path + "can-target")) {
 			if (config.isList(path + "can-target"))
@@ -1034,10 +1034,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	public SpellCastResult hardCast(SpellData data) {
+		data = data.noTargeting();
+
 		SpellCastEvent castEvent = preCast(data);
 		if (castEvent == null) return new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.HANDLE_NORMALLY, data);
 
 		SpellCastState state = castEvent.getSpellCastState();
+		int castTime = castEvent.getCastTime();
+		data = castEvent.getSpellData();
+
 		if (castTime <= 0 || state != SpellCastState.NORMAL) {
 			CastResult result = onCast(castEvent);
 			return new SpellCastResult(state, result.action(), result.data());
@@ -1061,7 +1066,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		SpellCastState state = getCastState(data.caster());
 		debug(2, "    Spell cast state: " + state);
 
-		SpellCastEvent castEvent = new SpellCastEvent(this, state, data, cooldown, reagents.clone(), castTime);
+		SpellCastEvent castEvent = new SpellCastEvent(this, state, data, cooldown, reagents.clone(), castTime.get(data));
 		if (!castEvent.callEvent()) {
 			debug(2, "    Spell cancelled");
 			return null;
@@ -1119,6 +1124,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (action.chargeReagents()) removeReagents(caster, castEvent.getReagents());
 				if (action.sendMessages()) sendMessages(data);
 
+				int experience = this.experience.get(data);
 				if (experience > 0 && caster instanceof Player player) player.giveExp(experience);
 			}
 			case ON_COOLDOWN -> {
@@ -1161,12 +1167,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		sendMessages(new SpellData(caster, 1f, args));
 	}
 
-	public void sendMessages(SpellData data) {
-		String[] replacements = getReplacements(data);
+	public void sendMessages(SpellData data, String... replacements) {
+		replacements = getReplacements(data, replacements);
 
 		sendMessage(strCastSelf, data.caster(), data, replacements);
 		sendMessage(strCastTarget, data.target(), data, replacements);
-		sendMessageNear(strCastOthers, data, broadcastRange, replacements);
+		sendMessageNear(strCastOthers, data, broadcastRange.get(data), replacements);
 	}
 
 	protected boolean preCastTimeCheck(LivingEntity livingEntity, String[] args) {
@@ -1409,7 +1415,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected int getRange(SpellData data) {
 		int range = this.range.get(data);
-		return spellPowerAffectsRange ? Math.round(range * data.power()) : range;
+		return spellPowerAffectsRange.get(data) ? Math.round(range * data.power()) : range;
 	}
 
 	public int getCharges() {
@@ -1522,7 +1528,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		double zUpper = 1.75;
 
 		// Do min range
-		for (int i = 0; i < minRange.get(data) && blockIterator.hasNext(); i++) {
+		for (int i = 0, minRange = this.minRange.get(data); i < minRange && blockIterator.hasNext(); i++) {
 			blockIterator.next();
 		}
 
@@ -1651,7 +1657,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
 
 		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, location);
-		if (!event.callEvent()) return new TargetInfo<>(event.getTargetLocation(), event.getSpellData(), event.isCastCancelled());
+		if (!event.callEvent()) return new TargetInfo<>(null, event.getSpellData(), event.isCastCancelled());
 
 		return new TargetInfo<>(event.getTargetLocation(), event.getSpellData(), false);
 	}
@@ -2109,7 +2115,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	@Deprecated
 	protected void sendMessageNear(LivingEntity livingEntity, String message) {
-		sendMessageNear(message, new SpellData(livingEntity), broadcastRange);
+		SpellData data = new SpellData(livingEntity);
+		sendMessageNear(message, data, broadcastRange.get(data));
 	}
 
 	/**
@@ -2436,9 +2443,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		COOLDOWN_ONLY(true, false, false),
 		DELAYED(false, false, false);
 
-		private boolean cooldown;
-		private boolean reagents;
-		private boolean messages;
+		private final boolean cooldown;
+		private final boolean reagents;
+		private final boolean messages;
 
 		PostCastAction(boolean cooldown, boolean reagents, boolean messages) {
 			this.cooldown = cooldown;
@@ -2489,12 +2496,23 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		private final Location from;
 		private final int taskId;
 
+		private final boolean interruptOnCast;
+		private final boolean interruptOnMove;
+		private final boolean interruptOnDamage;
+		private final boolean interruptOnTeleport;
+
 		public DelayedSpellCast(SpellCastEvent spellCast) {
 			this.spellCast = spellCast;
 
 			taskId = scheduleDelayedTask(this, spellCast.getCastTime());
 			caster = spellCast.getCaster();
 			from = caster.getLocation();
+
+			SpellData data = spellCast.getSpellData();
+			interruptOnCast = Spell.this.interruptOnCast.get(data);
+			interruptOnMove = Spell.this.interruptOnMove.get(data);
+			interruptOnDamage = Spell.this.interruptOnDamage.get(data);
+			interruptOnTeleport = Spell.this.interruptOnTeleport.get(data);
 
 			registerEvents(this);
 		}
@@ -2579,6 +2597,11 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		private final int castTime;
 		private final int taskId;
 
+		private final boolean interruptOnCast;
+		private final boolean interruptOnMove;
+		private final boolean interruptOnDamage;
+		private final boolean interruptOnTeleport;
+
 		private int elapsed = 0;
 
 		public DelayedSpellCastWithBar(SpellCastEvent spellCast) {
@@ -2587,6 +2610,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			castTime = spellCast.getCastTime();
 			caster = spellCast.getCaster();
 			from = caster.getLocation();
+
+			SpellData data = spellCast.getSpellData();
+			interruptOnCast = Spell.this.interruptOnCast.get(data);
+			interruptOnMove = Spell.this.interruptOnMove.get(data);
+			interruptOnDamage = Spell.this.interruptOnDamage.get(data);
+			interruptOnTeleport = Spell.this.interruptOnTeleport.get(data);
 
 			if (caster instanceof Player pl) MagicSpells.getExpBarManager().lock(pl, this);
 			taskId = scheduleRepeatingTask(this, interval, interval);
