@@ -178,10 +178,7 @@ public class DowseSpell extends InstantSpell {
 
 		playSpellEffects(EffectPosition.CASTER, caster, data);
 		if (getDistance) {
-			String[] replacements = getReplacements(data, "%d", String.valueOf(distance));
-			sendMessage(strCastSelf, caster, data, replacements);
-			sendMessageNear(strCastOthers, data, broadcastRange, replacements);
-
+			sendMessages(data, "%d", String.valueOf(distance));
 			return new CastResult(PostCastAction.NO_MESSAGES, data);
 		}
 

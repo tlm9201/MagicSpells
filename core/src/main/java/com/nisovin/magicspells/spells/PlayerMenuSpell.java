@@ -49,9 +49,9 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	private final ConfigData<Boolean> addOpener;
 	private final ConfigData<Boolean> castSpellsOnTarget;
 
-	private final String spellOfflineName;
 	private final String spellRangeName;
 	private final String spellOnLeftName;
+	private final String spellOfflineName;
 	private final String spellOnRightName;
 	private final String spellOnMiddleName;
 	private final String spellOnSneakLeftName;

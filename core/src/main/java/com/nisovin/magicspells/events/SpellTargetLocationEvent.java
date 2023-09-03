@@ -103,7 +103,7 @@ public class SpellTargetLocationEvent extends SpellEvent implements Cancellable 
 
 	public void setCastCancelled(boolean castCancelled) {
 		this.castCancelled = castCancelled;
-		cancelled = true;
+		if (castCancelled) cancelled = true;
 	}
 
 }

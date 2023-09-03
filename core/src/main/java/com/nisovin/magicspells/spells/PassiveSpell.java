@@ -265,7 +265,7 @@ public class PassiveSpell extends Spell {
 		if (chance < 1 && random.nextFloat() > chance) return false;
 
 		disabled = true;
-		SpellCastEvent castEvent = new SpellCastEvent(this, data.caster(), SpellCastState.NORMAL, data.power(), null, cooldown, reagents.clone(), 0);
+		SpellCastEvent castEvent = new SpellCastEvent(this, SpellCastState.NORMAL, data, cooldown, reagents.clone(), 0);
 		EventUtil.call(castEvent);
 
 		if (castEvent.isCancelled() || castEvent.getSpellCastState() != SpellCastState.NORMAL) {
@@ -282,7 +282,7 @@ public class PassiveSpell extends Spell {
 		data = castEvent.getSpellData();
 
 		if (data.hasTarget()) {
-			SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, data.target());
+			SpellTargetEvent targetEvent = new SpellTargetEvent(this, data);
 			if (!targetEvent.callEvent()) {
 				MagicSpells.debug(3, "    Target cancelled (TE)");
 
@@ -294,7 +294,7 @@ public class PassiveSpell extends Spell {
 		}
 
 		if (data.hasLocation()) {
-			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.location());
+			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data);
 			if (!targetEvent.callEvent()) {
 				MagicSpells.debug(3, "    Target cancelled (TL)");
 
@@ -351,9 +351,10 @@ public class PassiveSpell extends Spell {
 
 			MagicSpells.debug(3, "    Casting normally");
 
-			spell.subcast(data);
+			SpellData subData = data.noTargeting();
+			spell.subcast(subData);
 			if (!spellEffectsDone) {
-				playSpellEffects(data);
+				playSpellEffects(subData);
 				spellEffectsDone = true;
 			}
 		}

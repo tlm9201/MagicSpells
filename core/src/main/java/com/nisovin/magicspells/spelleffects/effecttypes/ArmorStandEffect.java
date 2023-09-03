@@ -65,7 +65,7 @@ public class ArmorStandEffect extends SpellEffect {
 			armorStand.addScoreboardTag(ENTITY_TAG);
 			armorStand.setGravity(gravity);
 			armorStand.setSilent(true);
-			armorStand.customName(Util.getMiniMessage(MagicSpells.doReplacements(customName, data)));
+			armorStand.customName(Util.getMiniMessage(customName, data));
 			armorStand.setCustomNameVisible(customNameVisible);
 
 			armorStand.setItem(EquipmentSlot.HEAD, headItem);

@@ -57,18 +57,17 @@ public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
 		if (powerAffectsRadius.get(data)) radius *= data.power();
 		radius = Math.min(radius, MagicSpells.getGlobalRadius());
 
-		Collection<LivingEntity> entitiesNearby = loc.getNearbyLivingEntities(radius);
 		boolean killed = false;
-		for (LivingEntity entity : entitiesNearby) {
-			if (entity instanceof Player) continue;
-			if (!validTargetList.canTarget(data.caster(), entity)) continue;
-			if (entities != null && !entities.contains(entity.getType())) continue;
+		for (LivingEntity target : loc.getNearbyLivingEntities(radius)) {
+			if (target instanceof Player) continue;
+			if (!validTargetList.canTarget(data.caster(), target)) continue;
+			if (entities != null && !entities.contains(target.getType())) continue;
 
-			SpellData subData = data.target(entity);
-			playSpellEffectsTrail(loc, entity.getLocation(), subData);
-			playSpellEffects(EffectPosition.TARGET, entity, subData);
+			SpellData subData = data.target(target);
+			playSpellEffectsTrail(loc, target.getLocation(), subData);
+			playSpellEffects(EffectPosition.TARGET, target, subData);
 
-			entity.setHealth(0);
+			target.setHealth(0);
 			killed = true;
 		}
 

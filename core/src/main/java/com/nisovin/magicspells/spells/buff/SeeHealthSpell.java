@@ -105,8 +105,8 @@ public class SeeHealthSpell extends BuffSpell {
 		int lost = barSize - remaining;
 
 		Component healthBar = Component.empty();
-		if (remaining > 0) healthBar = healthBar.color(color).append(Component.text(symbol.repeat(remaining)));
-		if (lost > 0) healthBar = healthBar.color(NamedTextColor.GRAY).append(Component.text(symbol.repeat(lost)));
+		if (remaining > 0) healthBar = healthBar.append(Component.text(symbol.repeat(remaining)).color(color));
+		if (lost > 0) healthBar = healthBar.append(Component.text(symbol.repeat(lost)).color(NamedTextColor.GRAY));
 
 		player.sendActionBar(healthBar);
 	}

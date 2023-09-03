@@ -29,8 +29,8 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 
 	@Override
 	public CastResult castAtEntity(SpellData data) {
-		if (!(data.target() instanceof Player player)) return noTarget(data);
-		close(player, data);
+		if (!(data.target() instanceof Player target)) return noTarget(data);
+		close(target, data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
@@ -40,12 +40,10 @@ public class CloseInventorySpell extends TargetedSpell implements TargetedEntity
 		if (delay > 0) {
 			MagicSpells.scheduleDelayedTask(() -> {
 				target.closeInventory();
-
 				playSpellEffects(data);
 			}, delay);
 		} else {
 			target.closeInventory();
-
 			playSpellEffects(data);
 		}
 	}

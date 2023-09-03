@@ -103,7 +103,7 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 
 			if (checkPlugins.get(data)) {
 				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(data.caster(), data.target(), DamageCause.PROJECTILE, 1D, this);
-				if (!event.callEvent()) return noTarget(info);
+				if (!event.callEvent()) return noTarget(data);
 			}
 
 			Location origin = data.caster().getEyeLocation();

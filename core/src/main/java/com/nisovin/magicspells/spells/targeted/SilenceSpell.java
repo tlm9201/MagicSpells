@@ -140,7 +140,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (filter.check(spell)) return;
 			event.setCancelled(true);
 			Bukkit.getScheduler().scheduleSyncDelayedTask(MagicSpells.plugin, () -> {
-				if (preventCastSpell != null) preventCastSpell.subcast(new SpellData(event.getCaster()));
+				if (preventCastSpell != null) preventCastSpell.subcast(event.getSpellData().noTargeting());
 				if (spell.isHelperSpell() && !notifyHelperSpells) return;
 				if (spell instanceof PassiveSpell && !notifyPassiveSpells) return;
 				sendMessage(strSilenced, event.getCaster(), event.getSpellData());

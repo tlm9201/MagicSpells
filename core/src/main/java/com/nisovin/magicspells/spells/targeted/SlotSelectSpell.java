@@ -24,7 +24,7 @@ public class SlotSelectSpell extends TargetedSpell implements TargetedEntitySpel
 		ignoreSlotBounds = getConfigDataBoolean("ignore-slot-bounds", false);
 
 		String path = internalKey + "slot";
-		if (config.isString("slot")) {
+		if (config.isString(path)) {
 			String value = config.getString(path, null);
 			if (value == null) {
 				slot = data -> 0;

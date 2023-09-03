@@ -46,9 +46,8 @@ public class ShearSpell extends TargetedSpell implements TargetedEntitySpell {
 	public CastResult cast(SpellData data) {
 		TargetInfo<LivingEntity> info = getTargetedEntity(data, SHEEP);
 		if (info.noTarget()) return noTarget(info);
-		data = info.spellData();
 
-		return shear((Sheep) info.target(), data);
+		return shear((Sheep) info.target(), info.spellData());
 	}
 
 	@Override

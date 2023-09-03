@@ -33,28 +33,28 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public CastResult cast(SpellData data) {
-		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
 		if (info.noTarget()) return noTarget(info);
 		data = info.spellData();
 
-		return setVariable(player, data);
+		return setVariable(caster, data);
 	}
 
 	@Override
 	public CastResult castAtEntity(SpellData data) {
-		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-		return setVariable(player, data);
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		return setVariable(caster, data);
 	}
 
-	public CastResult setVariable(Player player, SpellData data) {
+	public CastResult setVariable(Player caster, SpellData data) {
 		Function<? super LivingEntity, String> dataElement = this.dataElement.get(data);
 		if (dataElement == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		String value = dataElement.apply(data.target());
 		String variableName = this.variableName.get(data);
-		MagicSpells.getVariableManager().set(variableName, player, value);
+		MagicSpells.getVariableManager().set(variableName, caster, value);
 
 		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);

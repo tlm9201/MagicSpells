@@ -28,7 +28,7 @@ public class FlamewalkSpell extends BuffSpell {
 	private final int tickInterval;
 	private final ConfigData<Integer> fireTicks;
 
-	private final boolean checkPlugins;
+	private final ConfigData<Boolean> checkPlugins;
 	private final ConfigData<Boolean> constantRadius;
 	private final ConfigData<Boolean> constantFireTicks;
 	private final ConfigData<Boolean> powerAffectsFireTicks;
@@ -43,7 +43,7 @@ public class FlamewalkSpell extends BuffSpell {
 
 		radius = getConfigDataDouble("radius", 8);
 
-		checkPlugins = getConfigBoolean("check-plugins", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
 		constantRadius = getConfigDataBoolean("constant-radius", true);
 		constantFireTicks = getConfigDataBoolean("constant-fire-ticks", true);
 		powerAffectsFireTicks = getConfigDataBoolean("power-affects-fire-ticks", true);
@@ -66,6 +66,7 @@ public class FlamewalkSpell extends BuffSpell {
 
 		entities.put(data.target().getUniqueId(), new FlamewalkData(
 			data.builder().caster(data.target()).target(null).build(),
+			checkPlugins.get(data),
 			constantRadius ? radius.get(data) : 0,
 			constantRadius,
 			fireTicks,
@@ -108,7 +109,7 @@ public class FlamewalkSpell extends BuffSpell {
 		return entities;
 	}
 
-	private record FlamewalkData(SpellData spellData, double radius, boolean constantRadius, int fireTicks, boolean constantFireTicks) {
+	private record FlamewalkData(SpellData spellData, boolean checkPlugins, double radius, boolean constantRadius, int fireTicks, boolean constantFireTicks) {
 	}
 
 	private class Burner implements Runnable {
@@ -140,11 +141,10 @@ public class FlamewalkSpell extends BuffSpell {
 				double radius = data.constantRadius ? data.radius : FlamewalkSpell.this.radius.get(data.spellData);
 				radius = Math.min(radius, MagicSpells.getGlobalRadius());
 
-				List<Entity> entities = caster.getNearbyEntities(radius, radius, radius);
-				for (Entity entity : entities) {
+				for (Entity entity : caster.getNearbyEntities(radius, radius, radius)) {
 					if (!(entity instanceof LivingEntity target) || !validTargetList.canTarget(target)) continue;
 
-					if (checkPlugins) {
+					if (data.checkPlugins) {
 						MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, DamageCause.ENTITY_ATTACK, 1, FlamewalkSpell.this);
 						if (!event.callEvent()) continue;
 					}

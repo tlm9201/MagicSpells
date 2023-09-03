@@ -72,20 +72,12 @@ public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEn
 	private void setPlaceholders(Player caster, Player target, SpellData data) {
 		String value = MagicSpells.doArgumentSubstitution(placeholderAPITemplate, data.args());
 
-		Player variableCaster, variableTarget;
-		if (useTargetVariables.get(data)) {
-			variableCaster = target;
-			variableTarget = caster;
-		} else {
-			variableCaster = caster;
-			variableTarget = target;
-		}
-
 		String variableName = this.variableName.get(data);
 		boolean setTargetVariable = this.setTargetVariable.get(data);
+		boolean useTargetVariables = this.useTargetVariables.get(data);
 		boolean setTargetPlaceholders = this.setTargetPlaceholders.get(data);
 
-		value = MagicSpells.doVariableReplacements(value, variableCaster, variableCaster, variableTarget);
+		value = MagicSpells.doVariableReplacements(value, useTargetVariables ? target : caster, caster, target);
 		value = PlaceholderAPI.setBracketPlaceholders(setTargetPlaceholders ? target : caster, value);
 		value = PlaceholderAPI.setPlaceholders(setTargetPlaceholders ? target : caster, value);
 

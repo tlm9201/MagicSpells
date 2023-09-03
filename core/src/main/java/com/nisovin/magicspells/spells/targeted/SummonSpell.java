@@ -92,9 +92,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 			if (target != null && !target.getName().equalsIgnoreCase(targetName)) target = null;
 		} else {
 			List<Player> players = Bukkit.getServer().matchPlayer(targetName);
-			if (players.size() == 1) {
-				target = players.get(0);
-			}
+			if (players.size() == 1) target = players.get(0);
 		}
 		if (target == null) return noTarget(data);
 

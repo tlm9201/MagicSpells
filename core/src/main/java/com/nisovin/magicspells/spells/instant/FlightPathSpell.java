@@ -29,7 +29,7 @@ public class FlightPathSpell extends InstantSpell {
 	private final ConfigData<Float> targetX;
 	private final ConfigData<Float> targetZ;
 
-	private final ConfigData<Integer> interval;
+	private final int interval;
 	private final ConfigData<Integer> cruisingAltitude;
 
 	public FlightPathSpell(MagicConfig config, String spellName) {
@@ -39,7 +39,7 @@ public class FlightPathSpell extends InstantSpell {
 		targetX = getConfigDataFloat("x", 0F);
 		targetZ = getConfigDataFloat("z", 0F);
 
-		interval = getConfigDataInt("interval", 5);
+		interval = getConfigInt("interval", 5);
 		cruisingAltitude = getConfigDataInt("cruising-altitude", 150);
 	}
 
@@ -82,7 +82,7 @@ public class FlightPathSpell extends InstantSpell {
 		private void addFlight(ActiveFlight flight) {
 			flights.put(flight.caster.getUniqueId(), flight);
 			flight.start();
-			if (task < 0) task = MagicSpells.scheduleRepeatingTask(this, 0, interval.get(flight.data));
+			if (task < 0) task = MagicSpells.scheduleRepeatingTask(this, 0, interval);
 		}
 
 		private void init() {

@@ -43,7 +43,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 
 	@Override
 	public CastResult cast(SpellData data) {
-		TargetInfo<Location> info = getTargetedBlockLocation(data, false);
+		TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 0, 0.5, false);
 		if (info.noTarget()) return noTarget(data);
 
 		return castAtLocation(info.spellData());
@@ -61,9 +61,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 
 		if (validTargetList.canTargetOnlyCaster()) {
 			if (!data.hasCaster() || !data.caster().getWorld().equals(location.getWorld()) || data.caster().getLocation().distanceSquared(location) > radiusSquared) {
-				playSpellEffects(EffectPosition.CASTER, data.caster(), data);
 				playSpellEffects(EffectPosition.SPECIAL, location, data);
-
 				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 			}
 

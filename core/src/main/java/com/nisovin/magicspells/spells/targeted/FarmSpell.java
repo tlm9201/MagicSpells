@@ -131,6 +131,9 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 					case BEETROOTS -> {
 						if (!growBeetroot) continue;
 					}
+					default -> {
+						continue;
+					}
 				}
 
 				if (ageable.getAge() == ageable.getMaximumAge()) continue;

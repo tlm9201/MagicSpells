@@ -35,9 +35,8 @@ public class RegrowSpell extends TargetedSpell implements TargetedEntitySpell {
 	public CastResult cast(SpellData data) {
 		TargetInfo<LivingEntity> info = getTargetedEntity(data, SHEEP);
 		if (info.noTarget()) return noTarget(info);
-		data = info.spellData();
 
-		return grow((Sheep) info.target(), data);
+		return grow((Sheep) info.target(), info.spellData());
 	}
 
 	@Override

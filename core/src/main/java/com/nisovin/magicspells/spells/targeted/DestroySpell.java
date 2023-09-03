@@ -173,9 +173,8 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 		VelocityType velocityType = resolveVelocityTypePerBlock ? VelocityType.NONE : this.velocityType.get(data);
 
 		for (Block b : blocksToThrow) {
-			Material material = b.getType();
 			Location l = b.getLocation().clone().add(0.5, 0.5, 0.5);
-			FallingBlock fb = b.getWorld().spawnFallingBlock(l, material.createBlockData());
+			FallingBlock fb = b.getWorld().spawnFallingBlock(l, b.getBlockData());
 			fb.setDropItem(false);
 			playSpellEffects(EffectPosition.PROJECTILE, fb, data);
 			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, source, fb.getLocation(), null, fb, data);
@@ -196,7 +195,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 
 					yield vec;
 				}
-				case RANDOM_UP -> {
+				case RANDOMUP, RANDOM_UP -> {
 					Vector vec = new Vector(Math.random() - 0.5, Math.random() / 2, Math.random() - 0.5);
 					vec.normalize().multiply(velocity);
 
@@ -238,6 +237,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 		NONE,
 		UP,
 		RANDOM,
+		RANDOMUP,
 		RANDOM_UP,
 		DOWN,
 		TOWARD,

@@ -255,7 +255,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 			currentVelocity = data.target().getLocation().subtract(currentLocation).toVector();
 			currentLocation.setDirection(currentVelocity);
-			data.location(currentLocation);
+			data = data.location(currentLocation);
 			this.data = data;
 
 			float projectileVelocity = HomingMissileSpell.this.projectileVelocity.get(data);

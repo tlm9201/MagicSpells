@@ -347,7 +347,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			location.setPitch(0);
 
 			Location source = data.hasCaster() ? data.caster().getLocation() : data.location();
-			data.location(location);
+			data = data.location(location);
 
 			return spawnMob(source, data);
 		}

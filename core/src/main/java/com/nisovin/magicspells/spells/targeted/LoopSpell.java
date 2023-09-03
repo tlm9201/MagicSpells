@@ -29,9 +29,7 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
-	static {
-		MagicSpells.registerEvents(new DeathListener());
-	}
+	private static DeathListener deathListener;
 
 	private final Multimap<UUID, Loop> activeLoops = HashMultimap.create();
 
@@ -122,6 +120,11 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@Override
 	public void initialize() {
 		super.initialize();
+
+		if (deathListener == null) {
+			deathListener = new DeathListener();
+			registerEvents(deathListener);
+		}
 
 		if (spellOnEndName != null) {
 			spellOnEnd = new Subspell(spellOnEndName);
@@ -268,6 +271,11 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	@Override
 	protected void turnOff() {
+		if (deathListener != null) {
+			unregisterEvents(deathListener);
+			deathListener = null;
+		}
+
 		activeLoops.forEach((target, loop) -> loop.cancel(false));
 		activeLoops.clear();
 	}
@@ -427,11 +435,10 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			else if (data.hasCaster()) playSpellEffects(EffectPosition.DELAYED, data.caster(), data);
 
 			if (data.hasCaster() || data.hasTarget()) {
-				String casterName = data.hasCaster() ? getTargetName(data.caster()) : "";
-				String targetName = data.hasTarget() ? getTargetName(data.target()) : "";
+				String[] replacements = getReplacements(data);
 
-				sendMessage(strFadeSelf, data.caster(), data, "%a", casterName, "%t", targetName);
-				sendMessage(strFadeTarget, data.target(), data, "%a", casterName, "%t", targetName);
+				sendMessage(strFadeSelf, data.caster(), data, replacements);
+				sendMessage(strFadeTarget, data.target(), data, replacements);
 			}
 
 			if (spellOnEnd != null) spellOnEnd.subcast(data);

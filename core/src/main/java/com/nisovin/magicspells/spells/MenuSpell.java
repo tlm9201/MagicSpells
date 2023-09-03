@@ -28,6 +28,7 @@ import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
 public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
@@ -157,17 +158,24 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	@Override
 	public CastResult cast(SpellData data) {
+		boolean targetOpensMenuInstead = this.targetOpensMenuInstead.get(data);
+
 		if (requireEntityTarget.get(data)) {
-			TargetInfo<Player> info = getTargetedPlayer(data);
-			if (info.noTarget()) return noTarget(info);
-			data = info.spellData();
+			if (targetOpensMenuInstead) {
+				TargetInfo<Player> info = getTargetedPlayer(data);
+				if (info.noTarget()) return noTarget(info);
+				data = info.spellData();
+			} else {
+				TargetInfo<LivingEntity> info = getTargetedEntity(data);
+				if (info.noTarget()) return noTarget(info);
+				data = info.spellData();
+			}
 		} else if (requireLocationTarget.get(data)) {
 			TargetInfo<Location> info = getTargetedBlockLocation(data, false);
 			if (info.noTarget()) return noTarget(info);
 			data = info.spellData();
 		}
 
-		boolean targetOpensMenuInstead = data.hasTarget() && this.targetOpensMenuInstead.get(data);
 		LivingEntity openerEntity = targetOpensMenuInstead ? data.target() : data.caster();
 		if (!(openerEntity instanceof Player opener)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
@@ -221,7 +229,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	private void open(Player opener, SpellData data, boolean targetOpensMenuInstead) {
 		int delay = this.delay.get(data);
 		if (delay < 0) openMenu(opener, data, targetOpensMenuInstead);
-		MagicSpells.scheduleDelayedTask(() -> openMenu(opener, data, targetOpensMenuInstead), delay);
+		else MagicSpells.scheduleDelayedTask(() -> openMenu(opener, data, targetOpensMenuInstead), delay);
 	}
 
 	private void openMenu(Player opener, SpellData data, boolean targetOpensMenuInstead) {
@@ -230,6 +238,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		opener.openInventory(menu.inventory);
 
 		playSpellEffects(data);
+		playSpellEffects(EffectPosition.SPECIAL, opener, data);
 	}
 
 	private void applyOptionsToInventory(Player opener, MenuInventory menu) {

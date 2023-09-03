@@ -75,7 +75,7 @@ public class LightwalkSpell extends BuffSpell {
 	public void turnOffBuff(LivingEntity entity) {
 		if (!(entity instanceof Player player)) return;
 
-		LightWalkData data = players.get(player.getUniqueId());
+		LightWalkData data = players.remove(player.getUniqueId());
 		player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
 	}
 

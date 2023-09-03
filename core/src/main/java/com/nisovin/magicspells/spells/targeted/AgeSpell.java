@@ -45,11 +45,10 @@ public class AgeSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	private void applyAgeChanges(Ageable target, SpellData data) {
-		boolean setMaturity = this.setMaturity.get(data);
-		if (setMaturity) target.setAge(rawAge.get(data));
+		if (setMaturity.get(data)) target.setAge(rawAge.get(data));
 
 		boolean applyAgeLock = this.applyAgeLock.get(data);
-		if (target instanceof Breedable breedable) breedable.setAgeLock(applyAgeLock);
+		if (applyAgeLock && target instanceof Breedable breedable) breedable.setAgeLock(true);
 
 		playSpellEffects(data);
 	}

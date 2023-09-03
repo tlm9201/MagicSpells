@@ -2177,7 +2177,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		String name = MagicSpells.getEntityNames().get(type);
 		if (name != null) return name;
 
-		return type == EntityType.UNKNOWN ? "unknown" : "<lang:" + type.translationKey() + ">";
+		return Util.getStringFromComponent(target.name());
 	}
 
 	protected String[] getReplacements(SpellData data, String... replacements) {

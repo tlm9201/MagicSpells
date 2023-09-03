@@ -733,6 +733,20 @@ public class Util {
 		return component.decoration(TextDecoration.ITALIC, component.hasDecoration(TextDecoration.ITALIC));
 	}
 
+	public static Component getMiniMessage(String input, SpellData data) {
+		return getMiniMessage(MagicSpells.doReplacements(input, data.caster(), data));
+
+	}
+
+	public static Component getMiniMessage(String input, SpellData data, String... replacements) {
+		return getMiniMessage(MagicSpells.doReplacements(input, data.caster(), data, replacements));
+
+	}
+
+	public static Component getMiniMessage(String input, LivingEntity recipient, SpellData data) {
+		return getMiniMessage(MagicSpells.doReplacements(input, recipient, data));
+	}
+
 	public static Component getMiniMessageWithVars(Player player, String input) {
 		if (input.isEmpty()) return Component.text("");
 		return getMiniMessage(MagicSpells.doReplacements(input, player, SpellData.NULL));

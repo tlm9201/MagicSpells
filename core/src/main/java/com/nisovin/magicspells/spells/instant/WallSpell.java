@@ -121,7 +121,7 @@ public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (checkAtCap(data)) return noTarget(strAtCap, data);
 
 		Block block = getTargetedBlock(data);
-		if (!block.getType().isAir()) noTarget(data);
+		if (!block.getType().isAir()) return noTarget(data);
 
 		Location location = block.getLocation();
 		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));

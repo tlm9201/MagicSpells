@@ -357,7 +357,7 @@ public class Subspell {
 
 		if (mode != CastMode.HARD && !passTargeting) {
 			ValidTargetList canTarget = spell.getValidTargetList();
-			if (!canTarget.canTarget(data.caster(), data.target())) spell.noTarget(data);
+			if (!canTarget.canTarget(data.caster(), data.target())) return spell.noTarget(data);
 		}
 
 		data = data.builder().power((passPower ? 1 : data.power()) * subPower.get(data)).args(args.get(data)).build();

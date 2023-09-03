@@ -130,7 +130,7 @@ public class DodgeSpell extends BuffSpell {
 
 		playSpellEffects(EffectPosition.SPECIAL, casterLoc, subData);
 
-		double distance = dodgeData.constantDistance() ? dodgeData.distance : this.distance.get(subData);
+		double distance = dodgeData.constantDistance ? dodgeData.distance : this.distance.get(subData);
 		Vector v = RandomUtils.getRandomCircleVector().multiply(distance);
 		targetLoc.add(v);
 		targetLoc.setDirection(caster.getLocation().getDirection());

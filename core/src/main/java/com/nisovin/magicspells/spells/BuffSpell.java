@@ -204,7 +204,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		return false;
 	}
 
-	// TODO: This makes no sense to me. Implement properly.
 	public boolean recastBuff(SpellData data) {
 		stopEffects(data.target());
 		return true;

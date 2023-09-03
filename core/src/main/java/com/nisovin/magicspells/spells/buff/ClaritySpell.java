@@ -41,9 +41,23 @@ public class ClaritySpell extends BuffSpell {
 	public boolean castBuff(SpellData data) {
 		Supplier<Float> supplier;
 		if (constantMultiplier.get(data)) {
-			float multiplier = this.multiplier.get(data) * (powerAffectsMultiplier.get(data) ?  data.power() : 1);
-			supplier = () -> multiplier;
-		} else supplier = () -> this.multiplier.get(data) * (powerAffectsMultiplier.get(data) ? data.power() : 1);
+			float multiplier = this.multiplier.get(data);
+			if (powerAffectsMultiplier.get(data)) {
+				if (multiplier > 1) multiplier *= data.power();
+				else if (multiplier < 1) multiplier /= data.power();
+			}
+
+			float finalMultiplier = multiplier;
+			supplier = () -> finalMultiplier;
+		} else supplier = () -> {
+			float multiplier = this.multiplier.get(data);
+			if (powerAffectsMultiplier.get(data)) {
+				if (multiplier > 1) multiplier *= data.power();
+				else if (multiplier < 1) multiplier /= data.power();
+			}
+
+			return multiplier;
+		};
 
 		entities.put(data.target().getUniqueId(), supplier);
 

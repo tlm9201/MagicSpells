@@ -36,6 +36,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 			MagicSpells.error("OffsetLocationSpell '" + internalName + "' has an invalid spell defined!");
 			spellToCast = null;
 		}
+		spellToCastName = null;
 	}
 
 		@Override

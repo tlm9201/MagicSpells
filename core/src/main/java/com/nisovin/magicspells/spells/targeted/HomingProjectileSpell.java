@@ -227,7 +227,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			if (!projectile.equals(monitor.projectile)) continue;
 
 			Location location = projectile.getLocation();
-			SpellData data = monitor.data.location(location);
+			SpellData data = monitor.data.builder().target(null).location(location).build();
 
 			if (groundSpell != null) groundSpell.subcast(data);
 			playSpellEffects(EffectPosition.TARGET, location, data);
@@ -375,7 +375,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			currentVelocity.setY(currentVelocity.getY() + 0.15);
 			projectile.setVelocity(currentVelocity);
 			projectile.getLocation(currentLocation);
-			data.location(currentLocation);
+			data = data.location(currentLocation);
 
 			if (counter % airSpellInterval == 0 && airSpell != null) airSpell.subcast(data.noTarget());
 
@@ -418,7 +418,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			playSpellEffects(EffectPosition.DELAYED, currentLocation, data);
 			MagicSpells.cancelTask(taskId);
 			projectile.remove();
-			if (remove)monitors.remove(this);
+			if (remove) monitors.remove(this);
 		}
 
 	}

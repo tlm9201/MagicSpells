@@ -56,6 +56,7 @@ public class ScoreboardDataSpell extends TargetedSpell implements TargetedEntity
 			variable.parseAndSet(caster, String.valueOf(score));
 		else variable.set(caster, score);
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

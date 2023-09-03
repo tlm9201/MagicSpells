@@ -131,7 +131,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
 
 		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation().add(0.5, 0.5, 0.5));
-		if (!event.callEvent()) noTarget(data);
+		if (!event.callEvent()) return noTarget(data);
 
 		event.setTargetLocation(event.getTargetLocation().toCenterLocation());
 		block = event.getTargetLocation().getBlock();
@@ -158,8 +158,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		Block block = location.getBlock();
 
 		int yOffset = this.yOffset.get(data);
-		if (yOffset > 0) block = block.getRelative(BlockFace.UP, yOffset);
-		else if (yOffset < 0) block = block.getRelative(BlockFace.DOWN, yOffset);
+		if (yOffset != 0) block = block.getRelative(0, yOffset, 0);
 
 		if (!block.isPassable()) {
 			if (checkFace.get(data)) {

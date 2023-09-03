@@ -8,10 +8,10 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 
-public class CreatureTargetSpell extends TargetedSpell {
+public class CreatureTargetSpell extends InstantSpell {
 
 	private String targetSpellName;
 	private Subspell targetSpell;

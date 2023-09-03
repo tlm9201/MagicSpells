@@ -37,8 +37,8 @@ public class SwitchHealthSpell extends TargetedSpell implements TargetedEntitySp
 		double casterPct = data.caster().getHealth() / casterMax;
 		double targetPct = data.target().getHealth() / targetMax;
 
-		if (requireGreaterHealthPercent.get(data) && casterPct < targetPct) return noTarget(data);
-		if (requireLesserHealthPercent.get(data) && casterPct > targetPct) return noTarget(data);
+		if (requireGreaterHealthPercent.get(data) && casterPct <= targetPct) return noTarget(data);
+		if (requireLesserHealthPercent.get(data) && casterPct >= targetPct) return noTarget(data);
 
 		data.caster().setHealth(targetPct * casterMax);
 		data.target().setHealth(casterPct * targetMax);

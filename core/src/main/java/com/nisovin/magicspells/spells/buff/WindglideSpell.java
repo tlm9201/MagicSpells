@@ -87,7 +87,7 @@ public class WindglideSpell extends BuffSpell {
 	@Override
 	public boolean castBuff(SpellData data) {
 		boolean constantHeight = this.constantHeight.get(data);
-		boolean constantVelocity = this.constantHeight.get(data);
+		boolean constantVelocity = this.constantVelocity.get(data);
 
 		double height = constantHeight ? this.height.get(data) / 10 : 0;
 		double velocity = constantVelocity ? this.velocity.get(data) : 0;

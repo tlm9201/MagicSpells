@@ -57,9 +57,9 @@ public class ForcetossSpell extends TargetedSpell implements TargetedEntitySpell
 		LivingEntity target = data.target();
 
 		double damage = this.damage.get(data);
-		if (damage > 0) {
-			if (powerAffectsDamage.get(data)) damage *= data.power();
+		if (powerAffectsDamage.get(data)) damage *= data.power();
 
+		if (damage > 0) {
 			if (checkPlugins.get(data)) {
 				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, DamageCause.ENTITY_ATTACK, damage, this);
 				if (!event.callEvent()) return noTarget(data);

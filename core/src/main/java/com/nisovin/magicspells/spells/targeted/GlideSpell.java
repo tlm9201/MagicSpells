@@ -21,9 +21,8 @@ public class GlideSpell extends TargetedSpell implements TargetedEntitySpell {
 	public CastResult cast(SpellData data) {
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
 		if (info.noTarget()) return noTarget(data);
-		data = info.spellData();
 
-		return castAtEntity(data);
+		return castAtEntity(info.spellData());
 	}
 
 	@Override

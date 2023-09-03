@@ -54,7 +54,7 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 		targetLoc.setY(targetLoc.getY() + relativeOffset.getY());
 		targetLoc.setPitch(startLoc.getPitch() - pitch.get(data));
 		targetLoc.setYaw(startLoc.getYaw() + yaw.get(data));
-		if (targetLoc.getBlock().isPassable()) return noTarget(strCantTeleport, data);
+		if (!targetLoc.getBlock().isPassable()) return noTarget(strCantTeleport, data);
 
 		data.caster().teleportAsync(targetLoc);
 		playSpellEffects(EffectPosition.CASTER, data.caster(), data);

@@ -17,8 +17,6 @@ public class RoarSpell extends InstantSpell {
 
 	private final ConfigData<Double> radius;
 
-	private String strNoTarget;
-
 	private final ConfigData<Boolean> cancelIfNoTargets;
 
 	public RoarSpell(MagicConfig config, String spellName) {
@@ -35,12 +33,9 @@ public class RoarSpell extends InstantSpell {
 	public CastResult cast(SpellData data) {
 		double radius = Math.min(this.radius.get(data), MagicSpells.getGlobalRadius());
 
-		List<Entity> entities = data.caster().getNearbyEntities(radius, radius, radius);
 		int count = 0;
-
-		for (Entity entity : entities) {
-			if (!(entity instanceof Mob mob)) continue;
-			if (!validTargetList.canTarget(data.caster(), mob)) continue;
+		for (Entity entity : data.caster().getNearbyEntities(radius, radius, radius)) {
+			if (!(entity instanceof Mob mob) || !validTargetList.canTarget(data.caster(), mob)) continue;
 
 			SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, mob);
 			if (!targetEvent.callEvent()) continue;
@@ -56,10 +51,7 @@ public class RoarSpell extends InstantSpell {
 			playSpellEffectsTrail(data.caster().getLocation(), target.getLocation(), subData);
 		}
 
-		if (cancelIfNoTargets.get(data) && count == 0) {
-			sendMessage(strNoTarget, data.caster(), data);
-			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-		}
+		if (cancelIfNoTargets.get(data) && count == 0) return noTarget(data);
 
 		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);

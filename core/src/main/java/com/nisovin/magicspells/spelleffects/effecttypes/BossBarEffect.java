@@ -71,10 +71,6 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
-//		if (!remove && (barStyle == null || barColor == null)) return null;
-//		if (broadcast) Util.forEachPlayerOnline(this::createBar);
-//		else if (entity instanceof Player) createBar((Player) entity);
-//		return null;
 		boolean useViewerAsTarget = this.useViewerAsTarget.get(data);
 
 		if (broadcast.get(data)) {

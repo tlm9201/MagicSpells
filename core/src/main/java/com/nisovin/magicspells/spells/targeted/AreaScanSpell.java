@@ -158,7 +158,7 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 		Location origin = data.location();
 		if (blockCoords.get(data)) {
 			origin.set(origin.getBlockX(), origin.getBlockY(), origin.getBlockZ());
-			data.location(origin);
+			data = data.location(origin);
 		}
 
 		Vector relativeOffset = this.relativeOffset.get(data);

@@ -310,7 +310,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 		double randomVelocity = this.randomVelocity.get(data);
 
 		Location loc = player.getEyeLocation().add(player.getLocation().getDirection());
-		data.location(loc);
+		data = data.location(loc);
 
 		boolean updateInv = false;
 		for (ItemStack item : items) {

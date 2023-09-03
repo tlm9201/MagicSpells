@@ -54,15 +54,11 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
 	@Override
 	public CastResult cast(SpellData data) {
-		Location markLocation = null;
+		Location markLocation;
 
 		if (data.hasArgs() && data.args().length == 1 && data.caster().hasPermission("magicspells.advanced." + internalName)) {
 			Player target = PlayerNameUtils.getPlayer(data.args()[0]);
-
-			if (target != null) {
-				if (useBedLocation.get(data)) markLocation = target.getBedSpawnLocation();
-				else if (markSpell != null) markLocation = markSpell.getEffectiveMark(target);
-			}
+			markLocation = getRecallLocation(target, data);
 		} else markLocation = getRecallLocation(data.caster(), data);
 
 		return recall(data, data.caster(), markLocation);
@@ -80,12 +76,12 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Location from = entity.getLocation();
-
 		if (!allowCrossWorld.get(data) && !entity.getWorld().equals(markLocation.getWorld())) {
 			sendMessage(strOtherWorld, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
+
+		Location from = entity.getLocation();
 
 		double maxRange = this.maxRange.get(data);
 		if (maxRange > 0 && markLocation.distanceSquared(from) > maxRange * maxRange) {

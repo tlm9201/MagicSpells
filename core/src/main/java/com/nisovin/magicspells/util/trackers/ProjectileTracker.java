@@ -277,6 +277,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 	public void checkHitbox(Location location) {
 		if (location == null || !data.hasCaster()) return;
 
+		SpellData data = this.data.location(location);
+
 		for (LivingEntity entity : projectile.getLocation().getNearbyLivingEntities(hitRadius, verticalHitRadius, hitRadius)) {
 			if (!targetList.canTarget(data.caster(), entity)) continue;
 

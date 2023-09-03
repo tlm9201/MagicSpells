@@ -22,7 +22,7 @@ public class GateSpell extends InstantSpell {
 		super(config, spellName);
 
 		world = getConfigDataString("world", "CURRENT");
-		coordinates = getConfigDataString("coordinates", "SPAWN"); //.replace(" ", "");
+		coordinates = getConfigDataString("coordinates", "SPAWN");
 		strGateFailed = getConfigString("str-gate-failed", "Unable to teleport.");
 	}
 
@@ -92,8 +92,7 @@ public class GateSpell extends InstantSpell {
 		}
 
 		Location from = data.caster().getLocation();
-		boolean canTeleport = (!(data.caster() instanceof Vehicle)) && data.caster().isValid();
-		if (!canTeleport) {
+		if (data.caster() instanceof Vehicle || !data.caster().isValid()) {
 			MagicSpells.error("GateSpell '" + internalName + "': teleport prevented!");
 			sendMessage(strGateFailed, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
