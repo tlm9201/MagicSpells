@@ -127,7 +127,7 @@ public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
 
 		SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, location);
-		if (!targetEvent.callEvent()) return noTarget(data);
+		if (!targetEvent.callEvent()) return noTarget(targetEvent);
 
 		return makeWall(targetEvent.getSpellData());
 	}

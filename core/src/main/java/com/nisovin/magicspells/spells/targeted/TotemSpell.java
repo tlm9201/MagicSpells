@@ -215,7 +215,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (!target.isPassable()) return noTarget(data);
 
 		SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, target.getLocation());
-		if (!targetEvent.callEvent()) return noTarget(data);
+		if (!targetEvent.callEvent()) return noTarget(targetEvent);
 		data = targetEvent.getSpellData();
 
 		createTotem(data);

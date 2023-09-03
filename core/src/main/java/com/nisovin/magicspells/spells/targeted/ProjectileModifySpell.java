@@ -247,7 +247,7 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 	public CastResult cast(SpellData data) {
 		if (pointBlank.get(data)) {
 			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
-			if (!targetEvent.callEvent()) return noTarget(data);
+			if (!targetEvent.callEvent()) return noTarget(targetEvent);
 			data = targetEvent.getSpellData();
 		} else {
 			TargetInfo<Location> info = getTargetedBlockLocation(data, false);

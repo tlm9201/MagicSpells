@@ -56,7 +56,7 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (loc == null) return noTarget(strCantBlink, data);
 
 		SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, loc);
-		if (!targetEvent.callEvent()) return noTarget(strCantBlink, data);
+		if (!targetEvent.callEvent()) return noTarget(strCantBlink, targetEvent);
 
 		return blink(targetEvent.getSpellData());
 	}

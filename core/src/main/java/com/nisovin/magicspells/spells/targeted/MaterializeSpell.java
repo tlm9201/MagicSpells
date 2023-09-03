@@ -158,7 +158,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 		Block against = lastTwo.get(1);
 
 		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation());
-		if (!event.callEvent()) return noTarget(strFailed, data);
+		if (!event.callEvent()) return noTarget(strFailed, event);
 
 		data = event.getSpellData();
 		block = event.getTargetLocation().getBlock();

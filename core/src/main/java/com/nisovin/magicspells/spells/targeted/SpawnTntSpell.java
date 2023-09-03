@@ -79,7 +79,7 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
 
 		SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, location);
-		if (!targetEvent.callEvent()) return noTarget(data);
+		if (!targetEvent.callEvent()) return noTarget(targetEvent);
 
 		return castAtLocation(targetEvent.getSpellData());
 	}

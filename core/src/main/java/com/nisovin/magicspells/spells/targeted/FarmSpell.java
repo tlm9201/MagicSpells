@@ -57,7 +57,7 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 			data = info.spellData();
 		} else {
 			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, data.caster().getLocation().subtract(0, 1, 0));
-			if (!event.callEvent()) return noTarget(data);
+			if (!event.callEvent()) return noTarget(event);
 			data = event.getSpellData();
 		}
 

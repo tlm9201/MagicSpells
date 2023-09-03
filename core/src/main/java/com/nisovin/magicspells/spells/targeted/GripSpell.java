@@ -37,7 +37,7 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@Override
 	public CastResult cast(SpellData data) {
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
-		if (info.noTarget()) return noTarget(data);
+		if (info.noTarget()) return noTarget(info);
 
 		return castAtEntityFromLocation(info.spellData().location(data.caster().getLocation()));
 	}

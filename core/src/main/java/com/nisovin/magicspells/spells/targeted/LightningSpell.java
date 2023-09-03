@@ -74,7 +74,7 @@ public class LightningSpell extends TargetedSpell implements TargetedLocationSpe
 		}
 
 		TargetInfo<Location> info = getTargetedBlockLocation(data);
-		if (info.noTarget()) return noTarget(data);
+		if (info.noTarget()) return noTarget(info);
 
 		return castAtLocation(info.spellData());
 	}

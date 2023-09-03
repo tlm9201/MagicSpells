@@ -42,7 +42,7 @@ public class CreatureTargetSpell extends InstantSpell {
 		if (target == null || !target.isValid()) return noTarget(data);
 
 		SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, target);
-		if (!targetEvent.callEvent()) return noTarget(targetEvent.getSpellData());
+		if (!targetEvent.callEvent()) return noTarget(targetEvent);
 		data = targetEvent.getSpellData();
 
 		if (targetSpell != null) targetSpell.subcast(data);

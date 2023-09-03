@@ -142,7 +142,7 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 	public CastResult cast(SpellData data) {
 		if (pointBlank.get(data)) {
 			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
-			if (!event.callEvent()) return noTarget(data);
+			if (!event.callEvent()) return noTarget(event);
 			data = event.getSpellData();
 		} else {
 			TargetInfo<Location> info = getTargetedBlockLocation(data);

@@ -218,11 +218,11 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				data = info.spellData();
 			} else if (pointBlank.get(data)) {
 				SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
-				if (!targetEvent.callEvent()) return noTarget(data);
+				if (!targetEvent.callEvent()) return noTarget(targetEvent);
 				data = targetEvent.getSpellData();
 			} else {
 				TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, yOffset.get(data) + 0.5, 0.5);
-				if (info.noTarget()) return noTarget(data);
+				if (info.noTarget()) return noTarget(info);
 				data = info.spellData();
 			}
 		}

@@ -161,7 +161,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 			data = info.spellData();
 		} else {
 			SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, data.caster());
-			if (!targetEvent.callEvent()) return noTarget(data);
+			if (!targetEvent.callEvent()) return noTarget(targetEvent);
 			data = targetEvent.getSpellData();
 		}
 

@@ -72,7 +72,7 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		Location target = blocks.get(0).getLocation().add(0.5, 0, 0.5);
 		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, target);
-		if (!event.callEvent()) return noTarget(event.getSpellData());
+		if (!event.callEvent()) return noTarget(event);
 
 		return castAtLocation(event.getSpellData());
 	}

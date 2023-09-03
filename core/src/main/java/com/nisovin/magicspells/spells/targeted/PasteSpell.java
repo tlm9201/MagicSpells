@@ -88,7 +88,7 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 	public CastResult cast(SpellData data) {
 		if (pasteAtCaster.get(data)) {
 			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
-			if (!targetEvent.callEvent()) return noTarget(data);
+			if (!targetEvent.callEvent()) return noTarget(targetEvent);
 			data = targetEvent.getSpellData();
 		} else {
 			TargetInfo<Location> info = getTargetedBlockLocation(data);

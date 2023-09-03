@@ -2200,6 +2200,28 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * This should be called if a target should not be found. It sends the no target message
 	 * and returns the appropriate return value.
 	 *
+	 * @param event targeting event that was cancelled
+	 * @return the appropriate PostCastAction value
+	 */
+	protected CastResult noTarget(SpellTargetEvent event) {
+		return noTarget(strNoTarget, event);
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the no target message
+	 * and returns the appropriate return value.
+	 *
+	 * @param event targeting event that was cancelled
+	 * @return the appropriate PostCastAction value
+	 */
+	protected CastResult noTarget(SpellTargetLocationEvent event) {
+		return noTarget(strNoTarget, event);
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the no target message
+	 * and returns the appropriate return value.
+	 *
 	 * @param info targeting info of the spell cast
 	 * @return the appropriate PostCastAction value
 	 */
@@ -2216,6 +2238,32 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	protected CastResult noTarget(SpellData data) {
 		return noTarget(strNoTarget, data);
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the provided message
+	 * and returns the appropriate return value.
+	 *
+	 * @param message the message to send
+	 * @param event   targeting event that was cancelled
+	 * @return the appropriate PostCastAction value
+	 */
+	protected CastResult noTarget(String message, SpellTargetEvent event) {
+		if (event.isCastCancelled()) return new CastResult(PostCastAction.ALREADY_HANDLED, event.getSpellData());
+		return noTarget(message, event.getSpellData());
+	}
+
+	/**
+	 * This should be called if a target should not be found. It sends the provided message
+	 * and returns the appropriate return value.
+	 *
+	 * @param message the message to send
+	 * @param event   targeting event that was cancelled
+	 * @return the appropriate PostCastAction value
+	 */
+	protected CastResult noTarget(String message, SpellTargetLocationEvent event) {
+		if (event.isCastCancelled()) return new CastResult(PostCastAction.ALREADY_HANDLED, event.getSpellData());
+		return noTarget(message, event.getSpellData());
 	}
 
 	/**

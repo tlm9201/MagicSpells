@@ -88,12 +88,12 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	public CastResult cast(SpellData data) {
 		if (targetSelf.get(data)) {
 			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
-			if (!event.callEvent()) return noTarget(data);
+			if (!event.callEvent()) return noTarget(event);
 
 			data = event.getSpellData();
 		} else {
-			TargetInfo<Location> info = getTargetedBlockLocation(data);
-			if (info.noTarget() || info.target().getBlock().getType().isAir()) return noTarget(data);
+			TargetInfo<Location> info = getTargetedBlockLocation(data, false);
+			if (info.noTarget()) return noTarget(info);
 
 			data = info.spellData();
 		}

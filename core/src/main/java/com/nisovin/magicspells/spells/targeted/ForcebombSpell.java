@@ -44,7 +44,7 @@ public class ForcebombSpell extends TargetedSpell implements TargetedLocationSpe
 	@Override
 	public CastResult cast(SpellData data) {
 		TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 0, 0.5, false);
-		if (info.noTarget()) return noTarget(data);
+		if (info.noTarget()) return noTarget(info);
 
 		return castAtLocation(info.spellData());
 	}

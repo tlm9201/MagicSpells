@@ -273,13 +273,13 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			location.setPitch(0);
 
 			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, location);
-			if (!targetEvent.callEvent()) return noTarget(data);
+			if (!targetEvent.callEvent()) return noTarget(targetEvent);
 			data = targetEvent.getSpellData();
 		} else {
 			switch (spawnLocation) {
 				case "caster" -> {
 					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
-					if (!targetEvent.callEvent()) return noTarget(data);
+					if (!targetEvent.callEvent()) return noTarget(targetEvent);
 					data = targetEvent.getSpellData();
 				}
 				case "target" -> {
@@ -293,12 +293,12 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 					}
 
 					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, block.getLocation());
-					if (!targetEvent.callEvent()) return noTarget(data);
+					if (!targetEvent.callEvent()) return noTarget(targetEvent);
 					data = targetEvent.getSpellData();
 				}
 				case "focus" -> {
 					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, getRandomLocationFrom(data.caster().getLocation(), data, 3));
-					if (!targetEvent.callEvent()) return noTarget(data);
+					if (!targetEvent.callEvent()) return noTarget(targetEvent);
 					data = targetEvent.getSpellData();
 
 					TargetInfo<LivingEntity> info = getTargetedEntity(data);
@@ -307,7 +307,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				}
 				case "random" -> {
 					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, getRandomLocationFrom(data.caster().getLocation(), data, getRange(data)));
-					if (!targetEvent.callEvent()) return noTarget(data);
+					if (!targetEvent.callEvent()) return noTarget(targetEvent);
 					data = targetEvent.getSpellData();
 				}
 				default -> {

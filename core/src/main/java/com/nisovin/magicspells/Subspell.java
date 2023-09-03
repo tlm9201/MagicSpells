@@ -395,7 +395,7 @@ public class Subspell {
 				data = castEvent.getSpellData();
 
 				SpellTargetEvent targetEvent = new SpellTargetEvent(spell, data);
-				if (!targetEvent.callEvent()) yield spell.noTarget(targetEvent.getSpellData());
+				if (!targetEvent.callEvent()) yield spell.noTarget(targetEvent);
 
 				data = targetEvent.getSpellData();
 
@@ -415,7 +415,7 @@ public class Subspell {
 					yield new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 				SpellTargetEvent targetEvent = new SpellTargetEvent(spell, data);
-				if (!targetEvent.callEvent()) yield spell.noTarget(targetEvent.getSpellData());
+				if (!targetEvent.callEvent()) yield spell.noTarget(targetEvent);
 
 				data = targetEvent.getSpellData();
 
@@ -472,7 +472,7 @@ public class Subspell {
 				data = castEvent.getSpellData();
 
 				SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(spell, data);
-				if (!targetEvent.callEvent()) yield spell.noTarget(targetEvent.getSpellData());
+				if (!targetEvent.callEvent()) yield spell.noTarget(targetEvent);
 
 				data = targetEvent.getSpellData();
 
@@ -492,7 +492,7 @@ public class Subspell {
 					yield new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 				SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(spell, data);
-				if (!targetEvent.callEvent()) yield spell.noTarget(targetEvent.getSpellData());
+				if (!targetEvent.callEvent()) yield spell.noTarget(targetEvent);
 
 				data = targetEvent.getSpellData();
 
@@ -559,12 +559,12 @@ public class Subspell {
 				data = castEvent.getSpellData();
 
 				SpellTargetEvent targetEntityEvent = new SpellTargetEvent(spell, data);
-				if (!targetEntityEvent.callEvent()) yield spell.noTarget(targetEntityEvent.getSpellData());
+				if (!targetEntityEvent.callEvent()) yield spell.noTarget(targetEntityEvent);
 
 				data = targetEntityEvent.getSpellData();
 
 				SpellTargetLocationEvent targetLocationEvent = new SpellTargetLocationEvent(spell, data);
-				if (!targetLocationEvent.callEvent()) yield spell.noTarget(targetLocationEvent.getSpellData());
+				if (!targetLocationEvent.callEvent()) yield spell.noTarget(targetLocationEvent);
 
 				data = targetLocationEvent.getSpellData();
 
@@ -584,12 +584,12 @@ public class Subspell {
 					yield new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 				SpellTargetEvent targetEntityEvent = new SpellTargetEvent(spell, data);
-				if (!targetEntityEvent.callEvent()) yield spell.noTarget(targetEntityEvent.getSpellData());
+				if (!targetEntityEvent.callEvent()) yield spell.noTarget(targetEntityEvent);
 
 				data = targetEntityEvent.getSpellData();
 
 				SpellTargetLocationEvent targetLocationEvent = new SpellTargetLocationEvent(spell, data);
-				if (!targetLocationEvent.callEvent()) yield spell.noTarget(targetLocationEvent.getSpellData());
+				if (!targetLocationEvent.callEvent()) yield spell.noTarget(targetLocationEvent);
 
 				data = targetLocationEvent.getSpellData();
 

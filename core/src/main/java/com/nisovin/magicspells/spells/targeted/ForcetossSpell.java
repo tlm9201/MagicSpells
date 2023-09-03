@@ -43,7 +43,7 @@ public class ForcetossSpell extends TargetedSpell implements TargetedEntitySpell
 	@Override
 	public CastResult cast(SpellData data) {
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
-		if (info.noTarget()) return noTarget(data);
+		if (info.noTarget()) return noTarget(info);
 
 		return castAtEntity(info.spellData());
 	}

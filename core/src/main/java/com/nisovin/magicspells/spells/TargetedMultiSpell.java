@@ -75,7 +75,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 
 		if (pointBlank.get(data)) {
 			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
-			if (!targetEvent.callEvent()) return noTarget(data);
+			if (!targetEvent.callEvent()) return noTarget(targetEvent);
 
 			return runSpells(targetEvent.getSpellData());
 		}

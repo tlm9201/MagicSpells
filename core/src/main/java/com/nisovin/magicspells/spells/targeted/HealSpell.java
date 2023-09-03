@@ -39,7 +39,7 @@ public class HealSpell extends TargetedSpell implements TargetedEntitySpell {
 	public CastResult cast(SpellData data) {
 		ValidTargetChecker checker = ignoreIfFull.get(data) ? e -> e.getHealth() < Util.getMaxHealth(e) : null;
 		TargetInfo<LivingEntity> info = getTargetedEntity(data, checker);
-		if (info.noTarget()) return noTarget(data);
+		if (info.noTarget()) return noTarget(info);
 
 		return castAtEntity(info.spellData());
 	}

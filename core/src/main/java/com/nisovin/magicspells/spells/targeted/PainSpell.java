@@ -46,7 +46,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public CastResult cast(SpellData data) {
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
-		if (info.noTarget()) return noTarget(data);
+		if (info.noTarget()) return noTarget(info);
 
 		if (data.caster() instanceof Player caster)
 			return CompatBasics.exemptAction(() -> castAtEntity(info.spellData()), caster, CompatBasics.activeExemptionAssistant.getPainExemptions());
