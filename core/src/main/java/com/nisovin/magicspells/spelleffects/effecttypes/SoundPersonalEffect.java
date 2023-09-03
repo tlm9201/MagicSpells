@@ -17,6 +17,7 @@ public class SoundPersonalEffect extends SoundEffect {
 	private ConfigData<SoundTarget> target;
 
 	private ConfigData<Boolean> broadcast;
+	private ConfigData<Boolean> useListenerAsTarget;
 	private ConfigData<Boolean> useListenerAsDefault;
 	private ConfigData<Boolean> resolveSoundPerPlayer;
 	private ConfigData<Boolean> resolvePitchPerPlayer;
@@ -30,6 +31,7 @@ public class SoundPersonalEffect extends SoundEffect {
 		target = ConfigDataUtil.getEnum(config, "target", SoundTarget.class, SoundTarget.POSITION);
 
 		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
+		useListenerAsTarget = ConfigDataUtil.getBoolean(config, "use-listener-as-target", false);
 		useListenerAsDefault = ConfigDataUtil.getBoolean(config, "use-listener-as-default", true);
 		resolveSoundPerPlayer = ConfigDataUtil.getBoolean(config, "resolve-sound-per-player", false);
 		resolvePitchPerPlayer = ConfigDataUtil.getBoolean(config, "resolve-pitch-per-player", false);
@@ -46,7 +48,9 @@ public class SoundPersonalEffect extends SoundEffect {
 
 		Player target = getTarget(entity, data);
 		if (target != null) {
+			if (useListenerAsTarget.get(data)) data = data.target(target);
 			if (useListenerAsDefault.get(data)) data = data.recipient(target);
+
 			target.playSound(applyOffsets(entity.getLocation(), data), sound.get(data), category.get(data), volume.get(data), pitch.get(data));
 		}
 
@@ -62,7 +66,9 @@ public class SoundPersonalEffect extends SoundEffect {
 
 		Player target = getTarget(null, data);
 		if (target != null) {
-			if (useListenerAsDefault.get(data)) data = data.target(target);
+			if (useListenerAsTarget.get(data)) data = data.target(target);
+			if (useListenerAsDefault.get(data)) data = data.recipient(target);
+
 			target.playSound(location, sound.get(data), category.get(data), volume.get(data), pitch.get(data));
 		}
 
@@ -84,6 +90,7 @@ public class SoundPersonalEffect extends SoundEffect {
 	}
 
 	private void broadcast(SpellData data) {
+		boolean useListenerAsTarget = this.useListenerAsTarget.get(data);
 		boolean useListenerAsDefault = this.useListenerAsDefault.get(data);
 		boolean resolvePitchPerPlayer = this.resolvePitchPerPlayer.get(data);
 		boolean resolveVolumePerPlayer = this.resolveVolumePerPlayer.get(data);
@@ -96,6 +103,7 @@ public class SoundPersonalEffect extends SoundEffect {
 		SoundCategory category = resolveCategoryPerPlayer ? null : this.category.get(data);
 
 		for (Player player : Bukkit.getOnlinePlayers()) {
+			if (useListenerAsTarget) data = data.target(player);
 			if (useListenerAsDefault) data = data.recipient(player);
 
 			if (resolveSoundPerPlayer) sound = this.sound.get(data);

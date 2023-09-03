@@ -30,6 +30,7 @@ public class BossBarEffect extends SpellEffect {
 	private ConfigData<Boolean> remove;
 	private ConfigData<Boolean> visible;
 	private ConfigData<Boolean> broadcast;
+	private ConfigData<Boolean> useViewerAsTarget;
 	private ConfigData<Boolean> useViewerAsDefault;
 
 	private ConfigData<Integer> duration;
@@ -55,6 +56,7 @@ public class BossBarEffect extends SpellEffect {
 		remove = ConfigDataUtil.getBoolean(config, "remove", false);
 		visible = ConfigDataUtil.getBoolean(config, "visible", true);
 		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
+		useViewerAsTarget = ConfigDataUtil.getBoolean(config, "use-viewer-as-target", false);
 		useViewerAsDefault = ConfigDataUtil.getBoolean(config, "use-viewer-as-default", true);
 
 		duration = ConfigDataUtil.getInteger(config, "duration", 60);
@@ -71,18 +73,28 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
+		boolean useViewerAsTarget = this.useViewerAsTarget.get(data);
 		boolean useViewerAsDefault = this.useViewerAsDefault.get(data);
 
 		if (broadcast.get(data)) {
 			Util.forEachPlayerOnline(player -> {
-				SpellData subData = useViewerAsDefault ? data.recipient(player) : data;
+				SpellData subData = data;
+				if (useViewerAsTarget) subData = subData.target(player);
+				if (useViewerAsDefault) subData = subData.recipient(player);
+
 				updateBar(player, subData);
 			});
 
 			return null;
 		}
 
-		if (entity instanceof Player player) updateBar(player, useViewerAsDefault ? data.recipient(player) : data);
+		if (entity instanceof Player player) {
+			SpellData subData = data;
+			if (useViewerAsTarget) subData = subData.target(player);
+			if (useViewerAsDefault) subData = subData.recipient(player);
+
+			updateBar(player, subData);
+		}
 
 		return null;
 	}
