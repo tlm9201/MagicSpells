@@ -192,7 +192,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	@Deprecated
 	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		return castBuff(new SpellData(null, entity, power, args));
+		return false;
 	}
 
 	@Deprecated
@@ -202,12 +202,11 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	public boolean castBuff(SpellData data) {
-		return false;
+		return castBuff(data.target(), data.power(), data.args());
 	}
 
 	public boolean recastBuff(SpellData data) {
-		stopEffects(data.target());
-		return true;
+		return recastBuff(data.target(), data.power(), data.args());
 	}
 
 	public void setAsEverlasting() {
