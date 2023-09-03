@@ -71,7 +71,7 @@ public class ReachSpell extends BuffSpell {
 	@Override
 	public boolean castBuff(SpellData data) {
 		if (!(data.target() instanceof Player target)) return false;
-		players.put(target.getUniqueId(), new ReachData(data.builder().caster(data.target()).target(null).build(), dropBlocks.get(data), consumeBlocks.get(data)));
+		players.put(target.getUniqueId(), new ReachData(data, dropBlocks.get(data), consumeBlocks.get(data)));
 		return true;
 	}
 

@@ -65,7 +65,7 @@ public class DataCondition extends OperatorCondition {
 	private boolean data(LivingEntity caster, LivingEntity target) {
 		if (dataElement == null) return false;
 
-		String localCompare = doReplacement ? MagicSpells.doReplacements(compare, new SpellData(caster, target, 1f, null)) : compare;
+		String localCompare = doReplacement ? MagicSpells.doReplacements(compare, caster, new SpellData(caster, target)) : compare;
 
 		String data = dataElement.apply(target);
 		try {

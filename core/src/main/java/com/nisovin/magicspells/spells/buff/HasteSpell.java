@@ -169,7 +169,7 @@ public class HasteSpell extends BuffSpell {
 		private int task;
 
 		private HasteData(SpellData data) {
-			this.data = data.builder().caster(data.caster()).target(data.target()).build();
+			this.data = data;
 
 			int strength = HasteSpell.this.strength.get(data);
 			if (powerAffectsStrength.get(data)) strength = Math.round(strength * data.power());

@@ -8,32 +8,42 @@ import java.util.Objects;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
-public record SpellData(LivingEntity caster, LivingEntity target, Location location, float power, String[] args) {
+public record SpellData(LivingEntity caster, LivingEntity target, Location location, LivingEntity recipient,
+						float power, String[] args) {
 
 	public static final SpellData NULL = new SpellData(null, null, null, 1f, null);
 
-	public SpellData(LivingEntity caster, LivingEntity target, Location location, float power, String[] args) {
+	public SpellData(LivingEntity caster, LivingEntity target, Location location, LivingEntity recipient, float power, String[] args) {
 		this.caster = caster;
 		this.target = target;
 		this.location = location == null ? null : location.clone();
+		this.recipient = recipient;
 		this.power = power;
 		this.args = args;
 	}
 
+	public SpellData(LivingEntity caster, LivingEntity target, Location location, float power, String[] args) {
+		this(caster, target, location, null, power, args);
+	}
+
 	public SpellData(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		this(caster, target, null, power, args);
+		this(caster, target, null, null, power, args);
 	}
 
 	public SpellData(LivingEntity caster, Location location, float power, String[] args) {
-		this(caster, null, location, power, args);
+		this(caster, null, location, null, power, args);
+	}
+
+	public SpellData(LivingEntity caster, LivingEntity target) {
+		this(caster, target, null, null, 1f, null);
 	}
 
 	public SpellData(LivingEntity caster, float power, String[] args) {
-		this(caster, null, null, power, args);
+		this(caster, null, null, null, power, args);
 	}
 
 	public SpellData(LivingEntity caster) {
-		this(caster, null, null, 1f, null);
+		this(caster, null, null, null, 1f, null);
 	}
 
 	public Builder builder() {
@@ -47,7 +57,7 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 		if (this.caster != null) target = this.caster;
 		if (this.target != null) caster = this.target;
 
-		return Objects.equals(caster, this.caster) && Objects.equals(target, this.target) ? this : new SpellData(caster, target, location, power, args);
+		return Objects.equals(caster, this.caster) && Objects.equals(target, this.target) ? this : new SpellData(caster, target, location, recipient, power, args);
 	}
 
 	@Override
@@ -56,42 +66,51 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 		return location == null ? null : location.clone();
 	}
 
+	@Override
+	public LivingEntity recipient() {
+		return recipient == null ? caster : recipient;
+	}
+
 	public SpellData retarget(LivingEntity target, Location location) {
 		return Objects.equals(this.target, target) && Objects.equals(this.location, location) ? this :
-			new SpellData(caster, target, location, power, args);
+			new SpellData(caster, target, location, recipient, power, args);
 	}
 
 	public SpellData caster(LivingEntity caster) {
-		return Objects.equals(this.caster, caster) ? this : new SpellData(caster, target, location, power, args);
+		return Objects.equals(this.caster, caster) ? this : new SpellData(caster, target, location, recipient, power, args);
 	}
 
 	public SpellData target(LivingEntity target) {
-		return Objects.equals(this.target, target) ? this : new SpellData(caster, target, location, power, args);
+		return Objects.equals(this.target, target) ? this : new SpellData(caster, target, location, recipient, power, args);
 	}
 
 	public SpellData location(Location location) {
 		return Objects.equals(this.location, location) ? this :
-			new SpellData(caster, target, location == null ? null : location.clone(), power, args);
+			new SpellData(caster, target, location == null ? null : location.clone(), recipient, power, args);
+	}
+
+	public SpellData recipient(LivingEntity recipient) {
+		return Objects.equals(this.recipient, recipient) ? this : new SpellData(caster, target, location, recipient, power, args);
 	}
 
 	public SpellData power(float power) {
-		return this.power == power ? this : new SpellData(caster, target, location, power, args);
+		return this.power == power ? this : new SpellData(caster, target, location, recipient, power, args);
 	}
 
 	public SpellData args(String[] args) {
-		return Arrays.equals(this.args, args) ? this : new SpellData(caster, target, location, power, args);
+		return Arrays.equals(this.args, args) ? this : new SpellData(caster, target, location, recipient, power, args);
 	}
 
 	public SpellData noTargeting() {
-		return target == null && location == null ? this : new SpellData(caster, power, args);
+		return target == null && location == null ? this : new SpellData(caster, null, null, recipient, power, args);
 	}
 
 	public SpellData noTarget() {
-		return target == null ? this : new SpellData(caster, location, power, args);
+		return target == null ? this : new SpellData(caster, null, location, recipient, power, args);
 	}
 
 	public SpellData noLocation() {
-		return location == null ? this : new SpellData(caster, target, power, args);
+		return location == null ? this : new SpellData(caster, target, null, recipient, power, args);
 	}
 
 	public boolean hasCaster() {
@@ -113,6 +132,7 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 	public static class Builder {
 
 		private LivingEntity caster;
+		private LivingEntity recipient;
 		private LivingEntity target;
 		private Location location;
 		private float power;
@@ -126,6 +146,7 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 			caster = data.caster;
 			target = data.target;
 			location = data.location;
+			recipient = data.recipient;
 			power = data.power;
 			args = data.args;
 		}
@@ -145,6 +166,11 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 			return this;
 		}
 
+		public Builder recipient(LivingEntity recipient) {
+			this.recipient = recipient;
+			return this;
+		}
+
 		public Builder power(float power) {
 			this.power = power;
 			return this;
@@ -156,7 +182,7 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 		}
 
 		public SpellData build() {
-			return new SpellData(caster, target, location, power, args);
+			return new SpellData(caster, target, location, recipient, power, args);
 		}
 
 	}

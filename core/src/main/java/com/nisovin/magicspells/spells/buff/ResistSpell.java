@@ -76,7 +76,7 @@ public class ResistSpell extends BuffSpell {
 			}
 		}
 
-		entities.put(data.target().getUniqueId(), new ResistData(data.builder().caster(data.target()).target(null).build(), multiplier, constantMultiplier));
+		entities.put(data.target().getUniqueId(), new ResistData(data, multiplier, constantMultiplier));
 		return true;
 	}
 

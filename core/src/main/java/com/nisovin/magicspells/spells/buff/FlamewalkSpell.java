@@ -65,7 +65,7 @@ public class FlamewalkSpell extends BuffSpell {
 		}
 
 		entities.put(data.target().getUniqueId(), new FlamewalkData(
-			data.builder().caster(data.target()).target(null).build(),
+			data,
 			checkPlugins.get(data),
 			constantRadius ? radius.get(data) : 0,
 			constantRadius,

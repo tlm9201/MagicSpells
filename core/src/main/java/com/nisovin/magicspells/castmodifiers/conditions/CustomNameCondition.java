@@ -39,7 +39,7 @@ public class CustomNameCondition extends Condition {
 	}
 
 	private boolean checkName(LivingEntity caster, LivingEntity target) {
-		String checkedName = requireReplacement ? MagicSpells.doReplacements(name, new SpellData(caster, target, 1f, null)) : name;
+		String checkedName = requireReplacement ? MagicSpells.doReplacements(name, caster, new SpellData(caster, target)) : name;
 		return target.customName() != null && Util.getMiniMessage(checkedName).equals(target.customName());
 	}
 

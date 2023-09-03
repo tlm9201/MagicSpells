@@ -93,7 +93,7 @@ public class WindglideSpell extends BuffSpell {
 		double velocity = constantVelocity ? this.velocity.get(data) : 0;
 
 		entities.put(data.target().getUniqueId(), new GlideData(
-			data.builder().caster(data.target()).target(null).build(),
+			data,
 			velocity,
 			height,
 			constantVelocity,
@@ -153,7 +153,11 @@ public class WindglideSpell extends BuffSpell {
 
 		if (data.blockCollisionDmg) e.setCancelled(true);
 		if (data.cancelOnCollision) turnOff(entity);
-		if (collisionSpell != null) collisionSpell.subcast(data.spellData.location(entity.getLocation()));
+
+		if (collisionSpell != null) {
+			SpellData castData = data.spellData.builder().caster(entity).target(null).location(entity.getLocation()).build();
+			collisionSpell.subcast(castData);
+		}
 	}
 
 	public Subspell getGlideSpell() {
@@ -207,7 +211,11 @@ public class WindglideSpell extends BuffSpell {
 				v.setY(v.getY() + height);
 				entity.setVelocity(v);
 
-				if (glideSpell != null) glideSpell.subcast(subData);
+				if (glideSpell != null) {
+					SpellData castData = subData.builder().caster(caster).target(null).recipient(null).build();
+					glideSpell.subcast(castData);
+				}
+
 				playSpellEffects(EffectPosition.SPECIAL, location, subData);
 
 				addUseAndChargeCost(caster);

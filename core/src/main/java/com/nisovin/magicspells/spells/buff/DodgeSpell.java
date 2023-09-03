@@ -73,8 +73,7 @@ public class DodgeSpell extends BuffSpell {
 	@Override
 	public boolean castBuff(SpellData data) {
 		boolean constantDistance = this.constantDistance.get(data);
-		SpellData subData = data.builder().caster(data.target()).target(null).build();
-		entities.put(data.target().getUniqueId(), new DodgeData(subData, constantDistance ? distance.get(data) : 0, constantDistance));
+		entities.put(data.target().getUniqueId(), new DodgeData(data, constantDistance ? distance.get(data) : 0, constantDistance));
 
 		return true;
 	}
@@ -135,7 +134,10 @@ public class DodgeSpell extends BuffSpell {
 		targetLoc.add(v);
 		targetLoc.setDirection(caster.getLocation().getDirection());
 
-		if (spellBeforeDodge != null) spellBeforeDodge.subcast(subData.builder().target(null).location(casterLoc).build());
+		if (spellBeforeDodge != null) {
+			SpellData castData = subData.builder().caster(caster).target(null).location(casterLoc).recipient(null).build();
+			spellBeforeDodge.subcast(castData);
+		}
 
 		if (!BlockUtils.isPathable(targetLoc.getBlock().getType()) || !BlockUtils.isPathable(targetLoc.getBlock().getRelative(BlockFace.UP))) return;
 		caster.teleportAsync(targetLoc);
@@ -144,7 +146,10 @@ public class DodgeSpell extends BuffSpell {
 		playSpellEffectsTrail(casterLoc, targetLoc, subData);
 		playSpellEffects(EffectPosition.DELAYED, targetLoc, subData);
 
-		if (spellAfterDodge != null) spellAfterDodge.subcast(subData.builder().target(null).location(targetLoc).build());
+		if (spellAfterDodge != null) {
+			SpellData castData = subData.builder().caster(caster).target(null).location(targetLoc).recipient(null).build();
+			spellAfterDodge.subcast(castData);
+		}
 	}
 
 	public Map<UUID, DodgeData> getEntities() {

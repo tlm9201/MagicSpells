@@ -30,7 +30,7 @@ public class BossBarEffect extends SpellEffect {
 	private ConfigData<Boolean> remove;
 	private ConfigData<Boolean> visible;
 	private ConfigData<Boolean> broadcast;
-	private ConfigData<Boolean> useViewerAsTarget;
+	private ConfigData<Boolean> useViewerAsDefault;
 
 	private ConfigData<Integer> duration;
 
@@ -55,7 +55,7 @@ public class BossBarEffect extends SpellEffect {
 		remove = ConfigDataUtil.getBoolean(config, "remove", false);
 		visible = ConfigDataUtil.getBoolean(config, "visible", true);
 		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
-		useViewerAsTarget = ConfigDataUtil.getBoolean(config, "use-viewer-as-target", false);
+		useViewerAsDefault = ConfigDataUtil.getBoolean(config, "use-viewer-as-default", true);
 
 		duration = ConfigDataUtil.getInteger(config, "duration", 60);
 
@@ -71,18 +71,18 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
-		boolean useViewerAsTarget = this.useViewerAsTarget.get(data);
+		boolean useViewerAsDefault = this.useViewerAsDefault.get(data);
 
 		if (broadcast.get(data)) {
 			Util.forEachPlayerOnline(player -> {
-				SpellData subData = useViewerAsTarget ? data.target(player) : data;
+				SpellData subData = useViewerAsDefault ? data.recipient(player) : data;
 				updateBar(player, subData);
 			});
 
 			return null;
 		}
 
-		if (entity instanceof Player player) updateBar(player, useViewerAsTarget ? data.target(player) : data);
+		if (entity instanceof Player player) updateBar(player, useViewerAsDefault ? data.recipient(player) : data);
 
 		return null;
 	}
@@ -122,7 +122,7 @@ public class BossBarEffect extends SpellEffect {
 
 		progress = Math.min(Math.max(progress, 0), 1);
 
-		String title = Util.doVarReplacementAndColorize(player, this.title);
+		String title = Util.getLegacyFromComponent(Util.getMiniMessage(this.title, player, data));
 		bar.set(title, progress, barStyle.get(data), barColor.get(data), visible.get(data));
 
 		int duration = this.duration.get(data);

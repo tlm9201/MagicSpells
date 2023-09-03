@@ -59,7 +59,7 @@ public class ReflectSpell extends BuffSpell {
 		}
 
 		reflectors.put(data.target().getUniqueId(), new ReflectData(
-			data.builder().caster(data.target()).target(null).build(),
+			data,
 			reflectedSpellPowerMultiplier,
 			constantReflectedSpellPowerMultiplier,
 			delayedReflectionSpellsUsePayloadShieldBreaker.get(data)

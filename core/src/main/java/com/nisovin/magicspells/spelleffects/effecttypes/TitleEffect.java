@@ -22,7 +22,7 @@ public class TitleEffect extends SpellEffect {
 	private String subtitle;
 	private ConfigData<Title.Times> times;
 	private ConfigData<Boolean> broadcast;
-	private ConfigData<Boolean> useViewerAsTarget;
+	private ConfigData<Boolean> useViewerAsDefault;
 
 	private static Duration millisOfTicks(int ticks) {
 		return Duration.ofMillis(TimeUtil.MILLISECONDS_PER_SECOND * (ticks / TimeUtil.TICKS_PER_SECOND));
@@ -53,7 +53,7 @@ public class TitleEffect extends SpellEffect {
 		}
 
 		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
-		useViewerAsTarget = ConfigDataUtil.getBoolean(config, "use-viewer-as-target", false);
+		useViewerAsDefault = ConfigDataUtil.getBoolean(config, "use-viewer-as-default", true);
 	}
 
 	@Override
@@ -64,10 +64,11 @@ public class TitleEffect extends SpellEffect {
 	}
 
 	private void send(Player player, SpellData data) {
-		if (useViewerAsTarget.get(data)) data = data.target(player);
+		boolean useViewerAsDefault = this.useViewerAsDefault.get(data);
+		if (useViewerAsDefault) data = data.recipient(player);
 
-		Component titleComponent = Util.getMiniMessage(title, player, data);
-		Component subtitleComponent = Util.getMiniMessage(subtitle, player, data);
+		Component titleComponent = Util.getMiniMessage(title, data.recipient(), data);
+		Component subtitleComponent = Util.getMiniMessage(subtitle, data.recipient(), data);
 		player.showTitle(Title.title(titleComponent, subtitleComponent, times.get(data)));
 	}
 

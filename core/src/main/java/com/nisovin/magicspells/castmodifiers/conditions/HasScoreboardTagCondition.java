@@ -38,7 +38,7 @@ public class HasScoreboardTagCondition extends Condition {
     }
 
     private boolean checkTags(LivingEntity caster, LivingEntity target) {
-        String localTag = doReplacement ? MagicSpells.doReplacements(tag, new SpellData(caster, target, 1f, null)) : tag;
+        String localTag = doReplacement ? MagicSpells.doReplacements(tag, caster, new SpellData(caster, target)) : tag;
         return target.getScoreboardTags().contains(localTag);
     }
 

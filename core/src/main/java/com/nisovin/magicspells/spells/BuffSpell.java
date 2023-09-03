@@ -179,7 +179,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		boolean casted = active ? recastBuff(data) : castBuff(data);
+		SpellData recipientData = data.recipient(data.target());
+		boolean casted = active ? recastBuff(recipientData) : castBuff(recipientData);
 		if (!casted) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		startSpellDuration(data);

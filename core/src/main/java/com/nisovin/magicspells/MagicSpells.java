@@ -1508,7 +1508,7 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	public static String doReplacements(String message, SpellData data, String... replacements) {
-        return doReplacements(message, data.caster(), data, replacements);
+        return doReplacements(message, data.recipient(), data, replacements);
 	}
 
 	/**

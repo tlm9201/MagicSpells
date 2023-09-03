@@ -53,7 +53,7 @@ public class SeeHealthSpell extends BuffSpell {
 		String symbol = constantSymbol ? this.symbol.get(data) : null;
 		int barSize = constantBarSize ? this.barSize.get(data) : 0;
 
-		players.put(target.getUniqueId(), new SeeHealthData(data.builder().caster(target).target(null).build(), barSize, symbol, constantBarSize, constantSymbol));
+		players.put(target.getUniqueId(), new SeeHealthData(data, barSize, symbol, constantBarSize, constantSymbol));
 
 		return true;
 	}

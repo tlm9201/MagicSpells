@@ -246,7 +246,6 @@ public class MinionSpell extends BuffSpell {
 
 		if (creatureType == null) return false;
 
-
 		// Spawn location
 		Location loc = target.getLocation().clone();
 		Vector spawnOffset = this.spawnOffset.get(data);
@@ -270,7 +269,7 @@ public class MinionSpell extends BuffSpell {
 		}
 
 		minion.setGravity(gravity.get(data));
-		minion.customName(Util.getMiniMessage(MagicSpells.doReplacements(minionName, data, "%c", target.getName())));
+		minion.customName(Util.getMiniMessage(MagicSpells.doReplacements(minionName, target, data, "%c", target.getName())));
 		minion.setCustomNameVisible(true);
 
 		double powerHealthFactor = this.powerHealthFactor.get(data);
@@ -284,7 +283,10 @@ public class MinionSpell extends BuffSpell {
 			minion.setHealth(health);
 		}
 
-		if (spawnSpell != null) spawnSpell.subcast(data.builder().caster(target).target(minion).location(minion.getLocation()).build());
+		if (spawnSpell != null) {
+			SpellData castData = data.builder().caster(target).target(minion).location(minion.getLocation()).recipient(null).build();
+			spawnSpell.subcast(castData);
+		}
 
 		// Apply potion effects
 		if (potionEffects != null) minion.addPotionEffects(potionEffects);

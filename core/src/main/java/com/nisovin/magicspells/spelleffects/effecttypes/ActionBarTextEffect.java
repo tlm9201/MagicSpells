@@ -6,29 +6,31 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class ActionBarTextEffect extends SpellEffect {
 
 	private String message;
 
-	private boolean broadcast;
+	private ConfigData<Boolean> broadcast;
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
 		message = config.getString("message", "");
-		broadcast = config.getBoolean("broadcast", false);
+		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
 	}
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
-		if (broadcast) Util.forEachPlayerOnline(p -> send(p, data.args()));
-		else if (entity instanceof Player p) send(p, data.args());
+		if (broadcast.get(data)) Util.forEachPlayerOnline(p -> send(p, data));
+		else if (entity instanceof Player p) send(p, data);
 		return null;
 	}
 
-	private void send(Player player, String[] args) {
-		player.sendActionBar(Util.getMiniMessageWithArgsAndVars(player, message, args));
+	private void send(Player player, SpellData data) {
+		player.sendActionBar(Util.getMiniMessage(message, player, data));
 	}
 
 }
