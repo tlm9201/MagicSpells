@@ -166,9 +166,11 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 				}
 			}
 
-			return owner.equalsIgnoreCase("targetvar") ?
-				new TargetVariableData(variable, places) :
-				new CasterVariableData(variable, places);
+			return switch (owner.toLowerCase()) {
+				case "castervar" -> new CasterVariableData(variable, places);
+				case "targetvar" -> new TargetVariableData(variable, places);
+				default -> new DefaultVariableData(variable, places);
+			};
 		}
 
 		if (matcher.group(5) != null) {
@@ -206,9 +208,11 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			String owner = matcher.group(13);
 			String papiPlaceholder = '%' + matcher.group(14) + '%';
 
-			return owner.equalsIgnoreCase("targetpapi") ?
-				new TargetPAPIData(papiPlaceholder) :
-				new CasterPAPIData(papiPlaceholder);
+			return switch (owner.toLowerCase()) {
+				case "casterpapi" -> new CasterPAPIData(papiPlaceholder);
+				case "targetpapi" -> new CasterPAPIData(papiPlaceholder);
+				default -> new DefaultPAPIData(papiPlaceholder);
+			};
 		}
 
 		if (matcher.group(15) != null) {
@@ -267,6 +271,42 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 					return def;
 				}
 			} else return def;
+		}
+
+		@Override
+		public boolean isConstant() {
+			return false;
+		}
+
+	}
+
+	public static class DefaultVariableData implements ConfigData<Double> {
+
+		private final String variable;
+		private final int places;
+
+		public DefaultVariableData(String variable, int places) {
+			this.variable = variable;
+			this.places = places;
+		}
+
+		@Override
+		public Double get(@NotNull SpellData data) {
+			if (!(data.recipient() instanceof Player player)) return 0d;
+
+			Variable var = MagicSpells.getVariableManager().getVariable(variable);
+			if (var == null) return 0d;
+
+			double value;
+			if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable) {
+				try {
+					value = Double.parseDouble(var.getStringValue(player));
+				} catch (NumberFormatException e) {
+					return 0d;
+				}
+			} else value = var.getValue(player);
+
+			return places >= 0 ? Precision.round(value, places) : value;
 		}
 
 		@Override
@@ -375,6 +415,35 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			} else value = var.getValue(player);
 
 			return places >= 0 ? Precision.round(value, places) : value;
+		}
+
+		@Override
+		public boolean isConstant() {
+			return false;
+		}
+
+	}
+
+	public static class DefaultPAPIData implements ConfigData<Double> {
+
+		private final String papiPlaceholder;
+
+		public DefaultPAPIData(String papiPlaceholder) {
+			this.papiPlaceholder = papiPlaceholder;
+		}
+
+		@Override
+		public Double get(@NotNull SpellData data) {
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.recipient() instanceof Player player))
+				return 0d;
+
+			String value = PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
+
+			try {
+				return Double.parseDouble(value);
+			} catch (NumberFormatException e) {
+				return 0d;
+			}
 		}
 
 		@Override

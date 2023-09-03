@@ -71,9 +71,11 @@ public class StringData implements ConfigData<String> {
 				}
 			}
 
-			return owner.equalsIgnoreCase("targetvar") ?
-				new TargetVariableData(matcher.group(), variable, places) :
-				new CasterVariableData(matcher.group(), variable, places);
+			return switch (owner.toLowerCase()) {
+				case "castervar" -> new CasterVariableData(matcher.group(), variable, places);
+				case "targetvar" -> new TargetVariableData(matcher.group(), variable, places);
+				default -> new DefaultVariableData(matcher.group(), variable, places);
+			};
 		}
 
 		if (matcher.group(5) != null) {
@@ -111,9 +113,11 @@ public class StringData implements ConfigData<String> {
 			String owner = matcher.group(13);
 			String papiPlaceholder = '%' + matcher.group(14) + '%';
 
-			return owner.equalsIgnoreCase("targetpapi") ?
-				new TargetPAPIData(matcher.group(), papiPlaceholder) :
-				new CasterPAPIData(matcher.group(), papiPlaceholder);
+			return switch (owner.toLowerCase()) {
+				case "casterpapi" -> new CasterPAPIData(matcher.group(), papiPlaceholder);
+				case "targetpapi" -> new TargetPAPIData(matcher.group(), papiPlaceholder);
+				default -> new DefaultPAPIData(matcher.group(), papiPlaceholder);
+			};
 		}
 
 		if (matcher.group(15) != null) {
@@ -187,6 +191,37 @@ public class StringData implements ConfigData<String> {
 		@Override
 		public boolean isConstant() {
 			return false;
+		}
+
+	}
+
+	public static class DefaultVariableData extends PlaceholderData {
+
+		private final String variable;
+		private final int places;
+
+		public DefaultVariableData(String placeholder, String variable, int places) {
+			super(placeholder);
+
+			this.variable = variable;
+			this.places = places;
+		}
+
+		@Override
+		public String get(@NotNull SpellData data) {
+			if (!(data.recipient() instanceof Player player)) return placeholder;
+
+			Variable var = MagicSpells.getVariableManager().getVariable(variable);
+			if (var == null) return placeholder;
+
+			if (places >= 0) {
+				if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable)
+					return TxtUtil.getStringNumber(var.getStringValue(player), places);
+
+				return TxtUtil.getStringNumber(var.getValue(player), places);
+			}
+
+			return var.getStringValue(player);
 		}
 
 	}
@@ -280,6 +315,26 @@ public class StringData implements ConfigData<String> {
 			}
 
 			return var.getStringValue(player);
+		}
+
+	}
+
+	public static class DefaultPAPIData extends PlaceholderData {
+
+		private final String papiPlaceholder;
+
+		public DefaultPAPIData(String placeholder, String papiPlaceholder) {
+			super(placeholder);
+
+			this.papiPlaceholder = papiPlaceholder;
+		}
+
+		@Override
+		public String get(@NotNull SpellData data) {
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.recipient() instanceof Player player))
+				return placeholder;
+
+			return PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
 		}
 
 	}
