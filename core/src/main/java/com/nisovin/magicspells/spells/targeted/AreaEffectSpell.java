@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.*;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
@@ -34,6 +35,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	private final ConfigData<Boolean> pointBlank;
 	private final ConfigData<Boolean> circleShape;
 	private final ConfigData<Boolean> useProximity;
+	private final ConfigData<Boolean> ignoreRadius;
 	private final ConfigData<Boolean> passTargeting;
 	private final ConfigData<Boolean> failIfNoTargets;
 	private final ConfigData<Boolean> reverseProximity;
@@ -55,6 +57,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		pointBlank = getConfigDataBoolean("point-blank", true);
 		circleShape = getConfigDataBoolean("circle-shape", false);
 		useProximity = getConfigDataBoolean("use-proximity", false);
+		ignoreRadius = getConfigDataBoolean("ignore-radius", false);
 		passTargeting = getConfigDataBoolean("pass-targeting", false);
 		failIfNoTargets = getConfigDataBoolean("fail-if-no-targets", true);
 		reverseProximity = getConfigDataBoolean("reverse-proximity", false);
@@ -122,6 +125,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		boolean circleShape = this.circleShape.get(data);
 		boolean useProximity = this.useProximity.get(data);
+		boolean ignoreRadius = this.ignoreRadius.get(data);
 		boolean passTargeting = this.passTargeting.get(data);
 		boolean failIfNoTargets = this.failIfNoTargets.get(data);
 		boolean reverseProximity = this.reverseProximity.get(data);
@@ -167,7 +171,9 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			return true;
 		}
 
-		List<LivingEntity> entities = new ArrayList<>(location.getWorld().getNearbyLivingEntities(location, hRadius, vRadius, hRadius));
+		List<LivingEntity> entities = new ArrayList<>();
+		if (ignoreRadius) Bukkit.getWorlds().forEach(world -> entities.addAll(world.getLivingEntities()));
+		else entities.addAll(location.getWorld().getNearbyLivingEntities(location, hRadius, vRadius, hRadius));
 
 		if (useProximity) {
 			// check world before distance
@@ -184,7 +190,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			if (target.isDead()) continue;
 			if (!validTargetList.canTarget(caster, target)) continue;
 
-			if (circleShape) {
+			if (circleShape && !ignoreRadius) {
 				Location targetLocation = target.getLocation();
 
 				double hDistance = NumberConversions.square(targetLocation.getX() - location.getX()) + NumberConversions.square(targetLocation.getZ() - location.getZ());
