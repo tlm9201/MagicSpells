@@ -14,11 +14,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
 
 public class LifewalkSpell extends BuffSpell {
 	
@@ -65,8 +63,8 @@ public class LifewalkSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.add(entity.getUniqueId());
+	public boolean castBuff(SpellData data) {
+		entities.add(data.target().getUniqueId());
 		if (grower == null) grower = new Grower();
 		return true;
 	}

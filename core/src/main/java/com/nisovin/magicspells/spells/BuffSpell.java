@@ -25,15 +25,9 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellFilter;
-import com.nisovin.magicspells.util.LocationUtil;
-import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -41,8 +35,6 @@ import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 
 public abstract class BuffSpell extends TargetedSpell implements TargetedEntitySpell {
-
-	protected BuffSpell thisSpell;
 
 	protected Map<UUID, Integer> useCounter;
 	protected Map<UUID, Long> durationEndTime;
@@ -84,8 +76,6 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public BuffSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-
-		thisSpell = this;
 
 		duration = getConfigFloat("duration", 0);
 
@@ -159,78 +149,64 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	@Override
-	public final PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		LivingEntity target;
+	public CastResult cast(SpellCastState state, SpellData data) {
+		if (state != SpellCastState.NORMAL && !toggle) return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 
 		if (targeted) {
-			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-			if (info.noTarget()) return noTarget(caster, args, info);
-			if (!validTargetList.canTarget(info.target())) return noTarget(caster, args);
+			TargetInfo<LivingEntity> info = getTargetedEntity(data);
+			if (info.noTarget()) return noTarget(info);
+			data = info.spellData();
+		} else data = data.target(data.caster());
 
-			target = info.target();
-			power = info.power();
-		} else target = caster;
-
-		PostCastAction action = activate(caster, target, power, args, state == SpellCastState.NORMAL);
-		if (targeted && action == PostCastAction.HANDLE_NORMALLY) {
-			sendMessages(caster, target, args);
-			return PostCastAction.NO_MESSAGES;
+		if (state != SpellCastState.NORMAL) {
+			if (isActive(data.target())) turnOff(data.target());
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		return action;
+		return castAtEntity(data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return activate(caster, target, power, args, true) == PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		return cast(SpellCastState.NORMAL, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return activate(caster, target, power, MagicSpells.NULL_ARGS, true) == PostCastAction.HANDLE_NORMALLY;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		return activate(null, target, power, args, true) == PostCastAction.HANDLE_NORMALLY;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		return activate(null, target, power, MagicSpells.NULL_ARGS, true) == PostCastAction.HANDLE_NORMALLY;
-	}
-
-	private PostCastAction activate(LivingEntity caster, LivingEntity target, float power, String[] args, boolean normal) {
-		if (isActive(target) && toggle) {
-			turnOff(target);
-			return PostCastAction.ALREADY_HANDLED;
+	public CastResult castAtEntity(SpellData data) {
+		boolean active = isActive(data.target());
+		if (active && toggle) {
+			turnOff(data.target());
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		if (!normal) return PostCastAction.HANDLE_NORMALLY;
+		SpellData recipientData = data.recipient(data.target());
+		boolean casted = active ? recastBuff(recipientData) : castBuff(recipientData);
+		if (!casted) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		boolean ok;
-		if (isActive(target)) ok = recastBuff(target, power, args);
-		else ok = castBuff(target, power, args);
+		startSpellDuration(data);
+		lastCaster.put(data.target().getUniqueId(), data.caster());
+		playSpellEffects(data);
 
-		if (!ok) return PostCastAction.HANDLE_NORMALLY;
-
-		startSpellDuration(caster, target, power, args);
-		lastCaster.put(target.getUniqueId(), caster);
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
-
-		return PostCastAction.HANDLE_NORMALLY;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	public abstract boolean castBuff(LivingEntity entity, float power, String[] args);
+	@Deprecated
+	public boolean castBuff(LivingEntity entity, float power, String[] args) {
+		return false;
+	}
 
+	@Deprecated
 	public boolean recastBuff(LivingEntity entity, float power, String[] args) {
 		stopEffects(entity);
 		return true;
+	}
+
+	public boolean castBuff(SpellData data) {
+		return castBuff(data.target(), data.power(), data.args());
+	}
+
+	public boolean recastBuff(SpellData data) {
+		return recastBuff(data.target(), data.power(), data.args());
 	}
 
 	public void setAsEverlasting() {
@@ -241,24 +217,25 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	/**
 	 * Begins counting the spell duration for a living entity
-	 * @param target the living entity to begin counting duration
+	 *
+	 * @param data the spell data of the buff
 	 */
-	private void startSpellDuration(LivingEntity caster, LivingEntity target, float power, String[] args) {
+	private void startSpellDuration(SpellData data) {
 		if (duration > 0 && durationEndTime != null) {
 
 			float dur = duration;
-			if (powerAffectsDuration) dur *= power;
-			setDuration(target, dur);
+			if (powerAffectsDuration) dur *= data.power();
+			setDuration(data.target(), dur);
 
 			MagicSpells.scheduleDelayedTask(() -> {
-				if (isExpired(target)) turnOff(target);
+				if (isExpired(data.target())) turnOff(data.target());
 			}, Math.round(dur * TimeUtil.TICKS_PER_SECOND) + 1); // overestimate ticks, since the duration is real-time ms based
 		}
 
-		playSpellEffectsBuff(target, entity -> thisSpell.isActiveAndNotExpired((LivingEntity) entity), new SpellData(caster, target, power, args));
+		playSpellEffectsBuff(data.target(), entity -> isActiveAndNotExpired((LivingEntity) entity), data);
 
 		BuffManager manager = MagicSpells.getBuffManager();
-		if (manager != null) manager.addBuff(target, this);
+		if (manager != null) manager.addBuff(data.target(), this);
 	}
 
 	public void setDuration(LivingEntity livingEntity, float duration) {
@@ -282,6 +259,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	/**
 	 * Checks whether the spell's duration has expired for a livingEntity
+	 *
 	 * @param entity the livingEntity to check
 	 * @return true if the spell has expired, false otherwise
 	 */
@@ -300,6 +278,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	/**
 	 * Checks if this buff spell is active for the specified livingEntity
+	 *
 	 * @param entity the livingEntity to check
 	 * @return true if the spell is active, false otherwise
 	 */
@@ -308,12 +287,13 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	/**
 	 * Adds a use to the spell for the livingEntity. If the number of uses exceeds the amount allowed, the spell will immediately expire.
 	 * This does not automatically charge the use cost.
+	 *
 	 * @param entity the livingEntity to add the use for
 	 * @return the livingEntity's current number of uses (returns 0 if the use counting feature is disabled)
 	 */
 	protected int addUse(LivingEntity entity) {
 		// Run spell on use increment first thing in case we want to intervene
-		if (spellOnUseIncrement != null) spellOnUseIncrement.subcast(entity, 1f, null);
+		if (spellOnUseIncrement != null) spellOnUseIncrement.subcast(new SpellData(entity));
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) {
 
@@ -334,12 +314,13 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	/**
 	 * Removes this spell's use cost from the livingEntity's inventory. If the reagents aren't available, the spell will expire.
+	 *
 	 * @param entity the livingEntity to remove the cost from
 	 * @return true if the reagents were removed, or if the use cost is disabled, false otherwise
 	 */
 	protected boolean chargeUseCost(LivingEntity entity) {
 		// Run spell on cost first thing to dodge the early returns and allow intervention
-		if (spellOnCost != null) spellOnCost.subcast(entity, 1f, null);
+		if (spellOnCost != null) spellOnCost.subcast(new SpellData(entity));
 
 		if (reagents == null) return true;
 		if (useCostInterval <= 0) return true;
@@ -366,6 +347,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 * Adds a use to the spell for the livingEntity. If the number of uses exceeds the amount allowed, the spell will immediately expire.
 	 * Removes this spell's use cost from the livingEntity's inventory. This does not return anything, to get useful return values, use
 	 * addUse() and chargeUseCost().
+	 *
 	 * @param entity the livingEntity to add a use and charge cost to
 	 */
 	protected void addUseAndChargeCost(LivingEntity entity) {
@@ -376,6 +358,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	/**
 	 * Turns off this spell for the specified livingEntity. This can be called from many situations, including when the spell expires or the uses run out.
 	 * When overriding this function, you should always be sure to call super.turnOff(livingEntity).
+	 *
 	 * @param entity livingEntity to turn the buff off for
 	 */
 	public final void turnOff(LivingEntity entity) {
@@ -392,8 +375,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		cancelEffects(EffectPosition.CASTER, entity.getUniqueId().toString());
 		stopEffects(entity);
 
-		if (spellOnEnd != null) spellOnEnd.subcast(endSpellFromTarget ? entity : getLastCaster(entity), 1f, null);
-		sendMessage(strFade, entity, null);
+		if (spellOnEnd != null) spellOnEnd.subcast(new SpellData(endSpellFromTarget ? entity : getLastCaster(entity)));
+		sendMessage(strFade, entity, SpellData.NULL);
 
 		lastCaster.remove(entity.getUniqueId());
 	}
@@ -468,7 +451,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public class DamageListener implements Listener {
 
-		@EventHandler(ignoreCancelled=true)
+		@EventHandler(ignoreCancelled = true)
 		public void onEntityDamage(EntityDamageEvent e) {
 			if (cancelOnTakeDamage) {
 				Entity entity = e.getEntity();
@@ -536,7 +519,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		}
 
 		// entity only
-		@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
+		@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 		public void onTeleport(EntityTeleportEvent event) {
 			if (!(event.getEntity() instanceof LivingEntity)) return;
 			LivingEntity entity = getWhoToCancel((LivingEntity) event.getEntity());
@@ -550,7 +533,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public class ChangeWorldListener implements Listener {
 
 		// player only
-		@EventHandler(priority=EventPriority.LOWEST)
+		@EventHandler(priority = EventPriority.LOWEST)
 		public void onChangeWorld(PlayerChangedWorldEvent event) {
 			LivingEntity player = getWhoToCancel(event.getPlayer());
 			if (player == null) return;
@@ -558,7 +541,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		}
 
 		// entity only
-		@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
+		@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 		public void onChangeWorld(EntityTeleportEvent event) {
 			if (!(event.getEntity() instanceof LivingEntity)) return;
 
@@ -576,9 +559,9 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	public class SpellCastListener implements Listener {
 
-		@EventHandler(ignoreCancelled=true)
+		@EventHandler(ignoreCancelled = true)
 		public void onSpellCast(SpellCastEvent event) {
-			if (thisSpell == event.getSpell()) return;
+			if (BuffSpell.this == event.getSpell()) return;
 			if (event.getSpellCastState() != SpellCastState.NORMAL) return;
 
 			LivingEntity entity = getWhoToCancel(event.getCaster());

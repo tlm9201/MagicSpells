@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityTargetEvent;
 
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 
@@ -22,8 +23,8 @@ public class StealthSpell extends BuffSpell {
 	}
 	
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.add(entity.getUniqueId());
+	public boolean castBuff(SpellData data) {
+		entities.add(data.target().getUniqueId());
 		return true;
 	}
 
@@ -44,8 +45,8 @@ public class StealthSpell extends BuffSpell {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityTarget(EntityTargetEvent event) {
-		if (!(event.getTarget() instanceof LivingEntity target)) return;
-		if (!isActive(target)) return;
+		if (!(event.getTarget() instanceof LivingEntity target) || !isActive(target)) return;
+
 		if (isExpired(target)) {
 			turnOff(target);
 			return;

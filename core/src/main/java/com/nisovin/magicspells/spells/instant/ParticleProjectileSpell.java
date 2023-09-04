@@ -11,7 +11,6 @@ import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
@@ -33,65 +32,62 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 	private static Set<ParticleProjectileTracker> trackerSet;
 
-	private ConfigData<Float> targetYOffset;
-	private ConfigData<Float> startXOffset;
-	private ConfigData<Float> startYOffset;
-	private ConfigData<Float> startZOffset;
-	private Vector relativeOffset;
-	private Vector effectOffset;
+	private final ConfigData<Float> targetYOffset;
+	private final ConfigData<Float> startXOffset;
+	private final ConfigData<Float> startYOffset;
+	private final ConfigData<Float> startZOffset;
+	private final ConfigData<Vector> relativeOffset;
+	private final ConfigData<Vector> effectOffset;
 
-	private ConfigData<Float> acceleration;
-	private ConfigData<Integer> accelerationDelay;
-	private ConfigData<Float> projectileTurn;
-	private ConfigData<Float> projectileVelocity;
-	private ConfigData<Float> projectileVertOffset;
-	private ConfigData<Float> projectileHorizOffset;
-	private ConfigData<Double> verticalRotation;
-	private ConfigData<Double> horizontalRotation;
-	private ConfigData<Double> xRotation;
-	private ConfigData<Float> projectileVertSpread;
-	private ConfigData<Float> projectileHorizSpread;
-	private ConfigData<Float> projectileVertGravity;
-	private ConfigData<Float> projectileHorizGravity;
+	private final ConfigData<Float> acceleration;
+	private final ConfigData<Integer> accelerationDelay;
+	private final ConfigData<Float> projectileTurn;
+	private final ConfigData<Float> projectileVelocity;
+	private final ConfigData<Float> projectileVertOffset;
+	private final ConfigData<Float> projectileHorizOffset;
+	private final ConfigData<Double> verticalRotation;
+	private final ConfigData<Double> horizontalRotation;
+	private final ConfigData<Double> xRotation;
+	private final ConfigData<Float> projectileVertSpread;
+	private final ConfigData<Float> projectileHorizSpread;
+	private final ConfigData<Float> projectileVertGravity;
+	private final ConfigData<Float> projectileHorizGravity;
 
-	private ConfigData<Integer> tickInterval;
-	private ConfigData<Integer> spellInterval;
-	private ConfigData<Integer> intermediateEffects;
-	private ConfigData<Integer> specialEffectInterval;
+	private final ConfigData<Integer> tickInterval;
+	private final ConfigData<Integer> spellInterval;
+	private final ConfigData<Integer> intermediateEffects;
+	private final ConfigData<Integer> specialEffectInterval;
 
-	private ConfigData<Integer> tickSpellLimit;
-	private ConfigData<Integer> intermediateHitboxes;
-	private ConfigData<Integer> maxEntitiesHit;
-	private ConfigData<Integer> maxHeightCheck;
-	private ConfigData<Integer> startHeightCheck;
-	private ConfigData<Float> hitRadius;
-	private ConfigData<Float> verticalHitRadius;
-	private ConfigData<Integer> groundHitRadius;
-	private ConfigData<Integer> groundVerticalHitRadius;
-	private Set<Material> groundMaterials;
-	private Set<Material> disallowedGroundMaterials;
+	private final ConfigData<Integer> tickSpellLimit;
+	private final ConfigData<Integer> intermediateHitboxes;
+	private final ConfigData<Integer> maxEntitiesHit;
+	private final ConfigData<Integer> maxHeightCheck;
+	private final ConfigData<Integer> startHeightCheck;
+	private final ConfigData<Float> hitRadius;
+	private final ConfigData<Float> verticalHitRadius;
+	private final ConfigData<Integer> groundHitRadius;
+	private final ConfigData<Integer> groundVerticalHitRadius;
+	private final Set<Material> groundMaterials;
+	private final Set<Material> disallowedGroundMaterials;
 
-	private ConfigData<Double> maxDuration;
-	private ConfigData<Double> maxDistance;
+	private final ConfigData<Double> maxDuration;
+	private final ConfigData<Double> maxDistance;
 
-	private boolean hugSurface;
-	private ConfigData<Float> heightFromSurface;
+	private final ConfigData<Boolean> hugSurface;
+	private final ConfigData<Float> heightFromSurface;
 
-	private boolean controllable;
-	private boolean checkPlugins;
-	private boolean changePitch;
-	private boolean hitSelf;
-	private boolean hitGround;
-	private boolean hitPlayers;
-	private boolean hitAirAtEnd;
-	private boolean hitAirDuring;
-	private boolean hitNonPlayers;
-	private boolean hitAirAfterDuration;
-	private boolean stopOnHitEntity;
-	private boolean stopOnHitGround;
-	private boolean stopOnModifierFail;
-	private boolean allowCasterInteract;
-	private boolean powerAffectsVelocity;
+	private final ConfigData<Boolean> controllable;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> changePitch;
+	private final ConfigData<Boolean> hitGround;
+	private final ConfigData<Boolean> hitAirAtEnd;
+	private final ConfigData<Boolean> hitAirDuring;
+	private final ConfigData<Boolean> hitAirAfterDuration;
+	private final ConfigData<Boolean> stopOnHitEntity;
+	private final ConfigData<Boolean> stopOnHitGround;
+	private final ConfigData<Boolean> stopOnModifierFail;
+	private final ConfigData<Boolean> allowCasterInteract;
+	private final ConfigData<Boolean> powerAffectsVelocity;
 
 	private ModifierSet projModifiers;
 	private List<String> projModifiersStrings;
@@ -129,8 +125,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		startZOffset = getConfigDataFloat("start-z-offset", 0F);
 		targetYOffset = getConfigDataFloat("target-y-offset", 0F);
 
-		relativeOffset = getConfigVector("relative-offset", "1,1,0");
-		effectOffset = getConfigVector("effect-offset", "0,0,0");
+		relativeOffset = getConfigDataVector("relative-offset", new Vector(1, 1, 0));
+		effectOffset = getConfigDataVector("effect-offset", new Vector());
 
 		acceleration = getConfigDataFloat("projectile-acceleration", 0F);
 		accelerationDelay = getConfigDataInt("projectile-acceleration-delay", 0);
@@ -192,30 +188,32 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 			}
 		}
 
-		hugSurface = getConfigBoolean("hug-surface", false);
-		if (hugSurface) heightFromSurface = getConfigDataFloat("height-from-surface", 0.6F);
+		hugSurface = getConfigDataBoolean("hug-surface", false);
+        heightFromSurface = getConfigDataFloat("height-from-surface", 0.6F);
 
-		controllable = getConfigBoolean("controllable", false);
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		changePitch = getConfigBoolean("change-pitch", true);
-		hitSelf = getConfigBoolean("hit-self", false);
-		hitGround = getConfigBoolean("hit-ground", true);
-		hitPlayers = getConfigBoolean("hit-players", false);
-		hitAirAtEnd = getConfigBoolean("hit-air-at-end", false);
-		hitAirDuring = getConfigBoolean("hit-air-during", false);
-		hitNonPlayers = getConfigBoolean("hit-non-players", true);
-		hitAirAfterDuration = getConfigBoolean("hit-air-after-duration", false);
-		stopOnHitGround = getConfigBoolean("stop-on-hit-ground", true);
-		stopOnHitEntity = getConfigBoolean("stop-on-hit-entity", true);
-		stopOnModifierFail = getConfigBoolean("stop-on-modifier-fail", true);
-		allowCasterInteract = getConfigBoolean("allow-caster-interact", true);
-		powerAffectsVelocity = getConfigBoolean("power-affects-velocity", true);
-		if (stopOnHitEntity) maxEntitiesHit = (caster, target, power, args) -> 1;
+		controllable = getConfigDataBoolean("controllable", false);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		changePitch = getConfigDataBoolean("change-pitch", true);
+		hitGround = getConfigDataBoolean("hit-ground", true);
+		hitAirAtEnd = getConfigDataBoolean("hit-air-at-end", false);
+		hitAirDuring = getConfigDataBoolean("hit-air-during", false);
+		hitAirAfterDuration = getConfigDataBoolean("hit-air-after-duration", false);
+		stopOnHitGround = getConfigDataBoolean("stop-on-hit-ground", true);
+		stopOnHitEntity = getConfigDataBoolean("stop-on-hit-entity", true);
+		stopOnModifierFail = getConfigDataBoolean("stop-on-modifier-fail", true);
+		allowCasterInteract = getConfigDataBoolean("allow-caster-interact", true);
+		powerAffectsVelocity = getConfigDataBoolean("power-affects-velocity", true);
 
 		// Target List
+		boolean hitSelf = getConfigBoolean("hit-self", false);
 		validTargetList.enforce(ValidTargetList.TargetingElement.TARGET_SELF, hitSelf);
+
+		boolean hitPlayers = getConfigBoolean("hit-players", false);
 		validTargetList.enforce(ValidTargetList.TargetingElement.TARGET_PLAYERS, hitPlayers);
+
+		boolean hitNonPlayers = getConfigBoolean("hit-non-players", true);
 		validTargetList.enforce(ValidTargetList.TargetingElement.TARGET_NONPLAYERS, hitNonPlayers);
+
 		projModifiersStrings = getConfigStringList("projectile-modifiers", null);
 		interactions = getConfigStringList("interactions", null);
 		interactionSpells = new HashMap<>();
@@ -253,54 +251,63 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 			if (!defaultSpellName.isEmpty()) MagicSpells.error(prefix + " has an invalid spell defined!");
 			defaultSpell = null;
 		}
+		defaultSpellName = null;
 
 		airSpell = new Subspell(airSpellName);
 		if (!airSpell.process()) {
 			if (!airSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-hit-air defined!");
 			airSpell = null;
 		}
+		airSpellName = null;
 
 		selfSpell = new Subspell(selfSpellName);
 		if (!selfSpell.process()) {
 			if (!selfSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-hit-self defined!");
 			selfSpell = null;
 		}
+		selfSpellName = null;
 
 		tickSpell = new Subspell(tickSpellName);
 		if (!tickSpell.process()) {
 			if (!tickSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-tick defined!");
 			tickSpell = null;
 		}
+		tickSpellName = null;
 
 		groundSpell = new Subspell(groundSpellName);
 		if (!groundSpell.process()) {
 			if (!groundSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-hit-ground defined!");
 			groundSpell = null;
 		}
+		groundSpellName = null;
 
 		entitySpell = new Subspell(entitySpellName);
 		if (!entitySpell.process()) {
 			if (!entitySpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-hit-entity defined!");
 			entitySpell = null;
 		}
+		entitySpellName = null;
 
 		durationSpell = new Subspell(durationSpellName);
 		if (!durationSpell.process()) {
 			if (!durationSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-duration-end defined!");
 			durationSpell = null;
 		}
+		durationSpellName = null;
 
 		modifierSpell = new Subspell(modifierSpellName);
 		if (!modifierSpell.process()) {
 			if (!modifierSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-modifier-fail defined!");
 			modifierSpell = null;
 		}
+		modifierSpellName = null;
 
 		entityLocationSpell = new Subspell(entityLocationSpellName);
 		if (!entityLocationSpell.process()) {
 			if (!entityLocationSpellName.isEmpty()) MagicSpells.error(prefix + " has an invalid spell-on-entity-location defined!");
 			entityLocationSpell = null;
 		}
+		entityLocationSpellName = null;
 
 		if (interactions != null && !interactions.isEmpty()) {
 			for (String str : interactions) {
@@ -338,100 +345,53 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
-			setupTracker(tracker, caster, null, power, args);
-			tracker.start(caster.getLocation());
-			playSpellEffects(EffectPosition.CASTER, caster, tracker.getSpellData());
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(data);
+		setupTracker(tracker, data);
+		tracker.start(data.caster().getLocation());
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
-		setupTracker(tracker, caster, null, power, args);
-		tracker.start(target);
-		playSpellEffects(EffectPosition.CASTER, caster, tracker.getSpellData());
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(data);
+		setupTracker(tracker, data);
+		tracker.start(data.location());
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
+	public CastResult castAtEntity(SpellData data) {
+		if (!data.hasCaster() || !data.caster().getWorld().equals(data.target().getWorld()))
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(data);
+		setupTracker(tracker, data);
+		tracker.startTarget(data.caster().getLocation(), data.target());
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		Location targetLoc = target.clone();
-		if (Float.isNaN(targetLoc.getPitch())) targetLoc.setPitch(0);
-		ParticleProjectileTracker tracker = new ParticleProjectileTracker(null, power, args);
-		setupTracker(tracker, null, null, power, args);
-		tracker.start(target);
-		return true;
-	}
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		Location from = data.location();
+		if (!from.getWorld().equals(data.target().getWorld()))
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(target, power, null);
-	}
+		if (Float.isNaN(from.getPitch()))
+			from.setPitch(0);
 
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		Location targetLoc = from.clone();
-		if (!targetLoc.getWorld().equals(target.getLocation().getWorld())) return false;
-		if (Float.isNaN(targetLoc.getPitch())) targetLoc.setPitch(0);
-		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
-		setupTracker(tracker, caster, target, power, args);
-		tracker.startTarget(from, target);
-		playSpellEffects(caster, from, target, tracker.getSpellData());
-		return true;
-	}
+		ParticleProjectileTracker tracker = new ParticleProjectileTracker(data);
+		setupTracker(tracker, data);
+		tracker.startTarget(from, data.target());
 
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(caster, from, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		if (!from.getWorld().equals(target.getLocation().getWorld())) return false;
-		Location targetLoc = from.clone();
-		if (Float.isNaN(targetLoc.getPitch())) targetLoc.setPitch(0);
-		ParticleProjectileTracker tracker = new ParticleProjectileTracker(null, power, args);
-		setupTracker(tracker, null, target, power, args);
-		tracker.startTarget(from, target);
-		playSpellEffects(from, target, tracker.getSpellData());
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(from, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		if (!caster.getLocation().getWorld().equals(target.getLocation().getWorld())) return false;
-		ParticleProjectileTracker tracker = new ParticleProjectileTracker(caster, power, args);
-		setupTracker(tracker, caster, target, power, args);
-		tracker.startTarget(caster.getLocation(), target);
-		playSpellEffects(caster, target, tracker.getSpellData());
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public static Set<ParticleProjectileTracker> getProjectileTrackers() {
@@ -458,78 +418,81 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		return playSpellArmorStandEffects(position, location, data);
 	}
 
-	private void setupTracker(ParticleProjectileTracker tracker, LivingEntity caster, LivingEntity target, float power, String[] args) {
+	private void setupTracker(ParticleProjectileTracker tracker, SpellData data) {
 		tracker.setSpell(this);
 
+		Vector relativeOffset = this.relativeOffset.get(data);
+
 		float startXOffset = (float) relativeOffset.getX();
-		if (startXOffset == 1) startXOffset = this.startXOffset.get(caster, target, power, args);
+		if (startXOffset == 1) startXOffset = this.startXOffset.get(data);
 
 		float startYOffset = (float) relativeOffset.getY();
-		if (startYOffset == 1) startYOffset = this.startYOffset.get(caster, target, power, args);
+		if (startYOffset == 1) startYOffset = this.startYOffset.get(data);
 
 		float startZOffset = (float) relativeOffset.getZ();
-		if (startZOffset == 0) startZOffset = this.startZOffset.get(caster, target, power, args);
+		if (startZOffset == 0) startZOffset = this.startZOffset.get(data);
 
 		tracker.setStartXOffset(startXOffset);
 		tracker.setStartYOffset(startYOffset);
 		tracker.setStartZOffset(startZOffset);
-		tracker.setTargetYOffset(targetYOffset.get(caster, target, power, args));
-		tracker.setEffectOffset(effectOffset);
+		tracker.setTargetYOffset(targetYOffset.get(data));
+		tracker.setEffectOffset(effectOffset.get(data));
 
-		tracker.setAcceleration(acceleration.get(caster, target, power, args));
-		tracker.setAccelerationDelay(accelerationDelay.get(caster, target, power, args));
+		tracker.setAcceleration(acceleration.get(data));
+		tracker.setAccelerationDelay(accelerationDelay.get(data));
 
-		tracker.setProjectileTurn(projectileTurn.get(caster, target, power, args));
-		tracker.setProjectileVelocity(projectileVelocity.get(caster, target, power, args));
-		tracker.setVerticalRotation(AccurateMath.toRadians(verticalRotation.get(caster, target, power, args)));
-		tracker.setHorizontalRotation(AccurateMath.toRadians(horizontalRotation.get(caster, target, power, args)));
-		tracker.setXRotation(AccurateMath.toRadians(xRotation.get(caster, target, power, args)));
-		tracker.setProjectileVertOffset(projectileVertOffset.get(caster, target, power, args));
-		tracker.setProjectileHorizOffset(projectileHorizOffset.get(caster, target, power, args));
-		tracker.setProjectileVertGravity(projectileVertGravity.get(caster, target, power, args));
-		tracker.setProjectileHorizGravity(projectileHorizGravity.get(caster, target, power, args));
-		tracker.setProjectileVertSpread(projectileVertSpread.get(caster, target, power, args));
-		tracker.setProjectileHorizSpread(projectileHorizSpread.get(caster, target, power, args));
+		tracker.setProjectileTurn(projectileTurn.get(data));
+		tracker.setProjectileVelocity(projectileVelocity.get(data));
+		tracker.setVerticalRotation(AccurateMath.toRadians(verticalRotation.get(data)));
+		tracker.setHorizontalRotation(AccurateMath.toRadians(horizontalRotation.get(data)));
+		tracker.setXRotation(AccurateMath.toRadians(xRotation.get(data)));
+		tracker.setProjectileVertOffset(projectileVertOffset.get(data));
+		tracker.setProjectileHorizOffset(projectileHorizOffset.get(data));
+		tracker.setProjectileVertGravity(projectileVertGravity.get(data));
+		tracker.setProjectileHorizGravity(projectileHorizGravity.get(data));
+		tracker.setProjectileVertSpread(projectileVertSpread.get(data));
+		tracker.setProjectileHorizSpread(projectileHorizSpread.get(data));
 
-		int tickInterval = this.tickInterval.get(caster, target, power, args);
+		int tickInterval = this.tickInterval.get(data);
 		tracker.setTickInterval(tickInterval);
 		tracker.setTicksPerSecond(20f / tickInterval);
 
-		tracker.setSpellInterval(spellInterval.get(caster, target, power, args));
-		tracker.setIntermediateEffects(intermediateEffects.get(caster, target, power, args));
-		tracker.setIntermediateHitboxes(intermediateHitboxes.get(caster, target, power, args));
-		tracker.setSpecialEffectInterval(specialEffectInterval.get(caster, target, power, args));
+		tracker.setSpellInterval(spellInterval.get(data));
+		tracker.setIntermediateEffects(intermediateEffects.get(data));
+		tracker.setIntermediateHitboxes(intermediateHitboxes.get(data));
+		tracker.setSpecialEffectInterval(specialEffectInterval.get(data));
 
-		double maxDistance = this.maxDistance.get(caster, target, power, args);
+		double maxDistance = this.maxDistance.get(data);
 		tracker.setMaxDistanceSquared(maxDistance * maxDistance);
 
-		tracker.setMaxDuration(maxDuration.get(caster, target, power, args) * TimeUtil.MILLISECONDS_PER_SECOND);
+		tracker.setMaxDuration(maxDuration.get(data) * TimeUtil.MILLISECONDS_PER_SECOND);
 
-		tracker.setTickSpellLimit(tickSpellLimit.get(caster, target, power, args));
-		tracker.setMaxEntitiesHit(maxEntitiesHit.get(caster, target, power, args));
-		tracker.setMaxHeightCheck(maxHeightCheck.get(caster, target, power, args));
-		tracker.setStartHeightCheck(startHeightCheck.get(caster, target, power, args));
-		tracker.setHorizontalHitRadius(hitRadius.get(caster, target, power, args));
-		tracker.setVerticalHitRadius(verticalHitRadius.get(caster, target, power, args));
-		tracker.setGroundHorizontalHitRadius(groundHitRadius.get(caster, target, power, args));
-		tracker.setGroundVerticalHitRadius(groundVerticalHitRadius.get(caster, target, power, args));
+		tracker.setTickSpellLimit(tickSpellLimit.get(data));
+		tracker.setMaxEntitiesHit(stopOnHitEntity.get(data) ? 1 : maxEntitiesHit.get(data));
+		tracker.setMaxHeightCheck(maxHeightCheck.get(data));
+		tracker.setStartHeightCheck(startHeightCheck.get(data));
+		tracker.setHorizontalHitRadius(hitRadius.get(data));
+		tracker.setVerticalHitRadius(verticalHitRadius.get(data));
+		tracker.setGroundHorizontalHitRadius(groundHitRadius.get(data));
+		tracker.setGroundVerticalHitRadius(groundVerticalHitRadius.get(data));
 		tracker.setGroundMaterials(groundMaterials);
 		tracker.setDisallowedGroundMaterials(disallowedGroundMaterials);
 
+		boolean hugSurface = this.hugSurface.get(data);
 		tracker.setHugSurface(hugSurface);
-		tracker.setHeightFromSurface(hugSurface ? heightFromSurface.get(caster, target, power, args) : 0);
+		tracker.setHeightFromSurface(hugSurface ? heightFromSurface.get(data) : 0);
 
-		tracker.setControllable(controllable);
-		tracker.setCallEvents(true);
-		tracker.setChangePitch(changePitch);
-		tracker.setHitGround(hitGround);
-		tracker.setHitAirAtEnd(hitAirAtEnd);
-		tracker.setHitAirDuring(hitAirDuring);
-		tracker.setHitAirAfterDuration(hitAirAfterDuration);
-		tracker.setStopOnHitGround(stopOnHitGround);
-		tracker.setStopOnModifierFail(stopOnModifierFail);
-		tracker.setAllowCasterInteract(allowCasterInteract);
-		tracker.setPowerAffectsVelocity(powerAffectsVelocity);
+		tracker.setControllable(controllable.get(data));
+		tracker.setCallEvents(checkPlugins.get(data));
+		tracker.setChangePitch(changePitch.get(data));
+		tracker.setHitGround(hitGround.get(data));
+		tracker.setHitAirAtEnd(hitAirAtEnd.get(data));
+		tracker.setHitAirDuring(hitAirDuring.get(data));
+		tracker.setHitAirAfterDuration(hitAirAfterDuration.get(data));
+		tracker.setStopOnHitGround(stopOnHitGround.get(data));
+		tracker.setStopOnModifierFail(stopOnModifierFail.get(data));
+		tracker.setAllowCasterInteract(allowCasterInteract.get(data));
+		tracker.setPowerAffectsVelocity(powerAffectsVelocity.get(data));
 
 		tracker.setTargetList(validTargetList);
 		tracker.setProjectileModifiers(projModifiers);
@@ -545,124 +508,12 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		tracker.setEntityLocationSpell(entityLocationSpell);
 	}
 
-	public Vector getRelativeOffset() {
-		return relativeOffset;
-	}
-
-	public void setRelativeOffset(Vector relativeOffset) {
-		this.relativeOffset = relativeOffset;
-	}
-
-	public Vector getEffectOffset() {
-		return effectOffset;
-	}
-
-	public void setEffectOffset(Vector effectOffset) {
-		this.effectOffset = effectOffset;
-	}
-
 	public Set<Material> getGroundMaterials() {
 		return groundMaterials;
 	}
 
 	public Set<Material> getDisallowedGroundMaterials() {
 		return disallowedGroundMaterials;
-	}
-
-	public boolean shouldHugSurface() {
-		return hugSurface;
-	}
-
-	public void setHugSurface(boolean hugSurface) {
-		this.hugSurface = hugSurface;
-	}
-
-	public boolean isControllable() {
-		return controllable;
-	}
-
-	public void setControllable(boolean controllable) {
-		this.controllable = controllable;
-	}
-
-	public boolean shouldCheckPlugins() {
-		return checkPlugins;
-	}
-
-	public void setCheckPlugins(boolean checkPlugins) {
-		this.checkPlugins = checkPlugins;
-	}
-
-	public boolean shouldChangePitch() {
-		return changePitch;
-	}
-
-	public void setChangePitch(boolean changePitch) {
-		this.changePitch = changePitch;
-	}
-
-	public boolean canHitGround() {
-		return hitGround;
-	}
-
-	public void setHitGround(boolean hitGround) {
-		this.hitGround = hitGround;
-	}
-
-	public boolean canHitAirAtEnd() {
-		return hitAirAtEnd;
-	}
-
-	public void setHitAirAtEnd(boolean hitAirAtEnd) {
-		this.hitAirAtEnd = hitAirAtEnd;
-	}
-
-	public boolean canHitAirDuring() {
-		return hitAirDuring;
-	}
-
-	public void setHitAirDuring(boolean hitAirDuring) {
-		this.hitAirDuring = hitAirDuring;
-	}
-
-	public boolean canHitAirAfterDuration() {
-		return hitAirAfterDuration;
-	}
-
-	public void setHitAirAfterDuration(boolean hitAirAfterDuration) {
-		this.hitAirAfterDuration = hitAirAfterDuration;
-	}
-
-	public boolean shouldStopOnHitGround() {
-		return stopOnHitGround;
-	}
-
-	public void setStopOnHitGround(boolean stopOnHitGround) {
-		this.stopOnHitGround = stopOnHitGround;
-	}
-
-	public boolean shouldStopOnModifierFail() {
-		return stopOnModifierFail;
-	}
-
-	public void setStopOnModifierFail(boolean stopOnModifierFail) {
-		this.stopOnModifierFail = stopOnModifierFail;
-	}
-
-	public boolean isCasterAllowedToInteract() {
-		return allowCasterInteract;
-	}
-
-	public void setAllowCasterInteract(boolean allowCasterInteract) {
-		this.allowCasterInteract = allowCasterInteract;
-	}
-
-	public boolean isPowerAffectedByVelocity() {
-		return powerAffectsVelocity;
-	}
-
-	public void setPowerAffectsVelocity(boolean powerAffectsVelocity) {
-		this.powerAffectsVelocity = powerAffectsVelocity;
 	}
 
 	public ModifierSet getProjectileModifiers() {

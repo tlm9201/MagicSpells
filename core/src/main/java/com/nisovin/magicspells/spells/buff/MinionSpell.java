@@ -4,8 +4,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.*;
+import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.EventHandler;
@@ -16,16 +16,12 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MobUtil;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.spells.DamageSpell;
-import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellTargetEvent;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.managers.AttributeManager;
@@ -40,18 +36,22 @@ public class MinionSpell extends BuffSpell {
 
 	private ValidTargetList minionTargetList;
 	private EntityType[] creatureTypes;
-	private boolean powerAffectsHealth;
+
+	private final ConfigData<Boolean> powerAffectsHealth;
+	private final ConfigData<Boolean> gravity;
+	private final ConfigData<Boolean> baby;
 	private boolean preventCombust;
-	private boolean gravity;
-	private boolean baby;
-	private double powerHealthFactor;
-	private double maxHealth;
-	private double health;
-	private String minionName;
-	private Vector spawnOffset;
+
+	private final ConfigData<Double> powerHealthFactor;
+	private final ConfigData<Double> maxHealth;
+	private final ConfigData<Double> health;
 	private double followRange;
-	private float followSpeed;
-	private float maxDistance;
+	private double followSpeed;
+	private double maxDistance;
+
+	private final ConfigData<Vector> spawnOffset;
+
+	private String minionName;
 
 	private final String spawnSpellName;
 	private final String deathSpellName;
@@ -191,17 +191,17 @@ public class MinionSpell extends BuffSpell {
 		attackSpellName = getConfigString("spell-on-attack", "");
 		deathSpellName = getConfigString("spell-on-death", "");
 
-		spawnOffset = getConfigVector("spawn-offset", "1,0,0");
+		spawnOffset = getConfigDataVector("spawn-offset", new Vector(1, 0, 0));
 		followRange = getConfigDouble("follow-range",  1.5) * -1;
-		followSpeed = getConfigFloat("follow-speed", 1F);
-		maxDistance = getConfigFloat("max-distance", 30F);
-		powerAffectsHealth = getConfigBoolean("power-affects-health", false);
-		powerHealthFactor = getConfigDouble("power-health-factor", 1);
-		maxHealth = getConfigDouble("max-health", 20);
-		health = getConfigDouble("health", 20);
+		followSpeed = getConfigDouble("follow-speed", 1);
+		maxDistance = getConfigDouble("max-distance", 30);
+		powerAffectsHealth = getConfigDataBoolean("power-affects-health", false);
+		powerHealthFactor = getConfigDataDouble("power-health-factor", 1);
+		maxHealth = getConfigDataDouble("max-health", 20);
+		health = getConfigDataDouble("health", 20);
 		minionName = getConfigString("minion-name", "");
-		gravity = getConfigBoolean("gravity", true);
-		baby = getConfigBoolean("baby", false);
+		gravity = getConfigDataBoolean("gravity", true);
+		baby = getConfigDataBoolean("baby", false);
 		preventCombust = getConfigBoolean("prevent-sun-burn", true);
 	}
 
@@ -229,8 +229,8 @@ public class MinionSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player player)) return false;
+	public boolean castBuff(SpellData data) {
+		if (!(data.target() instanceof Player target)) return false;
 		// Selecting the mob
 		EntityType creatureType = null;
 		int num = random.nextInt(100);
@@ -247,7 +247,8 @@ public class MinionSpell extends BuffSpell {
 		if (creatureType == null) return false;
 
 		// Spawn location
-		Location loc = player.getLocation().clone();
+		Location loc = target.getLocation().clone();
+		Vector spawnOffset = this.spawnOffset.get(data);
 		Vector startDir = loc.clone().getDirection().setY(0).normalize();
 		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
 		loc.add(horizOffset.multiply(spawnOffset.getZ()));
@@ -255,7 +256,7 @@ public class MinionSpell extends BuffSpell {
 		loc.setY(loc.getY() + spawnOffset.getY());
 
 		// Spawn creature
-		LivingEntity minion = (LivingEntity) player.getWorld().spawnEntity(loc, creatureType);
+		LivingEntity minion = (LivingEntity) target.getWorld().spawnEntity(loc, creatureType);
 		if (!(minion instanceof Mob)) {
 			minion.remove();
 			MagicSpells.error("MinionSpell '" + internalName + "' can only summon mobs!");
@@ -263,23 +264,29 @@ public class MinionSpell extends BuffSpell {
 		}
 
 		if (minion instanceof Ageable ageable) {
-			if (baby) ageable.setBaby();
+			if (baby.get(data)) ageable.setBaby();
 			else ageable.setAdult();
 		}
 
-		minion.setGravity(gravity);
-		minion.customName(Util.getMiniMessage(minionName.replace("%c", player.getName())));
+		minion.setGravity(gravity.get(data));
+		minion.customName(Util.getMiniMessage(MagicSpells.doReplacements(minionName, target, data, "%c", target.getName())));
 		minion.setCustomNameVisible(true);
 
-		if (powerAffectsHealth) {
-			Util.setMaxHealth(minion, maxHealth * power * powerHealthFactor);
-			minion.setHealth(health * power * powerHealthFactor);
+		double powerHealthFactor = this.powerHealthFactor.get(data);
+		double maxHealth = this.maxHealth.get(data);
+		double health = this.health.get(data);
+		if (powerAffectsHealth.get(data)) {
+			Util.setMaxHealth(minion, maxHealth * data.power() * powerHealthFactor);
+			minion.setHealth(health * data.power() * powerHealthFactor);
 		} else {
 			Util.setMaxHealth(minion, maxHealth);
 			minion.setHealth(health);
 		}
 
-		if (spawnSpell != null) spawnSpell.subcast(player, minion.getLocation(), minion, power, args);
+		if (spawnSpell != null) {
+			SpellData castData = data.builder().caster(target).target(minion).location(minion.getLocation()).recipient(null).build();
+			spawnSpell.subcast(castData);
+		}
 
 		// Apply potion effects
 		if (potionEffects != null) minion.addPotionEffects(potionEffects);
@@ -304,8 +311,8 @@ public class MinionSpell extends BuffSpell {
 		eq.setLeggingsDropChance(leggingsDropChance);
 		eq.setBootsDropChance(bootsDropChance);
 
-		minions.put(player.getUniqueId(), minion);
-		players.put(minion, player.getUniqueId());
+		minions.put(target.getUniqueId(), minion);
+		players.put(minion, target.getUniqueId());
 		return true;
 	}
 
@@ -314,7 +321,7 @@ public class MinionSpell extends BuffSpell {
 		return minions.containsKey(entity.getUniqueId());
 	}
 
-	public boolean isMinion(Entity entity) {
+	public boolean isMinion(LivingEntity entity) {
 		return minions.containsValue(entity);
 	}
 
@@ -339,7 +346,7 @@ public class MinionSpell extends BuffSpell {
 	public void onEntityTarget(EntityTargetEvent e) {
 		if (minions.isEmpty() || e.getTarget() == null) return;
 		if (!(e.getEntity() instanceof LivingEntity minion)) return;
-		if (!isMinion(e.getEntity())) return;
+		if (!isMinion(minion)) return;
 
 		Player pl = Bukkit.getPlayer(players.get(minion));
 		if (pl == null) return;
@@ -373,13 +380,11 @@ public class MinionSpell extends BuffSpell {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageByEntityEvent e) {
-		Entity entity = e.getEntity();
 		Entity damager = e.getDamager();
 		if (damager.isDead() || !damager.isValid()) return;
-		if (entity.isDead() || !entity.isValid()) return;
-		if (!(entity instanceof LivingEntity)) return;
+		if (!(e.getEntity() instanceof LivingEntity entity) || !entity.isValid()) return;
 		// Check if the damaged entity is a player
-		if (entity instanceof Player pl && isActive((Player) entity)) {
+		if (entity instanceof Player pl && isActive(pl)) {
 			// If a Minion tries to attack his owner, cancel the damage and stop the minion
 			if (minions.get(pl.getUniqueId()).equals(damager)) {
 				targets.remove(pl.getUniqueId());
@@ -405,8 +410,7 @@ public class MinionSpell extends BuffSpell {
 
 		// Check if the damaged entity is a minion
 		if (isMinion(entity)) {
-			LivingEntity minion = (LivingEntity) entity;
-			Player owner = Bukkit.getPlayer(players.get(minion));
+			Player owner = Bukkit.getPlayer(players.get(entity));
 			if (owner == null || !owner.isOnline() || !owner.isValid()) return;
 			// Owner cant damage his minion
 			if (damager.equals(owner)) {
@@ -414,11 +418,11 @@ public class MinionSpell extends BuffSpell {
 				return;
 			}
 
-			if (((LivingEntity) entity).getHealth() - e.getFinalDamage() <= 0 && deathSpell != null)
-				deathSpell.subcast(owner, minion.getLocation(), minion, 1, null);
+			if (entity.getHealth() - e.getFinalDamage() <= 0 && deathSpell != null)
+				deathSpell.subcast(new SpellData(owner, entity, entity.getLocation(), 1f, null));
 
 			// If the minion is far away from the owner, forget about attacking
-			if (owner.getWorld().equals(minion.getWorld()) && owner.getLocation().distanceSquared(minion.getLocation()) > maxDistance * maxDistance) return;
+			if (owner.getWorld().equals(entity.getWorld()) && owner.getLocation().distanceSquared(entity.getLocation()) > maxDistance * maxDistance) return;
 
 			// If the owner has no targets and someone will attack the minion, he will strike back
 			if (targets.get(owner.getUniqueId()) == null || targets.get(owner.getUniqueId()).isDead() || !targets.get(owner.getUniqueId()).isValid()) {
@@ -433,7 +437,7 @@ public class MinionSpell extends BuffSpell {
 				}
 				if (minionDamager != null) {
 					targets.put(owner.getUniqueId(), minionDamager);
-					MobUtil.setTarget(minion, minionDamager);
+					MobUtil.setTarget(entity, minionDamager);
 				}
 			}
 		}
@@ -458,22 +462,20 @@ public class MinionSpell extends BuffSpell {
 			if (!minionTargetList.canTarget(entity)) return;
 
 			addUseAndChargeCost(pl);
-			targets.put(pl.getUniqueId(), (LivingEntity) entity);
-			MobUtil.setTarget(minions.get(pl.getUniqueId()), (LivingEntity) entity);
+			targets.put(pl.getUniqueId(),entity);
+			MobUtil.setTarget(minions.get(pl.getUniqueId()), entity);
 
 		}
 
-		if (isMinion(damager)) {
-			// Minion is the damager
-			LivingEntity minion = (LivingEntity) damager;
+		if (damager instanceof LivingEntity minion && isMinion(minion)) {
 			Player owner = Bukkit.getPlayer(players.get(minion));
 			if (owner == null || !owner.isOnline() || !owner.isValid()) return;
 
-			if (attackSpell != null) attackSpell.subcast(owner, minion.getLocation(), (LivingEntity) entity, 1, null);
+			if (attackSpell != null) attackSpell.subcast(new SpellData(owner, minion, minion.getLocation(), 1f, null));
 		}
 
 		// The target died, the minion will follow his owner
-		if (targets.containsValue(entity) && ((LivingEntity) entity).getHealth() - e.getFinalDamage() <= 0) {
+		if (targets.containsValue(entity) && entity.getHealth() - e.getFinalDamage() <= 0) {
 			for (UUID id : targets.keySet()) {
 				if (!targets.get(id).equals(entity)) continue;
 				Player pl = Bukkit.getPlayer(id);
@@ -493,9 +495,8 @@ public class MinionSpell extends BuffSpell {
 	// Owner cant damage his minion with spells
 	@EventHandler(ignoreCancelled = true)
 	public void onSpellTarget(SpellTargetEvent e) {
-		if (!(e.getSpell() instanceof DamageSpell)) return;
 		if (!isActive(e.getCaster())) return;
-		if (e.getTarget().equals(minions.get(e.getCaster().getUniqueId()))) e.setCancelled(true);
+		if (!e.getSpell().isBeneficial() && e.getTarget().equals(minions.get(e.getCaster().getUniqueId()))) e.setCancelled(true);
 	}
 
 	@EventHandler
@@ -547,7 +548,7 @@ public class MinionSpell extends BuffSpell {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityCombust(EntityCombustEvent e) {
-		if (!preventCombust || !isMinion(e.getEntity())) return;
+		if (!preventCombust || !(e.getEntity() instanceof LivingEntity le) || !isMinion(le)) return;
 		e.setCancelled(true);
 	}
 
@@ -604,60 +605,12 @@ public class MinionSpell extends BuffSpell {
 		this.creatureTypes = creatureTypes;
 	}
 
-	public boolean shouldPowerAffectHealth() {
-		return powerAffectsHealth;
-	}
-
-	public void setPowerAffectsHealth(boolean powerAffectsHealth) {
-		this.powerAffectsHealth = powerAffectsHealth;
-	}
-
 	public boolean shouldPreventCombust() {
 		return preventCombust;
 	}
 
 	public void setPreventCombust(boolean preventCombust) {
 		this.preventCombust = preventCombust;
-	}
-
-	public boolean hasGravity() {
-		return gravity;
-	}
-
-	public void setGravity(boolean gravity) {
-		this.gravity = gravity;
-	}
-
-	public boolean isBaby() {
-		return baby;
-	}
-
-	public void setBaby(boolean baby) {
-		this.baby = baby;
-	}
-
-	public double getPowerHealthFactor() {
-		return powerHealthFactor;
-	}
-
-	public void setPowerHealthFactor(double powerHealthFactor) {
-		this.powerHealthFactor = powerHealthFactor;
-	}
-
-	public double getMaxHealth() {
-		return maxHealth;
-	}
-
-	public void setMaxHealth(double maxHealth) {
-		this.maxHealth = maxHealth;
-	}
-
-	public double getHealth() {
-		return health;
-	}
-
-	public void setHealth(double health) {
-		this.health = health;
 	}
 
 	public String getMinionName() {
@@ -668,14 +621,6 @@ public class MinionSpell extends BuffSpell {
 		this.minionName = minionName;
 	}
 
-	public Vector getSpawnOffset() {
-		return spawnOffset;
-	}
-
-	public void setSpawnOffset(Vector spawnOffset) {
-		this.spawnOffset = spawnOffset;
-	}
-
 	public double getFollowRange() {
 		return followRange;
 	}
@@ -684,7 +629,7 @@ public class MinionSpell extends BuffSpell {
 		this.followRange = followRange;
 	}
 
-	public float getFollowSpeed() {
+	public double getFollowSpeed() {
 		return followSpeed;
 	}
 
@@ -692,7 +637,7 @@ public class MinionSpell extends BuffSpell {
 		this.followSpeed = followSpeed;
 	}
 
-	public float getMaxDistance() {
+	public double getMaxDistance() {
 		return maxDistance;
 	}
 

@@ -18,7 +18,7 @@ public class MagicPromptResponder {
 	
 	public Prompt acceptValidatedInput(ConversationContext paramConversationContext, String paramString) {
 		String playerName = null;
-		Conversable who = ConversationContextUtil.getConversable(paramConversationContext.getAllSessionData());
+		Conversable who = paramConversationContext.getForWhom();
 		if (who instanceof Player player) playerName = player.getName();
 
 		// Try to save response to a variable.

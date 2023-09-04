@@ -14,12 +14,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.SpellUtil;
-import com.nisovin.magicspells.util.BoundingBox;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -27,28 +23,28 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class PortalSpell extends InstantSpell {
 
-	private ConfigData<Integer> duration;
-	private ConfigData<Integer> minDistance;
-	private ConfigData<Integer> maxDistance;
-	private ConfigData<Integer> effectInterval;
+	private final ConfigData<Integer> duration;
+	private final ConfigData<Integer> minDistance;
+	private final ConfigData<Integer> maxDistance;
+	private final ConfigData<Integer> effectInterval;
 
-	private ConfigData<Double> teleportCooldown;
-	private ConfigData<Double> startTeleportCooldown;
+	private final ConfigData<Double> teleportCooldown;
+	private final ConfigData<Double> startTeleportCooldown;
 
-	private ConfigData<Float> vRadiusStart;
-	private ConfigData<Float> hRadiusStart;
-	private ConfigData<Float> vRadiusEnd;
-	private ConfigData<Float> hRadiusEnd;
+	private final ConfigData<Float> vRadiusStart;
+	private final ConfigData<Float> hRadiusStart;
+	private final ConfigData<Float> vRadiusEnd;
+	private final ConfigData<Float> hRadiusEnd;
 
-	private ConfigData<Boolean> canReturn;
-	private ConfigData<Boolean> canTeleportOtherPlayers;
-	private ConfigData<Boolean> chargeReagentsToTeleporter;
+	private final ConfigData<Boolean> canReturn;
+	private final ConfigData<Boolean> canTeleportOtherPlayers;
+	private final ConfigData<Boolean> chargeReagentsToTeleporter;
 
-	private String strNoMark;
-	private String strTooFar;
-	private String strTooClose;
-	private String strTeleportNoCost;
-	private String strTeleportOnCooldown;
+	private final String strNoMark;
+	private final String strTooFar;
+	private final String strTooClose;
+	private final String strTeleportNoCost;
+	private final String strTeleportOnCooldown;
 
 	private MarkSpell startMark;
 	private MarkSpell endMark;
@@ -56,7 +52,7 @@ public class PortalSpell extends InstantSpell {
 	private final String startMarkSpellName;
 	private final String endMarkSpellName;
 
-	private SpellReagents teleportReagents;
+	private final SpellReagents teleportReagents;
 
 	private boolean usingSecondMarkSpell;
 
@@ -111,64 +107,59 @@ public class PortalSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
+	public CastResult cast(SpellData data) {
+		Location loc = startMark.getEffectiveMark(data.caster());
 
-			SpellData data = new SpellData(caster, null, power, args);
-			Location loc = startMark.getEffectiveMark(caster);
-
-			Location locSecond;
-			if (loc == null) {
-				sendMessage(strNoMark, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			if (usingSecondMarkSpell) {
-				locSecond = endMark.getEffectiveMark(caster);
-				if (locSecond == null) {
-					sendMessage(strNoMark, caster, args);
-					return PostCastAction.ALREADY_HANDLED;
-				}
-			} else locSecond = caster.getLocation();
-
-			double distanceSq = 0;
-
-			float maxDistanceSq = maxDistance.get(data);
-			maxDistanceSq *= maxDistanceSq;
-
-			if (maxDistanceSq > 0) {
-				if (!loc.getWorld().equals(locSecond.getWorld())) {
-					sendMessage(strTooFar, caster, args);
-					return PostCastAction.ALREADY_HANDLED;
-				}
-
-				distanceSq = locSecond.distanceSquared(loc);
-				if (distanceSq > maxDistanceSq) {
-					sendMessage(strTooFar, caster, args);
-					return PostCastAction.ALREADY_HANDLED;
-				}
-			}
-
-			float minDistanceSq = minDistance.get(data);
-			minDistanceSq *= minDistanceSq;
-
-			if (minDistanceSq > 0 && loc.getWorld().equals(locSecond.getWorld())) {
-				if (distanceSq == 0) distanceSq = locSecond.distanceSquared(loc);
-				if (distanceSq < minDistanceSq) {
-					sendMessage(strTooClose, caster, args);
-					return PostCastAction.ALREADY_HANDLED;
-				}
-			}
-
-			Portal startPortal = new Portal(loc, teleportReagents, new BoundingBox(loc, hRadiusStart.get(data), vRadiusStart.get(data)));
-			Portal endPortal = new Portal(locSecond, teleportReagents, new BoundingBox(locSecond, hRadiusEnd.get(data), vRadiusEnd.get(data)));
-
-			new PortalLink(caster, startPortal, endPortal, power, data);
-
-			playSpellEffects(EffectPosition.CASTER, caster, data);
-
+		Location locSecond;
+		if (loc == null) {
+			sendMessage(strNoMark, data.caster(), data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		if (usingSecondMarkSpell) {
+			locSecond = endMark.getEffectiveMark(data.caster());
+			if (locSecond == null) {
+				sendMessage(strNoMark, data.caster(), data);
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+		} else locSecond = data.caster().getLocation();
+
+		double distanceSq = 0;
+
+		float maxDistanceSq = maxDistance.get(data);
+		maxDistanceSq *= maxDistanceSq;
+
+		if (maxDistanceSq > 0) {
+			if (!loc.getWorld().equals(locSecond.getWorld())) {
+				sendMessage(strTooFar, data.caster(), data);
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+
+			distanceSq = locSecond.distanceSquared(loc);
+			if (distanceSq > maxDistanceSq) {
+				sendMessage(strTooFar, data.caster(), data);
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+		}
+
+		float minDistanceSq = minDistance.get(data);
+		minDistanceSq *= minDistanceSq;
+
+		if (minDistanceSq > 0 && loc.getWorld().equals(locSecond.getWorld())) {
+			if (distanceSq == 0) distanceSq = locSecond.distanceSquared(loc);
+			if (distanceSq < minDistanceSq) {
+				sendMessage(strTooClose, data.caster(), data);
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+		}
+
+		Portal startPortal = new Portal(loc, teleportReagents, new BoundingBox(loc, hRadiusStart.get(data), vRadiusStart.get(data)));
+		Portal endPortal = new Portal(locSecond, teleportReagents, new BoundingBox(locSecond, hRadiusEnd.get(data), vRadiusEnd.get(data)));
+
+		new PortalLink(data, startPortal, endPortal);
+
+		playSpellEffects(EffectPosition.CASTER, data.caster(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public ConfigData<Integer> getEffectInterval() {
@@ -262,27 +253,23 @@ public class PortalSpell extends InstantSpell {
 
 		private Map<UUID, Long> tpCooldowns;
 
-		private double tpCooldown;
+		private final double tpCooldown;
 
-		private boolean allowReturn;
-		private boolean teleportOtherPlayers;
-		private boolean chargeCostToTeleporter;
+		private final boolean allowReturn;
+		private final boolean teleportOtherPlayers;
+		private final boolean chargeCostToTeleporter;
 
-		private LivingEntity caster;
-		private SpellData data;
-		private float power;
+		private final SpellData data;
 
-		private Portal startPortal;
-		private Portal endPortal;
+		private final Portal startPortal;
+		private final Portal endPortal;
 
 		private int taskPortal = -1;
 		private int taskStop = -1;
 
-		private PortalLink(LivingEntity caster, Portal startPortal, Portal endPortal, float power, SpellData data) {
-			this.caster = caster;
+		private PortalLink(SpellData data, Portal startPortal, Portal endPortal) {
 			this.startPortal = startPortal;
 			this.endPortal = endPortal;
-			this.power = power;
 			this.data = data;
 
 			tpCooldown = teleportCooldown.get(data) * 1000;
@@ -298,12 +285,12 @@ public class PortalSpell extends InstantSpell {
 			tpCooldowns = new HashMap<>();
 			MagicSpells.registerEvents(this);
 
-			tpCooldowns.put(caster.getUniqueId(), (long) (System.currentTimeMillis() + startTeleportCooldown.get(data) * 1000));
+			tpCooldowns.put(data.caster().getUniqueId(), (long) (System.currentTimeMillis() + startTeleportCooldown.get(data) * 1000));
 
 			int interval = effectInterval.get(data);
 			if (interval > 0) {
 				taskPortal = MagicSpells.scheduleRepeatingTask(() -> {
-					if (caster.isValid()) {
+					if (data.caster().isValid()) {
 						playSpellEffects(EffectPosition.SPECIAL, startPortal.portalLocation(), data);
 						playSpellEffects(EffectPosition.SPECIAL, endPortal.portalLocation(), data);
 
@@ -319,9 +306,9 @@ public class PortalSpell extends InstantSpell {
 
 		@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 		private void onMove(PlayerMoveEvent event) {
-			if (!teleportOtherPlayers && !event.getPlayer().equals(caster)) return;
+			if (!teleportOtherPlayers && !event.getPlayer().equals(data.caster())) return;
 			if (!event.hasExplicitlyChangedPosition()) return;
-			if (!caster.isValid()) {
+			if (!data.caster().isValid()) {
 				stop();
 				return;
 			}
@@ -345,7 +332,7 @@ public class PortalSpell extends InstantSpell {
 		private void teleport(Location loc, LivingEntity entity, PlayerMoveEvent event) {
 			loc.setYaw(entity.getLocation().getYaw());
 			loc.setPitch(entity.getLocation().getPitch());
-			playSpellEffects(EffectPosition.TARGET, entity, data);
+			playSpellEffects(EffectPosition.TARGET, entity, data.target(entity));
 
 			event.setTo(loc);
 		}
@@ -355,7 +342,7 @@ public class PortalSpell extends InstantSpell {
 		}
 
 		private boolean checkTeleport(Player target, Portal portal) {
-			SpellTargetEvent event = new SpellTargetEvent(PortalSpell.this, caster, target, power, data.args());
+			SpellTargetEvent event = new SpellTargetEvent(PortalSpell.this, data, target);
 			if (!event.callEvent()) return false;
 
 			target = (Player) event.getTarget();
@@ -368,7 +355,7 @@ public class PortalSpell extends InstantSpell {
 
 		private boolean checkCooldown(Player target) {
 			if (tpCooldowns.containsKey(target.getUniqueId()) && tpCooldowns.get(target.getUniqueId()) > System.currentTimeMillis()) {
-				sendMessage(strTeleportOnCooldown, target, data.args());
+				sendMessage(strTeleportOnCooldown, target, data);
 				return false;
 			}
 
@@ -384,14 +371,14 @@ public class PortalSpell extends InstantSpell {
 				if (SpellUtil.hasReagents(target, portal.portalCost())) {
 					payer = target;
 				} else {
-					sendMessage(strTeleportNoCost, target, data.args());
+					sendMessage(strTeleportNoCost, target, data);
 					return false;
 				}
 			} else {
-				if (SpellUtil.hasReagents(caster, portal.portalCost())) {
-					payer = caster;
+				if (SpellUtil.hasReagents(data.caster(), portal.portalCost())) {
+					payer = data.caster();
 				} else {
-					sendMessage(strTeleportNoCost, target, data.args());
+					sendMessage(strTeleportNoCost, target, data);
 					return false;
 				}
 			}

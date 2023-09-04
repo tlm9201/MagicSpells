@@ -10,37 +10,38 @@ import java.util.HashSet;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 
+	private static final Map<Item, UUID> disarmedItems = new HashMap<>();
+	private static PickupListener pickupListener;
+
 	private Set<MagicItemData> disarmable;
-	private Map<Item, UUID> disarmedItems;
 
-	private boolean dontDrop;
-	private boolean preventTheft;
+	private final ConfigData<Boolean> dontDrop;
+	private final ConfigData<Boolean> preventTheft;
 
-	private ConfigData<Integer> disarmDuration;
+	private final ConfigData<Integer> disarmDuration;
 
-	private String strInvalidItem;
-	
+	private final String strInvalidItem;
+
 	public DisarmSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
+
 		List<String> disarmableItems = getConfigStringList("disarmable-items", null);
 		if (disarmableItems != null && !disarmableItems.isEmpty()) {
 			disarmable = new HashSet<>();
@@ -51,80 +52,58 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 			}
 		}
 
-		dontDrop = getConfigBoolean("dont-drop", false);
-		preventTheft = getConfigBoolean("prevent-theft", true);
+		dontDrop = getConfigDataBoolean("dont-drop", false);
+		preventTheft = getConfigDataBoolean("prevent-theft", true);
 
 		disarmDuration = getConfigDataInt("disarm-duration", 100);
 
 		strInvalidItem = getConfigString("str-invalid-item", "Your target could not be disarmed.");
-		
-		if (dontDrop) preventTheft = false;
-		if (preventTheft) disarmedItems = new HashMap<>();
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-			if (info.noTarget()) return noTarget(caster, args, info);
+	protected void initialize() {
+		super.initialize();
 
-			LivingEntity target = info.target();
-			power = info.power();
-
-			boolean disarmed = disarm(caster, target, power, args);
-			if (!disarmed) return noTarget(caster, strInvalidItem, args);
-
-			playSpellEffects(caster, target, power, args);
-			sendMessages(caster, target, args);
-
-			return PostCastAction.NO_MESSAGES;
+		if (pickupListener == null) {
+			pickupListener = new PickupListener();
+			registerEvents(pickupListener);
 		}
-
-		return PostCastAction.HANDLE_NORMALLY;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		boolean disarmed =  disarm(caster, target, power, args);
-		if (disarmed) playSpellEffects(caster, target, power, args);
-		return disarmed;
+	protected void turnOff() {
+		pickupListener = null;
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
+
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		boolean disarmed = disarm(null, target, power, args);
-		if (disarmed) playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return disarmed;
-	}
+	public CastResult castAtEntity(SpellData data) {
+		LivingEntity target = data.target();
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	private boolean disarm(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		final ItemStack inHand = getItemInHand(target);
-		if (inHand == null) return false;
+		ItemStack inHand = getItemInHand(target);
+		if (inHand == null) return noTarget(strInvalidItem, data);
 
 		if (disarmable != null) {
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(inHand);
-			if (itemData == null || !contains(itemData)) return false;
+			if (itemData == null || !contains(itemData)) return noTarget(strInvalidItem, data);
 		}
 
-		int disarmDuration = this.disarmDuration.get(caster, target, power, args);
-		if (!dontDrop) {
+		int disarmDuration = this.disarmDuration.get(data);
+		if (!dontDrop.get(data)) {
 			setItemInHand(target, null);
+
 			Item item = target.getWorld().dropItemNaturally(target.getLocation(), inHand.clone());
 			item.setPickupDelay(disarmDuration);
-			if (preventTheft && target instanceof Player) disarmedItems.put(item, target.getUniqueId());
-			return true;
+			if (preventTheft.get(data)) disarmedItems.put(item, target.getUniqueId());
+
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
 		setItemInHand(target, null);
@@ -132,17 +111,21 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 			ItemStack inHand2 = getItemInHand(target);
 			if (inHand2 == null || inHand2.getType() == Material.AIR) {
 				setItemInHand(target, inHand);
-			} else if (target instanceof Player) {
-				int slot = ((Player) target).getInventory().firstEmpty();
-				if (slot >= 0) ((Player) target).getInventory().setItem(slot, inHand);
+			} else if (target instanceof Player player) {
+				int slot = player.getInventory().firstEmpty();
+				if (slot >= 0) player.getInventory().setItem(slot, inHand);
 				else {
 					Item item = target.getWorld().dropItem(target.getLocation(), inHand);
 					item.setPickupDelay(0);
+
+					if (preventTheft.get(data)) disarmedItems.put(item, target.getUniqueId());
 				}
 			}
 		}, disarmDuration);
 
-		return true;
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	private boolean contains(MagicItemData itemData) {
@@ -151,27 +134,36 @@ public class DisarmSpell extends TargetedSpell implements TargetedEntitySpell {
 		}
 		return false;
 	}
-	
+
 	private ItemStack getItemInHand(LivingEntity entity) {
 		EntityEquipment equip = entity.getEquipment();
 		if (equip == null) return null;
 		return equip.getItemInMainHand();
 	}
-	
+
 	private void setItemInHand(LivingEntity entity, ItemStack item) {
 		EntityEquipment equip = entity.getEquipment();
 		if (equip == null) return;
 		equip.setItemInMainHand(item);
 	}
-	
-	@EventHandler(ignoreCancelled = true)
-	public void onItemPickup(EntityPickupItemEvent event) {
-		if (!preventTheft) return;
-		
-		Item item = event.getItem();
-		if (!disarmedItems.containsKey(item)) return;
-		if (disarmedItems.get(item).equals(event.getEntity().getUniqueId())) disarmedItems.remove(item);
-		else event.setCancelled(true);
+
+	private static class PickupListener implements Listener {
+
+		public PickupListener() {
+			MagicSpells.registerEvents(this);
+		}
+
+		@EventHandler(ignoreCancelled = true)
+		public void onItemPickup(EntityPickupItemEvent event) {
+			Item item = event.getItem();
+
+			UUID uuid = disarmedItems.get(item);
+			if (uuid == null) return;
+
+			if (uuid.equals(event.getEntity().getUniqueId())) disarmedItems.remove(item);
+			else event.setCancelled(true);
+		}
+
 	}
 
 }

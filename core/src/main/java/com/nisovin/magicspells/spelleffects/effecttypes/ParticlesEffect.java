@@ -35,8 +35,8 @@ public class ParticlesEffect extends SpellEffect {
 	protected ConfigData<ParticlePosition> vibrationOrigin;
 	protected ConfigData<ParticlePosition> vibrationDestination;
 
-	protected Vector vibrationOffset;
-	protected Vector vibrationRelativeOffset;
+	protected ConfigData<Vector> vibrationOffset;
+	protected ConfigData<Vector> vibrationRelativeOffset;
 
 	protected ConfigData<Integer> count;
 	protected ConfigData<Integer> radius;
@@ -49,8 +49,8 @@ public class ParticlesEffect extends SpellEffect {
 	protected ConfigData<Float> zSpread;
 	protected ConfigData<Float> sculkChargeRotation;
 
-	protected boolean force;
-	protected boolean staticDestination;
+	protected ConfigData<Boolean> force;
+	protected ConfigData<Boolean> staticDestination;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -64,8 +64,8 @@ public class ParticlesEffect extends SpellEffect {
 		vibrationOrigin = ConfigDataUtil.getEnum(config, "vibration-origin", ParticlePosition.class, ParticlePosition.POSITION);
 		vibrationDestination = ConfigDataUtil.getEnum(config, "vibration-destination", ParticlePosition.class, ParticlePosition.POSITION);
 
-		vibrationOffset = ConfigReaderUtil.readVector(config.getString("vibration-offset", "0,0,0"));
-		vibrationRelativeOffset = ConfigReaderUtil.readVector(config.getString("vibration-relative-offset", "0,0,0"));
+		vibrationOffset = ConfigDataUtil.getVector(config, "vibration-offset", new Vector());
+		vibrationRelativeOffset = ConfigDataUtil.getVector(config, "vibration-relative-offset", new Vector());
 
 		count = ConfigDataUtil.getInteger(config, "count", 5);
 		radius = ConfigDataUtil.getInteger(config, "radius", 50);
@@ -82,8 +82,8 @@ public class ParticlesEffect extends SpellEffect {
 		ConfigData<Float> vertSpread = ConfigDataUtil.getFloat(config, "vert-spread", 0.2f);
 		ySpread = ConfigDataUtil.getFloat(config, "y-spread", vertSpread);
 
-		force = config.getBoolean("force", false);
-		staticDestination = config.getBoolean("static-destination", false);
+		force = ConfigDataUtil.getBoolean(config, "force", false);
+		staticDestination = ConfigDataUtil.getBoolean(config, "static-destination", false);
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class ParticlesEffect extends SpellEffect {
 		Particle particle = this.particle.get(data);
 		Object particleData = getParticleData(particle, entity, location, data);
 
-		location.getWorld().spawnParticle(particle, location, count.get(data), xSpread.get(data), ySpread.get(data), zSpread.get(data), speed.get(data), particleData, force);
+		location.getWorld().spawnParticle(particle, location, count.get(data), xSpread.get(data), ySpread.get(data), zSpread.get(data), speed.get(data), particleData, force.get(data));
 
 		return null;
 	}
@@ -108,7 +108,7 @@ public class ParticlesEffect extends SpellEffect {
 				.offset(xSpread.get(data), ySpread.get(data), zSpread.get(data))
 				.extra(speed.get(data))
 				.data(getParticleData(particle, location, data))
-				.force(force)
+				.force(force.get(data))
 				.receivers(radius.get(data), true)
 				.spawn();
 
@@ -127,16 +127,21 @@ public class ParticlesEffect extends SpellEffect {
 			Location originLocation = getLocation(location, data, vibrationOrigin);
 			if (originLocation == null) return null;
 
+			Vector vibrationRelativeOffset = this.vibrationRelativeOffset.get(data);
+			Vector vibrationOffset = this.vibrationOffset.get(data);
+
+			boolean staticDestination = this.staticDestination.get(data);
+
 			Destination destination = switch (vibrationDestination.get(data)) {
 				case CASTER -> {
-					LivingEntity caster = data == null ? null : data.caster();
+					LivingEntity caster = data.caster();
 					if (caster == null) yield null;
 
 					yield staticDestination ? new BlockDestination(applyOffsets(caster.getLocation(), vibrationOffset,
 						vibrationRelativeOffset, 0, 0, 0)) : new EntityDestination(caster);
 				}
 				case TARGET -> {
-					LivingEntity target = data == null ? null : data.target();
+					LivingEntity target = data.target();
 					if (target == null) yield null;
 
 					yield staticDestination ? new BlockDestination(applyOffsets(target.getLocation(), vibrationOffset,
@@ -174,8 +179,8 @@ public class ParticlesEffect extends SpellEffect {
 			Location targetLocation = getLocation(location, data, vibrationDestination);
 			if (targetLocation == null) return null;
 
-			Destination destination = new BlockDestination(applyOffsets(targetLocation, vibrationOffset,
-				vibrationRelativeOffset, 0, 0, 0));
+			Destination destination = new BlockDestination(applyOffsets(targetLocation, vibrationOffset.get(data),
+				vibrationRelativeOffset.get(data), 0, 0, 0));
 
 			return new Vibration(destination, arrivalTime.get(data));
 		}
@@ -192,11 +197,11 @@ public class ParticlesEffect extends SpellEffect {
 	protected Location getLocation(Location location, SpellData data, ConfigData<ParticlePosition> position) {
 		return switch (position.get(data)) {
 			case CASTER -> {
-				LivingEntity caster = data == null ? null : data.caster();
+				LivingEntity caster = data.caster();
 				yield caster == null ? null : caster.getLocation();
 			}
 			case TARGET -> {
-				LivingEntity target = data == null ? null : data.target();
+				LivingEntity target = data.target();
 				yield target == null ? null : target.getLocation();
 			}
 			case POSITION -> location.clone();

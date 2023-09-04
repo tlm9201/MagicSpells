@@ -14,12 +14,8 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.CastItem;
-import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.Spell.SpellCastResult;
@@ -95,7 +91,7 @@ public class DanceCastListener implements Listener {
 		Spell spell = spells.get(castSequence);
 		if (spell != null) {
 			MagicSpells.sendMessage(strDanceComplete, player, MagicSpells.NULL_ARGS);
-			SpellCastResult result = spell.cast(player);
+			SpellCastResult result = spell.hardCast(new SpellData(player));
 			casted = result.state == SpellCastState.NORMAL && result.action != PostCastAction.ALREADY_HANDLED;
 		} else if (forceEnd) {
 			MagicSpells.sendMessage(strDanceFail, player, MagicSpells.NULL_ARGS);

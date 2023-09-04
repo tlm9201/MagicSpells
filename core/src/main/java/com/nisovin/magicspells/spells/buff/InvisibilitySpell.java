@@ -1,42 +1,38 @@
 package com.nisovin.magicspells.spells.buff;
 
-import java.util.Set;
-import java.util.UUID;
-import java.util.HashSet;
+import java.util.*;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Creature;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class InvisibilitySpell extends BuffSpell {
 
-	private final Set<UUID> entities;
+	private final Map<UUID, Boolean> entities;
 
-	private ConfigData<Double> mobRadius;
+	private final ConfigData<Double> mobRadius;
 
-	private boolean preventPickups;
+	private final ConfigData<Boolean> preventPickups;
 
 	public InvisibilitySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		mobRadius = getConfigDataDouble("mob-radius", 30);
 
-		preventPickups = getConfigBoolean("prevent-pickups", true);
+		preventPickups = getConfigDataBoolean("prevent-pickups", true);
 
-		entities = new HashSet<>();
+		entities = new HashMap<>();
 	}
 	
 	@Override
@@ -45,16 +41,22 @@ public class InvisibilitySpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player player)) return false;
-		makeInvisible(player, power, args);
-		entities.add(entity.getUniqueId());
+	public boolean castBuff(SpellData data) {
+		if (!(data.target() instanceof Player target)) return false;
+		makeInvisible(target, data);
+		entities.put(target.getUniqueId(), preventPickups.get(data));
 		return true;
 	}
 
 	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		return castBuff(data);
+	}
+
+	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.contains(entity.getUniqueId());
+		return entities.containsKey(entity.getUniqueId());
 	}
 
 	@Override
@@ -69,32 +71,32 @@ public class InvisibilitySpell extends BuffSpell {
 		entities.clear();
 	}
 
-	private void makeInvisible(Player player, float power, String[] args) {
+	private void makeInvisible(Player player, SpellData data) {
 		Util.forEachPlayerOnline(p -> p.hidePlayer(MagicSpells.getInstance(), player));
 
-		double radius = Math.min(mobRadius.get(player, null, power, args), MagicSpells.getGlobalRadius());
+		double radius = Math.min(mobRadius.get(data), MagicSpells.getGlobalRadius());
 		for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-			if (!(entity instanceof Creature creature)) continue;
-			LivingEntity target = creature.getTarget();
-			if (target == null) continue;
-			if (!target.equals(player)) continue;
-			creature.setTarget(null);
+			if (!(entity instanceof Mob mob)) continue;
+
+			LivingEntity target = mob.getTarget();
+			if (target == null || !target.equals(player)) continue;
+
+			mob.setTarget(null);
 		}
 	}
 	
 	@EventHandler
 	public void onEntityItemPickup(EntityPickupItemEvent event) {
-		if (!preventPickups) return;
-		LivingEntity entity = event.getEntity();
-		if (!isActive(entity)) return;
+		Boolean preventPickups = entities.get(event.getEntity().getUniqueId());
+		if (preventPickups == null || !preventPickups) return;
+
 		event.setCancelled(true);
 	}
 	
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityTarget(EntityTargetEvent event) {
 		Entity target = event.getTarget();
-		if (!(target instanceof LivingEntity)) return;
-		if (!isActive((LivingEntity) target)) return;
+		if (!(target instanceof LivingEntity) || !isActive((LivingEntity) target)) return;
 
 		event.setCancelled(true);
 	}
@@ -103,29 +105,18 @@ public class InvisibilitySpell extends BuffSpell {
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
 
-		for (UUID id : entities) {
+		for (UUID id : entities.keySet()) {
 			Entity entity = Bukkit.getEntity(id);
-			if (entity == null) continue;
-			if (!(entity instanceof Player)) continue;
-			player.hidePlayer(MagicSpells.getInstance(), (Player) entity);
+			if (!(entity instanceof Player p)) continue;
+
+			player.hidePlayer(MagicSpells.getInstance(), p);
 		}
 
-		if (isActive(player)) {
-			Util.forEachPlayerOnline(p -> p.hidePlayer(MagicSpells.getInstance(), player));
-		}
-
+		if (isActive(player)) Util.forEachPlayerOnline(p -> p.hidePlayer(MagicSpells.getInstance(), player));
 	}
 
-	public Set<UUID> getEntities() {
+	public Map<UUID, Boolean> getEntities() {
 		return entities;
-	}
-
-	public boolean shouldPreventPickups() {
-		return preventPickups;
-	}
-
-	public void setPreventPickups(boolean preventPickups) {
-		this.preventPickups = preventPickups;
 	}
 
 }

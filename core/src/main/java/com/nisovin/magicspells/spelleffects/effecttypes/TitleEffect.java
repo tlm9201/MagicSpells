@@ -12,16 +12,20 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class TitleEffect extends SpellEffect {
 
 	private String title;
 	private String subtitle;
-	private Title.Times times;
-	private boolean broadcast;
+	private ConfigData<Title.Times> times;
+	private ConfigData<Boolean> broadcast;
+	private ConfigData<Boolean> useViewerAsTarget;
+	private ConfigData<Boolean> useViewerAsDefault;
 
-	private static Duration milisOfTicks(int ticks) {
+	private static Duration millisOfTicks(int ticks) {
 		return Duration.ofMillis(TimeUtil.MILLISECONDS_PER_SECOND * (ticks / TimeUtil.TICKS_PER_SECOND));
 	}
 
@@ -30,26 +34,44 @@ public class TitleEffect extends SpellEffect {
 		title = config.getString("title", "");
 		subtitle = config.getString("subtitle", "");
 
-		int fadeIn = config.getInt("fade-in", 10);
-		int stay = config.getInt("stay", 40);
-		int fadeOut = config.getInt("fade-out", 10);
-		times = Title.Times.times(milisOfTicks(fadeIn), milisOfTicks(stay), milisOfTicks(fadeOut));
+		ConfigData<Integer> fadeIn = ConfigDataUtil.getInteger(config, "fade-in", 10);
+		ConfigData<Integer> stay = ConfigDataUtil.getInteger(config, "stay", 40);
+		ConfigData<Integer> fadeOut = ConfigDataUtil.getInteger(config, "fade-out", 10);
+		if (fadeIn.isConstant() && stay.isConstant() && fadeOut.isConstant()) {
+			Title.Times times = Title.Times.times(
+				millisOfTicks(fadeIn.get()),
+				millisOfTicks(stay.get()),
+				millisOfTicks(fadeOut.get())
+			);
 
-		broadcast = config.getBoolean("broadcast", false);
+			this.times = data -> times;
+		} else {
+			times = data -> Title.Times.times(
+				millisOfTicks(fadeIn.get(data)),
+				millisOfTicks(stay.get(data)),
+				millisOfTicks(fadeOut.get(data))
+			);
+		}
+
+		broadcast = ConfigDataUtil.getBoolean(config, "broadcast", false);
+		useViewerAsTarget = ConfigDataUtil.getBoolean(config, "use-viewer-as-target", false);
+		useViewerAsDefault = ConfigDataUtil.getBoolean(config, "use-viewer-as-default", true);
 	}
 
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
-		String[] args = data == null ? null : data.args();
-		if (broadcast) Util.forEachPlayerOnline(p -> send(p, args));
-		else if (entity instanceof Player player) send(player, args);
+		if (broadcast.get(data)) Util.forEachPlayerOnline(player -> send(player, data));
+		else if (entity instanceof Player player) send(player, data);
 		return null;
 	}
-	
-	private void send(Player player, String[] args) {
-		Component titleComponent = Util.getMiniMessageWithArgsAndVars(player, title, args);
-		Component subtitleComponent = Util.getMiniMessageWithArgsAndVars(player, subtitle, args);
-		player.showTitle(Title.title(titleComponent, subtitleComponent, times));
+
+	private void send(Player player, SpellData data) {
+		if (useViewerAsTarget.get(data)) data = data.target(player);
+		if (useViewerAsDefault.get(data)) data = data.recipient(player);
+
+		Component titleComponent = Util.getMiniMessage(title, data.recipient(), data);
+		Component subtitleComponent = Util.getMiniMessage(subtitle, data.recipient(), data);
+		player.showTitle(Title.title(titleComponent, subtitleComponent, times.get(data)));
 	}
 
 }

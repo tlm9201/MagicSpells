@@ -516,7 +516,7 @@ public class MagicCommand extends BaseCommand {
 
 			VariableMod variableMod = new VariableMod(String.join(" ", Arrays.copyOfRange(args, 2, args.length)));
 			String oldValue = MagicSpells.getVariableManager().getStringValue(variableName, playerName);
-			MagicSpells.getVariableManager().processVariableMods(variableName, variableMod, player, player, null, 1f, null);
+			MagicSpells.getVariableManager().processVariableMods(variableName, variableMod, player, new SpellData(player));
 
 			String message = player == null ? "Value" : TxtUtil.getPossessiveName(playerName) + " value";
 			issuer.sendMessage(MagicSpells.getTextColor() + message + " of '" + variableName + "' was modified: '" + oldValue + "' to '" + MagicSpells.getVariableManager().getStringValue(variableName, playerName) + "'.");
@@ -729,7 +729,7 @@ public class MagicCommand extends BaseCommand {
 					MagicSpells.sendMessage(spell.getStrWrongCastItem(), player, null);
 					return;
 				}
-				spell.cast(player, power, spellArgs);
+				spell.hardCast(new SpellData(player, power, spellArgs));
 				return;
 			}
 			// LivingEntity
@@ -738,7 +738,7 @@ public class MagicCommand extends BaseCommand {
 				EntityEquipment equipment = livingEntity.getEquipment();
 				if (equipment == null) return;
 				if (!spell.isValidItemForCastCommand(equipment.getItemInMainHand())) return;
-				spell.cast(livingEntity, power, spellArgs);
+				spell.hardCast(new SpellData(livingEntity, power, spellArgs));
 			}
 		}
 
@@ -764,7 +764,7 @@ public class MagicCommand extends BaseCommand {
 			}
 			float power = getPowerFromArgs(args);
 			String[] spellArgs = getCustomArgs(args, 2);
-			spell.cast(target, power, spellArgs);
+			spell.hardCast(new SpellData(target, power, spellArgs));
 		}
 
 		@Subcommand("on")
@@ -847,11 +847,12 @@ public class MagicCommand extends BaseCommand {
 			}
 			Location location = new Location(world, x, y, z, pitch, yaw);
 
-			boolean casted;
 			// Handle with or without caster.
-			if (issuer.getIssuer() instanceof LivingEntity) casted = newSpell.castAtLocation(issuer.getIssuer(), location, 1F, null);
-			else casted = newSpell.castAtLocation(location, 1F, null);
-			if (!casted) throw new ConditionFailedException("Spell probably cannot be cast from console.");
+			SpellData data = new SpellData(issuer.getIssuer() instanceof LivingEntity le ? le : null, location, 1f, null);
+			CastResult result = newSpell.castAtLocation(data);
+
+			if (result.action() == Spell.PostCastAction.ALREADY_HANDLED)
+				throw new ConditionFailedException("Spell probably cannot be cast from console.");
 		}
 
 	}

@@ -3,25 +3,24 @@ package com.nisovin.magicspells.spells.buff;
 import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.CastData;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellFilter;
-import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class ClaritySpell extends BuffSpell {
 
-	private final Map<UUID, CastData> entities;
+	private final Map<UUID, Supplier<Float>> entities;
 
-	private ConfigData<Float> multiplier;
+	private final ConfigData<Float> multiplier;
 
-	private boolean powerAffectsMultiplier;
+	private final ConfigData<Boolean> constantMultiplier;
+	private final ConfigData<Boolean> powerAffectsMultiplier;
 
 	private SpellFilter filter;
 
@@ -29,16 +28,46 @@ public class ClaritySpell extends BuffSpell {
 		super(config, spellName);
 
 		multiplier = getConfigDataFloat("multiplier", 0.5F);
-		powerAffectsMultiplier = getConfigBoolean("power-affects-multiplier", true);
+
+		constantMultiplier = getConfigDataBoolean("constant-multiplier", true);
+		powerAffectsMultiplier = getConfigDataBoolean("power-affects-multiplier", true);
+
 		filter = getConfigSpellFilter();
 
 		entities = new HashMap<>();
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new CastData(power, args));
+	public boolean castBuff(SpellData data) {
+		Supplier<Float> supplier;
+		if (constantMultiplier.get(data)) {
+			float multiplier = this.multiplier.get(data);
+			if (powerAffectsMultiplier.get(data)) {
+				if (multiplier > 1) multiplier *= data.power();
+				else if (multiplier < 1) multiplier /= data.power();
+			}
+
+			float finalMultiplier = multiplier;
+			supplier = () -> finalMultiplier;
+		} else supplier = () -> {
+			float multiplier = this.multiplier.get(data);
+			if (powerAffectsMultiplier.get(data)) {
+				if (multiplier > 1) multiplier *= data.power();
+				else if (multiplier < 1) multiplier /= data.power();
+			}
+
+			return multiplier;
+		};
+
+		entities.put(data.target().getUniqueId(), supplier);
+
 		return true;
+	}
+
+	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		return castBuff(data);
 	}
 
 	@Override
@@ -59,16 +88,9 @@ public class ClaritySpell extends BuffSpell {
 	@EventHandler(ignoreCancelled = true)
 	public void onSpellCast(SpellCastEvent event) {
 		LivingEntity caster = event.getCaster();
-		if (!isActive(caster)) return;
-		if (!filter.check(event.getSpell())) return;
+		if (!isActive(caster) || !filter.check(event.getSpell())) return;
 
-		CastData data = entities.get(caster.getUniqueId());
-
-		float multiplier = this.multiplier.get(caster, null, data.power(), data.args());
-		if (powerAffectsMultiplier) {
-			if (multiplier < 1) multiplier /= data.power();
-			else if (multiplier > 1) multiplier *= data.power();
-		}
+		float multiplier = entities.get(caster.getUniqueId()).get();
 
 		SpellReagents reagents = event.getReagents();
 		if (reagents != null) event.setReagents(reagents.multiply(multiplier));

@@ -4,153 +4,105 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
-	private ConfigData<Integer> rotationYaw;
-	private ConfigData<Integer> rotationPitch;
+	private static final float PITCH_BOUND = Math.nextUp(180f);
 
-	private boolean random;
-	private boolean affectPitch;
-	private boolean mimicDirection;
+	private final ConfigData<Float> rotationYaw;
+	private final ConfigData<Float> rotationPitch;
 
-	private String face;
+	private final ConfigData<Boolean> random;
+	private final ConfigData<Boolean> affectPitch;
+	private final ConfigData<Boolean> mimicDirection;
+
+	private final ConfigData<String> face;
 
 	public RotateSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		rotationYaw = getConfigDataInt("rotation-yaw", 10);
-		rotationPitch = getConfigDataInt("rotation-pitch", 0);
+		rotationYaw = getConfigDataFloat("rotation-yaw", 10);
+		rotationPitch = getConfigDataFloat("rotation-pitch", 0);
 
-		random = getConfigBoolean("random", false);
-		affectPitch = getConfigBoolean("affect-pitch", false);
-		mimicDirection = getConfigBoolean("mimic-direction", false);
+		random = getConfigDataBoolean("random", false);
+		affectPitch = getConfigDataBoolean("affect-pitch", false);
+		mimicDirection = getConfigDataBoolean("mimic-direction", false);
 
-		face = getConfigString("face", "");
+		face = getConfigDataString("face", "");
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-			if (info.noTarget()) return noTarget(caster, args, info);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			spinFace(caster, info.target(), info.power(), args);
-			playSpellEffects(caster, info.target(), info.power(), args);
-			sendMessages(caster, info.target(), args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		spinFace(caster, target, power, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		changeDirection(data.caster(), data.location(), false, data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		spinTarget(null, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		spin(caster, target);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
-	}
-
-	private void spinTarget(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		Location loc = target.getLocation();
-		if (random) {
-			loc.setYaw(Util.getRandomInt(360));
-			if (affectPitch) loc.setPitch(Util.getRandomInt(181) - 90);
-		} else {
-			loc.setYaw(loc.getYaw() + rotationYaw.get(caster, target, power, args));
-			if (affectPitch) loc.setPitch(loc.getPitch() + rotationPitch.get(caster, target, power, args));
-		}
-		target.teleportAsync(loc);
-	}
-
-	private void spinFace(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		Location targetLoc = target.getLocation();
-		Location casterLoc = caster.getLocation();
-
+	public CastResult castAtEntity(SpellData data) {
+		String face = this.face.get(data);
 		if (face.isEmpty()) {
-			spinTarget(caster, target, power, args);
+			Location location = data.target().getLocation();
+			float pitch = location.getPitch(), yaw = location.getYaw();
+
+			if (random.get(data)) {
+				yaw = Spell.random.nextFloat(360);
+				if (affectPitch.get(data)) pitch = Spell.random.nextFloat(PITCH_BOUND) - 90;
+			} else {
+				yaw += rotationYaw.get(data);
+				if (affectPitch.get(data)) pitch += rotationPitch.get(data);
+			}
+
+			data.target().setRotation(yaw, pitch);
+		}
+
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		switch (face) {
+			case "caster" -> changeDirection(data.target(), data.caster().getLocation(), false, data);
+			case "target" -> changeDirection(data.caster(), data.target().getLocation(), false, data);
+			case "away-from-caster" -> changeDirection(data.target(), data.caster().getLocation(), true, data);
+			case "away-from-target" -> changeDirection(data.caster(), data.target().getLocation(), true, data);
+			default -> {
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+		}
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
+
+	private void changeDirection(LivingEntity entity, Location target, boolean away, SpellData data) {
+		if (mimicDirection.get(data)) {
+			float yaw = target.getYaw();
+			float pitch = affectPitch.get(data) ? target.getPitch() : entity.getLocation().getPitch();
+
+			entity.setRotation(away ? yaw + 180 : yaw, pitch);
 			return;
 		}
 
-		Location loc;
-		switch (face) {
-			case "target" -> caster.teleportAsync(changeDirection(casterLoc, targetLoc));
-			case "caster" -> target.teleportAsync(changeDirection(targetLoc, casterLoc));
-			case "away-from-caster" -> {
-				loc = changeDirection(targetLoc, casterLoc);
-				loc.setYaw(loc.getYaw() + 180);
-				target.teleportAsync(loc);
-			}
-			case "away-from-target" -> {
-				loc = changeDirection(casterLoc, targetLoc);
-				loc.setYaw(loc.getYaw() + 180);
-				caster.teleportAsync(loc);
-			}
-		}
+		Location location = entity.getLocation();
+		float yaw, pitch = location.getPitch();
 
-	}
+		Vector direction = target.toVector().subtract(location.toVector());
+		location.setDirection(direction);
 
-	private void spin(LivingEntity entity, Location target) {
-		entity.teleportAsync(changeDirection(entity.getLocation(), target));
-	}
+		yaw = location.getYaw();
+		if (affectPitch.get(data)) pitch = location.getPitch();
 
-	private Location changeDirection(Location pos1, Location pos2) {
-		Location loc = pos1.clone();
-		if (mimicDirection) {
-			if (affectPitch) loc.setPitch(pos2.getPitch());
-			loc.setYaw(pos2.getYaw());
-		} else loc.setDirection(getVectorDir(pos1, pos2));
-
-		return loc;
-	}
-
-	private Vector getVectorDir(Location caster, Location target) {
-		return target.clone().subtract(caster.toVector()).toVector();
+		entity.setRotation(away ? yaw + 180 : yaw, pitch);
 	}
 
 }

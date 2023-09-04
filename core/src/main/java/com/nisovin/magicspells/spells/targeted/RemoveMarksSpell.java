@@ -6,26 +6,22 @@ import java.util.Iterator;
 
 import org.bukkit.World;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.instant.MarkSpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private ConfigData<Float> radius;
+	private final ConfigData<Float> radius;
 
-	private boolean pointBlank;
-	private boolean powerAffectsRadius;
+	private final ConfigData<Boolean> pointBlank;
+	private final ConfigData<Boolean> powerAffectsRadius;
 
 	private MarkSpell markSpell;
 	private String markSpellName;
@@ -35,8 +31,8 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 
 		radius = getConfigDataFloat("radius", 10F);
 
-		pointBlank = getConfigBoolean("point-blank", false);
-		powerAffectsRadius = getConfigBoolean("power-affects-radius", true);
+		pointBlank = getConfigDataBoolean("point-blank", false);
+		powerAffectsRadius = getConfigDataBoolean("power-affects-radius", true);
 
 		markSpellName = getConfigString("mark-spell", "");
 	}
@@ -46,58 +42,38 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 		super.initialize();
 
 		Spell spell = MagicSpells.getSpellByInternalName(markSpellName);
-		if (spell instanceof MarkSpell) {
-			markSpell = (MarkSpell) spell;
+		if (spell instanceof MarkSpell mark) {
+			markSpell = mark;
+			markSpellName = null;
 			return;
 		}
 
-		MagicSpells.error("RemoveMarksSpell '" + internalName + "' has an invalid mark-spell defined!");
+		MagicSpells.error("RemoveMarksSpell '" + internalName + "' has an invalid mark-spell '" + markSpellName + "' defined!");
+		markSpellName = null;
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location loc = null;
-			if (pointBlank) loc = caster.getLocation();
-			else {
-				Block b = getTargetedBlock(caster, power, args);
-				if (b != null && !BlockUtils.isAir(b.getType())) loc = b.getLocation();
-			}
-			if (loc == null) return noTarget(caster, args);
-			removeMarks(caster, loc, power, args);
+	public CastResult cast(SpellData data) {
+		if (pointBlank.get(data)) {
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
+			if (!event.callEvent()) return noTarget(event);
+			data = event.getSpellData();
+		} else {
+			TargetInfo<Location> info = getTargetedBlockLocation(data, false);
+			if (info.noTarget()) return noTarget(info);
+			data = info.spellData();
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		return castAtLocation(data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		removeMarks(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		removeMarks(caster, target, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		removeMarks(null, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		removeMarks(null, target, power, null);
-		return true;
-	}
-
-	private void removeMarks(LivingEntity caster, Location loc, float power, String[] args) {
-		float radSq = radius.get(caster, null, power, args);
-		if (powerAffectsRadius) radSq *= power;
-
+	public CastResult castAtLocation(SpellData data) {
+		float radSq = radius.get(data);
+		if (powerAffectsRadius.get(data)) radSq *= data.power();
 		radSq *= radSq;
+
+		Location loc = data.location();
 
 		Map<UUID, MagicLocation> marks = markSpell.getMarks();
 		Iterator<UUID> iter = marks.keySet().iterator();
@@ -110,8 +86,9 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		markSpell.setMarks(marks);
-		if (caster != null) playSpellEffects(caster, loc, power, args);
-		else playSpellEffects(EffectPosition.TARGET, loc, power, args);
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

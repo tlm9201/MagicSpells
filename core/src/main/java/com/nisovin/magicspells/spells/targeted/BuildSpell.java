@@ -6,37 +6,32 @@ import java.util.HashSet;
 import java.util.ArrayList;
 
 import org.bukkit.Effect;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
 
 public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Set<Material> allowedTypes;
+	private final Set<Material> allowedTypes;
 
-	private String strCantBuild;
-	private String strInvalidBlock;
+	private final String strCantBuild;
+	private final String strInvalidBlock;
 
-	private ConfigData<Integer> slot;
+	private final ConfigData<Integer> slot;
 
-	private boolean consumeBlock;
-	private boolean checkPlugins;
-	private boolean playBreakEffect;
+	private final ConfigData<Boolean> consumeBlock;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> playBreakEffect;
 
 	public BuildSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -46,9 +41,9 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		slot = getConfigDataInt("slot", 0);
 
-		consumeBlock = getConfigBoolean("consume-block", true);
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		playBreakEffect = getConfigBoolean("show-effect", true);
+		consumeBlock = getConfigDataBoolean("consume-block", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		playBreakEffect = getConfigDataBoolean("show-effect", true);
 
 		List<String> materials = getConfigStringList("allowed-types", null);
 		if (materials == null) {
@@ -75,62 +70,49 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			int slot = this.slot.get(caster, null, power, args);
-			ItemStack item = player.getInventory().getItem(slot);
-			if (item == null || !isAllowed(item.getType())) return noTarget(player, strInvalidBlock, args);
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			List<Block> lastBlocks;
-			try {
-				lastBlocks = getLastTwoTargetedBlocks(player, power, args);
-			} catch (IllegalStateException e) {
-				DebugHandler.debugIllegalState(e);
-				lastBlocks = null;
-			}
+		int slot = this.slot.get(data);
 
-			if (lastBlocks == null || lastBlocks.size() < 2 || BlockUtils.isAir(lastBlocks.get(1).getType()))
-				return noTarget(player, strCantBuild, args);
-
-			boolean built = build(player, lastBlocks.get(0), lastBlocks.get(1), item, slot, power, args);
-			if (!built) return noTarget(player, strCantBuild, args);
-
-		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (!(caster instanceof Player player)) return false;
-
-		int slot = this.slot.get(caster, null, power, args);
 		ItemStack item = player.getInventory().getItem(slot);
-		if (item == null || !isAllowed(item.getType())) return false;
+		if (item == null || isDenied(item.getType())) return noTarget(strInvalidBlock, data);
 
-		Block block = target.getBlock();
+		List<Block> blocks = getLastTwoTargetedBlocks(data);
+		if (blocks.size() != 2 || blocks.get(1).getType().isAir()) return noTarget(strCantBuild, data);
 
-		return build(player, block, block, item, slot, power, args);
+		Block block = blocks.get(0);
+		Block against = blocks.get(1);
+		data = data.location(block.getLocation());
+
+		boolean built = build(player, block, against, item, slot, data);
+		return built ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strCantBuild, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
+	public CastResult castAtLocation(SpellData data) {
+		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		int slot = this.slot.get(data);
+
+		ItemStack item = player.getInventory().getItem(slot);
+		if (item == null || isDenied(item.getType())) return noTarget(strInvalidBlock, data);
+
+		Block block = data.location().getBlock();
+
+		boolean built = build(player, block, block, item, slot, data);
+		return built ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(strCantBuild, data);
 	}
 
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
+	private boolean isDenied(Material mat) {
+		return !mat.isBlock() || allowedTypes == null || !allowedTypes.contains(mat);
 	}
 
-	private boolean isAllowed(Material mat) {
-		return mat.isBlock() && allowedTypes != null && allowedTypes.contains(mat);
-	}
-
-	private boolean build(Player player, Block block, Block against, ItemStack item, int slot, float power, String[] args) {
+	private boolean build(Player player, Block block, Block against, ItemStack item, int slot, SpellData data) {
 		BlockState previousState = block.getState();
 		block.setType(item.getType());
 
-		if (checkPlugins) {
+		if (checkPlugins.get(data)) {
 			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, previousState, against, player.getEquipment().getItemInMainHand(), player, true);
 			EventUtil.call(event);
 			if (event.isCancelled() && block.getType() == item.getType()) {
@@ -139,17 +121,17 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 			}
 		}
 
-		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
+		if (playBreakEffect.get(data)) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
 
-		playSpellEffects(player, block.getLocation(), power, args);
-
-		if (consumeBlock) {
+		if (consumeBlock.get(data)) {
 			int amt = item.getAmount() - 1;
 			if (amt > 0) {
 				item.setAmount(amt);
 				player.getInventory().setItem(slot, item);
 			} else player.getInventory().setItem(slot, null);
 		}
+
+		playSpellEffects(data);
 
 		return true;
 	}

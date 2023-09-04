@@ -8,30 +8,26 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffectType;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 // TODO setup a system for registering "CleanseProvider"s
 public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private ValidTargetChecker checker;
 
-	private List<String> toCleanse;
-	private List<DotSpell> dotSpells;
-	private List<StunSpell> stunSpells;
-	private List<BuffSpell> buffSpells;
-	private List<LoopSpell> loopSpells;
-	private List<OrbitSpell> orbitSpells;
-	private List<SilenceSpell> silenceSpells;
-	private List<LevitateSpell> levitateSpells;
-	private List<PotionEffectType> potionEffectTypes;
+	private final List<String> toCleanse;
+	private final List<DotSpell> dotSpells;
+	private final List<StunSpell> stunSpells;
+	private final List<BuffSpell> buffSpells;
+	private final List<LoopSpell> loopSpells;
+	private final List<OrbitSpell> orbitSpells;
+	private final List<SilenceSpell> silenceSpells;
+	private final List<LevitateSpell> levitateSpells;
+	private final List<PotionEffectType> potionEffectTypes;
 
 	private boolean fire;
 
@@ -188,54 +184,18 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, checker, args);
-			if (target.noTarget()) return noTarget(caster, args, target);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data, checker);
+		if (info.noTarget()) return noTarget(info);
+		data = info.spellData();
 
-			cleanse(caster, target.target(), target.power(), args);
-			sendMessages(caster, target.target(), args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		cleanse(caster, target, power, args);
-		return true;
-	}
+	public CastResult castAtEntity(SpellData data) {
+		LivingEntity target = data.target();
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		cleanse(caster, target, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		cleanse(null, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		cleanse(null, target, power, null);
-		return true;
-	}
-
-	@Override
-	public ValidTargetChecker getValidTargetChecker() {
-		return checker;
-	}
-
-	private void cleanse(LivingEntity caster, LivingEntity target, float power, String[] args) {
 		if (fire) target.setFireTicks(0);
 
 		for (PotionEffectType type : potionEffectTypes) {
@@ -250,8 +210,13 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		silenceSpells.forEach(spell -> spell.removeSilence(target));
 		levitateSpells.forEach(spell -> spell.removeLevitate(target));
 
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
+
+	@Override
+	public ValidTargetChecker getValidTargetChecker() {
+		return checker;
 	}
 
 }

@@ -4,45 +4,51 @@ import java.util.Set;
 import java.util.List;
 import java.util.UUID;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.event.Event;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.NamespacedKey;
 import org.bukkit.event.Listener;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 
-import net.kyori.adventure.text.Component;
-
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class ArmorSpell extends BuffSpell {
 
+	private static final NamespacedKey MARKER = new NamespacedKey(MagicSpells.getInstance(), "armor_spell_item");
+
 	private final Set<UUID> entities;
 
-	private boolean permanent;
-	private boolean replace;
+	private final boolean permanent;
+	private final ConfigData<Boolean> replace;
 
 	private ItemStack helmet;
 	private ItemStack chestplate;
@@ -51,15 +57,11 @@ public class ArmorSpell extends BuffSpell {
 
 	private String strHasArmor;
 
-	private Component hiddenLore;
-
 	public ArmorSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		hiddenLore = getInvisibleLore("MSArmorItem");
-
 		permanent = getConfigBoolean("permanent", false);
-		replace = getConfigBoolean("replace", false);
+		replace = getConfigDataBoolean("replace", false);
 
 		helmet = getItem(getConfigString("helmet", ""));
 		chestplate = getItem(getConfigString("chestplate", ""));
@@ -75,12 +77,6 @@ public class ArmorSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 		if (!permanent) registerEvents(new ArmorListener());
-	}
-
-	public static Component getInvisibleLore(String s) {
-		String lore = "";
-		for (char c : s.toCharArray()) lore += ChatColor.COLOR_CHAR + "" + c;
-		return Util.getMiniMessage(lore);
 	}
 
 	private ItemStack getItem(String s) {
@@ -100,39 +96,31 @@ public class ArmorSpell extends BuffSpell {
 		}
 
 		item.setAmount(1);
-
-		if (!permanent) {
-			ItemMeta meta = item.getItemMeta();
-			List<Component> lore = meta.lore();
-			if (lore == null) lore = new ArrayList<>();
-			lore.add(hiddenLore);
-			meta.lore(lore);
-			item.setItemMeta(meta);
-		}
+		if (!permanent)
+			item.editMeta(meta -> meta.getPersistentDataContainer().set(MARKER, PersistentDataType.STRING, internalName));
 
 		return item;
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		EntityEquipment inv = entity.getEquipment();
-		if (inv == null) return false;
+	public boolean castBuff(SpellData data) {
+		EntityEquipment eq = data.target().getEquipment();
+		if (eq == null) return false;
 
-		if (!replace && ((helmet != null && inv.getHelmet() != null) || (chestplate != null && inv.getChestplate() != null) || (leggings != null && inv.getLeggings() != null) || (boots != null && inv.getBoots() != null))) {
-			// error
-			if (entity instanceof Player) sendMessage(strHasArmor, entity, args);
+		if (!replace.get(data) &&
+			((helmet != null && eq.getHelmet() != null) ||
+				(chestplate != null && eq.getChestplate() != null) ||
+				(leggings != null && eq.getLeggings() != null) ||
+				(boots != null && eq.getBoots() != null))
+		) {
+			sendMessage(strHasArmor, data.caster(), data);
 			return false;
 		}
 
-		setArmor(inv);
+		setArmor(eq);
+		if (!permanent) entities.add(data.target().getUniqueId());
 
-		if (!permanent) entities.add(entity.getUniqueId());
 		return true;
-	}
-
-	@Override
-	public boolean recastBuff(LivingEntity entity, float power, String[] args) {
-		return castBuff(entity, power, args);
 	}
 
 	@Override
@@ -142,110 +130,119 @@ public class ArmorSpell extends BuffSpell {
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		if (!entities.remove(entity.getUniqueId())) return;
-		if (!entity.isValid()) return;
-		EntityEquipment inv = entity.getEquipment();
-		removeArmor(inv);
+		if (!entities.remove(entity.getUniqueId()) || !entity.isValid()) return;
+
+		EntityEquipment eq = entity.getEquipment();
+		if (eq != null) removeArmor(eq);
 	}
 
 	@Override
 	protected void turnOff() {
 		for (UUID id : entities) {
 			Entity entity = Bukkit.getEntity(id);
-			if (entity == null) continue;
-			if (!entity.isValid()) continue;
-			EntityEquipment inv = ((LivingEntity) entity).getEquipment();
-			removeArmor(inv);
+			if (entity == null || !entity.isValid()) continue;
+
+			EntityEquipment eq = ((LivingEntity) entity).getEquipment();
+			if (eq != null) removeArmor(eq);
 		}
+
 		entities.clear();
 	}
 
-	private void setArmor(EntityEquipment inv) {
-		if (helmet != null) {
-			if (replace) inv.setHelmet(null);
-			inv.setHelmet(helmet.clone());
-		}
-
-		if (chestplate != null) {
-			if (replace) inv.setChestplate(null);
-			inv.setChestplate(chestplate.clone());
-		}
-
-		if (leggings != null) {
-			if (replace) inv.setLeggings(null);
-			inv.setLeggings(leggings.clone());
-		}
-
-		if (boots != null) {
-			if (replace) inv.setBoots(null);
-			inv.setBoots(boots.clone());
-		}
+	private void setArmor(EntityEquipment eq) {
+		if (helmet != null) eq.setHelmet(helmet);
+		if (chestplate != null) eq.setChestplate(chestplate);
+		if (leggings != null) eq.setLeggings(leggings);
+		if (boots != null) eq.setBoots(boots);
 	}
 
-	private void removeArmor(EntityEquipment inv) {
-		ItemStack invHelmet = inv.getHelmet();
-		if (helmet != null && invHelmet != null && invHelmet.getType() == helmet.getType()) {
-			inv.setHelmet(null);
+	private void removeArmor(EntityEquipment eq) {
+		ItemStack[] armor = eq.getArmorContents();
+		boolean modified = false;
+
+		for (int i = 0; i < armor.length; i++) {
+			if (!hasMarker(armor[i])) continue;
+
+			armor[i] = null;
+			modified = true;
 		}
 
-		ItemStack invChestplate = inv.getChestplate();
-		if (chestplate != null && invChestplate != null && invChestplate.getType() == chestplate.getType()) {
-			inv.setChestplate(null);
-		}
+		if (modified) eq.setArmorContents(armor);
+	}
 
-		ItemStack invLeggings = inv.getLeggings();
-		if (leggings != null && invLeggings != null && invLeggings.getType() == leggings.getType()) {
-			inv.setLeggings(null);
-		}
+	private boolean hasMarker(ItemStack item) {
+		if (item == null) return false;
 
-		ItemStack invBoots = inv.getBoots();
-		if (boots != null && invBoots != null && invBoots.getType() == boots.getType()) {
-			inv.setBoots(null);
-		}
+		ItemMeta meta = item.getItemMeta();
+		if (meta == null) return false;
+
+		PersistentDataContainer container = meta.getPersistentDataContainer();
+		if (!container.has(MARKER)) return false;
+
+		return internalName.equals(container.get(MARKER, PersistentDataType.STRING));
 	}
 
 	private class ArmorListener implements Listener {
 
-		@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled=true)
+		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 		public void onEntityDamage(EntityDamageEvent event) {
 			Entity entity = event.getEntity();
-			if (!(entity instanceof LivingEntity livingEntity)) return;
-			if (!isActive(livingEntity)) return;
-			if (livingEntity.getNoDamageTicks() >= 10) return;
-			addUseAndChargeCost(livingEntity);
+			if (!(entity instanceof LivingEntity le) || !isActive(le) || le.getNoDamageTicks() >= 10) return;
+
+			addUseAndChargeCost(le);
 		}
 
-		@EventHandler(ignoreCancelled=true)
+		@EventHandler(ignoreCancelled = true)
 		public void onInventoryClick(InventoryClickEvent event) {
 			if (event.getSlotType() != SlotType.ARMOR) return;
+
 			HumanEntity entity = event.getWhoClicked();
-			if (!(entity instanceof Player p)) return;
-			if (!isActive(p)) return;
-			event.setCancelled(true);
+			if (isActive(entity) && hasMarker(event.getCurrentItem())) event.setCancelled(true);
+		}
+
+		@EventHandler(ignoreCancelled = true)
+		public void onInventoryDrag(InventoryDragEvent event) {
+			HumanEntity entity = event.getWhoClicked();
+			if (!isActive(entity)) return;
+
+			InventoryView view = event.getView();
+
+			Set<Integer> slots = event.getRawSlots();
+			for (int slot : slots) {
+				if (view.getSlotType(slot) != SlotType.ARMOR || !hasMarker(view.getItem(slot))) continue;
+
+				event.setCancelled(true);
+				return;
+			}
 		}
 
 		@EventHandler
+		public void onInteract(PlayerInteractEvent event) {
+			if (!event.getAction().isRightClick() || event.useItemInHand() == Event.Result.DENY) return;
+
+			Player player = event.getPlayer();
+			if (!isActive(player)) return;
+
+			EquipmentSlot slot = event.getMaterial().getEquipmentSlot();
+			if (!slot.isArmor()) return;
+
+			ItemStack item = player.getEquipment().getItem(slot);
+			if (hasMarker(item)) event.setUseItemInHand(Event.Result.DENY);
+		}
+
+		@EventHandler(priority = EventPriority.HIGHEST)
 		public void onEntityDeath(EntityDeathEvent event) {
-			if (permanent) return;
-			Iterator<ItemStack> drops = event.getDrops().iterator();
-			while (drops.hasNext()) {
-				ItemStack drop = drops.next();
-				if (drop == null) continue;
-				List<Component> lore = drop.lore();
-				if (lore == null) continue;
-				if (!lore.get(lore.size() - 1).equals(hiddenLore)) continue;
-				drops.remove();
-			}
+			List<ItemStack> drops = event.getDrops();
+			drops.removeIf(ArmorSpell.this::hasMarker);
 		}
 
 		@EventHandler
 		public void onPlayerRespawn(PlayerRespawnEvent event) {
 			Player player = event.getPlayer();
-			if (!isActive(player)) return;
-			if (isExpired(player)) return;
+			if (!isActive(player) || isExpired(player)) return;
 
-			final EntityEquipment inv = player.getEquipment();
-			Bukkit.getScheduler().scheduleSyncDelayedTask(MagicSpells.plugin, () -> setArmor(inv));
+			EntityEquipment eq = player.getEquipment();
+			Bukkit.getScheduler().scheduleSyncDelayedTask(MagicSpells.plugin, () -> setArmor(eq));
 		}
 
 		@EventHandler
@@ -270,22 +267,6 @@ public class ArmorSpell extends BuffSpell {
 
 	public Set<UUID> getEntities() {
 		return entities;
-	}
-
-	public boolean isPermanent() {
-		return permanent;
-	}
-
-	public void setPermanent(boolean permanent) {
-		this.permanent = permanent;
-	}
-
-	public boolean shouldReplace() {
-		return replace;
-	}
-
-	public void setReplace(boolean replace) {
-		this.replace = replace;
 	}
 
 	public ItemStack getHelmet() {
@@ -326,14 +307,6 @@ public class ArmorSpell extends BuffSpell {
 
 	public void setHasArmorMessage(String strHasArmor) {
 		this.strHasArmor = strHasArmor;
-	}
-
-	public Component getHiddenLore() {
-		return hiddenLore;
-	}
-
-	public void setHiddenLore(Component hiddenLore) {
-		this.hiddenLore = hiddenLore;
 	}
 
 }

@@ -1,16 +1,24 @@
 package com.nisovin.magicspells.spells.instant;
 
-import java.util.Set;
-import java.util.UUID;
-import java.util.HashSet;
+import java.util.Map;
+import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collection;
 
-import org.bukkit.Location;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.ArrayListMultimap;
+
 import org.bukkit.util.Vector;
+import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageEvent;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -20,133 +28,171 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
-	private final Set<UUID> jumping;
+	private static VelocityMonitor velocityMonitor;
 
 	private final ConfigData<Double> speed;
 
-	private boolean cancelDamage;
-	private boolean powerAffectsSpeed;
-	private boolean addVelocityInstead;
+	private final ConfigData<Boolean> cancelDamage;
+	private final ConfigData<Boolean> powerAffectsSpeed;
+	private final ConfigData<Boolean> addVelocityInstead;
 
 	public VelocitySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		jumping = new HashSet<>();
-
 		speed = getConfigDataDouble("speed", 40);
 
-		cancelDamage = getConfigBoolean("cancel-damage", true);
-		addVelocityInstead = getConfigBoolean("add-velocity-instead", false);
-		powerAffectsSpeed = getConfigBoolean("power-affects-speed", true);
+		cancelDamage = getConfigDataBoolean("cancel-damage", true);
+		powerAffectsSpeed = getConfigDataBoolean("power-affects-speed", true);
+		addVelocityInstead = getConfigDataBoolean("add-velocity-instead", false);
+	}
+
+	@Override
+	protected void initialize() {
+		super.initialize();
+
+		if (velocityMonitor == null) velocityMonitor = new VelocityMonitor();
+	}
+
+	@Override
+	public CastResult cast(SpellData data) {
+		return castAtEntity(data.target(data.caster()));
+	}
+
+	@Override
+	public CastResult castAtEntity(SpellData data) {
+		double speed = this.speed.get(data) / 10;
+		if (powerAffectsSpeed.get(data)) speed *= data.power();
+
+		Vector velocity = data.target().getLocation().getDirection().normalize().multiply(speed);
+
+		if (addVelocityInstead.get(data)) data.target().setVelocity(data.target().getVelocity().add(velocity));
+		else data.target().setVelocity(velocity);
+
+		velocityMonitor.add(new VelocityData(this, data, cancelDamage.get(data)));
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
+
+	@Override
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		double speed = this.speed.get(data) / 10;
+		if (powerAffectsSpeed.get(data)) speed *= data.power();
+
+		Vector velocity = data.location().getDirection().normalize().multiply(speed);
+
+		if (addVelocityInstead.get(data)) data.target().setVelocity(data.target().getVelocity().add(velocity));
+		else data.target().setVelocity(velocity);
+
+		velocityMonitor.add(new VelocityData(this, data, cancelDamage.get(data)));
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
+
+	@Override
+	protected void turnOff() {
+		if (velocityMonitor != null) {
+			velocityMonitor.stop();
+			velocityMonitor = null;
+		}
 	}
 
 	public boolean isJumping(LivingEntity livingEntity) {
-		return jumping.contains(livingEntity.getUniqueId());
+		return velocityMonitor.jumping.containsKey(livingEntity);
 	}
 
-	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			launch(caster, caster, null, power, args);
+	public static Multimap<LivingEntity, VelocityData> getJumping() {
+		return velocityMonitor.jumping;
+	}
+
+	private static class VelocityMonitor implements Runnable, Listener {
+
+		private final Multimap<LivingEntity, VelocityData> jumping = ArrayListMultimap.create();
+		private final List<VelocityData> queue = new ArrayList<>();
+
+		private boolean running = false;
+		private int taskId = -1;
+
+		public void add(VelocityData data) {
+			queue.add(data);
+			start();
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		public void start() {
+			if (taskId != -1) return;
+
+			MagicSpells.registerEvents(this);
+			taskId = MagicSpells.scheduleRepeatingTask(this, 0, 1);
+		}
+
+		public void stop() {
+			if (taskId == -1) return;
+
+			EntityDamageEvent.getHandlerList().unregister(this);
+			MagicSpells.cancelTask(taskId);
+			taskId = -1;
+
+			jumping.clear();
+			queue.clear();
+		}
+
+		@Override
+		public void run() {
+			running = true;
+
+			Iterator<Map.Entry<LivingEntity, Collection<VelocityData>>> it = jumping.asMap().entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry<LivingEntity, Collection<VelocityData>> entry = it.next();
+
+				LivingEntity target = entry.getKey();
+				if (!target.isValid()) {
+					it.remove();
+					continue;
+				}
+
+				if (!target.isOnGround()) continue;
+
+				Collection<VelocityData> velocityData = entry.getValue();
+				for (VelocityData data : velocityData)
+					data.velocitySpell.playSpellEffects(EffectPosition.SPECIAL, target.getLocation(), data.spellData);
+
+				it.remove();
+			}
+
+			running = false;
+
+			for (VelocityData data : queue) jumping.put(data.spellData.target(), data);
+			queue.clear();
+
+			if (jumping.isEmpty()) stop();
+		}
+
+		@EventHandler(priority = EventPriority.LOWEST)
+		public void onFall(EntityDamageEvent event) {
+			if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+			if (!(event.getEntity() instanceof LivingEntity target) || !target.isOnGround()) return;
+
+			Collection<VelocityData> jumpingData = jumping.get(target);
+			Iterator<VelocityData> it = jumpingData.iterator();
+
+			while (it.hasNext()) {
+				VelocityData data = it.next();
+				if (data.cancelDamage) {
+					event.setCancelled(true);
+					if (running) return;
+				}
+
+				if (running) continue;
+
+				data.velocitySpell.playSpellEffects(EffectPosition.SPECIAL, target.getLocation(), data.spellData);
+				it.remove();
+			}
+		}
+
 	}
 
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return launch(caster, target, from, power, args);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return launch(caster, target, from, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		return launch(null, target, from, power, args);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		return launch(null, target, from, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return launch(caster, target, null, power, args);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return launch(caster, target, null, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		return launch(null, target, null, power, args);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		return launch(null, target, null, power, null);
-	}
-
-	private boolean launch(LivingEntity caster, LivingEntity target, Location from, float power, String[] args) {
-		if (target == null) return false;
-
-		if (from == null) from = target.getLocation();
-
-		double speed = this.speed.get(caster, caster, power, args) / 10;
-		if (powerAffectsSpeed) speed *= power;
-
-		Vector velocity = from.getDirection().normalize().multiply(speed);
-
-		if (addVelocityInstead) target.setVelocity(target.getVelocity().add(velocity));
-		else target.setVelocity(velocity);
-		jumping.add(target.getUniqueId());
-
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
-
-		return true;
-	}
-
-	@EventHandler
-	public void onEntityDamage(EntityDamageEvent event) {
-		if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-		LivingEntity livingEntity = (LivingEntity) event.getEntity();
-		if (!jumping.remove(livingEntity.getUniqueId())) return;
-		playSpellEffects(EffectPosition.TARGET, livingEntity.getLocation(), new SpellData(livingEntity));
-		if (cancelDamage) event.setCancelled(true);
-	}
-
-	public Set<UUID> getJumping() {
-		return jumping;
-	}
-
-	public boolean shouldCancelDamage() {
-		return cancelDamage;
-	}
-
-	public void setCancelDamage(boolean cancelDamage) {
-		this.cancelDamage = cancelDamage;
-	}
-
-	public boolean shouldAddVelocityInstead() {
-		return addVelocityInstead;
-	}
-
-	public void setAddVelocityInstead(boolean addVelocityInstead) {
-		this.addVelocityInstead = addVelocityInstead;
+	public record VelocityData(VelocitySpell velocitySpell, SpellData spellData, boolean cancelDamage) {
 	}
 
 }

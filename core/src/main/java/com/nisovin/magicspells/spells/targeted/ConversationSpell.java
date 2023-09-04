@@ -1,21 +1,18 @@
 package com.nisovin.magicspells.spells.targeted;
 
+import java.util.Map;
+
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.conversations.Conversation;
 import org.bukkit.conversations.ConversationFactory;
 
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.ConfigReaderUtil;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
-import com.nisovin.magicspells.util.prompt.ConversationContextUtil;
 
 public class ConversationSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private ConversationFactory conversationFactory;
+	private final ConversationFactory conversationFactory;
 
 	public ConversationSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -24,51 +21,30 @@ public class ConversationSpell extends TargetedSpell implements TargetedEntitySp
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+	public CastResult cast(SpellData data) {
+		TargetInfo<Player> info = getTargetedPlayer(data);
+		if (info.noTarget()) return noTarget(info);
 
-			conversate(caster, targetInfo.target(), targetInfo.power(), args);
-			sendMessages(caster, targetInfo.target(), args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		conversate(info.target(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target) || !(target instanceof Player player)) return false;
-		conversate(caster, player, power, args);
-		return true;
+	public CastResult castAtEntity(SpellData data) {
+		if (!(data.target() instanceof Player player)) return noTarget(data);
+
+		conversate(player, data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
+	private void conversate(Player target, SpellData data) {
+		Conversation conversation = conversationFactory
+			.withInitialSessionData(Map.of("magicspells.spell_data", data))
+			.buildConversation(target);
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target) || !(target instanceof Player player)) return false;
-		conversate(null, player, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	private void conversate(LivingEntity caster, Player target, float power, String[] args) {
-		Conversation conversation = conversationFactory.buildConversation(target);
-		ConversationContextUtil.setConversable(conversation.getContext(), target);
 		conversation.begin();
 
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
+		playSpellEffects(data);
 	}
 
 }

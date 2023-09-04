@@ -37,7 +37,8 @@ public class ManaChangeListener extends PassiveListener {
 		Player caster = event.getPlayer();
 		if (!canTrigger(caster) || !hasSpell(caster)) return;
 
-		passiveSpell.activate(caster);
+		boolean casted = passiveSpell.activate(caster);
+		if (cancelDefaultAction(casted)) event.setNewAmount(event.getOldAmount());
 	}
 
 }

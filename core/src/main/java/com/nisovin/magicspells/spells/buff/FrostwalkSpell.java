@@ -15,35 +15,50 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import io.papermc.paper.event.entity.EntityMoveEvent;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.BlockUtils;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.BlockPlatform;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class FrostwalkSpell extends BuffSpell {
 
 	private final Map<UUID, BlockPlatform> entities;
 
-	private ConfigData<Integer> size;
+	private final ConfigData<Integer> size;
 
-	private boolean leaveFrozen;
+	private final ConfigData<Boolean> leaveFrozen;
 
 	public FrostwalkSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
+
 		size = getConfigDataInt("size", 2);
 
-		leaveFrozen = getConfigBoolean("leave-frozen", false);
-		
+		leaveFrozen = getConfigDataBoolean("leave-frozen", false);
+
 		entities = new HashMap<>();
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new BlockPlatform(Material.ICE, Material.WATER, entity.getLocation().getBlock().getRelative(0, -1, 0), size.get(entity, null, power, args), !leaveFrozen, "square"));
+	public boolean castBuff(SpellData data) {
+		entities.put(data.target().getUniqueId(), new BlockPlatform(
+			Material.ICE,
+			Material.WATER,
+			data.target().getLocation().getBlock().getRelative(0, -1, 0),
+			size.get(data),
+			!leaveFrozen.get(data),
+			"square"
+		));
+
 		return true;
+	}
+
+	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+
+		BlockPlatform old = entities.get(data.target().getUniqueId());
+		if (old != null) old.destroyPlatform();
+
+		return castBuff(data);
 	}
 
 	@Override
@@ -84,8 +99,8 @@ public class FrostwalkSpell extends BuffSpell {
 		if (locationToY > locationFromY && locationToY % 1 > .62 && locationToBlock.getType() == Material.WATER && BlockUtils.isAir(locationToBlock.getRelative(0, 1, 0).getType())) {
 			block = locationToBlock;
 			teleportUp = true;
-		}
-		else block = locationToBlock.getRelative(0, -1, 0);
+		} else block = locationToBlock.getRelative(0, -1, 0);
+
 		boolean moved = entities.get(entity.getUniqueId()).movePlatform(block);
 		if (!moved) return;
 
@@ -98,12 +113,12 @@ public class FrostwalkSpell extends BuffSpell {
 		}
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerMove(PlayerMoveEvent event) {
 		handleMove(event.getPlayer(), event.getTo(), event.getFrom());
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onEntityMove(EntityMoveEvent event) {
 		handleMove(event.getEntity(), event.getTo(), event.getFrom());
 	}
@@ -118,14 +133,6 @@ public class FrostwalkSpell extends BuffSpell {
 
 	public Map<UUID, BlockPlatform> getEntities() {
 		return entities;
-	}
-
-	public boolean isLeaveFrozen() {
-		return leaveFrozen;
-	}
-
-	public void setLeaveFrozen(boolean leaveFrozen) {
-		this.leaveFrozen = leaveFrozen;
 	}
 
 }

@@ -1346,18 +1346,7 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	public static void sendMessage(Player recipient, String message) {
-		sendMessageAndFormat(message, recipient, recipient, null, null);
-	}
-
-	/**
-	 * Sends a message to a player, first making the specified replacements. This method also does color replacement and has multi-line functionality.
-	 *
-	 * @param recipient    the player to send the message to
-	 * @param message      the message to send
-	 * @param replacements the replacements to be made, in pairs
-	 */
-	public static void sendMessageAndFormat(Player recipient, String message, String... replacements) {
-		sendMessageAndFormat(message, recipient, recipient, null, null, replacements);
+		sendMessage(message, recipient, SpellData.NULL);
 	}
 
 	/**
@@ -1368,7 +1357,18 @@ public class MagicSpells extends JavaPlugin {
 	 * @param args      spell arguments
 	 */
 	public static void sendMessage(String message, LivingEntity recipient, String[] args) {
-		sendMessageAndFormat(message, recipient, recipient, null, args);
+		sendMessage(message, recipient, SpellData.NULL.args(args));
+	}
+
+	/**
+	 * Sends a message to a player, first making the specified replacements. This method also does color replacement and has multi-line functionality.
+	 *
+	 * @param recipient    the player to send the message to
+	 * @param message      the message to send
+	 * @param replacements the replacements to be made, in pairs
+	 */
+	public static void sendMessageAndFormat(Player recipient, String message, String... replacements) {
+		sendMessage(message, recipient, SpellData.NULL, replacements);
 	}
 
 	/**
@@ -1380,23 +1380,22 @@ public class MagicSpells extends JavaPlugin {
 	 * @param replacements the replacements to be made, in pairs
 	 */
 	public static void sendMessageAndFormat(String message, LivingEntity recipient, String[] args, String... replacements) {
-		sendMessageAndFormat(message, recipient, recipient, null, args, replacements);
+		sendMessage(message, recipient, SpellData.NULL.args(args), replacements);
 	}
 
 	/**
-	 * Sends a message to a player, first making the specified replacements.This method also does color replacement and has multi-line functionality.
+	 * Sends a message to a player, first by applying replacement using {@link MagicSpells#doReplacements}, then converting
+	 * to a component using {@link Util#getMiniMessage}.
 	 *
 	 * @param message      the message to send
 	 * @param recipient    the player to send the message to
-	 * @param caster       the caster of associated spell cast
-	 * @param target       the target of associated spell cast
-	 * @param args         the arguments of associated spell cast
+	 * @param data         the data of associated spell cast
 	 * @param replacements the replacements to be made, in pairs
 	 */
-	public static void sendMessageAndFormat(String message, LivingEntity recipient, LivingEntity caster, LivingEntity target, String[] args, String... replacements) {
+	public static void sendMessage(String message, LivingEntity recipient, SpellData data, String... replacements) {
 		if (!(recipient instanceof Player) || message == null || message.isEmpty()) return;
 
-		message = doReplacements(message, caster, target, args, replacements);
+		message = doReplacements(message, recipient, data, replacements);
 
 		recipient.sendMessage(Util.getMiniMessage(getTextColor() + message));
 	}
@@ -1508,29 +1507,31 @@ public class MagicSpells extends JavaPlugin {
 		return doVariableReplacements(player, doArgumentSubstitution(string, args));
 	}
 
-	public static String doReplacements(String message, SpellData data) {
-		if (data == null) return doReplacements(message, null, null, null, (String[]) null);
-		return doReplacements(message, data.caster(), data.target(), data.args(), (String[]) null);
+	public static String doReplacements(String message, SpellData data, String... replacements) {
+        return doReplacements(message, data.recipient(), data, replacements);
 	}
 
-	public static String doReplacements(String message, LivingEntity caster) {
-		return doReplacements(message, caster, null, null, (String[]) null);
-	}
+	/**
+	 * Formats the string, with the following replacements in order:
+	 *
+	 * <ul>
+	 *    <li>Argument substitution {@link MagicSpells#doArgumentSubstitution} ()}</li>
+	 *    <li>Variable replacements {@link MagicSpells#doVariableReplacements(String, LivingEntity, LivingEntity, LivingEntity)} ()}</li>
+	 *    <li>PlaceholderAPI replacements {@link MagicSpells#doPlaceholderReplacements} ()}</li>
+	 *    <li>Specified replacements {@link MagicSpells#formatMessage} ()}</li>
+	 * <ul/>
+	 *
+	 * @param message      the message to send
+	 * @param recipient    the player to send the message to
+	 * @param data         the data of associated spell cast
+	 * @param replacements the replacements to be made, in pairs
+	 */
+	public static String doReplacements(String message, LivingEntity recipient, SpellData data, String... replacements) {
+        if (message == null || message.isEmpty()) return message;
 
-	public static String doReplacements(String message, LivingEntity caster, LivingEntity target) {
-		return doReplacements(message, caster, target, null, (String[]) null);
-	}
-
-	public static String doReplacements(String message, LivingEntity caster, String[] args, String... replacements) {
-		return doReplacements(message, caster, null, args, replacements);
-	}
-
-	public static String doReplacements(String message, LivingEntity caster, LivingEntity target, String[] args, String... replacements) {
-		if (message == null || message.isEmpty()) return message;
-
-		message = doArgumentSubstitution(message, args);
-		message = doVariableReplacements(message, caster, target);
-		message = doPlaceholderReplacements(message, caster, target);
+		message = doArgumentSubstitution(message, data.args());
+		message = doVariableReplacements(message, recipient, data.caster(), data.target());
+		message = doPlaceholderReplacements(message, recipient, data.caster(), data.target());
 		message = formatMessage(message, replacements);
 
 		return message;
@@ -1556,9 +1557,10 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	private static final Pattern VARIABLE_PATTERN = Pattern.compile("%(var|castervar|targetvar|playervar:(" + RegexUtil.USERNAME_REGEXP + ")):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-	public static String doVariableReplacements(String message, LivingEntity caster, LivingEntity target) {
+	public static String doVariableReplacements(String message, LivingEntity recipient, LivingEntity caster, LivingEntity target) {
 		if (message == null || message.isEmpty()) return message;
 
+		Player playerRecipient = recipient instanceof Player player ? player : null;
 		Player playerCaster = caster instanceof Player player ? player : null;
 		Player playerTarget = target instanceof Player player ? player : null;
 
@@ -1581,7 +1583,19 @@ public class MagicSpells extends JavaPlugin {
 			}
 
 			String value = switch (matcher.group(1).toLowerCase()) {
-				case "var", "castervar" -> {
+				case "var" -> {
+					if (playerRecipient == null) yield null;
+
+					if (place != -1) {
+						if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
+							yield TxtUtil.getStringNumber(variable.getStringValue(playerRecipient), place);
+
+						yield TxtUtil.getStringNumber(variable.getValue(playerRecipient), place);
+					}
+
+					yield variable.getStringValue(playerRecipient);
+				}
+				case "castervar" -> {
 					if (playerCaster == null) yield null;
 
 					if (place != -1) {
@@ -1627,10 +1641,11 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(papi|casterpapi|targetpapi|playerpapi:(" + RegexUtil.USERNAME_REGEXP + ")):([^%]+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
-	public static String doPlaceholderReplacements(String message, LivingEntity caster, LivingEntity target) {
+	public static String doPlaceholderReplacements(String message, LivingEntity recipient, LivingEntity caster, LivingEntity target) {
 		if (message == null || message.isEmpty() || !Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
 			return message;
 
+		Player playerRecipient = recipient instanceof Player player ? player : null;
 		Player playerCaster = caster instanceof Player player ? player : null;
 		Player playerTarget = target instanceof Player player ? player : null;
 
@@ -1639,7 +1654,8 @@ public class MagicSpells extends JavaPlugin {
 
 		while (matcher.find()) {
 			OfflinePlayer owner = switch (matcher.group(1).toLowerCase()) {
-				case "papi", "casterpapi" -> playerCaster;
+				case "papi" -> playerRecipient;
+				case "casterpapi" -> playerCaster;
 				case "targetpapi" -> playerTarget;
 				default -> Bukkit.getOfflinePlayer(matcher.group(2));
 			};

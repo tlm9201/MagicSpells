@@ -4,147 +4,100 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.LocationUtil;
-import com.nisovin.magicspells.spells.DamageSpell;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
-public class PainSpell extends TargetedSpell implements TargetedEntitySpell, DamageSpell {
+public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private String spellDamageType;
-	private DamageCause damageType;
+	private final ConfigData<String> spellDamageType;
+	private final ConfigData<DamageCause> damageType;
 
-	private ConfigData<Double> damage;
+	private final ConfigData<Double> damage;
 
-	private boolean ignoreArmor;
-	private boolean checkPlugins;
-	private boolean powerAffectsDamage;
-	private boolean avoidDamageModification;
-	private boolean tryAvoidingAntiCheatPlugins;
-	
+	private final ConfigData<Boolean> ignoreArmor;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> powerAffectsDamage;
+	private final ConfigData<Boolean> avoidDamageModification;
+	private final ConfigData<Boolean> tryAvoidingAntiCheatPlugins;
+
 	public PainSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		spellDamageType = getConfigString("spell-damage-type", "");
-		String damageTypeName = getConfigString("damage-type", "ENTITY_ATTACK");
-		try {
-			damageType = DamageCause.valueOf(damageTypeName.toUpperCase());
-		} catch (IllegalArgumentException ignored) {
-			DebugHandler.debugBadEnumValue(DamageCause.class, damageTypeName);
-			damageType = DamageCause.ENTITY_ATTACK;
-		}
+		spellDamageType = getConfigDataString("spell-damage-type", "");
+
+		damageType = getConfigDataEnum("damage-type", DamageCause.class, DamageCause.ENTITY_ATTACK);
 
 		damage = getConfigDataDouble("damage", 4);
 
-		ignoreArmor = getConfigBoolean("ignore-armor", false);
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		powerAffectsDamage = getConfigBoolean("power-affects-damage", true);
-		avoidDamageModification = getConfigBoolean("avoid-damage-modification", true);
-		tryAvoidingAntiCheatPlugins = getConfigBoolean("try-avoiding-anticheat-plugins", false);
+		ignoreArmor = getConfigDataBoolean("ignore-armor", false);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		powerAffectsDamage = getConfigDataBoolean("power-affects-damage", true);
+		avoidDamageModification = getConfigDataBoolean("avoid-damage-modification", true);
+		tryAvoidingAntiCheatPlugins = getConfigDataBoolean("try-avoiding-anticheat-plugins", false);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target.noTarget()) return noTarget(caster, args, target);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			boolean done;
-			if (caster instanceof Player) done = CompatBasics.exemptAction(() -> causePain(caster, target.target(), target.power(), args), (Player) caster, CompatBasics.activeExemptionAssistant.getPainExemptions());
-			else done = causePain(caster, target.target(), target.power(), args);
-			if (!done) return noTarget(caster, args);
-			
-			sendMessages(caster, target.target(), args);
-			return PostCastAction.NO_MESSAGES;
+		if (data.caster() instanceof Player caster)
+			return CompatBasics.exemptAction(() -> castAtEntity(info.spellData()), caster, CompatBasics.activeExemptionAssistant.getPainExemptions());
+
+		return castAtEntity(info.spellData());
+	}
+
+	@Override
+	public CastResult castAtEntity(SpellData data) {
+		if (!data.target().isValid()) return noTarget(data);
+
+		double damage = this.damage.get(data);
+		if (powerAffectsDamage.get(data)) damage *= data.power();
+
+		DamageCause damageType = this.damageType.get(data);
+		String spellDamageType = this.spellDamageType.get(data);
+
+		if (checkPlugins.get(data)) {
+			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(data.caster(), data.target(), damageType, damage, this);
+			if (!event.callEvent()) return noTarget(data);
+
+			if (!avoidDamageModification.get(data)) damage = event.getDamage();
+			data.target().setLastDamageCause(event);
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
-	}
+		SpellApplyDamageEvent event = new SpellApplyDamageEvent(this, data.caster(), data.target(), damage, damageType, spellDamageType);
+		event.callEvent();
+		damage = event.getFinalDamage();
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return causePain(caster, target, power, args);
-	}
+		if (ignoreArmor.get(data)) {
+			double maxHealth = Util.getMaxHealth(data.target());
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
+			double health = Math.min(data.target().getHealth(), maxHealth);
+			health = Math.max(Math.min(health - damage, maxHealth), 0);
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		return causePain(null, target, power, args);
-	}
+			if (health == 0 && data.caster() instanceof Player player) data.target().setKiller(player);
+			data.target().setHealth(health);
+			data.target().setLastDamage(damage);
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
+			if (data.hasCaster()) MagicSpells.getVolatileCodeHandler().playHurtAnimation(data.target(), LocationUtil.getRotatedLocation(data.caster().getLocation(), data.target().getLocation()).getYaw());
+			else MagicSpells.getVolatileCodeHandler().playHurtAnimation(data.target(), data.target().getLocation().getYaw());
 
-	@Override
-	public String getSpellDamageType() {
-		return spellDamageType;
-	}
-	
-	private boolean causePain(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (target == null) return false;
-		if (target.isDead()) return false;
-
-		double localDamage = damage.get(caster, target, power, args);
-		if (powerAffectsDamage) localDamage *= power;
-
-		if (checkPlugins) {
-			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, localDamage, this);
-			EventUtil.call(event);
-			if (event.isCancelled()) return false;
-			if (!avoidDamageModification) localDamage = event.getDamage();
-			target.setLastDamageCause(event);
+			playSpellEffects(data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		SpellApplyDamageEvent event = new SpellApplyDamageEvent(this, caster, target, localDamage, damageType, spellDamageType);
-		EventUtil.call(event);
-		localDamage = event.getFinalDamage();
+		if (tryAvoidingAntiCheatPlugins.get(data)) data.target().damage(damage);
+		else data.target().damage(damage, data.caster());
 
-		if (ignoreArmor) {
-			double health = target.getHealth();
-			if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
-			health -= localDamage;
-			if (health < 0) health = 0;
-			if (health > Util.getMaxHealth(target)) health = Util.getMaxHealth(target);
-			if (health == 0 && caster instanceof Player) target.setKiller((Player) caster);
-
-			target.setHealth(health);
-			target.setLastDamage(localDamage);
-
-			if (caster != null) MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, LocationUtil.getRotatedLocation(caster.getLocation(), target.getLocation()).getYaw());
-			else MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, target.getLocation().getYaw());
-
-			if (caster != null) playSpellEffects(caster, target, power, args);
-			else playSpellEffects(EffectPosition.TARGET, target, power, args);
-
-			return true;
-		}
-
-		if (tryAvoidingAntiCheatPlugins) target.damage(localDamage);
-		else target.damage(localDamage, caster);
-
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
-
-		return true;
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

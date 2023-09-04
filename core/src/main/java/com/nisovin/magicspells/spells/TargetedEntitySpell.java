@@ -2,20 +2,28 @@ package com.nisovin.magicspells.spells;
 
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
+import com.nisovin.magicspells.Spell.PostCastAction;
+
 public interface TargetedEntitySpell {
 
-	default boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		return castAtEntity(caster, target, power);
-	}
+	default CastResult castAtEntity(SpellData data) {
+		boolean success = data.hasCaster() ?
+			castAtEntity(data.caster(), data.target(), data.power()) :
+			castAtEntity(data.target(), data.power());
 
-	default boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return castAtEntity(target, power);
+		return new CastResult(success ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED, data);
 	}
 
 	@Deprecated
-	boolean castAtEntity(LivingEntity caster, LivingEntity target, float power);
+	default boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
+		return castAtEntity(new SpellData(caster, target, power, null)).action() != PostCastAction.ALREADY_HANDLED;
+	}
 
 	@Deprecated
-	boolean castAtEntity(LivingEntity target, float power);
+	default boolean castAtEntity(LivingEntity target, float power) {
+		return castAtEntity(new SpellData(null, target, power, null)).action() != PostCastAction.ALREADY_HANDLED;
+	}
 
 }

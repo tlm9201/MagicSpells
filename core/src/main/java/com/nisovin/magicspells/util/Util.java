@@ -37,8 +37,8 @@ import org.apache.commons.math4.core.jdkmath.AccurateMath;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 
+import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.Subspell.CastMode;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
@@ -164,8 +164,8 @@ public class Util {
 		return ParticleUtil.getParticle(type);
 	}
 
-	public static CastMode getCastMode(String type) {
-		return CastMode.getFromString(type);
+	public static Subspell.CastMode getCastMode(String type) {
+		return Subspell.CastMode.getFromString(type);
 	}
 
 	public static void setFacing(Player player, Vector vector) {
@@ -733,14 +733,28 @@ public class Util {
 		return component.decoration(TextDecoration.ITALIC, component.hasDecoration(TextDecoration.ITALIC));
 	}
 
+	public static Component getMiniMessage(String input, SpellData data) {
+		return getMiniMessage(MagicSpells.doReplacements(input, data.caster(), data));
+
+	}
+
+	public static Component getMiniMessage(String input, SpellData data, String... replacements) {
+		return getMiniMessage(MagicSpells.doReplacements(input, data.caster(), data, replacements));
+
+	}
+
+	public static Component getMiniMessage(String input, LivingEntity recipient, SpellData data) {
+		return getMiniMessage(MagicSpells.doReplacements(input, recipient, data));
+	}
+
 	public static Component getMiniMessageWithVars(Player player, String input) {
 		if (input.isEmpty()) return Component.text("");
-		return getMiniMessage(MagicSpells.doReplacements(input, player));
+		return getMiniMessage(MagicSpells.doReplacements(input, player, SpellData.NULL));
 	}
 
 	public static Component getMiniMessageWithArgsAndVars(Player player, String input, String[] args) {
 		if (input.isEmpty()) return Component.text("");
-		return getMiniMessage(MagicSpells.doReplacements(input, player, args));
+		return getMiniMessage(MagicSpells.doReplacements(input, player, SpellData.NULL.args(args)));
 	}
 
 	public static String getStringFromComponent(Component component) {
@@ -771,7 +785,7 @@ public class Util {
 	}
 
 	public static String doVarReplacementAndColorize(Player player, String string) {
-		return colorize(MagicSpells.doReplacements(string, player));
+		return MagicSpells.doReplacements(string, player, SpellData.NULL);
 	}
 
 	public static void setInventoryTitle(Player player, String title) {

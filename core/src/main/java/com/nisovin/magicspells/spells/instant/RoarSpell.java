@@ -2,25 +2,22 @@ package com.nisovin.magicspells.spells.instant;
 
 import java.util.List;
 
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MobUtil;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class RoarSpell extends InstantSpell {
 
-	private ConfigData<Double> radius;
+	private final ConfigData<Double> radius;
 
-	private String strNoTarget;
-
-	private boolean cancelIfNoTargets;
+	private final ConfigData<Boolean> cancelIfNoTargets;
 
 	public RoarSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -29,37 +26,35 @@ public class RoarSpell extends InstantSpell {
 
 		strNoTarget = getConfigString("str-no-target", "No targets found.");
 
-		cancelIfNoTargets = getConfigBoolean("cancel-if-no-targets", true);
+		cancelIfNoTargets = getConfigDataBoolean("cancel-if-no-targets", true);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			double radius = Math.min(this.radius.get(caster, null, power, args), MagicSpells.getGlobalRadius());
-			List<Entity> entities = caster.getNearbyEntities(radius, radius, radius);
+	public CastResult cast(SpellData data) {
+		double radius = Math.min(this.radius.get(data), MagicSpells.getGlobalRadius());
 
-			int count = 0;
-			for (Entity entity : entities) {
-				if (!(entity instanceof LivingEntity livingEntity)) continue;
-				if (entity instanceof Player) continue;
-				if (!validTargetList.canTarget(caster, entity)) continue;
+		int count = 0;
+		for (Entity entity : data.caster().getNearbyEntities(radius, radius, radius)) {
+			if (!(entity instanceof Mob mob) || !validTargetList.canTarget(data.caster(), mob)) continue;
 
-				MobUtil.setTarget(livingEntity, caster);
-				count++;
+			SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, mob);
+			if (!targetEvent.callEvent()) continue;
 
-				SpellData data = new SpellData(caster, livingEntity, power, args);
-				playSpellEffectsTrail(caster.getLocation(), entity.getLocation(), data);
-				playSpellEffects(EffectPosition.TARGET, entity, data);
-			}
+			LivingEntity le = targetEvent.getTarget();
+			if (!(le instanceof Mob target)) continue;
 
-			if (cancelIfNoTargets && count == 0) {
-				sendMessage(strNoTarget, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
+			target.setTarget(data.caster());
+			count++;
 
-			playSpellEffects(EffectPosition.CASTER, caster, power, args);
+			SpellData subData = targetEvent.getSpellData();
+			playSpellEffects(EffectPosition.TARGET, target, subData);
+			playSpellEffectsTrail(data.caster().getLocation(), target.getLocation(), subData);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		if (cancelIfNoTargets.get(data) && count == 0) return noTarget(data);
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public String getStrNoTarget() {
@@ -68,14 +63,6 @@ public class RoarSpell extends InstantSpell {
 
 	public void setStrNoTarget(String strNoTarget) {
 		this.strNoTarget = strNoTarget;
-	}
-
-	public boolean shouldCancelIfNoTargets() {
-		return cancelIfNoTargets;
-	}
-
-	public void setCancelIfNoTargets(boolean cancelIfNoTargets) {
-		this.cancelIfNoTargets = cancelIfNoTargets;
 	}
 
 }

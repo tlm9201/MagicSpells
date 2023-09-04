@@ -3,6 +3,8 @@ package com.nisovin.magicspells.events;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.SpellReagents;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.Spell.PostCastAction;
@@ -17,21 +19,34 @@ public class SpellCastedEvent extends SpellEvent {
 	private final SpellCastState state;
 	private final float cooldown;
 	private final SpellReagents reagents;
-	private final float power;
-	private final String[] args;
 	private final PostCastAction action;
-	
+	private final SpellData spellData;
+
+	@Deprecated
 	public SpellCastedEvent(Spell spell, LivingEntity caster, SpellCastState state, float power, String[] args, float cooldown, SpellReagents reagents, PostCastAction action) {
 		super(spell, caster);
 
 		this.state = state;
 		this.cooldown = cooldown;
 		this.reagents = reagents;
-		this.power = power;
-		this.args = args;
 		this.action = action;
+		this.spellData = new SpellData(caster, power, args);
 	}
-	
+
+	public SpellCastedEvent(Spell spell, SpellCastState state, CastResult result, float cooldown, SpellReagents reagents) {
+		super(spell, result.data().caster());
+
+		this.state = state;
+		this.cooldown = cooldown;
+		this.reagents = reagents;
+		this.action = result.action();
+		this.spellData = result.data();
+	}
+
+	public SpellCastedEvent(SpellCastEvent castEvent, CastResult result) {
+		this(castEvent.getSpell(), castEvent.getSpellCastState(), result, castEvent.getCooldown(), castEvent.getReagents());
+	}
+
 	/**
 	 * Gets the current spell cast state.
 	 * @return the spell cast state
@@ -61,7 +76,7 @@ public class SpellCastedEvent extends SpellEvent {
 	 * @return the power level
 	 */
 	public float getPower() {
-		return power;
+		return spellData.power();
 	}
 	
 	/**
@@ -69,7 +84,7 @@ public class SpellCastedEvent extends SpellEvent {
 	 * @return the args, or null if there were none
 	 */
 	public String[] getSpellArgs() {
-		return args;
+		return spellData.args();
 	}
 	
 	/**
@@ -78,6 +93,14 @@ public class SpellCastedEvent extends SpellEvent {
 	 */
 	public PostCastAction getPostCastAction() {
 		return action;
+	}
+
+	/**
+	 * Gets the spell data associated with this spell cast.
+	 * @return the spell data
+	 */
+	public SpellData getSpellData() {
+		return spellData;
 	}
 
 }

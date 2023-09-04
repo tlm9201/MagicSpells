@@ -38,8 +38,9 @@ public class NovaEffect extends SpellEffect {
 	private ConfigData<Integer> expandInterval;
 	private ConfigData<Integer> expandingRadiusChange;
 
-	private boolean circleShape;
-	private boolean removePreviousBlocks;
+	private ConfigData<Boolean> circleShape;
+	private ConfigData<Boolean> removePreviousBlocks;
+
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
 		List<String> materialList = config.getStringList("types");
@@ -73,8 +74,8 @@ public class NovaEffect extends SpellEffect {
 		expandInterval = ConfigDataUtil.getInteger(config, "expand-interval", 5);
 		expandingRadiusChange = ConfigDataUtil.getInteger(config, "expanding-radius-change", 1);
 
-		circleShape = config.getBoolean("circle-shape", false);
-		removePreviousBlocks = config.getBoolean("remove-previous-blocks", true);
+		circleShape = ConfigDataUtil.getBoolean(config, "circle-shape", false);
+		removePreviousBlocks = ConfigDataUtil.getBoolean(config, "remove-previous-blocks", true);
 	}
 
 	@Override
@@ -87,7 +88,7 @@ public class NovaEffect extends SpellEffect {
 		Collection<Player> nearbyPlayers = location.getWorld().getNearbyPlayers(location, range, range, range);
 
 		// Start animation
-		if (circleShape) {
+		if (circleShape.get(data)) {
 			if (blockDataList != null && !blockDataList.isEmpty())
 				new NovaAnimationCircle(nearbyPlayers, location.getBlock(), blockDataList, data);
 			else
@@ -114,6 +115,8 @@ public class NovaEffect extends SpellEffect {
 		protected final Map<Location, BlockData> previousBlocks;
 		protected final Map<Location, BlockData> currentBlocks;
 
+		protected final boolean removePreviousBlocks;
+
 		protected final int radius;
 		protected final int startRadius;
 		protected final int heightPerTick;
@@ -130,6 +133,8 @@ public class NovaEffect extends SpellEffect {
 
 			previousBlocks = new HashMap<>();
 			currentBlocks = new HashMap<>();
+
+			removePreviousBlocks = NovaEffect.this.removePreviousBlocks.get(data);
 
 			radius = NovaEffect.this.radius.get(data);
 			startRadius = NovaEffect.this.startRadius.get(data);
@@ -208,7 +213,8 @@ public class NovaEffect extends SpellEffect {
 					}
 
 					if (!BlockUtils.isPathable(b) || b.isLiquid()) continue;
-					if (previousBlocks.containsKey(b.getLocation()) || currentBlocks.containsKey(b.getLocation())) continue;
+					if (previousBlocks.containsKey(b.getLocation()) || currentBlocks.containsKey(b.getLocation()))
+						continue;
 
 					if (blockDataList != null && !blockDataList.isEmpty()) {
 						currentBlocks.put(b.getLocation(), blockDataList.get(random.nextInt(blockDataList.size())));

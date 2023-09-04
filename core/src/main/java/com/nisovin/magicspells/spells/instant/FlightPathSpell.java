@@ -11,15 +11,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -28,12 +25,12 @@ public class FlightPathSpell extends InstantSpell {
 
 	private FlightHandler flightHandler;
 
-	private ConfigData<Float> speed;
-	private ConfigData<Float> targetX;
-	private ConfigData<Float> targetZ;
+	private final ConfigData<Float> speed;
+	private final ConfigData<Float> targetX;
+	private final ConfigData<Float> targetZ;
 
-	private ConfigData<Integer> interval;
-	private ConfigData<Integer> cruisingAltitude;
+	private final int interval;
+	private final ConfigData<Integer> cruisingAltitude;
 
 	public FlightPathSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -42,7 +39,7 @@ public class FlightPathSpell extends InstantSpell {
 		targetX = getConfigDataFloat("x", 0F);
 		targetZ = getConfigDataFloat("z", 0F);
 
-		interval = getConfigDataInt("interval", 5);
+		interval = getConfigInt("interval", 5);
 		cruisingAltitude = getConfigDataInt("cruising-altitude", 150);
 	}
 
@@ -61,12 +58,13 @@ public class FlightPathSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			ActiveFlight flight = new ActiveFlight(player, power, args);
-			flightHandler.addFlight(flight, power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		ActiveFlight flight = new ActiveFlight(caster, data);
+		flightHandler.addFlight(flight);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	private class FlightHandler implements Runnable, Listener {
@@ -81,10 +79,10 @@ public class FlightPathSpell extends InstantSpell {
 			init();
 		}
 
-		private void addFlight(ActiveFlight flight, float power, String[] args) {
-			flights.put(flight.player.getUniqueId(), flight);
+		private void addFlight(ActiveFlight flight) {
+			flights.put(flight.caster.getUniqueId(), flight);
 			flight.start();
-			if (task < 0) task = MagicSpells.scheduleRepeatingTask(this, 0, interval.get(flight.player, null, power, args));
+			if (task < 0) task = MagicSpells.scheduleRepeatingTask(this, 0, interval);
 		}
 
 		private void init() {
@@ -139,110 +137,107 @@ public class FlightPathSpell extends InstantSpell {
 
 	private class ActiveFlight {
 
-		private Player player;
+		private final SpellData data;
+		private final Player caster;
+
 		private FlightState state;
 		private Entity mountActive;
-		private Entity entityToPush;
 		private Location lastLocation;
 
-		private boolean wasFlying;
-		private boolean wasFlyingAllowed;
+		private final boolean wasFlying;
+		private final boolean wasFlyingAllowed;
 
 		private int sameLocCount = 0;
 
 		private final float speed;
 		private final float targetX;
 		private final float targetZ;
-		private final SpellData data;
 		private final int cruisingAltitude;
 
-		private ActiveFlight(Player caster, float power, String[] args) {
-			player = caster;
+		private ActiveFlight(Player caster, SpellData data) {
+			this.caster = caster;
+			this.data = data;
+
 			state = FlightState.TAKE_OFF;
 			wasFlying = caster.isFlying();
 			wasFlyingAllowed = caster.getAllowFlight();
 			lastLocation = caster.getLocation();
 
-			data = new SpellData(caster, power, args);
+			speed = FlightPathSpell.this.speed.get(data);
+			targetX = FlightPathSpell.this.targetX.get(data);
+			targetZ = FlightPathSpell.this.targetZ.get(data);
 
-			speed = FlightPathSpell.this.speed.get(caster, null, power, args);
-			targetX = FlightPathSpell.this.targetX.get(caster, null, power, args);
-			targetZ = FlightPathSpell.this.targetZ.get(caster, null, power, args);
-
-			cruisingAltitude = FlightPathSpell.this.cruisingAltitude.get(caster, null, power, args);
+			cruisingAltitude = FlightPathSpell.this.cruisingAltitude.get(data);
 		}
 
 		private void start() {
-			player.setAllowFlight(true);
-			playSpellEffects(EffectPosition.CASTER, player, data);
-			entityToPush = player;
+			caster.setAllowFlight(true);
+			playSpellEffects(EffectPosition.CASTER, caster, data);
 		}
 
 		private void fly() {
 			if (state == FlightState.DONE) return;
 			// Check for stuck
-			if (player.getLocation().distanceSquared(lastLocation) < 0.4) {
+			if (caster.getLocation().distanceSquared(lastLocation) < 0.4) {
 				sameLocCount++;
 			}
 			if (sameLocCount > 12) {
-				MagicSpells.error("Flight stuck '" + getInternalName() + "' at " + player.getLocation());
+				MagicSpells.error("Flight stuck '" + getInternalName() + "' at " + caster.getLocation());
 				cancel();
 				return;
 			}
-			lastLocation = player.getLocation();
+			lastLocation = caster.getLocation();
 
 			// Do flight
 			if (state == FlightState.TAKE_OFF) {
-				player.setFlying(false);
-				double y = entityToPush.getLocation().getY();
+				caster.setFlying(false);
+				double y = caster.getLocation().getY();
 				if (y >= cruisingAltitude) {
-					entityToPush.setVelocity(new Vector(0, 0, 0));
+					caster.setVelocity(new Vector(0, 0, 0));
 					state = FlightState.CRUISING;
-				} else entityToPush.setVelocity(new Vector(0, 2, 0));
+				} else caster.setVelocity(new Vector(0, 2, 0));
 			} else if (state == FlightState.CRUISING) {
-				player.setFlying(true);
-				double x = entityToPush.getLocation().getX();
-				double z = entityToPush.getLocation().getZ();
+				caster.setFlying(true);
+				double x = caster.getLocation().getX();
+				double z = caster.getLocation().getZ();
 				if (targetX - 1 <= x && x <= targetX + 1 && targetZ - 1 <= z && z <= targetZ + 1) {
-					entityToPush.setVelocity(new Vector(0, 0, 0));
+					caster.setVelocity(new Vector(0, 0, 0));
 					state = FlightState.LANDING;
 				} else {
 					Vector t = new Vector(targetX, cruisingAltitude, targetZ);
-					Vector v = t.subtract(entityToPush.getLocation().toVector());
+					Vector v = t.subtract(caster.getLocation().toVector());
 					double len = v.lengthSquared();
 					v.normalize().multiply(len > 25 ? speed : 0.3);
-					entityToPush.setVelocity(v);
+					caster.setVelocity(v);
 				}
 			} else if (state == FlightState.LANDING) {
-				player.setFlying(false);
-				Location l = entityToPush.getLocation();
+				caster.setFlying(false);
+				Location l = caster.getLocation();
 				if (!BlockUtils.isAir(l.getBlock().getType()) || !BlockUtils.isAir(l.subtract(0, 1, 0).getBlock().getType()) || !BlockUtils.isAir(l.subtract(0, 2, 0).getBlock().getType())) {
-					player.setFallDistance(0f);
+					caster.setFallDistance(0f);
 					cancel();
 					return;
 				} else {
-					entityToPush.setVelocity(new Vector(0, -1, 0));
-					player.setFallDistance(0f);
+					caster.setVelocity(new Vector(0, -1, 0));
+					caster.setFallDistance(0f);
 				}
 			}
 
-			playSpellEffects(EffectPosition.SPECIAL, player, data);
+			playSpellEffects(EffectPosition.SPECIAL, caster, data);
 		}
 
 		private void cancel() {
 			if (state != FlightState.DONE) {
 				state = FlightState.DONE;
-				player.setFlying(wasFlying);
-				player.setAllowFlight(wasFlyingAllowed);
+				caster.setFlying(wasFlying);
+				caster.setAllowFlight(wasFlyingAllowed);
 				if (mountActive != null) {
 					mountActive.eject();
 					mountActive.remove();
 				}
-				playSpellEffects(EffectPosition.DELAYED, player, data);
+				playSpellEffects(EffectPosition.DELAYED, caster, data);
 
-				player = null;
 				mountActive = null;
-				entityToPush = null;
 			}
 		}
 

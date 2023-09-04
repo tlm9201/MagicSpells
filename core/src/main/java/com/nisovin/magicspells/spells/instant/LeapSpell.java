@@ -1,54 +1,53 @@
 package com.nisovin.magicspells.spells.instant;
 
-import java.util.Set;
-import java.util.UUID;
-import java.util.HashSet;
+import java.util.*;
+
+import com.google.common.collect.Multimap;
+import com.google.common.collect.ArrayListMultimap;
 
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class LeapSpell extends InstantSpell {
 
-	private final Set<UUID> jumping;
+	private static LeapMonitor leapMonitor;
 
 	private final String landSpellName;
 
-	private ConfigData<Float> rotation;
-	private ConfigData<Float> upwardVelocity;
-	private ConfigData<Float> forwardVelocity;
+	private final ConfigData<Float> rotation;
+	private final ConfigData<Float> upwardVelocity;
+	private final ConfigData<Float> forwardVelocity;
 
-	private boolean clientOnly;
-	private boolean cancelDamage;
-	private boolean addVelocityInstead;
-	private boolean powerAffectsVelocity;
+	private final ConfigData<Boolean> clientOnly;
+	private final ConfigData<Boolean> cancelDamage;
+	private final ConfigData<Boolean> addVelocityInstead;
+	private final ConfigData<Boolean> powerAffectsVelocity;
 
 	private Subspell landSpell;
 
 	public LeapSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		jumping = new HashSet<>();
-
 		rotation = getConfigDataFloat("rotation", 0F);
 		upwardVelocity = getConfigDataFloat("upward-velocity", 15F);
 		forwardVelocity = getConfigDataFloat("forward-velocity", 40F);
 
-		clientOnly = getConfigBoolean("client-only", false);
-		cancelDamage = getConfigBoolean("cancel-damage", true);
-		addVelocityInstead = getConfigBoolean("add-velocity-instead", false);
-		powerAffectsVelocity = getConfigBoolean("power-affects-velocity", true);
+		clientOnly = getConfigDataBoolean("client-only", false);
+		cancelDamage = getConfigDataBoolean("cancel-damage", true);
+		addVelocityInstead = getConfigDataBoolean("add-velocity-instead", false);
+		powerAffectsVelocity = getConfigDataBoolean("power-affects-velocity", true);
 
 		landSpellName = getConfigString("land-spell", "");
 	}
@@ -59,80 +58,56 @@ public class LeapSpell extends InstantSpell {
 
 		landSpell = new Subspell(landSpellName);
 		if (!landSpell.process()) {
-			if (!landSpellName.isEmpty()) MagicSpells.error("LeapSpell '" + internalName + "' has an invalid land-spell defined!");
+			if (!landSpellName.isEmpty())
+				MagicSpells.error("LeapSpell '" + internalName + "' has an invalid land-spell defined!");
 			landSpell = null;
 		}
+
+		if (leapMonitor == null) leapMonitor = new LeapMonitor();
 	}
 
-	public boolean isJumping(LivingEntity livingEntity) {
-		return jumping.contains(livingEntity.getUniqueId());
+	protected void turnOff() {
+		if (leapMonitor != null) {
+			leapMonitor.stop();
+			leapMonitor = null;
+		}
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Vector v = caster.getLocation().getDirection();
+	public CastResult cast(SpellData data) {
+		Vector v = data.caster().getLocation().getDirection();
 
-			float forwardVelocity = this.forwardVelocity.get(caster, null, power, args) / 10;
-			if (powerAffectsVelocity) forwardVelocity *= power;
+		float forwardVelocity = this.forwardVelocity.get(data) / 10;
+		if (powerAffectsVelocity.get(data)) forwardVelocity *= data.power();
 
-			float upwardVelocity = this.upwardVelocity.get(caster, null, power, args) / 10;
-			if (powerAffectsVelocity) upwardVelocity *= power;
+		float upwardVelocity = this.upwardVelocity.get(data) / 10;
+		if (powerAffectsVelocity.get(data)) upwardVelocity *= data.power();
 
-			float rotation = this.rotation.get(caster, null, power, args);
+		float rotation = this.rotation.get(data);
 
-			v.setY(0).normalize().multiply(forwardVelocity).setY(upwardVelocity);
-			if (rotation != 0) Util.rotateVector(v, rotation);
-			v = Util.makeFinite(v);
+		v.setY(0).normalize().multiply(forwardVelocity).setY(upwardVelocity);
+		if (rotation != 0) Util.rotateVector(v, rotation);
+		v = Util.makeFinite(v);
 
-			if (clientOnly && caster instanceof Player) MagicSpells.getVolatileCodeHandler().setClientVelocity((Player) caster, v);
-			else {
-				if (addVelocityInstead) caster.setVelocity(caster.getVelocity().add(v));
-				else caster.setVelocity(v);
-			}
-
-			jumping.add(caster.getUniqueId());
-			playSpellEffects(EffectPosition.CASTER, caster, power, args);
+		if (clientOnly.get(data) && data.caster() instanceof Player caster) {
+			MagicSpells.getVolatileCodeHandler().setClientVelocity(caster, v);
+		} else {
+			if (addVelocityInstead.get(data)) data.caster().setVelocity(data.caster().getVelocity().add(v));
+			else data.caster().setVelocity(v);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		leapMonitor.add(new LeapData(this, data, cancelDamage.get(data)));
+
+		playSpellEffects(EffectPosition.CASTER, data.caster(), data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@EventHandler
-	public void onEntityDamage(EntityDamageEvent event) {
-		if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-		LivingEntity livingEntity = (LivingEntity) event.getEntity();
-		if (!jumping.remove(livingEntity.getUniqueId())) return;
-		if (landSpell != null) landSpell.subcast(livingEntity, 1f, null);
-		playSpellEffects(EffectPosition.TARGET, livingEntity.getLocation(), new SpellData(livingEntity));
-		if (cancelDamage) event.setCancelled(true);
+	public static Multimap<LivingEntity, LeapData> getJumping() {
+		return leapMonitor.jumping;
 	}
 
-	public Set<UUID> getJumping() {
-		return jumping;
-	}
-
-	public boolean isClientOnly() {
-		return clientOnly;
-	}
-
-	public void setClientOnly(boolean clientOnly) {
-		this.clientOnly = clientOnly;
-	}
-
-	public boolean shouldCancelDamage() {
-		return cancelDamage;
-	}
-
-	public void setCancelDamage(boolean cancelDamage) {
-		this.cancelDamage = cancelDamage;
-	}
-
-	public boolean shouldAddVelocityInstead() {
-		return addVelocityInstead;
-	}
-
-	public void setAddVelocityInstead(boolean addVelocityInstead) {
-		this.addVelocityInstead = addVelocityInstead;
+	public boolean isJumping(LivingEntity livingEntity) {
+		return leapMonitor.jumping.containsKey(livingEntity);
 	}
 
 	public Subspell getLandSpell() {
@@ -141,6 +116,100 @@ public class LeapSpell extends InstantSpell {
 
 	public void setLandSpell(Subspell landSpell) {
 		this.landSpell = landSpell;
+	}
+
+	private static class LeapMonitor implements Runnable, Listener {
+
+		private final Multimap<LivingEntity, LeapData> jumping = ArrayListMultimap.create();
+		private final List<LeapData> queue = new ArrayList<>();
+
+		private boolean running = false;
+		private int taskId = -1;
+
+		public void add(LeapData data) {
+			queue.add(data);
+			start();
+		}
+
+		public void start() {
+			if (taskId != -1) return;
+
+			MagicSpells.registerEvents(this);
+			taskId = MagicSpells.scheduleRepeatingTask(this, 0, 1);
+		}
+
+		public void stop() {
+			if (taskId == -1) return;
+
+			EntityDamageEvent.getHandlerList().unregister(this);
+			MagicSpells.cancelTask(taskId);
+			taskId = -1;
+
+			jumping.clear();
+			queue.clear();
+		}
+
+		@Override
+		public void run() {
+			running = true;
+
+			Iterator<Map.Entry<LivingEntity, Collection<LeapData>>> it = jumping.asMap().entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry<LivingEntity, Collection<LeapData>> entry = it.next();
+
+				LivingEntity caster = entry.getKey();
+				if (!caster.isValid()) {
+					it.remove();
+					continue;
+				}
+
+				if (!caster.isOnGround()) continue;
+
+				Collection<LeapData> leapData = entry.getValue();
+				for (LeapData data : leapData) {
+					if (data.leapSpell.landSpell != null) data.leapSpell.landSpell.subcast(data.spellData);
+					data.leapSpell.playSpellEffects(EffectPosition.TARGET, caster.getLocation(), data.spellData);
+				}
+
+				it.remove();
+			}
+
+			running = false;
+
+			for (LeapData data : queue) jumping.put(data.spellData.caster(), data);
+			queue.clear();
+
+
+			if (jumping.isEmpty()) stop();
+		}
+
+		@EventHandler(priority = EventPriority.LOWEST)
+		public void onFall(EntityDamageEvent event) {
+			if (event.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+			if (!(event.getEntity() instanceof LivingEntity caster) || !caster.isOnGround()) return;
+
+			Collection<LeapData> jumpingData = jumping.get(caster);
+			Iterator<LeapData> it = jumpingData.iterator();
+
+			while (it.hasNext()) {
+				LeapData data = it.next();
+				if (data.cancelDamage) {
+					event.setCancelled(true);
+					if (running) return;
+				}
+
+				if (running) continue;
+
+				if (data.leapSpell.landSpell != null) data.leapSpell.landSpell.subcast(data.spellData);
+				data.leapSpell.playSpellEffects(EffectPosition.TARGET, caster.getLocation(), data.spellData);
+
+				it.remove();
+			}
+		}
+
+	}
+
+	public record LeapData(LeapSpell leapSpell, SpellData spellData, boolean cancelDamage) {
 	}
 
 }

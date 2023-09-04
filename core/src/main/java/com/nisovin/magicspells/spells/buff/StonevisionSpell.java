@@ -8,7 +8,6 @@ import java.util.HashSet;
 import java.util.HashMap;
 import java.util.ArrayList;
 
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -16,14 +15,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.event.player.PlayerMoveEvent;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class StonevisionSpell extends BuffSpell {
@@ -32,26 +29,21 @@ public class StonevisionSpell extends BuffSpell {
 
 	private final Set<Material> transparentTypes;
 
-	private ConfigData<Integer> radius;
+	private final ConfigData<Integer> radius;
 
-	private boolean unobfuscate;
+	private final ConfigData<Boolean> unobfuscate;
 
-	private Material material;
+	private final ConfigData<BlockData> material;
 
 	public StonevisionSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		radius = getConfigDataInt("radius", 4);
-		unobfuscate = getConfigBoolean("unobfuscate", false);
+		unobfuscate = getConfigDataBoolean("unobfuscate", false);
 
 		transparentTypes = new HashSet<>();
 
-		String replaceMaterialName = getConfigString("material", "BARRIER");
-		material = Util.getMaterial(replaceMaterialName);
-		if (material == null || !material.isBlock()) {
-			MagicSpells.error("StonevisionSpell '" + internalName + "' has an invalid material '" + replaceMaterialName + "' defined!");
-			material = null;
-		}
+		material = getConfigDataBlockData("material", Material.BARRIER.createBlockData());
 
 		List<String> types = getConfigStringList("transparent-types", null);
 		if (types != null) {
@@ -68,14 +60,21 @@ public class StonevisionSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player player)) return false;
+	public boolean castBuff(SpellData data) {
+		if (!(data.target() instanceof Player target)) return false;
 
-		int radius = this.radius.get(entity, null, power, args);
-		radius = Math.min(radius, MagicSpells.getGlobalRadius());
-
-		players.put(entity.getUniqueId(), new TransparentBlockSet(player, radius, transparentTypes));
+		players.put(target.getUniqueId(), new TransparentBlockSet(target, transparentTypes, data));
 		return true;
+	}
+
+	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+
+		TransparentBlockSet blockSet = players.remove(data.target().getUniqueId());
+		blockSet.removeTransparency();
+
+		return castBuff(data);
 	}
 
 	@Override
@@ -120,39 +119,28 @@ public class StonevisionSpell extends BuffSpell {
 		return transparentTypes;
 	}
 
-	public boolean shouldUnobfuscate() {
-		return unobfuscate;
-	}
-
-	public void setUnobfuscate(boolean unobfuscate) {
-		this.unobfuscate = unobfuscate;
-	}
-
-	public Material getMaterial() {
-		return material;
-	}
-
-	public void setMaterial(Material material) {
-		this.material = material;
-	}
-
 	private class TransparentBlockSet {
 
-		private Player player;
-		private Block center;
-		private int radius;
-		private Set<Material> types;
-		private List<Block> blocks;
-		private Set<Chunk> chunks;
+		private final Set<Material> types;
+		private final Player player;
 
-		private TransparentBlockSet(Player player, int radius, Set<Material> types) {
+		private List<Block> blocks;
+		private Block center;
+
+		private final boolean unobfuscate;
+		private final BlockData material;
+		private final int radius;
+
+		private TransparentBlockSet(Player player, Set<Material> types, SpellData data) {
 			this.player = player;
-			this.radius = radius;
 			this.types = types;
 
-			center = player.getLocation().getBlock();
+			unobfuscate = StonevisionSpell.this.unobfuscate.get(data);
+			material = StonevisionSpell.this.material.get(data);
+			radius = StonevisionSpell.this.radius.get(data);
+
 			blocks = new ArrayList<>();
-			if (unobfuscate) chunks = new HashSet<>();
+			center = player.getLocation().getBlock();
 
 			setTransparency();
 		}
@@ -172,7 +160,7 @@ public class StonevisionSpell extends BuffSpell {
 						for (int z = pz - radius; z <= pz + radius; z++) {
 							block = center.getWorld().getBlockAt(x, y, z);
 							if (types.contains(block.getType())) {
-								player.sendBlockChange(block.getLocation(), material.createBlockData());
+								player.sendBlockChange(block.getLocation(), material);
 								newBlocks.add(block);
 							}
 						}
@@ -191,15 +179,11 @@ public class StonevisionSpell extends BuffSpell {
 							dz = Math.abs(z - pz);
 							block = center.getWorld().getBlockAt(x, y, z);
 							if (types.contains(block.getType()) && dx <= radius && dy <= radius && dz <= radius) {
-								player.sendBlockChange(block.getLocation(), material.createBlockData());
+								player.sendBlockChange(block.getLocation(), material);
 								newBlocks.add(block);
 							} else if (!BlockUtils.isAir(block.getType())) {
 								player.sendBlockChange(block.getLocation(), block.getType().createBlockData());
 							}
-
-							// Save chunk for resending after spell ends
-							Chunk c = block.getChunk();
-							chunks.add(c);
 						}
 					}
 				}
@@ -212,8 +196,6 @@ public class StonevisionSpell extends BuffSpell {
 		}
 
 		private boolean moveTransparency() {
-			if (player.isDead()) player = PlayerNameUtils.getPlayer(player.getName());
-
 			Location loc = this.player.getLocation();
 			if (!center.getWorld().equals(loc.getWorld()) || center.getX() != loc.getBlockX() || center.getY() != loc.getBlockY() || center.getZ() != loc.getBlockZ()) {
 				// Moved

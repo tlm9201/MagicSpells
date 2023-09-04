@@ -14,6 +14,7 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.CastItem;
+import com.nisovin.magicspells.util.SpellData;
 
 public class LeftClickListener implements Listener {
 
@@ -61,7 +62,7 @@ public class LeftClickListener implements Listener {
 			lastCast.put(player.getName(), System.currentTimeMillis());
 		}
 
-		MagicSpells.scheduleDelayedTask(() -> spell.cast(player), 0);
+		MagicSpells.scheduleDelayedTask(() -> spell.hardCast(new SpellData(player)), 0);
 	}
 
 }

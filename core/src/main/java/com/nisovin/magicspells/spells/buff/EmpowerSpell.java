@@ -3,36 +3,37 @@ package com.nisovin.magicspells.spells.buff;
 import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.CastData;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
 
 public class EmpowerSpell extends BuffSpell {
 
-	private final Map<UUID, CastData> entities;
+	private final Map<UUID, Supplier<Float>> entities;
 
-	private ConfigData<Float> maxPower;
-	private ConfigData<Float> extraPower;
+	private final ConfigData<Float> powerMultiplier;
+	private final ConfigData<Float> maxPowerMultiplier;
 
-	private boolean powerAffectsMultiplier;
+	private final ConfigData<Boolean> constantMultiplier;
+	private final ConfigData<Boolean> powerAffectsMultiplier;
 
 	private SpellFilter filter;
 
 	public EmpowerSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		maxPower = getConfigDataFloat("max-power-multiplier", 1.5F);
-		extraPower = getConfigDataFloat("power-multiplier", 1.5F);
+		powerMultiplier = getConfigDataFloat("power-multiplier", 1.5F);
+		maxPowerMultiplier = getConfigDataFloat("max-power-multiplier", 1.5F);
 
-		powerAffectsMultiplier = getConfigBoolean("power-affects-multiplier", true);
+		constantMultiplier = getConfigDataBoolean("constant-multiplier", true);
+		powerAffectsMultiplier = getConfigDataBoolean("power-affects-multiplier", true);
 
 		filter = getConfigSpellFilter();
 
@@ -40,14 +41,32 @@ public class EmpowerSpell extends BuffSpell {
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new CastData(power, args));
+	public boolean castBuff(SpellData data) {
+		Supplier<Float> supplier;
+		if (constantMultiplier.get(data)) {
+			float multiplier = powerMultiplier.get(data);
+			if (powerAffectsMultiplier.get(data)) multiplier *= data.power();
+			multiplier = Math.min(multiplier, maxPowerMultiplier.get(data));
+
+			float finalMultiplier = multiplier;
+			supplier = () -> finalMultiplier;
+		} else {
+			supplier = () -> {
+				float multiplier = powerMultiplier.get(data);
+				if (powerAffectsMultiplier.get(data)) multiplier *= data.power();
+
+				return Math.min(multiplier, maxPowerMultiplier.get(data));
+			};
+		}
+
+		entities.put(data.target().getUniqueId(), supplier);
 		return true;
 	}
 
 	@Override
-	public boolean recastBuff(LivingEntity entity, float power, String[] args) {
-		return castBuff(entity, power, args);
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		return castBuff(data);
 	}
 
 	@Override
@@ -68,20 +87,13 @@ public class EmpowerSpell extends BuffSpell {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onSpellCast(SpellCastEvent event) {
 		LivingEntity caster = event.getCaster();
-		if (caster == null || !isActive(caster)) return;
-		if (!filter.check(event.getSpell())) return;
-
-		CastData data = entities.get(caster.getUniqueId());
-
-		float p = extraPower.get(caster, null, data.power(), data.args());
-		if (powerAffectsMultiplier) p *= data.power();
-		p = Math.min(p, maxPower.get(caster, null, data.power(), data.args()));
+		if (caster == null || !isActive(caster) || !filter.check(event.getSpell())) return;
 
 		addUseAndChargeCost(caster);
-		event.increasePower(p);
+		event.increasePower(entities.get(caster.getUniqueId()).get());
 	}
 
-	public Map<UUID, CastData> getEntities() {
+	public Map<UUID, Supplier<Float>> getEntities() {
 		return entities;
 	}
 

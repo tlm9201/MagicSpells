@@ -1,168 +1,119 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Set;
-import java.util.List;
-import java.util.Arrays;
-import java.util.EnumSet;
+import java.util.*;
 
-import org.bukkit.Effect;
-import org.bukkit.Material;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.util.Vector;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.inventory.ItemStack;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
-import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsBlockBreakEvent;
 
 public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private Set<Material> allowedBlockTypes;
-	private Set<Material> disallowedBlockTypes;
+	private final Set<BlockData> allowedBlockTypes;
+	private final Set<BlockData> disallowedBlockTypes;
 
-	private String strCantZap;
+	private final String strCantZap;
 
-	private boolean dropBlock;
-	private boolean dropNormal;
-	private boolean checkPlugins;
-	private boolean playBreakEffect;
-	
+	private final ConfigData<Boolean> dropBlock;
+	private final ConfigData<Boolean> dropNormal;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> playBreakEffect;
+
 	public ZapSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
-		List<String> allowed = getConfigStringList("allowed-block-types", null);
-		if (allowed != null) {
-			allowedBlockTypes = EnumSet.noneOf(Material.class);
-			for (String s : allowed) {
-				Material m = Util.getMaterial(s);
-				if (m == null) continue;
 
-				allowedBlockTypes.add(m);
+		List<String> allowed = getConfigStringList("allowed-block-types", null);
+		if (allowed != null && !allowed.isEmpty()) {
+			allowedBlockTypes = new HashSet<>();
+			for (String s : allowed) {
+				try {
+					BlockData bd = Bukkit.createBlockData(s.toLowerCase());
+					allowedBlockTypes.add(bd);
+				} catch (IllegalArgumentException e) {
+					MagicSpells.error("Invalid allowed block type '" + s + "' in ZapSpell '" + internalName + "'.");
+				}
 			}
-		}
-		
+		} else allowedBlockTypes = null;
+
 		List<String> disallowed = getConfigStringList("disallowed-block-types", Arrays.asList("bedrock", "lava", "water"));
-		if (disallowed != null) {
-			disallowedBlockTypes = EnumSet.noneOf(Material.class);
+		if (disallowed != null && !disallowed.isEmpty()) {
+			disallowedBlockTypes = new HashSet<>();
 			for (String s : disallowed) {
-				Material m = Util.getMaterial(s);
-				if (m == null) continue;
-				
-				disallowedBlockTypes.add(m);
+				try {
+					BlockData bd = Bukkit.createBlockData(s.toLowerCase());
+					disallowedBlockTypes.add(bd);
+				} catch (IllegalArgumentException e) {
+					MagicSpells.error("Invalid disallowed block type '" + s + "' in ZapSpell '" + internalName + "'.");
+				}
 			}
-		}
+		} else disallowedBlockTypes = null;
 
 		strCantZap = getConfigString("str-cant-zap", "");
-		
-		dropBlock = getConfigBoolean("drop-block", false);
-		dropNormal = getConfigBoolean("drop-normal", true);
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		playBreakEffect = getConfigBoolean("play-break-effect", true);
+
+		dropBlock = getConfigDataBoolean("drop-block", false);
+		dropNormal = getConfigDataBoolean("drop-normal", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		playBreakEffect = getConfigDataBoolean("play-break-effect", true);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player) {
-			Block target;
-			try {
-				target = getTargetedBlock(caster, power, args);
-			} catch (IllegalStateException e) {
-				target = null;
-			}
-			if (target != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power);
-				EventUtil.call(event);
-				if (event.isCancelled()) target = null;
-				else target = event.getTargetLocation().getBlock();
-			}
-			if (target == null) return noTarget(caster, strCantZap, args);
+	public CastResult cast(SpellData data) {
+		TargetInfo<Location> info = getTargetedBlockLocation(data);
+		if (info.noTarget()) return noTarget(strCantZap, info);
 
-			if (!canZap(target)) return noTarget(caster, strCantZap, args);
-			boolean ok = zap(target, (Player) caster, power, args);
-			if (!ok) return noTarget(caster, strCantZap, args);
-
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtLocation(info.spellData());
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (!(caster instanceof Player)) return false;
-		Block block = target.getBlock();
-		if (canZap(block)) {
-			zap(block, (Player) caster, power, args);
-			return true;
+	public CastResult castAtLocation(SpellData data) {
+		Location location = data.location();
+
+		Block target = location.getBlock();
+		if (!canZap(target)) return noTarget(strCantZap, data);
+
+		if (checkPlugins.get(data) && data.caster() instanceof Player caster) {
+			MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(target, caster);
+			if (!event.callEvent()) return noTarget(strCantZap, data);
 		}
 
-		Vector v = target.getDirection();
-		block = target.clone().add(v).getBlock();
+		if (playBreakEffect.get(data))
+			target.getWorld().playEffect(target.getLocation(), Effect.STEP_SOUND, target.getType());
 
-		if (canZap(block)) {
-			zap(block, (Player) caster, power, args);
-			return true;
+		if (dropBlock.get(data)) {
+			if (dropNormal.get(data)) target.breakNaturally();
+			else location.getWorld().dropItemNaturally(location, new ItemStack(target.getBlockData().getPlacementMaterial()));
 		}
-		return false;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		Block block = target.getBlock();
-		if (canZap(block)) {
-			zap(block, null, power, args);
-			return true;
-		}
-		return false;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(target, power, null);
-	}
-
-	private boolean zap(Block target, Player player, float power, String[] args) {
-		boolean playerNull = player == null;
-
-		if (checkPlugins && !playerNull) {
-			MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(target, player);
-			MagicSpells.plugin.getServer().getPluginManager().callEvent(event);
-			if (event.isCancelled()) return false;
-		}
-
-		if (dropBlock) {
-			if (dropNormal) target.breakNaturally();
-			else target.getWorld().dropItemNaturally(target.getLocation(), target.getState().getData().toItemStack(1));
-		}
-
-		if (playBreakEffect) target.getWorld().playEffect(target.getLocation(), Effect.STEP_SOUND, target.getType());
-
-		SpellData data = new SpellData(player, power, args);
-		if (!playerNull) playSpellEffects(EffectPosition.CASTER, player, data);
-		playSpellEffects(EffectPosition.TARGET, target.getLocation(), data);
-		if (!playerNull) playSpellEffectsTrail(player.getLocation(), target.getLocation(), data);
 
 		target.setType(Material.AIR);
-		return true;
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
-	
+
 	private boolean canZap(Block target) {
-		Material type = target.getType();
-		if (disallowedBlockTypes.contains(type)) return false;
-		if (allowedBlockTypes.isEmpty()) return true;
-		return allowedBlockTypes.contains(type);
+		BlockData bd = target.getBlockData();
+
+		if (disallowedBlockTypes != null) {
+			for (BlockData data : disallowedBlockTypes)
+				if (bd.matches(data))
+					return false;
+		}
+
+		if (allowedBlockTypes == null) return true;
+
+		for (BlockData data : allowedBlockTypes)
+			if (bd.matches(data))
+				return true;
+
+		return false;
 	}
-	
+
 }

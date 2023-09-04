@@ -21,6 +21,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellLearnEvent;
@@ -130,7 +131,7 @@ public class BuffListener extends PassiveListener {
 
 		for (Subspell s : passiveSpell.getActivatedSpells()) {
 			if (s.getSpell() instanceof BuffSpell buff && buff.isActive(entity)) continue;
-			s.subcast(entity, 1F, null);
+			s.subcast(new SpellData(entity));
 		}
 	}
 

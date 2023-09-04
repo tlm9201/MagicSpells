@@ -10,14 +10,11 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -25,32 +22,28 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 	
-	private Set<Block> blocks;
+	private final Set<Block> blocks;
 
-	private Material material;
-	private String materialName;
+	private final ConfigData<BlockData> blockType;
 	
-	private ConfigData<Integer> duration;
+	private final ConfigData<Integer> duration;
 
-	private boolean allowBreaking;
-	private boolean closeTopAndBottom;
+	private final boolean allowBreaking;
+	private final ConfigData<Boolean> closeTopAndBottom;
+	private final ConfigData<Boolean> powerAffectsDuration;
 
-	private String blockDestroyMessage;
+	private final String blockDestroyMessage;
 	
 	public EntombSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		materialName = getConfigString("block-type", "glass");
-		material = Util.getMaterial(materialName);
-		if (material == null || !material.isBlock()) {
-			MagicSpells.error("EntombSpell '" + internalName + "' has an invalid block defined!");
-			material = null;
-		}
-		
+		blockType = getConfigDataBlockData("block-type", Material.GLASS.createBlockData());
+
 		duration = getConfigDataInt("duration", 20);
 
 		allowBreaking = getConfigBoolean("allow-breaking", true);
-		closeTopAndBottom = getConfigBoolean("close-top-and-bottom", true);
+		closeTopAndBottom = getConfigDataBoolean("close-top-and-bottom", true);
+		powerAffectsDuration = getConfigDataBoolean("power-affects-duration", true);
 
 		blockDestroyMessage = getConfigString("block-destroy-message", "");
 		
@@ -63,69 +56,34 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		for (Block block : blocks) {
 			block.setType(Material.AIR);
-			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), null);
+			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), SpellData.NULL);
 		}
 		blocks.clear();
 	}
-	
+
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			LivingEntity target = targetInfo.target();
-			power = targetInfo.power();
-			
-			createTomb(caster, target, power, args);
-			sendMessages(caster, target, args);
-			playSpellEffects(caster, target, power, args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
-	}
-	
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		createTomb(caster, target, power, args);
-		playSpellEffects(caster, target, power, args);
-		return true;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		createTomb(null, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	private void createTomb(LivingEntity caster, LivingEntity target, float power, String[] args) {
+	public CastResult castAtEntity(SpellData data) {
 		List<Block> tempBlocks = new ArrayList<>();
 		List<Block> tombBlocks = new ArrayList<>();
-		
+
+		LivingEntity target = data.target();
 		Block feet = target.getLocation().getBlock();
 		float pitch = target.getLocation().getPitch();
 		float yaw = target.getLocation().getYaw();
-		
+
 		Location tpLoc = feet.getLocation().add(0.5, 0, 0.5);
 		tpLoc.setYaw(yaw);
 		tpLoc.setPitch(pitch);
 		target.teleportAsync(tpLoc);
-		
+
 		tempBlocks.add(feet.getRelative(1, 0, 0));
 		tempBlocks.add(feet.getRelative(1, 1, 0));
 		tempBlocks.add(feet.getRelative(-1, 0, 0));
@@ -134,26 +92,31 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 		tempBlocks.add(feet.getRelative(0, 1, 1));
 		tempBlocks.add(feet.getRelative(0, 0, -1));
 		tempBlocks.add(feet.getRelative(0, 1, -1));
-		
-		if (closeTopAndBottom) {
+
+		if (closeTopAndBottom.get(data)) {
 			tempBlocks.add(feet.getRelative(0, -1, 0));
 			tempBlocks.add(feet.getRelative(0, 2, 0));
 		}
 
-		SpellData data = new SpellData(caster, target, power, args);
+		BlockData blockType = this.blockType.get(data);
 		for (Block b : tempBlocks) {
 			if (!BlockUtils.isAir(b.getType())) continue;
 			tombBlocks.add(b);
-			b.setType(material);
+			b.setBlockData(blockType);
 			playSpellEffects(EffectPosition.SPECIAL, b.getLocation().add(0.5, 0.5, 0.5), data);
 		}
-		
+
 		blocks.addAll(tombBlocks);
 
-		int duration = this.duration.get(caster, target, power, args);
-		if (duration > 0 && !tombBlocks.isEmpty()) {
-			MagicSpells.scheduleDelayedTask(() -> removeTomb(tombBlocks, data), Math.round(duration * power));
-		}
+		int duration = this.duration.get(data);
+		if (powerAffectsDuration.get(data)) duration = Math.round(duration * data.power());
+
+		if (duration > 0 && !tombBlocks.isEmpty())
+			MagicSpells.scheduleDelayedTask(() -> removeTomb(tombBlocks, data), duration);
+
+		playSpellEffects(data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	private void removeTomb(List<Block> entomb, SpellData data) {

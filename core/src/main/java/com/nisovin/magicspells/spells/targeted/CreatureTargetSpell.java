@@ -1,12 +1,15 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import org.bukkit.entity.Creature;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.events.SpellTargetEvent;
 
 public class CreatureTargetSpell extends InstantSpell {
 
@@ -28,25 +31,24 @@ public class CreatureTargetSpell extends InstantSpell {
 			targetSpell = null;
 			if (!targetSpellName.isEmpty()) MagicSpells.error("CreatureTargetSpell '" + internalName + "' has an invalid spell defined!");
 		}
+		targetSpellName = null;
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			castSpells(caster, power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Mob mob)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	private void castSpells(LivingEntity caster, float power, String[] args) {
-		if (!(caster instanceof Creature creature)) return;
+		LivingEntity target = mob.getTarget();
+		if (target == null || !target.isValid()) return noTarget(data);
 
-		LivingEntity target = creature.getTarget();
-		if (target == null || !target.isValid()) return;
+		SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, target);
+		if (!targetEvent.callEvent()) return noTarget(targetEvent);
+		data = targetEvent.getSpellData();
 
-		playSpellEffects(caster, target, power, args);
+		if (targetSpell != null) targetSpell.subcast(data);
+		playSpellEffects(data);
 
-		if (targetSpell != null) targetSpell.subcast(caster, caster.getLocation(), target, power, args);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

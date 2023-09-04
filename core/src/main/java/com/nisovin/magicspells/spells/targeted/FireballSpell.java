@@ -6,13 +6,11 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.HashMap;
 
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Fireball;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -24,16 +22,9 @@ import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.CastData;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
@@ -41,31 +32,31 @@ import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class FireballSpell extends TargetedSpell implements TargetedEntityFromLocationSpell {
 
-	private Map<Fireball, CastData> fireballs;
+	private final Map<Fireball, SpellData> fireballs;
 
-	private int taskId;
+	private final int taskId;
 
-	private ConfigData<Float> explosionSize;
+	private final ConfigData<Float> explosionSize;
 
-	private ConfigData<Double> damageMultiplier;
-	private ConfigData<Double> noExplosionDamage;
-	private ConfigData<Double> noExplosionDamageRange;
+	private final ConfigData<Double> damageMultiplier;
+	private final ConfigData<Double> noExplosionDamage;
+	private final ConfigData<Double> noExplosionDamageRange;
 
-	private boolean noFire;
-	private boolean noExplosion;
-	private boolean checkPlugins;
-	private boolean smallFireball;
-	private boolean fireballGravity;
-	private boolean noExplosionEffect;
-	private boolean requireEntityTarget;
-	private boolean doOffsetTargetingCorrections;
-	private boolean powerAffectsDamageMultiplier;
-	private boolean powerAffectsNoExplosionDamage;
-	private boolean useRelativeCastLocationOffset;
-	private boolean useAbsoluteCastLocationOffset;
+	private final ConfigData<Boolean> noFire;
+	private final ConfigData<Boolean> noExplosion;
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> smallFireball;
+	private final ConfigData<Boolean> fireballGravity;
+	private final ConfigData<Boolean> noExplosionEffect;
+	private final ConfigData<Boolean> requireEntityTarget;
+	private final ConfigData<Boolean> doOffsetTargetingCorrections;
+	private final ConfigData<Boolean> powerAffectsDamageMultiplier;
+	private final ConfigData<Boolean> powerAffectsNoExplosionDamage;
+	private final ConfigData<Boolean> useRelativeCastLocationOffset;
+	private final ConfigData<Boolean> useAbsoluteCastLocationOffset;
 
-	private Vector relativeCastLocationOffset;
-	private Vector absoluteCastLocationOffset;
+	private final ConfigData<Vector> relativeCastLocationOffset;
+	private final ConfigData<Vector> absoluteCastLocationOffset;
 
 	public FireballSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -78,24 +69,24 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 		noExplosionDamage = getConfigDataDouble("no-explosion-damage", 5);
 		noExplosionDamageRange = getConfigDataDouble("no-explosion-damage-range", 3);
 
-		noFire = getConfigBoolean("no-fire", true);
-		noExplosion = getConfigBoolean("no-explosion", true);
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		smallFireball = getConfigBoolean("small-fireball", false);
-		fireballGravity = getConfigBoolean("gravity", false);
-		noExplosionEffect = getConfigBoolean("no-explosion-effect", true);
-		requireEntityTarget = getConfigBoolean("require-entity-target", false);
-		doOffsetTargetingCorrections = getConfigBoolean("do-offset-targeting-corrections", true);
-		powerAffectsDamageMultiplier = getConfigBoolean("power-affects-damage-multiplier", true);
-		powerAffectsNoExplosionDamage = getConfigBoolean("power-affects-no-explosion-damage", true);
-		useRelativeCastLocationOffset = getConfigBoolean("use-relative-cast-location-offset", false);
-		useAbsoluteCastLocationOffset = getConfigBoolean("use-absolute-cast-location-offset", false);
+		noFire = getConfigDataBoolean("no-fire", true);
+		noExplosion = getConfigDataBoolean("no-explosion", true);
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		smallFireball = getConfigDataBoolean("small-fireball", false);
+		fireballGravity = getConfigDataBoolean("gravity", false);
+		noExplosionEffect = getConfigDataBoolean("no-explosion-effect", true);
+		requireEntityTarget = getConfigDataBoolean("require-entity-target", false);
+		doOffsetTargetingCorrections = getConfigDataBoolean("do-offset-targeting-corrections", true);
+		powerAffectsDamageMultiplier = getConfigDataBoolean("power-affects-damage-multiplier", true);
+		powerAffectsNoExplosionDamage = getConfigDataBoolean("power-affects-no-explosion-damage", true);
+		useRelativeCastLocationOffset = getConfigDataBoolean("use-relative-cast-location-offset", false);
+		useAbsoluteCastLocationOffset = getConfigDataBoolean("use-absolute-cast-location-offset", false);
 
-		relativeCastLocationOffset = getConfigVector("relative-cast-position-offset", "0,0,0");
-		absoluteCastLocationOffset = getConfigVector("absolute-cast-position-offset", "0,0,0");
+		relativeCastLocationOffset = getConfigDataVector("relative-cast-position-offset", new Vector());
+		absoluteCastLocationOffset = getConfigDataVector("absolute-cast-position-offset", new Vector());
 
 		taskId = MagicSpells.scheduleRepeatingTask(() -> fireballs.entrySet().removeIf(fireballFloatEntry ->
-				fireballFloatEntry.getKey().isDead()), TimeUtil.TICKS_PER_MINUTE, TimeUtil.TICKS_PER_MINUTE);
+			fireballFloatEntry.getKey().isDead()), TimeUtil.TICKS_PER_MINUTE, TimeUtil.TICKS_PER_MINUTE);
 	}
 
 	@Override
@@ -104,117 +95,88 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			boolean selfTarget = false;
-			LivingEntity target = null;
-			Location targetLoc = null;
+	public CastResult cast(SpellData data) {
+		if (requireEntityTarget.get(data)) {
+			TargetInfo<LivingEntity> info = getTargetedEntity(data);
+			if (info.noTarget()) return noTarget(info);
+			data = info.spellData();
 
-			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-				if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
-
-				target = targetInfo.target();
-				power = targetInfo.power();
-
-				if (checkPlugins) {
-					// Run a pvp damage check
-					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, DamageCause.ENTITY_ATTACK, 1D, this);
-					EventUtil.call(event);
-					if (event.isCancelled()) return noTarget(caster, args);
-				}
-
-				targetLoc = target.getLocation();
-				if (target.equals(caster)) selfTarget = true;
+			if (checkPlugins.get(data)) {
+				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(data.caster(), data.target(), DamageCause.PROJECTILE, 1D, this);
+				if (!event.callEvent()) return noTarget(data);
 			}
 
-			// Create fireball
-			Location loc;
-			Location pLoc = caster.getLocation();
-			if (!selfTarget) {
-				loc = caster.getEyeLocation().toVector().add(pLoc.getDirection().multiply(2)).toLocation(caster.getWorld(), pLoc.getYaw(), pLoc.getPitch());
-				loc = offsetLocation(loc);
-				loc = applyOffsetTargetingCorrection(loc, targetLoc);
-			} else {
-				loc = pLoc.toVector().add(pLoc.getDirection().setY(0).multiply(2)).toLocation(caster.getWorld(), pLoc.getYaw() + 180, 0);
-			}
-			Fireball fireball;
-			if (smallFireball && caster instanceof Player) {
-				fireball = caster.launchProjectile(SmallFireball.class);
-				caster.getWorld().playEffect(caster.getLocation(), Effect.GHAST_SHOOT, 0);
-			} else {
-				fireball = caster.getWorld().spawn(loc, Fireball.class);
-				caster.getWorld().playEffect(caster.getLocation(), Effect.GHAST_SHOOT, 0);
-				fireballs.put(fireball, new CastData(power, args));
+			Location origin = data.caster().getEyeLocation();
+			if (data.caster().equals(data.target())) {
+				origin.add(origin.getDirection().setY(0).multiply(2));
+				origin.setYaw(origin.getYaw() + 180);
+				origin.setPitch(0);
+
+				launchFireball(origin, data.location(origin));
+				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 			}
 
-			fireball.setShooter(caster);
-			fireball.setGravity(fireballGravity);
-
-			SpellData data = new SpellData(caster, power, args);
-			playSpellEffects(EffectPosition.CASTER, caster, data);
-			playSpellEffects(EffectPosition.PROJECTILE, fireball, data);
-
-			if (target != null) {
-				sendMessages(caster, target, args);
-				return PostCastAction.NO_MESSAGES;
-			}
+			return castAtEntityFromLocation(data.location(origin));
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		Location origin = data.caster().getEyeLocation();
+		data = applyOffsets(origin, data.location(origin));
+
+		origin.add(origin.getDirection().multiply(2));
+		data = data.location(origin);
+
+		launchFireball(origin, data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (caster == null ? !validTargetList.canTarget(target) : !validTargetList.canTarget(caster, target)) return false;
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		Location origin = data.location();
 
-		from = offsetLocation(from);
-		Vector facing = target.getLocation().toVector().subtract(from.toVector()).normalize();
-		Location loc = from.clone();
-		Util.setLocationFacingFromVector(loc, facing);
-		loc.add(facing.multiply(2));
+		Vector facing = data.target().getLocation().subtract(origin).toVector();
+		origin.setDirection(facing);
 
-		Fireball fireball = from.getWorld().spawn(loc, Fireball.class);
-		fireball.setGravity(fireballGravity);
-		if (caster != null) fireball.setShooter(caster);
-		fireballs.put(fireball, new CastData(power, args));
+		data = applyOffsets(origin, data.location(origin));
 
-		SpellData data = new SpellData(caster, target, power, args);
+		origin.add(origin.getDirection().multiply(2));
+		data = data.location(origin);
 
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
-		else playSpellEffects(EffectPosition.CASTER, from, data);
+		launchFireball(origin, data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
 
+	public void launchFireball(Location origin, SpellData data) {
+		Class<? extends Fireball> fireballClass = smallFireball.get(data) ? SmallFireball.class : Fireball.class;
+
+		Fireball fireball = origin.getWorld().spawn(origin, fireballClass, fb -> {
+			fb.setGravity(fireballGravity.get(data));
+			if (data.hasCaster()) fb.setShooter(data.caster());
+		});
+		fireballs.put(fireball, data);
+
+		playSpellEffects(data);
 		playSpellEffects(EffectPosition.PROJECTILE, fireball, data);
-		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, from, fireball.getLocation(), caster, fireball, data);
-
-		return true;
+		playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, origin, fireball.getLocation(), data.caster(), fireball, data);
 	}
 
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(caster, from, target, power, null);
-	}
+	private SpellData applyOffsets(Location location, SpellData data) {
+		if (useRelativeCastLocationOffset.get(data)) {
+			Util.applyRelativeOffset(location, relativeCastLocationOffset.get(data));
+			data = data.location(location);
+		}
 
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		return castAtEntityFromLocation(null, from, target, power, args);
-	}
+		if (useAbsoluteCastLocationOffset.get(data)) {
+			Util.applyAbsoluteOffset(location, absoluteCastLocationOffset.get(data));
+			data = data.location(location);
+		}
 
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(null, from, target, power, null);
-	}
+		if (data.hasTarget() && doOffsetTargetingCorrections.get(data)) {
+			Vector dir = data.target().getLocation().subtract(location).toVector();
+			location.setDirection(dir);
+			data = data.location(location);
+		}
 
-	private Location offsetLocation(Location loc) {
-		Location ret = loc;
-		if (useRelativeCastLocationOffset) ret = Util.applyRelativeOffset(ret, relativeCastLocationOffset);
-		if (useAbsoluteCastLocationOffset) ret = Util.applyAbsoluteOffset(ret, absoluteCastLocationOffset);
-		return ret;
-	}
-
-	private Location applyOffsetTargetingCorrection(Location origin, Location target) {
-		if (doOffsetTargetingCorrections && target != null) return Util.faceTarget(origin, target);
-		return origin;
+		return data;
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -224,29 +186,28 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 		if (!fireballs.containsKey(fireball)) return;
 
 		LivingEntity caster = fireball.getShooter() instanceof LivingEntity le ? le : null;
-		CastData data = fireballs.get(fireball);
+		SpellData data = fireballs.get(fireball);
 
 		playSpellEffects(EffectPosition.TARGET, fireball.getLocation(), new SpellData(caster, data.power(), data.args()));
 
-		if (noExplosion) {
+		if (noExplosion.get(data)) {
 			event.setCancelled(true);
 			Location loc = fireball.getLocation();
-			if (noExplosionEffect) loc.getWorld().createExplosion(loc, 0);
+			if (noExplosionEffect.get(data)) loc.getWorld().createExplosion(loc, 0);
 
-
-			double noExplosionDamageRange = this.noExplosionDamageRange.get(caster, null, data.power(), data.args());
+			double noExplosionDamageRange = this.noExplosionDamageRange.get(data);
 			List<Entity> inRange = fireball.getNearbyEntities(noExplosionDamageRange, noExplosionDamageRange, noExplosionDamageRange);
 			for (Entity entity : inRange) {
 				if (!(entity instanceof LivingEntity target)) continue;
 				if (!validTargetList.canTarget(entity)) continue;
 
-				double noExplosionDamage = this.noExplosionDamage.get(caster, target, data.power(), data.args());
-				if (powerAffectsNoExplosionDamage) noExplosionDamage *= data.power();
+				double noExplosionDamage = this.noExplosionDamage.get(data);
+				if (powerAffectsNoExplosionDamage.get(data)) noExplosionDamage *= data.power();
 
 				target.damage(noExplosionDamage, caster);
 			}
 
-			if (!noFire) {
+			if (!noFire.get(data)) {
 				Set<Block> fires = new HashSet<>();
 				for (int x = loc.getBlockX() - 1; x <= loc.getBlockX() + 1; x++) {
 					for (int y = loc.getBlockY() - 1; y <= loc.getBlockY() + 1; y++) {
@@ -264,13 +225,13 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 				}
 			}
 		} else {
-			event.setFire(!noFire);
+			event.setFire(!noFire.get(data));
 
-			float explosionSize = this.explosionSize.get(caster, null, data.power(), data.args());
+			float explosionSize = this.explosionSize.get(data);
 			if (explosionSize > 0) event.setRadius(explosionSize);
 		}
 
-		if (noExplosion) fireballs.remove(fireball);
+		if (noExplosion.get(data)) fireballs.remove(fireball);
 		else MagicSpells.scheduleDelayedTask(() -> fireballs.remove(fireball), 1);
 	}
 
@@ -287,13 +248,13 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 		ProjectileSource shooter = fireball.getShooter();
 		if (!(shooter instanceof LivingEntity caster)) return;
 
-		CastData data = fireballs.get(fireball);
+		SpellData data = fireballs.get(fireball);
 
 		if (!validTargetList.canTarget(caster, target)) event.setCancelled(true);
 		else {
-			double damageMultiplier = this.damageMultiplier.get(caster, target, data.power(), data.args());
+			double damageMultiplier = this.damageMultiplier.get(data);
 			if (damageMultiplier > 0) {
-				if (powerAffectsDamageMultiplier) damageMultiplier *= data.power();
+				if (powerAffectsDamageMultiplier.get(data)) damageMultiplier *= data.power();
 				event.setDamage(event.getDamage() * damageMultiplier);
 			}
 		}

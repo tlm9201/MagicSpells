@@ -3,12 +3,12 @@ package com.nisovin.magicspells.spells;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
-
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.CastResult;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 
 public class RandomSpell extends InstantSpell {
@@ -17,9 +17,9 @@ public class RandomSpell extends InstantSpell {
 
 	private RandomOptionSet options;
 
-	private boolean pseudoRandom;
-	private boolean checkIndividualCooldowns;
-	private boolean checkIndividualModifiers;
+	private final boolean pseudoRandom;
+	private final ConfigData<Boolean> checkIndividualCooldowns;
+	private final ConfigData<Boolean> checkIndividualModifiers;
 	
 	public RandomSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -27,8 +27,8 @@ public class RandomSpell extends InstantSpell {
 		rawOptions = getConfigStringList("spells", null);
 
 		pseudoRandom = getConfigBoolean("pseudo-random", true);
-		checkIndividualCooldowns = getConfigBoolean("check-individual-cooldowns", true);
-		checkIndividualModifiers = getConfigBoolean("check-individual-modifiers", true);
+		checkIndividualCooldowns = getConfigDataBoolean("check-individual-cooldowns", true);
+		checkIndividualModifiers = getConfigDataBoolean("check-individual-modifiers", true);
 	}
 	
 	@Override
@@ -55,27 +55,29 @@ public class RandomSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			RandomOptionSet set = options;
-			if (checkIndividualCooldowns || checkIndividualModifiers) {
-				set = new RandomOptionSet();
-				for (SpellOption o : options.randomOptionSetOptions) {
-					if (checkIndividualCooldowns && o.spell.getSpell().onCooldown(caster)) continue;
-					if (checkIndividualModifiers) {
-						ModifierSet modifiers = o.spell.getSpell().getModifiers();
-						if (modifiers != null && caster instanceof Player && !modifiers.check(caster)) continue;
-					}
-					set.add(o);
+	public CastResult cast(SpellData data) {
+		boolean checkIndividualCooldowns = this.checkIndividualCooldowns.get(data);
+		boolean checkIndividualModifiers = this.checkIndividualModifiers.get(data);
+
+		RandomOptionSet set = options;
+		if (checkIndividualCooldowns || checkIndividualModifiers) {
+			set = new RandomOptionSet();
+			for (SpellOption o : options.randomOptionSetOptions) {
+				if (checkIndividualCooldowns && o.spell.getSpell().onCooldown(data.caster())) continue;
+				if (checkIndividualModifiers) {
+					ModifierSet modifiers = o.spell.getSpell().getModifiers();
+					if (modifiers != null && !modifiers.check(data.caster())) continue;
 				}
+				set.add(o);
 			}
-			if (!set.randomOptionSetOptions.isEmpty()) {
-				Subspell spell = set.choose();
-				return spell != null && spell.subcast(caster, power, args) ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED;
-			}
-			return PostCastAction.ALREADY_HANDLED;
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+		if (set.randomOptionSetOptions.isEmpty()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		Subspell spell = set.choose();
+		if (spell == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		CastResult result = spell.subcast(data);
+		return new CastResult(result.action() != PostCastAction.ALREADY_HANDLED ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED, data);
 	}
 
 	private static class SpellOption {

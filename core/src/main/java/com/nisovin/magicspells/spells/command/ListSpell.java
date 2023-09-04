@@ -4,19 +4,18 @@ import java.util.List;
 import java.util.Collection;
 
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 
+import net.kyori.adventure.text.Component;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.spells.CommandSpell;
-import com.nisovin.magicspells.util.PlayerNameUtils;
+import com.nisovin.magicspells.util.config.ConfigData;
 
 // Advanced perm is for listing other player's spells
 
@@ -24,10 +23,8 @@ public class ListSpell extends CommandSpell {
 
 	private final List<String> spellsToHide;
 
-	private final int lineLength = 60;
-
-	private boolean reloadGrantedSpells;
-	private boolean onlyShowCastableSpells;
+	private final ConfigData<Boolean> reloadGrantedSpells;
+	private final ConfigData<Boolean> onlyShowCastableSpells;
 
 	private String strPrefix;
 	private String strNoSpells;
@@ -39,8 +36,8 @@ public class ListSpell extends CommandSpell {
 
 		spellsToHide = getConfigStringList("spells-to-hide", null);
 
-		reloadGrantedSpells = getConfigBoolean("reload-granted-spells", true);
-		onlyShowCastableSpells = getConfigBoolean("only-show-castable-spells", false);
+		reloadGrantedSpells = getConfigDataBoolean("reload-granted-spells", true);
+		onlyShowCastableSpells = getConfigDataBoolean("only-show-castable-spells", false);
 
 		strPrefix = getConfigString("str-prefix", "Known spells:");
 		strNoSpells = getConfigString("str-no-spells", "You do not know any spells.");
@@ -49,77 +46,82 @@ public class ListSpell extends CommandSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			String extra = "";
-			if (args != null && args.length > 0 && spellbook.hasAdvancedPerm("list")) {
-				Player p = PlayerNameUtils.getPlayer(args[0]);
-				if (p != null) {
-					spellbook = MagicSpells.getSpellbook(p);
-					extra = '(' + Util.getStringFromComponent(p.displayName()) + ") ";
-				}
-			}
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			if (reloadGrantedSpells) spellbook.addGrantedSpells();
-
-			if (spellbook.getSpells().isEmpty()) {
-				sendMessage(strNoSpells, player, args);
-				return PostCastAction.HANDLE_NORMALLY;
+		Spellbook spellbook = MagicSpells.getSpellbook(caster);
+		String extra = "";
+		if (data.hasArgs() && spellbook.hasAdvancedPerm("list")) {
+			Player p = PlayerNameUtils.getPlayer(data.args()[0]);
+			if (p != null) {
+				spellbook = MagicSpells.getSpellbook(p);
+				extra = '(' + Util.getStringFromComponent(p.displayName()) + ") ";
 			}
-
-			String s = "";
-			for (Spell spell : spellbook.getSpells()) {
-				if (shouldListSpell(spell, spellbook)) {
-					if (s.isEmpty()) s = spell.getName();
-					else s += ", " + spell.getName();
-				}
-			}
-
-			s = strPrefix + ' ' + extra + s;
-			while (s.length() > lineLength) {
-				int i = s.substring(0, lineLength).lastIndexOf(' ');
-				if (i < 0) break;
-				sendMessage(s.substring(0, i), player, args);
-				s = s.substring(i + 1);
-			}
-			if (!s.isEmpty()) sendMessage(s, player, args);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		if (reloadGrantedSpells.get(data)) spellbook.addGrantedSpells();
+
+		if (spellbook.getSpells().isEmpty()) {
+			sendMessage(strNoSpells, caster, data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		}
+
+		boolean onlyShowCastableSpells = this.onlyShowCastableSpells.get(data);
+		boolean prev = false;
+
+		Component message = Util.getMiniMessage(MagicSpells.getTextColor() + strPrefix + " " + extra);
+
+		for (Spell spell : spellbook.getSpells()) {
+			if (shouldListSpell(spell, spellbook, onlyShowCastableSpells)) {
+				if (prev) message = message.append(Component.text(", "));
+
+				message = message.append(Util.getMiniMessage(spell.getName()));
+				prev = true;
+			}
+		}
+
+		caster.sendMessage(message);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
 	public boolean castFromConsole(CommandSender sender, String[] args) {
-		StringBuilder s = new StringBuilder();
+		Component message;
 
-		// Get spell list
 		Collection<Spell> spells = MagicSpells.spells();
 		if (args != null && args.length > 0) {
-			Player p = PlayerNameUtils.getPlayer(args[0]);
-			if (p == null) {
-				sender.sendMessage("No such player.");
+			Player player = PlayerNameUtils.getPlayer(args[0]);
+			if (player == null) {
+				sender.sendPlainMessage("No such player.");
 				return true;
 			}
-			spells = MagicSpells.getSpellbook(p).getSpells();
-			s.append(p.getName()).append("'s spells: ");
-		} else s.append("All spells: ");
 
+			spells = MagicSpells.getSpellbook(player).getSpells();
+			message = Component.text(player.getName() + "'s spells: ");
+		} else message = Component.text("All spells: ");
+
+		boolean prev = false;
 		for (Spell spell : spells) {
-			s.append(spell.getName());
-			s.append(' ');
+			if (prev) message = message.append(Component.text(", "));
+
+			message = message.append(Util.getMiniMessage(spell.getName()));
+			prev = true;
 		}
 
-		sender.sendMessage(s.toString());
+		sender.sendMessage(message);
+
 		return true;
 	}
 
 	@Override
 	public List<String> tabComplete(CommandSender sender, String partial) {
-		if (sender instanceof ConsoleCommandSender && !partial.contains(" ")) return tabCompletePlayerName(sender, partial);
+		if (sender instanceof ConsoleCommandSender && !partial.contains(" "))
+			return tabCompletePlayerName(sender, partial);
 		return null;
 	}
 
-	private boolean shouldListSpell(Spell spell, Spellbook spellbook) {
+	private boolean shouldListSpell(Spell spell, Spellbook spellbook, boolean onlyShowCastableSpells) {
 		if (spell.isHelperSpell()) return false;
 		if (onlyShowCastableSpells && (!spellbook.canCast(spell) || spell instanceof PassiveSpell)) return false;
 		if (spellsToHide != null && spellsToHide.contains(spell.getInternalName())) return false;
@@ -128,26 +130,6 @@ public class ListSpell extends CommandSpell {
 
 	public List<String> getSpellsToHide() {
 		return spellsToHide;
-	}
-
-	public int getLineLength() {
-		return lineLength;
-	}
-
-	public boolean shouldReloadGrantedSpell() {
-		return reloadGrantedSpells;
-	}
-
-	public void setReloadGrantedSpells(boolean reloadGrantedSpells) {
-		this.reloadGrantedSpells = reloadGrantedSpells;
-	}
-
-	public boolean shouldOnlyShowCastableSpells() {
-		return onlyShowCastableSpells;
-	}
-
-	public void setOnlyShowCastableSpells(boolean onlyShowCastableSpells) {
-		this.onlyShowCastableSpells = onlyShowCastableSpells;
 	}
 
 	public String getStrPrefix() {

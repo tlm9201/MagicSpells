@@ -15,7 +15,6 @@ import de.slikey.exp4j.ExpressionBuilder;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 
@@ -23,6 +22,7 @@ import org.apache.commons.numbers.core.Precision;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.RegexUtil;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
@@ -162,13 +162,15 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 				try {
 					places = Integer.parseInt(placesString);
 				} catch (NumberFormatException e) {
-					return (caster, target, power, args) -> 0d;
+					return data -> 0d;
 				}
 			}
 
-			return owner.equalsIgnoreCase("targetvar") ?
-				new TargetVariableData(variable, places) :
-				new CasterVariableData(variable, places);
+			return switch (owner.toLowerCase()) {
+				case "castervar" -> new CasterVariableData(variable, places);
+				case "targetvar" -> new TargetVariableData(variable, places);
+				default -> new DefaultVariableData(variable, places);
+			};
 		}
 
 		if (matcher.group(5) != null) {
@@ -181,7 +183,7 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 				try {
 					places = Integer.parseInt(placesString);
 				} catch (NumberFormatException e) {
-					return (caster, target, power, args) -> 0d;
+					return data -> 0d;
 				}
 			}
 
@@ -195,9 +197,9 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			try {
 				index = Integer.parseInt(matcher.group(10));
 			} catch (NumberFormatException e) {
-				return (caster, target, power, args) -> 0d;
+				return data -> 0d;
 			}
-			if (index == 0) return (caster, target, power, args) -> 0d;
+			if (index == 0) return data -> 0d;
 
 			return new ArgumentData(index - 1, def);
 		}
@@ -206,9 +208,11 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			String owner = matcher.group(13);
 			String papiPlaceholder = '%' + matcher.group(14) + '%';
 
-			return owner.equalsIgnoreCase("targetpapi") ?
-				new TargetPAPIData(papiPlaceholder) :
-				new CasterPAPIData(papiPlaceholder);
+			return switch (owner.toLowerCase()) {
+				case "casterpapi" -> new CasterPAPIData(papiPlaceholder);
+				case "targetpapi" -> new CasterPAPIData(papiPlaceholder);
+				default -> new DefaultPAPIData(papiPlaceholder);
+			};
 		}
 
 		if (matcher.group(15) != null) {
@@ -218,20 +222,20 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			return new PlayerPAPIData(papiPlaceholder, player);
 		}
 
-		return (caster, target, power, args) -> 0d;
+		return data -> 0d;
 	}
 
 	@Override
-	public T get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+	public T get(@NotNull SpellData data) {
 		for (Map.Entry<String, ConfigData<Double>> entry : variables.entrySet())
-			expression.setVariable(entry.getKey(), entry.getValue().get(caster, target, power, args));
+			expression.setVariable(entry.getKey(), entry.getValue().get(data));
 
-		expression.setVariable("power", power);
+		expression.setVariable("power", data.power());
 
 		try {
 			return converter.apply(expression.evaluate());
 		} catch (Exception e) {
-			return dataDef != null ? dataDef.get(caster, target, power, args) : def;
+			return dataDef != null ? dataDef.get(data) : def;
 		}
 	}
 
@@ -259,14 +263,50 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 		}
 
 		@Override
-		public Double get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			if (args != null && args.length > index) {
+		public Double get(@NotNull SpellData data) {
+			if (data.args() != null && data.args().length > index) {
 				try {
-					return Double.parseDouble(args[index]);
+					return Double.parseDouble(data.args()[index]);
 				} catch (NumberFormatException e) {
 					return def;
 				}
 			} else return def;
+		}
+
+		@Override
+		public boolean isConstant() {
+			return false;
+		}
+
+	}
+
+	public static class DefaultVariableData implements ConfigData<Double> {
+
+		private final String variable;
+		private final int places;
+
+		public DefaultVariableData(String variable, int places) {
+			this.variable = variable;
+			this.places = places;
+		}
+
+		@Override
+		public Double get(@NotNull SpellData data) {
+			if (!(data.recipient() instanceof Player player)) return 0d;
+
+			Variable var = MagicSpells.getVariableManager().getVariable(variable);
+			if (var == null) return 0d;
+
+			double value;
+			if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable) {
+				try {
+					value = Double.parseDouble(var.getStringValue(player));
+				} catch (NumberFormatException e) {
+					return 0d;
+				}
+			} else value = var.getValue(player);
+
+			return places >= 0 ? Precision.round(value, places) : value;
 		}
 
 		@Override
@@ -287,8 +327,8 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 		}
 
 		@Override
-		public Double get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			if (!(caster instanceof Player player)) return 0d;
+		public Double get(@NotNull SpellData data) {
+			if (!(data.caster() instanceof Player player)) return 0d;
 
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return 0d;
@@ -323,8 +363,8 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 		}
 
 		@Override
-		public Double get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			if (!(target instanceof Player player)) return 0d;
+		public Double get(@NotNull SpellData data) {
+			if (!(data.target() instanceof Player player)) return 0d;
 
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return 0d;
@@ -361,7 +401,7 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 		}
 
 		@Override
-		public Double get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		public Double get(@NotNull SpellData data) {
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return 0d;
 
@@ -384,6 +424,35 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 	}
 
+	public static class DefaultPAPIData implements ConfigData<Double> {
+
+		private final String papiPlaceholder;
+
+		public DefaultPAPIData(String papiPlaceholder) {
+			this.papiPlaceholder = papiPlaceholder;
+		}
+
+		@Override
+		public Double get(@NotNull SpellData data) {
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.recipient() instanceof Player player))
+				return 0d;
+
+			String value = PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
+
+			try {
+				return Double.parseDouble(value);
+			} catch (NumberFormatException e) {
+				return 0d;
+			}
+		}
+
+		@Override
+		public boolean isConstant() {
+			return false;
+		}
+
+	}
+
 	public static class CasterPAPIData implements ConfigData<Double> {
 
 		private final String papiPlaceholder;
@@ -393,8 +462,8 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 		}
 
 		@Override
-		public Double get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(caster instanceof Player player))
+		public Double get(@NotNull SpellData data) {
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.caster() instanceof Player player))
 				return 0d;
 
 			String value = PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
@@ -422,8 +491,8 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 		}
 
 		@Override
-		public Double get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(target instanceof Player player))
+		public Double get(@NotNull SpellData data) {
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.target() instanceof Player player))
 				return 0d;
 
 			String value = PlaceholderAPI.setPlaceholders(player, placeholder);
@@ -453,7 +522,7 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 		}
 
 		@Override
-		public Double get(LivingEntity caster, LivingEntity target, float power, String[] args) {
+		public Double get(@NotNull SpellData data) {
 			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) return 0d;
 
 			String value = PlaceholderAPI.setPlaceholders(Bukkit.getOfflinePlayer(player), placeholder);

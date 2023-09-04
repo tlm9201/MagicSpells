@@ -4,10 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -15,12 +12,12 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private ConfigData<Float> yaw;
-	private ConfigData<Float> pitch;
+	private final ConfigData<Float> yaw;
+	private final ConfigData<Float> pitch;
 
-	private Vector relativeOffset;
+	private final ConfigData<Vector> relativeOffset;
 
-	private String strCantTeleport;
+	private final String strCantTeleport;
 
 	public TeleportSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -28,63 +25,43 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 		yaw = getConfigDataFloat("yaw", 0);
 		pitch = getConfigDataFloat("pitch", 0);
 
-		relativeOffset = getConfigVector("relative-offset", "0,0.1,0");
+		relativeOffset = getConfigDataVector("relative-offset", new Vector(0, 0.1, 0));
 
 		strCantTeleport = getConfigString("str-cant-teleport", "");
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target.noTarget()) return noTarget(caster, args, target);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			if (!teleport(caster, target.target(), target.power(), args)) return noTarget(caster, strCantTeleport, args);
-
-			sendMessages(caster, target.target(), args);
-			return PostCastAction.NO_MESSAGES;
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return teleport(caster, target, power, args);
-	}
+	public CastResult castAtEntity(SpellData data) {
+		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
+		Location targetLoc = data.target().getLocation();
+		Location startLoc = data.caster().getLocation();
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
-	}
-
-	private boolean teleport(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		Location targetLoc = target.getLocation();
-		Location startLoc = caster.getLocation();
-
-		Vector startDir = startLoc.clone().getDirection().normalize();
+		Vector startDir = startLoc.getDirection();
 		Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-		targetLoc.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
-		targetLoc.add(startLoc.getDirection().multiply(relativeOffset.getX()));
+		Vector relativeOffset = this.relativeOffset.get(data);
+
+		targetLoc.add(horizOffset.multiply(relativeOffset.getZ()));
+		targetLoc.add(startDir.multiply(relativeOffset.getX()));
 		targetLoc.setY(targetLoc.getY() + relativeOffset.getY());
+		targetLoc.setPitch(startLoc.getPitch() - pitch.get(data));
+		targetLoc.setYaw(startLoc.getYaw() + yaw.get(data));
+		if (!targetLoc.getBlock().isPassable()) return noTarget(strCantTeleport, data);
 
-		targetLoc.setPitch(startLoc.getPitch() - pitch.get(caster, target, power, args));
-		targetLoc.setYaw(startLoc.getYaw() + yaw.get(caster, target, power, args));
-
-		if (!BlockUtils.isPathable(targetLoc.getBlock())) return false;
-
-		SpellData data = new SpellData(caster, target, power, args);
-		playSpellEffects(EffectPosition.CASTER, caster, data);
-		playSpellEffects(EffectPosition.TARGET, target, data);
+		data.caster().teleportAsync(targetLoc);
+		playSpellEffects(EffectPosition.CASTER, data.caster(), data);
+		playSpellEffects(EffectPosition.TARGET, data.target(), data);
 		playSpellEffectsTrail(startLoc, targetLoc, data);
 
-		caster.teleportAsync(targetLoc);
-		return true;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

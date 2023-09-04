@@ -4,23 +4,21 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffectType;
 
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class CrippleSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private ConfigData<Integer> strength;
-	private ConfigData<Integer> duration;
-	private ConfigData<Integer> portalCooldown;
+	private final ConfigData<Integer> strength;
+	private final ConfigData<Integer> duration;
+	private final ConfigData<Integer> portalCooldown;
 
-	private boolean useSlownessEffect;
-	private boolean applyPortalCooldown;
-	private boolean powerAffectsDuration;
-	private boolean powerAffectsPortalCooldown;
+	private final ConfigData<Boolean> useSlownessEffect;
+	private final ConfigData<Boolean> applyPortalCooldown;
+	private final ConfigData<Boolean> powerAffectsDuration;
+	private final ConfigData<Boolean> powerAffectsPortalCooldown;
 
 	public CrippleSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -29,71 +27,39 @@ public class CrippleSpell extends TargetedSpell implements TargetedEntitySpell {
 		duration = getConfigDataInt("effect-duration", 100);
 		portalCooldown = getConfigDataInt("portal-cooldown-ticks", 100);
 
-		useSlownessEffect = getConfigBoolean("use-slowness-effect", true);
-		applyPortalCooldown = getConfigBoolean("apply-portal-cooldown", false);
-		powerAffectsDuration = getConfigBoolean("power-affects-duration", true);
-		powerAffectsPortalCooldown = getConfigBoolean("power-affects-portal-cooldown", true);
+		useSlownessEffect = getConfigDataBoolean("use-slowness-effect", true);
+		applyPortalCooldown = getConfigDataBoolean("apply-portal-cooldown", false);
+		powerAffectsDuration = getConfigDataBoolean("power-affects-duration", true);
+		powerAffectsPortalCooldown = getConfigDataBoolean("power-affects-portal-cooldown", true);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-			if (info.noTarget()) return noTarget(caster, args, info);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			cripple(caster, info.target(), info.power(), args);
-			sendMessages(caster, info.target(), args);
+		return castAtEntity(info.spellData());
+	}
 
-			return PostCastAction.NO_MESSAGES;
+	@Override
+	public CastResult castAtEntity(SpellData data) {
+		if (useSlownessEffect.get(data)) {
+			int strength = this.strength.get(data);
+			int duration = this.duration.get(data);
+			if (powerAffectsDuration.get(data)) duration = Math.round(duration * data.power());
+
+			data.target().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, duration, strength));
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
-	}
+		if (applyPortalCooldown.get(data)) {
+			int portalCooldown = this.portalCooldown.get(data);
+			if (powerAffectsPortalCooldown.get(data)) portalCooldown = Math.round(portalCooldown * data.power());
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		cripple(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		cripple(null, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	private void cripple(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (target == null) return;
-
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
-
-		if (useSlownessEffect) {
-			int strength = this.strength.get(caster, target, power, args);
-			int duration = this.duration.get(caster, target, power, args);
-			if (powerAffectsDuration) duration = Math.round(duration * power);
-
-			target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, duration, strength));
+			if (data.target().getPortalCooldown() < portalCooldown) data.target().setPortalCooldown(portalCooldown);
 		}
 
-		if (applyPortalCooldown) {
-			int portalCooldown = this.portalCooldown.get(caster, target, power, args);
-			if (powerAffectsPortalCooldown) portalCooldown = Math.round(portalCooldown * power);
-
-			if (target.getPortalCooldown() < portalCooldown) target.setPortalCooldown(portalCooldown);
-		}
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

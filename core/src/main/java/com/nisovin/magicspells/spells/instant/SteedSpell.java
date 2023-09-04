@@ -22,16 +22,15 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+
 import org.spigotmc.event.entity.EntityDismountEvent;
+
 import org.bukkit.event.inventory.InventoryClickEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MobUtil;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -41,18 +40,18 @@ public class SteedSpell extends InstantSpell {
 
 	private final Map<UUID, Integer> mounted;
 
-	private boolean gravity;
-	private boolean hasChest;
+	private final ConfigData<Boolean> gravity;
+	private final ConfigData<Boolean> hasChest;
 
-	private ConfigData<Double> jumpStrength;
+	private final ConfigData<Double> jumpStrength;
 
-	private String strInvalidType;
+	private final String strInvalidType;
 	private String strAlreadyMounted;
 
-	private EntityType type;
+	private final ConfigData<EntityType> type;
 
-	private Horse.Color color;
-	private Horse.Style style;
+	private final ConfigData<Horse.Color> color;
+	private final ConfigData<Horse.Style> style;
 
 	private ItemStack armor;
 
@@ -64,8 +63,8 @@ public class SteedSpell extends InstantSpell {
 
 		mounted = new HashMap<>();
 
-		gravity = getConfigBoolean("gravity", true);
-		hasChest = getConfigBoolean("has-chest", false);
+		gravity = getConfigDataBoolean("gravity", true);
+		hasChest = getConfigDataBoolean("has-chest", false);
 
 		jumpStrength = getConfigDataDouble("jump-strength", 1);
 
@@ -73,32 +72,16 @@ public class SteedSpell extends InstantSpell {
 		spellOnSpawnName = getConfigString("spell-on-spawn", null);
 		strAlreadyMounted = getConfigString("str-already-mounted", "You are already mounted!");
 
-		type = MobUtil.getEntityType(getConfigString("type", "horse"));
+		type = getConfigDataEntityType("type", EntityType.HORSE);
 
-		if (type == EntityType.HORSE) {
-			String c = getConfigString("color", "");
-			String s = getConfigString("style", "");
-			String a = getConfigString("armor", "");
-			if (!c.isEmpty()) {
-				for (Horse.Color h : Horse.Color.values()) {
-					if (!h.name().equalsIgnoreCase(c)) continue;
-					color = h;
-					break;
-				}
-				if (color == null) DebugHandler.debugBadEnumValue(Horse.Color.class, c);
-			}
-			if (!s.isEmpty()) {
-				for (Horse.Style h : Horse.Style.values()) {
-					if (!h.name().equalsIgnoreCase(s)) continue;
-					style = h;
-					break;
-				}
-				if (style == null) DebugHandler.debugBadEnumValue(Horse.Style.class, s);
-			}
-			if (!a.isEmpty()) {
-				MagicItem magicItem = MagicItems.getMagicItemFromString(a);
-				if (magicItem != null) armor = magicItem.getItemStack();
-			}
+		color = getConfigDataEnum("color", Horse.Color.class, null);
+		style = getConfigDataEnum("style", Horse.Style.class, null);
+
+		String armor = getConfigString("armor", null);
+		if (armor != null) {
+			MagicItem magicItem = MagicItems.getMagicItemFromString(armor);
+			if (magicItem != null) this.armor = magicItem.getItemStack();
+			else MagicSpells.error("Invalid magic item '" + armor + "' in SteedSpell '" + internalName + "'.");
 		}
 	}
 
@@ -110,7 +93,7 @@ public class SteedSpell extends InstantSpell {
 			spellOnSpawn = new Subspell(spellOnSpawnName);
 
 			if (!spellOnSpawn.process()) {
-				MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid spell-on-spawn '" + spellOnSpawnName + "' defined!");
+				MagicSpells.error("SteedSpell '" + internalName + "' has an invalid spell-on-spawn '" + spellOnSpawnName + "' defined!");
 				spellOnSpawn = null;
 			}
 
@@ -130,51 +113,56 @@ public class SteedSpell extends InstantSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			if (caster.getVehicle() != null) {
-				sendMessage(strAlreadyMounted, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			Class<? extends Entity> entityClass = type == null ? null : type.getEntityClass();
-			if (entityClass == null) {
-				sendMessage(strInvalidType, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			Entity entity = caster.getWorld().spawn(caster.getLocation(), entityClass, e -> {
-				e.setGravity(gravity);
-
-				if (e instanceof AbstractHorse abstractHorse) {
-					abstractHorse.setAdult();
-					abstractHorse.setTamed(true);
-					if (caster instanceof AnimalTamer tamer) abstractHorse.setOwner(tamer);
-					abstractHorse.setJumpStrength(jumpStrength.get(caster, null, power, args));
-					abstractHorse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
-
-					if (abstractHorse instanceof Horse horse) {
-						if (color != null) horse.setColor(color);
-						else horse.setColor(Horse.Color.values()[random.nextInt(Horse.Color.values().length)]);
-						if (style != null) horse.setStyle(style);
-						else horse.setStyle(Horse.Style.values()[random.nextInt(Horse.Style.values().length)]);
-						if (armor != null) horse.getInventory().setArmor(armor);
-					} else if (abstractHorse instanceof ChestedHorse chestedHorse) {
-						chestedHorse.setCarryingChest(hasChest);
-					}
-				}
-			});
-			entity.addPassenger(caster);
-
-			if (entity instanceof LivingEntity le) spellOnSpawn.subcast(caster, le, power, args);
-			else spellOnSpawn.subcast(caster, entity.getLocation(), power, args);
-
-			playSpellEffects(EffectPosition.CASTER, caster, power, args);
-			mounted.put(caster.getUniqueId(), entity.getEntityId());
+	public CastResult cast(SpellData data) {
+		if (data.caster().getVehicle() != null) {
+			sendMessage(strAlreadyMounted, data.caster(), data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		Class<? extends Entity> entityClass = type.get(data).getEntityClass();
+		if (entityClass == null) {
+			sendMessage(strInvalidType, data.caster(), data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		Entity entity = data.caster().getWorld().spawn(data.caster().getLocation(), entityClass, e -> {
+			e.setGravity(gravity.get(data));
+
+			if (e instanceof AbstractHorse abstractHorse) {
+				abstractHorse.setAdult();
+				abstractHorse.setTamed(true);
+				if (data.caster() instanceof AnimalTamer tamer) abstractHorse.setOwner(tamer);
+				abstractHorse.setJumpStrength(jumpStrength.get(data));
+				abstractHorse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
+
+				if (abstractHorse instanceof Horse horse) {
+					Horse.Color color = this.color.get(data);
+					if (color != null) horse.setColor(color);
+					else horse.setColor(Horse.Color.values()[random.nextInt(Horse.Color.values().length)]);
+
+					Horse.Style style = this.style.get(data);
+					if (style != null) horse.setStyle(style);
+					else horse.setStyle(Horse.Style.values()[random.nextInt(Horse.Style.values().length)]);
+
+					if (armor != null) horse.getInventory().setArmor(armor);
+				} else if (abstractHorse instanceof ChestedHorse chestedHorse) {
+					chestedHorse.setCarryingChest(hasChest.get(data));
+				}
+			}
+		});
+		entity.addPassenger(data.caster());
+
+		if (spellOnSpawn != null) {
+			if (entity instanceof LivingEntity le) spellOnSpawn.subcast(data.target(le));
+			else spellOnSpawn.subcast(data.location(entity.getLocation()));
+		}
+
+		mounted.put(data.caster().getUniqueId(), entity.getEntityId());
+		playSpellEffects(data.caster(), entity, entity instanceof LivingEntity le ? data.target(le) : data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
-	
+
 	@EventHandler
 	private void onDamage(EntityDamageEvent event) {
 		if (mounted.containsValue(event.getEntity().getEntityId())) event.setCancelled(true);
@@ -188,7 +176,7 @@ public class SteedSpell extends InstantSpell {
 		if (!mounted.containsKey(pl.getUniqueId())) return;
 		event.setCancelled(true);
 	}
-	
+
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	private void onDismount(EntityDismountEvent event) {
 		if (!(event.getEntity() instanceof Player player)) return;
@@ -197,7 +185,7 @@ public class SteedSpell extends InstantSpell {
 		event.getDismounted().remove();
 		playSpellEffects(EffectPosition.DISABLED, player, new SpellData(player));
 	}
-	
+
 	@EventHandler
 	private void onDeath(PlayerDeathEvent event) {
 		Player player = event.getEntity();
@@ -208,7 +196,7 @@ public class SteedSpell extends InstantSpell {
 		vehicle.eject();
 		vehicle.remove();
 	}
-	
+
 	@EventHandler
 	private void onQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
@@ -224,52 +212,12 @@ public class SteedSpell extends InstantSpell {
 		return mounted;
 	}
 
-	public boolean hasGravity() {
-		return gravity;
-	}
-
-	public void setGravity(boolean gravity) {
-		this.gravity = gravity;
-	}
-
-	public boolean hasChest() {
-		return hasChest;
-	}
-
-	public void setHasChest(boolean hasChest) {
-		this.hasChest = hasChest;
-	}
-
 	public String getStrAlreadyMounted() {
 		return strAlreadyMounted;
 	}
 
 	public void setStrAlreadyMounted(String strAlreadyMounted) {
 		this.strAlreadyMounted = strAlreadyMounted;
-	}
-
-	public EntityType getType() {
-		return type;
-	}
-
-	public void setType(EntityType type) {
-		this.type = type;
-	}
-
-	public Horse.Color getHorseColor() {
-		return color;
-	}
-
-	public void setHorseColor(Horse.Color color) {
-		this.color = color;
-	}
-
-	public Horse.Style getHorseStyle() {
-		return style;
-	}
-
-	public void setHorseStyle(Horse.Style style) {
-		this.style = style;
 	}
 
 	public ItemStack getArmor() {

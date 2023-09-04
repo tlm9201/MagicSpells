@@ -5,33 +5,28 @@ import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public final class TargetedMultiSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell, TargetedEntityFromLocationSpell {
 
 	private static final Pattern DELAY_PATTERN = Pattern.compile("DELAY [0-9]+");
 
-	private List<Action> actions;
 	private List<String> spellList;
+	private final List<Action> actions;
 
-	private ConfigData<Float> yOffset;
+	private final ConfigData<Float> yOffset;
 
-	private boolean pointBlank;
-	private boolean stopOnFail;
-	private boolean passTargeting;
-	private boolean requireEntityTarget;
-	private boolean castRandomSpellInstead;
+	private final ConfigData<Boolean> pointBlank;
+	private final ConfigData<Boolean> stopOnFail;
+	private final ConfigData<Boolean> passTargeting;
+	private final ConfigData<Boolean> requireEntityTarget;
+	private final ConfigData<Boolean> castRandomSpellInstead;
 
 	public TargetedMultiSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -41,11 +36,11 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 
 		yOffset = getConfigDataFloat("y-offset", 0F);
 
-		pointBlank = getConfigBoolean("point-blank", false);
-		stopOnFail = getConfigBoolean("stop-on-fail", true);
-		passTargeting = getConfigBoolean("pass-targeting", false);
-		requireEntityTarget = getConfigBoolean("require-entity-target", false);
-		castRandomSpellInstead = getConfigBoolean("cast-random-spell-instead", false);
+		pointBlank = getConfigDataBoolean("point-blank", false);
+		stopOnFail = getConfigDataBoolean("stop-on-fail", true);
+		passTargeting = getConfigDataBoolean("pass-targeting", false);
+		requireEntityTarget = getConfigDataBoolean("require-entity-target", false);
+		castRandomSpellInstead = getConfigDataBoolean("cast-random-spell-instead", false);
 	}
 
 	@Override
@@ -70,94 +65,48 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location locTarget = null;
-			LivingEntity entTarget = null;
-			if (requireEntityTarget) {
-				TargetInfo<LivingEntity> info = getTargetedEntity(caster, power, args);
-				if (info.noTarget()) return noTarget(caster, args, info);
+	public CastResult cast(SpellData data) {
+		if (requireEntityTarget.get(data)) {
+			TargetInfo<LivingEntity> info = getTargetedEntity(data);
+			if (info.noTarget()) return noTarget(info);
 
-				entTarget = info.target();
-				power = info.power();
-			} else if (pointBlank) {
-				locTarget = caster.getLocation();
-			} else {
-				Block b;
-				try {
-					b = getTargetedBlock(caster, power, args);
-					if (b != null && !BlockUtils.isAir(b.getType())) {
-						locTarget = b.getLocation();
-						locTarget.add(0.5, 0, 0.5);
-					}
-				} catch (IllegalStateException e) {
-					DebugHandler.debugIllegalState(e);
-				}
-			}
-			if (locTarget == null && entTarget == null) return noTarget(caster, args);
-			if (locTarget != null) {
-				locTarget.setY(locTarget.getY() + yOffset.get(caster, null, power, args));
-				locTarget.setDirection(caster.getLocation().getDirection());
-			}
-
-			boolean somethingWasDone = runSpells(caster, null, entTarget, locTarget, power, args);
-			if (!somethingWasDone) return noTarget(caster, args);
-
-			if (entTarget != null) {
-				sendMessages(caster, entTarget, args);
-				return PostCastAction.NO_MESSAGES;
-			}
+			return runSpells(info.spellData());
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		if (pointBlank.get(data)) {
+			SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
+			if (!targetEvent.callEvent()) return noTarget(targetEvent);
+
+			return runSpells(targetEvent.getSpellData());
+		}
+
+		TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 0, 0.5, false);
+		return runSpells(info.spellData());
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		return runSpells(caster, null, null, target.clone().add(0, yOffset.get(caster, null, power, args), 0), power, null);
+	public CastResult castAtLocation(SpellData data) {
+		return runSpells(data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return runSpells(caster, null, null, target.clone().add(0, yOffset.get(caster, null, power, null), 0), power, null);
+	public CastResult castAtEntity(SpellData data) {
+		return runSpells(data);
 	}
 
 	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return runSpells(null, null, null, target.clone().add(0, yOffset.get(null, null, power, args), 0), power, null);
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		return runSpells(data);
 	}
 
-	@Override
-	public boolean castAtLocation(Location location, float power) {
-		return runSpells(null, null, null, location.clone().add(0, yOffset.get(null, null, power, null), 0), power, null);
-	}
+	private CastResult runSpells(SpellData data) {
+		if (data.hasLocation() && !data.hasTarget()) data = data.location(data.location().add(0, yOffset.get(data), 0));
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		return runSpells(caster, null, target, null, power, args);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return runSpells(caster, null, target, null, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		return runSpells(null, null, target, null, power, args);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return runSpells(null, null, target, null, power, null);
-	}
-
-	private boolean runSpells(LivingEntity caster, Location center, LivingEntity targetEnt, Location targetLoc, float power, String[] args) {
-		if (targetEnt != null && (caster == null ? !validTargetList.canTarget(targetEnt) : !validTargetList.canTarget(caster, targetEnt)))
-			return false;
+		boolean stopOnFail = this.stopOnFail.get(data);
+		boolean passTargeting = this.passTargeting.get(data);
 
 		boolean somethingWasDone = false;
-		if (!castRandomSpellInstead) {
+		if (!castRandomSpellInstead.get(data)) {
 			int delay = 0;
 			Subspell spell;
 			List<DelayedSpell> delayedSpells = new ArrayList<>();
@@ -170,13 +119,13 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 				if (action.isSpell()) {
 					spell = action.getSpell();
 					if (delay == 0) {
-						boolean ok = castTargetedSpells(spell, caster, center, targetEnt, targetLoc, power, args);
+						boolean ok = spell.subcast(data, passTargeting).action() != PostCastAction.ALREADY_HANDLED;
 						if (ok) somethingWasDone = true;
 						else if (stopOnFail) break;
 						continue;
 					}
 
-					DelayedSpell ds = new DelayedSpell(spell, caster, center, targetEnt, targetLoc, power, args, delayedSpells);
+					DelayedSpell ds = new DelayedSpell(spell, delayedSpells, data, stopOnFail, passTargeting);
 					delayedSpells.add(ds);
 					MagicSpells.scheduleDelayedTask(ds, delay);
 					somethingWasDone = true;
@@ -184,45 +133,11 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 			}
 		} else {
 			Action action = actions.get(random.nextInt(actions.size()));
-			if (action.isSpell()) somethingWasDone = castTargetedSpells(action.getSpell(), caster, center, targetEnt, targetLoc, power, args);
+			if (action.isSpell()) somethingWasDone = action.getSpell().subcast(data).action() != PostCastAction.ALREADY_HANDLED;
 		}
-		if (somethingWasDone) {
-			if (caster != null) {
-				if (targetEnt != null) playSpellEffects(caster, targetEnt, power, args);
-				else if (targetLoc != null) playSpellEffects(caster, targetLoc, power, args);
-			} else {
-				if (targetEnt != null) playSpellEffects(EffectPosition.TARGET, targetEnt, power, args);
-				else if (targetLoc != null) playSpellEffects(EffectPosition.TARGET, targetLoc, power, args);
-			}
-		}
-		return somethingWasDone;
-	}
 
-	private boolean castTargetedSpells(Subspell spell, LivingEntity caster, Location center, LivingEntity targetEnt, Location targetLoc, float power, String[] args) {
-		if (targetEnt != null && center != null) return spell.subcast(caster, center, targetEnt, power, args, passTargeting);
-		if (targetEnt != null) return spell.subcast(caster, targetEnt, power, args, passTargeting);
-		if (targetLoc != null) return spell.subcast(caster, targetLoc, power, args);
-		return spell.subcast(caster, power, args);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		return runSpells(caster, from, target, null, power, args);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		return runSpells(null, from, target, null, power, args);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return runSpells(caster, from, target, null, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		return runSpells(null, from, target, null, power, null);
+		if (somethingWasDone) playSpellEffects(data);
+		return somethingWasDone ? new CastResult(PostCastAction.HANDLE_NORMALLY, data) : noTarget(data);
 	}
 
 	private static class Action {
@@ -258,55 +173,37 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 
 	}
 
-	private class DelayedSpell implements Runnable {
+	private static class DelayedSpell implements Runnable {
 
 		private final Subspell spell;
-		private final LivingEntity caster;
-		private final Location center;
-		private final LivingEntity targetEnt;
-		private final Location targetLoc;
-		private final String[] args;
-		private final float power;
+		private final SpellData data;
+		private final boolean stopOnFail;
+		private final boolean passTargeting;
 
 		private List<DelayedSpell> delayedSpells;
 		private boolean cancelled;
 
-		private DelayedSpell(Subspell spell, LivingEntity caster, Location center, LivingEntity targetEnt, Location targetLoc, float power, String[] args, List<DelayedSpell> delayedSpells) {
-			this.spell = spell;
-			this.caster = caster;
-			this.center = center;
-			this.targetEnt = targetEnt;
-			this.targetLoc = targetLoc;
-			this.args = args;
-			this.power = power;
+		private DelayedSpell(Subspell spell, List<DelayedSpell> delayedSpells, SpellData data, boolean stopOnFail, boolean passTargeting) {
 			this.delayedSpells = delayedSpells;
+			this.passTargeting = passTargeting;
+			this.stopOnFail = stopOnFail;
+			this.spell = spell;
+			this.data = data;
 
 			cancelled = false;
 		}
 
-		public void cancel() {
-			cancelled = true;
-			delayedSpells = null;
-		}
-
 		public void cancelAll() {
-			for (DelayedSpell ds : delayedSpells) {
-				if (ds == this) continue;
-				ds.cancel();
-			}
+			for (DelayedSpell ds : delayedSpells) ds.cancelled = true;
 			delayedSpells.clear();
-			cancel();
 		}
 
 		@Override
 		public void run() {
-			if (cancelled) {
-				delayedSpells = null;
-				return;
-			}
+			if (cancelled) return;
 
-			if (caster == null || caster.isValid()) {
-				boolean ok = castTargetedSpells(spell, caster, center, targetEnt, targetLoc, power, args);
+			if (!data.hasCaster() || data.caster().isValid()) {
+				boolean ok = spell.subcast(data, passTargeting).action() != PostCastAction.ALREADY_HANDLED;
 				delayedSpells.remove(this);
 				if (!ok && stopOnFail) cancelAll();
 			} else cancelAll();

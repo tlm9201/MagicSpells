@@ -11,7 +11,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.EntityData;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class EntityEffect extends SpellEffect {
 
@@ -21,11 +23,11 @@ public class EntityEffect extends SpellEffect {
 
 	private EntityData entityData;
 
-	private int duration;
+	private ConfigData<Integer> duration;
 
-	private boolean silent;
-	private boolean gravity;
-	private boolean enableAI;
+	private ConfigData<Boolean> silent;
+	private ConfigData<Boolean> gravity;
+	private ConfigData<Boolean> enableAI;
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
@@ -34,21 +36,21 @@ public class EntityEffect extends SpellEffect {
 
 		entityData = new EntityData(section);
 
-		duration = section.getInt("duration", 0);
+		duration = ConfigDataUtil.getInteger(section, "duration", 0);
 
-		silent = section.getBoolean("silent", false);
-		gravity = section.getBoolean("gravity", false);
-		enableAI = section.getBoolean("ai", true);
+		silent = ConfigDataUtil.getBoolean(section, "silent", false);
+		gravity = ConfigDataUtil.getBoolean(section, "gravity", false);
+		enableAI = ConfigDataUtil.getBoolean(section, "ai", true);
 	}
 
 	@Override
 	protected Entity playEntityEffectLocation(Location location, SpellData data) {
 		return entityData.spawn(location, data, entity -> {
 			entity.addScoreboardTag(ENTITY_TAG);
-			entity.setGravity(gravity);
-			entity.setSilent(silent);
+			entity.setGravity(gravity.get(data));
+			entity.setSilent(silent.get(data));
 
-			if (entity instanceof LivingEntity livingEntity) livingEntity.setAI(enableAI);
+			if (entity instanceof LivingEntity livingEntity) livingEntity.setAI(enableAI.get(data));
 		});
 	}
 
@@ -57,6 +59,7 @@ public class EntityEffect extends SpellEffect {
 		Entity entity = playEntityEffectLocation(location, data);
 		entities.add(entity);
 
+		int duration = this.duration.get(data);
 		if (duration > 0) MagicSpells.scheduleDelayedTask(() -> {
 			entities.remove(entity);
 			entity.remove();

@@ -3,39 +3,54 @@ package com.nisovin.magicspells.spells.buff;
 import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
+import java.util.function.Supplier;
 
-import com.nisovin.magicspells.util.CastData;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellFilter;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 
 public class DamageEmpowerSpell extends BuffSpell {
 
-	private final Map<UUID, CastData> entities;
+	private final Map<UUID, Supplier<Float>> entities;
 
 	private SpellFilter filter;
 
-	private ConfigData<Float> damageMultiplier;
+	private final ConfigData<Boolean> constantDamageMultiplier;
+
+	private final ConfigData<Float> damageMultiplier;
 
 	public DamageEmpowerSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		damageMultiplier = getConfigDataFloat("damage-multiplier", 1.5F);
+		constantDamageMultiplier = getConfigDataBoolean("constant-damage-multiplier", true);
 		filter = getConfigSpellFilter();
 
 		entities = new HashMap<>();
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new CastData(power, args));
+	public boolean castBuff(SpellData data) {
+		Supplier<Float> supplier;
+		if (constantDamageMultiplier.get(data)) {
+			float damageMultiplier = this.damageMultiplier.get(data);
+			supplier = () -> damageMultiplier;
+		} else supplier = () -> damageMultiplier.get(data);
+
+		entities.put(data.target().getUniqueId(), supplier);
+
 		return true;
+	}
+
+	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		return castBuff(data);
 	}
 
 	@Override
@@ -61,12 +76,11 @@ public class DamageEmpowerSpell extends BuffSpell {
 
 		addUseAndChargeCost(caster);
 
-		CastData data = entities.get(caster.getUniqueId());
-		float damageMultiplier = this.damageMultiplier.get(caster, event.getTarget(), data.power(), data.args());
+		float damageMultiplier = entities.get(caster.getUniqueId()).get();
 		event.applyDamageModifier(damageMultiplier);
 	}
 
-	public Map<UUID, CastData> getEntities() {
+	public Map<UUID, Supplier<Float>> getEntities() {
 		return entities;
 	}
 

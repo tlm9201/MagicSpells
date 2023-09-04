@@ -35,6 +35,8 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 	private final float orbitZAxis;
 	private final float distancePerTick;
 
+	private final boolean counterClockwise;
+
 	private final Effect effectlibEffect;
 
 	private Location loc;
@@ -54,6 +56,8 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 		orbitYAxis = effect.getOrbitYAxis().get(data);
 		orbitZAxis = effect.getOrbitZAxis().get(data);
 		distancePerTick = 6.28f * effect.getEffectInterval().get(data) / effect.getSecondsPerRevolution().get(data) / 20f;
+
+		counterClockwise = effect.isCounterClockwise().get(data);
 
 		float horizRadius = effect.getHorizExpandRadius().get(data);
 		int horizDelay = effect.getHorizExpandDelay().get(data);
@@ -93,7 +97,7 @@ public class OrbitEffectlibTracker extends AsyncEffectTracker implements Runnabl
 
 	private Location getLocation() {
 		Vector perp;
-		if (effect.isCounterClockwise()) perp = new Vector(currentPosition.getZ(), 0, -currentPosition.getX());
+		if (counterClockwise) perp = new Vector(currentPosition.getZ(), 0, -currentPosition.getX());
 		else perp = new Vector(-currentPosition.getZ(), 0, currentPosition.getX());
 		currentPosition.add(perp.multiply(distancePerTick)).normalize();
 		Vector pos = VectorUtils.rotateVector(currentPosition.clone(), xAxis, yAxis, zAxis);

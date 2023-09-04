@@ -188,6 +188,9 @@ public class EntityData {
 		sheared = addBoolean(transformers, config, "sheared", false, Sheep.class, Sheep::setSheared);
 		color = addOptEnum(transformers, config, "color", Sheep.class, DyeColor.class, Sheep::setColor);
 
+		// Shulker
+		addOptEnum(transformers, config, "color", Shulker.class, DyeColor.class, Shulker::setColor);
+
 		// Slime
 		addInteger(transformers, config, "size", 0, Slime.class, Slime::setSize);
 
@@ -212,28 +215,28 @@ public class EntityData {
 			ConfigData<Quaternionf> rightRotation = getQuaternion(config, "transformation.right-rotation");
 			ConfigData<Vector3f> translation = getVector(config, "transformation.translation");
 			ConfigData<Vector3f> scale = getVector(config, "transformation.scale");
-			ConfigData<Transformation> transformation = (caster, target, power, args) -> null;
+			ConfigData<Transformation> transformation = data -> null;
 			if (checkNull(leftRotation) && checkNull(rightRotation) && checkNull(translation) && checkNull(scale)) {
 				if (leftRotation.isConstant() && rightRotation.isConstant() && translation.isConstant() && scale.isConstant()) {
-					Quaternionf lr = leftRotation.get(null);
-					Quaternionf rr = rightRotation.get(null);
-					Vector3f t = translation.get(null);
-					Vector3f s = scale.get(null);
+					Quaternionf lr = leftRotation.get();
+					Quaternionf rr = rightRotation.get();
+					Vector3f t = translation.get();
+					Vector3f s = scale.get();
 
 					Transformation transform = new Transformation(t, lr, s, rr);
-					transformation = (caster, target, power, args) -> transform;
+					transformation = data -> transform;
 				} else {
-					transformation = (caster, target, power, args) -> {
-						Quaternionf lr = leftRotation.get(caster, target, power, args);
+					transformation = data -> {
+						Quaternionf lr = leftRotation.get(data);
 						if (lr == null) return null;
 
-						Quaternionf rr = rightRotation.get(caster, target, power, args);
+						Quaternionf rr = rightRotation.get(data);
 						if (rr == null) return null;
 
-						Vector3f t = translation.get(caster, target, power, args);
+						Vector3f t = translation.get(data);
 						if (t == null) return null;
 
-						Vector3f s = scale.get(caster, target, power, args);
+						Vector3f s = scale.get(data);
 						if (s == null) return null;
 
 						return new Transformation(t, lr, s, rr);
@@ -254,22 +257,22 @@ public class EntityData {
 
 			ConfigData<Integer> blockLight = ConfigDataUtil.getInteger(config, "brightness.block");
 			ConfigData<Integer> skyLight = ConfigDataUtil.getInteger(config, "brightness.sky");
-			ConfigData<Display.Brightness> brightness = (caster, target, power, args) -> null;
+			ConfigData<Display.Brightness> brightness = data -> null;
 			if (checkNull(blockLight) && checkNull(skyLight)) {
 				if (blockLight.isConstant() && skyLight.isConstant()) {
-					int bl = blockLight.get(null);
-					int sl = skyLight.get(null);
+					int bl = blockLight.get();
+					int sl = skyLight.get();
 
 					if (0 <= bl && bl <= 15 && 0 <= sl && sl <= 15) {
 						Display.Brightness b = new Display.Brightness(bl, sl);
-						brightness = (caster, target, power, args) -> b;
+						brightness = data -> b;
 					}
 				} else {
-					brightness = (caster, target, power, args) -> {
-						Integer bl = blockLight.get(caster, target, power, args);
+					brightness = data -> {
+						Integer bl = blockLight.get(data);
 						if (bl == null || bl < 0 || bl > 15) return null;
 
-						Integer sl = skyLight.get(caster, target, power, args);
+						Integer sl = skyLight.get(data);
 						if (sl == null || sl < 0 || sl > 15) return null;
 
 						return new Display.Brightness(bl, sl);
@@ -285,7 +288,7 @@ public class EntityData {
 			MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString("item"));
 			if (magicItem != null) {
 				ItemStack item = magicItem.getItemStack();
-				transformers.put(ItemDisplay.class, new Transformer<>((caster, target, power, args) -> item, ItemDisplay::setItemStack));
+				transformers.put(ItemDisplay.class, new Transformer<>(data -> item, ItemDisplay::setItemStack));
 			}
 
 			addOptEnum(transformers, config, "item-display-transform", ItemDisplay.class, ItemDisplay.ItemDisplayTransform.class, ItemDisplay::setItemDisplayTransform);
@@ -463,22 +466,22 @@ public class EntityData {
 	public ConfigData<Vector3f> getVector(ConfigurationSection config, String path) {
 		if (config.isString(path)) {
 			String value = config.getString(path);
-			if (value == null) return (caster, target, power, args) -> null;
+			if (value == null) return data -> null;
 
-			String[] data = value.split(",");
-			if (data.length != 3) return (caster, target, power, args) -> null;
+			String[] vec = value.split(",");
+			if (vec.length != 3) return data -> null;
 
 			try {
-				Vector3f vector = new Vector3f(Float.parseFloat(data[0]), Float.parseFloat(data[1]), Float.parseFloat(data[2]));
-				return (caster, target, power, args) -> vector;
+				Vector3f vector = new Vector3f(Float.parseFloat(vec[0]), Float.parseFloat(vec[1]), Float.parseFloat(vec[2]));
+				return data -> vector;
 			} catch (NumberFormatException e) {
-				return (caster, target, power, args) -> null;
+				return data -> null;
 			}
 		}
 
 		if (config.isConfigurationSection(path)) {
 			ConfigurationSection section = config.getConfigurationSection(path);
-			if (section == null) return (caster, target, power, args) -> null;
+			if (section == null) return data -> null;
 
 			ConfigData<Float> x = ConfigDataUtil.getFloat(section, "x");
 			ConfigData<Float> y = ConfigDataUtil.getFloat(section, "y");
@@ -486,25 +489,25 @@ public class EntityData {
 
 			if (checkNull(x) && checkNull(y) && checkNull(z)) {
 				if (x.isConstant() && y.isConstant() && z.isConstant()) {
-					float vx = x.get(null);
-					float vy = y.get(null);
-					float vz = z.get(null);
+					float vx = x.get();
+					float vy = y.get();
+					float vz = z.get();
 
 					Vector3f vector = new Vector3f(vx, vy, vz);
-					return (caster, target, power, args) -> vector;
+					return data -> vector;
 				}
 
 				return new ConfigData<>() {
 
 					@Override
-					public Vector3f get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-						Float vx = x.get(caster, target, power, args);
+					public Vector3f get(@NotNull SpellData data) {
+						Float vx = x.get(data);
 						if (vx == null) return null;
 
-						Float vy = y.get(caster, target, power, args);
+						Float vy = y.get(data);
 						if (vy == null) return null;
 
-						Float vz = z.get(caster, target, power, args);
+						Float vz = z.get(data);
 						if (vz == null) return null;
 
 						return new Vector3f(vx, vy, vz);
@@ -519,22 +522,22 @@ public class EntityData {
 			}
 		}
 
-		return (caster, target, power, args) -> null;
+		return data -> null;
 	}
 
 	private ConfigData<Quaternionf> getQuaternion(ConfigurationSection config, String path) {
 		if (config.isString(path)) {
 			String value = config.getString(path);
-			if (value == null) return (caster, target, power, args) -> null;
+			if (value == null) return data -> null;
 
-			String[] data = value.split(",");
-			if (data.length != 4) return (caster, target, power, args) -> null;
+			String[] quat = value.split(",");
+			if (quat.length != 4) return data -> null;
 
 			try {
-				Quaternionf rot = new Quaternionf(Float.parseFloat(data[0]), Float.parseFloat(data[1]), Float.parseFloat(data[2]), Float.parseFloat(data[3]));
-				return (caster, target, power, args) -> rot;
+				Quaternionf rot = new Quaternionf(Float.parseFloat(quat[0]), Float.parseFloat(quat[1]), Float.parseFloat(quat[2]), Float.parseFloat(quat[3]));
+				return data -> rot;
 			} catch (NumberFormatException e) {
-				return (caster, target, power, args) -> null;
+				return data -> null;
 			}
 		}
 
@@ -542,23 +545,23 @@ public class EntityData {
 		ConfigData<Vector3f> axis = getVector(config, path + ".axis");
 		if (checkNull(angle) && checkNull(axis)) {
 			if (angle.isConstant() && axis.isConstant()) {
-				Vector3f ax = axis.get(null);
-				float ang = angle.get(null);
+				Vector3f ax = axis.get();
+				float ang = angle.get();
 
 				Quaternionf rot = new Quaternionf();
 				rot.setAngleAxis(ang, ax.x, ax.y, ax.z);
 
-				return (caster, target, power, args) -> rot;
+				return data -> rot;
 			}
 
 			return new ConfigData<>() {
 
 				@Override
-				public Quaternionf get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					Float ang = angle.get(caster, target, power, args);
+				public Quaternionf get(@NotNull SpellData data) {
+					Float ang = angle.get(data);
 					if (ang == null) return null;
 
-					Vector3f ax = axis.get(caster, target, power, args);
+					Vector3f ax = axis.get(data);
 					if (ax == null) return null;
 
 					return new Quaternionf().setAngleAxis(ang, ax.x, ax.y, ax.z);
@@ -578,29 +581,29 @@ public class EntityData {
 		ConfigData<Float> w = ConfigDataUtil.getFloat(config, path + ".w");
 		if (checkNull(x) && checkNull(y) && checkNull(z) && checkNull(w)) {
 			if (x.isConstant() && y.isConstant() && z.isConstant() && w.isConstant()) {
-				float qx = x.get(null);
-				float qy = y.get(null);
-				float qz = z.get(null);
-				float qw = w.get(null);
+				float qx = x.get();
+				float qy = y.get();
+				float qz = z.get();
+				float qw = w.get();
 
 				Quaternionf rot = new Quaternionf(qx, qy, qz, qw);
-				return (caster, target, power, args) -> rot;
+				return data -> rot;
 			}
 
 			return new ConfigData<>() {
 
 				@Override
-				public Quaternionf get(LivingEntity caster, LivingEntity target, float power, String[] args) {
-					Float qx = x.get(caster, target, power, args);
+				public Quaternionf get(@NotNull SpellData data) {
+					Float qx = x.get(data);
 					if (qx == null) return null;
 
-					Float qy = y.get(caster, target, power, args);
+					Float qy = y.get(data);
 					if (qy == null) return null;
 
-					Float qz = z.get(caster, target, power, args);
+					Float qz = z.get(data);
 					if (qz == null) return null;
 
-					Float qw = w.get(caster, target, power, args);
+					Float qw = w.get(data);
 					if (qw == null) return null;
 
 					return new Quaternionf(qx, qy, qz, qw);
@@ -614,11 +617,11 @@ public class EntityData {
 			};
 		}
 
-		return (caster, target, power, args) -> null;
+		return data -> null;
 	}
 
 	private boolean checkNull(ConfigData<?> data) {
-		return !data.isConstant() || data.get(null) != null;
+		return !data.isConstant() || data.get() != null;
 	}
 
 	public Multimap<EntityType, Transformer<?, ?>> getOptions() {

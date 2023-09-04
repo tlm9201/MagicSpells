@@ -9,7 +9,6 @@ import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.Particle;
-import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -21,104 +20,63 @@ import org.bukkit.potion.PotionEffectType;
 
 import net.kyori.adventure.text.Component;
 
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.ColorUtil;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class ParticleCloudSpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntitySpell {
 
-	private Vector relativeOffset;
+	private ConfigData<Vector> relativeOffset;
 
-	private Component customName;
+	private final ConfigData<Component> customName;
 
-	private Particle particle;
-	private String particleName;
+	protected ConfigData<ItemStack> item;
+	protected ConfigData<Particle> particle;
+	protected ConfigData<BlockData> blockData;
+	protected ConfigData<DustOptions> dustOptions;
 
-	private Material material;
-	private String materialName;
+	private final ConfigData<Integer> color;
+	private final ConfigData<Integer> waitTime;
+	private final ConfigData<Integer> ticksDuration;
+	private final ConfigData<Integer> durationOnUse;
+	private final ConfigData<Integer> reapplicationDelay;
 
-	private BlockData blockData;
-	private ItemStack itemStack;
+	private final ConfigData<Float> radius;
+	private final ConfigData<Float> radiusOnUse;
+	private final ConfigData<Float> radiusPerTick;
 
-	private float dustSize;
-	private String colorHex;
-	private Color dustColor;
-	private DustOptions dustOptions;
+	private final ConfigData<Boolean> useGravity;
+	private final ConfigData<Boolean> canTargetEntities;
+	private final ConfigData<Boolean> canTargetLocation;
 
-	private boolean none = true;
-	private boolean item = false;
-	private boolean dust = false;
-	private boolean block = false;
-
-	private ConfigData<Integer> color;
-	private ConfigData<Integer> waitTime;
-	private ConfigData<Integer> ticksDuration;
-	private ConfigData<Integer> durationOnUse;
-	private ConfigData<Integer> reapplicationDelay;
-
-	private ConfigData<Float> radius;
-	private ConfigData<Float> radiusOnUse;
-	private ConfigData<Float> radiusPerTick;
-
-	private boolean useGravity;
-	private boolean canTargetEntities;
-	private boolean canTargetLocation;
-
-	private Set<PotionEffect> potionEffects;
+	private final Set<PotionEffect> potionEffects;
 
 	public ParticleCloudSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		relativeOffset = getConfigVector("relative-offset", "0,0.5,0");
+		relativeOffset = getConfigDataVector("relative-offset", new Vector(0, 0.5, 0));
 
-		customName = Util.getMiniMessage(getConfigString("custom-name", null));
+		customName = getConfigDataComponent("custom-name", null);
 
-		particleName = getConfigString("particle-name", "EXPLOSION_NORMAL");
-		particle = Util.getParticle(particleName);
+		particle = ConfigDataUtil.getParticle(config.getMainConfig(), internalKey + "particle", Particle.EXPLOSION_NORMAL);
 
-		materialName = getConfigString("material", "");
-		material = Util.getMaterial(materialName);
+		blockData = getConfigDataBlockData("material", null);
+		dustOptions = ConfigDataUtil.getDustOptions(config.getMainConfig(), internalKey + "dust-color", internalKey + "size", new DustOptions(Color.RED, 1));
 
-		dustSize = getConfigFloat("size", 1);
-		colorHex = getConfigString("dust-color", "FF0000");
-		dustColor = ColorUtil.getColorFromHexString(colorHex);
-		if (dustColor != null) dustOptions = new DustOptions(dustColor, dustSize);
+		ConfigData<Material> material = getConfigDataMaterial("material", null);
+		if (material.isConstant()) {
+			Material mat = material.get();
 
-		if ((particle == Particle.BLOCK_CRACK || particle == Particle.BLOCK_DUST || particle == Particle.FALLING_DUST) && material != null && material.isBlock()) {
-			block = true;
-			blockData = material.createBlockData();
-			none = false;
-		} else if (particle == Particle.ITEM_CRACK && material != null && material.isItem()) {
-			item = true;
-			itemStack = new ItemStack(material);
-			none = false;
-		} else if (particle == Particle.REDSTONE && dustOptions != null) {
-			dust = true;
-			none = false;
-		}
-
-		if (particle == null) MagicSpells.error("ParticleCloudSpell '" + internalName + "' has a wrong particle-name defined! '" + particleName + "'");
-
-		if ((particle == Particle.BLOCK_CRACK || particle == Particle.BLOCK_DUST || particle == Particle.FALLING_DUST) && (material == null || !material.isBlock())) {
-			particle = null;
-			MagicSpells.error("ParticleCloudSpell '" + internalName + "' has a wrong material defined! '" + materialName + "'");
-		}
-
-		if (particle == Particle.ITEM_CRACK && (material == null || !material.isItem())) {
-			particle = null;
-			MagicSpells.error("ParticleCloudSpell '" + internalName + "' has a wrong material defined! '" + materialName + "'");
-		}
-
-		if (particle == Particle.REDSTONE && dustColor == null) {
-			particle = null;
-			MagicSpells.error("ParticleCloudSpell '" + internalName + "' has a wrong dust-color defined! '" + colorHex + "'");
+			ItemStack stack = mat != null && mat.isItem() ? new ItemStack(mat) : null;
+			item = data -> stack;
+		} else {
+			item = data -> {
+				Material mat = material.get(data);
+				return mat != null && mat.isItem() ? new ItemStack(mat) : null;
+			};
 		}
 
 		color = getConfigDataInt("color", 0xFF0000);
@@ -131,16 +89,16 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 		radiusOnUse = getConfigDataFloat("radius-on-use", 0F);
 		radiusPerTick = getConfigDataFloat("radius-per-tick", 0F);
 
-		useGravity = getConfigBoolean("use-gravity", false);
-		canTargetEntities = getConfigBoolean("can-target-entities", true);
-		canTargetLocation = getConfigBoolean("can-target-location", true);
+		useGravity = getConfigDataBoolean("use-gravity", false);
+		canTargetEntities = getConfigDataBoolean("can-target-entities", true);
+		canTargetLocation = getConfigDataBoolean("can-target-location", true);
 
 		List<String> potionEffectStrings = getConfigStringList("potion-effects", null);
 		if (potionEffectStrings == null) potionEffectStrings = new ArrayList<>();
 
 		potionEffects = new HashSet<>();
 
-		for (String effect: potionEffectStrings) {
+		for (String effect : potionEffectStrings) {
 			potionEffects.add(getPotionEffectFromString(effect));
 		}
 	}
@@ -160,122 +118,88 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			Location locToSpawn = null;
-			LivingEntity target = null;
+	public CastResult cast(SpellData data) {
+		if (canTargetEntities.get(data)) {
+			TargetInfo<LivingEntity> info = getTargetedEntity(data);
+			if (info.noTarget()) return noTarget(info);
 
-			if (canTargetEntities) {
-				TargetInfo<LivingEntity> targetInfo = getTargetedEntity(caster, power, args);
-				if (targetInfo.cancelled()) return PostCastAction.ALREADY_HANDLED;
+			Location location = info.target().getLocation();
+			location.setDirection(data.caster().getLocation().getDirection());
+			data = info.spellData().location(location);
 
-				if (!targetInfo.empty()) {
-					power = targetInfo.power();
-					target = targetInfo.target();
-					locToSpawn = target.getLocation();
-				}
-			}
-
-			if (canTargetLocation && locToSpawn == null) {
-				Block targetBlock = getTargetedBlock(caster, power, args);
-				if (targetBlock != null) locToSpawn = targetBlock.getLocation().add(0.5, 1, 0.5);
-			}
-
-			if (locToSpawn == null) return noTarget(caster, args);
-
-			locToSpawn.setDirection(caster.getLocation().getDirection());
-
-			AreaEffectCloud cloud = spawnCloud(caster, target, locToSpawn, power, args);
-			cloud.setSource(caster);
+			spawnCloud(data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		if (canTargetLocation.get(data)) {
+			TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 1, 0.5, false);
+			if (info.noTarget()) return noTarget(info);
+			data = info.spellData();
+
+			spawnCloud(data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		}
+
+		return noTarget(data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (!canTargetLocation) return false;
-		AreaEffectCloud cloud = spawnCloud(caster, null, target, power, args);
-		cloud.setSource(caster);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		spawnCloud(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
+	public CastResult castAtEntity(SpellData data) {
+		data = data.location(data.target().getLocation());
+		spawnCloud(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return castAtLocation(null, target, power, args);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(null, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!canTargetEntities || !validTargetList.canTarget(caster, target)) return false;
-		AreaEffectCloud cloud = spawnCloud(caster, target, target.getLocation(), power, args);
-		cloud.setSource(caster);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!canTargetEntities || !validTargetList.canTarget(target)) return false;
-		spawnCloud(null, target, target.getLocation(), power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	private AreaEffectCloud spawnCloud(LivingEntity caster, LivingEntity target, Location loc, float power, String[] args) {
-		Location location = loc.clone();
-		Vector startDir = loc.getDirection().normalize();
+	private void spawnCloud(SpellData data) {
+		Location location = data.location();
+		Vector startDir = location.getDirection();
+		Vector relativeOffset = this.relativeOffset.get(data);
 
 		//apply relative offset
 		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
 		location.add(horizOffset.multiply(relativeOffset.getZ()));
-		location.add(location.getDirection().clone().multiply(relativeOffset.getX()));
+		location.add(startDir.multiply(relativeOffset.getX()));
 		location.setY(location.getY() + relativeOffset.getY());
+		data = data.location(location);
 
-		AreaEffectCloud cloud = location.getWorld().spawn(location, AreaEffectCloud.class);
-		if (block) cloud.setParticle(particle, blockData);
-		else if (item) cloud.setParticle(particle, itemStack);
-		else if (dust) cloud.setParticle(particle, dustOptions);
-		else if (none) cloud.setParticle(particle);
+		SpellData finalData = data;
+		location.getWorld().spawn(location, AreaEffectCloud.class, cloud -> {
+			Particle particle = this.particle.get(finalData);
 
-		cloud.setColor(Color.fromRGB(color.get(caster, target, power, args)));
-		cloud.setRadius(radius.get(caster, target, power, args));
-		cloud.setGravity(useGravity);
-		cloud.setWaitTime(waitTime.get(caster, target, power, args));
-		cloud.setDuration(ticksDuration.get(caster, target, power, args));
-		cloud.setDurationOnUse(durationOnUse.get(caster, target, power, args));
-		cloud.setRadiusOnUse(radiusOnUse.get(caster, target, power, args));
-		cloud.setRadiusPerTick(radiusPerTick.get(caster, target, power, args));
-		cloud.setReapplicationDelay(reapplicationDelay.get(caster, target, power, args));
+			Class<?> dataType = particle.getDataType();
+			if (dataType == BlockData.class) cloud.setParticle(particle, blockData.get(finalData));
+			else if (dataType == ItemStack.class) cloud.setParticle(particle, item.get(finalData));
+			else if (dataType == DustOptions.class) cloud.setParticle(particle, dustOptions.get(finalData));
+			else cloud.setParticle(particle);
 
-		for (PotionEffect eff : potionEffects) {
-			cloud.addCustomEffect(eff, true);
-		}
+			cloud.setColor(Color.fromRGB(color.get(finalData)));
+			cloud.setRadius(radius.get(finalData));
+			cloud.setGravity(useGravity.get(finalData));
+			cloud.setWaitTime(waitTime.get(finalData));
+			cloud.setDuration(ticksDuration.get(finalData));
+			cloud.setDurationOnUse(durationOnUse.get(finalData));
+			cloud.setRadiusOnUse(radiusOnUse.get(finalData));
+			cloud.setRadiusPerTick(radiusPerTick.get(finalData));
+			cloud.setReapplicationDelay(reapplicationDelay.get(finalData));
 
-		if (customName != null) {
-			cloud.customName(customName);
-			cloud.setCustomNameVisible(true);
-		}
+			for (PotionEffect eff : potionEffects) {
+				cloud.addCustomEffect(eff, true);
+			}
 
-		return cloud;
+			if (customName != null) {
+				cloud.customName(customName.get(finalData));
+				cloud.setCustomNameVisible(true);
+			}
+		});
+
+		if (data.hasTarget()) playSpellEffects(data.caster(), data.target(), data);
+		else playSpellEffects(data.caster(), location, data);
 	}
 
 }

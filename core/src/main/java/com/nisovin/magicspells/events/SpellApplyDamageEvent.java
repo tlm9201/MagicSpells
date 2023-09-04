@@ -9,6 +9,7 @@ public class SpellApplyDamageEvent extends SpellEvent {
 
 	private final LivingEntity target;
 	private final double damage;
+	private final String spellDamageType;
 	private final DamageCause cause;
 	private final long timestamp;
 	private float modifier;
@@ -17,6 +18,7 @@ public class SpellApplyDamageEvent extends SpellEvent {
 		super(spell, caster);
 
 		this.target = target;
+		this.spellDamageType = spellDamageType;
 		this.damage = damage;
 		this.cause = cause;
 
@@ -51,6 +53,10 @@ public class SpellApplyDamageEvent extends SpellEvent {
 
 	public double getFinalDamage() {
 		return damage * modifier;
+	}
+
+	public String getSpellDamageType() {
+		return spellDamageType;
 	}
 
 }

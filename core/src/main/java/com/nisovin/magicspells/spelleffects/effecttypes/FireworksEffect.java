@@ -23,8 +23,8 @@ public class FireworksEffect extends SpellEffect implements Listener {
 	private ConfigData<Integer> type;
 	private ConfigData<Integer> flightDuration;
 
-	private boolean trail;
-	private boolean flicker;
+	private ConfigData<Boolean> trail;
+	private ConfigData<Boolean> flicker;
 
 	private int[] colors = new int[] { 0xFF0000 };
 	private int[] fadeColors = new int[] { 0xFF0000 };
@@ -34,8 +34,8 @@ public class FireworksEffect extends SpellEffect implements Listener {
 		type = ConfigDataUtil.getInteger(config, "type", 0);
 		flightDuration = ConfigDataUtil.getInteger(config, "flight", 0);
 
-		trail = config.getBoolean("trail", false);
-		flicker = config.getBoolean("flicker", false);
+		trail = ConfigDataUtil.getBoolean(config, "trail", false);
+		flicker = ConfigDataUtil.getBoolean(config, "flicker", false);
 
 		String[] c = config.getString("colors", "FF0000").replace(" ", "").split(",");
 		if (c.length > 0) {
@@ -83,8 +83,8 @@ public class FireworksEffect extends SpellEffect implements Listener {
 		}
 
 		FireworkEffect effect = FireworkEffect.builder()
-				.flicker(flicker)
-				.trail(trail)
+				.flicker(flicker.get(data))
+				.trail(trail.get(data))
 				.with(t)
 				.withColor(c1)
 				.withFade(c2)

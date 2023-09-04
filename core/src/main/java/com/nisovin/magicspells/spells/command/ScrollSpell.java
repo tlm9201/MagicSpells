@@ -11,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventPriority;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
@@ -119,50 +118,49 @@ public class ScrollSpell extends CommandSpell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			if (args == null || args.length == 0) {
-				sendMessage(strUsage, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			ItemStack inHand = player.getInventory().getItemInMainHand();
-			if (inHand.getAmount() != 1 || itemType != inHand.getType()) {
-				sendMessage(strUsage, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			Spell spell = MagicSpells.getSpellByInGameName(args[0]);
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			if (spell == null || !spellbook.hasSpell(spell)) {
-				sendMessage(strNoSpell, player, args);
-				return PostCastAction.ALREADY_HANDLED;			
-			}
-			if (requireTeachPerm && !spellbook.canTeach(spell)) {
-				sendMessage(strCantTeach, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			
-			int uses = defaultUses;
-			if (args.length > 1 && RegexUtil.matches(CAST_ARGUMENT_USE_COUNT_PATTERN, args[1])) uses = Integer.parseInt(args[1]);
-			if (uses > maxUses || (maxUses > 0 && uses <= 0)) uses = maxUses;
-			
-			if (chargeReagentsForSpellPerCharge && uses > 0) {
-				SpellReagents reagents = spell.getReagents().multiply(uses);
-				if (!hasReagents(player, reagents)) {
-					sendMessage(strMissingReagents, player, args);
-					return PostCastAction.ALREADY_HANDLED;
-				}
-				removeReagents(player, reagents);
-			}
-			
-			inHand = createScroll(spell, uses, inHand);
-			player.getInventory().setItemInMainHand(inHand);
-			
-			sendMessage(strCastSelf, player, args, "%s", spell.getName());
-			return PostCastAction.NO_MESSAGES;
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		if (!data.hasArgs()) {
+			sendMessage(strUsage, caster, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		ItemStack inHand = caster.getInventory().getItemInMainHand();
+		if (inHand.getAmount() != 1 || itemType != inHand.getType()) {
+			sendMessage(strUsage, caster, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
+		Spellbook spellbook = MagicSpells.getSpellbook(caster);
+		if (spell == null || !spellbook.hasSpell(spell)) {
+			sendMessage(strNoSpell, caster, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+		if (requireTeachPerm && !spellbook.canTeach(spell)) {
+			sendMessage(strCantTeach, caster, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		int uses = defaultUses;
+		if (data.args().length > 1 && RegexUtil.matches(CAST_ARGUMENT_USE_COUNT_PATTERN, data.args()[1])) uses = Integer.parseInt(data.args()[1]);
+		if (uses > maxUses || (maxUses > 0 && uses <= 0)) uses = maxUses;
+
+		if (chargeReagentsForSpellPerCharge && uses > 0) {
+			SpellReagents reagents = spell.getReagents().multiply(uses);
+			if (!hasReagents(caster, reagents)) {
+				sendMessage(strMissingReagents, caster, data);
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+			removeReagents(caster, reagents);
+		}
+
+		inHand = createScroll(spell, uses, inHand);
+		caster.getInventory().setItemInMainHand(inHand);
+
+		sendMessage(strCastSelf, caster, data, "%s", spell.getName());
+		return new CastResult(PostCastAction.NO_MESSAGES, data);
 	}
 
 	@Override
@@ -208,18 +206,21 @@ public class ScrollSpell extends CommandSpell {
 		if (item == null) item = new ItemStack(itemType);
 
 		ItemMeta meta = item.getItemMeta();
-		if (meta instanceof Damageable) ((Damageable) meta).setDamage(0);
+		if (meta instanceof Damageable damageable) damageable.setDamage(0);
 
-		String displayName = strScrollName.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many"));
+		String usageCount = uses >= 0 ? String.valueOf(uses) : "many";
+		String displayName = strScrollName.replace("%s", spell.getName()).replace("%u", usageCount);
 		meta.displayName(Util.getMiniMessage(displayName));
+
 		if (strScrollSubtext != null && !strScrollSubtext.isEmpty()) {
-			Component lore = Util.getMiniMessage(strScrollSubtext.replace("%s", spell.getName()).replace("%u", (uses >= 0 ? uses + "" : "many")));
+			Component lore = Util.getMiniMessage(strScrollSubtext.replace("%s", spell.getName()).replace("%u", usageCount));
 			meta.lore(Collections.singletonList(lore));
 		}
 
 		ItemUtil.addFakeEnchantment(meta);
 		item.setItemMeta(meta);
 		DataUtil.setString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
+
 		return item;
 	}
 	
@@ -257,22 +258,24 @@ public class ScrollSpell extends CommandSpell {
 		if (scrollData.length > 1 && RegexUtil.matches(SCROLL_DATA_USES_PATTERN, scrollData[1])) uses = Integer.parseInt(scrollData[1]);
 
 		if (requireScrollCastPermOnUse && !MagicSpells.getSpellbook(player).canCast(this)) {
-			sendMessage(strUseFail, player, MagicSpells.NULL_ARGS);
+			sendMessage(strUseFail, player, SpellData.NULL);
 			return;
 		}
 
 		if (ignoreCastPerm && !Perm.CAST.has(player, spell)) player.addAttachment(MagicSpells.plugin, Perm.CAST.getNode(spell), true, 1);
 		if (castForFree && !Perm.NO_REAGENTS.has(player)) player.addAttachment(MagicSpells.plugin, Perm.NO_REAGENTS.getNode(), true, 1);
 
+		SpellData data = new SpellData(player);
+
 		SpellCastState state;
 		PostCastAction action;
 		if (bypassNormalChecks) {
 			state = SpellCastState.NORMAL;
-			action = spell.castSpell(player, SpellCastState.NORMAL, 1.0F, null);
+			action = spell.cast(data).action();
 		} else {
-			SpellCastResult result = spell.cast(player);
-			state = result.state;
+			SpellCastResult result = spell.hardCast(data);
 			action = result.action;
+			state = result.state;
 		}
 
 		if (state != SpellCastState.NORMAL || action == PostCastAction.ALREADY_HANDLED) return;
@@ -290,7 +293,7 @@ public class ScrollSpell extends CommandSpell {
 			}
 		}
 
-		sendMessage(strOnUse, player, MagicSpells.NULL_ARGS, "%s", spell.getName(), "%u", uses >= 0 ? uses + "" : "many");
+		sendMessage(strOnUse, player, MagicSpells.NULL_ARGS, "%s", spell.getName(), "%u", uses >= 0 ? String.valueOf(uses) : "many");
 	}
 	
 	@EventHandler

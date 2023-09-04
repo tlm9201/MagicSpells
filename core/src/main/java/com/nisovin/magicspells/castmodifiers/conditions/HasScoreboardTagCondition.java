@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class HasScoreboardTagCondition extends Condition {
@@ -37,7 +38,7 @@ public class HasScoreboardTagCondition extends Condition {
     }
 
     private boolean checkTags(LivingEntity caster, LivingEntity target) {
-        String localTag = doReplacement ? MagicSpells.doReplacements(tag, caster, target) : tag;
+        String localTag = doReplacement ? MagicSpells.doReplacements(tag, caster, new SpellData(caster, target)) : tag;
         return target.getScoreboardTags().contains(localTag);
     }
 

@@ -4,24 +4,20 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class GripSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
-	private ConfigData<Double> yOffset;
-	private ConfigData<Double> locationOffset;
+	private final ConfigData<Double> yOffset;
+	private final ConfigData<Double> locationOffset;
 
-	private boolean checkGround;
+	private final ConfigData<Boolean> checkGround;
 
-	private Vector relativeOffset;
+	private final ConfigData<Vector> relativeOffset;
 
 	private String strCantGrip;
 
@@ -31,91 +27,52 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		yOffset = getConfigDataDouble("y-offset", 0);
 		locationOffset = getConfigDataDouble("location-offset", 0);
 
-		checkGround = getConfigBoolean("check-ground", true);
+		checkGround = getConfigDataBoolean("check-ground", true);
 
-		relativeOffset = getConfigVector("relative-offset", "1,1,0");
+		relativeOffset = getConfigDataVector("relative-offset", new Vector(1, 1, 0));
 
 		strCantGrip = getConfigString("str-cant-grip", "");
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target.noTarget()) return noTarget(caster, args, target);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			if (!grip(caster, target.target(), caster.getLocation(), power, args)) return noTarget(caster, strCantGrip, args);
-			sendMessages(caster, target.target(), args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntityFromLocation(info.spellData().location(data.caster().getLocation()));
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return grip(caster, target, caster.getLocation(), power, args);
+	public CastResult castAtEntity(SpellData data) {
+		return castAtEntityFromLocation(data.location(data.caster().getLocation()));
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		return grip(caster, target, from, power, args);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(caster, from, target, power, null);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		return grip(null, target, from, power, args);
-	}
-
-	@Override
-	public boolean castAtEntityFromLocation(Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(from, target, power, null);
-	}
-
-	private boolean grip(LivingEntity caster, LivingEntity target, Location from, float power, String[] args) {
-		Location loc = from.clone();
+	public CastResult castAtEntityFromLocation(SpellData data) {
+		Location loc = data.location();
 
 		Vector startDir = loc.clone().getDirection().normalize();
 		Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
 
-		Vector relativeOffset = this.relativeOffset.clone();
+		Vector relativeOffset = this.relativeOffset.get(data);
 
-		double yOffset = this.yOffset.get(caster, target, power, args);
+		double yOffset = this.yOffset.get(data);
 		if (yOffset != 0) relativeOffset.setY(yOffset);
 
-		double locationOffset = this.locationOffset.get(caster, target, power, args);
+		double locationOffset = this.locationOffset.get(data);
 		if (locationOffset != 0) relativeOffset.setX(locationOffset);
 
 		loc.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
 		loc.add(loc.getDirection().clone().multiply(relativeOffset.getX()));
 		loc.setY(loc.getY() + relativeOffset.getY());
+		data = data.location(loc);
 
-		if (checkGround && !BlockUtils.isPathable(loc.getBlock())) return false;
+		if (checkGround.get(data) && !BlockUtils.isPathable(loc.getBlock())) return noTarget(strCantGrip, data);
 
-		SpellData data = new SpellData(caster, target, power, args);
-		playSpellEffects(EffectPosition.TARGET, target, data);
-		playSpellEffectsTrail(from, loc, data);
+		data.target().teleportAsync(loc);
+		playSpellEffects(data);
 
-		target.teleportAsync(loc);
-		return true;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

@@ -4,167 +4,104 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class ParseSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final String operation;
-	private Pattern regexPattern;
-
-	private final String operationName;
-	private final String parseTo;
-	private final String firstVariable;
-	private final String expectedValue;
-	private final String secondVariable;
-	private final String parseToVariable;
-	private final String variableToParse;
+	private final ConfigData<String> parseTo;
+	private final ConfigData<String> operation;
+	private final ConfigData<String> firstVariable;
+	private final ConfigData<String> expectedValue;
+	private final ConfigData<String> secondVariable;
+	private final ConfigData<String> parseToVariable;
+	private final ConfigData<String> variableToParse;
 
 	public ParseSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		operationName = getConfigString("operation", "normal");
-		operation = operationName.toLowerCase();
 
-		parseTo = getConfigString("parse-to", "");
-		expectedValue = getConfigString("expected-value", "");
-		parseToVariable = getConfigString("parse-to-variable", "");
-		variableToParse = getConfigString("variable-to-parse", "");
-		firstVariable = getConfigString("first-variable", "");
-		secondVariable = getConfigString("second-variable", "");
+		operation = getConfigDataString("operation", "normal"); //.toLowerCase();
+
+		parseTo = getConfigDataString("parse-to", "");
+		expectedValue = getConfigDataString("expected-value", "");
+		parseToVariable = getConfigDataString("parse-to-variable", "");
+		variableToParse = getConfigDataString("variable-to-parse", "");
+		firstVariable = getConfigDataString("first-variable", "");
+		secondVariable = getConfigDataString("second-variable", "");
 	}
 
 	@Override
-	public void initializeVariables() {
-		super.initializeVariables();
-		// Check if the related spell properties were defined properly.
-		switch (operation) {
-			case "translate", "normal", "append" -> {
-				if (expectedValue.isEmpty()) {
-					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid expected-value defined!");
-				}
-				if (parseToVariable.isEmpty()) {
-					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid parse-to-variable defined!");
-				}
-				if (variableToParse.isEmpty() || MagicSpells.getVariableManager().getVariable(variableToParse) == null) {
-					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid variable-to-parse defined!");
-				}
-			}
-			case "difference" -> {
-				if (firstVariable.isEmpty() || MagicSpells.getVariableManager().getVariable(firstVariable) == null) {
-					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid first-variable defined!");
-				}
-				if (secondVariable.isEmpty() || MagicSpells.getVariableManager().getVariable(secondVariable) == null) {
-					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid second-variable defined!");
-				}
-			}
-			case "regex", "regexp" -> {
-				if (parseTo.isEmpty()) {
-					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid parse-to defined!");
-				}
-				regexPattern = Pattern.compile(expectedValue);
-				if (parseToVariable.isEmpty()) {
-					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid parse-to-variable defined!");
-				}
-				if (variableToParse.isEmpty() || MagicSpells.getVariableManager().getVariable(variableToParse) == null) {
-					MagicSpells.error("ParseSpell '" + internalName + "' has an invalid variable-to-parse defined!");
-				}
-			}
-			default -> MagicSpells.error("ParseSpell '" + internalName + "' has invalid operation defined: " + operationName);
-		}
+	public CastResult cast(SpellData data) {
+		TargetInfo<Player> info = getTargetedPlayer(data);
+		if (info.noTarget()) return noTarget(info);
+
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<Player> targetInfo = getTargetedPlayer(caster, power, args);
-			if (targetInfo.noTarget()) return noTarget(caster, args, targetInfo);
-			Player target = targetInfo.target();
+	public CastResult castAtEntity(SpellData data) {
+		if (!(data.target() instanceof Player target)) return noTarget(data);
 
-			parse(target);
-			playSpellEffects(caster, target, targetInfo.power(), args);
-			sendMessages(caster, target, args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		parse(target);
-		playSpellEffects(caster, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		parse(target);
-		playSpellEffects(caster, target, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		parse(target);
-		playSpellEffects(EffectPosition.TARGET, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		parse(target);
-		playSpellEffects(EffectPosition.TARGET, target, power, null);
-		return true;
-	}
-
-	private void parse(LivingEntity target) {
-		if (!(target instanceof Player)) return;
-		String receivedValue;
-		switch (operation) {
+		switch (operation.get(data)) {
 			case "translate", "normal" -> {
-				receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse, (Player) target);
-				if (!receivedValue.equalsIgnoreCase(expectedValue) && !expectedValue.contains("any")) return;
-				MagicSpells.getVariableManager().set(parseToVariable, (Player) target, parseTo);
+				String expectedValue = this.expectedValue.get(data);
+
+				String receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse.get(data), target);
+				if (!receivedValue.equalsIgnoreCase(expectedValue) && !expectedValue.contains("any")) break;
+
+				MagicSpells.getVariableManager().set(parseToVariable.get(data), target, parseTo.get(data));
 			}
 			case "difference" -> {
-				double primary = MagicSpells.getVariableManager().getValue(firstVariable, (Player) target);
-				double secondary = MagicSpells.getVariableManager().getValue(secondVariable, (Player) target);
+				double primary = MagicSpells.getVariableManager().getValue(firstVariable.get(data), target);
+				double secondary = MagicSpells.getVariableManager().getValue(secondVariable.get(data), target);
 				double diff = Math.abs(primary - secondary);
-				MagicSpells.getVariableManager().set(parseToVariable, (Player) target, diff);
+
+				MagicSpells.getVariableManager().set(parseToVariable.get(data), target, diff);
 			}
 			case "append" -> {
-				receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse, (Player) target);
-				if (!receivedValue.equalsIgnoreCase(expectedValue) && !expectedValue.contains("any")) return;
-				receivedValue += parseTo;
-				receivedValue = MagicSpells.getVariableManager().getStringValue(parseToVariable, (Player) target) + receivedValue;
-				MagicSpells.getVariableManager().set(parseToVariable, (Player) target, receivedValue);
+				String expectedValue = this.expectedValue.get(data);
+
+				String receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse.get(data), target);
+				if (!receivedValue.equalsIgnoreCase(expectedValue) && !expectedValue.contains("any")) break;
+
+				String parseToVariable = this.parseToVariable.get(data);
+				receivedValue = MagicSpells.getVariableManager().getStringValue(parseToVariable, target) + receivedValue + parseTo.get(data);
+
+				MagicSpells.getVariableManager().set(parseToVariable, target, receivedValue);
 			}
 			case "regex", "regexp" -> {
-				receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse, (Player) target);
-				Matcher matcher = regexPattern.matcher(receivedValue);
+				Pattern pattern = Pattern.compile(expectedValue.get(data));
+				String parseTo = this.parseTo.get(data);
+
+				String receivedValue = MagicSpells.getVariableManager().getStringValue(variableToParse.get(data), target);
+				Matcher matcher = pattern.matcher(receivedValue);
+
 				StringBuilder found = new StringBuilder();
 				while (matcher.find()) {
 					if (!parseTo.isEmpty()) {
 						// If there is replacement text, replace and exit.
-						found = new StringBuilder(receivedValue.replaceAll(regexPattern.pattern(), parseTo));
+						matcher.reset();
+						found.append(matcher.replaceAll(parseTo));
 						break;
 					}
+
 					// Otherwise, collect found text.
 					found.append(matcher.group());
 				}
-				MagicSpells.getVariableManager().set(parseToVariable, (Player) target, found.toString());
+
+				MagicSpells.getVariableManager().set(parseToVariable.get(data), target, found.toString());
+			}
+			default -> {
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 			}
 		}
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
+
 }

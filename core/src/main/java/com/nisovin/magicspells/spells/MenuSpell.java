@@ -1,29 +1,30 @@
 package com.nisovin.magicspells.spells;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
-
-import co.aikar.commands.ACFUtil;
-
-import net.kyori.adventure.text.Component;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.command.CommandSender;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.event.inventory.InventoryClickEvent;
+
+import net.kyori.adventure.text.Component;
+
+import co.aikar.commands.ACFUtil;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -33,30 +34,29 @@ import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
 	private final Map<String, MenuOption> options = new LinkedHashMap<>();
-	private final Map<UUID, MenuData> menuData = new HashMap<>();
 
 	private int size;
 
-	private final String title;
-	private final int delay;
 	private final ItemStack filler;
-	private final boolean stayOpenNonOption;
-	private final boolean bypassNormalCast;
-	private final boolean requireEntityTarget;
-	private final boolean requireLocationTarget;
-	private final boolean targetOpensMenuInstead;
+	private final ConfigData<Integer> delay;
+	private final ConfigData<Component> title;
+	private final ConfigData<Boolean> stayOpenNonOption;
+	private final ConfigData<Boolean> bypassNormalCast;
+	private final ConfigData<Boolean> requireEntityTarget;
+	private final ConfigData<Boolean> requireLocationTarget;
+	private final ConfigData<Boolean> targetOpensMenuInstead;
 
 	public MenuSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		title = getConfigString("title", "Window Title " + spellName);
-		delay = getConfigInt("delay", 0);
+		title = getConfigDataComponent("title", Component.text("Window Title" + spellName));
+		delay = getConfigDataInt("delay", 0);
 		filler = createItem("filler");
-		stayOpenNonOption = getConfigBoolean("stay-open-non-option", false);
-		bypassNormalCast = getConfigBoolean("bypass-normal-cast", true);
-		requireEntityTarget = getConfigBoolean("require-entity-target", false);
-		requireLocationTarget = getConfigBoolean("require-location-target", false);
-		targetOpensMenuInstead = getConfigBoolean("target-opens-menu-instead", false);
+		stayOpenNonOption = getConfigDataBoolean("stay-open-non-option", false);
+		bypassNormalCast = getConfigDataBoolean("bypass-normal-cast", true);
+		requireEntityTarget = getConfigDataBoolean("require-entity-target", false);
+		requireLocationTarget = getConfigDataBoolean("require-location-target", false);
+		targetOpensMenuInstead = getConfigDataBoolean("target-opens-menu-instead", false);
 
 		Set<String> optionKeys = getConfigKeys("options");
 		if (optionKeys == null) {
@@ -130,7 +130,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			option.stayOpen = getConfigBoolean(path + "stay-open", false);
 			options.put(optionName, option);
 		}
-		size = (int) Math.ceil((maxSlot+1) / 9.0) * 9;
+		size = (int) Math.ceil((maxSlot + 1) / 9.0) * 9;
 		if (options.isEmpty()) MagicSpells.error("MenuSpell '" + spellName + "' has no menu options!");
 	}
 
@@ -157,103 +157,61 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			LivingEntity target = null;
-			Location locTarget = null;
-			Player opener = player;
+	public CastResult cast(SpellData data) {
+		boolean targetOpensMenuInstead = this.targetOpensMenuInstead.get(data);
 
-			if (requireEntityTarget) {
-				if (targetOpensMenuInstead) {
-					TargetInfo<Player> info = getTargetedPlayer(player, power, args);
-					if (info.noTarget()) return noTarget(caster, args, info);
-
-					opener = info.target();
-					power = info.power();
-				} else {
-					TargetInfo<LivingEntity> info = getTargetedEntity(player, power, args);
-					if (info.noTarget()) return noTarget(caster, args, info);
-
-					target = info.target();
-					power = info.power();
-				}
-			} else if (requireLocationTarget) {
-				Block block = getTargetedBlock(player, power, args);
-				if (block == null || BlockUtils.isAir(block.getType())) return noTarget(caster, args);
-
-				locTarget = block.getLocation();
+		if (requireEntityTarget.get(data)) {
+			if (targetOpensMenuInstead) {
+				TargetInfo<Player> info = getTargetedPlayer(data);
+				if (info.noTarget()) return noTarget(info);
+				data = info.spellData();
+			} else {
+				TargetInfo<LivingEntity> info = getTargetedEntity(data);
+				if (info.noTarget()) return noTarget(info);
+				data = info.spellData();
 			}
-
-			open(player, opener, target, locTarget, power, args);
-
-			if (requireEntityTarget) {
-				sendMessages(caster, targetOpensMenuInstead ? opener : target, args);
-				return PostCastAction.NO_MESSAGES;
-			}
+		} else if (requireLocationTarget.get(data)) {
+			TargetInfo<Location> info = getTargetedBlockLocation(data, false);
+			if (info.noTarget()) return noTarget(info);
+			data = info.spellData();
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		LivingEntity openerEntity = targetOpensMenuInstead ? data.target() : data.caster();
+		if (!(openerEntity instanceof Player opener)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		open(opener, data, targetOpensMenuInstead);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		if (!(caster instanceof Player opener)) return false;
-		if (targetOpensMenuInstead) {
-			if (!(target instanceof Player player)) return false;
-			opener = player;
-			target = null;
-		}
-		open((Player) caster, opener, target, null, power, args);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		open(caster, data, false);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
+	public CastResult castAtEntity(SpellData data) {
+		boolean targetOpensMenuInstead = this.targetOpensMenuInstead.get(data);
+		LivingEntity openerEntity = targetOpensMenuInstead ? data.target() : data.caster();
+		if (!(openerEntity instanceof Player opener)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!targetOpensMenuInstead) return false;
-		if (!validTargetList.canTarget(target)) return false;
-		if (!(target instanceof Player player)) return false;
-		open(null, player, null, null, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return castAtEntity(target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		if (!(caster instanceof Player player)) return false;
-		open(player, player, null, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return false;
+		open(opener, data, targetOpensMenuInstead);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		if (args.length < 1) return false;
+
 		Player player = PlayerNameUtils.getPlayer(args[0]);
+		if (player == null) return false;
+
 		String[] spellArgs = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : null;
-		if (player != null) {
-			open(null, player, null, null, 1, spellArgs);
-			return true;
-		}
-		return false;
+		open(player, new SpellData(null, player, 1f, spellArgs), true);
+
+		return true;
 	}
 
 	private ItemStack createItem(String path) {
@@ -268,33 +226,24 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		return item;
 	}
 
-	private void open(Player caster, Player opener, LivingEntity entityTarget, Location locTarget, float power, String[] args) {
-		if (delay < 0) {
-			openMenu(caster, opener, entityTarget, locTarget, power, args);
-			return;
-		}
-		MagicSpells.scheduleDelayedTask(() -> openMenu(caster, opener, entityTarget, locTarget, power, args), delay);
+	private void open(Player opener, SpellData data, boolean targetOpensMenuInstead) {
+		int delay = this.delay.get(data);
+		if (delay < 0) openMenu(opener, data, targetOpensMenuInstead);
+		else MagicSpells.scheduleDelayedTask(() -> openMenu(opener, data, targetOpensMenuInstead), delay);
 	}
 
-	private void openMenu(Player caster, Player opener, LivingEntity entityTarget, Location locTarget, float power, String[] args) {
-		menuData.put(opener.getUniqueId(), new MenuData(requireEntityTarget ? entityTarget : null, requireLocationTarget ? locTarget : null, power, args));
+	private void openMenu(Player opener, SpellData data, boolean targetOpensMenuInstead) {
+		MenuInventory menu = new MenuInventory(data, targetOpensMenuInstead);
+		applyOptionsToInventory(opener, menu);
+		opener.openInventory(menu.inventory);
 
-		Inventory inv = Bukkit.createInventory(opener, size, Component.text(internalName));
-		applyOptionsToInventory(opener, inv, args);
-		opener.openInventory(inv);
-		Util.setInventoryTitle(opener, title);
-
-		SpellData data = new SpellData(caster, entityTarget, power, args);
-		if (entityTarget != null && caster != null) {
-			playSpellEffects(caster, entityTarget, data);
-			return;
-		}
+		playSpellEffects(data);
 		playSpellEffects(EffectPosition.SPECIAL, opener, data);
-		if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
-		if (locTarget != null) playSpellEffects(EffectPosition.TARGET, locTarget, data);
 	}
 
-	private void applyOptionsToInventory(Player opener, Inventory inv, String[] args) {
+	private void applyOptionsToInventory(Player opener, MenuInventory menu) {
+		Inventory inv = menu.getInventory();
+
 		// Setup option items.
 		for (MenuOption option : options.values()) {
 			// Check modifiers.
@@ -306,7 +255,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			// Select and finalise item to display.
 			ItemStack item = (option.item != null ? option.item : option.items.get(Util.getRandomInt(option.items.size()))).clone();
 			DataUtil.setString(item, "menuOption", option.menuOptionName);
-			item = translateItem(opener, args, item);
+			item = translateItem(opener, item, menu.data);
 
 			int quantity;
 			Variable variable = MagicSpells.getVariableManager().getVariable(option.quantity);
@@ -321,107 +270,122 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		}
 		// Fill inventory.
 		if (filler == null) return;
-		ItemStack item = translateItem(opener, args, filler);
+		ItemStack item = translateItem(opener, filler, menu.data);
 		for (int i = 0; i < inv.getSize(); i++) {
 			if (inv.getItem(i) != null) continue;
 			inv.setItem(i, item);
 		}
 	}
 
-	private Component translateRawComponent(Component component, Player player, String[] args) {
+	private Component translateRawComponent(Component component, Player player, SpellData data) {
 		String text = Util.getStringFromComponent(component);
-		text = MagicSpells.doReplacements(text, player, args);
+		text = MagicSpells.doReplacements(text, player, data);
 		return Util.getMiniMessage(text);
 	}
 
-	private ItemStack translateItem(Player opener, String[] args, ItemStack item) {
+	private ItemStack translateItem(Player opener, ItemStack item, SpellData data) {
 		ItemStack newItem = item.clone();
-		ItemMeta meta = newItem.getItemMeta();
-		if (meta == null) return newItem;
-		meta.displayName(translateRawComponent(meta.displayName(), opener, args));
-		List<Component> lore = meta.lore();
-		if (lore != null) {
-			for (int i = 0; i < lore.size(); i++) {
-				lore.set(i, translateRawComponent(lore.get(i), opener, args));
+
+		newItem.editMeta(meta -> {
+			meta.displayName(translateRawComponent(meta.displayName(), opener, data));
+
+			List<Component> lore = meta.lore();
+			if (lore != null) {
+				lore.replaceAll(component -> translateRawComponent(component, opener, data));
+				meta.lore(lore);
 			}
-			meta.lore(lore);
-		}
-		newItem.setItemMeta(meta);
+		});
+
 		return newItem;
 	}
 
 	@EventHandler
 	public void onInvClick(InventoryClickEvent event) {
+		Inventory inventory = event.getClickedInventory();
+		if (!(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+
 		Player player = (Player) event.getWhoClicked();
-		if (!Util.getStringFromComponent(event.getView().title()).equals(internalName)) return;
-		event.setCancelled(true);
+		PostClickState state = castSpells(menu, event.getCurrentItem(), event.getClick());
 
-		String closeState = castSpells(player, event.getCurrentItem(), event.getClick());
-
-		UUID id = player.getUniqueId();
-		menuData.remove(id);
-
-		if (closeState.equals("ignore")) return;
-		if (closeState.equals("close")) {
+		if (state == PostClickState.CLOSE) {
 			MagicSpells.scheduleDelayedTask(player::closeInventory, 0);
 			return;
 		}
-		// Reopen.
-		Inventory newInv = Bukkit.createInventory(player, event.getView().getTopInventory().getSize(), Component.text(internalName));
-		applyOptionsToInventory(player, newInv, MagicSpells.NULL_ARGS);
-		player.openInventory(newInv);
-		Util.setInventoryTitle(player, title);
+
+		if (state == PostClickState.REOPEN) {
+			MenuInventory newMenu = new MenuInventory(menu.data, menu.targetOpensMenuInstead);
+			applyOptionsToInventory(player, newMenu);
+			player.openInventory(newMenu.getInventory());
+		}
 	}
 
-	private String castSpells(Player player, ItemStack item, ClickType click) {
+	private PostClickState castSpells(MenuInventory menu, ItemStack item, ClickType click) {
 		// Outside inventory.
-		if (item == null) return stayOpenNonOption ? "ignore" : "close";
-		String key = DataUtil.getString(item, "menuOption");
+		if (item == null) return menu.stayOpenNonOption ? PostClickState.IGNORE : PostClickState.CLOSE;
+
 		// Probably a filler or air.
-		if (key == null || key.isEmpty() || !options.containsKey(key)) return stayOpenNonOption ? "ignore" : "close";
+		String key = DataUtil.getString(item, "menuOption");
+		if (key == null || key.isEmpty() || !options.containsKey(key))
+			return menu.stayOpenNonOption ? PostClickState.IGNORE : PostClickState.CLOSE;
+
 		MenuOption option = options.get(key);
 		return switch (click) {
-			case LEFT -> processClickSpell(player, option.spell, option);
-			case RIGHT -> processClickSpell(player, option.spellRight, option);
-			case MIDDLE -> processClickSpell(player, option.spellMiddle, option);
-			case SHIFT_LEFT -> processClickSpell(player, option.spellSneakLeft, option);
-			case SHIFT_RIGHT -> processClickSpell(player, option.spellSneakRight, option);
-			default -> option.stayOpen ? "ignore" : "close";
+			case LEFT -> processClickSpell(menu, option.spell, option);
+			case RIGHT -> processClickSpell(menu, option.spellRight, option);
+			case MIDDLE -> processClickSpell(menu, option.spellMiddle, option);
+			case SHIFT_LEFT -> processClickSpell(menu, option.spellSneakLeft, option);
+			case SHIFT_RIGHT -> processClickSpell(menu, option.spellSneakRight, option);
+			default -> option.stayOpen ? PostClickState.IGNORE : PostClickState.CLOSE;
 		};
 	}
 
-	private String processClickSpell(Player player, Subspell spell, MenuOption option) {
-		if (spell == null) return option.stayOpen ? "ignore" : "close";
+	private PostClickState processClickSpell(MenuInventory menu, Subspell spell, MenuOption option) {
+		if (spell == null) return option.stayOpen ? PostClickState.IGNORE : PostClickState.CLOSE;
 
-		LivingEntity entityTarget = null;
-		Location locationTarget = null;
-		float power = option.power;
-		String[] args = null;
+		SpellData subData = menu.data.power(menu.data.power() * option.power);
+		if (menu.targetOpensMenuInstead) subData = subData.builder().caster(subData.target()).target(null).build();
 
-		UUID id = player.getUniqueId();
-		MenuData data = menuData.get(id);
-		if (data != null) {
-			locationTarget = data.targetLocation;
-			entityTarget = data.targetEntity;
-			power *= data.power;
-			args = data.args;
+		if (subData.hasTarget() || subData.hasLocation() || menu.bypassNormalCast) spell.subcast(subData);
+		else spell.getSpell().hardCast(subData);
+
+		return option.stayOpen ? PostClickState.REOPEN : PostClickState.CLOSE;
+	}
+
+	private class MenuInventory implements InventoryHolder {
+
+		private final SpellData data;
+		private final Inventory inventory;
+
+		private final boolean bypassNormalCast;
+		private final boolean stayOpenNonOption;
+		private final boolean targetOpensMenuInstead;
+
+		public MenuInventory(SpellData data, boolean targetOpensMenuInstead) {
+			this.data = data;
+			this.targetOpensMenuInstead = targetOpensMenuInstead;
+
+			bypassNormalCast = MenuSpell.this.bypassNormalCast.get(data);
+			stayOpenNonOption = MenuSpell.this.stayOpenNonOption.get(data);
+
+			inventory = Bukkit.createInventory(this, size, title.get(data));
 		}
 
-		if (entityTarget != null) spell.subcast(player, entityTarget, power, args);
-		else if (locationTarget != null) spell.subcast(player, locationTarget, power, args);
-		else if (bypassNormalCast) spell.subcast(player, power, args);
-		else spell.getSpell().cast(player, power, MagicSpells.NULL_ARGS);
+		@Override
+		@NotNull
+		public Inventory getInventory() {
+			return inventory;
+		}
 
-		return option.stayOpen ? "reopen" : "close";
+		private MenuSpell getSpell() {
+			return MenuSpell.this;
+		}
+
 	}
 
-	@EventHandler
-	public void onQuit(PlayerQuitEvent event) {
-		UUID id = event.getPlayer().getUniqueId();
-		menuData.remove(id);
-	}
-
-	private record MenuData(LivingEntity targetEntity, Location targetLocation, float power, String[] args) {
+	private enum PostClickState {
+		REOPEN,
+		CLOSE,
+		IGNORE
 	}
 
 	private static class MenuOption {

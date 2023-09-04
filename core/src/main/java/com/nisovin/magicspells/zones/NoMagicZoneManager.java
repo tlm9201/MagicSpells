@@ -12,6 +12,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.zones.NoMagicZone.ZoneCheckResult;
 
@@ -104,11 +105,26 @@ public class NoMagicZoneManager {
 		return zone != null && zone.inZone(loc);
 	}
 
-	public void sendNoMagicMessage(LivingEntity livingEntity, Spell spell) {
+	@Deprecated
+	public void sendNoMagicMessage(LivingEntity caster, Spell spell) {
+		sendNoMagicMessage(spell, caster, null);
+	}
+
+	@Deprecated
+	public void sendNoMagicMessage(Spell spell, LivingEntity caster, String[] args) {
 		for (NoMagicZone zone : zonesOrdered) {
-			ZoneCheckResult result = zone.check(livingEntity.getLocation(), spell);
+			ZoneCheckResult result = zone.check(caster.getLocation(), spell);
 			if (result != ZoneCheckResult.DENY) continue;
-			MagicSpells.sendMessage(zone.getMessage(), livingEntity, null);
+			MagicSpells.sendMessage(zone.getMessage(), caster, args);
+			return;
+		}
+	}
+
+	public void sendNoMagicMessage(Spell spell, SpellData data) {
+		for (NoMagicZone zone : zonesOrdered) {
+			ZoneCheckResult result = zone.check(data.caster().getLocation(), spell);
+			if (result != ZoneCheckResult.DENY) continue;
+			MagicSpells.sendMessage(zone.getMessage(), data.caster(), data);
 			return;
 		}
 	}

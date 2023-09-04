@@ -67,15 +67,12 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 
 	private ValidTargetList targetList;
 
-	private LivingEntity caster;
 	private Item entity;
+	private SpellData data;
 	private Vector velocity;
 	private Location startLocation;
 	private Location currentLocation;
 	private Location previousLocation;
-	private SpellData data;
-	private String[] args;
-	private float power;
 
 	private boolean landed = false;
 	private boolean groundSpellCasted = false;
@@ -84,13 +81,9 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 	private int taskId;
 	private int count = 0;
 
-	public ItemProjectileTracker(LivingEntity caster, Location startLocation, float power, String[] args) {
-		this.caster = caster;
-		this.power = power;
-		this.args = args;
-		this.startLocation = startLocation;
-
-		data = new SpellData(caster, power, args);
+	public ItemProjectileTracker(SpellData data) {
+		this.startLocation = data.location();
+		this.data = data;
 	}
 
 	public void start() {
@@ -120,9 +113,9 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		entity.setVelocity(velocity);
 
 		if (spell != null) {
-			spell.playEffects(EffectPosition.CASTER, caster, data);
+			spell.playEffects(EffectPosition.CASTER, data.caster(), data);
 			spell.playEffects(EffectPosition.PROJECTILE, entity, data);
-			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, entity.getLocation(), caster, entity, data);
+			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, entity.getLocation(), data.caster(), entity, data);
 		}
 
 		taskId = MagicSpells.scheduleRepeatingTask(this, tickInterval, tickInterval);
@@ -156,6 +149,8 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 			}
 		}
 
+		data = data.location(currentLocation);
+
 		if (spell != null && specialEffectInterval > 0 && count % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, data);
 
 		if (zoneManager.willFizzle(currentLocation, spell)) {
@@ -163,29 +158,26 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 			return;
 		}
 
-		if (count % spellInterval == 0 && spellOnTick != null) {
-			spellOnTick.subcast(caster, currentLocation.clone(), power, args);
-		}
+		if (count % spellInterval == 0 && spellOnTick != null) spellOnTick.subcast(data);
 
 		for (Entity e : entity.getNearbyEntities(hitRadius, vertHitRadius, hitRadius)) {
 			if (!(e instanceof LivingEntity target)) continue;
-			if (!targetList.canTarget(caster, e)) continue;
+			if (!targetList.canTarget(data.caster(), e)) continue;
 
-			SpellTargetEvent event = new SpellTargetEvent(spell, caster, target, power, args);
+			SpellTargetEvent event = new SpellTargetEvent(spell, data, target);
 			if (!event.callEvent()) continue;
 
-			target = event.getTarget();
-			float subPower = event.getPower();
+			SpellData subData = event.getSpellData();
 
-			if (spell != null) spell.playEffects(EffectPosition.TARGET, target, new SpellData(caster, target, subPower, args));
-			if (spellOnHitEntity != null) spellOnHitEntity.subcast(caster, target, subPower, args);
+			if (spell != null) spell.playEffects(EffectPosition.TARGET, subData.target(), subData);
+			if (spellOnHitEntity != null) spellOnHitEntity.subcast(subData.noLocation());
 			if (stopOnHitEntity) stop();
 			return;
 		}
 
 		if (entity.isOnGround()) {
 			if (spellOnHitGround != null && !groundSpellCasted) {
-				spellOnHitGround.subcast(caster, entity.getLocation(), power, args);
+				spellOnHitGround.subcast(data.location(entity.getLocation()));
 				groundSpellCasted = true;
 			}
 			if (stopOnHitGround) {
@@ -193,7 +185,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 				return;
 			}
 			if (!landed) MagicSpells.scheduleDelayedTask(() -> {
-				if (spellOnDelay != null) spellOnDelay.subcast(caster, entity.getLocation(), power, args);
+				if (spellOnDelay != null) spellOnDelay.subcast(data.location(entity.getLocation()));
 				stop();
 			}, spellDelay);
 			landed = true;
@@ -216,11 +208,11 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 	}
 
 	public LivingEntity getCaster() {
-		return caster;
+		return data.caster();
 	}
 
 	public void setCaster(LivingEntity caster) {
-		this.caster = caster;
+		data = data.caster(caster);
 	}
 
 	public Item getEntity() {
@@ -312,11 +304,11 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 	}
 
 	public float getPower() {
-		return power;
+		return data.power();
 	}
 
 	public void setPower(float power) {
-		this.power = power;
+		data = data.power(power);
 	}
 
 	public Component getItemName() {

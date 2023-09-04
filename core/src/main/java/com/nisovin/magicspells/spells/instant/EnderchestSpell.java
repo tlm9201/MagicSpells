@@ -1,11 +1,9 @@
 package com.nisovin.magicspells.spells.instant;
 
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.InstantSpell;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
 public class EnderchestSpell extends InstantSpell implements TargetedEntitySpell {
@@ -15,33 +13,33 @@ public class EnderchestSpell extends InstantSpell implements TargetedEntitySpell
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			if (args != null && args.length == 1 && player.hasPermission("magicspells.advanced." + internalName)) {
-				Player target = PlayerNameUtils.getPlayer(args[0]);
-				if (target == null) {
-					player.sendMessage("Invalid player target");
-					return PostCastAction.ALREADY_HANDLED;
-				}
-				player.openInventory(target.getEnderChest());
-			} else player.openInventory(player.getEnderChest());
-		}
-		return PostCastAction.HANDLE_NORMALLY;
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		if (data.hasArgs() && data.args().length == 1 && caster.hasPermission("magicspells.advanced." + internalName)) {
+			Player target = PlayerNameUtils.getPlayer(data.args()[0]);
+			if (target == null) {
+				sendMessage(caster, "Invalid player target.");
+				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+			}
+
+			data = data.target(target);
+			caster.openInventory(target.getEnderChest());
+		} else caster.openInventory(caster.getEnderChest());
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
+	public CastResult castAtEntity(SpellData data) {
+		if (!(data.caster() instanceof Player caster) || !(data.target() instanceof Player target))
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		if (!(caster instanceof Player playerCaster) || !(target instanceof Player playerTarget)) return false;
-		playerCaster.openInventory(playerTarget.getEnderChest());
+		caster.openInventory(target.getEnderChest());
+		playSpellEffects(data);
 
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		return false;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

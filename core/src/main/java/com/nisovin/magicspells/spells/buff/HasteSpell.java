@@ -21,21 +21,21 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
-import org.apache.commons.math4.core.jdkmath.AccurateMath;
-
 public class HasteSpell extends BuffSpell {
 
 	private final Map<UUID, HasteData> players;
 
-	private ConfigData<Integer> strength;
-	private ConfigData<Integer> boostDuration;
-	private ConfigData<Integer> accelerationDelay;
-	private ConfigData<Integer> accelerationAmount;
-	private ConfigData<Integer> accelerationIncrease;
-	private ConfigData<Integer> accelerationInterval;
+	private final ConfigData<Integer> strength;
+	private final ConfigData<Integer> boostDuration;
+	private final ConfigData<Integer> accelerationDelay;
+	private final ConfigData<Integer> accelerationAmount;
+	private final ConfigData<Integer> accelerationIncrease;
+	private final ConfigData<Integer> accelerationInterval;
 
-	private boolean hidden;
-	private boolean powerAffectsStrength;
+	private final ConfigData<Boolean> icon;
+	private final ConfigData<Boolean> hidden;
+	private final ConfigData<Boolean> ambient;
+	private final ConfigData<Boolean> powerAffectsStrength;
 
 	public HasteSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -47,17 +47,26 @@ public class HasteSpell extends BuffSpell {
 		accelerationIncrease = getConfigDataInt("acceleration-increase", 0);
 		accelerationInterval = getConfigDataInt("acceleration-interval", 0);
 
-		hidden = getConfigBoolean("hidden", false);
-		powerAffectsStrength = getConfigBoolean("power-affects-strength", true);
+		icon = getConfigDataBoolean("icon", true);
+		hidden = getConfigDataBoolean("hidden", false);
+		ambient = getConfigDataBoolean("ambient", false);
+		powerAffectsStrength = getConfigDataBoolean("power-affects-strength", true);
 
 		players = new HashMap<>();
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return false;
-		players.put(entity.getUniqueId(), new HasteData(entity, power, args));
+	public boolean castBuff(SpellData data) {
+		if (!(data.target() instanceof Player target)) return false;
+		players.put(target.getUniqueId(), new HasteData(data));
 		return true;
+	}
+
+	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		turnOffBuff(data.target());
+		return castBuff(data);
 	}
 
 	@Override
@@ -67,11 +76,10 @@ public class HasteSpell extends BuffSpell {
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		HasteData data = players.get(entity.getUniqueId());
+		HasteData data = players.remove(entity.getUniqueId());
 		if (data == null) return;
+
 		MagicSpells.cancelTask(data.task);
-		players.remove(entity.getUniqueId());
-		entity.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0));
 		entity.removePotionEffect(PotionEffectType.SPEED);
 	}
 
@@ -99,14 +107,13 @@ public class HasteSpell extends BuffSpell {
 		}
 
 		HasteData data = players.get(player.getUniqueId());
-		int amplifier = data.strength;
 
 		if (event.isSprinting()) {
 			event.setCancelled(true);
 			addUseAndChargeCost(player);
 			playSpellEffects(EffectPosition.CASTER, player, data.data);
 
-			player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, data.boostDuration, amplifier, false, !hidden));
+			player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, data.boostDuration, data.strength, data.ambient, !data.hidden, data.icon));
 
 			if (data.acceleration) {
 				data.task = MagicSpells.scheduleRepeatingTask(() -> {
@@ -115,11 +122,10 @@ public class HasteSpell extends BuffSpell {
 						return;
 					}
 					data.count++;
-					player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, data.boostDuration, amplifier + (data.count * data.accelerationIncrease), false, !hidden));
+					player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, data.boostDuration, data.strength + (data.count * data.accelerationIncrease), data.ambient, !data.hidden, data.icon));
 				}, data.accelerationDelay, data.accelerationInterval);
 			}
 		} else {
-			player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1, 0, false, !hidden));
 			player.removePotionEffect(PotionEffectType.SPEED);
 			playSpellEffects(EffectPosition.DISABLED, player, data.data);
 			MagicSpells.cancelTask(data.task);
@@ -144,14 +150,6 @@ public class HasteSpell extends BuffSpell {
 		return players;
 	}
 
-	public boolean isHidden() {
-		return hidden;
-	}
-
-	public void setHidden(boolean hidden) {
-		this.hidden = hidden;
-	}
-
 	private class HasteData {
 
 		private final int accelerationIncrease;
@@ -162,24 +160,31 @@ public class HasteSpell extends BuffSpell {
 		private final int strength;
 
 		private final boolean acceleration;
+		private final boolean ambient;
+		private final boolean hidden;
+		private final boolean icon;
 
 		private final SpellData data;
 
 		private int count;
 		private int task;
 
-		private HasteData(LivingEntity entity, float power, String[] args) {
-			int strength = HasteSpell.this.strength.get(entity, null, power, args);
-			if (powerAffectsStrength) strength = AccurateMath.round(strength * power);
+		private HasteData(SpellData data) {
+			this.data = data;
+
+			int strength = HasteSpell.this.strength.get(data);
+			if (powerAffectsStrength.get(data)) strength = Math.round(strength * data.power());
 			this.strength = strength;
 
-			accelerationIncrease = HasteSpell.this.accelerationIncrease.get(entity, null, power, args);
-			accelerationInterval = HasteSpell.this.accelerationInterval.get(entity, null, power, args);
-			accelerationAmount = HasteSpell.this.accelerationAmount.get(entity, null, power, args);
-			accelerationDelay = HasteSpell.this.accelerationDelay.get(entity, null, power, args);
-			boostDuration = HasteSpell.this.boostDuration.get(entity, null, power, args);
+			accelerationIncrease = HasteSpell.this.accelerationIncrease.get(data);
+			accelerationInterval = HasteSpell.this.accelerationInterval.get(data);
+			accelerationAmount = HasteSpell.this.accelerationAmount.get(data);
+			accelerationDelay = HasteSpell.this.accelerationDelay.get(data);
+			boostDuration = HasteSpell.this.boostDuration.get(data);
 
-			data = new SpellData(entity, power, args);
+			ambient = HasteSpell.this.ambient.get(data);
+			hidden = HasteSpell.this.hidden.get(data);
+			icon = HasteSpell.this.icon.get(data);
 
 			acceleration = accelerationDelay >= 0 && accelerationAmount > 0 && accelerationIncrease > 0 && accelerationInterval > 0;
 		}

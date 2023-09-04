@@ -24,14 +24,12 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import net.kyori.adventure.text.Component;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.Spellbook;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.events.SpellCastEvent;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -43,17 +41,16 @@ public class BowSpell extends Spell {
 	private static final String METADATA_KEY = "MSBowSpell";
 	private static HitListener hitListener;
 
-	private List<Component> bowNames;
-	private List<Component> disallowedBowNames;
+	private final Component bowName;
+	private final List<Component> bowNames;
+	private final List<Component> disallowedBowNames;
 
-	private List<MagicItemData> bowItems;
-	private List<MagicItemData> ammoItems;
-	private List<MagicItemData> disallowedBowItems;
-	private List<MagicItemData> disallowedAmmoItems;
+	private final List<MagicItemData> bowItems;
+	private final List<MagicItemData> ammoItems;
+	private final List<MagicItemData> disallowedBowItems;
+	private final List<MagicItemData> disallowedAmmoItems;
 
-	private ValidTargetList triggerList;
-
-	private Component bowName;
+	private final ValidTargetList triggerList;
 
 	private String spellOnShootName;
 	private String spellOnHitEntityName;
@@ -65,15 +62,15 @@ public class BowSpell extends Spell {
 	private Subspell spellOnHitGround;
 	private Subspell spellOnEntityLocation;
 
-	private boolean cancelShot;
-	private boolean denyOffhand;
-	private boolean removeArrow;
-	private boolean requireBind;
-	private boolean useBowForce;
-	private boolean cancelShotOnFail;
+	private final boolean requireBind;
+	private final ConfigData<Boolean> cancelShot;
+	private final ConfigData<Boolean> denyOffhand;
+	private final ConfigData<Boolean> removeArrow;
+	private final ConfigData<Boolean> useBowForce;
+	private final ConfigData<Boolean> cancelShotOnFail;
 
-	private float minimumForce;
-	private float maximumForce;
+	private final ConfigData<Float> minimumForce;
+	private final ConfigData<Float> maximumForce;
 
 	public BowSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -82,16 +79,20 @@ public class BowSpell extends Spell {
 		if (names != null) {
 			bowNames = new ArrayList<>();
 			names.forEach(str -> bowNames.add(Util.getMiniMessage(str)));
+
+			bowName = null;
 		} else {
 			String bowNameString = getConfigString("bow-name", null);
-			if (bowNameString != null) bowName = Util.getMiniMessage(bowNameString);
+			bowName = Util.getMiniMessage(bowNameString);
+
+			bowNames = null;
 		}
 
 		List<String> disallowedNames = getConfigStringList("disallowed-bow-names", null);
 		if (disallowedNames != null) {
 			disallowedBowNames = new ArrayList<>();
 			disallowedNames.forEach(str -> disallowedBowNames.add(Util.getMiniMessage(str)));
-		}
+		} else disallowedBowNames = null;
 
 		if (config.isList("spells." + internalName + ".can-trigger")) {
 			List<String> targets = getConfigStringList("can-trigger", new ArrayList<>());
@@ -110,20 +111,15 @@ public class BowSpell extends Spell {
 		spellOnEntityLocationName = getConfigString("spell-on-entity-location", "");
 
 		bindable = getConfigBoolean("bindable", false);
-		cancelShot = getConfigBoolean("cancel-shot", true);
-		denyOffhand = getConfigBoolean("deny-offhand", false);
-		removeArrow = getConfigBoolean("remove-arrow", false);
 		requireBind = getConfigBoolean("require-bind", false);
-		useBowForce = getConfigBoolean("use-bow-force", true);
-		cancelShotOnFail = getConfigBoolean("cancel-shot-on-fail", true);
+		cancelShot = getConfigDataBoolean("cancel-shot", true);
+		denyOffhand = getConfigDataBoolean("deny-offhand", false);
+		removeArrow = getConfigDataBoolean("remove-arrow", false);
+		useBowForce = getConfigDataBoolean("use-bow-force", true);
+		cancelShotOnFail = getConfigDataBoolean("cancel-shot-on-fail", true);
 
-		minimumForce = getConfigFloat("minimum-force", 0F);
-		maximumForce = getConfigFloat("maximum-force", 1F);
-
-		if (minimumForce < 0F) minimumForce = 0F;
-		else if (minimumForce > 1F) minimumForce = 1F;
-		if (maximumForce < 0F) maximumForce = 0F;
-		else if (maximumForce > 1F) maximumForce = 1F;
+		minimumForce = getConfigDataFloat("minimum-force", 0F);
+		maximumForce = getConfigDataFloat("maximum-force", 1F);
 	}
 
 	private List<MagicItemData> getFilter(String key) {
@@ -151,12 +147,12 @@ public class BowSpell extends Spell {
 		spellOnShoot = initSubspell(spellOnShootName, "BowSpell '" + internalName + "' has an invalid spell defined!");
 		spellOnHitEntity = initSubspell(spellOnHitEntityName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
 		spellOnHitGround = initSubspell(spellOnHitGroundName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
+		spellOnEntityLocation = initSubspell(spellOnEntityLocationName, "ProjectileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
 
-		spellOnEntityLocation = new Subspell(spellOnEntityLocationName);
-		if (!spellOnEntityLocation.process()) {
-			if (!spellOnEntityLocationName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
-			spellOnEntityLocation = null;
-		}
+		spellOnShootName = null;
+		spellOnHitEntityName = null;
+		spellOnHitGroundName = null;
+		spellOnEntityLocationName = null;
 
 		if (hitListener == null) {
 			hitListener = new HitListener();
@@ -174,8 +170,8 @@ public class BowSpell extends Spell {
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		return PostCastAction.ALREADY_HANDLED;
+	public CastResult cast(SpellData data) {
+		return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 	}
 
 	@Override
@@ -193,15 +189,21 @@ public class BowSpell extends Spell {
 	}
 
 	public void handleBowCast(EntityShootBowEvent event) {
-		if (!cancelShot && event.isCancelled()) return;
 		if (!(event.getProjectile() instanceof Arrow)) return;
-		if (denyOffhand && event.getHand() == EquipmentSlot.OFF_HAND) return;
 
 		LivingEntity caster = event.getEntity();
 		if (!triggerList.canTarget(caster, true)) return;
 
-		if (caster instanceof Player) {
-			Spellbook spellbook = MagicSpells.getSpellbook((Player) caster);
+		SpellData data = new SpellData(caster);
+		if (useBowForce.get(data)) data = data.power(event.getForce());
+
+		if (denyOffhand.get(data) && event.getHand() == EquipmentSlot.OFF_HAND) return;
+
+		boolean cancelShot = this.cancelShot.get(data);
+		if (!cancelShot && event.isCancelled()) return;
+
+		if (caster instanceof Player player) {
+			Spellbook spellbook = MagicSpells.getSpellbook(player);
 			if (!spellbook.hasSpell(this) || !spellbook.canCast(this)) return;
 		}
 
@@ -209,7 +211,7 @@ public class BowSpell extends Spell {
 		if (bow == null || (bow.getType() != Material.BOW && bow.getType() != Material.CROSSBOW)) return;
 
 		float force = event.getForce();
-		if (force < minimumForce || force > maximumForce) return;
+		if (force < minimumForce.get(data) || force > maximumForce.get(data)) return;
 
 		Component name = bow.getItemMeta().displayName();
 		if (bowNames != null && !bowNames.contains(name)) return;
@@ -223,45 +225,51 @@ public class BowSpell extends Spell {
 		if (ammoItems != null && !check(ammo, ammoItems)) return;
 		if (disallowedAmmoItems != null && check(ammo, disallowedAmmoItems)) return;
 
-		SpellCastEvent castEvent = preCast(caster, useBowForce ? force : 1f, null);
+		SpellCastEvent castEvent = preCast(data);
 		if (castEvent == null) {
-			if (cancelShotOnFail) event.setCancelled(true);
+			if (cancelShotOnFail.get(data)) event.setCancelled(true);
 			return;
 		}
 
-		if (castEvent.getSpellCastState() == SpellCastState.NORMAL) {
-			if (cancelShot) event.setCancelled(true);
-			if (!event.isCancelled()) {
-				Entity projectile = event.getProjectile();
+		data = castEvent.getSpellData();
 
-				ArrowData arrowData = new ArrowData(this, new SpellData(caster, null, castEvent.getPower(), null));
-				List<ArrowData> arrowDataList = null;
-				if (projectile.hasMetadata(METADATA_KEY)) {
-					List<MetadataValue> metas = projectile.getMetadata(METADATA_KEY);
-					for (MetadataValue meta : metas) {
-						if (!MagicSpells.plugin.equals(meta.getOwningPlugin())) continue;
+		if (castEvent.getSpellCastState() != SpellCastState.NORMAL) {
+			if (cancelShotOnFail.get(data)) event.setCancelled(true);
+			return;
+		}
 
-						arrowDataList = (List<ArrowData>) meta.value();
-						if (arrowDataList != null) arrowDataList.add(arrowData);
-						break;
-					}
+		if (cancelShot) event.setCancelled(true);
+
+		if (!event.isCancelled()) {
+			Entity projectile = event.getProjectile();
+
+			ArrowData arrowData = new ArrowData(this, data, removeArrow.get(data));
+			List<ArrowData> arrowDataList = null;
+			if (projectile.hasMetadata(METADATA_KEY)) {
+				List<MetadataValue> metas = projectile.getMetadata(METADATA_KEY);
+				for (MetadataValue meta : metas) {
+					if (!MagicSpells.plugin.equals(meta.getOwningPlugin())) continue;
+
+					arrowDataList = (List<ArrowData>) meta.value();
+					if (arrowDataList != null) arrowDataList.add(arrowData);
+					break;
 				}
-
-				if (arrowDataList == null) {
-					arrowDataList = new ArrayList<>();
-					arrowDataList.add(arrowData);
-
-					projectile.setMetadata(METADATA_KEY, new FixedMetadataValue(MagicSpells.plugin, arrowDataList));
-				}
-
-				playSpellEffects(EffectPosition.PROJECTILE, projectile, arrowData.spellData);
-				playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster.getLocation(), projectile.getLocation(), caster, projectile, arrowData.spellData);
 			}
 
-			if (spellOnShoot != null) spellOnShoot.subcast(caster, castEvent.getPower(), null);
-		} else if (cancelShotOnFail) event.setCancelled(true);
+			if (arrowDataList == null) {
+				arrowDataList = new ArrayList<>();
+				arrowDataList.add(arrowData);
 
-		postCast(castEvent, PostCastAction.HANDLE_NORMALLY);
+				projectile.setMetadata(METADATA_KEY, new FixedMetadataValue(MagicSpells.plugin, arrowDataList));
+			}
+
+			playSpellEffects(EffectPosition.PROJECTILE, projectile, arrowData.spellData);
+			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, caster.getLocation(), projectile.getLocation(), caster, projectile, arrowData.spellData);
+		}
+
+		if (spellOnShoot != null) spellOnShoot.subcast(data);
+
+		postCast(castEvent, new CastResult(PostCastAction.HANDLE_NORMALLY, data));
 	}
 
 	private boolean check(ItemStack item, List<MagicItemData> filters) {
@@ -306,12 +314,12 @@ public class BowSpell extends Spell {
 					Subspell groundSpell = data.bowSpell.spellOnHitGround;
 					if (groundSpell == null) continue;
 
-					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(data.bowSpell, caster, proj.getLocation(), data.spellData.power());
+					SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(data.bowSpell, data.spellData, proj.getLocation());
 					if (!targetEvent.callEvent()) continue;
 
-					groundSpell.subcast(caster, targetEvent.getTargetLocation(), targetEvent.getPower(), null);
+					groundSpell.subcast(targetEvent.getSpellData());
 
-					if (data.bowSpell.removeArrow) remove = true;
+					if (data.removeArrow) remove = true;
 				}
 
 				break;
@@ -345,16 +353,15 @@ public class BowSpell extends Spell {
 					Subspell entitySpell = data.bowSpell.spellOnHitEntity;
 					Subspell entityLocationSpell = data.bowSpell.spellOnEntityLocation;
 
-					SpellTargetEvent targetEvent = new SpellTargetEvent(data.bowSpell, caster, target, data.spellData.power());
+					SpellTargetEvent targetEvent = new SpellTargetEvent(data.bowSpell, data.spellData, target);
 					if (!targetEvent.callEvent()) continue;
 
-					LivingEntity subTarget = targetEvent.getTarget();
-					float subPower = targetEvent.getPower();
+					SpellData subData = targetEvent.getSpellData().location(arrow.getLocation());
 
-					if (entitySpell != null) entitySpell.subcast(caster, caster.getLocation(), subTarget, subPower, null);
-					if (entityLocationSpell != null) entityLocationSpell.subcast(caster, arrow.getLocation(), subPower, null);
+					if (entitySpell != null) entitySpell.subcast(subData);
+					if (entityLocationSpell != null) entityLocationSpell.subcast(subData.noTarget());
 
-					if (data.bowSpell.removeArrow) remove = true;
+					if (data.removeArrow) remove = true;
 				}
 
 				break;
@@ -366,7 +373,7 @@ public class BowSpell extends Spell {
 
 	}
 
-	private record ArrowData(BowSpell bowSpell, SpellData spellData) {
+	private record ArrowData(BowSpell bowSpell, SpellData spellData, boolean removeArrow) {
 
 	}
 

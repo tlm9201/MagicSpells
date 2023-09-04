@@ -3,14 +3,11 @@ package com.nisovin.magicspells.spells.targeted;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -19,8 +16,8 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 	private final ConfigData<Float> seconds;
 	private final ConfigData<Float> multiplier;
 
-	private final boolean powerAffectsSeconds;
-	private final boolean powerAffectsMultiplier;
+	private final ConfigData<Boolean> powerAffectsSeconds;
+	private final ConfigData<Boolean> powerAffectsMultiplier;
 
 	public ModifyCooldownSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -28,74 +25,39 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 		seconds = getConfigDataFloat("seconds", 1F);
 		multiplier = getConfigDataFloat("multiplier", 0F);
 
-		powerAffectsSeconds = getConfigBoolean("power-affects-seconds", true);
-		powerAffectsMultiplier = getConfigBoolean("power-affects-multiplier", true);
+		powerAffectsSeconds = getConfigDataBoolean("power-affects-seconds", true);
+		powerAffectsMultiplier = getConfigDataBoolean("power-affects-multiplier", true);
 
 		filter = getConfigSpellFilter();
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target.noTarget()) return noTarget(caster, args, target);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			modifyCooldowns(caster, target.target(), target.power(), args);
-			sendMessages(caster, target.target(), args);
-
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		modifyCooldowns(caster, target, power, args);
-		return true;
-	}
+	public CastResult castAtEntity(SpellData data) {
+		float sec = seconds.get(data);
+		if (powerAffectsSeconds.get(data)) sec *= data.power();
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		modifyCooldowns(caster, target, power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		modifyCooldowns(null, target, power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		modifyCooldowns(null, target, power, null);
-		return true;
-	}
-
-	private void modifyCooldowns(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		float sec = seconds.get(caster, target, power, args);
-		if (powerAffectsSeconds) sec *= power;
-
-		float mult = multiplier.get(caster, target, power, args);
-		if (powerAffectsMultiplier) mult /= power;
+		float mult = multiplier.get(data);
+		if (powerAffectsMultiplier.get(data)) mult /= data.power();
 
 		for (Spell spell : MagicSpells.spells()) {
-			if (!spell.onCooldown(target)) continue;
-			if (!filter.check(spell)) continue;
+			if (!spell.onCooldown(data.target()) || !filter.check(spell)) continue;
 
-			float cd = spell.getCooldown(target) - sec;
+			float cd = spell.getCooldown(data.target()) - sec;
 			if (mult > 0) cd *= mult;
 			if (cd < 0) cd = 0;
-			spell.setCooldown(target, cd, false);
+			spell.setCooldown(data.target(), cd, false);
 		}
 
-		if (caster != null) playSpellEffects(caster, target, power, args);
-		else playSpellEffects(EffectPosition.TARGET, target, power, args);
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

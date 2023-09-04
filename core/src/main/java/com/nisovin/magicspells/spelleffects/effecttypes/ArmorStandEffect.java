@@ -36,7 +36,7 @@ public class ArmorStandEffect extends SpellEffect {
 		if (section == null) return;
 
 		entityData = new EntityData(section);
-		entityData.setEntityType((caster, target, power, args) -> EntityType.ARMOR_STAND);
+		entityData.setEntityType(data -> EntityType.ARMOR_STAND);
 
 		gravity = section.getBoolean("gravity", false);
 
@@ -65,7 +65,7 @@ public class ArmorStandEffect extends SpellEffect {
 			armorStand.addScoreboardTag(ENTITY_TAG);
 			armorStand.setGravity(gravity);
 			armorStand.setSilent(true);
-			armorStand.customName(Util.getMiniMessage(MagicSpells.doReplacements(customName, data)));
+			armorStand.customName(Util.getMiniMessage(customName, data));
 			armorStand.setCustomNameVisible(customNameVisible);
 
 			armorStand.setItem(EquipmentSlot.HEAD, headItem);

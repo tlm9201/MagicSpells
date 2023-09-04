@@ -3,73 +3,51 @@ package com.nisovin.magicspells.spells.targeted;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
 public class SwitchSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private ConfigData<Integer> switchBack;
-	
+	private final ConfigData<Integer> switchBack;
+
 	public SwitchSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		
+
 		switchBack = getConfigDataInt("switch-back", 0);
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			TargetInfo<LivingEntity> target = getTargetedEntity(caster, power, args);
-			if (target.noTarget()) return noTarget(caster, args, target);
-			
-			switchPlaces(caster, target.target(), target.power(), args);
-			sendMessages(caster, target.target(), args);
+	public CastResult cast(SpellData data) {
+		TargetInfo<LivingEntity> info = getTargetedEntity(data);
+		if (info.noTarget()) return noTarget(info);
 
-			return PostCastAction.NO_MESSAGES;
-		}
-
-		return PostCastAction.HANDLE_NORMALLY;
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		switchPlaces(caster, target, power, args);
-		return true;
-	}
+	public CastResult castAtEntity(SpellData data) {
+		if (!data.hasCaster()) return noTarget(data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(caster, target, power, null);
-	}
+		Location targetLoc = data.target().getLocation();
+		Location casterLoc = data.caster().getLocation();
+		data.caster().teleportAsync(targetLoc);
+		data.target().teleportAsync(casterLoc);
 
-	@Override
-	public boolean castAtEntity(LivingEntity caster, float power) {
-		return false;
-	}
-
-	private void switchPlaces(LivingEntity caster, final LivingEntity target, float power, String[] args) {
-		Location targetLoc = target.getLocation();
-		Location casterLoc = caster.getLocation();
-		caster.teleportAsync(targetLoc);
-		target.teleportAsync(casterLoc);
-
-		int switchBack = this.switchBack.get(caster, target, power, args);
-		if (switchBack <= 0) return;
-
-		playSpellEffects(caster, target, power, args);
+		int switchBack = this.switchBack.get(data);
+		if (switchBack <= 0) return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 
 		MagicSpells.scheduleDelayedTask(() -> {
-			if (caster.isDead() || target.isDead()) return;
-			Location targetLoc1 = target.getLocation();
-			Location casterLoc1 = caster.getLocation();
-			caster.teleportAsync(targetLoc1);
-			target.teleportAsync(casterLoc1);
+			if (!data.caster().isValid() || !data.target().isValid()) return;
+			Location targetLoc1 = data.target().getLocation();
+			Location casterLoc1 = data.caster().getLocation();
+			data.target().teleportAsync(targetLoc1);
+			data.caster().teleportAsync(casterLoc1);
 		}, switchBack);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 }

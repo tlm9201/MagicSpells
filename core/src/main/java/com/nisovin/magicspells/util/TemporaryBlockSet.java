@@ -67,7 +67,11 @@ public class TemporaryBlockSet implements Runnable {
 		if (event != null && event.isCancelled()) BlockUtils.setTypeAndData(block, original, original.createBlockData(), false);
 		else blocks.add(block);
 	}
-	
+
+	public void untrack(Block block) {
+		blocks.remove(block);
+	}
+
 	public boolean contains(Block block) {
 		return blocks.contains(block);
 	}

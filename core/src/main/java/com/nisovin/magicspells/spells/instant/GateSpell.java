@@ -5,120 +5,104 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Vehicle;
-import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 public class GateSpell extends InstantSpell {
 
-	private String world;
-	private String coordinates;
 	private String strGateFailed;
+	private final ConfigData<String> world;
+	private final ConfigData<String> coordinates;
 
 	public GateSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		world = getConfigString("world", "CURRENT");
-		coordinates = getConfigString("coordinates", "SPAWN").replace(" ", "");
+		world = getConfigDataString("world", "CURRENT");
+		coordinates = getConfigDataString("coordinates", "SPAWN");
 		strGateFailed = getConfigString("str-gate-failed", "Unable to teleport.");
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			World effectiveWorld;
-			if (world.equals("CURRENT")) effectiveWorld = caster.getWorld();
-			else if (world.equals("DEFAULT")) effectiveWorld = Bukkit.getServer().getWorlds().get(0);
-			else effectiveWorld = Bukkit.getServer().getWorld(world);
+	public CastResult cast(SpellData data) {
+		String world = this.world.get(data);
 
-			if (effectiveWorld == null) {
-				MagicSpells.error("GateSpell '" + internalName + "' has a non existent world defined!");
-				sendMessage(strGateFailed, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
+		World effectiveWorld = switch (world.toUpperCase()) {
+			case "CURRENT" -> data.caster().getWorld();
+			case "DEFAULT" -> Bukkit.getServer().getWorlds().get(0);
+			default -> Bukkit.getServer().getWorld(world);
+		};
 
-			// Get location
-			Location location = null;
-			switch (coordinates.toUpperCase()) {
-				case "SPAWN" -> {
-					location = effectiveWorld.getSpawnLocation();
-					location = new Location(effectiveWorld, location.getX(), effectiveWorld.getHighestBlockYAt(location) + 1, location.getZ());
-				}
-				case "EXACTSPAWN" -> location = effectiveWorld.getSpawnLocation();
-				case "CURRENT" -> {
-					Location l = caster.getLocation();
-					location = new Location(effectiveWorld, l.getBlockX(), l.getBlockY(), l.getBlockZ(), l.getYaw(), l.getPitch());
-				}
-				default -> {
-					String[] c = coordinates.split(",");
-					if (c.length >= 3) {
-						try {
-							double x = Double.parseDouble(c[0]);
-							double y = Double.parseDouble(c[1]);
-							double z = Double.parseDouble(c[2]);
-							float yaw = 0;
-							float pitch = 0;
-							if (c.length > 3) {
-								yaw = Float.parseFloat(c[3]);
-								pitch = Float.parseFloat(c[4]);
-							}
-
-							location = new Location(effectiveWorld, x, y, z, yaw, pitch);
-						} catch (NumberFormatException ignored) {}
-					}
-
-					if (location == null) {
-						MagicSpells.error("GateSpell '" + internalName + "' has invalid coordinates defined!");
-						sendMessage(strGateFailed, caster, args);
-						return PostCastAction.ALREADY_HANDLED;
-					}
-				}
-			}
-			MagicSpells.debug(3, "Gate location: " + location);
-
-			Block b = location.getBlock();
-			if (!BlockUtils.isPathable(b) || !BlockUtils.isPathable(b.getRelative(0, 1, 0))) {
-				MagicSpells.error("GateSpell '" + internalName + "' has landing spot blocked!");
-				sendMessage(strGateFailed, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-
-			Location from = caster.getLocation();
-			Location to = b.getLocation();
-			boolean canTeleport = (!(caster instanceof Vehicle)) && !caster.isDead();
-			if (!canTeleport) {
-				MagicSpells.error("GateSpell '" + internalName + "': teleport prevented!");
-				sendMessage(strGateFailed, caster, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			caster.teleportAsync(location);
-
-			SpellData data = new SpellData(caster, power, args);
-			playSpellEffects(EffectPosition.CASTER, from, data);
-			playSpellEffects(EffectPosition.TARGET, to, data);
+		if (effectiveWorld == null) {
+			MagicSpells.error("GateSpell '" + internalName + "' has a non existent world defined!");
+			sendMessage(strGateFailed, data.caster(), data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
 
-	public String getWorld() {
-		return world;
-	}
+		String coordinates = this.coordinates.get(data).replace(" ", "");
+		Location location = switch (coordinates.toUpperCase()) {
+			case "SPAWN" -> {
+				Location spawn = effectiveWorld.getSpawnLocation();
+				spawn.setY(effectiveWorld.getHighestBlockYAt(spawn) + 1);
 
-	public void setWorld(String world) {
-		this.world = world;
-	}
+				yield spawn;
+			}
+			case "EXACTSPAWN" -> effectiveWorld.getSpawnLocation();
+			case "CURRENT" -> {
+				Location current = data.caster().getLocation();
+				current.setWorld(effectiveWorld);
 
-	public String getCoordinates() {
-		return coordinates;
-	}
+				yield current;
+			}
+			default -> {
+				String[] coords = coordinates.split(",");
+				if (coords.length < 3) yield null;
 
-	public void setCoordinates(String coordinates) {
-		this.coordinates = coordinates;
+				try {
+					double x = Double.parseDouble(coords[0]);
+					double y = Double.parseDouble(coords[1]);
+					double z = Double.parseDouble(coords[2]);
+
+					float yaw = 0, pitch = 0;
+					if (coords.length > 3) yaw = Float.parseFloat(coords[3]);
+					if (coords.length > 4) pitch = Float.parseFloat(coords[4]);
+
+					yield new Location(effectiveWorld, x, y, z, yaw, pitch);
+				} catch (NumberFormatException e) {
+					yield null;
+				}
+			}
+		};
+
+		if (location == null) {
+			MagicSpells.error("GateSpell '" + internalName + "' has invalid coordinates defined!");
+			sendMessage(strGateFailed, data.caster(), data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+		MagicSpells.debug(3, "Gate location: " + location);
+
+		Block b = location.getBlock();
+		if (!BlockUtils.isPathable(b) || !BlockUtils.isPathable(b.getRelative(0, 1, 0))) {
+			MagicSpells.error("GateSpell '" + internalName + "' has landing spot blocked!");
+			sendMessage(strGateFailed, data.caster(), data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		Location from = data.caster().getLocation();
+		if (data.caster() instanceof Vehicle || !data.caster().isValid()) {
+			MagicSpells.error("GateSpell '" + internalName + "': teleport prevented!");
+			sendMessage(strGateFailed, data.caster(), data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+		data.caster().teleportAsync(location);
+
+		playSpellEffects(EffectPosition.CASTER, from, data);
+		playSpellEffects(EffectPosition.TARGET, location, data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public String getStrGateFailed() {

@@ -8,17 +8,14 @@ import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.EntityEquipment;
 
 import net.kyori.adventure.text.Component;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -29,12 +26,12 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 	private static final Pattern NAME_VARIABLE_PATTERN = Pattern.compile(Pattern.quote("{{name}}"));
 	private static final Pattern DISPLAY_NAME_VARIABLE_PATTERN = Pattern.compile(Pattern.quote("{{disp}}"));
 
-	private boolean openInstead;
+	private ConfigData<Boolean> openInstead;
 
 	private ConfigData<Integer> pickupDelay;
 
-	private boolean gravity;
-	private boolean addToInventory;
+	private ConfigData<Boolean> gravity;
+	private ConfigData<Boolean> addToInventory;
 
 	private String title;
 	private String author;
@@ -43,89 +40,85 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 
 	public ConjureBookSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
-		openInstead = getConfigBoolean("open-instead", false);
+		openInstead = getConfigDataBoolean("open-instead", false);
 
 		pickupDelay = getConfigDataInt("pickup-delay", 0);
 
-		gravity = getConfigBoolean("gravity", true);
-		addToInventory = getConfigBoolean("add-to-inventory", true);
+		gravity = getConfigDataBoolean("gravity", true);
+		addToInventory = getConfigDataBoolean("add-to-inventory", true);
 
 		title = getConfigString("title", "Book");
 		author = getConfigString("author", "Steve");
 		pages = getConfigStringList("pages", new ArrayList<>());
 		lore = getConfigStringList("lore", new ArrayList<>());
 	}
-	
+
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			boolean added = false;
-			ItemStack item = createBook(player, args);
-			if (openInstead) player.openBook(item);
-			else {
-				if (addToInventory) {
-					player.getEquipment().getItemInMainHand();
-					if (BlockUtils.isAir(player.getEquipment().getItemInMainHand().getType())) {
-						player.getEquipment().setItemInMainHand(item);
-						added = true;
-					} else added = Util.addToInventory(player.getInventory(), item, false, false);
-				}
-				if (!added) {
-					Item dropped = player.getWorld().dropItem(player.getLocation(), item);
-					dropped.setItemStack(item);
-					dropped.setGravity(gravity);
+	public CastResult cast(SpellData data) {
+		Player player = data.caster() instanceof Player p ? p : null;
 
-					int delay = Math.max(pickupDelay.get(caster, null, power, args), 0);
-					dropped.setPickupDelay(delay);
+		boolean openInstead = this.openInstead.get(data);
+		if (openInstead && player == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-					playSpellEffects(EffectPosition.SPECIAL, dropped, power, args);
-				}
+		ItemStack book = createBook(player, data);
+		if (openInstead) {
+			player.openBook(book);
+			playSpellEffects(data);
+
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		}
+
+		boolean added = false;
+		if (addToInventory.get(data)) {
+			EntityEquipment eq = data.caster().getEquipment();
+			if (eq != null && eq.getItemInMainHand().getType().isAir()) {
+				eq.setItemInMainHand(book);
+				added = true;
+			} else if (player != null) {
+				added = Util.addToInventory(player.getInventory(), book, false, false);
 			}
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		if (!added) {
+			Item dropped = data.caster().getWorld().dropItem(data.caster().getLocation(), book, item -> {
+				item.setPickupDelay(Math.max(pickupDelay.get(data), 0));
+				item.setGravity(gravity.get(data));
+			});
+
+			playSpellEffects(EffectPosition.SPECIAL, dropped, data);
+		}
+
+		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		Player player = caster instanceof Player p ? p : null;
+	public CastResult castAtLocation(SpellData data) {
+		Player player = data.caster() instanceof Player p ? p : null;
 
-		ItemStack item = createBook(player, args);
-		Item dropped = target.getWorld().dropItem(target, item);
-		dropped.setItemStack(item);
-		dropped.setGravity(gravity);
+		ItemStack book = createBook(player, data);
+		Location location = data.location();
 
-		int delay = Math.max(pickupDelay.get(caster, null, power, args), 0);
-		dropped.setPickupDelay(delay);
+		Item dropped = location.getWorld().dropItem(location, book);
+		dropped.setPickupDelay(Math.max(pickupDelay.get(data), 0));
+		dropped.setGravity(gravity.get(data));
 
-		playSpellEffects(EffectPosition.SPECIAL, dropped, power, args);
-		return true;
+		playSpellEffects(data);
+		playSpellEffects(EffectPosition.SPECIAL, dropped, data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return castAtLocation(null, target, power, args);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(null, target, power, null);
-	}
-
-	private static Component createComponent(String raw, Player player, String displayName, String[] args) {
+	private static Component createComponent(String raw, Player player, String displayName, SpellData data) {
 		if (player != null) {
 			raw = RegexUtil.replaceAll(NAME_VARIABLE_PATTERN, raw, player.getName());
 			if (displayName != null) raw = RegexUtil.replaceAll(DISPLAY_NAME_VARIABLE_PATTERN, raw, displayName);
-			raw = MagicSpells.doReplacements(raw, player, args);
+			raw = MagicSpells.doReplacements(raw, player, data);
 		}
 		return Util.getMiniMessage(raw);
 	}
 
-	private ItemStack createBook(Player player, String[] args) {
+	private ItemStack createBook(Player player, SpellData data) {
 		String playerDisplayName = null;
 		if (player != null) playerDisplayName = Util.getStringFromComponent(player.displayName());
 
@@ -134,33 +127,33 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 		List<String> lore = new ArrayList<>(this.lore);
 		List<String> pages = new ArrayList<>(this.pages);
 
-		if (args != null) {
-			for (int i = 0; i < args.length; i++) {
-				title = title.replace("{{" + i + "}}", args[i]);
-				author = author.replace("{{" + i + "}}", args[i]);
+		if (data.hasArgs()) {
+			for (int i = 0; i < data.args().length; i++) {
+				title = title.replace("{{" + i + "}}", data.args()[i]);
+				author = author.replace("{{" + i + "}}", data.args()[i]);
 				for (int l = 0; l < lore.size(); l++) {
-					lore.set(l, lore.get(l).replace("{{" + i + "}}", args[i]));
+					lore.set(l, lore.get(l).replace("{{" + i + "}}", data.args()[i]));
 				}
 				for (int p = 0; p < pages.size(); p++) {
-					pages.set(p, pages.get(p).replace("{{" + i + "}}", args[i]));
+					pages.set(p, pages.get(p).replace("{{" + i + "}}", data.args()[i]));
 				}
 			}
 		}
 
 		List<Component> pagesRaw = new ArrayList<>();
 		for (String page : pages) {
-			pagesRaw.add(createComponent(page, player, playerDisplayName, args));
+			pagesRaw.add(createComponent(page, player, playerDisplayName, data));
 		}
 		List<Component> loreRaw = new ArrayList<>();
 		for (String line : lore) {
-			loreRaw.add(createComponent(line, player, playerDisplayName, args));
+			loreRaw.add(createComponent(line, player, playerDisplayName, data));
 		}
 
 		ItemStack item = new ItemStack(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta) ((BookMeta) item.getItemMeta())
-				.title(createComponent(title, player, playerDisplayName, args))
-				.author(createComponent(author, player, playerDisplayName, args))
-				.pages(pagesRaw);
+			.title(createComponent(title, player, playerDisplayName, data))
+			.author(createComponent(author, player, playerDisplayName, data))
+			.pages(pagesRaw);
 		meta.lore(loreRaw);
 		item.setItemMeta(meta);
 		return item;
@@ -172,30 +165,6 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 
 	public static Pattern getDisplayNameVariablePattern() {
 		return DISPLAY_NAME_VARIABLE_PATTERN;
-	}
-
-	public boolean isOpenInstead() {
-		return openInstead;
-	}
-
-	public void setOpenInstead(boolean openInstead) {
-		this.openInstead = openInstead;
-	}
-
-	public boolean hasGravity() {
-		return gravity;
-	}
-
-	public void setGravity(boolean gravity) {
-		this.gravity = gravity;
-	}
-
-	public boolean shouldAddToInventory() {
-		return addToInventory;
-	}
-
-	public void setAddToInventory(boolean addToInventory) {
-		this.addToInventory = addToInventory;
 	}
 
 	public String getTitle() {

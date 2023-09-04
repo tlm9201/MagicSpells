@@ -7,17 +7,19 @@ import org.bukkit.configuration.ConfigurationSection;
 import de.slikey.effectlib.util.DynamicLocation;
 
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 public class EffectLibLineEffect extends EffectLibEffect {
 
-	private boolean forceStaticOriginLocation;
-	private boolean forceStaticTargetLocation;
+	private ConfigData<Boolean> forceStaticOriginLocation;
+	private ConfigData<Boolean> forceStaticTargetLocation;
 	
 	@Override
 	public void loadFromConfig(ConfigurationSection section) {
 		super.loadFromConfig(section);
-		forceStaticOriginLocation = section.getBoolean("static-origin-location", true);
-		forceStaticTargetLocation = section.getBoolean("static-target-location", false);
+		forceStaticOriginLocation = ConfigDataUtil.getBoolean(section, "static-origin-location", true);
+		forceStaticTargetLocation = ConfigDataUtil.getBoolean(section, "static-target-location", false);
 	}
 	
 	@Override
@@ -30,11 +32,11 @@ public class EffectLibLineEffect extends EffectLibEffect {
 	@Override
 	public void playTrackingLinePatterns(Location origin, Location target, Entity originEntity, Entity targetEntity, SpellData data) {
 		if (!initialize()) return;
-		if (forceStaticOriginLocation) {
+		if (forceStaticOriginLocation.get(data)) {
 			if (origin == null && originEntity != null) origin = originEntity.getLocation();
 			originEntity = null;
 		}
-		if (forceStaticTargetLocation) {
+		if (forceStaticTargetLocation.get(data)) {
 			if (target == null && targetEntity != null) target = targetEntity.getLocation();
 			targetEntity = null;
 		}

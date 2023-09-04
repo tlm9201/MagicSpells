@@ -11,46 +11,75 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.CastData;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class FlamewalkSpell extends BuffSpell {
 
-	private final Map<UUID, CastData> entities;
+	private final Map<UUID, FlamewalkData> entities;
 
-	private ConfigData<Integer> fireTicks;
-	private ConfigData<Double> radius;
-	private int tickInterval;
+	private final ConfigData<Double> radius;
 
-	private boolean powerAffectsFireTicks;
-	private boolean checkPlugins;
+	private final int tickInterval;
+	private final ConfigData<Integer> fireTicks;
+
+	private final ConfigData<Boolean> checkPlugins;
+	private final ConfigData<Boolean> constantRadius;
+	private final ConfigData<Boolean> constantFireTicks;
+	private final ConfigData<Boolean> powerAffectsFireTicks;
 
 	private Burner burner;
 
 	public FlamewalkSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		radius = getConfigDataDouble("radius", 8);
 		fireTicks = getConfigDataInt("fire-ticks", 80);
 		tickInterval = getConfigInt("tick-interval", 100);
 
-		checkPlugins = getConfigBoolean("check-plugins", true);
-		powerAffectsFireTicks = getConfigBoolean("power-affects-fire-ticks", true);
+		radius = getConfigDataDouble("radius", 8);
+
+		checkPlugins = getConfigDataBoolean("check-plugins", true);
+		constantRadius = getConfigDataBoolean("constant-radius", true);
+		constantFireTicks = getConfigDataBoolean("constant-fire-ticks", true);
+		powerAffectsFireTicks = getConfigDataBoolean("power-affects-fire-ticks", true);
 
 		entities = new HashMap<>();
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		entities.put(entity.getUniqueId(), new CastData(power, args));
+	public boolean castBuff(SpellData data) {
 		if (burner == null) burner = new Burner();
+
+		boolean constantRadius = this.constantRadius.get(data);
+		boolean constantFireTicks = this.constantFireTicks.get(data);
+
+		int fireTicks = 0;
+		if (constantFireTicks) {
+			fireTicks = this.fireTicks.get(data);
+			if (powerAffectsFireTicks.get(data)) fireTicks = Math.round(fireTicks * data.power());
+		}
+
+		entities.put(data.target().getUniqueId(), new FlamewalkData(
+			data,
+			checkPlugins.get(data),
+			constantRadius ? radius.get(data) : 0,
+			constantRadius,
+			fireTicks,
+			constantFireTicks
+		));
+
 		return true;
+	}
+
+	@Override
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		return castBuff(data);
 	}
 
 	@Override
@@ -77,16 +106,11 @@ public class FlamewalkSpell extends BuffSpell {
 		burner = null;
 	}
 
-	public Map<UUID, CastData> getEntities() {
+	public Map<UUID, FlamewalkData> getEntities() {
 		return entities;
 	}
 
-	public boolean shouldCheckPlugins() {
-		return checkPlugins;
-	}
-
-	public void setCheckPlugins(boolean checkPlugins) {
-		this.checkPlugins = checkPlugins;
+	private record FlamewalkData(SpellData spellData, boolean checkPlugins, double radius, boolean constantRadius, int fireTicks, boolean constantFireTicks) {
 	}
 
 	private class Burner implements Runnable {
@@ -105,36 +129,43 @@ public class FlamewalkSpell extends BuffSpell {
 		public void run() {
 			for (UUID id : entities.keySet()) {
 				Entity e = Bukkit.getEntity(id);
-				if (!(e instanceof LivingEntity entity)) continue;
-				if (isExpired(entity)) {
-					turnOff(entity);
+				if (!(e instanceof LivingEntity caster)) continue;
+
+				if (isExpired(caster)) {
+					turnOff(caster);
 					continue;
 				}
 
-				CastData data = entities.get(entity.getUniqueId());
-				playSpellEffects(EffectPosition.DELAYED, entity, new SpellData(entity, data.power(), data.args()));
+				FlamewalkData data = entities.get(caster.getUniqueId());
+				playSpellEffects(EffectPosition.DELAYED, caster, data.spellData);
 
-				double radius = Math.min(FlamewalkSpell.this.radius.get(entity, null, data.power(), data.args()), MagicSpells.getGlobalRadius());
-				List<Entity> entities = entity.getNearbyEntities(radius, radius, radius);
-				for (Entity target : entities) {
-					if (!(target instanceof LivingEntity livingTarget)) continue;
-					if (validTargetList != null && !validTargetList.canTarget(target)) continue;
-					if (entity.equals(target)) continue;
-					if (checkPlugins) {
-						MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(entity, target, DamageCause.ENTITY_ATTACK, 1, FlamewalkSpell.this);
-						EventUtil.call(event);
-						if (event.isCancelled()) continue;
+				double radius = data.constantRadius ? data.radius : FlamewalkSpell.this.radius.get(data.spellData);
+				radius = Math.min(radius, MagicSpells.getGlobalRadius());
+
+				for (Entity entity : caster.getNearbyEntities(radius, radius, radius)) {
+					if (!(entity instanceof LivingEntity target) || !validTargetList.canTarget(target)) continue;
+
+					if (data.checkPlugins) {
+						MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, DamageCause.ENTITY_ATTACK, 1, FlamewalkSpell.this);
+						if (!event.callEvent()) continue;
 					}
 
-					int fireTicks = FlamewalkSpell.this.fireTicks.get(entity, livingTarget, data.power(), data.args());
-					if (powerAffectsFireTicks) fireTicks = Math.round(fireTicks * data.power());
+					SpellTargetEvent targetEvent = new SpellTargetEvent(FlamewalkSpell.this, data.spellData, target);
+					if (targetEvent.callEvent()) continue;
+
+					SpellData subData = targetEvent.getSpellData();
+
+					int fireTicks;
+					if (!data.constantFireTicks) {
+						fireTicks = FlamewalkSpell.this.fireTicks.get(subData);
+						if (powerAffectsFireTicks.get(subData)) fireTicks = Math.round(fireTicks * subData.power());
+					} else fireTicks = data.fireTicks;
+
 					target.setFireTicks(fireTicks);
+					addUseAndChargeCost(caster);
 
-					addUseAndChargeCost(entity);
-
-					SpellData spellData = new SpellData(entity, livingTarget, data.power(), data.args());
-					playSpellEffects(EffectPosition.TARGET, target, spellData);
-					playSpellEffectsTrail(entity.getLocation(), target.getLocation(), spellData);
+					playSpellEffects(EffectPosition.TARGET, target, subData);
+					playSpellEffectsTrail(caster.getLocation(), entity.getLocation(), subData);
 				}
 
 			}

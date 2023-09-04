@@ -1,17 +1,12 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Map;
-import java.util.List;
-import java.util.UUID;
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.LinkedListMultimap;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -20,13 +15,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.TargetInfo;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.VariableMod;
-import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
@@ -38,7 +29,7 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
-	private static boolean deathRegistered;
+	private static DeathListener deathListener;
 
 	private final Multimap<UUID, Loop> activeLoops = HashMultimap.create();
 
@@ -48,21 +39,21 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	private final ConfigData<Long> duration;
 	private final ConfigData<Long> interval;
 
-	private final double yOffset;
+	private final ConfigData<Double> yOffset;
 
-	private final boolean targeted;
-	private final boolean pointBlank;
-	private final boolean stopOnFail;
-	private final boolean cancelOnDeath;
-	private final boolean passTargeting;
-	private final boolean stopOnSuccess;
-	private final boolean requireEntityTarget;
-	private final boolean castRandomSpellInstead;
-	private final boolean skipFirstLoopModifiers;
-	private final boolean skipFirstVariableModsLoop;
-	private final boolean skipFirstLoopTargetModifiers;
-	private final boolean skipFirstLoopLocationModifiers;
-	private final boolean skipFirstVariableModsTargetLoop;
+	private final ConfigData<Boolean> targeted;
+	private final ConfigData<Boolean> pointBlank;
+	private final ConfigData<Boolean> stopOnFail;
+	private final ConfigData<Boolean> cancelOnDeath;
+	private final ConfigData<Boolean> passTargeting;
+	private final ConfigData<Boolean> stopOnSuccess;
+	private final ConfigData<Boolean> requireEntityTarget;
+	private final ConfigData<Boolean> castRandomSpellInstead;
+	private final ConfigData<Boolean> skipFirstLoopModifiers;
+	private final ConfigData<Boolean> skipFirstVariableModsLoop;
+	private final ConfigData<Boolean> skipFirstLoopTargetModifiers;
+	private final ConfigData<Boolean> skipFirstLoopLocationModifiers;
+	private final ConfigData<Boolean> skipFirstVariableModsTargetLoop;
 
 	private final String strFadeSelf;
 	private final String strFadeTarget;
@@ -96,23 +87,23 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		duration = getConfigDataLong("duration", 0);
 		interval = getConfigDataLong("interval", 20);
 
-		yOffset = getConfigDouble("y-offset", 0);
+		yOffset = getConfigDataDouble("y-offset", 0);
 
-		targeted = getConfigBoolean("targeted", true);
-		pointBlank = getConfigBoolean("point-blank", false);
-		stopOnFail = getConfigBoolean("stop-on-fail", false);
-		passTargeting = getConfigBoolean("pass-targeting", true);
-		cancelOnDeath = getConfigBoolean("cancel-on-death", false);
-		stopOnSuccess = getConfigBoolean("stop-on-success", false);
-		requireEntityTarget = getConfigBoolean("require-entity-target", false);
-		castRandomSpellInstead = getConfigBoolean("cast-random-spell-instead", false);
+		targeted = getConfigDataBoolean("targeted", true);
+		pointBlank = getConfigDataBoolean("point-blank", false);
+		stopOnFail = getConfigDataBoolean("stop-on-fail", false);
+		passTargeting = getConfigDataBoolean("pass-targeting", true);
+		cancelOnDeath = getConfigDataBoolean("cancel-on-death", false);
+		stopOnSuccess = getConfigDataBoolean("stop-on-success", false);
+		requireEntityTarget = getConfigDataBoolean("require-entity-target", false);
+		castRandomSpellInstead = getConfigDataBoolean("cast-random-spell-instead", false);
 
-		boolean skipFirst = getConfigBoolean("skip-first", false);
-		skipFirstLoopModifiers = getConfigBoolean("skip-first-loop-modifiers", skipFirst);
-		skipFirstVariableModsLoop = getConfigBoolean("skip-first-variable-mods-loop", skipFirst);
-		skipFirstLoopTargetModifiers = getConfigBoolean("skip-first-loop-target-modifiers", skipFirst);
-		skipFirstLoopLocationModifiers = getConfigBoolean("skip-first-loop-location-modifiers", skipFirst);
-		skipFirstVariableModsTargetLoop = getConfigBoolean("skip-first-variable-mods-target-loop", skipFirst);
+		ConfigData<Boolean> skipFirst = getConfigDataBoolean("skip-first", false);
+		skipFirstLoopModifiers = getConfigDataBoolean("skip-first-loop-modifiers", skipFirst);
+		skipFirstVariableModsLoop = getConfigDataBoolean("skip-first-variable-mods-loop", skipFirst);
+		skipFirstLoopTargetModifiers = getConfigDataBoolean("skip-first-loop-target-modifiers", skipFirst);
+		skipFirstLoopLocationModifiers = getConfigDataBoolean("skip-first-loop-location-modifiers", skipFirst);
+		skipFirstVariableModsTargetLoop = getConfigDataBoolean("skip-first-variable-mods-target-loop", skipFirst);
 
 		strFadeSelf = getConfigString("str-fade-self", "");
 		strFadeTarget = getConfigString("str-fade-target", "");
@@ -130,9 +121,9 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	public void initialize() {
 		super.initialize();
 
-		if (cancelOnDeath && !deathRegistered) {
-			deathRegistered = true;
-			registerEvents(new DeathListener());
+		if (deathListener == null) {
+			deathListener = new DeathListener();
+			registerEvents(deathListener);
 		}
 
 		if (spellOnEndName != null) {
@@ -219,99 +210,45 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			LivingEntity entityTarget = null;
-			Location locationTarget = null;
-
-			if (targeted) {
-				if (requireEntityTarget) {
-					TargetInfo<LivingEntity> info = getTargetedEntity(caster, power);
-					if (info.noTarget()) return noTarget(caster, args, info);
-
-					entityTarget = info.target();
-					power = info.power();
-				} else if (pointBlank) {
-					locationTarget = caster.getLocation();
-				} else {
-					Block block = getTargetedBlock(caster, power, args);
-
-					if (block != null) {
-						locationTarget = block.getLocation();
-						locationTarget.add(0.5, yOffset + 0.5, 0.5);
-
-						SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, locationTarget, power, args);
-						if (!event.callEvent()) return noTarget(caster, args);
-
-						locationTarget = event.getTargetLocation();
-						power = event.getPower();
-					}
-				}
-
-				if (entityTarget == null && locationTarget == null) return noTarget(caster, args);
-			}
-
-			initLoop(caster, entityTarget, locationTarget, power, args);
-
-			if (entityTarget != null) {
-				sendMessages(caster, entityTarget, args);
-				return PostCastAction.NO_MESSAGES;
+	public CastResult cast(SpellData data) {
+		if (targeted.get(data)) {
+			if (requireEntityTarget.get(data)) {
+				TargetInfo<LivingEntity> info = getTargetedEntity(data);
+				if (info.noTarget()) return noTarget(info);
+				data = info.spellData();
+			} else if (pointBlank.get(data)) {
+				SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
+				if (!targetEvent.callEvent()) return noTarget(targetEvent);
+				data = targetEvent.getSpellData();
+			} else {
+				TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, yOffset.get(data) + 0.5, 0.5);
+				if (info.noTarget()) return noTarget(info);
+				data = info.spellData();
 			}
 		}
 
-		return PostCastAction.HANDLE_NORMALLY;
+		return initLoop(data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		initLoop(caster, target, null, power, args);
-		return true;
+	public CastResult castAtLocation(SpellData data) {
+		data = data.location(data.location().add(0, yOffset.get(data), 0));
+		return initLoop(data);
 	}
 
 	@Override
-	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		if (!validTargetList.canTarget(caster, target)) return false;
-		initLoop(caster, target, null, power, null);
-		return true;
+	public CastResult castAtEntity(SpellData data) {
+		return initLoop(data);
 	}
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power, String[] args) {
-		if (!validTargetList.canTarget(target)) return false;
-		initLoop(null, target, null, power, args);
-		return true;
-	}
+	private CastResult initLoop(SpellData data) {
+		Loop loop = new Loop(data);
 
-	@Override
-	public boolean castAtEntity(LivingEntity target, float power) {
-		if (!validTargetList.canTarget(target)) return false;
-		initLoop(null, target, null, power, null);
-		return true;
-	}
+		if (data.hasTarget()) activeLoops.put(data.target().getUniqueId(), loop);
+		else if (data.hasCaster()) activeLoops.put(data.caster().getUniqueId(), loop);
+		else activeLoops.put(null, loop);
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
-		initLoop(caster, null, target.clone().add(0, yOffset, 0), power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		initLoop(caster, null, target.clone().add(0, yOffset, 0), power, null);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		initLoop(null, null, target.clone().add(0, yOffset, 0), power, args);
-		return true;
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		initLoop(null, null, target.clone().add(0, yOffset, 0), power, null);
-		return true;
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public Multimap<UUID, Loop> getActiveLoops() {
@@ -334,78 +271,87 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	@Override
 	protected void turnOff() {
+		if (deathListener != null) {
+			unregisterEvents(deathListener);
+			deathListener = null;
+		}
+
 		activeLoops.forEach((target, loop) -> loop.cancel(false));
 		activeLoops.clear();
 	}
 
-	private void initLoop(LivingEntity caster, LivingEntity targetEntity, Location targetLocation, float power, String[] args) {
-		Loop loop = new Loop(caster, targetEntity, targetLocation, power, args);
-
-		if (targetEntity != null) activeLoops.put(targetEntity.getUniqueId(), loop);
-		else if (caster != null) activeLoops.put(caster.getUniqueId(), loop);
-		else activeLoops.put(null, loop);
-	}
-
 	public class Loop implements Runnable {
 
-		private final LivingEntity caster;
+		private SpellData data;
 
-		private final LivingEntity targetEntity;
-		private final Location targetLocation;
+		private final boolean stopOnFail;
+		private final boolean cancelOnDeath;
+		private final boolean passTargeting;
+		private final boolean stopOnSuccess;
+		private final boolean castRandomSpellInstead;
+		private final boolean skipFirstLoopModifiers;
+		private final boolean skipFirstVariableModsLoop;
+		private final boolean skipFirstLoopTargetModifiers;
+		private final boolean skipFirstLoopLocationModifiers;
+		private final boolean skipFirstVariableModsTargetLoop;
 
 		private final long iterations;
 		private final int taskId;
 
-		private SpellData data;
 		private long count;
 
-		private Loop(LivingEntity caster, LivingEntity targetEntity, Location targetLocation, float power, String[] args) {
-			this.caster = caster;
+		private Loop(SpellData data) {
+			this.data = data;
 
-			this.targetLocation = targetLocation;
-			this.targetEntity = targetEntity;
+			taskId = MagicSpells.scheduleRepeatingTask(this, delay.get(data), interval.get(data));
+			iterations = LoopSpell.this.iterations.get(data);
 
-			data = new SpellData(caster, targetEntity, power, args);
-			taskId = MagicSpells.scheduleRepeatingTask(this, delay.get(caster, targetEntity, power, args), interval.get(caster, targetEntity, power, args));
-			iterations = LoopSpell.this.iterations.get(caster, targetEntity, power, args);
+			stopOnFail = LoopSpell.this.stopOnFail.get(data);
+			cancelOnDeath = LoopSpell.this.cancelOnDeath.get(data);
+			passTargeting = LoopSpell.this.passTargeting.get(data);
+			stopOnSuccess = LoopSpell.this.stopOnSuccess.get(data);
+			castRandomSpellInstead = LoopSpell.this.castRandomSpellInstead.get(data);
+			skipFirstLoopModifiers = LoopSpell.this.skipFirstLoopModifiers.get(data);
+			skipFirstVariableModsLoop = LoopSpell.this.skipFirstVariableModsLoop.get(data);
+			skipFirstLoopTargetModifiers = LoopSpell.this.skipFirstLoopTargetModifiers.get(data);
+			skipFirstLoopLocationModifiers = LoopSpell.this.skipFirstLoopLocationModifiers.get(data);
+			skipFirstVariableModsTargetLoop = LoopSpell.this.skipFirstVariableModsTargetLoop.get(data);
 
-			long dur = duration.get(caster, targetEntity, power, args);
+			long dur = duration.get(data);
 			if (dur > 0) MagicSpells.scheduleDelayedTask(this::cancel, dur);
 		}
 
 		@Override
 		public void run() {
-			if (targetEntity != null && (cancelOnDeath || !(targetEntity instanceof Player)) && !targetEntity.isValid()) {
+			if (data.hasTarget() && !data.target().isValid()) {
 				cancel();
 				return;
 			}
 
-			if (variableModsLoop != null && (!skipFirstVariableModsLoop || count > 0) && caster instanceof Player playerCaster) {
+			if (variableModsLoop != null && (!skipFirstVariableModsLoop || count > 0) && data.caster() instanceof Player playerCaster) {
 				VariableManager variableManager = MagicSpells.getVariableManager();
-				Player playerTarget = targetEntity instanceof Player t ? t : null;
 
 				for (Map.Entry<String, VariableMod> entry : variableModsLoop.entries()) {
 					VariableMod mod = entry.getValue();
 					if (mod == null) continue;
 
-					variableManager.processVariableMods(entry.getKey(), mod, playerCaster, playerCaster, playerTarget, data.power(), data.args());
+					variableManager.processVariableMods(entry.getKey(), mod, playerCaster, data);
 				}
 			}
 
-			if (variableModsTargetLoop != null && (!skipFirstVariableModsTargetLoop || count > 0) && targetEntity instanceof Player playerTarget) {
+			if (variableModsTargetLoop != null && (!skipFirstVariableModsTargetLoop || count > 0) && data.target() instanceof Player playerTarget) {
 				VariableManager variableManager = MagicSpells.getVariableManager();
-				Player playerCaster = caster instanceof Player p ? p : null;
 
 				for (Map.Entry<String, VariableMod> entry : variableModsTargetLoop.entries()) {
 					VariableMod mod = entry.getValue();
 					if (mod == null) continue;
 
-					variableManager.processVariableMods(entry.getKey(), mod, playerTarget, playerCaster, playerTarget, data.power(), data.args());
+					variableManager.processVariableMods(entry.getKey(), mod, playerTarget, data);
 				}
 			}
 
 			if (loopModifiers != null && (!skipFirstLoopModifiers || count > 0)) {
-				ModifierResult result = loopModifiers.apply(caster, data);
+				ModifierResult result = loopModifiers.apply(data.caster(), data);
 				data = result.data();
 
 				if (!result.check()) {
@@ -414,8 +360,8 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				}
 			}
 
-			if (targetEntity != null && loopTargetModifiers != null && (!skipFirstLoopTargetModifiers || count > 0)) {
-				ModifierResult result = loopTargetModifiers.apply(caster, targetEntity, data);
+			if (data.hasTarget() && loopTargetModifiers != null && (!skipFirstLoopTargetModifiers || count > 0)) {
+				ModifierResult result = loopTargetModifiers.apply(data.caster(), data.target(), data);
 				data = result.data();
 
 				if (!result.check()) {
@@ -424,8 +370,8 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				}
 			}
 
-			if (targetLocation != null && loopLocationModifiers != null && (!skipFirstLoopLocationModifiers || count > 0)) {
-				ModifierResult result = loopLocationModifiers.apply(caster, targetLocation, data);
+			if (data.hasLocation() && loopLocationModifiers != null && (!skipFirstLoopLocationModifiers || count > 0)) {
+				ModifierResult result = loopLocationModifiers.apply(data.caster(), data.location(), data);
 				data = result.data();
 
 				if (!result.check()) {
@@ -445,26 +391,14 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				}
 			}
 
-			if (caster != null) {
-				if (targetEntity != null) playSpellEffects(caster, targetEntity, data);
-				else if (targetLocation != null) playSpellEffects(caster, targetLocation, data);
-				else playSpellEffects(EffectPosition.CASTER, caster, data);
-			} else {
-				if (targetEntity != null) playSpellEffects(EffectPosition.TARGET, targetEntity, data);
-				else if (targetLocation != null) playSpellEffects(EffectPosition.TARGET, targetLocation, data);
-			}
+			playSpellEffects(data);
 
 			count++;
 			if (iterations > 0 && count >= iterations) cancel();
 		}
 
 		private boolean cast(Subspell spell) {
-			boolean success;
-
-			if (targetEntity != null) success = spell.subcast(caster, targetEntity, data.power(), data.args(), passTargeting);
-			else if (targetLocation != null) success = spell.subcast(caster, targetLocation, data.power(), data.args());
-			else success = spell.subcast(caster, data.power(), data.args());
-
+			boolean success = spell.subcast(data, passTargeting).action() != PostCastAction.ALREADY_HANDLED;
 			if (stopOnSuccess && success || stopOnFail && !success) {
 				cancel();
 				return false;
@@ -478,7 +412,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		}
 
 		public LivingEntity getCaster() {
-			return caster;
+			return data.caster();
 		}
 
 		private void cancel() {
@@ -490,29 +424,24 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 			if (remove) {
 				UUID key = null;
-				if (targetEntity != null) key = targetEntity.getUniqueId();
-				else if (caster != null) key = caster.getUniqueId();
+				if (data.hasTarget()) key = data.target().getUniqueId();
+				else if (data.hasCaster()) key = data.caster().getUniqueId();
 
 				activeLoops.remove(key, this);
 			}
 
-			if (targetEntity != null) playSpellEffects(EffectPosition.DELAYED, targetEntity, data);
-			else if (targetLocation != null) playSpellEffects(EffectPosition.DELAYED, targetLocation, data);
-			else if (caster != null) playSpellEffects(EffectPosition.DELAYED, caster, data);
+			if (data.hasTarget()) playSpellEffects(EffectPosition.DELAYED, data.target(), data);
+			else if (data.hasLocation()) playSpellEffects(EffectPosition.DELAYED, data.location(), data);
+			else if (data.hasCaster()) playSpellEffects(EffectPosition.DELAYED, data.caster(), data);
 
-			if (caster != null || targetEntity != null) {
-				String casterName = caster != null ? getTargetName(caster) : "";
-				String targetName = targetEntity != null ? getTargetName(targetEntity) : "";
+			if (data.hasCaster() || data.hasTarget()) {
+				String[] replacements = getReplacements(data);
 
-				sendMessage(strFadeSelf, caster, caster, targetEntity, data.args(), "%a", casterName, "%t", targetName);
-				sendMessage(strFadeTarget, targetEntity, caster, targetEntity, data.args(), "%a", casterName, "%t", targetName);
+				sendMessage(strFadeSelf, data.caster(), data, replacements);
+				sendMessage(strFadeTarget, data.target(), data, replacements);
 			}
 
-			if (spellOnEnd != null) {
-				if (targetEntity != null) spellOnEnd.subcast(caster, targetEntity, data.power(), data.args(), passTargeting);
-				else if (targetLocation != null) spellOnEnd.subcast(caster, targetLocation, data.power(), data.args());
-				else if (caster != null) spellOnEnd.subcast(caster, data.power(), data.args());
-			}
+			if (spellOnEnd != null) spellOnEnd.subcast(data);
 		}
 
 	}
@@ -525,8 +454,14 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 			List<Spell> spells = MagicSpells.getSpellsOrdered();
 			for (Spell spell : spells) {
-				if (!(spell instanceof LoopSpell loopSpell) || !loopSpell.cancelOnDeath) continue;
-				loopSpell.cancelLoops(uuid);
+				if (!(spell instanceof LoopSpell loopSpell)) continue;
+
+				Collection<Loop> loops = loopSpell.getActiveLoops().get(uuid);
+				loops.removeIf(loop -> {
+					if (!loop.cancelOnDeath) return false;
+					loop.cancel(false);
+					return true;
+				});
 			}
 		}
 

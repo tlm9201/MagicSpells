@@ -6,15 +6,14 @@ import java.io.IOException;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.spells.CommandSpell;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
 
 // TODO find a good way of configuring which items to serialize
@@ -26,77 +25,61 @@ import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderMana
 // WARNING: THIS SPELL IS SUBJECT TO BREAKING CHANGES
 // DO NOT USE CURRENTLY IF EXPECTING LONG TERM UNCHANGING BEHAVIOR
 public class ItemSerializeSpell extends CommandSpell {
-	
+
 	private File dataFolder;
 
-	private String serializerKey;
+	private final ConfigData<Integer> indentation;
 
-	private int indentation;
-	
+	private final ConfigData<String> serializerKey;
+
 	public ItemSerializeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		serializerKey = getConfigString("serializer-key", "external::spigot");
+		indentation = getConfigDataInt("indentation", 4);
 
-		indentation = getConfigInt("indentation", 4);
+		serializerKey = getConfigDataString("serializer-key", "external::spigot");
 	}
-	
+
 	@Override
 	protected void initialize() {
 		// Setup data folder
 		dataFolder = new File(MagicSpells.getInstance().getDataFolder(), "items");
 		if (!dataFolder.exists()) dataFolder.mkdirs();
 	}
-	
+
 	@Override
-	protected void turnOff() {
-		super.turnOff();
-		
-		// This is where any resources should be closed if they aren't already
-	}
-	
-	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			ItemStack heldItem = player.getInventory().getItemInMainHand();
-			if (InventoryUtil.isNothing(heldItem)) {
-				player.sendMessage("You must be holding an item in your hand");
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			processItem(heldItem);
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
+		ItemStack item = caster.getInventory().getItemInMainHand();
+		if (item.getType().isAir()) {
+			sendMessage("You must be holding an item in your hand", caster);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		ConfigurationSection section = AlternativeReaderManager.serialize(serializerKey.get(data), item);
+
+		YamlConfiguration config = new YamlConfiguration();
+		config.set("magic-items." + System.currentTimeMillis(), section);
+		config.options().indent(indentation.get(data));
+
+		try {
+			config.save(new File(dataFolder, System.currentTimeMillis() + ".yml"));
+		} catch (IOException e) {
+			sendMessage("Unable to serialize item.", caster);
+			e.printStackTrace();
+
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@Override
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		return false;
 	}
-	
-	private File makeFile() {
-		File file = new File(dataFolder, System.currentTimeMillis() + ".yml");
-		if (file.exists()) return file;
-		try {
-			file.createNewFile();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return file;
-	}
-	
-	private void processItem(ItemStack itemStack) {
-		ConfigurationSection section = AlternativeReaderManager.serialize(serializerKey, itemStack);
-		File file = makeFile();
-		YamlConfiguration outputYaml = new YamlConfiguration();
-		outputYaml.set("magic-items." + System.currentTimeMillis(), section);
-		outputYaml.options().indent(indentation);
-		try {
-			outputYaml.save(file);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
+
 	@Override
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		return null;
@@ -110,20 +93,4 @@ public class ItemSerializeSpell extends CommandSpell {
 		this.dataFolder = dataFolder;
 	}
 
-	public String getSerializerKey() {
-		return serializerKey;
-	}
-
-	public void setSerializerKey(String serializerKey) {
-		this.serializerKey = serializerKey;
-	}
-
-	public int getIndentation() {
-		return indentation;
-	}
-
-	public void setIndentation(int indentation) {
-		this.indentation = indentation;
-	}
-	
 }

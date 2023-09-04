@@ -1,10 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
 
 import org.bukkit.Material;
 import org.bukkit.Location;
@@ -13,21 +9,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.spells.TargetedSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -36,7 +27,8 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 public class PulserSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	private final Map<Block, Pulser> pulsers;
-	private Material material;
+
+	private final ConfigData<BlockData> blockType;
 
 	private final int interval;
 	private final int capPerPlayer;
@@ -45,9 +37,9 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	private final ConfigData<Double> maxDistance;
 
-	private final boolean checkFace;
-	private final boolean unbreakable;
-	private final boolean onlyCountOnSuccess;
+	private final ConfigData<Boolean> checkFace;
+	private final ConfigData<Boolean> unbreakable;
+	private final ConfigData<Boolean> onlyCountOnSuccess;
 
 	private final List<String> spellNames;
 	private List<Subspell> spells;
@@ -62,12 +54,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	public PulserSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		String materialName = getConfigString("block-type", "DIAMOND_BLOCK");
-		material = Util.getMaterial(materialName);
-		if (material == null || !material.isBlock()) {
-			MagicSpells.error("PulserSpell '" + internalName + "' has an invalid block-type defined");
-			material = null;
-		}
+		blockType = getConfigDataBlockData("block-type", Material.DIAMOND_BLOCK.createBlockData());
 
 		yOffset = getConfigDataInt("y-offset", 0);
 		interval = getConfigInt("interval", 30);
@@ -76,9 +63,9 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		maxDistance = getConfigDataDouble("max-distance", 30);
 
-		checkFace = getConfigBoolean("check-face", true);
-		unbreakable = getConfigBoolean("unbreakable", false);
-		onlyCountOnSuccess = getConfigBoolean("only-count-on-success", false);
+		checkFace = getConfigDataBoolean("check-face", true);
+		unbreakable = getConfigDataBoolean("unbreakable", false);
+		onlyCountOnSuccess = getConfigDataBoolean("only-count-on-success", false);
 
 		spellNames = getConfigStringList("spells", null);
 		spellNameOnBreak = getConfigString("spell-on-break", "");
@@ -114,100 +101,92 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	}
 
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL) {
-			if (capPerPlayer > 0) {
-				int count = 0;
-				for (Pulser pulser : pulsers.values()) {
-					if (!pulser.caster.equals(caster)) continue;
-
-					count++;
-					if (count >= capPerPlayer) {
-						sendMessage(strAtCap, caster, args);
-						return PostCastAction.ALREADY_HANDLED;
-					}
-				}
-			}
-			List<Block> lastTwo = getLastTwoTargetedBlocks(caster, power, args);
-			Block target = null;
-
-			if (lastTwo != null && lastTwo.size() == 2) target = lastTwo.get(0);
-			if (target == null) return noTarget(caster, args);
-
-			int yOffset = this.yOffset.get(caster, null, power, args);
-			if (yOffset > 0) target = target.getRelative(BlockFace.UP, yOffset);
-			else if (yOffset < 0) target = target.getRelative(BlockFace.DOWN, yOffset);
-			if (!BlockUtils.isPathable(target)) return noTarget(caster, args);
-
-			if (target != null) {
-				SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, caster, target.getLocation(), power, args);
-				EventUtil.call(event);
-				if (event.isCancelled()) return noTarget(caster, args);
-				target = event.getTargetLocation().getBlock();
-				power = event.getPower();
-			}
-			createPulser(caster, target, caster.getLocation(), power, args);
-		}
-		return PostCastAction.HANDLE_NORMALLY;
-	}
-
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power, String[] args) {
+	public CastResult cast(SpellData data) {
 		if (capPerPlayer > 0) {
 			int count = 0;
 			for (Pulser pulser : pulsers.values()) {
-				if (!pulser.caster.equals(caster)) continue;
+				if (!Objects.equals(pulser.data.caster(), data.caster())) continue;
 
 				count++;
-				if (count >= capPerPlayer) {
-					sendMessage(strAtCap, caster);
-					return false;
-				}
+				if (count >= capPerPlayer) return noTarget(strAtCap, data);
 			}
 		}
 
-		Block block = target.getBlock();
-		int yOffset = this.yOffset.get(caster, null, power, args);
-		if (yOffset > 0) block = block.getRelative(BlockFace.UP, yOffset);
-		else if (yOffset < 0) block = block.getRelative(BlockFace.DOWN, yOffset);
+		List<Block> lastTwo = getLastTwoTargetedBlocks(data);
+		if (lastTwo.size() != 2) return noTarget(data);
 
-		if (BlockUtils.isPathable(block)) {
-			createPulser(caster, block, target, power, args);
-			return true;
+		Block block = lastTwo.get(0);
+
+		int yOffset = this.yOffset.get(data);
+		if (yOffset != 0) block = block.getRelative(0, yOffset, 0);
+		if (!block.isPassable()) {
+			if (checkFace.get(data)) {
+				Block upper = block.getRelative(BlockFace.UP);
+				if (!upper.isPassable()) return noTarget(data);
+				block = upper;
+			} else return noTarget(data);
 		}
 
-		if (checkFace) {
-			block = block.getRelative(BlockFace.UP);
-			if (BlockUtils.isPathable(block)) {
-				createPulser(caster, block, target, power, args);
-				return true;
+		Location location = block.getLocation().add(0.5, 0.5, 0.5);
+		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
+
+		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation().add(0.5, 0.5, 0.5));
+		if (!event.callEvent()) return noTarget(event);
+
+		event.setTargetLocation(event.getTargetLocation().toCenterLocation());
+		block = event.getTargetLocation().getBlock();
+		data = event.getSpellData();
+
+		createPulser(block, data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
+
+	@Override
+	public CastResult castAtLocation(SpellData data) {
+		if (capPerPlayer > 0 && data.hasCaster()) {
+			int count = 0;
+			for (Pulser pulser : pulsers.values()) {
+				if (!Objects.equals(pulser.data.caster(), data.caster())) continue;
+
+				count++;
+				if (count >= capPerPlayer) return noTarget(strAtCap, data);
 			}
 		}
-		return false;
+
+		Location location = data.location();
+		Block block = location.getBlock();
+
+		int yOffset = this.yOffset.get(data);
+		if (yOffset != 0) block = block.getRelative(0, yOffset, 0);
+
+		if (!block.isPassable()) {
+			if (checkFace.get(data)) {
+				Block upper = block.getRelative(BlockFace.UP);
+				if (!upper.isPassable()) return noTarget(data);
+				block = upper;
+			} else return noTarget(data);
+		}
+
+		float pitch = location.getPitch(), yaw = location.getYaw();
+		location = block.getLocation().toCenterLocation();
+		location.setPitch(pitch);
+		location.setYaw(yaw);
+
+		data = data.location(location);
+		createPulser(block, data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	@Override
-	public boolean castAtLocation(LivingEntity caster, Location target, float power) {
-		return castAtLocation(caster, target, power, null);
-	}
+	private void createPulser(Block block, SpellData data) {
+		BlockData blockType = this.blockType.get(data);
+		block.setBlockData(blockType);
 
-	@Override
-	public boolean castAtLocation(Location target, float power, String[] args) {
-		return castAtLocation(null, target, power, null);
-	}
-
-	@Override
-	public boolean castAtLocation(Location target, float power) {
-		return castAtLocation(null, target, power, null);
-	}
-
-	private void createPulser(LivingEntity caster, Block block, Location from, float power, String[] args) {
-		if (material == null) return;
-		block.setType(material);
-		pulsers.put(block, new Pulser(caster, block, from, power, args));
+		pulsers.put(block, new Pulser(block, blockType.getMaterial(), data));
 		ticker.start();
-		if (caster != null) playSpellEffects(caster, block.getLocation().add(0.5, 0.5, 0.5), power, args);
-		else playSpellEffects(EffectPosition.TARGET, block.getLocation().add(0.5, 0.5, 0.5), power, args);
+
+		playSpellEffects(data);
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -215,7 +194,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		Pulser pulser = pulsers.get(event.getBlock());
 		if (pulser == null) return;
 		event.setCancelled(true);
-		if (unbreakable) return;
+		if (pulser.unbreakable) return;
 		pulser.stop();
 		event.getBlock().setType(Material.AIR);
 		pulsers.remove(event.getBlock());
@@ -231,7 +210,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			if (pulser == null) continue;
 			iter.remove();
 
-			if (unbreakable) continue;
+			if (pulser.unbreakable) continue;
 			pulser.stop();
 			pulsers.remove(b);
 		}
@@ -244,7 +223,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			Pulser pulser = pulsers.get(b);
 			if (pulser == null) continue;
 			event.setCancelled(true);
-			if (unbreakable) continue;
+			if (pulser.unbreakable) continue;
 			pulser.stop();
 			pulsers.remove(b);
 		}
@@ -257,8 +236,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		Iterator<Pulser> iter = pulsers.values().iterator();
 		while (iter.hasNext()) {
 			Pulser pulser = iter.next();
-			if (pulser.caster == null) continue;
-			if (!pulser.caster.equals(player)) continue;
+			if (player.equals(pulser.data.caster())) continue;
 			pulser.stop();
 			iter.remove();
 		}
@@ -275,55 +253,59 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	private class Pulser {
 
-		private final LivingEntity caster;
 		private final Block block;
-		private final Location location;
+		private final Material type;
 		private final SpellData data;
-		private final String[] args;
-		private final float power;
-		private int pulseCount;
+		private final Location location;
 
-		private final double maxDistanceSq;
+		private final boolean unbreakable;
+		private final boolean onlyCountOnSuccess;
+
 		private final int totalPulses;
 
-		private Pulser(LivingEntity caster, Block block, Location from, float power, String[] args) {
-			this.caster = caster;
+		private final double maxDistanceSq;
+
+		private int pulseCount;
+
+		private Pulser(Block block, Material type, SpellData data) {
+			this.data = data;
+			this.type = type;
 			this.block = block;
-			this.location = block.getLocation().add(0.5, 0.5, 0.5).setDirection(from.getDirection());
-			this.power = power;
-			this.args = args;
-			this.pulseCount = 0;
+			this.location = data.location();
 
-			data = new SpellData(caster, power, args);
+			unbreakable = PulserSpell.this.unbreakable.get(data);
+			onlyCountOnSuccess = PulserSpell.this.onlyCountOnSuccess.get(data);
 
-			totalPulses = PulserSpell.this.totalPulses.get(caster, null, power, args);
+			totalPulses = PulserSpell.this.totalPulses.get(data);
 
-			double maxDistance = PulserSpell.this.maxDistance.get(caster, null, power, args);
+			double maxDistance = PulserSpell.this.maxDistance.get(data);
 			maxDistanceSq = maxDistance * maxDistance;
+
+			pulseCount = 0;
 		}
 
 		private boolean pulse() {
-			if (caster == null) {
-				if (material.equals(block.getType()) && block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) return activate();
-				stop();
-				return true;
-			} else if (caster.isValid() && material.equals(block.getType()) && block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) {
-				if (maxDistanceSq > 0 && (!LocationUtil.isSameWorld(location, caster) || location.distanceSquared(caster.getLocation()) > maxDistanceSq)) {
-					stop();
-					return true;
+			if (!type.equals(block.getType()) || !block.getChunk().isLoaded()) return stop();
+
+			if (data.hasCaster()) {
+				if (!data.caster().isValid()) return stop();
+
+				if (maxDistanceSq > 0) {
+					if (!data.caster().getWorld().equals(location.getWorld())) return stop();
+					if (location.distanceSquared(data.caster().getLocation()) > maxDistanceSq) return stop();
 				}
-				return activate();
 			}
-			stop();
-			return true;
+
+			return activate();
 		}
 
 		private boolean activate() {
 			boolean activated = false;
-			for (Subspell spell : spells) {
-				activated = spell.subcast(caster, location, power, args) || activated;
-			}
+			for (Subspell spell : spells)
+				activated = spell.subcast(data).action() != PostCastAction.ALREADY_HANDLED || activated;
+
 			playSpellEffects(EffectPosition.DELAYED, location, data);
+
 			if (totalPulses > 0 && (activated || !onlyCountOnSuccess)) {
 				pulseCount += 1;
 				if (pulseCount >= totalPulses) {
@@ -331,14 +313,16 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 					return true;
 				}
 			}
+
 			return false;
 		}
 
-		private void stop() {
+		private boolean stop() {
 			if (!block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) block.getChunk().load();
 			block.setType(Material.AIR);
 			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-			if (spellOnBreak != null) spellOnBreak.subcast(caster, location, power, args);
+			if (spellOnBreak != null) spellOnBreak.subcast(data);
+			return true;
 		}
 
 	}
@@ -360,10 +344,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		@Override
 		public void run() {
-			for (Map.Entry<Block, Pulser> entry : new HashMap<>(pulsers).entrySet()) {
-				boolean remove = entry.getValue().pulse();
-				if (remove) pulsers.remove(entry.getKey());
-			}
+			pulsers.values().removeIf(Pulser::pulse);
 			if (pulsers.isEmpty()) stop();
 		}
 

@@ -3,22 +3,21 @@ package com.nisovin.magicspells.spells.command;
 import java.util.List;
 
 import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.command.CommandSender;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.CommandSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellLearnEvent;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 
 public class TeachSpell extends CommandSpell {
 
-	private boolean requireKnownSpell;
+	private ConfigData<Boolean> requireKnownSpell;
 
 	private String strUsage;
 	private String strNoSpell;
@@ -31,7 +30,7 @@ public class TeachSpell extends CommandSpell {
 	public TeachSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 		
-		requireKnownSpell = getConfigBoolean("require-known-spell", true);
+		requireKnownSpell = getConfigDataBoolean("require-known-spell", true);
 
 		strUsage = getConfigString("str-usage", "Usage: /cast teach <target> <spell>");
 		strNoSpell = getConfigString("str-no-spell", "You do not know a spell by that name.");
@@ -41,63 +40,70 @@ public class TeachSpell extends CommandSpell {
 		strCastTarget = getConfigString("str-cast-target", "%a has taught you the %s spell.");
 		strAlreadyKnown = getConfigString("str-already-known", "That person already knows that spell.");
 	}
-	
+
 	@Override
-	public PostCastAction castSpell(LivingEntity caster, SpellCastState state, float power, String[] args) {
-		if (state == SpellCastState.NORMAL && caster instanceof Player player) {
-			if (args == null || args.length != 2) {
-				sendMessage(strUsage, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			List<Player> players = MagicSpells.plugin.getServer().matchPlayer(args[0]);
-			if (players.size() != 1) {
-				sendMessage(strNoTarget, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			Spell spell = MagicSpells.getSpellByInGameName(args[1]);
-			Player target = players.get(0);
-			if (spell == null) {
-				sendMessage(strNoSpell, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			if (!spellbook.hasSpell(spell) && requireKnownSpell) {
-				sendMessage(strNoSpell, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			if (!spellbook.canTeach(spell)) {
-				sendMessage(strCantTeach, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			Spellbook targetSpellbook = MagicSpells.getSpellbook(target);
-			if (!targetSpellbook.canLearn(spell)) {
-				sendMessage(strCantLearn, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			if (targetSpellbook.hasSpell(spell)) {
-				sendMessage(strAlreadyKnown, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			boolean cancelled = callEvent(spell, target, player);
-			if (cancelled) {
-				sendMessage(strCantLearn, player, args);
-				return PostCastAction.ALREADY_HANDLED;
-			}
-			targetSpellbook.addSpell(spell);
-			targetSpellbook.save();
+	public CastResult cast(SpellData data) {
+		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-			String playerDisplayName = Util.getStringFromComponent(player.displayName());
-			String targetDisplayName = Util.getStringFromComponent(target.displayName());
-
-			sendMessage(spell.getStrOnTeach() == null ? strCastTarget : spell.getStrOnTeach(), target, args, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
-			sendMessage(strCastSelf, player, args, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
-
-			playSpellEffects(player, target, power, args);
-			return PostCastAction.NO_MESSAGES;
+		if (data.args() == null || data.args().length != 2) {
+			sendMessage(strUsage, player, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-		return PostCastAction.HANDLE_NORMALLY;
+
+		List<Player> players = MagicSpells.plugin.getServer().matchPlayer(data.args()[0]);
+		if (players.size() != 1) {
+			sendMessage(strNoTarget, player, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		Spell spell = MagicSpells.getSpellByInGameName(data.args()[1]);
+		Player target = players.get(0);
+		if (spell == null) {
+			sendMessage(strNoSpell, player, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (!spellbook.hasSpell(spell) && requireKnownSpell.get(data)) {
+			sendMessage(strNoSpell, player, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		if (!spellbook.canTeach(spell)) {
+			sendMessage(strCantTeach, player, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		Spellbook targetSpellbook = MagicSpells.getSpellbook(target);
+		if (!targetSpellbook.canLearn(spell)) {
+			sendMessage(strCantLearn, player, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		if (targetSpellbook.hasSpell(spell)) {
+			sendMessage(strAlreadyKnown, player, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		boolean cancelled = callEvent(spell, target, player);
+		if (cancelled) {
+			sendMessage(strCantLearn, player, data);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
+
+		targetSpellbook.addSpell(spell);
+		targetSpellbook.save();
+
+		String playerDisplayName = Util.getStringFromComponent(player.displayName());
+		String targetDisplayName = Util.getStringFromComponent(target.displayName());
+
+		sendMessage(spell.getStrOnTeach() == null ? strCastTarget : spell.getStrOnTeach(), target, data, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
+		sendMessage(strCastSelf, player, data, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
+
+		playSpellEffects(player, target, data);
+		return new CastResult(PostCastAction.NO_MESSAGES, data);
 	}
-	
+
 	@Override
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		if (args == null || args.length != 2) {
@@ -152,14 +158,6 @@ public class TeachSpell extends CommandSpell {
 		SpellLearnEvent event = new SpellLearnEvent(spell, learner, LearnSource.TEACH, teacher);
 		EventUtil.call(event);
 		return event.isCancelled();
-	}
-
-	public boolean shouldRequireKnownSpell() {
-		return requireKnownSpell;
-	}
-
-	public void setRequireKnownSpell(boolean requireKnownSpell) {
-		this.requireKnownSpell = requireKnownSpell;
 	}
 
 	public String getStrUsage() {

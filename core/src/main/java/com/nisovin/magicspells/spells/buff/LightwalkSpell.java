@@ -14,30 +14,26 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
+import com.nisovin.magicspells.util.config.ConfigData;
 
 public class LightwalkSpell extends BuffSpell {
-	
-	private final Map<UUID, Block> players;
+
+	private final Map<UUID, LightWalkData> players;
 
 	private final Set<Material> allowedTypes;
 
-	private int yOffset;
-	private BlockData blockType;
+	private final ConfigData<Double> yOffset;
+
+	private final ConfigData<BlockData> blockType;
 
 	public LightwalkSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		yOffset = getConfigInt("y-offset", 0);
-
-		String blockTypeString = getConfigString("block-type", "light");
-		try {
-			blockType = Bukkit.createBlockData(blockTypeString.trim().toLowerCase());
-		} catch (IllegalArgumentException e) {
-			MagicSpells.error("LightwalkSpell " + internalName + " has an invalid 'block-type' defined.");
-		}
-		if (blockType == null) blockType = Material.LIGHT.createBlockData();
+		yOffset = getConfigDataDouble("y-offset", 0);
+		blockType = getConfigDataBlockData("block-type", Material.LIGHT.createBlockData());
 
 		players = new HashMap<>();
 
@@ -47,20 +43,34 @@ public class LightwalkSpell extends BuffSpell {
 		if (blockList == null) return;
 		for (String str : blockList) {
 			Material material = Util.getMaterial(str);
-			if (material == null) MagicSpells.error("LightwalkSpell " + internalName + " has an invalid block defined: " + str);
+			if (material == null)
+				MagicSpells.error("LightwalkSpell " + internalName + " has an invalid block defined: " + str);
 			else allowedTypes.add(material);
 		}
 	}
 
-	private Block getBlockToChange(LivingEntity entity) {
-		return entity.getLocation().clone().add(0, yOffset + 0.5, 0).getBlock();
+	@Override
+	public boolean castBuff(SpellData data) {
+		if (!(data.target() instanceof Player target)) return false;
+
+		BlockData blockType = this.blockType.get(data);
+		double yOffset = this.yOffset.get(data) + 0.5;
+
+		Block block = target.getLocation().add(0, yOffset, 0).getBlock();
+		if (allowedTypes.contains(block.getType())) target.sendBlockChange(block.getLocation(), blockType);
+		else block = null;
+
+		LightWalkData walkData = new LightWalkData(blockType, yOffset, block);
+		players.put(data.target().getUniqueId(), walkData);
+
+		return true;
 	}
 
 	@Override
-	public boolean castBuff(LivingEntity entity, float power, String[] args) {
-		if (!(entity instanceof Player)) return false;
-		players.put(entity.getUniqueId(), getBlockToChange(entity));
-		return true;
+	public boolean recastBuff(SpellData data) {
+		stopEffects(data.target());
+		turnOffBuff(data.target());
+		return castBuff(data);
 	}
 
 	@Override
@@ -70,10 +80,10 @@ public class LightwalkSpell extends BuffSpell {
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		Block block = players.remove(entity.getUniqueId());
-		if (block == null) return;
 		if (!(entity instanceof Player player)) return;
-		player.sendBlockChange(block.getLocation(), block.getBlockData());
+
+		LightWalkData data = players.remove(player.getUniqueId());
+		player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
 	}
 
 	@Override
@@ -81,36 +91,39 @@ public class LightwalkSpell extends BuffSpell {
 		for (UUID id : players.keySet()) {
 			Player player = Bukkit.getPlayer(id);
 			if (player == null) continue;
-			Block block = players.get(id);
-			if (block == null) continue;
-			player.sendBlockChange(block.getLocation(), block.getBlockData());
+
+			LightWalkData data = players.get(id);
+			player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
 		}
 
 		players.clear();
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerMove(PlayerMoveEvent event) {
-		Player player = event.getPlayer();
-		if (!isActive(player)) return;
+		if (players.isEmpty() || !event.hasChangedBlock()) return;
 
-		Block oldBlock = players.get(player.getUniqueId());
-		Block newBlock = getBlockToChange(player);
-		if (oldBlock == null) return;
-		if (oldBlock.equals(newBlock)) return;
-		if (!allowedTypes.contains(newBlock.getType())) return;
+		Player player = event.getPlayer();
+
+		LightWalkData data = players.get(player.getUniqueId());
+		if (data == null) return;
+
 		if (isExpired(player)) {
 			turnOff(player);
 			return;
 		}
 
+		Block newBlock = event.getTo().clone().add(0, data.yOffset, 0).getBlock();
+		if (newBlock.equals(data.current) || !allowedTypes.contains(newBlock.getType())) return;
+
+		if (data.current != null) player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
+		player.sendBlockChange(newBlock.getLocation(), data.blockType);
+
 		addUseAndChargeCost(player);
-		players.put(player.getUniqueId(), newBlock);
-		player.sendBlockChange(newBlock.getLocation(), blockType);
-		player.sendBlockChange(oldBlock.getLocation(), oldBlock.getBlockData());
+		data.current = newBlock;
 	}
 
-	public Map<UUID, Block> getPlayers() {
+	public Map<UUID, LightWalkData> getPlayers() {
 		return players;
 	}
 
@@ -118,20 +131,19 @@ public class LightwalkSpell extends BuffSpell {
 		return allowedTypes;
 	}
 
-	public int getYOffset() {
-		return yOffset;
-	}
+	private static final class LightWalkData {
 
-	public void setYOffset(int yOffset) {
-		this.yOffset = yOffset;
-	}
+		private final BlockData blockType;
+		private final double yOffset;
 
-	public BlockData getBlockType() {
-		return blockType;
-	}
+		private Block current;
 
-	public void setBlockType(BlockData blockTyoe) {
-		this.blockType = blockTyoe;
+		private LightWalkData(BlockData blockType, double yOffset, Block current) {
+			this.blockType = blockType;
+			this.yOffset = yOffset;
+			this.current = current;
+		}
+
 	}
 
 }
