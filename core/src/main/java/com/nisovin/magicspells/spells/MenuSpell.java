@@ -215,15 +215,10 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	private ItemStack createItem(String path) {
-		ItemStack item = null;
-		if (isConfigSection(path)) {
-			MagicItem magicItem = MagicItems.getMagicItemFromSection(getConfigSection(path));
-			if (magicItem != null) item = magicItem.getItemStack();
-		} else {
-			MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString(path, ""));
-			if (magicItem != null) item = magicItem.getItemStack();
-		}
-		return item;
+		MagicItem magicItem = isConfigSection(path) ?
+				MagicItems.getMagicItemFromSection(getConfigSection(path)) :
+				MagicItems.getMagicItemFromString(getConfigString(path, ""));
+		return magicItem == null ? null : magicItem.getItemStack();
 	}
 
 	private void open(Player opener, SpellData data, boolean targetOpensMenuInstead) {

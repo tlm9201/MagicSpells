@@ -62,7 +62,7 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		double locationOffset = this.locationOffset.get(data);
 		if (locationOffset != 0) relativeOffset.setX(locationOffset);
 
-		loc.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
+		loc.add(horizOffset.multiply(relativeOffset.getZ()));
 		loc.add(loc.getDirection().clone().multiply(relativeOffset.getX()));
 		loc.setY(loc.getY() + relativeOffset.getY());
 		data = data.location(loc);

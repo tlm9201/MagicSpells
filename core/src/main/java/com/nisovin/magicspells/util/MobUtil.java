@@ -55,12 +55,5 @@ public class MobUtil {
 		if (mob instanceof Mob m) m.setTarget(target);
 	}
 
-	public static EntityType getPigZombieEntityType() {
-		try {
-			return EntityType.valueOf("ZOMBIFIED_PIGLIN");
-		} catch (IllegalArgumentException ex) {
-			return EntityType.valueOf("PIG_ZOMBIE");
-		}
-	}
 
 }

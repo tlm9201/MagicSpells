@@ -97,7 +97,7 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		//relativeOffset
 		Vector startDirection = startLocation.getDirection().normalize();
 		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-		startLocation.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
+		startLocation.add(horizOffset.multiply(relativeOffset.getZ()));
 		startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
 		startLocation.setY(startLocation.getY() + relativeOffset.getY());
 

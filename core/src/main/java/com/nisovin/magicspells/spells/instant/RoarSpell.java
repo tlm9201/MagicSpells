@@ -1,7 +1,5 @@
 package com.nisovin.magicspells.spells.instant;
 
-import java.util.List;
-
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;

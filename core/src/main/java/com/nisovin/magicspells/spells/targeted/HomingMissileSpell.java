@@ -352,7 +352,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				Vector dir = currentLocation.getDirection().normalize();
 				Vector offset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
 				Location effectLoc = currentLocation.clone();
-				effectLoc.add(offset.multiply(effectOffset.getZ())).getBlock().getLocation();
+				effectLoc.add(offset.multiply(effectOffset.getZ()));
 				effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
 				effectLoc.setY(effectLoc.getY() + effectOffset.getY());
 				effectLoc = Util.makeFinite(effectLoc);

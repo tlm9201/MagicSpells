@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells.buff;
 
 import java.util.Map;
-import java.util.List;
 import java.util.UUID;
 import java.util.HashMap;
 

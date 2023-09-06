@@ -3,7 +3,6 @@ package com.nisovin.magicspells.handlers;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffectType;
 
 public class PotionEffectHandler {
@@ -20,15 +19,6 @@ public class PotionEffectHandler {
 
 	public static PotionEffectType getPotionEffectType(String identification) {
 		return potionEffects.get(identification.trim().toLowerCase());
-	}
-
-	public static PotionType getPotionType(String name) {
-		try {
-			return PotionType.valueOf(name.trim().toUpperCase());
-		} catch (IllegalArgumentException e) {
-			DebugHandler.debugIllegalArgumentException(e);
-		}
-		return null;
 	}
 
 }

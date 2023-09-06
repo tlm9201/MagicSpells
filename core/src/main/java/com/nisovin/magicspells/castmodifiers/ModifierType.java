@@ -845,8 +845,6 @@ public enum ModifierType {
 
 		@Override
 		public CustomData buildCustomActionData(String text) {
-			//input format
-			//[<caster|target>:]<variableToModify>;[=|+|*|/][-]<amount|[<caster|target>:]<modifyingVariableName>>
 			VariableModData data = new VariableModData();
 			if (text == null) {
 				data.invalidText = "No data action data defined.";
