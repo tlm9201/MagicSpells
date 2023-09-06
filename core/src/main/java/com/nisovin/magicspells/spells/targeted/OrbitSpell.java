@@ -133,7 +133,9 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		if (requireEntityTarget.get(data)) {
 			TargetInfo<LivingEntity> info = getTargetedEntity(data);
 			if (info.noTarget()) return noTarget(info);
+
 			data = info.spellData();
+			data = data.location(data.target().getLocation());
 
 			new OrbitTracker(data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
@@ -247,7 +249,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			distancePerTick = 6.28f * tickInterval / secondsPerRevolution.get(data) / 20;
 
-			maxDuration = OrbitSpell.this.maxDuration.get(data);
+			maxDuration = OrbitSpell.this.maxDuration.get(data) * TimeUtil.MILLISECONDS_PER_SECOND;
 
 			this.data = data;
 
