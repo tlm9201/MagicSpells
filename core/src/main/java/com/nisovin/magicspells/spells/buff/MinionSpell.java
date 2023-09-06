@@ -393,9 +393,8 @@ public class MinionSpell extends BuffSpell {
 				return;
 			}
 			// Check if the player was damaged by a projectile
-			if (damager instanceof Projectile && ((Projectile) damager).getShooter() instanceof LivingEntity) {
+			if (damager instanceof Projectile projectile && projectile.getShooter() instanceof LivingEntity shooter) {
 				// Check if the shooter is alive
-				Entity shooter = (LivingEntity) ((Projectile) damager).getShooter();
 				if (shooter.isValid() && !shooter.isDead()) damager = shooter;
 			}
 
@@ -403,8 +402,9 @@ public class MinionSpell extends BuffSpell {
 			LivingEntity previousTarget = targets.get(pl.getUniqueId());
 			if (previousTarget != null && previousTarget.getWorld().equals(pl.getWorld()) && pl.getLocation().distanceSquared(previousTarget.getLocation()) < pl.getLocation().distanceSquared(damager.getLocation())) return;
 
-			targets.put(pl.getUniqueId(), (LivingEntity) damager);
-			MobUtil.setTarget(minions.get(pl.getUniqueId()), (LivingEntity) damager);
+			if (!(damager instanceof LivingEntity target)) return;
+			targets.put(pl.getUniqueId(), target);
+			MobUtil.setTarget(minions.get(pl.getUniqueId()), target);
 			return;
 		}
 
