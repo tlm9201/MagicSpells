@@ -67,6 +67,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.commands.CommandHelpFilter;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.util.recipes.CustomRecipes;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.storage.types.TXTFileStorage;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
@@ -408,17 +409,18 @@ public class MagicSpells extends JavaPlugin {
 		log("..." + MagicItems.getMagicItems().size() + " magic items loaded");
 
 		// Load crafting recipes.
-		RecipeHandler.clearRecipes();
 		log("Loading recipes...");
 		if (config.contains(path + "recipes") && config.isSection(path + "recipes")) {
 			ConfigurationSection recipeSec = config.getSection(path + "recipes");
 			for (String recipeKey : recipeSec.getKeys(false)) {
 				ConfigurationSection recipe = recipeSec.getConfigurationSection(recipeKey);
 				if (recipe == null) continue;
-				RecipeHandler.create(recipe);
+				CustomRecipes.create(recipe);
 			}
+			// TODO: This is api added in PaperMC 1.20+
+			// Bukkit.updateRecipes();
 		}
-		log("..." + RecipeHandler.getRecipes().size() + " recipes loaded");
+		log("..." + CustomRecipes.getRecipes().size() + " recipes loaded");
 
 		// Load spells
 		log("Loading spells...");
@@ -2102,6 +2104,7 @@ public class MagicSpells extends JavaPlugin {
 		Bukkit.getScheduler().cancelTasks(this);
 
 		ModifierSet.unload();
+		CustomRecipes.clearRecipes();
 		PromptType.unloadDestructPromptData();
 		CompatBasics.destructExemptionAssistant();
 
