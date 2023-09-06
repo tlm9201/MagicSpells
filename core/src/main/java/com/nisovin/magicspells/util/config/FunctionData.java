@@ -29,7 +29,13 @@ import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
 public class FunctionData<T extends Number> implements ConfigData<T> {
 
-	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(?:((var|castervar|targetvar):(\\w+)(?::(\\d+))?)|(playervar:([a-zA-Z0-9_]{3,16}):(\\w+)(?::(\\d+))?)|(arg:(\\d+):(" + RegexUtil.DOUBLE_PATTERN + "))|((papi|casterpapi|targetpapi):([^%]+))|(playerpapi:([a-zA-Z0-9_]{3,16}):([^%]+)))%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(?:" +
+		"(?<var>(?<varOwner>var|castervar|targetvar):(?<varName>\\w+)(?::(?<varPrecision>\\d+))?)|" +
+		"(?<pVar>playervar:(?<pVarUser>[a-zA-Z0-9_]{3,16}):(?<pVarName>\\w+)(?::(?<pVarPrecision>\\d+))?)|" +
+		"(?<arg>arg:(?<argValue>\\d+):(?<argDefault>" + RegexUtil.DOUBLE_PATTERN + "))|" +
+		"(?<papi>(?<papiOwner>papi|casterpapi|targetpapi):(?<papiValue>[^%]+))|" +
+		"(?<playerPapi>playerpapi:(?<playerPapiUser>[a-zA-Z0-9_]{3,16}):(?<playerPapiValue>[^%]+))" +
+		")%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	private final Map<String, ConfigData<Double>> variables;
 	private final Function<Double, T> converter;
@@ -152,10 +158,10 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 	}
 
 	private static ConfigData<Double> createData(Matcher matcher) {
-		if (matcher.group(1) != null) {
-			String owner = matcher.group(2);
-			String variable = matcher.group(3);
-			String placesString = matcher.group(4);
+		if (matcher.group("var") != null) {
+			String owner = matcher.group("varOwner");
+			String variable = matcher.group("varName");
+			String placesString = matcher.group("varPrecision");
 
 			int places = -1;
 			if (placesString != null) {
@@ -173,10 +179,10 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			};
 		}
 
-		if (matcher.group(5) != null) {
-			String player = matcher.group(6);
-			String variable = matcher.group(7);
-			String placesString = matcher.group(8);
+		if (matcher.group("pVar") != null) {
+			String player = matcher.group("pVarUser");
+			String variable = matcher.group("pVarName");
+			String placesString = matcher.group("pVarPrecision");
 
 			int places = -1;
 			if (placesString != null) {
@@ -190,12 +196,12 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			return new PlayerVariableData(variable, player, places);
 		}
 
-		if (matcher.group(9) != null) {
-			String def = matcher.group(11);
+		if (matcher.group("arg") != null) {
+			String def = matcher.group("argDefault");
 
 			int index;
 			try {
-				index = Integer.parseInt(matcher.group(10));
+				index = Integer.parseInt(matcher.group("argValue"));
 			} catch (NumberFormatException e) {
 				return data -> 0d;
 			}
@@ -204,9 +210,9 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			return new ArgumentData(index - 1, def);
 		}
 
-		if (matcher.group(12) != null) {
-			String owner = matcher.group(13);
-			String papiPlaceholder = '%' + matcher.group(14) + '%';
+		if (matcher.group("papi") != null) {
+			String owner = matcher.group("papiOwner");
+			String papiPlaceholder = '%' + matcher.group("papiValue") + '%';
 
 			return switch (owner.toLowerCase()) {
 				case "casterpapi" -> new CasterPAPIData(papiPlaceholder);
@@ -215,9 +221,9 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 			};
 		}
 
-		if (matcher.group(15) != null) {
-			String player = matcher.group(16);
-			String papiPlaceholder = '%' + matcher.group(17) + '%';
+		if (matcher.group("playerPapi") != null) {
+			String player = matcher.group("playerPapiUser");
+			String papiPlaceholder = '%' + matcher.group("playerPapiValue") + '%';
 
 			return new PlayerPAPIData(papiPlaceholder, player);
 		}
