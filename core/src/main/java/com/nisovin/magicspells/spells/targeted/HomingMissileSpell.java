@@ -407,7 +407,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 			counter++;
 
-			if (hitSpell == null && entityLocationSpell == null) return;
+			if (hitSpell == null) return;
 
 			hitBox.setCenter(currentLocation);
 			if (hitBox.contains(targetLoc)) {
@@ -416,7 +416,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				// Should we bounce the missile back?
 				if (!preImpact.getRedirected()) {
 					// Apparently didn't get redirected, carry out the plans
-					if (hitSpell != null) hitSpell.subcast(data.noLocation());
+					hitSpell.subcast(data.noLocation());
 					if (entityLocationSpell != null) entityLocationSpell.subcast(data.noTarget());
 
 					playSpellEffects(EffectPosition.TARGET, data.target(), data);
