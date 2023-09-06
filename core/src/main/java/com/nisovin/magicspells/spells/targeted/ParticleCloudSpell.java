@@ -29,7 +29,7 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
 public class ParticleCloudSpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntitySpell {
 
-	private ConfigData<Vector> relativeOffset;
+	private final ConfigData<Vector> relativeOffset;
 
 	private final ConfigData<Component> customName;
 
@@ -121,14 +121,16 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 	public CastResult cast(SpellData data) {
 		if (canTargetEntities.get(data)) {
 			TargetInfo<LivingEntity> info = getTargetedEntity(data);
-			if (info.noTarget()) return noTarget(info);
+			if (info.cancelled()) return noTarget(info);
 
-			Location location = info.target().getLocation();
-			location.setDirection(data.caster().getLocation().getDirection());
-			data = info.spellData().location(location);
+			if (!info.noTarget()) {
+				Location location = info.target().getLocation();
+				location.setDirection(data.caster().getLocation().getDirection());
+				data = info.spellData().location(location);
 
-			spawnCloud(data);
-			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+				spawnCloud(data);
+				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+			}
 		}
 
 		if (canTargetLocation.get(data)) {
@@ -188,9 +190,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 			cloud.setRadiusPerTick(radiusPerTick.get(finalData));
 			cloud.setReapplicationDelay(reapplicationDelay.get(finalData));
 
-			for (PotionEffect eff : potionEffects) {
-				cloud.addCustomEffect(eff, true);
-			}
+			for (PotionEffect eff : potionEffects) cloud.addCustomEffect(eff, true);
 
 			if (customName != null) {
 				cloud.customName(customName.get(finalData));
