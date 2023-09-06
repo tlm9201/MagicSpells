@@ -152,10 +152,9 @@ public class GillsSpell extends BuffSpell {
 		}
 
 		event.setCancelled(true);
-		addUseAndChargeCost(livingEntity);
-
 		GillData data = entities.get(livingEntity.getUniqueId());
 		if (data.refillAirBar) livingEntity.setRemainingAir(livingEntity.getMaximumAir());
+		addUseAndChargeCost(livingEntity);
 	}
 
 	@EventHandler

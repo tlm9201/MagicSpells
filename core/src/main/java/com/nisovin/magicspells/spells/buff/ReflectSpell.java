@@ -106,10 +106,10 @@ public class ReflectSpell extends BuffSpell {
 			return;
 		}
 
-		addUseAndChargeCost(target);
 		event.setTarget(event.getCaster());
-
 		ReflectData data = reflectors.get(target.getUniqueId());
+
+		addUseAndChargeCost(target);
 
 		float reflectPower = data.reflectPower;
 		if (!data.constantReflectPower) {

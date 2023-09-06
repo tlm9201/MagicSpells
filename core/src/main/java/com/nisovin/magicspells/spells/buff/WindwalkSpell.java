@@ -224,9 +224,9 @@ public class WindwalkSpell extends BuffSpell {
 				Player player = Bukkit.getPlayer(id);
 				if (player == null || !player.isValid()) continue;
 
-				addUseAndChargeCost(player);
-
 				FlyData data = players.get(id);
+
+				addUseAndChargeCost(player);
 
 				float flySpeed = data.constantFlySpeed ? data.flySpeed : WindwalkSpell.this.flySpeed.get(data.spellData);
 				player.setFlySpeed(flySpeed);

@@ -461,9 +461,9 @@ public class MinionSpell extends BuffSpell {
 			// Check if the entity can be targeted by the minion
 			if (!minionTargetList.canTarget(entity)) return;
 
-			addUseAndChargeCost(pl);
 			targets.put(pl.getUniqueId(),entity);
 			MobUtil.setTarget(minions.get(pl.getUniqueId()), entity);
+			addUseAndChargeCost(pl);
 
 		}
 

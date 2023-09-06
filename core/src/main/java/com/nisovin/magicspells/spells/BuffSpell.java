@@ -344,9 +344,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	/**
-	 * Adds a use to the spell for the livingEntity. If the number of uses exceeds the amount allowed, the spell will immediately expire.
-	 * Removes this spell's use cost from the livingEntity's inventory. This does not return anything, to get useful return values, use
-	 * addUse() and chargeUseCost().
+	 * This method calls {@link BuffSpell#addUse(LivingEntity)} and {@link BuffSpell#chargeUseCost(LivingEntity)}.
+	 * For that reason, it may cause the buff spell to end. It's safest to call at end.
 	 *
 	 * @param entity the livingEntity to add a use and charge cost to
 	 */
