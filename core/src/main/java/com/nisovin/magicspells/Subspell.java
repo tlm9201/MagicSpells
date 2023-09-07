@@ -115,10 +115,7 @@ public class Subspell {
 
 								return ret;
 							};
-						} catch (IllegalArgumentException e) {
-							MagicSpells.error("Invalid spell arguments '" + value + "' on subspell '" + subspell + "'.");
-							DebugHandler.debugIllegalArgumentException(e);
-						} catch (ClassCastException | JsonSyntaxException e) {
+						} catch (IllegalStateException | JsonSyntaxException e) {
 							MagicSpells.error("Invalid spell arguments '" + value + "' on subspell '" + subspell + "'.");
 							DebugHandler.debug(e);
 						}
