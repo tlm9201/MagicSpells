@@ -2170,13 +2170,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected String getTargetName(LivingEntity target) {
-		if (target instanceof Player) return target.getName();
-
-		EntityType type = target.getType();
-		String name = MagicSpells.getEntityNames().get(type);
-		if (name != null) return name;
-
-		return Util.getStringFromComponent(target.name());
+		return MagicSpells.getTargetName(target);
 	}
 
 	protected String[] getReplacements(SpellData data, String... replacements) {
