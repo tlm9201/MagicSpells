@@ -331,7 +331,7 @@ public class EntityData {
 		Vector relativeOffset = this.relativeOffset.get(data);
 
 		Vector horizOffset = new Vector(-dir.getZ(), 0, dir.getX()).normalize();
-		startLoc.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
+		startLoc.add(horizOffset.multiply(relativeOffset.getZ()));
 		startLoc.add(startLoc.getDirection().clone().multiply(relativeOffset.getX()));
 		startLoc.setY(startLoc.getY() + relativeOffset.getY());
 

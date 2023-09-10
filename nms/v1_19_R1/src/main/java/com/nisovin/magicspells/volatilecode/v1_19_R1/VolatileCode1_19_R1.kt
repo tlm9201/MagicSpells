@@ -5,7 +5,11 @@ import org.bukkit.entity.*
 import org.bukkit.Location
 import org.bukkit.util.Vector
 import org.bukkit.EntityEffect
+import org.bukkit.NamespacedKey
+import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.RecipeChoice
+import org.bukkit.inventory.SmithingRecipe
 import org.bukkit.event.entity.ExplosionPrimeEvent
 
 import org.bukkit.craftbukkit.v1_19_R1.entity.*
@@ -128,6 +132,17 @@ class VolatileCode1_19_R1(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
 
     override fun playHurtAnimation(entity: LivingEntity?, yaw: Float) {
         entity!!.playEffect(EntityEffect.HURT)
+    }
+
+    override fun createSmithingRecipe(
+        namespacedKey: NamespacedKey,
+        result: ItemStack,
+        template: RecipeChoice,
+        base: RecipeChoice,
+        addition: RecipeChoice,
+        copyNbt: Boolean
+    ): Recipe {
+        return SmithingRecipe(namespacedKey, result, base, addition, copyNbt)
     }
 
 }

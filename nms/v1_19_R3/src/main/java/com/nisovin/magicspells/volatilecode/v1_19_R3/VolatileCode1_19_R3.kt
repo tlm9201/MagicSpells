@@ -5,7 +5,11 @@ import org.bukkit.entity.*
 import org.bukkit.Location
 import org.bukkit.util.Vector
 import org.bukkit.SoundCategory
+import org.bukkit.NamespacedKey
+import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.RecipeChoice
+import org.bukkit.inventory.SmithingRecipe
 import org.bukkit.event.entity.ExplosionPrimeEvent
 
 import org.bukkit.craftbukkit.v1_19_R3.entity.*
@@ -134,6 +138,17 @@ class VolatileCode1_19_R3(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
             (p as CraftPlayer).handle.connection.send(ClientboundHurtAnimationPacket(entityLiving.id, 90f))
             p.playSound(entity.location, "entity.generic.hurt", SoundCategory.PLAYERS, 1F, 1F)
         }
+    }
+
+    override fun createSmithingRecipe(
+        namespacedKey: NamespacedKey,
+        result: ItemStack,
+        template: RecipeChoice,
+        base: RecipeChoice,
+        addition: RecipeChoice,
+        copyNbt: Boolean
+    ): Recipe {
+        return SmithingRecipe(namespacedKey, result, base, addition, copyNbt)
     }
 
 }

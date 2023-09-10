@@ -16,7 +16,6 @@ import org.bukkit.Particle.DustTransition;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.ConfigReaderUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;

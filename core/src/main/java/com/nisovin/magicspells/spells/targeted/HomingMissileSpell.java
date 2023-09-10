@@ -352,7 +352,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				Vector dir = currentLocation.getDirection().normalize();
 				Vector offset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
 				Location effectLoc = currentLocation.clone();
-				effectLoc.add(offset.multiply(effectOffset.getZ())).getBlock().getLocation();
+				effectLoc.add(offset.multiply(effectOffset.getZ()));
 				effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
 				effectLoc.setY(effectLoc.getY() + effectOffset.getY());
 				effectLoc = Util.makeFinite(effectLoc);
@@ -407,7 +407,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 			counter++;
 
-			if (hitSpell == null && entityLocationSpell == null) return;
+			if (hitSpell == null) return;
 
 			hitBox.setCenter(currentLocation);
 			if (hitBox.contains(targetLoc)) {
@@ -416,7 +416,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				// Should we bounce the missile back?
 				if (!preImpact.getRedirected()) {
 					// Apparently didn't get redirected, carry out the plans
-					if (hitSpell != null) hitSpell.subcast(data.noLocation());
+					hitSpell.subcast(data.noLocation());
 					if (entityLocationSpell != null) entityLocationSpell.subcast(data.noTarget());
 
 					playSpellEffects(EffectPosition.TARGET, data.target(), data);

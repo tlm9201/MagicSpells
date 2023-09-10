@@ -51,7 +51,6 @@ public class Subspell {
 	private boolean isTargetedLocation = false;
 	private boolean isTargetedEntityFromLocation = false;
 
-	// spellName(mode=hard|h|full|f|partial|p|direct|d;power=[subpower];delay=[delay];chance=[chance])
 	public Subspell(String subspell) {
 		String[] split = subspell.split("\\(", 2);
 
@@ -116,10 +115,7 @@ public class Subspell {
 
 								return ret;
 							};
-						} catch (IllegalArgumentException e) {
-							MagicSpells.error("Invalid spell arguments '" + value + "' on subspell '" + subspell + "'.");
-							DebugHandler.debugIllegalArgumentException(e);
-						} catch (ClassCastException | JsonSyntaxException e) {
+						} catch (IllegalStateException | JsonSyntaxException e) {
 							MagicSpells.error("Invalid spell arguments '" + value + "' on subspell '" + subspell + "'.");
 							DebugHandler.debug(e);
 						}

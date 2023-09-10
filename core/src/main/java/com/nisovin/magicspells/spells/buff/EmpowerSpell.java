@@ -89,8 +89,8 @@ public class EmpowerSpell extends BuffSpell {
 		LivingEntity caster = event.getCaster();
 		if (caster == null || !isActive(caster) || !filter.check(event.getSpell())) return;
 
-		addUseAndChargeCost(caster);
 		event.increasePower(entities.get(caster.getUniqueId()).get());
+		addUseAndChargeCost(caster);
 	}
 
 	public Map<UUID, Supplier<Float>> getEntities() {

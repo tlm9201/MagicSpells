@@ -74,10 +74,10 @@ public class DamageEmpowerSpell extends BuffSpell {
 		if (!isActive(caster)) return;
 		if (!filter.check(event.getSpell())) return;
 
-		addUseAndChargeCost(caster);
-
 		float damageMultiplier = entities.get(caster.getUniqueId()).get();
 		event.applyDamageModifier(damageMultiplier);
+
+		addUseAndChargeCost(caster);
 	}
 
 	public Map<UUID, Supplier<Float>> getEntities() {

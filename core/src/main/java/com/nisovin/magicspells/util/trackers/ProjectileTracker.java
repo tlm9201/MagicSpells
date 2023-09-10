@@ -113,7 +113,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		Vector startDir = startLocation.clone().getDirection().normalize();
 		Vector horizOffset = new Vector(-startDir.getZ(), 0D, startDir.getX()).normalize();
-		startLocation.add(horizOffset.multiply(relativeOffset.getZ())).getBlock().getLocation();
+		startLocation.add(horizOffset.multiply(relativeOffset.getZ()));
 		startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
 		startLocation.setY(startLocation.getY() + relativeOffset.getY());
 

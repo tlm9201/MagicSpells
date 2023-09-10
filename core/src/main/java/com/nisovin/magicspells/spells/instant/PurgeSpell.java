@@ -2,7 +2,6 @@ package com.nisovin.magicspells.spells.instant;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;

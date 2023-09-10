@@ -6,7 +6,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -50,14 +49,13 @@ public class VariableListener implements Listener {
 		if (event.getSpellCastState() != Spell.SpellCastState.NORMAL) return;
 		Multimap<String, VariableMod> varMods = event.getSpell().getVariableModsCast();
 		if (varMods == null || varMods.isEmpty()) return;
-		LivingEntity caster = event.getCaster();
-		if (!(caster instanceof Player player)) return;
+		if (!(event.getCaster() instanceof Player caster)) return;
 		for (Map.Entry<String, VariableMod> entry : varMods.entries()) {
 			VariableMod mod = entry.getValue();
 			if (mod == null) continue;
 
-			String amount = variableManager.processVariableMods(entry.getKey(), mod, player, event.getSpellData());
-			MagicSpells.debug(3, "Variable '" + entry.getKey() + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell cast '" + event.getSpell().getName() + "'");
+			String amount = variableManager.processVariableMods(entry.getKey(), mod, caster, event.getSpellData());
+			MagicSpells.debug(3, "Variable '" + entry.getKey() + "' for player '" + caster.getName() + "' modified by " + amount + " as a result of spell cast '" + event.getSpell().getName() + "'");
 		}
 	}
 
@@ -67,14 +65,13 @@ public class VariableListener implements Listener {
 		if (event.getSpellCastState() != Spell.SpellCastState.NORMAL || event.getPostCastAction() == Spell.PostCastAction.ALREADY_HANDLED) return;
 		Multimap<String, VariableMod> varMods = event.getSpell().getVariableModsCasted();
 		if (varMods == null || varMods.isEmpty()) return;
-		LivingEntity caster = event.getCaster();
-		if (!(caster instanceof Player player)) return;
+		if (!(event.getCaster() instanceof Player caster)) return;
 		for (Map.Entry<String, VariableMod> entry : varMods.entries()) {
 			VariableMod mod = entry.getValue();
 			if (mod == null) continue;
 
-			String amount = variableManager.processVariableMods(entry.getKey(), mod, player, event.getSpellData());
-			MagicSpells.debug(3, "Variable '" + entry.getKey() + "' for player '" + player.getName() + "' modified by " + amount + " as a result of spell casted '" + event.getSpell().getName() + "'");
+			String amount = variableManager.processVariableMods(entry.getKey(), mod, caster, event.getSpellData());
+			MagicSpells.debug(3, "Variable '" + entry.getKey() + "' for player '" + caster.getName() + "' modified by " + amount + " as a result of spell casted '" + event.getSpell().getName() + "'");
 		}
 	}
 
@@ -83,16 +80,24 @@ public class VariableListener implements Listener {
 	public void variableModsTarget(SpellTargetEvent event) {
 		Multimap<String, VariableMod> varMods = event.getSpell().getVariableModsTarget();
 		if (varMods == null || varMods.isEmpty()) return;
-		LivingEntity caster = event.getCaster();
-		if (!(caster instanceof Player)) return;
+		if (!(event.getCaster() instanceof Player caster)) return;
 		Player target = event.getTarget() instanceof Player ? (Player) event.getTarget() : null;
-		if (target == null) return;
 		for (Map.Entry<String, VariableMod> entry : varMods.entries()) {
 			VariableMod mod = entry.getValue();
 			if (mod == null) continue;
 
-			String amount = variableManager.processVariableMods(entry.getKey(), mod, target, event.getSpellData());
-			MagicSpells.debug(3, "Variable '" + entry.getKey() + "' for player '" + target.getName() + "' modified by " + amount + " as a result of spell target from '" + event.getSpell().getName() + "'");
+			Player playerToMod = target;
+			String variableName = entry.getKey();
+			String[] splits = variableName.split(":");
+			if (splits.length > 1) {
+				if (splits[0].equalsIgnoreCase("caster")) playerToMod = caster;
+				variableName = splits[1];
+			}
+			// Target was expected, but they were not a player.
+			if (playerToMod == null) continue;
+
+			String amount = variableManager.processVariableMods(variableName, mod, playerToMod, event.getSpellData());
+			MagicSpells.debug(3, "Variable '" + variableName + "' for player '" + playerToMod.getName() + "' modified by " + amount + " as a result of spell target from '" + event.getSpell().getName() + "'");
 		}
 	}
 

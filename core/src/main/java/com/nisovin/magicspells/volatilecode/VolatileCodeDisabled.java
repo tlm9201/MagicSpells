@@ -4,7 +4,12 @@ import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.EntityEffect;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
+
+import org.jetbrains.annotations.NotNull;
 
 public class VolatileCodeDisabled extends VolatileCodeHandle {
 
@@ -55,6 +60,11 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 	@Override
 	public void playHurtAnimation(LivingEntity entity, float yaw) {
 		entity.playEffect(EntityEffect.HURT);
+	}
+
+	@Override
+	public Recipe createSmithingRecipe(@NotNull NamespacedKey namespacedKey, @NotNull ItemStack result, @NotNull RecipeChoice template, @NotNull RecipeChoice base, @NotNull RecipeChoice addition, boolean copyNbt) {
+		return null;
 	}
 
 }

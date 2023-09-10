@@ -7,12 +7,10 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import net.kyori.adventure.text.Component;
 
 import com.nisovin.magicspells.util.*;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
@@ -67,7 +65,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 
 				if (itemLore != null) {
 					List<Component> lore = new ArrayList<>();
-					for (String line : itemLore) lore.add(Util.getMiniMessage(itemName, data, replacements));
+					for (String line : itemLore) lore.add(Util.getMiniMessage(line, data, replacements));
 					meta.lore(lore);
 				}
 			});

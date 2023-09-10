@@ -1,7 +1,5 @@
 package com.nisovin.magicspells.castmodifiers.customdata;
 
-import org.bukkit.entity.LivingEntity;
-
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.events.SpellCastEvent;
 import com.nisovin.magicspells.util.config.ConfigData;

@@ -1268,7 +1268,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	public boolean onCooldown(LivingEntity livingEntity) {
 		if (Perm.NO_COOLDOWN.has(livingEntity)) return false;
-		if (charges > 0) return chargesConsumed.get(livingEntity.getUniqueId()) >= charges;
 		if (serverCooldown > 0 && nextCastServer > System.currentTimeMillis()) return true;
 
 		Long next = nextCast.get(livingEntity.getUniqueId());
@@ -1286,8 +1285,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The number of seconds remaining in the cooldown
 	 */
 	public float getCooldown(LivingEntity livingEntity) {
-		if (charges > 0) return -1;
-
 		float cd = 0;
 
 		Long next = nextCast.get(livingEntity.getUniqueId());
@@ -1319,6 +1316,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @param livingEntity The living entity to set the cooldown for
 	 */
 	public void setCooldown(final LivingEntity livingEntity, float cooldown, boolean activateSharedCooldowns) {
+		final UUID uuid = livingEntity.getUniqueId();
+
 		if (cooldown > 0 || minCooldown > 0) {
 			float cd = cooldown;
 			// calculate random cooldown
@@ -1327,10 +1326,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				else cd = minCooldown + random.nextInt((int) maxCooldown - (int) minCooldown + 1);
 			}
 
-			if (charges <= 0) {
-				nextCast.put(livingEntity.getUniqueId(), System.currentTimeMillis() + (long) (cd * TimeUtil.MILLISECONDS_PER_SECOND));
-			} else {
-				final UUID uuid = livingEntity.getUniqueId();
+			if (charges > 0) {
 				chargesConsumed.increment(uuid);
 				MagicSpells.scheduleDelayedTask(() -> {
 					chargesConsumed.decrement(uuid);
@@ -1341,10 +1337,13 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 						player.playSound(livingEntity.getLocation(), rechargeSound, 1.0F, 1.0F);
 				}, Math.round(TimeUtil.TICKS_PER_SECOND * cd));
 			}
+			if (charges <= 0 || chargesConsumed.get(uuid) >= charges) {
+				nextCast.put(uuid, System.currentTimeMillis() + (long) (cd * TimeUtil.MILLISECONDS_PER_SECOND));
+			}
 
 		} else {
-			if (charges <= 0) nextCast.remove(livingEntity.getUniqueId());
-			else chargesConsumed.remove(livingEntity.getUniqueId());
+			nextCast.remove(uuid);
+			chargesConsumed.remove(uuid);
 		}
 		if (serverCooldown > 0)
 			nextCastServer = System.currentTimeMillis() + (long) (serverCooldown * TimeUtil.MILLISECONDS_PER_SECOND);

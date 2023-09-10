@@ -393,9 +393,8 @@ public class MinionSpell extends BuffSpell {
 				return;
 			}
 			// Check if the player was damaged by a projectile
-			if (damager instanceof Projectile && ((Projectile) damager).getShooter() instanceof LivingEntity) {
+			if (damager instanceof Projectile projectile && projectile.getShooter() instanceof LivingEntity shooter) {
 				// Check if the shooter is alive
-				Entity shooter = (LivingEntity) ((Projectile) damager).getShooter();
 				if (shooter.isValid() && !shooter.isDead()) damager = shooter;
 			}
 
@@ -403,8 +402,9 @@ public class MinionSpell extends BuffSpell {
 			LivingEntity previousTarget = targets.get(pl.getUniqueId());
 			if (previousTarget != null && previousTarget.getWorld().equals(pl.getWorld()) && pl.getLocation().distanceSquared(previousTarget.getLocation()) < pl.getLocation().distanceSquared(damager.getLocation())) return;
 
-			targets.put(pl.getUniqueId(), (LivingEntity) damager);
-			MobUtil.setTarget(minions.get(pl.getUniqueId()), (LivingEntity) damager);
+			if (!(damager instanceof LivingEntity target)) return;
+			targets.put(pl.getUniqueId(), target);
+			MobUtil.setTarget(minions.get(pl.getUniqueId()), target);
 			return;
 		}
 
@@ -417,9 +417,6 @@ public class MinionSpell extends BuffSpell {
 				e.setCancelled(true);
 				return;
 			}
-
-			if (entity.getHealth() - e.getFinalDamage() <= 0 && deathSpell != null)
-				deathSpell.subcast(new SpellData(owner, entity, entity.getLocation(), 1f, null));
 
 			// If the minion is far away from the owner, forget about attacking
 			if (owner.getWorld().equals(entity.getWorld()) && owner.getLocation().distanceSquared(entity.getLocation()) > maxDistance * maxDistance) return;
@@ -461,9 +458,9 @@ public class MinionSpell extends BuffSpell {
 			// Check if the entity can be targeted by the minion
 			if (!minionTargetList.canTarget(entity)) return;
 
-			addUseAndChargeCost(pl);
 			targets.put(pl.getUniqueId(),entity);
 			MobUtil.setTarget(minions.get(pl.getUniqueId()), entity);
+			addUseAndChargeCost(pl);
 
 		}
 
@@ -500,27 +497,33 @@ public class MinionSpell extends BuffSpell {
 	}
 
 	@EventHandler
-	public void onEntityDeath(EntityDeathEvent e) {
-		if (!isMinion(e.getEntity())) return;
-		EntityEquipment eq = e.getEntity().getEquipment();
+	public void onEntityDeath(EntityDeathEvent event) {
+		LivingEntity minion = event.getEntity();
+		if (!isMinion(minion)) return;
+		EntityEquipment eq = minion.getEquipment();
 		List<ItemStack> newDrops = new ArrayList<>();
-		for (ItemStack drop : e.getDrops()) {
-			for (int i = 0; i < eq.getArmorContents().length; i++) {
-				if (drop.equals(eq.getArmorContents()[i])) newDrops.add(drop);
+		if (eq != null) {
+			for (ItemStack drop : event.getDrops()) {
+				for (int i = 0; i < eq.getArmorContents().length; i++) {
+					if (drop.equals(eq.getArmorContents()[i])) newDrops.add(drop);
+				}
+				if (drop.equals(mainHandItem) || drop.equals(offHandItem)) newDrops.add(drop);
 			}
-			if (drop.equals(mainHandItem) || drop.equals(offHandItem)) newDrops.add(drop);
 		}
 
 		// Clear all the regular drops
-		e.getDrops().clear();
-		e.setDroppedExp(0);
+		event.getDrops().clear();
+		event.setDroppedExp(0);
 
 		// Apply new drops
 		for (ItemStack item : newDrops) {
-			e.getDrops().add(item);
+			event.getDrops().add(item);
 		}
-		Player pl = Bukkit.getPlayer(players.get(e.getEntity()));
+		Player pl = Bukkit.getPlayer(players.get(event.getEntity()));
 		if (pl == null || !pl.isValid() || !pl.isOnline()) return;
+
+		if (deathSpell != null) deathSpell.subcast(new SpellData(pl, minion, minion.getLocation(), 1, null));
+
 		turnOff(pl);
 	}
 

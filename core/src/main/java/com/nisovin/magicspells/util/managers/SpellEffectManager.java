@@ -47,6 +47,7 @@ public class SpellEffectManager {
 		addSpellEffect("armorstand", ArmorStandEffect.class);
 		addSpellEffect("actionbartext", ActionBarTextEffect.class);
 		addSpellEffect("bossbar", BossBarEffect.class);
+		addSpellEffect("blockbreak", BlockBreakEffect.class);
 		addSpellEffect("broadcast", BroadcastEffect.class);
 		addSpellEffect("cloud", CloudEffect.class);
 		addSpellEffect("dragondeath", DragonDeathEffect.class);
