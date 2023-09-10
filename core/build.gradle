@@ -8,7 +8,7 @@ dependencies {
     shadow(group: "org.apache.commons", name: "commons-math4-core", version: "4.0-beta1")
     shadow(group: "com.github.Chronoken", name: "EffectLib", version: "b00ca02")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.1-SNAPSHOT")
-    shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.9.0")
+    shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.9.10")
 
     shadow(project(path: ":nms:shared", configuration: "apiElements"))
     shadow(project(path: ":nms:v1_19_R1", configuration: "reobf"))
@@ -16,7 +16,7 @@ dependencies {
     shadow(project(path: ":nms:v1_19_R3", configuration: "reobf"))
     shadow(project(path: ":nms:v1_20_R1", configuration: "reobf"))
 
-    implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.0.0-SNAPSHOT") { transitive = false }
+    implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.1.0") { transitive = false }
     implementation(group: "com.github.libraryaddict", name: "LibsDisguises", version: "v10.0.25") { transitive = false }
     implementation(group: "com.github.MilkBowl", name: "VaultAPI", version: "master-SNAPSHOT") { transitive = false }
     implementation(group: "com.github.PlaceholderAPI", name: "PlaceholderAPI", version: "master-SNAPSHOT") { transitive = false }
