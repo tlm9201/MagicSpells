@@ -471,9 +471,12 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			if (data.caster() instanceof Player player) entity.customName(player.displayName());
 			else entity.customName(data.caster().name());
 			entity.setCustomNameVisible(true);
-		} else if (nameplateText != null) {
-			entity.customName(nameplateText.get(data));
-			entity.setCustomNameVisible(true);
+		} else {
+			Component nameplateText = this.nameplateText.get(data);
+			if (nameplateText != null) {
+				entity.customName(nameplateText);
+				entity.setCustomNameVisible(true);
+			}
 		}
 
 		if (setOwner.get(data) && entity instanceof Tameable tameable && tameable.isTamed() && data.caster() instanceof AnimalTamer tamer)
