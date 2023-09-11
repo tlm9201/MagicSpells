@@ -59,6 +59,8 @@ public class Util {
 	private static final Pattern COLOR_PATTERN = Pattern.compile("[&§]([0-9a-fk-or])", Pattern.CASE_INSENSITIVE);
 	private static final Pattern HEX_PATTERN = Pattern.compile("[&§](#[0-9a-f]{6})", Pattern.CASE_INSENSITIVE);
 
+	private static final MiniMessage STRICT_SERIALIZER = MiniMessage.builder().strict(true).build();
+
 	public static int getRandomInt(int bound) {
 		return random.nextInt(bound);
 	}
@@ -759,6 +761,10 @@ public class Util {
 
 	public static String getStringFromComponent(Component component) {
 		return component == null ? "" : MiniMessage.miniMessage().serialize(component);
+	}
+
+	public static String getStrictStringFromComponent(Component component) {
+		return component == null ? "" : STRICT_SERIALIZER.serialize(component);
 	}
 
 	public static String colorize(String string) {

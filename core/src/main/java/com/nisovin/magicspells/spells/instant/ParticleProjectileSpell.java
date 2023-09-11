@@ -111,7 +111,6 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private String modifierSpellName;
 	private String entityLocationSpellName;
 
-	private Subspell defaultSpell;
 	private String defaultSpellName;
 
 	public ParticleProjectileSpell(MagicConfig config, String spellName) {
@@ -246,12 +245,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 		String prefix = "ParticleProjectileSpell '" + internalName + "'";
 
-		defaultSpell = new Subspell(defaultSpellName);
-		if (!defaultSpell.process()) {
-			if (!defaultSpellName.isEmpty()) MagicSpells.error(prefix + " has an invalid spell defined!");
-			defaultSpell = null;
-		}
-		defaultSpellName = null;
+		Subspell defaultSpell = new Subspell(defaultSpellName);
+		if (!defaultSpell.process() && !defaultSpellName.isEmpty()) MagicSpells.error(prefix + " has an invalid spell defined!");
 
 		airSpell = new Subspell(airSpellName);
 		if (!airSpell.process()) {
@@ -308,6 +303,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 			entityLocationSpell = null;
 		}
 		entityLocationSpellName = null;
+
+		defaultSpellName = null;
 
 		if (interactions != null && !interactions.isEmpty()) {
 			for (String str : interactions) {

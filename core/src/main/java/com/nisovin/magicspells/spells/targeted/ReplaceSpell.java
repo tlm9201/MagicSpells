@@ -80,7 +80,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 					BlockData data = Bukkit.createBlockData(block.trim().toLowerCase());
 					replace.add(data);
 				} catch (IllegalArgumentException e) {
-					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blocks item: " + block);
+					MagicSpells.error("ReplaceSpell '" + internalName + "' has an invalid 'replace-blocks' item: " + block);
 				}
 			}
 		}
@@ -93,7 +93,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 					BlockData data = Bukkit.createBlockData(s.trim().toLowerCase());
 					replaceWith.add(data);
 				} catch (IllegalArgumentException e) {
-					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-with item: " + s);
+					MagicSpells.error("ReplaceSpell '" + internalName + "' has an invalid 'replace-with' item: " + s);
 				}
 			}
 		}
@@ -105,7 +105,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 					BlockData data = Bukkit.createBlockData(s.trim().toLowerCase());
 					replaceBlacklist.add(data);
 				} catch (IllegalArgumentException e) {
-					MagicSpells.error("ReplaceSpell " + internalName + " has an invalid replace-blacklist item: " + s);
+					MagicSpells.error("ReplaceSpell '" + internalName + "' has an invalid 'replace-blacklist' item: " + s);
 				}
 			}
 		}
@@ -113,14 +113,14 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 		if (replace.size() != replaceWith.size() && (!replaceRandom.isConstant() || !replaceRandom.get())) {
 			replaceRandom = data -> true;
 			if (replaceRandom.isConstant())
-				MagicSpells.error("ReplaceSpell " + internalName + " replace-random is false, but replace-blocks and replace-with have different sizes!");
+				MagicSpells.error("ReplaceSpell '" + internalName + "' had 'replace-random' as false, but replace-blocks and replace-with have different sizes!");
 			else
-				MagicSpells.error("ReplaceSpell " + internalName + " replace-random can be false, but replace-blocks and replace-with have different sizes!");
+				MagicSpells.error("ReplaceSpell '" + internalName + "' has a 'replace-random' that can be false, but replace-blocks and replace-with have different sizes!");
 		}
 		this.replaceRandom = replaceRandom;
 
-		if (replace.isEmpty()) MagicSpells.error("ReplaceSpell " + internalName + " has empty replace-blocks list!");
-		if (replaceWith.isEmpty()) MagicSpells.error("ReplaceSpell " + internalName + " has empty replace-with list!");
+		if (replace.isEmpty()) MagicSpells.error("ReplaceSpell '" + internalName + "' has empty 'replace-blocks' list!");
+		if (replaceWith.isEmpty()) MagicSpells.error("ReplaceSpell '" + internalName + "' has empty 'replace-with' list!");
 	}
 
 	@Override

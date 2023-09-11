@@ -1700,6 +1700,16 @@ public class MagicSpells extends JavaPlugin {
 		return matcher.find();
 	}
 
+	public static String getTargetName(LivingEntity target) {
+		if (target instanceof Player) return target.getName();
+
+		EntityType type = target.getType();
+		String name = plugin.entityNames.get(type);
+		if (name != null) return name;
+
+		return Util.getStrictStringFromComponent(target.name());
+	}
+
 	public static void registerEvents(final Listener listener) {
 		registerEvents(listener, EventPriority.NORMAL);
 	}
