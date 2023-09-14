@@ -468,7 +468,7 @@ public class MinionSpell extends BuffSpell {
 			Player owner = Bukkit.getPlayer(players.get(minion));
 			if (owner == null || !owner.isOnline() || !owner.isValid()) return;
 
-			if (attackSpell != null) attackSpell.subcast(new SpellData(owner, minion, minion.getLocation(), 1f, null));
+			if (attackSpell != null) attackSpell.subcast(new SpellData(owner, entity, entity.getLocation(), 1f, null));
 		}
 
 		// The target died, the minion will follow his owner
