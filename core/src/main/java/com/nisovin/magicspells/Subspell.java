@@ -300,7 +300,7 @@ public class Subspell {
 	public CastResult cast(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		data = data.builder().recipient(null).power((passPower ? 1 : data.power()) * subPower.get(data)).args(args.get(data)).build();
+		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
 
 		double chance = this.chance.get(data);
 		if ((chance > 0 && chance < 1) && random.nextDouble() > chance)
@@ -356,7 +356,7 @@ public class Subspell {
 			if (!canTarget.canTarget(data.caster(), data.target())) return spell.noTarget(data);
 		}
 
-		data = data.builder().recipient(null).power((passPower ? 1 : data.power()) * subPower.get(data)).args(args.get(data)).build();
+		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
 
 		double chance = this.chance.get(data);
 		if ((chance > 0 && chance < 1) && random.nextDouble() > chance)
@@ -433,7 +433,7 @@ public class Subspell {
 	public CastResult castAtLocation(SpellData data) {
 		if (!isTargetedLocation) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		data = data.builder().recipient(null).power((passPower ? 1 : data.power()) * subPower.get(data)).args(args.get(data)).build();
+		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
 
 		double chance = this.chance.get(data);
 		if ((chance > 0 && chance < 1) && random.nextDouble() > chance)
@@ -520,7 +520,7 @@ public class Subspell {
 			if (!canTarget.canTarget(data.caster(), data.target())) return spell.noTarget(data);
 		}
 
-		data = data.builder().recipient(null).power((passPower ? 1 : data.power()) * subPower.get(data)).args(args.get(data)).build();
+		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
 
 		double chance = this.chance.get(data);
 		if ((chance > 0 && chance < 1) && random.nextDouble() > chance)
