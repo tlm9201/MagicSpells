@@ -18,7 +18,6 @@ import org.bukkit.craftbukkit.v1_19_R3.CraftServer
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack
 
 import net.minecraft.world.phys.Vec3
-import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.EntityType
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.item.PrimedTnt
@@ -114,15 +113,6 @@ class VolatileCode1_19_R3(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
     override fun setClientVelocity(player: Player, velocity: Vector) {
         val packet = ClientboundSetEntityMotionPacket(player.entityId, Vec3(velocity.x, velocity.y, velocity.z))
         (player as CraftPlayer).handle.connection.send(packet)
-    }
-
-    override fun setInventoryTitle(player: Player, title: String) {
-        val entityPlayer = (player as CraftPlayer).handle
-        val container = entityPlayer.containerMenu
-        val packet = ClientboundOpenScreenPacket(container.containerId, container.type, Component.literal(title))
-
-        player.handle.connection.send(packet)
-        player.updateInventory()
     }
 
     override fun startAutoSpinAttack(player: Player?, ticks: Int) {

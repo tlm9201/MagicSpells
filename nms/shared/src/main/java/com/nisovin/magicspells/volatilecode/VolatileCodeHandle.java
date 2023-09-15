@@ -29,8 +29,6 @@ public abstract class VolatileCodeHandle {
 
 	public abstract void setClientVelocity(Player player, Vector velocity);
 
-	public abstract void setInventoryTitle(Player player, String title);
-
 	public abstract void startAutoSpinAttack(Player player, int ticks);
 
 	public abstract void playHurtAnimation(LivingEntity entity, float yaw);
