@@ -1159,7 +1159,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	public CastResult cast(SpellData data) {
-		return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		return new CastResult(castSpell(data.caster(), SpellCastState.NORMAL, data.power(), data.args()), data);
 	}
 
 	@Deprecated

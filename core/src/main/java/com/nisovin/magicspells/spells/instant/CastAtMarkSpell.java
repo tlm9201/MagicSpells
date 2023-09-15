@@ -72,7 +72,7 @@ public class CastAtMarkSpell extends InstantSpell {
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		spellToCast.cast(data.location(effectiveMark));
+		spellToCast.subcast(data.location(effectiveMark));
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
