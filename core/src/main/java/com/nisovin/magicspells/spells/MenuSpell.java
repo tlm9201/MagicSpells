@@ -295,7 +295,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@EventHandler
 	public void onInvClick(InventoryClickEvent event) {
 		Inventory inventory = event.getClickedInventory();
-		if (!(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+		if (inventory == null || !(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+		event.setCancelled(true);
 
 		Player player = (Player) event.getWhoClicked();
 		PostClickState state = castSpells(menu, event.getCurrentItem(), event.getClick());
