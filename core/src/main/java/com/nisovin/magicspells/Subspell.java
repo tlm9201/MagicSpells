@@ -297,7 +297,7 @@ public class Subspell {
 		return cast(new SpellData(caster, power, null)).action();
 	}
 
-	public CastResult cast(SpellData data) {
+	private CastResult cast(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
@@ -345,7 +345,7 @@ public class Subspell {
 		return castAtEntity(new SpellData(caster, target, power, null), passTargeting).action() != PostCastAction.ALREADY_HANDLED;
 	}
 
-	public CastResult castAtEntity(SpellData data, boolean passTargeting) {
+	private CastResult castAtEntity(SpellData data, boolean passTargeting) {
 		if (!isTargetedEntity) {
 			if (isTargetedLocation) return castAtLocation(data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -430,7 +430,7 @@ public class Subspell {
 		return castAtLocation(new SpellData(caster, target, power, null)).action() != PostCastAction.ALREADY_HANDLED;
 	}
 
-	public CastResult castAtLocation(SpellData data) {
+	private CastResult castAtLocation(SpellData data) {
 		if (!isTargetedLocation) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
@@ -512,7 +512,7 @@ public class Subspell {
 		return castAtEntityFromLocation(new SpellData(caster, target, from, power, null), passTargeting).action() != PostCastAction.ALREADY_HANDLED;
 	}
 
-	public CastResult castAtEntityFromLocation(SpellData data, boolean passTargeting) {
+	private CastResult castAtEntityFromLocation(SpellData data, boolean passTargeting) {
 		if (!isTargetedEntityFromLocation) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (mode != CastMode.HARD && !(passTargeting || this.passTargeting)) {
