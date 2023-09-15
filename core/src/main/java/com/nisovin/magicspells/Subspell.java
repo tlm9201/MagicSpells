@@ -342,7 +342,7 @@ public class Subspell {
 
 	@Deprecated
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power, boolean passTargeting) {
-		return castAtEntity(new SpellData(caster, target, power, null), passTargeting | this.passTargeting).action() != PostCastAction.ALREADY_HANDLED;
+		return castAtEntity(new SpellData(caster, target, power, null), passTargeting).action() != PostCastAction.ALREADY_HANDLED;
 	}
 
 	public CastResult castAtEntity(SpellData data, boolean passTargeting) {
@@ -351,7 +351,7 @@ public class Subspell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		if (mode != CastMode.HARD && !passTargeting) {
+		if (mode != CastMode.HARD && !(passTargeting || this.passTargeting)) {
 			ValidTargetList canTarget = spell.getValidTargetList();
 			if (!canTarget.canTarget(data.caster(), data.target())) return spell.noTarget(data);
 		}
@@ -509,13 +509,13 @@ public class Subspell {
 
 	@Deprecated
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power, boolean passTargeting) {
-		return castAtEntityFromLocation(new SpellData(caster, target, from, power, null), passTargeting | this.passTargeting).action() != PostCastAction.ALREADY_HANDLED;
+		return castAtEntityFromLocation(new SpellData(caster, target, from, power, null), passTargeting).action() != PostCastAction.ALREADY_HANDLED;
 	}
 
 	public CastResult castAtEntityFromLocation(SpellData data, boolean passTargeting) {
 		if (!isTargetedEntityFromLocation) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		if (mode != CastMode.HARD && !passTargeting) {
+		if (mode != CastMode.HARD && !(passTargeting || this.passTargeting)) {
 			ValidTargetList canTarget = spell.getValidTargetList();
 			if (!canTarget.canTarget(data.caster(), data.target())) return spell.noTarget(data);
 		}
