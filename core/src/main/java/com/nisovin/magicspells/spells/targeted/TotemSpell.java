@@ -378,8 +378,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 		private boolean activate() {
 			boolean activated = false;
-			for (Subspell spell : spells)
-				activated = spell.subcast(data).action() != PostCastAction.ALREADY_HANDLED || activated;
+			for (Subspell spell : spells) activated = spell.subcast(data).success() || activated;
 
 			playSpellEffects(EffectPosition.SPECIAL, totemLocation, data);
 			if (totalPulses > 0 && (activated || !onlyCountOnSuccess)) {

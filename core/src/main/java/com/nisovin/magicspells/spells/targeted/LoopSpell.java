@@ -418,7 +418,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		}
 
 		private boolean cast(Subspell spell) {
-			boolean success = spell.subcast(data, passTargeting).action() != PostCastAction.ALREADY_HANDLED;
+			boolean success = spell.subcast(data, passTargeting).success();
 			if (stopOnSuccess && success || stopOnFail && !success) {
 				cancel();
 				return false;

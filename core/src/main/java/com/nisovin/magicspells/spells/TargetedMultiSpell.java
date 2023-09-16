@@ -119,7 +119,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 				if (action.isSpell()) {
 					spell = action.getSpell();
 					if (delay == 0) {
-						boolean ok = spell.subcast(data, passTargeting).action() != PostCastAction.ALREADY_HANDLED;
+						boolean ok = spell.subcast(data, passTargeting).success();
 						if (ok) somethingWasDone = true;
 						else if (stopOnFail) break;
 						continue;
@@ -133,7 +133,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 			}
 		} else {
 			Action action = actions.get(random.nextInt(actions.size()));
-			if (action.isSpell()) somethingWasDone = action.getSpell().subcast(data).action() != PostCastAction.ALREADY_HANDLED;
+			if (action.isSpell()) somethingWasDone = action.getSpell().subcast(data).success();
 		}
 
 		if (somethingWasDone) playSpellEffects(data);
@@ -203,7 +203,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 			if (cancelled) return;
 
 			if (!data.hasCaster() || data.caster().isValid()) {
-				boolean ok = spell.subcast(data, passTargeting).action() != PostCastAction.ALREADY_HANDLED;
+				boolean ok = spell.subcast(data, passTargeting).success();
 				delayedSpells.remove(this);
 				if (!ok && stopOnFail) cancelAll();
 			} else cancelAll();

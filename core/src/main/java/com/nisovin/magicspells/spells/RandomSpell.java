@@ -76,8 +76,8 @@ public class RandomSpell extends InstantSpell {
 		Subspell spell = set.choose();
 		if (spell == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		CastResult result = spell.subcast(data);
-		return new CastResult(result.action() != PostCastAction.ALREADY_HANDLED ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED, data);
+		SpellCastResult result = spell.subcast(data);
+		return new CastResult(result.success() ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED, data);
 	}
 
 	private static class SpellOption {

@@ -2526,6 +2526,14 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			this.data = data;
 		}
 
+		public boolean success() {
+			return state == SpellCastState.NORMAL && action != PostCastAction.ALREADY_HANDLED;
+		}
+
+		public boolean fail() {
+			return state != SpellCastState.NORMAL || action == PostCastAction.ALREADY_HANDLED;
+		}
+
 	}
 
 	public class DelayedSpellCast implements Runnable, Listener {
