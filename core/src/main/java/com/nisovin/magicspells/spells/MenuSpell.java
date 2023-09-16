@@ -124,6 +124,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			option.spellRightName = getConfigString(path + "spell-right", "");
 			option.spellSneakLeftName = getConfigString(path + "spell-sneak-left", "");
 			option.spellSneakRightName = getConfigString(path + "spell-sneak-right", "");
+			option.spellDropName = getConfigString(path + "spell-drop", "");
+			option.spellSwapName = getConfigString(path + "spell-swap", "");
 			option.power = getConfigFloat(path + "power", 1);
 			option.modifierList = getConfigStringList(path + "modifiers", null);
 			option.stayOpen = getConfigBoolean(path + "stay-open", false);
@@ -151,6 +153,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			option.spellRight = initSubspell(option.spellRightName, "MenuSpell '" + internalName + "' has an invalid 'spell-right' defined for: " + option.menuOptionName);
 			option.spellSneakLeft = initSubspell(option.spellSneakLeftName, "MenuSpell '" + internalName + "' has an invalid 'spell-sneak-left' defined for: " + option.menuOptionName);
 			option.spellSneakRight = initSubspell(option.spellSneakRightName, "MenuSpell '" + internalName + "' has an invalid 'spell-sneak-right' defined for: " + option.menuOptionName);
+			option.spellDrop = initSubspell(option.spellDropName, "MenuSpell '" + internalName + "' has an invalid 'spell-drop' defined for: " + option.menuOptionName);
+			option.spellSwap = initSubspell(option.spellSwapName, "MenuSpell '" + internalName + "' has an invalid 'spell-swap' defined for: " + option.menuOptionName);
 		}
 	}
 
@@ -328,6 +332,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			case RIGHT -> processClickSpell(menu, option.spellRight, option);
 			case SHIFT_LEFT -> processClickSpell(menu, option.spellSneakLeft, option);
 			case SHIFT_RIGHT -> processClickSpell(menu, option.spellSneakRight, option);
+			case DROP -> processClickSpell(menu, option.spellDrop, option);
+			case SWAP_OFFHAND -> processClickSpell(menu, option.spellSwap, option);
 			default -> option.stayOpen ? PostClickState.IGNORE : PostClickState.CLOSE;
 		};
 	}
@@ -392,10 +398,14 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private String spellRightName;
 		private String spellSneakLeftName;
 		private String spellSneakRightName;
+		private String spellDropName;
+		private String spellSwapName;
 		private Subspell spell;
 		private Subspell spellRight;
 		private Subspell spellSneakLeft;
 		private Subspell spellSneakRight;
+		private Subspell spellDrop;
+		private Subspell spellSwap;
 		private float power;
 		private List<String> modifierList;
 		private ModifierSet menuOptionModifiers;
