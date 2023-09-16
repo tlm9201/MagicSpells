@@ -41,11 +41,11 @@ public class Subspell {
 
 	private boolean invert = false;
 	private boolean passPower = true;
-	private boolean passTargeting = false;
 	private ConfigData<Integer> delay = data -> -1;
 	private ConfigData<Double> chance = data -> -1D;
 	private ConfigData<Float> subPower = data -> 1F;
 	private ConfigData<String[]> args = data -> null;
+	private ConfigData<Boolean> passTargeting = data -> null;
 
 	private boolean isTargetedEntity = false;
 	private boolean isTargetedLocation = false;
@@ -81,7 +81,37 @@ public class Subspell {
 					}
 					case "invert" -> invert = Boolean.parseBoolean(value);
 					case "pass-power" -> passPower = Boolean.parseBoolean(value);
-					case "pass-targeting" -> passTargeting = Boolean.parseBoolean(value);
+					case "pass-targeting" -> {
+						ConfigData<String> supplier = ConfigDataUtil.getString(value);
+
+						if (supplier.isConstant()) {
+							String val = supplier.get();
+							if (val == null) {
+								passTargeting = data -> null;
+								continue;
+							}
+
+							Boolean b = switch (val.toLowerCase()) {
+								case "true" -> true;
+								case "false" -> false;
+								default -> null;
+							};
+
+							passTargeting = data -> b;
+							continue;
+						}
+
+						passTargeting = data -> {
+							String val = supplier.get(data);
+							if (val == null) return null;
+
+							return switch (val.toLowerCase()) {
+								case "true" -> true;
+								case "false" -> false;
+								default -> null;
+							};
+						};
+					}
 					case "args" -> {
 						try {
 							JsonElement element = JsonParser.parseString(value);
@@ -223,7 +253,7 @@ public class Subspell {
 	}
 
 	public SpellCastResult subcast(SpellData data) {
-		return subcast(data, passTargeting, true, CastTargeting.DEFAULT_ORDERING);
+		return subcast(data, false, true, CastTargeting.DEFAULT_ORDERING);
 	}
 
 	public SpellCastResult subcast(SpellData data, boolean passTargeting) {
@@ -331,7 +361,7 @@ public class Subspell {
 
 	@Deprecated
 	public boolean castAtEntity(LivingEntity caster, LivingEntity target, float power) {
-		return castAtEntity(new SpellData(caster, target, power, null), passTargeting).success();
+		return castAtEntity(new SpellData(caster, target, power, null), false).success();
 	}
 
 	@Deprecated
@@ -347,7 +377,7 @@ public class Subspell {
 
 		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
 
-		if (mode != CastMode.HARD && !(passTargeting || this.passTargeting)) {
+		if (mode != CastMode.HARD && !this.passTargeting.getOr(data, passTargeting)) {
 			ValidTargetList canTarget = spell.getValidTargetList();
 			if (!canTarget.canTarget(data.caster(), data.target())) return wrapResult(spell.noTarget(data));
 		}
@@ -506,7 +536,7 @@ public class Subspell {
 
 	@Deprecated
 	public boolean castAtEntityFromLocation(LivingEntity caster, Location from, LivingEntity target, float power) {
-		return castAtEntityFromLocation(new SpellData(caster, target, from, power, null), passTargeting).success();
+		return castAtEntityFromLocation(new SpellData(caster, target, from, power, null), false).success();
 	}
 
 	@Deprecated
@@ -519,7 +549,7 @@ public class Subspell {
 
 		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
 
-		if (mode != CastMode.HARD && !(passTargeting || this.passTargeting)) {
+		if (mode != CastMode.HARD && !this.passTargeting.getOr(data, passTargeting)) {
 			ValidTargetList canTarget = spell.getValidTargetList();
 			if (!canTarget.canTarget(data.caster(), data.target())) return wrapResult(spell.noTarget(data));
 		}
