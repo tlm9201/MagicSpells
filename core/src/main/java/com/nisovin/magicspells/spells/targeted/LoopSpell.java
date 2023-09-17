@@ -295,15 +295,15 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private final boolean skipFirstLoopLocationModifiers;
 		private final boolean skipFirstVariableModsTargetLoop;
 
-		private final long iterations;
 		private final int taskId;
+		private final long iterations;
 
 		private long count;
+		private boolean cancelled;
 
 		private Loop(SpellData data) {
 			this.data = data;
 
-			taskId = MagicSpells.scheduleRepeatingTask(this, delay.get(data), interval.get(data));
 			iterations = LoopSpell.this.iterations.get(data);
 
 			stopOnFail = LoopSpell.this.stopOnFail.get(data);
@@ -317,8 +317,28 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			skipFirstLoopLocationModifiers = LoopSpell.this.skipFirstLoopLocationModifiers.get(data);
 			skipFirstVariableModsTargetLoop = LoopSpell.this.skipFirstVariableModsTargetLoop.get(data);
 
-			long dur = duration.get(data);
-			if (dur > 0) MagicSpells.scheduleDelayedTask(this::cancel, dur);
+			long interval = LoopSpell.this.interval.get(data);
+			long delay = LoopSpell.this.delay.get(data);
+
+			if (interval <= 0) {
+				taskId = -1;
+
+				if (delay < 0) {
+					for (int i = 0; i < iterations && !cancelled; i++) run();
+					return;
+				}
+
+				MagicSpells.scheduleDelayedTask(() -> {
+					for (int i = 0; i < iterations && !cancelled; i++) run();
+				}, delay);
+
+				return;
+			}
+
+			taskId = MagicSpells.scheduleRepeatingTask(this, delay, interval);
+
+			long duration = LoopSpell.this.duration.get(data);
+			if (duration > 0) MagicSpells.scheduleDelayedTask(this::cancel, duration);
 		}
 
 		@Override
@@ -398,7 +418,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		}
 
 		private boolean cast(Subspell spell) {
-			boolean success = spell.subcast(data, passTargeting).action() != PostCastAction.ALREADY_HANDLED;
+			boolean success = spell.subcast(data, passTargeting).success();
 			if (stopOnSuccess && success || stopOnFail && !success) {
 				cancel();
 				return false;
@@ -420,6 +440,10 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		}
 
 		private void cancel(boolean remove) {
+			if (cancelled) return;
+
+			cancelled = true;
+
 			MagicSpells.cancelTask(taskId);
 
 			if (remove) {

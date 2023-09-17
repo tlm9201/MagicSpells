@@ -301,8 +301,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		private boolean activate() {
 			boolean activated = false;
-			for (Subspell spell : spells)
-				activated = spell.subcast(data).action() != PostCastAction.ALREADY_HANDLED || activated;
+			for (Subspell spell : spells) activated = spell.subcast(data).success() || activated;
 
 			playSpellEffects(EffectPosition.DELAYED, location, data);
 
