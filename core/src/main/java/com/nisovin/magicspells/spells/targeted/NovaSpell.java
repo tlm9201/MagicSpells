@@ -123,6 +123,7 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 		if (circleShape.get(data)) new NovaTrackerCircle(data);
 		else new NovaTrackerSquare(data);
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
@@ -133,6 +134,7 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 		if (circleShape.get(data)) new NovaTrackerCircle(data);
 		else new NovaTrackerSquare(data);
 
+		playSpellEffects(data.caster(), data.target(), data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

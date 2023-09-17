@@ -19,6 +19,7 @@ import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
@@ -108,6 +109,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 			sendMessage(strSummonAccepted, target, data, "%a", displayName);
 		}
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
@@ -124,6 +126,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 			sendMessage(strSummonAccepted, data.target(), data, "%a", displayName);
 		}
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
@@ -140,6 +143,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 			sendMessage(strSummonAccepted, data.target(), data, "%a", displayName);
 		}
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
@@ -161,6 +165,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 		player.teleportAsync(data.location);
 		sendMessage(strSummonAccepted, player, data.spellData);
+		playSpellEffects(EffectPosition.DELAYED, player, data.spellData);
 	}
 
 	@Override

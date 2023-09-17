@@ -168,6 +168,8 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 				for (int i = 0; i < arrows; i++) run();
 				taskId = -1;
 			} else taskId = MagicSpells.scheduleRepeatingTask(this, 0, shootInterval);
+
+			playSpellEffects(data);
 		}
 
 		public void resolveOptions() {

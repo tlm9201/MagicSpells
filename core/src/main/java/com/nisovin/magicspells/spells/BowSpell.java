@@ -269,6 +269,7 @@ public class BowSpell extends Spell {
 
 		if (spellOnShoot != null) spellOnShoot.subcast(data);
 
+		playSpellEffects(data);
 		postCast(castEvent, new CastResult(PostCastAction.HANDLE_NORMALLY, data));
 	}
 

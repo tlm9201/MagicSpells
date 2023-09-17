@@ -103,6 +103,7 @@ public class TomeSpell extends CommandSpell {
 		item = createTome(spell, uses, item, data);
 		player.getInventory().setItemInMainHand(item);
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

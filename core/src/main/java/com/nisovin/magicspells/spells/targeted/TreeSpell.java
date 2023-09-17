@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 
+import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -55,25 +56,33 @@ public class TreeSpell extends TargetedSpell implements TargetedLocationSpell {
 			});
 
 			if (!blockStates.isEmpty()) {
-				new GrowAnimation(loc.getBlockX(), loc.getBlockZ(), blockStates, speed);
+				new GrowAnimation(data, loc.getBlockX(), loc.getBlockZ(), blockStates, speed);
+
+				playSpellEffects(data);
 				return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 			}
 
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		return new CastResult(loc.getWorld().generateTree(loc, random, treeType) ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED, data);
+		if (loc.getWorld().generateTree(loc, random, treeType)) {
+			playSpellEffects(data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		}
+
+		return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 	}
 
-	private static class GrowAnimation extends SpellAnimation {
+	private class GrowAnimation extends SpellAnimation {
 		
 		private final List<BlockState> blockStates;
-
 		private final int blocksPerTick;
+		private final SpellData data;
 
-		private GrowAnimation(final int centerX, final int centerZ, final List<BlockState> blocks, int speed) {
+		private GrowAnimation(SpellData data, int centerX, int centerZ, List<BlockState> blocks, int speed) {
 			super(speed < 20 ? 20 / speed : 1, true);
-			
+
+			this.data = data;
 			this.blockStates = blocks;
 			this.blocksPerTick = speed/20 + 1;
 			blockStates.sort((o1, o2) -> {
@@ -91,6 +100,7 @@ public class TreeSpell extends TargetedSpell implements TargetedLocationSpell {
 			for (int i = 0; i < blocksPerTick; i++) {
 				BlockState state = blockStates.remove(0);
 				state.update(true);
+				playSpellEffects(EffectPosition.SPECIAL, state.getLocation(), data);
 				if (blockStates.isEmpty()) {
 					stop(true);
 					break;

@@ -38,6 +38,7 @@ public class TimeSpell extends InstantSpell implements TargetedLocationSpell {
 	private void setTime(World world, SpellData data) {
 		world.setTime(timeToSet.get(data));
 		for (Player p : world.getPlayers()) sendMessage(strAnnounce, p, data);
+		playSpellEffects(data);
 	}
 
 	public String getStrAnnounce() {

@@ -37,6 +37,8 @@ public class VariableCastSpell extends InstantSpell {
 		}
 
 		toCast.hardCast(data);
+		playSpellEffects(data);
+
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

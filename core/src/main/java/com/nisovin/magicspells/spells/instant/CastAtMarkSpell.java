@@ -71,8 +71,11 @@ public class CastAtMarkSpell extends InstantSpell {
 			sendMessage(strNoMark, data.caster(), data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
+		data = data.location(effectiveMark);
 
-		spellToCast.subcast(data.location(effectiveMark));
+		spellToCast.subcast(data);
+		playSpellEffects(data);
+
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

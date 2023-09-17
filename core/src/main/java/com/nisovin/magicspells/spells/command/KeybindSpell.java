@@ -128,6 +128,7 @@ public class KeybindSpell extends CommandSpell {
 		keybinds.select(slot);
 		saveKeybinds(keybinds);
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

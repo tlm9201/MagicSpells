@@ -149,6 +149,7 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 		}
 
 		glowing.put(caster.getUniqueId(), glowData);
+		playSpellEffects(data);
 	}
 
 	private static class GlowData {

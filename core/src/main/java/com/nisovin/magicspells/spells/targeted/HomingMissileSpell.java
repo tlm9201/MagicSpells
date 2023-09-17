@@ -290,6 +290,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			entityMap = playSpellEntityEffects(EffectPosition.PROJECTILE, currentLocation, data);
 			armorStandSet = playSpellArmorStandEffects(EffectPosition.PROJECTILE, currentLocation, data);
 
+			if (data.hasCaster()) playSpellEffects(EffectPosition.CASTER, data.caster(), data);
+
 			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
 		}
 
