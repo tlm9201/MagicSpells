@@ -122,9 +122,10 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			option.quantity = getConfigString(path + "quantity", "");
 			option.spellName = getConfigString(path + "spell", "");
 			option.spellRightName = getConfigString(path + "spell-right", "");
-			option.spellMiddleName = getConfigString(path + "spell-middle", "");
 			option.spellSneakLeftName = getConfigString(path + "spell-sneak-left", "");
 			option.spellSneakRightName = getConfigString(path + "spell-sneak-right", "");
+			option.spellDropName = getConfigString(path + "spell-drop", "");
+			option.spellSwapName = getConfigString(path + "spell-swap", "");
 			option.power = getConfigFloat(path + "power", 1);
 			option.modifierList = getConfigStringList(path + "modifiers", null);
 			option.stayOpen = getConfigBoolean(path + "stay-open", false);
@@ -150,9 +151,10 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		for (MenuOption option : options.values()) {
 			option.spell = initSubspell(option.spellName, "MenuSpell '" + internalName + "' has an invalid 'spell' defined for: " + option.menuOptionName);
 			option.spellRight = initSubspell(option.spellRightName, "MenuSpell '" + internalName + "' has an invalid 'spell-right' defined for: " + option.menuOptionName);
-			option.spellMiddle = initSubspell(option.spellMiddleName, "MenuSpell '" + internalName + "' has an invalid 'spell-middle' defined for: " + option.menuOptionName);
 			option.spellSneakLeft = initSubspell(option.spellSneakLeftName, "MenuSpell '" + internalName + "' has an invalid 'spell-sneak-left' defined for: " + option.menuOptionName);
 			option.spellSneakRight = initSubspell(option.spellSneakRightName, "MenuSpell '" + internalName + "' has an invalid 'spell-sneak-right' defined for: " + option.menuOptionName);
+			option.spellDrop = initSubspell(option.spellDropName, "MenuSpell '" + internalName + "' has an invalid 'spell-drop' defined for: " + option.menuOptionName);
+			option.spellSwap = initSubspell(option.spellSwapName, "MenuSpell '" + internalName + "' has an invalid 'spell-swap' defined for: " + option.menuOptionName);
 		}
 	}
 
@@ -297,7 +299,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	@EventHandler
 	public void onInvClick(InventoryClickEvent event) {
 		Inventory inventory = event.getClickedInventory();
-		if (!(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+		if (inventory == null || !(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+		event.setCancelled(true);
 
 		Player player = (Player) event.getWhoClicked();
 		PostClickState state = castSpells(menu, event.getCurrentItem(), event.getClick());
@@ -327,9 +330,10 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		return switch (click) {
 			case LEFT -> processClickSpell(menu, option.spell, option);
 			case RIGHT -> processClickSpell(menu, option.spellRight, option);
-			case MIDDLE -> processClickSpell(menu, option.spellMiddle, option);
 			case SHIFT_LEFT -> processClickSpell(menu, option.spellSneakLeft, option);
 			case SHIFT_RIGHT -> processClickSpell(menu, option.spellSneakRight, option);
+			case DROP -> processClickSpell(menu, option.spellDrop, option);
+			case SWAP_OFFHAND -> processClickSpell(menu, option.spellSwap, option);
 			default -> option.stayOpen ? PostClickState.IGNORE : PostClickState.CLOSE;
 		};
 	}
@@ -392,14 +396,16 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		private String quantity;
 		private String spellName;
 		private String spellRightName;
-		private String spellMiddleName;
 		private String spellSneakLeftName;
 		private String spellSneakRightName;
+		private String spellDropName;
+		private String spellSwapName;
 		private Subspell spell;
 		private Subspell spellRight;
-		private Subspell spellMiddle;
 		private Subspell spellSneakLeft;
 		private Subspell spellSneakRight;
+		private Subspell spellDrop;
+		private Subspell spellSwap;
 		private float power;
 		private List<String> modifierList;
 		private ModifierSet menuOptionModifiers;

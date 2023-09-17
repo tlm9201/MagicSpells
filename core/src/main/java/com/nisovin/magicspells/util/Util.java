@@ -790,14 +790,6 @@ public class Util {
 		return ChatColor.stripColor(colorize(string));
 	}
 
-	public static String doVarReplacementAndColorize(Player player, String string) {
-		return MagicSpells.doReplacements(string, player, SpellData.NULL);
-	}
-
-	public static void setInventoryTitle(Player player, String title) {
-		MagicSpells.getVolatileCodeHandler().setInventoryTitle(player, doVarReplacementAndColorize(player, title));
-	}
-
 	public static PlayerProfile setTexture(PlayerProfile profile, String texture, String signature) {
 		if (signature == null || signature.isEmpty()) profile.setProperty(new ProfileProperty("textures", texture));
 		else profile.setProperty(new ProfileProperty("textures", texture, signature));
