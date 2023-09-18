@@ -34,12 +34,24 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 		this(caster, null, location, null, power, args);
 	}
 
+	public SpellData(LivingEntity caster, LivingEntity target, float power) {
+		this(caster, target, null, null, power, null);
+	}
+
+	public SpellData(LivingEntity caster, Location location, float power) {
+		this(caster, null, location, null, power, null);
+	}
+
 	public SpellData(LivingEntity caster, LivingEntity target) {
 		this(caster, target, null, null, 1f, null);
 	}
 
 	public SpellData(LivingEntity caster, float power, String[] args) {
 		this(caster, null, null, null, power, args);
+	}
+
+	public SpellData(LivingEntity caster, float power) {
+		this(caster, null, null, null, power, null);
 	}
 
 	public SpellData(LivingEntity caster) {
