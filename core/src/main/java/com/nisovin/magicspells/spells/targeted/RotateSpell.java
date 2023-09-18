@@ -48,6 +48,7 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 	@Override
 	public CastResult castAtLocation(SpellData data) {
 		changeDirection(data.caster(), data.location(), false, data);
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
@@ -67,6 +68,9 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 			}
 
 			data.target().setRotation(yaw, pitch);
+			playSpellEffects(data);
+
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -81,6 +85,7 @@ public class RotateSpell extends TargetedSpell implements TargetedEntitySpell, T
 			}
 		}
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

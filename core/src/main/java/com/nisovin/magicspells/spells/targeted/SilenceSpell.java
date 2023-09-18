@@ -116,6 +116,8 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (powerAffectsDuration.get(data)) duration = Math.round(duration * data.power());
 
 		silenced.put(uuid, new Unsilencer(uuid, duration));
+		playSpellEffects(data);
+
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

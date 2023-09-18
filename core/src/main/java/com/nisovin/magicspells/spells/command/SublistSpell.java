@@ -79,6 +79,7 @@ public class SublistSpell extends CommandSpell {
 		}
 
 		caster.sendMessage(message);
+		playSpellEffects(data);
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}

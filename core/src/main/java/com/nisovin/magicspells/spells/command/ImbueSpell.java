@@ -134,6 +134,7 @@ public class ImbueSpell extends CommandSpell {
 		DataUtil.setString(inHand, key, spell.getInternalName() + ',' + uses);
 		caster.getInventory().setItemInMainHand(inHand);
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

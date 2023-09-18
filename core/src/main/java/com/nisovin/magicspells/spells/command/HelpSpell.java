@@ -54,6 +54,7 @@ public class HelpSpell extends CommandSpell {
 		if (spell.getCostStr() != null && !spell.getCostStr().isEmpty())
 			sendMessage(strCostLine, caster, data, "%c", spell.getCostStr());
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

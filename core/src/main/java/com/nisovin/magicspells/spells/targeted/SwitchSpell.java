@@ -35,6 +35,7 @@ public class SwitchSpell extends TargetedSpell implements TargetedEntitySpell {
 		Location casterLoc = data.caster().getLocation();
 		data.caster().teleportAsync(targetLoc);
 		data.target().teleportAsync(casterLoc);
+		playSpellEffects(data);
 
 		int switchBack = this.switchBack.get(data);
 		if (switchBack <= 0) return new CastResult(PostCastAction.HANDLE_NORMALLY, data);

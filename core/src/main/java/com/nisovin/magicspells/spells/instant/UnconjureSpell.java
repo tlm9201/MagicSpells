@@ -74,6 +74,7 @@ public class UnconjureSpell extends InstantSpell {
 		filterItems(contents);
 		inventory.setArmorContents(contents);
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

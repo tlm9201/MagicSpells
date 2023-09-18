@@ -100,6 +100,7 @@ public class MagnetSpell extends InstantSpell implements TargetedLocationSpell {
 			}
 		}
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

@@ -158,6 +158,7 @@ public class ScrollSpell extends CommandSpell {
 
 		inHand = createScroll(spell, uses, inHand);
 		caster.getInventory().setItemInMainHand(inHand);
+		playSpellEffects(data);
 
 		sendMessage(strCastSelf, caster, data, "%s", spell.getName());
 		return new CastResult(PostCastAction.NO_MESSAGES, data);

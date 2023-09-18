@@ -69,8 +69,11 @@ public class PurgeSpell extends InstantSpell implements TargetedLocationSpell {
 			target.setHealth(0);
 			killed = true;
 		}
+		if (!killed) return noTarget(data);
 
-		return new CastResult(killed ? PostCastAction.HANDLE_NORMALLY : PostCastAction.ALREADY_HANDLED, data);
+		if (data.hasCaster()) playSpellEffects(EffectPosition.CASTER, data.caster(), data);
+
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	public List<EntityType> getEntities() {

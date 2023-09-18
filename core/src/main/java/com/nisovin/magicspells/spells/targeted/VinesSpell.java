@@ -84,6 +84,7 @@ public class VinesSpell extends TargetedSpell {
 			for (VineBlock vine : blocks) setBlockToVine(vine.block, face);
 		} else new VineAnimation(face, blocks, animateInterval);
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 	
