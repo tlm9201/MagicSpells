@@ -380,8 +380,15 @@ public class MinionSpell extends BuffSpell {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageByEntityEvent e) {
-		Entity damager = e.getDamager();
-		if (damager.isDead() || !damager.isValid()) return;
+		LivingEntity damager = null;
+		// Check if the minion is a projectile, if so, get the shooter, otherwise get the living entity damager.
+		if (e.getDamager() instanceof LivingEntity damagerEntity) damager = damagerEntity;
+		else if (e.getDamager() instanceof Projectile projectile) {
+			if (projectile.getShooter() instanceof LivingEntity shooter) damager = shooter;
+		}
+		// Check if the damager is alive.
+		if (damager == null || !damager.isValid()) return;
+
 		if (!(e.getEntity() instanceof LivingEntity entity) || !entity.isValid()) return;
 		// Check if the damaged entity is a player
 		if (entity instanceof Player pl && isActive(pl)) {
@@ -392,19 +399,13 @@ public class MinionSpell extends BuffSpell {
 				e.setCancelled(true);
 				return;
 			}
-			// Check if the player was damaged by a projectile
-			if (damager instanceof Projectile projectile && projectile.getShooter() instanceof LivingEntity shooter) {
-				// Check if the shooter is alive
-				if (shooter.isValid() && !shooter.isDead()) damager = shooter;
-			}
 
 			// If distance between previous target and the player is less than between the new target, the minion will keep focusing the previous target
 			LivingEntity previousTarget = targets.get(pl.getUniqueId());
 			if (previousTarget != null && previousTarget.getWorld().equals(pl.getWorld()) && pl.getLocation().distanceSquared(previousTarget.getLocation()) < pl.getLocation().distanceSquared(damager.getLocation())) return;
 
-			if (!(damager instanceof LivingEntity target)) return;
-			targets.put(pl.getUniqueId(), target);
-			MobUtil.setTarget(minions.get(pl.getUniqueId()), target);
+			targets.put(pl.getUniqueId(), damager);
+			MobUtil.setTarget(minions.get(pl.getUniqueId()), damager);
 			return;
 		}
 
@@ -423,19 +424,8 @@ public class MinionSpell extends BuffSpell {
 
 			// If the owner has no targets and someone will attack the minion, he will strike back
 			if (targets.get(owner.getUniqueId()) == null || targets.get(owner.getUniqueId()).isDead() || !targets.get(owner.getUniqueId()).isValid()) {
-				// Check if the minion damager is an arrow, if so, get the shooter, otherwise get the living damager
-				LivingEntity minionDamager = null;
-				if (damager instanceof Projectile && ((Projectile) damager).getShooter() instanceof LivingEntity shooter) {
-					// Check if the shooter is alive
-					if (shooter.isValid() && !shooter.isDead()) minionDamager = shooter;
-
-				} else if (damager instanceof LivingEntity) {
-					minionDamager = (LivingEntity) damager;
-				}
-				if (minionDamager != null) {
-					targets.put(owner.getUniqueId(), minionDamager);
-					MobUtil.setTarget(entity, minionDamager);
-				}
+				targets.put(owner.getUniqueId(), damager);
+				MobUtil.setTarget(entity, damager);
 			}
 		}
 
@@ -464,8 +454,8 @@ public class MinionSpell extends BuffSpell {
 
 		}
 
-		if (damager instanceof LivingEntity minion && isMinion(minion)) {
-			Player owner = Bukkit.getPlayer(players.get(minion));
+		if (isMinion(damager)) {
+			Player owner = Bukkit.getPlayer(players.get(damager));
 			if (owner == null || !owner.isOnline() || !owner.isValid()) return;
 
 			if (attackSpell != null) attackSpell.subcast(new SpellData(owner, entity, entity.getLocation(), 1f, null));
