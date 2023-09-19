@@ -58,8 +58,8 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		preventCast = getConfigBoolean("prevent-cast", true);
 		preventChat = getConfigBoolean("prevent-chat", false);
 		preventCommands = getConfigBoolean("prevent-commands", false);
-		notifyHelperSpells = getConfigBoolean("notify-helper-spells", false);
-		notifyPassiveSpells = getConfigBoolean("notify-passive-spells", false);
+		notifyHelperSpells = getConfigBoolean("notify-helper-spells", true);
+		notifyPassiveSpells = getConfigBoolean("notify-passive-spells", true);
 		powerAffectsDuration = getConfigDataBoolean("power-affects-duration", true);
 
 		preventCastSpellName = getConfigString("spell-on-denied-cast", "");

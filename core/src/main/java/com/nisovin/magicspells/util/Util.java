@@ -172,15 +172,12 @@ public class Util {
 
 	public static void setFacing(Player player, Vector vector) {
 		Location loc = player.getLocation();
-		setLocationFacingFromVector(loc, vector);
+		loc.setDirection(vector);
 		player.teleportAsync(loc);
 	}
 
 	public static void setLocationFacingFromVector(Location location, Vector vector) {
-		double yaw = getYawOfVector(vector);
-		double pitch = AccurateMath.toDegrees(-AccurateMath.asin(vector.getY()));
-		location.setYaw((float) yaw);
-		location.setPitch((float) pitch);
+		location.setDirection(vector);
 	}
 
 	public static double getYawOfVector(Vector vector) {

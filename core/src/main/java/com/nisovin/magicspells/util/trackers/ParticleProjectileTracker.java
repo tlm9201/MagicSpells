@@ -418,7 +418,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		for (Block b : nearBlocks) {
 			if (!groundMaterials.contains(b.getType()) || disallowedGroundMaterials.contains(b.getType())) continue;
 			if (hitGround && groundSpell != null) {
-				Util.setLocationFacingFromVector(previousLocation, currentVelocity);
+				previousLocation.setDirection(currentVelocity);
 				groundSpell.subcast(data.location(previousLocation));
 				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLocation, data);
 			}
