@@ -212,7 +212,9 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 			if (resolveDamagePerBlock) fallingBlockDamage = this.fallingBlockDamage.get(data);
 			if (fallingBlockDamage > 0) {
 				if (resolveMaxHeightPerBlock) fallingBlockHeight = this.fallingBlockMaxHeight.get(data);
-				MagicSpells.getVolatileCodeHandler().setFallingBlockHurtEntities(fb, fallingBlockDamage, fallingBlockHeight);
+				fb.setHurtEntities(true);
+				fb.setMaxDamage(fallingBlockHeight);
+				fb.setDamagePerBlock(fallingBlockDamage);
 			}
 
 			if (preventLandingBlocks) fallingBlocks.add(fb);

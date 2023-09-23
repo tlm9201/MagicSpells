@@ -79,12 +79,6 @@ class VolatileCode1_19_R3(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
         return event.isCancelled
     }
 
-    override fun setFallingBlockHurtEntities(block: FallingBlock, damage: Float, max: Int) {
-        val efb = (block as CraftFallingBlock).handle
-        block.setHurtEntities(true)
-        efb.setHurtsEntities(damage, max)
-    }
-
     override fun playDragonDeathEffect(location: Location) {
         val dragon = EnderDragon(EntityType.ENDER_DRAGON, (location.world as CraftWorld).handle)
         dragon.setPos(location.x, location.y, location.z)
