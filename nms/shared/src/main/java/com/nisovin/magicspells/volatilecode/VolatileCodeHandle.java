@@ -23,8 +23,6 @@ public abstract class VolatileCodeHandle {
 
 	public abstract boolean simulateTnt(Location target, LivingEntity source, float explosionSize, boolean fire);
 
-	public abstract void setFallingBlockHurtEntities(FallingBlock block, float damage, int max);
-
 	public abstract void playDragonDeathEffect(Location location);
 
 	public abstract void setClientVelocity(Player player, Vector velocity);

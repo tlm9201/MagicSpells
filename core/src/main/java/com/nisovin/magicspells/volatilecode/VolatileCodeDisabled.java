@@ -33,11 +33,6 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 	}
 
 	@Override
-	public void setFallingBlockHurtEntities(FallingBlock block, float damage, int max) {
-		block.setHurtEntities(true);
-	}
-
-	@Override
 	public void playDragonDeathEffect(Location location) {
 
 	}
