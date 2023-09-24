@@ -63,11 +63,8 @@ class VolatileCode1_20_R2(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
     }
 
     override fun sendFakeSlotUpdate(player: Player, slot: Int, item: ItemStack?) {
-        val nmsItem: nmsItemStack?
-        if (item != null) nmsItem = CraftItemStack.asNMSCopy(item)
-        else nmsItem = null
-
-        val packet = ClientboundContainerSetSlotPacket(0, 0, slot.toShort() + 36, nmsItem!!)
+        val nmsItem = CraftItemStack.asNMSCopy(item)
+        val packet = ClientboundContainerSetSlotPacket(0, 0, slot.toShort() + 36, nmsItem)
         (player as CraftPlayer).handle.connection.send(packet)
     }
 
