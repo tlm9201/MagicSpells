@@ -253,7 +253,7 @@ public class WindwalkSpell extends BuffSpell {
 				if (result != null) return;
 
 				location.add(0, -maxAltitude, 0);
-				double distance =  location.getY() - player.getWorld().getMinHeight();
+				double distance = location.getY() - player.getWorld().getMinHeight();
 				if (distance <= 0) return;
 
 				result = player.getWorld().rayTraceBlocks(location, down, distance, FluidCollisionMode.ALWAYS, true);

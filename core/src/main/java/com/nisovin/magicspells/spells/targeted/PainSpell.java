@@ -5,7 +5,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.*;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.compat.CompatBasics;
@@ -84,9 +83,7 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 			if (health == 0 && data.caster() instanceof Player player) data.target().setKiller(player);
 			data.target().setHealth(health);
 			data.target().setLastDamage(damage);
-
-			if (data.hasCaster()) MagicSpells.getVolatileCodeHandler().playHurtAnimation(data.target(), LocationUtil.getRotatedLocation(data.caster().getLocation(), data.target().getLocation()).getYaw());
-			else MagicSpells.getVolatileCodeHandler().playHurtAnimation(data.target(), data.target().getLocation().getYaw());
+			Util.playHurtEffect(data.target(), data.caster());
 
 			playSpellEffects(data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);

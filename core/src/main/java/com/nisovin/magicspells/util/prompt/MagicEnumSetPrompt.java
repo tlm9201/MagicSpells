@@ -81,7 +81,7 @@ public class MagicEnumSetPrompt extends FixedSetPrompt {
 		initializeEnumToNameMap();
 		
 		if (!enumToNames.containsKey(clazz.getName())) {
-			Enum<?>[] values =  clazz.getEnumConstants();
+			Enum<?>[] values = clazz.getEnumConstants();
 			if (values == null || values.length == 0) {
 				enumToNames.put(clazz.getName(), new ArrayList<>());
 			} else {

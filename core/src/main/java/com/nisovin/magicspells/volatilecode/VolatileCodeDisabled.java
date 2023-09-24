@@ -11,6 +11,11 @@ import org.bukkit.inventory.RecipeChoice;
 
 import org.jetbrains.annotations.NotNull;
 
+import net.kyori.adventure.text.Component;
+
+import io.papermc.paper.advancement.AdvancementDisplay.Frame;
+
+
 public class VolatileCodeDisabled extends VolatileCodeHandle {
 
 	public VolatileCodeDisabled() {
@@ -55,6 +60,11 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 	@Override
 	public Recipe createSmithingRecipe(@NotNull NamespacedKey namespacedKey, @NotNull ItemStack result, @NotNull RecipeChoice template, @NotNull RecipeChoice base, @NotNull RecipeChoice addition, boolean copyNbt) {
 		return null;
+	}
+
+	@Override
+	public void sendToastEffect(Player receiver, ItemStack icon, Frame frameType, Component text) {
+
 	}
 
 }

@@ -8,6 +8,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 
@@ -35,7 +36,7 @@ public class CustomRecipes {
 			Recipe recipe = customRecipe.build();
 			recipes.put(customRecipe.namespaceKey, recipe);
 			Bukkit.addRecipe(recipe);
-			Bukkit.getOnlinePlayers().forEach(player -> player.discoverRecipe(customRecipe.namespaceKey));
+			Util.forEachPlayerOnline(player -> player.discoverRecipe(customRecipe.namespaceKey));
 		}
 		catch (IllegalArgumentException e) {
 			MagicSpells.error("Error on recipe '" + config.getName() + "': " + e.getMessage());
@@ -47,7 +48,7 @@ public class CustomRecipes {
 	}
 
 	public static void clearRecipes() {
-		Bukkit.getOnlinePlayers().forEach(player -> player.undiscoverRecipes(recipes.keySet()));
+		Util.forEachPlayerOnline(player -> player.undiscoverRecipes(recipes.keySet()));
 		recipes.keySet().forEach(Bukkit::removeRecipe);
 		recipes.clear();
 		// TODO: This is api added in PaperMC 1.20+

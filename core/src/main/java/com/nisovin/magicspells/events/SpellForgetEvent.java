@@ -7,6 +7,8 @@ import org.bukkit.event.HandlerList;
 
 import com.nisovin.magicspells.Spell;
 
+import org.jetbrains.annotations.NotNull;
+
 public class SpellForgetEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
@@ -38,6 +40,7 @@ public class SpellForgetEvent extends Event implements Cancellable {
 		this.cancelled = cancelled;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

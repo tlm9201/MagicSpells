@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells;
 
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -74,13 +76,14 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 			} else {
 				Prompt convoPrompt = new StringPrompt() {
 
+					@NotNull
 					@Override
-					public String getPromptText(ConversationContext context) {
+					public String getPromptText(@NotNull ConversationContext context) {
 						return strBlockedOutput;
 					}
 
 					@Override
-					public Prompt acceptInput(ConversationContext context, String input) {
+					public Prompt acceptInput(@NotNull ConversationContext context, String input) {
 						return Prompt.END_OF_CONVERSATION;
 					}
 

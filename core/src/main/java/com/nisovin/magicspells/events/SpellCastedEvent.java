@@ -89,7 +89,7 @@ public class SpellCastedEvent extends SpellEvent {
 	
 	/**
 	 * Gets the post cast action that was executed for the spell cast.
-	 * @return
+	 * @return action
 	 */
 	public PostCastAction getPostCastAction() {
 		return action;

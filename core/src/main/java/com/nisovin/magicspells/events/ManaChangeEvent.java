@@ -4,11 +4,12 @@ import org.bukkit.event.Event;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.mana.ManaChangeReason;
 
 /**
  * This event is fired whenever a player's mana value is changed.
- *
  */
 public class ManaChangeEvent extends Event {
 
@@ -78,6 +79,7 @@ public class ManaChangeEvent extends Event {
 		return reason;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

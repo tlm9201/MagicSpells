@@ -216,7 +216,7 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 			return switch (owner.toLowerCase()) {
 				case "casterpapi" -> new CasterPAPIData(papiPlaceholder);
-				case "targetpapi" -> new CasterPAPIData(papiPlaceholder);
+				case "targetpapi" -> new TargetPAPIData(papiPlaceholder);
 				default -> new DefaultPAPIData(papiPlaceholder);
 			};
 		}

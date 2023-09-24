@@ -172,7 +172,7 @@ public class ScrollSpell extends CommandSpell {
 		}
 
 		List<Player> players = MagicSpells.plugin.getServer().matchPlayer(args[0]);
-		if (players.size() < 1) {
+		if (players.isEmpty()) {
 			sender.sendMessage("Invalid player defined!");
 			return false;
 		}

@@ -7,7 +7,12 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
+
 import org.jetbrains.annotations.NotNull;
+
+import net.kyori.adventure.text.Component;
+
+import io.papermc.paper.advancement.AdvancementDisplay.Frame;
 
 public abstract class VolatileCodeHandle {
 
@@ -39,5 +44,7 @@ public abstract class VolatileCodeHandle {
 			@NotNull RecipeChoice addition,
 			boolean copyNbt
 	);
+
+	public abstract void sendToastEffect(Player receiver, ItemStack icon, Frame frameType, Component text);
 
 }

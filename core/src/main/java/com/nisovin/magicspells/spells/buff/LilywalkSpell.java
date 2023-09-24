@@ -56,7 +56,7 @@ public class LilywalkSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		Util.forEachValueOrdered(entities, Lilies::remove);
+		entities.values().forEach(Lilies::remove);
 		entities.clear();
 	}
 
@@ -142,7 +142,7 @@ public class LilywalkSpell extends BuffSpell {
 		}
 		
 		private void remove() {
-			Util.forEachOrdered(blocks, block -> block.setType(Material.AIR));
+			blocks.forEach(block -> block.setType(Material.AIR));
 			blocks.clear();
 		}
 		

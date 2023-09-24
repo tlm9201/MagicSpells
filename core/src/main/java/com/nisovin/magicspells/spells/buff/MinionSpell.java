@@ -192,7 +192,7 @@ public class MinionSpell extends BuffSpell {
 		deathSpellName = getConfigString("spell-on-death", "");
 
 		spawnOffset = getConfigDataVector("spawn-offset", new Vector(1, 0, 0));
-		followRange = getConfigDouble("follow-range",  1.5) * -1;
+		followRange = getConfigDouble("follow-range", 1.5) * -1;
 		followSpeed = getConfigDouble("follow-speed", 1);
 		maxDistance = getConfigDouble("max-distance", 30);
 		powerAffectsHealth = getConfigDataBoolean("power-affects-health", false);
@@ -336,8 +336,9 @@ public class MinionSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		Util.forEachValueOrdered(minions, Entity::remove);
+		minions.values().forEach(Entity::remove);
 		minions.clear();
+
 		players.clear();
 		targets.clear();
 	}

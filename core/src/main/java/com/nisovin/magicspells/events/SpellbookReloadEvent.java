@@ -6,6 +6,8 @@ import org.bukkit.event.HandlerList;
 
 import com.nisovin.magicspells.Spellbook;
 
+import org.jetbrains.annotations.NotNull;
+
 public class SpellbookReloadEvent extends Event {
 
 	private static final HandlerList handlers = new HandlerList();
@@ -27,6 +29,7 @@ public class SpellbookReloadEvent extends Event {
 		return spellBook;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

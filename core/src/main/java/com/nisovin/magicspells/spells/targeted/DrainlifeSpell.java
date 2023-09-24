@@ -142,7 +142,7 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 					if (health == MIN_HEALTH && caster instanceof Player) target.setKiller((Player) caster);
 					target.setHealth(health);
 					target.setLastDamage(take);
-					MagicSpells.getVolatileCodeHandler().playHurtAnimation(target, LocationUtil.getRotatedLocation(caster.getLocation(), target.getLocation()).getYaw());
+					Util.playHurtEffect(data.target(), data.caster());
 				} else target.damage(take, caster);
 			}
 			case STR_MANA -> {

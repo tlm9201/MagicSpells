@@ -938,7 +938,7 @@ public class MagicSpells extends JavaPlugin {
 
 	/**
 	 * Gets a list of blocks that are considered transparent
-	 * @return list of block types
+	 * @return set of block types
 	 */
 	public static Set<Material> getTransparentBlocks() {
 		return plugin.losTransparentBlocks;
@@ -1805,7 +1805,7 @@ public class MagicSpells extends JavaPlugin {
 		if (!folder.exists()) folder.mkdir();
 
 		plugin.getLogger().severe("AN EXCEPTION HAS OCCURED:");
-		try (PrintWriter writer = new PrintWriter(new File(folder, System.currentTimeMillis() + ".txt"));) {
+		try (PrintWriter writer = new PrintWriter(new File(folder, System.currentTimeMillis() + ".txt"))) {
 			Throwable t = ex;
 			while (t != null) {
 				plugin.getLogger().severe("    " + t.getMessage() + " (" + t.getClass().getName() + ')');
