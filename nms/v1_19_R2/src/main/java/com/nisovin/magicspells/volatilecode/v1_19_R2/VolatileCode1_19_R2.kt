@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.volatilecode.v1_19_R2
 
+import java.util.*
+
 import org.bukkit.Bukkit
 import org.bukkit.entity.*
 import org.bukkit.Location
@@ -17,18 +19,26 @@ import org.bukkit.craftbukkit.v1_19_R2.CraftWorld
 import org.bukkit.craftbukkit.v1_19_R2.CraftServer
 import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack
 
+import net.kyori.adventure.text.Component
+
+import io.papermc.paper.adventure.PaperAdventure
+import io.papermc.paper.advancement.AdvancementDisplay
+
 import net.minecraft.world.phys.Vec3
+import net.minecraft.advancements.FrameType
 import net.minecraft.world.entity.EntityType
 import net.minecraft.network.protocol.game.*
+import net.minecraft.advancements.Advancement
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.item.PrimedTnt
 import net.minecraft.world.item.alchemy.PotionUtils
+import net.minecraft.advancements.AdvancementProgress
 import net.minecraft.network.syncher.EntityDataAccessor
+import net.minecraft.advancements.critereon.ImpossibleTrigger
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
 
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 import com.nisovin.magicspells.volatilecode.VolatileCodeHelper
-
-private typealias nmsItemStack = net.minecraft.world.item.ItemStack
 
 class VolatileCode1_19_R2(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
 
@@ -124,6 +134,40 @@ class VolatileCode1_19_R2(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
         copyNbt: Boolean
     ): Recipe {
         return SmithingRecipe(namespacedKey, result, base, addition, copyNbt)
+    }
+
+    override fun sendToastEffect(receiver: Player, icon: ItemStack, frameType: AdvancementDisplay.Frame, text: Component) {
+        val iconNms = CraftItemStack.asNMSCopy(icon)
+        val textNms = PaperAdventure.asVanilla(text)
+        val description = PaperAdventure.asVanilla(Component.empty())
+        val frame = try {
+            FrameType.valueOf(frameType.name)
+        } catch (_: IllegalArgumentException) {
+            FrameType.TASK
+        }
+
+        val id = ResourceLocation("magicspells", "toast_effect")
+        val advancement = Advancement.Builder.advancement()
+            .display(iconNms, textNms, description, null, frame, true, false, true)
+            .addCriterion("impossible", ImpossibleTrigger.TriggerInstance())
+            .build(id)
+        val progress = AdvancementProgress()
+        progress.update(advancement.criteria, advancement.requirements)
+        progress.grantProgress("impossible")
+
+        val player = (receiver as CraftPlayer).handle
+        player.connection.send(ClientboundUpdateAdvancementsPacket(
+            false,
+            Collections.singleton(advancement),
+            Collections.emptySet(),
+            Collections.singletonMap(id, progress)
+        ))
+        player.connection.send(ClientboundUpdateAdvancementsPacket(
+            false,
+            Collections.emptySet(),
+            Collections.singleton(id),
+            Collections.emptyMap()
+        ))
     }
 
 }

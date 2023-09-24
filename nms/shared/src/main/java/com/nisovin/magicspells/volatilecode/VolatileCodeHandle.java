@@ -10,6 +10,10 @@ import org.bukkit.inventory.RecipeChoice;
 
 import org.jetbrains.annotations.NotNull;
 
+import net.kyori.adventure.text.Component;
+
+import io.papermc.paper.advancement.AdvancementDisplay.Frame;
+
 public abstract class VolatileCodeHandle {
 
 	protected final VolatileCodeHelper helper;
@@ -40,5 +44,7 @@ public abstract class VolatileCodeHandle {
 			@NotNull RecipeChoice addition,
 			boolean copyNbt
 	);
+
+	public abstract void sendToastEffect(Player receiver, ItemStack icon, Frame frameType, Component text);
 
 }
