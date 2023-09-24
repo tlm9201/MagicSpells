@@ -189,9 +189,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell {
 
 				data.target().setHealth(health);
 				data.target().setLastDamage(localDamage);
-
-				if (data.hasCaster()) MagicSpells.getVolatileCodeHandler().playHurtAnimation(data.target(), LocationUtil.getRotatedLocation(data.caster().getLocation(), data.target().getLocation()).getYaw());
-				else MagicSpells.getVolatileCodeHandler().playHurtAnimation(data.target(), data.target().getLocation().getYaw());
+				Util.playHurtEffect(data.target(), data.caster());
 			} else {
 				if (tryAvoidingAntiCheatPlugins || !data.hasCaster()) data.target().damage(localDamage);
 				else data.target().damage(localDamage, data.caster());

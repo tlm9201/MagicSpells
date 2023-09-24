@@ -5,7 +5,6 @@ import org.bukkit.entity.*
 import org.bukkit.Location
 import org.bukkit.util.Vector
 import org.bukkit.NamespacedKey
-import org.bukkit.SoundCategory
 import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.RecipeChoice
@@ -111,14 +110,16 @@ class VolatileCode1_20_R2(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
         entityPlayer.startAutoSpinAttack(ticks)
     }
 
-    // KEEP IT AT 90 DEGREES (90 degrees = camera shake forward) UNTIL A PROPER MATH FUNCTION FOR THE DEGREES IS DEFINED.
-    override fun playHurtAnimation(entity: LivingEntity?, yaw: Float) {
-        val entityLiving = (entity as CraftLivingEntity).handle
+    override fun playHurtAnimation(entity: LivingEntity, yaw: Float) {
+        val e = (entity as CraftLivingEntity).handle
 
         for (p : Player in entity.location.getNearbyPlayers((entity.server.simulationDistance * 16).toDouble())) {
-            (p as CraftPlayer).handle.connection.send(ClientboundHurtAnimationPacket(entityLiving.id, 90f))
-            p.playSound(entity.location, "entity.generic.hurt", SoundCategory.PLAYERS, 1F, 1F)
+            (p as CraftPlayer).handle.connection.send(ClientboundHurtAnimationPacket(e.id, 90 + yaw))
         }
+
+        if (e.isSilent) return
+        val sound = e.getHurtSound0(e.damageSources().generic())
+        e.level().playSound(null, e.x, e.y, e.z, sound, e.soundSource, e.soundVolume, e.voicePitch)
     }
 
     override fun createSmithingRecipe(

@@ -29,6 +29,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
@@ -181,6 +182,19 @@ public class Util {
 
 	public static double getYawOfVector(Vector vector) {
 		return AccurateMath.toDegrees(AccurateMath.atan2(-vector.getX(), vector.getZ()));
+	}
+
+	public static void playHurtEffect(@NotNull LivingEntity receiver, @Nullable LivingEntity source) {
+		float angle = 0;
+		if (source != null && !receiver.equals(source)) {
+			// Get horizontal directed angle between the receiver's direction and the source.
+			Vector first = receiver.getLocation().getDirection();
+			Vector second = source.getLocation().toVector().subtract(receiver.getLocation().toVector());
+			double angrad = AccurateMath.atan2(second.getZ(), second.getX()) - AccurateMath.atan2(first.getZ(), first.getX());
+			angle = (float) AccurateMath.toDegrees(angrad);
+			if (angle < 0) angle += 360;
+		}
+		MagicSpells.getVolatileCodeHandler().playHurtAnimation(receiver, angle);
 	}
 
 	public static boolean arrayContains(int[] array, int value) {
