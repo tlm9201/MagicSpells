@@ -39,7 +39,7 @@ public class SmokeSwirlEffect extends SpellEffect {
 		return null;
 	}
 
-	private class Animator implements Runnable {
+	private static class Animator implements Runnable {
 
 		private Entity entity;
 		private Location location;

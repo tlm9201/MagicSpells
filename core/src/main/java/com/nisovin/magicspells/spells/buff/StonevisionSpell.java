@@ -207,7 +207,7 @@ public class StonevisionSpell extends BuffSpell {
 		}
 
 		private void removeTransparency() {
-			Util.forEachOrdered(blocks, b -> player.sendBlockChange(b.getLocation(), b.getType().createBlockData()));
+			blocks.forEach(b -> player.sendBlockChange(b.getLocation(), b.getType().createBlockData()));
 			blocks = null;
 		}
 

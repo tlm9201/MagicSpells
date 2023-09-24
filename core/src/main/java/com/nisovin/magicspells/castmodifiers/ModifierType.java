@@ -561,7 +561,7 @@ public enum ModifierType {
 	
 	CAST(true, "cast") {
 
-		class CastData extends CustomData {
+		static class CastData extends CustomData {
 
 			public String invalidText;
 
@@ -654,7 +654,7 @@ public enum ModifierType {
 	
 	CAST_INSTEAD(true, "castinstead") {
 
-		class CustomInsteadData extends CustomData {
+		static class CustomInsteadData extends CustomData {
 
 			public String invalidText;
 
@@ -756,7 +756,7 @@ public enum ModifierType {
 
 	VARIABLE_MODIFY(true, "variable") {
 		
-		class VariableModData extends CustomData {
+		static class VariableModData extends CustomData {
 
 			private String invalidText = "Variable action is invalid.";
 			
@@ -882,7 +882,7 @@ public enum ModifierType {
 	
 	STRING(true, "string") {
 		
-		class StringData extends CustomData {
+		static class StringData extends CustomData {
 
 			public String invalidText;
 			

@@ -3,12 +3,13 @@ package com.nisovin.magicspells.events;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 
 /**
  * This event is fired whenever MagicSpells finishes loading, either after the server first starts,
  * after a server reload (/reload), or after an internal reload (/ms reload).
- *
  */
 public class MagicSpellsLoadedEvent extends Event {
 
@@ -28,6 +29,7 @@ public class MagicSpellsLoadedEvent extends Event {
 		return plugin;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

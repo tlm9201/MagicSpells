@@ -10,7 +10,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.Predicate;
@@ -240,7 +239,7 @@ public class Util {
 		for (String word : words) {
 			if (word.isEmpty()) continue;
 			if (max > 0 && list.size() == max - 1) {
-				if (building.length() > 0) building.append(" ");
+				if (!building.isEmpty()) building.append(" ");
 				building.append(word);
 				continue;
 			}
@@ -272,7 +271,7 @@ public class Util {
 			building.append(' ').append(word);
 		}
 
-		if (building.length() > 0) list.add(building.toString());
+		if (!building.isEmpty()) list.add(building.toString());
 
 		return list.toArray(new String[0]);
 	}
@@ -511,7 +510,7 @@ public class Util {
 	}
 
 	public static String flattenLineBreaks(String raw) {
-		return raw.replaceAll("\n", "\\n");
+		return raw.replaceAll("\n", "\\\\n");
 	}
 
 	public static <T> boolean containsParallel(Collection<T> elements, Predicate<? super T> predicate) {
@@ -522,22 +521,12 @@ public class Util {
 		return containsParallel(map.values(), predicate);
 	}
 
-	public static <T> void forEachOrdered(Collection<T> collection, Consumer<? super T> consumer) {
-		collection.stream().forEachOrdered(consumer);
-	}
-
-	public static <T> void forEachValueOrdered(Map<?, T> map, Consumer<? super T> consumer) {
-		forEachOrdered(map.values(), consumer);
-	}
-
 	public static void forEachPlayerOnline(Consumer<? super Player> consumer) {
-		forEachOrdered(Bukkit.getOnlinePlayers(), consumer);
+		Bukkit.getOnlinePlayers().forEach(consumer);
 	}
 
 	public static int clampValue(int min, int max, int value) {
-		if (value < min) return min;
-		if (value > max) return max;
-		return value;
+		return Math.min(Math.max(value, min), max);
 	}
 
 	public static <C extends Collection<Material>> C getMaterialList(List<String> strings, Supplier<C> supplier) {
@@ -794,7 +783,7 @@ public class Util {
 	}
 
 	public static String getSkinData(Player player) {
-		List<ProfileProperty> skins = player.getPlayerProfile().getProperties().stream().filter(prop -> prop.getName().equals("textures")).collect(Collectors.toList());
+		List<ProfileProperty> skins = player.getPlayerProfile().getProperties().stream().filter(prop -> prop.getName().equals("textures")).toList();
 		ProfileProperty latestSkin = skins.get(0);
 		return "Skin: " + latestSkin.getValue() + "\nSignature: " + latestSkin.getSignature();
 	}

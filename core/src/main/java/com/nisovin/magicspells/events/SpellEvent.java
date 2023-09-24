@@ -6,6 +6,8 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.Spell;
 
+import org.jetbrains.annotations.NotNull;
+
 public abstract class SpellEvent extends Event implements IMagicSpellsCompatEvent {
 
 	protected static final HandlerList handlers = new HandlerList();
@@ -35,6 +37,7 @@ public abstract class SpellEvent extends Event implements IMagicSpellsCompatEven
 		return caster;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

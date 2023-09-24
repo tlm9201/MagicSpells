@@ -85,7 +85,7 @@ public class CarpetSpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		Util.forEachValueOrdered(entities, BlockPlatform::destroyPlatform);
+		entities.values().forEach(BlockPlatform::destroyPlatform);
 		entities.clear();
 	}
 

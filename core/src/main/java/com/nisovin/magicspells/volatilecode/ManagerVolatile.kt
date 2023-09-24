@@ -17,15 +17,15 @@ object ManagerVolatile {
     }
 
     fun constructVolatileCodeHandler(): VolatileCodeHandle {
-        try {
+        return try {
             val nmsPackage = Bukkit.getServer().javaClass.getPackage().name.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[3]
             val volatileCode = Class.forName("com.nisovin.magicspells.volatilecode.$nmsPackage.VolatileCode${nmsPackage.replace("v", "")}")
 
             MagicSpells.log("Found volatile code handler for $nmsPackage.")
-            return volatileCode.getConstructor(VolatileCodeHelper::class.java).newInstance(helper) as VolatileCodeHandle
+            volatileCode.getConstructor(VolatileCodeHelper::class.java).newInstance(helper) as VolatileCodeHandle
         } catch (ex: Exception) {
             MagicSpells.log("Volatile code handler not found, using fallback.")
-            return VolatileCodeDisabled()
+            VolatileCodeDisabled()
         }
     }
 }

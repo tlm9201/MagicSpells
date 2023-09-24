@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.trackers.Tracker;
 
 public class TrackerMoveEvent extends Event {
@@ -33,6 +35,7 @@ public class TrackerMoveEvent extends Event {
 		return to;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

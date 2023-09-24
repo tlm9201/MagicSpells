@@ -76,8 +76,7 @@ public class WalkwaySpell extends BuffSpell {
 
 	@Override
 	protected void turnOff() {
-		Util.forEachValueOrdered(entities, Platform::remove);
-
+		entities.values().forEach(Platform::remove);
 		entities.clear();
 		unregisterListener();
 	}

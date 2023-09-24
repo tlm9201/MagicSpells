@@ -12,8 +12,8 @@ public class ExperienceUtils {
 	
 	private static final int MAX_LEVEL_SUPPORTED = 500;
 
-	private static final int xpRequiredForNextLevel[] = new int[MAX_LEVEL_SUPPORTED];
-	private static final int xpTotalToReachLevel[] = new int[MAX_LEVEL_SUPPORTED];
+	private static final int[] xpRequiredForNextLevel = new int[MAX_LEVEL_SUPPORTED];
+	private static final int[] xpTotalToReachLevel = new int[MAX_LEVEL_SUPPORTED];
 
 	static {
 		xpTotalToReachLevel[0] = 0;

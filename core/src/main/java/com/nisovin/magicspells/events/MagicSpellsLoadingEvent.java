@@ -3,6 +3,8 @@ package com.nisovin.magicspells.events;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 
 /**
@@ -28,6 +30,7 @@ public class MagicSpellsLoadingEvent extends Event {
 		return plugin;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

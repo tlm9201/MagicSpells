@@ -221,7 +221,7 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 				return;
 			}
 
-			if (locations != null && locations.size() > 0) tempLocation = locations.get(counter - 1);
+			if (locations != null && !locations.isEmpty()) tempLocation = locations.get(counter - 1);
 			if (tempLocation != null) {
 				data.target().teleportAsync(tempLocation);
 				locations.remove(tempLocation);

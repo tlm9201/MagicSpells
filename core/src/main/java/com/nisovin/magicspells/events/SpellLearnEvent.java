@@ -7,6 +7,8 @@ import org.bukkit.event.HandlerList;
 
 import com.nisovin.magicspells.Spell;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * This event is fired whenever a player is about to learn a spell, either from
  * the teach spell, a spellbook, a tome, or from an external plugin calling the
@@ -73,6 +75,7 @@ public class SpellLearnEvent extends Event implements Cancellable {
 		this.cancelled = cancelled;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

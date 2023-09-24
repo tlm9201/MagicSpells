@@ -135,7 +135,7 @@ public class TXTFileStorage extends StorageHandler {
 					items = spellbook.getCustomBindings().get(spell);
 					builder = new StringBuilder();
 					for (CastItem item : items) {
-						builder.append((builder.length() == 0) ? "" : "|").append(item);
+						builder.append((builder.isEmpty()) ? "" : "|").append(item);
 					}
 
 					// When you unbind an item with no binds left, restore the original cast item.

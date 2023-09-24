@@ -75,7 +75,7 @@ public class LevitateSpell extends TargetedSpell implements TargetedEntitySpell 
 
 	@Override
 	public void turnOff() {
-		Util.forEachValueOrdered(levitating, Levitator::stop);
+		levitating.values().forEach(Levitator::stop);
 		levitating.clear();
 	}
 

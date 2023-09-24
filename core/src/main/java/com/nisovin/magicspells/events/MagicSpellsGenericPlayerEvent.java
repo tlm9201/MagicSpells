@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
+import org.jetbrains.annotations.NotNull;
+
 public class MagicSpellsGenericPlayerEvent extends Event implements Cancellable {
 
 	private static final HandlerList handlers = new HandlerList();
@@ -31,6 +33,7 @@ public class MagicSpellsGenericPlayerEvent extends Event implements Cancellable 
 		this.cancelled = cancelled;
 	}
 
+	@NotNull
 	@Override
 	public HandlerList getHandlers() {
 		return handlers;

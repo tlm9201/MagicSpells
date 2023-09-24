@@ -77,7 +77,7 @@ public class AdminTeachSpell extends CommandSpell {
 					sender.sendMessage("Target spellbook was destroyed before changes could be applied.");
 					return;
 				}
-				Util.forEachOrdered(spellCollection, spellbook::addSpell);
+				spellCollection.forEach(spellbook::addSpell);
 				spellbook.save();
 				sender.sendMessage("Spell granting complete");
 			});

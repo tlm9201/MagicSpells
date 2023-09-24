@@ -203,7 +203,7 @@ public class SpellUtil {
 			EntityEquipment eq = livingEntity.getEquipment();
 
 			if (eq != null) {
-				ItemStack item =  eq.getItemInMainHand();
+				ItemStack item = eq.getItemInMainHand();
 				ItemMeta meta = item.getItemMeta();
 
 				int maxDurability = item.getType().getMaxDurability();

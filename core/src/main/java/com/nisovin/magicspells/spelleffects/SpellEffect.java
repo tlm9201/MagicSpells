@@ -108,7 +108,7 @@ public abstract class SpellEffect {
 
 		dragEntity = ConfigDataUtil.getBoolean(config, "drag-entity", false);
 
-		counterClockwise =  ConfigDataUtil.getBoolean(config, path + "counter-clockwise", false);
+		counterClockwise = ConfigDataUtil.getBoolean(config, path + "counter-clockwise", false);
 
 		modifiersList = config.getStringList("modifiers");
 		casterModifiersList = config.getStringList("caster-modifiers");
