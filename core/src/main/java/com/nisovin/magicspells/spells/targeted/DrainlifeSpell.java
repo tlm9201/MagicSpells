@@ -160,7 +160,7 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 			}
 			case STR_EXPERIENCE -> {
 				if (playerTarget == null) break;
-				int exp = ExperienceUtils.getCurrentExp(playerTarget);
+				int exp = ExperienceUtils.getExperience(playerTarget);
 				if (give > exp) give = exp;
 				ExperienceUtils.changeExp(playerTarget, (int) Math.round(-take));
 			}
