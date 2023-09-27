@@ -85,7 +85,7 @@ public class ZapSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		if (playBreakEffect.get(data))
-			target.getWorld().playEffect(target.getLocation(), Effect.STEP_SOUND, target.getType());
+			target.getWorld().playEffect(target.getLocation(), Effect.STEP_SOUND, target.getBlockData());
 
 		if (dropBlock.get(data)) {
 			if (dropNormal.get(data)) target.breakNaturally();
