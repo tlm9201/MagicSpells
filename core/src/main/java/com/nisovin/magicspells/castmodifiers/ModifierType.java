@@ -162,16 +162,7 @@ public enum ModifierType {
 		public ModifierResult apply(LivingEntity caster, ModifierResult result, CustomData customData) {
 			if (result.check()) {
 				SpellData data = result.data();
-
-				return new ModifierResult(
-					new SpellData(
-						data.caster(),
-						data.target(),
-						data.power() * CustomDataFloat.from(customData, data),
-						data.args()
-					),
-					true
-				);
+				return new ModifierResult(data.power(data.power() * CustomDataFloat.from(customData, data)), true);
 			}
 
 			return new ModifierResult(result.data(), true);
@@ -181,16 +172,7 @@ public enum ModifierType {
 		public ModifierResult apply(LivingEntity caster, LivingEntity target, ModifierResult result, CustomData customData) {
 			if (result.check()) {
 				SpellData data = result.data();
-
-				return new ModifierResult(
-					new SpellData(
-						data.caster(),
-						data.target(),
-						data.power() * CustomDataFloat.from(customData, data),
-						data.args()
-					),
-					true
-				);
+				return new ModifierResult(data.power(data.power() * CustomDataFloat.from(customData, data)), true);
 			}
 
 			return new ModifierResult(result.data(), true);
@@ -200,16 +182,7 @@ public enum ModifierType {
 		public ModifierResult apply(LivingEntity caster, Location target, ModifierResult result, CustomData customData) {
 			if (result.check()) {
 				SpellData data = result.data();
-
-				return new ModifierResult(
-					new SpellData(
-						data.caster(),
-						data.target(),
-						data.power() * CustomDataFloat.from(customData, data),
-						data.args()
-					),
-					true
-				);
+				return new ModifierResult(data.power(data.power() * CustomDataFloat.from(customData, data)), true);
 			}
 
 			return new ModifierResult(result.data(), true);
@@ -261,16 +234,7 @@ public enum ModifierType {
 		public ModifierResult apply(LivingEntity caster, ModifierResult result, CustomData customData) {
 			if (result.check()) {
 				SpellData data = result.data();
-
-				return new ModifierResult(
-					new SpellData(
-						data.caster(),
-						data.target(),
-						data.power() + CustomDataFloat.from(customData, data),
-						data.args()
-					),
-					true
-				);
+				return new ModifierResult(data.power(data.power() + CustomDataFloat.from(customData, data)), true);
 			}
 
 			return new ModifierResult(result.data(), true);
@@ -280,16 +244,7 @@ public enum ModifierType {
 		public ModifierResult apply(LivingEntity caster, LivingEntity target, ModifierResult result, CustomData customData) {
 			if (result.check()) {
 				SpellData data = result.data();
-
-				return new ModifierResult(
-					new SpellData(
-						data.caster(),
-						data.target(),
-						data.power() + CustomDataFloat.from(customData, data),
-						data.args()
-					),
-					true
-				);
+				return new ModifierResult(data.power(data.power() + CustomDataFloat.from(customData, data)), true);
 			}
 
 			return new ModifierResult(result.data(), true);
@@ -299,16 +254,7 @@ public enum ModifierType {
 		public ModifierResult apply(LivingEntity caster, Location target, ModifierResult result, CustomData customData) {
 			if (result.check()) {
 				SpellData data = result.data();
-
-				return new ModifierResult(
-					new SpellData(
-						data.caster(),
-						data.target(),
-						data.power() + CustomDataFloat.from(customData, data),
-						data.args()
-					),
-					true
-				);
+				return new ModifierResult(data.power(data.power() + CustomDataFloat.from(customData, data)), true);
 			}
 
 			return new ModifierResult(result.data(), true);
