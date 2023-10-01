@@ -1,8 +1,11 @@
 package com.nisovin.magicspells.listeners;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.EnumSet;
 import java.util.HashMap;
 
+import org.bukkit.Tag;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -11,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.entity.EntityShootBowEvent;
@@ -19,154 +23,116 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+
+import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BowSpell;
-import com.nisovin.magicspells.util.BlockUtils;
 
 public class CastListener implements Listener {
 
-	private MagicSpells plugin;
+	private final Map<String, Long> noCastUntil;
 
-	private Map<String, Long> noCastUntil;
+	private final Set<Material> interactable;
 
-	public CastListener(MagicSpells plugin) {
-		this.plugin = plugin;
+	public CastListener() {
 		noCastUntil = new HashMap<>();
+
+		interactable = EnumSet.of(Material.BARREL, Material.BEACON, Material.BLAST_FURNACE, Material.BREWING_STAND,
+			Material.CARTOGRAPHY_TABLE, Material.CHEST, Material.COMPARATOR, Material.CRAFTING_TABLE,
+			Material.DAYLIGHT_DETECTOR, Material.DISPENSER, Material.DROPPER, Material.ENCHANTING_TABLE,
+			Material.ENDER_CHEST, Material.FURNACE, Material.GRINDSTONE, Material.HOPPER, Material.LEVER, Material.LOOM,
+			Material.NOTE_BLOCK, Material.POLISHED_BLACKSTONE_BUTTON, Material.REPEATER, Material.SMITHING_TABLE,
+			Material.SMOKER, Material.STONECUTTER, Material.TRAPPED_CHEST
+		);
+
+		interactable.addAll(Tag.ANVIL.getValues());
+		interactable.addAll(Tag.BEDS.getValues());
+		interactable.addAll(Tag.BUTTONS.getValues());
+		interactable.addAll(Tag.DOORS.getValues());
+		interactable.addAll(Tag.TRAPDOORS.getValues());
+		interactable.addAll(Tag.FENCE_GATES.getValues());
+		interactable.addAll(Tag.SHULKER_BOXES.getValues());
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerInteract(PlayerInteractEvent event) {
-		final Player player = event.getPlayer();
-
-		// First check if player is interacting with a special block
-		boolean noInteract = false;
-		if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-			Material m = event.getClickedBlock().getType();
-			if (BlockUtils.isDoor(m) ||
-					BlockUtils.isFenceGate(m) ||
-					BlockUtils.isTrapdoor(m) ||
-					BlockUtils.isShulkerBox(m) ||
-					BlockUtils.isButton(m) ||
-					BlockUtils.isBed(m) ||
-					BlockUtils.isChest(m) ||
-					m.name().contains("ANVIL") ||
-					m == Material.BARREL ||
-					m == Material.BEACON ||
-					m == Material.BLAST_FURNACE ||
-					m == Material.BREWING_STAND ||
-					m == Material.CARTOGRAPHY_TABLE ||
-					m == Material.COMPARATOR ||
-					m == Material.CRAFTING_TABLE ||
-					m == Material.DAYLIGHT_DETECTOR ||
-					m == Material.DISPENSER ||
-					m == Material.DROPPER ||
-					m == Material.ENCHANTING_TABLE ||
-					m == Material.ENDER_CHEST ||
-					m == Material.FURNACE ||
-					m == Material.GRINDSTONE ||
-					m == Material.HOPPER ||
-					m == Material.LEVER ||
-					m == Material.LOOM ||
-					m == Material.NOTE_BLOCK ||
-					m == Material.POLISHED_BLACKSTONE_BUTTON ||
-					m == Material.REPEATER ||
-					m == Material.SMITHING_TABLE ||
-					m == Material.SMOKER ||
-					m == Material.STONECUTTER) {
-				noInteract = true;
-			} else if (event.hasItem() && event.getItem().getType().isBlock()) {
-				noInteract = true;
-			}
-
-			// Force exp bar back to show exp when trying to enchant
-			if (m == Material.ENCHANTING_TABLE) MagicSpells.getExpBarManager().update(player, player.getLevel(), player.getExp());
-		}
-
-		if (noInteract) {
-			// Special block -- don't do normal interactions
-			noCastUntil.put(event.getPlayer().getName(), System.currentTimeMillis() + 150);
-			return;
-		}
-
-		if (isEventCastAction(event)) {
-			// Cast
-			if (!MagicSpells.isCastingOnAnimate()) castSpell(event.getPlayer());
-			return;
-		}
-
-		if (isEventCycleAction(event) && (MagicSpells.isCyclingSpellsOnOffhandAction() || event.getHand() == EquipmentSlot.HAND)) {
-			ItemStack inHand = player.getInventory().getItemInMainHand();
-			
-			if (isBow(inHand.getType())) {
-				if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) return;
-			}
-			
-			if ((!BlockUtils.isAir(inHand.getType())) || MagicSpells.canCastWithFist()) {
-				// Cycle spell
-				Spell spell;
-				if (!player.isSneaking()) spell = MagicSpells.getSpellbook(player).nextSpell(inHand);
-				else spell = MagicSpells.getSpellbook(player).prevSpell(inHand);
-
-				if (spell == null) return;
-				// Send message
-				MagicSpells.sendMessageAndFormat(player, MagicSpells.getSpellChangeMessage(), "%s", spell.getName());
-				// Show spell icon
-				if (MagicSpells.getSpellIconSlot() >= 0) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
-
-				// Use cool new text thingy
-				/*boolean yay = false;
-				if (yay) {
-					final ItemStack fake = inHand.clone();
-					if (fake == null) return;
-					ItemMeta meta = fake.getItemMeta();
-					meta.setDisplayName("Spell: " + spell.getName());
-					fake.setItemMeta(meta);
-					MagicSpells.scheduleDelayedTask(() -> MagicSpells.getVolatileCodeHandler().sendFakeSlotUpdate(player, player.getInventory().getHeldItemSlot(), fake), 0);
-				} */
-			}
-		}
-	}
-
-	@EventHandler
-	public void onItemHeldChange(final PlayerItemHeldEvent event) {
-		if (MagicSpells.getSpellIconSlot() >= 0 && MagicSpells.getSpellIconSlot() <= 8) {
-			Player player = event.getPlayer();
-			if (event.getNewSlot() == MagicSpells.getSpellIconSlot()) {
-				showIcon(player, MagicSpells.getSpellIconSlot(), null);
-				return;
-			}
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			Spell spell = spellbook.getActiveSpell(player.getInventory().getItem(event.getNewSlot()));
-			if (spell != null) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
-			else showIcon(player, MagicSpells.getSpellIconSlot(), null);
-		}
-	}
-
-	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
-	public void onPlayerAnimation(PlayerAnimationEvent event) {
-		if (!MagicSpells.isCastingOnAnimate() || event.getAnimationType() != PlayerAnimationType.ARM_SWING) return;
+		Action action = event.getAction();
+		if (action == Action.PHYSICAL) return;
 
 		Player player = event.getPlayer();
 
-		InventoryType type = player.getOpenInventory().getType();
-		if (type != InventoryType.CRAFTING && type != InventoryType.CREATIVE) return;
+		if (action == Action.RIGHT_CLICK_BLOCK) {
+			Material type = event.getClickedBlock().getType();
 
-		if (MagicSpells.areBowCycleButtonsReversed()) {
-			ItemStack inHand = player.getInventory().getItemInMainHand();
-			if (isBow(inHand.getType())) return;
+			// Force exp bar back to show exp when trying to enchant
+			if (type == Material.ENCHANTING_TABLE)
+				MagicSpells.getExpBarManager().update(player, player.getLevel(), player.getExp());
+
+			if (event.isBlockInHand() || interactable.contains(type)) {
+				// Special block -- don't do normal interactions
+				noCastUntil.put(event.getPlayer().getName(), System.currentTimeMillis() + 150);
+				return;
+			}
 		}
 
-		castSpell(player);
+		if (MagicSpells.isCastingOnAnimate() && action.isLeftClick()) return;
+
+		ItemStack item = player.getInventory().getItemInMainHand();
+
+		Material type = item.getType();
+		if (!MagicSpells.canCastWithFist() && type.isAir()) return;
+
+		boolean isBow = type == Material.BOW || type == Material.CROSSBOW;
+		if (action.isLeftClick() == (MagicSpells.areBowCycleButtonsReversed() && isBow)) {
+			if (!MagicSpells.isCyclingSpellsOnOffhandAction() && event.getHand() != EquipmentSlot.HAND) return;
+			if (isBow && !MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) return;
+
+			cycleSpell(player, item);
+		} else castSpell(player, item);
 	}
 
-	@EventHandler(priority=EventPriority.MONITOR, ignoreCancelled = true)
-	public void onPlayerDrop(PlayerDropItemEvent event) {
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerAnimation(PlayerAnimationEvent event) {
 		if (!MagicSpells.isCastingOnAnimate()) return;
-		noCastUntil.put(event.getPlayer().getName(), System.currentTimeMillis() + 150);
+
+		Player player = event.getPlayer();
+
+		InventoryType inventoryType = player.getOpenInventory().getType();
+		if (inventoryType != InventoryType.CRAFTING && inventoryType != InventoryType.CREATIVE) return;
+
+		ItemStack item = player.getInventory().getItemInMainHand();
+
+		Material type = item.getType();
+		if (!MagicSpells.canCastWithFist() && type.isAir()) return;
+
+		if (MagicSpells.areBowCycleButtonsReversed() && (type == Material.BOW || type == Material.CROSSBOW)) {
+			if (!MagicSpells.isCyclingSpellsOnOffhandAction() && event.getAnimationType() != PlayerAnimationType.ARM_SWING) return;
+			if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) return;
+
+			cycleSpell(player, item);
+		} else castSpell(player, item);
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPrePlayerAttack(PrePlayerAttackEntityEvent event) {
+		if (MagicSpells.isCastingOnAnimate()) return;
+
+		Player player = event.getPlayer();
+		ItemStack item = player.getInventory().getItemInMainHand();
+
+		Material type = item.getType();
+		if (!MagicSpells.canCastWithFist() && type.isAir()) return;
+
+		if (MagicSpells.areBowCycleButtonsReversed() && (type == Material.BOW || type == Material.CROSSBOW)) {
+			if (!MagicSpells.canBowCycleSpellsSneaking() && player.isSneaking()) return;
+
+			cycleSpell(player, item);
+		} else castSpell(player, item);
 	}
 
 	@EventHandler
@@ -184,15 +150,42 @@ public class CastListener implements Listener {
 			if (bowSpell.canCastWithItem() && bowSpell.isBindRequired() && checkGlobalCooldown(player, spell)) bowSpell.handleBowCast(event);
 		} else castSpell(player, spell);
 
-		event.getProjectile().setMetadata("bow-draw-strength", new FixedMetadataValue(plugin, event.getForce()));
+		event.getProjectile().setMetadata("bow-draw-strength", new FixedMetadataValue(MagicSpells.plugin, event.getForce()));
 	}
 
-	private void castSpell(Player player) {
-		ItemStack inHand = player.getInventory().getItemInMainHand();
-		if (!MagicSpells.canCastWithFist() && BlockUtils.isAir(inHand)) return;
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onItemHeldChange(PlayerItemHeldEvent event) {
+		int slot = MagicSpells.getSpellIconSlot();
+		if (slot < 0 || slot > 8) return;
+
+		Player player = event.getPlayer();
+		if (event.getNewSlot() == MagicSpells.getSpellIconSlot()) {
+			showIcon(player, MagicSpells.getSpellIconSlot(), null);
+			return;
+		}
 
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		Spell spell = spellbook.getActiveSpell(inHand);
+		Spell spell = spellbook.getActiveSpell(player.getInventory().getItem(event.getNewSlot()));
+		if (spell != null) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
+		else showIcon(player, MagicSpells.getSpellIconSlot(), null);
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onInventoryDrop(InventoryClickEvent event) {
+		ClickType type = event.getClick();
+		if (type != ClickType.DROP && type != ClickType.CONTROL_DROP) return;
+
+		noCastUntil.put(event.getWhoClicked().getName(), System.currentTimeMillis() + 150);
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onPlayerDrop(PlayerDropItemEvent event) {
+		noCastUntil.put(event.getPlayer().getName(), System.currentTimeMillis() + 150);
+	}
+
+	private void castSpell(Player player, ItemStack item) {
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		Spell spell = spellbook.getActiveSpell(item);
 
 		castSpell(player, spell);
 	}
@@ -203,6 +196,16 @@ public class CastListener implements Listener {
 
 		// Cast spell
 		spell.hardCast(new SpellData(player));
+	}
+
+	private void cycleSpell(Player player, ItemStack item) {
+		Spell spell;
+		if (!player.isSneaking()) spell = MagicSpells.getSpellbook(player).nextSpell(item);
+		else spell = MagicSpells.getSpellbook(player).prevSpell(item);
+		if (spell == null) return;
+
+		MagicSpells.sendMessageAndFormat(player, MagicSpells.getSpellChangeMessage(), "%s", spell.getName());
+		if (MagicSpells.getSpellIconSlot() >= 0) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
 	}
 
 	private boolean checkGlobalCooldown(Player player, Spell spell) {
@@ -217,27 +220,6 @@ public class CastListener implements Listener {
 	private void showIcon(Player player, int slot, ItemStack icon) {
 		if (icon == null) icon = player.getInventory().getItem(MagicSpells.getSpellIconSlot());
 		MagicSpells.getVolatileCodeHandler().sendFakeSlotUpdate(player, slot, icon);
-	}
-
-	private boolean isBow(Material material) {
-		if (material == null) return false;
-		return material.name().equalsIgnoreCase("BOW") || material.name().equalsIgnoreCase("CROSSBOW");
-	}
-	
-	private boolean isEventCastAction(PlayerInteractEvent event) {
-		if (MagicSpells.areBowCycleButtonsReversed() && event.hasItem() && isBow(event.getItem().getType())) {
-			return false;
-		}
-		
-		return event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK;
-	}
-	
-	private boolean isEventCycleAction(PlayerInteractEvent event) {
-		if (MagicSpells.areBowCycleButtonsReversed() && event.hasItem() && isBow(event.getItem().getType())) {
-			return event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK;
-		}
-		
-		return event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK;
 	}
 
 }
