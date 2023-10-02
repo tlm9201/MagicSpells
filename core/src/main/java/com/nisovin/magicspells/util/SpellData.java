@@ -11,7 +11,7 @@ import org.bukkit.entity.LivingEntity;
 public record SpellData(LivingEntity caster, LivingEntity target, Location location, LivingEntity recipient,
 						float power, String[] args) {
 
-	public static final SpellData NULL = new SpellData(null, null, null, 1f, null);
+	public static final SpellData NULL = new SpellData(null, null, null, null, 1f, null);
 
 	public SpellData(LivingEntity caster, LivingEntity target, Location location, LivingEntity recipient, float power, String[] args) {
 		this.caster = caster;
