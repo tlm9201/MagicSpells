@@ -130,7 +130,8 @@ public class ReachSpell extends BuffSpell {
 			EventUtil.call(evt);
 			if (evt.isCancelled()) return;
 			// Remove block
-			targetBlock.getWorld().playEffect(targetBlock.getLocation(), Effect.STEP_SOUND, targetBlock.getBlockData());
+			if (Effect.STEP_SOUND.getData() == Material.class) targetBlock.getWorld().playEffect(targetBlock.getLocation(), Effect.STEP_SOUND, targetBlock.getType());
+			else targetBlock.getWorld().playEffect(targetBlock.getLocation(), Effect.STEP_SOUND, targetBlock.getBlockData());
 			// Drop item
 			if (data.dropBlocks && player.getGameMode() == GameMode.SURVIVAL) targetBlock.breakNaturally();
 			else targetBlock.setType(Material.AIR);

@@ -351,7 +351,10 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			playSpellEffectsTrail(player.getLocation(), block.getLocation(), data);
 		}
 
-		if (playBreakEffect) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
+		if (playBreakEffect) {
+			if (Effect.STEP_SOUND.getData() == Material.class) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
+			else block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
+		}
 		if (removeBlocks) blocks.add(block);
 
 		if (resetDelay > 0 && !falling) {
@@ -366,8 +369,10 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 					}
 					block.setType(Material.AIR);
 					playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-					if (playBreakEffect)
-						block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
+					if (playBreakEffect) {
+						if (Effect.STEP_SOUND.getData() == Material.class) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
+						else block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
+					}
 				}
 			}, resetDelay);
 		}
