@@ -81,6 +81,8 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 		}
 
 		TargetInfo<Location> info = getTargetedBlockLocation(data, 0.5, 0, 0.5, false);
+		if (info.noTarget()) return noTarget(info);
+
 		return runSpells(info.spellData());
 	}
 
