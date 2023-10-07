@@ -14,7 +14,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.entity.EntityShootBowEvent;
@@ -23,7 +22,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 
@@ -146,9 +144,8 @@ public class CastListener implements Listener {
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		Spell spell = spellbook.getActiveSpell(bow);
 
-		if (spell instanceof BowSpell bowSpell) {
-			if (bowSpell.canCastWithItem() && bowSpell.isBindRequired() && checkGlobalCooldown(player, spell)) bowSpell.handleBowCast(event);
-		} else castSpell(player, spell);
+		if (spell instanceof BowSpell bowSpell && bowSpell.canCastWithItem() && bowSpell.isBindRequired() && checkGlobalCooldown(player, spell))
+			bowSpell.handleBowCast(event);
 
 		event.getProjectile().setMetadata("bow-draw-strength", new FixedMetadataValue(MagicSpells.plugin, event.getForce()));
 	}
@@ -168,14 +165,6 @@ public class CastListener implements Listener {
 		Spell spell = spellbook.getActiveSpell(player.getInventory().getItem(event.getNewSlot()));
 		if (spell != null) showIcon(player, MagicSpells.getSpellIconSlot(), spell.getSpellIcon());
 		else showIcon(player, MagicSpells.getSpellIconSlot(), null);
-	}
-
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onInventoryDrop(InventoryClickEvent event) {
-		ClickType type = event.getClick();
-		if (type != ClickType.DROP && type != ClickType.CONTROL_DROP) return;
-
-		noCastUntil.put(event.getWhoClicked().getName(), System.currentTimeMillis() + 150);
 	}
 
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
