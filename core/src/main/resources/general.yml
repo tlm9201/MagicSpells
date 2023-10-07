@@ -18,8 +18,8 @@ ignore-cast-perms: false
 enable-tempgrant-perms: true
 separate-player-spells-per-world: false
 allow-cycle-to-no-spell: false
-reverse-bow-cycle-buttons: false
-bow-cycle-spells-sneaking: false
+reverse-bow-cycle-buttons: true
+bow-cycle-spells-sneaking: true
 always-show-message-on-cycle: false
 only-cycle-to-castable-spells: true
 spell-icon-slot: -1
