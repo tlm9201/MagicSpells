@@ -144,6 +144,10 @@ public class SpellFilter {
 				s = s.substring(4);
 				if (denied) deniedSpellTags.add(s);
 				else spellTags.add(s);
+			} else if (s.startsWith("#")) {
+				s = s.substring(1);
+				if (denied) deniedSpellTags.add(s);
+				else spellTags.add(s);
 			} else {
 				if (denied) deniedSpells.add(s);
 				else spells.add(s);
