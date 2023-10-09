@@ -113,7 +113,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 		else if (preventAnimalDamage && event.getEntity() instanceof Animals) event.setCancelled(true);
 		else if (damageMultiplier > 0) {
 			if (powerAffectsDamageMultiplier.get(data)) damageMultiplier *= data.power();
-			event.setDamage(damageMultiplier);
+			event.setDamage(event.getDamage() * damageMultiplier);
 		}
 	}
 
