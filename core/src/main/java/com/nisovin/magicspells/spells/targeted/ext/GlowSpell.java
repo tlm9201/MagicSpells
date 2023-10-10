@@ -53,6 +53,7 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
 		if (info.noTarget()) return noTarget(info);
+		data = info.spellData();
 
 		glow(caster, data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
