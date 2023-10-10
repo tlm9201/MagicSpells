@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 import java.util.function.BiConsumer;
 
 import org.joml.Vector3f;
@@ -21,7 +22,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
-import org.bukkit.util.Consumer;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
@@ -209,100 +209,98 @@ public class EntityData {
 		addBoolean(transformers, config, "angry", false, Wolf.class, Wolf::setAngry);
 		addOptEnum(transformers, config, "color", Wolf.class, DyeColor.class, Wolf::setCollarColor);
 
-		if (EntityType.valueOf("BLOCK_DISPLAY") != null) {
-			// Display
-			ConfigData<Quaternionf> leftRotation = getQuaternion(config, "transformation.left-rotation");
-			ConfigData<Quaternionf> rightRotation = getQuaternion(config, "transformation.right-rotation");
-			ConfigData<Vector3f> translation = getVector(config, "transformation.translation");
-			ConfigData<Vector3f> scale = getVector(config, "transformation.scale");
-			ConfigData<Transformation> transformation = data -> null;
-			if (checkNull(leftRotation) && checkNull(rightRotation) && checkNull(translation) && checkNull(scale)) {
-				if (leftRotation.isConstant() && rightRotation.isConstant() && translation.isConstant() && scale.isConstant()) {
-					Quaternionf lr = leftRotation.get();
-					Quaternionf rr = rightRotation.get();
-					Vector3f t = translation.get();
-					Vector3f s = scale.get();
+		// Display
+		ConfigData<Quaternionf> leftRotation = getQuaternion(config, "transformation.left-rotation");
+		ConfigData<Quaternionf> rightRotation = getQuaternion(config, "transformation.right-rotation");
+		ConfigData<Vector3f> translation = getVector(config, "transformation.translation");
+		ConfigData<Vector3f> scale = getVector(config, "transformation.scale");
+		ConfigData<Transformation> transformation = data -> null;
+		if (checkNull(leftRotation) && checkNull(rightRotation) && checkNull(translation) && checkNull(scale)) {
+			if (leftRotation.isConstant() && rightRotation.isConstant() && translation.isConstant() && scale.isConstant()) {
+				Quaternionf lr = leftRotation.get();
+				Quaternionf rr = rightRotation.get();
+				Vector3f t = translation.get();
+				Vector3f s = scale.get();
 
-					Transformation transform = new Transformation(t, lr, s, rr);
-					transformation = data -> transform;
-				} else {
-					transformation = data -> {
-						Quaternionf lr = leftRotation.get(data);
-						if (lr == null) return null;
+				Transformation transform = new Transformation(t, lr, s, rr);
+				transformation = data -> transform;
+			} else {
+				transformation = data -> {
+					Quaternionf lr = leftRotation.get(data);
+					if (lr == null) return null;
 
-						Quaternionf rr = rightRotation.get(data);
-						if (rr == null) return null;
+					Quaternionf rr = rightRotation.get(data);
+					if (rr == null) return null;
 
-						Vector3f t = translation.get(data);
-						if (t == null) return null;
+					Vector3f t = translation.get(data);
+					if (t == null) return null;
 
-						Vector3f s = scale.get(data);
-						if (s == null) return null;
+					Vector3f s = scale.get(data);
+					if (s == null) return null;
 
-						return new Transformation(t, lr, s, rr);
-					};
-				}
+					return new Transformation(t, lr, s, rr);
+				};
 			}
-			transformers.put(Display.class, new Transformer<>(transformation, Display::setTransformation, true));
-
-			addOptInteger(transformers, config, "interpolation-duration", Display.class, Display::setInterpolationDuration);
-			addOptFloat(transformers, config, "view-range", Display.class, Display::setViewRange);
-			addOptFloat(transformers, config, "shadow-radius", Display.class, Display::setShadowRadius);
-			addOptFloat(transformers, config, "shadow-strength", Display.class, Display::setShadowStrength);
-			addOptFloat(transformers, config, "width", Display.class, Display::setDisplayWidth);
-			addOptFloat(transformers, config, "height", Display.class, Display::setDisplayHeight);
-			addOptInteger(transformers, config, "interpolation-delay", Display.class, Display::setInterpolationDelay);
-			addOptEnum(transformers, config, "billboard", Display.class, Display.Billboard.class, Display::setBillboard);
-			addOptARGBColor(transformers, config, "glow-color-override", Display.class, Display::setGlowColorOverride);
-
-			ConfigData<Integer> blockLight = ConfigDataUtil.getInteger(config, "brightness.block");
-			ConfigData<Integer> skyLight = ConfigDataUtil.getInteger(config, "brightness.sky");
-			ConfigData<Display.Brightness> brightness = data -> null;
-			if (checkNull(blockLight) && checkNull(skyLight)) {
-				if (blockLight.isConstant() && skyLight.isConstant()) {
-					int bl = blockLight.get();
-					int sl = skyLight.get();
-
-					if (0 <= bl && bl <= 15 && 0 <= sl && sl <= 15) {
-						Display.Brightness b = new Display.Brightness(bl, sl);
-						brightness = data -> b;
-					}
-				} else {
-					brightness = data -> {
-						Integer bl = blockLight.get(data);
-						if (bl == null || bl < 0 || bl > 15) return null;
-
-						Integer sl = skyLight.get(data);
-						if (sl == null || sl < 0 || sl > 15) return null;
-
-						return new Display.Brightness(bl, sl);
-					};
-				}
-			}
-			transformers.put(Display.class, new Transformer<>(brightness, Display::setBrightness, true));
-
-			// BlockDisplay
-			addOptBlockData(transformers, config, "block", BlockDisplay.class, BlockDisplay::setBlock);
-
-			// ItemDisplay
-			MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString("item"));
-			if (magicItem != null) {
-				ItemStack item = magicItem.getItemStack();
-				transformers.put(ItemDisplay.class, new Transformer<>(data -> item, ItemDisplay::setItemStack));
-			}
-
-			addOptEnum(transformers, config, "item-display-transform", ItemDisplay.class, ItemDisplay.ItemDisplayTransform.class, ItemDisplay::setItemDisplayTransform);
-
-			// TextDisplay
-			addOptComponent(transformers, config, "text", TextDisplay.class, TextDisplay::text);
-			addOptInteger(transformers, config, "line-width", TextDisplay.class, TextDisplay::setLineWidth);
-			addOptARGBColor(transformers, config, "background", TextDisplay.class, TextDisplay::setBackgroundColor);
-			addOptByte(transformers, config, "text-opacity", TextDisplay.class, TextDisplay::setTextOpacity);
-			addOptBoolean(transformers, config, "shadow", TextDisplay.class, TextDisplay::setShadowed);
-			addOptBoolean(transformers, config, "see-through", TextDisplay.class, TextDisplay::setSeeThrough);
-			addOptBoolean(transformers, config, "default-background", TextDisplay.class, TextDisplay::setDefaultBackground);
-			addOptEnum(transformers, config, "alignment", TextDisplay.class, TextDisplay.TextAlignment.class, TextDisplay::setAlignment);
 		}
+		transformers.put(Display.class, new Transformer<>(transformation, Display::setTransformation, true));
+
+		addOptInteger(transformers, config, "interpolation-duration", Display.class, Display::setInterpolationDuration);
+		addOptFloat(transformers, config, "view-range", Display.class, Display::setViewRange);
+		addOptFloat(transformers, config, "shadow-radius", Display.class, Display::setShadowRadius);
+		addOptFloat(transformers, config, "shadow-strength", Display.class, Display::setShadowStrength);
+		addOptFloat(transformers, config, "width", Display.class, Display::setDisplayWidth);
+		addOptFloat(transformers, config, "height", Display.class, Display::setDisplayHeight);
+		addOptInteger(transformers, config, "interpolation-delay", Display.class, Display::setInterpolationDelay);
+		addOptEnum(transformers, config, "billboard", Display.class, Display.Billboard.class, Display::setBillboard);
+		addOptARGBColor(transformers, config, "glow-color-override", Display.class, Display::setGlowColorOverride);
+
+		ConfigData<Integer> blockLight = ConfigDataUtil.getInteger(config, "brightness.block");
+		ConfigData<Integer> skyLight = ConfigDataUtil.getInteger(config, "brightness.sky");
+		ConfigData<Display.Brightness> brightness = data -> null;
+		if (checkNull(blockLight) && checkNull(skyLight)) {
+			if (blockLight.isConstant() && skyLight.isConstant()) {
+				int bl = blockLight.get();
+				int sl = skyLight.get();
+
+				if (0 <= bl && bl <= 15 && 0 <= sl && sl <= 15) {
+					Display.Brightness b = new Display.Brightness(bl, sl);
+					brightness = data -> b;
+				}
+			} else {
+				brightness = data -> {
+					Integer bl = blockLight.get(data);
+					if (bl == null || bl < 0 || bl > 15) return null;
+
+					Integer sl = skyLight.get(data);
+					if (sl == null || sl < 0 || sl > 15) return null;
+
+					return new Display.Brightness(bl, sl);
+				};
+			}
+		}
+		transformers.put(Display.class, new Transformer<>(brightness, Display::setBrightness, true));
+
+		// BlockDisplay
+		addOptBlockData(transformers, config, "block", BlockDisplay.class, BlockDisplay::setBlock);
+
+		// ItemDisplay
+		MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString("item"));
+		if (magicItem != null) {
+			ItemStack item = magicItem.getItemStack();
+			transformers.put(ItemDisplay.class, new Transformer<>(data -> item, ItemDisplay::setItemStack));
+		}
+
+		addOptEnum(transformers, config, "item-display-transform", ItemDisplay.class, ItemDisplay.ItemDisplayTransform.class, ItemDisplay::setItemDisplayTransform);
+
+		// TextDisplay
+		addOptComponent(transformers, config, "text", TextDisplay.class, TextDisplay::text);
+		addOptInteger(transformers, config, "line-width", TextDisplay.class, TextDisplay::setLineWidth);
+		addOptARGBColor(transformers, config, "background", TextDisplay.class, TextDisplay::setBackgroundColor);
+		addOptByte(transformers, config, "text-opacity", TextDisplay.class, TextDisplay::setTextOpacity);
+		addOptBoolean(transformers, config, "shadow", TextDisplay.class, TextDisplay::setShadowed);
+		addOptBoolean(transformers, config, "see-through", TextDisplay.class, TextDisplay::setSeeThrough);
+		addOptBoolean(transformers, config, "default-background", TextDisplay.class, TextDisplay::setDefaultBackground);
+		addOptEnum(transformers, config, "alignment", TextDisplay.class, TextDisplay.TextAlignment.class, TextDisplay::setAlignment);
 
 		for (EntityType entityType : EntityType.values()) {
 			Class<? extends Entity> entityClass = entityType.getEntityClass();
@@ -372,11 +370,14 @@ public class EntityData {
 
 					if (consumer != null) consumer.accept(e);
 
-					if (EntityType.valueOf("BLOCK_DISPLAY") != null && e instanceof Display) {
-						displayHack[0] = true;
-						displayHack[1] = e.isVisibleByDefault();
+					if (e instanceof Display) {
+						String version = org.bukkit.Bukkit.getMinecraftVersion();
+						if ("1.19.4".equals(version) || "1.20".equals(version)) {
+							displayHack[0] = true;
+							displayHack[1] = e.isVisibleByDefault();
 
-						e.setVisibleByDefault(false);
+							e.setVisibleByDefault(false);
+						}
 					}
 				});
 			}

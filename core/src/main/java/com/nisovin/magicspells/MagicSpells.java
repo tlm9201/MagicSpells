@@ -284,9 +284,9 @@ public class MagicSpells extends JavaPlugin {
 
 		separatePlayerSpellsPerWorld = config.getBoolean(path + "separate-player-spells-per-world", false);
 		allowCycleToNoSpell = config.getBoolean(path + "allow-cycle-to-no-spell", false);
-		reverseBowCycleButtons = config.getBoolean(path + "reverse-bow-cycle-buttons", false);
+		reverseBowCycleButtons = config.getBoolean(path + "reverse-bow-cycle-buttons", true);
 		castBoundBowSpellsFromOffhand = config.getBoolean(path + "cast-bound-bow-spells-from-offhand", false);
-		bowCycleSpellsSneaking = config.getBoolean(path + "bow-cycle-spells-sneaking", false);
+		bowCycleSpellsSneaking = config.getBoolean(path + "bow-cycle-spells-sneaking", true);
 		alwaysShowMessageOnCycle = config.getBoolean(path + "always-show-message-on-cycle", false);
 		onlyCycleToCastableSpells = config.getBoolean(path + "only-cycle-to-castable-spells", true);
 		spellIconSlot = config.getInt(path + "spell-icon-slot", -1);
@@ -568,7 +568,7 @@ public class MagicSpells extends JavaPlugin {
 		log("Loading cast listeners...");
 		registerEvents(new MagicPlayerListener(this));
 		registerEvents(new MagicSpellListener(this));
-		registerEvents(new CastListener(this));
+		registerEvents(new CastListener());
 		if (!incantations.isEmpty()) registerEvents(new MagicChatListener());
 
 		LeftClickListener leftClickListener = new LeftClickListener();

@@ -121,7 +121,10 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 			}
 		}
 
-		if (playBreakEffect.get(data)) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
+		if (playBreakEffect.get(data)) {
+			if (Effect.STEP_SOUND.getData() == Material.class) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
+			else block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
+		}
 
 		if (consumeBlock.get(data)) {
 			int amt = item.getAmount() - 1;
