@@ -24,6 +24,7 @@ public class ConversationSpell extends TargetedSpell implements TargetedEntitySp
 	public CastResult cast(SpellData data) {
 		TargetInfo<Player> info = getTargetedPlayer(data);
 		if (info.noTarget()) return noTarget(info);
+		data = info.spellData();
 
 		conversate(info.target(), data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
