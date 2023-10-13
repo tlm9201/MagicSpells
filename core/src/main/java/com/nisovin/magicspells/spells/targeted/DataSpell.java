@@ -7,10 +7,13 @@ import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.util.data.DataLivingEntity;
+import com.nisovin.magicspells.variables.variabletypes.GlobalVariable;
+import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 
 public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -33,28 +36,26 @@ public class DataSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	@Override
 	public CastResult cast(SpellData data) {
-		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-
 		TargetInfo<LivingEntity> info = getTargetedEntity(data);
 		if (info.noTarget()) return noTarget(info);
-		data = info.spellData();
 
-		return setVariable(caster, data);
+		return castAtEntity(info.spellData());
 	}
 
 	@Override
 	public CastResult castAtEntity(SpellData data) {
-		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-		return setVariable(caster, data);
-	}
+		Variable variable = MagicSpells.getVariableManager().getVariable(variableName.get(data));
+		if (variable == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-	public CastResult setVariable(Player caster, SpellData data) {
+		Player caster = data.caster() instanceof Player player ? player : null;
+		if (caster == null && !(variable instanceof GlobalVariable) && !(variable instanceof GlobalStringVariable))
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+
 		Function<? super LivingEntity, String> dataElement = this.dataElement.get(data);
 		if (dataElement == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		String value = dataElement.apply(data.target());
-		String variableName = this.variableName.get(data);
-		MagicSpells.getVariableManager().set(variableName, caster, value);
+		MagicSpells.getVariableManager().set(variable, caster == null ? null : caster.getName(), value);
 
 		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
