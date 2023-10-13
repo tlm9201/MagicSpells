@@ -24,6 +24,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.variables.variabletypes.GlobalVariable;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
@@ -298,10 +299,12 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 		@Override
 		public Double get(@NotNull SpellData data) {
-			if (!(data.recipient() instanceof Player player)) return 0d;
-
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return 0d;
+
+			String player = data.recipient() instanceof Player p ? p.getName() : null;
+			if (player == null && !(var instanceof GlobalVariable) && !(var instanceof GlobalStringVariable))
+				return 0d;
 
 			double value;
 			if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable) {
@@ -334,10 +337,12 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 		@Override
 		public Double get(@NotNull SpellData data) {
-			if (!(data.caster() instanceof Player player)) return 0d;
-
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return 0d;
+
+			String player = data.caster() instanceof Player p ? p.getName() : null;
+			if (player == null && !(var instanceof GlobalVariable) && !(var instanceof GlobalStringVariable))
+				return 0d;
 
 			double value;
 			if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable) {
@@ -370,10 +375,12 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 		@Override
 		public Double get(@NotNull SpellData data) {
-			if (!(data.target() instanceof Player player)) return 0d;
-
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return 0d;
+
+			String player = data.target() instanceof Player p ? p.getName() : null;
+			if (player == null && !(var instanceof GlobalVariable) && !(var instanceof GlobalStringVariable))
+				return 0d;
 
 			double value;
 			if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable) {
@@ -432,18 +439,17 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 	public static class DefaultPAPIData implements ConfigData<Double> {
 
-		private final String papiPlaceholder;
+		private final String placeholder;
 
-		public DefaultPAPIData(String papiPlaceholder) {
-			this.papiPlaceholder = papiPlaceholder;
+		public DefaultPAPIData(String placeholder) {
+			this.placeholder = placeholder;
 		}
 
 		@Override
 		public Double get(@NotNull SpellData data) {
-			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.recipient() instanceof Player player))
-				return 0d;
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) return 0d;
 
-			String value = PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
+			String value = PlaceholderAPI.setPlaceholders(data.recipient() instanceof Player p ? p : null, placeholder);
 
 			try {
 				return Double.parseDouble(value);
@@ -461,18 +467,18 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 	public static class CasterPAPIData implements ConfigData<Double> {
 
-		private final String papiPlaceholder;
+		private final String placeholder;
 
-		public CasterPAPIData(String papiPlaceholder) {
-			this.papiPlaceholder = papiPlaceholder;
+		public CasterPAPIData(String placeholder) {
+			this.placeholder = placeholder;
 		}
 
 		@Override
 		public Double get(@NotNull SpellData data) {
-			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.caster() instanceof Player player))
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
 				return 0d;
 
-			String value = PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
+			String value = PlaceholderAPI.setPlaceholders(data.caster() instanceof Player p ? p : null, placeholder);
 
 			try {
 				return Double.parseDouble(value);
@@ -498,10 +504,10 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 		@Override
 		public Double get(@NotNull SpellData data) {
-			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.target() instanceof Player player))
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
 				return 0d;
 
-			String value = PlaceholderAPI.setPlaceholders(player, placeholder);
+			String value = PlaceholderAPI.setPlaceholders(data.target() instanceof Player p ? p : null, placeholder);
 
 			try {
 				return Double.parseDouble(value);
