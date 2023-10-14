@@ -17,6 +17,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TxtUtil;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.variables.variabletypes.GlobalVariable;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
 
@@ -214,10 +215,12 @@ public class StringData implements ConfigData<String> {
 
 		@Override
 		public String get(@NotNull SpellData data) {
-			if (!(data.recipient() instanceof Player player)) return placeholder;
-
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return placeholder;
+
+			String player = data.recipient() instanceof Player p ? p.getName() : null;
+			if (player == null && !(var instanceof GlobalVariable) && !(var instanceof GlobalStringVariable))
+				return placeholder;
 
 			if (places >= 0) {
 				if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable)
@@ -245,10 +248,12 @@ public class StringData implements ConfigData<String> {
 
 		@Override
 		public String get(@NotNull SpellData data) {
-			if (!(data.caster() instanceof Player player)) return placeholder;
-
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return placeholder;
+
+			String player = data.caster() instanceof Player p ? p.getName() : null;
+			if (player == null && !(var instanceof GlobalVariable) && !(var instanceof GlobalStringVariable))
+				return placeholder;
 
 			if (places >= 0) {
 				if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable)
@@ -276,10 +281,12 @@ public class StringData implements ConfigData<String> {
 
 		@Override
 		public String get(@NotNull SpellData data) {
-			if (!(data.target() instanceof Player player)) return placeholder;
-
 			Variable var = MagicSpells.getVariableManager().getVariable(variable);
 			if (var == null) return placeholder;
+
+			String player = data.target() instanceof Player p ? p.getName() : null;
+			if (player == null && !(var instanceof GlobalVariable) && !(var instanceof GlobalStringVariable))
+				return placeholder;
 
 			if (places >= 0) {
 				if (var instanceof PlayerStringVariable || var instanceof GlobalStringVariable)
@@ -336,10 +343,8 @@ public class StringData implements ConfigData<String> {
 
 		@Override
 		public String get(@NotNull SpellData data) {
-			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.recipient() instanceof Player player))
-				return placeholder;
-
-			return PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) return placeholder;
+			return PlaceholderAPI.setPlaceholders(data.recipient() instanceof Player p ? p : null, papiPlaceholder);
 		}
 
 	}
@@ -356,10 +361,8 @@ public class StringData implements ConfigData<String> {
 
 		@Override
 		public String get(@NotNull SpellData data) {
-			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.caster() instanceof Player player))
-				return placeholder;
-
-			return PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) return placeholder;
+			return PlaceholderAPI.setPlaceholders(data.caster() instanceof Player p ? p : null, papiPlaceholder);
 		}
 
 	}
@@ -376,10 +379,8 @@ public class StringData implements ConfigData<String> {
 
 		@Override
 		public String get(@NotNull SpellData data) {
-			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI") || !(data.caster() instanceof Player player))
-				return placeholder;
-
-			return PlaceholderAPI.setPlaceholders(player, papiPlaceholder);
+			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) return placeholder;
+			return PlaceholderAPI.setPlaceholders(data.target() instanceof Player p ? p : null, papiPlaceholder);
 		}
 
 	}

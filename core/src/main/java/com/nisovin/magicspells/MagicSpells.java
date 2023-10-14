@@ -74,6 +74,7 @@ import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
+import com.nisovin.magicspells.variables.variabletypes.GlobalVariable;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
@@ -1562,9 +1563,9 @@ public class MagicSpells extends JavaPlugin {
 	public static String doVariableReplacements(String message, LivingEntity recipient, LivingEntity caster, LivingEntity target) {
 		if (message == null || message.isEmpty()) return message;
 
-		Player playerRecipient = recipient instanceof Player player ? player : null;
-		Player playerCaster = caster instanceof Player player ? player : null;
-		Player playerTarget = target instanceof Player player ? player : null;
+		String playerRecipient = recipient instanceof Player player ? player.getName() : null;
+		String playerCaster = caster instanceof Player player ? player.getName() : null;
+		String playerTarget = target instanceof Player player ? player.getName() : null;
 
 		Matcher matcher = VARIABLE_PATTERN.matcher(message);
 		StringBuilder builder = new StringBuilder();
@@ -1584,57 +1585,22 @@ public class MagicSpells extends JavaPlugin {
 				}
 			}
 
-			String value = switch (matcher.group(1).toLowerCase()) {
-				case "var" -> {
-					if (playerRecipient == null) yield null;
-
-					if (place != -1) {
-						if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
-							yield TxtUtil.getStringNumber(variable.getStringValue(playerRecipient), place);
-
-						yield TxtUtil.getStringNumber(variable.getValue(playerRecipient), place);
-					}
-
-					yield variable.getStringValue(playerRecipient);
-				}
-				case "castervar" -> {
-					if (playerCaster == null) yield null;
-
-					if (place != -1) {
-						if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
-							yield TxtUtil.getStringNumber(variable.getStringValue(playerCaster), place);
-
-						yield TxtUtil.getStringNumber(variable.getValue(playerCaster), place);
-					}
-
-					yield variable.getStringValue(playerCaster);
-				}
-				case "targetvar" -> {
-					if (playerTarget == null) yield null;
-
-					if (place != -1) {
-						if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
-							yield TxtUtil.getStringNumber(variable.getStringValue(playerTarget), place);
-
-						yield TxtUtil.getStringNumber(variable.getValue(playerTarget), place);
-					}
-
-					yield variable.getStringValue(playerTarget);
-				}
-				default -> {
-					String player = matcher.group(2);
-
-					if (place != -1) {
-						if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
-							yield TxtUtil.getStringNumber(variable.getStringValue(player), place);
-
-						yield TxtUtil.getStringNumber(variable.getValue(player), place);
-					}
-
-					yield variable.getStringValue(player);
-				}
+			String player = switch (matcher.group(1).toLowerCase()) {
+				case "var" -> playerRecipient;
+				case "castervar" -> playerCaster;
+				case "targetvar" -> playerTarget;
+				default -> matcher.group(2);
 			};
-			if (value == null) continue;
+
+			if (player == null && !(variable instanceof GlobalVariable) && !(variable instanceof GlobalStringVariable))
+				continue;
+
+			String value;
+			if (place != -1) {
+				if (variable instanceof GlobalStringVariable || variable instanceof PlayerStringVariable)
+					value = TxtUtil.getStringNumber(variable.getStringValue(player), place);
+				else value = TxtUtil.getStringNumber(variable.getValue(player), place);
+			} else value = variable.getStringValue(player);
 
 			matcher.appendReplacement(builder, Matcher.quoteReplacement(value));
 		}
@@ -1661,7 +1627,6 @@ public class MagicSpells extends JavaPlugin {
 				case "targetpapi" -> playerTarget;
 				default -> Bukkit.getOfflinePlayer(matcher.group(2));
 			};
-			if (owner == null) continue;
 
 			String placeholder = '%' + matcher.group(3) + '%';
 			matcher.appendReplacement(builder, Matcher.quoteReplacement(PlaceholderAPI.setPlaceholders(owner, placeholder)));
