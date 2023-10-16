@@ -17,6 +17,7 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.managers.VariableManager;
@@ -43,18 +44,21 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 	private final ConfigData<Vector> absoluteOffset;
 	private final ConfigData<Vector> relativeOffset;
 
-	private String spellToCast;
 	private final ConfigData<String> xVariable;
 	private final ConfigData<String> yVariable;
 	private final ConfigData<String> zVariable;
-
-	private Subspell spell;
 
 	private final ConfigData<Boolean> pointBlank;
 	private final ConfigData<Boolean> blockCoords;
 	private final ConfigData<Boolean> failIfNoTargets;
 	private final ConfigData<Boolean> powerAffectsRadius;
 	private final ConfigData<Boolean> powerAffectsMaxBlocks;
+
+	private String spellToCast;
+	private Subspell spell;
+
+	private List<String> scanModifierStrings;
+	private ModifierSet scanModifiers;
 
 	public AreaScanSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -120,6 +124,8 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 
 			if (deniedBlocks.isEmpty()) deniedBlocks = null;
 		}
+
+		scanModifierStrings = getConfigStringList("scan-modifiers", null);
 	}
 
 	@Override
@@ -136,6 +142,16 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 
 			spellToCast = null;
 		}
+	}
+
+	@Override
+	protected void initializeModifiers() {
+		super.initializeModifiers();
+
+		if (scanModifierStrings != null && !scanModifierStrings.isEmpty())
+			scanModifiers = new ModifierSet(scanModifierStrings, this);
+
+		scanModifierStrings = null;
 	}
 
 	@Override
@@ -279,11 +295,14 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 							if (zVariable != null) manager.set(zVariable, playerCaster, target.getZ());
 						}
 
-						SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, target);
-						if (!event.callEvent()) continue;
+						SpellData subData = data;
+						if (scanModifiers != null) {
+							ModifierResult result = scanModifiers.apply(data.caster(), target, data);
+							if (!result.check()) continue;
 
-						SpellData subData = event.getSpellData();
-						target = event.getTargetLocation();
+							subData = result.data();
+						}
+
 						found = true;
 
 						if (spell != null) spell.subcast(subData);
