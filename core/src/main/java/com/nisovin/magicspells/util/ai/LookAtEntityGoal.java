@@ -68,7 +68,7 @@ public class LookAtEntityGoal implements Goal<Mob> {
 
 	@Override
 	public void tick() {
-		mob.teleportAsync(mob.getLocation().setDirection(target.getLocation().subtract(mob.getLocation()).toVector()));
+		mob.lookAt(target);
 		lookTime--;
 	}
 
