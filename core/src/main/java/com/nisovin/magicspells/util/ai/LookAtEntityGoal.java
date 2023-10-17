@@ -20,85 +20,79 @@ import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 
 public class LookAtEntityGoal implements Goal<Mob> {
-    private final Mob mob;
-    private final Class<? extends LivingEntity> targetType;
-    private final float range;
-    private final float chance;
 
-    private Entity target;
-    private int lookTime;
+	private final Mob mob;
+	private final Class<? extends LivingEntity> targetType;
+	private final float range;
+	private final float chance;
 
-    public LookAtEntityGoal(Mob mob, Class<? extends LivingEntity> targetType, float range, float chance) {
-        this.mob = mob;
-        this.targetType = targetType;
-        this.range = range;
-        this.chance = chance;
-    }
+	private Entity target;
+	private int lookTime;
 
-    @Override
-    public boolean shouldActivate() {
-        if (ThreadLocalRandom.current().nextFloat() >= this.chance) {
-            return false;
-        }
-        if (this.mob.getTarget() != null) {
-            this.target = this.mob.getTarget();
-        }
-        if (this.targetType.isAssignableFrom(HumanEntity.class)) {
-            this.target = Util.getNearestEntity(this.mob, range, entity -> this.rides(entity).and(this.targetType::isInstance).test(entity));
-        } else {
-            this.target = Util.getNearestEntity(this.mob, range, this.targetType::isInstance);
-        }
-        return this.target != null;
-    }
+	public LookAtEntityGoal(Mob mob, Class<? extends LivingEntity> targetType, float range, float chance) {
+		this.mob = mob;
+		this.targetType = targetType;
+		this.range = range;
+		this.chance = chance;
+	}
 
-    @Override
-    public boolean shouldStayActive() {
-        if (this.target.isDead()) {
-            return false;
-        }
-        if (this.mob.getLocation().distanceSquared(this.target.getLocation()) > (this.range * this.range)) {
-            return false;
-        }
-        return this.lookTime > 0;
-    }
+	@Override
+	public boolean shouldActivate() {
+		if (ThreadLocalRandom.current().nextFloat() >= chance) return false;
+		if (mob.getTarget() != null) target = mob.getTarget();
 
-    @Override
-    public void start() {
-        this.lookTime = ThreadLocalRandom.current().nextInt(40, 80);
-    }
+		target = Util.getNearestEntity(mob, range, entity -> {
+			boolean isHuman = targetType.isAssignableFrom(HumanEntity.class);
+			if (isHuman) return rides(entity).and(targetType::isInstance).test(entity);
+			else return targetType.isInstance(entity);
+		});
+		return target != null;
+	}
 
-    @Override
-    public void stop() {
-        this.target = null;
-    }
+	@Override
+	public boolean shouldStayActive() {
+		return target.isValid() &&
+				lookTime > 0 &&
+				mob.getLocation().distanceSquared(target.getLocation()) < (range * range);
+	}
 
-    @Override
-    public void tick() {
-        this.mob.teleportAsync(this.mob.getLocation().setDirection(this.target.getLocation().subtract(this.mob.getLocation()).toVector()));
-        this.lookTime--;
-    }
+	@Override
+	public void start() {
+		lookTime = ThreadLocalRandom.current().nextInt(40, 80);
+	}
 
-    @NotNull
-    @Override
-    public GoalKey<Mob> getKey() {
-        return GoalKey.of(Mob.class, new NamespacedKey(MagicSpells.getInstance(), "lookatentity"));
-    }
+	@Override
+	public void stop() {
+		target = null;
+	}
 
-    @NotNull
-    @Override
-    public EnumSet<GoalType> getTypes() {
-        return EnumSet.of(GoalType.LOOK);
-    }
+	@Override
+	public void tick() {
+		mob.teleportAsync(mob.getLocation().setDirection(target.getLocation().subtract(mob.getLocation()).toVector()));
+		lookTime--;
+	}
 
-    private Predicate<Entity> rides(Entity vehicle) {
-        return passenger -> {
-            while (passenger.getVehicle() != null) {
-                passenger = passenger.getVehicle();
-                if (passenger == vehicle) {
-                    return false;
-                }
-            }
-            return true;
-        };
-    }
+	@NotNull
+	@Override
+	public GoalKey<Mob> getKey() {
+		return GoalKey.of(Mob.class, new NamespacedKey(MagicSpells.getInstance(), "look_at_entity"));
+	}
+
+	@NotNull
+	@Override
+	public EnumSet<GoalType> getTypes() {
+		return EnumSet.of(GoalType.LOOK);
+	}
+
+	private Predicate<Entity> rides(Entity vehicle) {
+		return passenger -> {
+			while (passenger.getVehicle() != null) {
+				passenger = passenger.getVehicle();
+				if (passenger == vehicle) {
+					return false;
+				}
+			}
+			return true;
+		};
+	}
 }

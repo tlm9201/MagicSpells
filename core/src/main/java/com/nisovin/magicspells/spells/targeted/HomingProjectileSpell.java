@@ -182,10 +182,9 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	@Override
 	public CastResult castAtEntity(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-
 		data = data.location(data.caster().getLocation());
-		new HomingProjectileMonitor(data.location(data.caster().getLocation()));
 
+		new HomingProjectileMonitor(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

@@ -39,7 +39,7 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 		spellToCastName = null;
 	}
 
-		@Override
+	@Override
 	public CastResult cast(SpellData data) {
 		TargetInfo<LivingEntity> entityInfo = getTargetedEntity(data);
 		if (entityInfo.cancelled()) return noTarget(entityInfo);
