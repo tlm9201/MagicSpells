@@ -140,6 +140,7 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 
 				if (resolveGrowthPerCrop) growth = this.growth.get(data);
 				ageable.setAge(Math.max(Math.min(ageable.getAge() + growth, ageable.getMaximumAge()), 0));
+				b.setBlockData(ageable);
 				count++;
 			}
 		}
