@@ -56,7 +56,7 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 			if (!info.noTarget()) return noTarget(info);
 			data = info.spellData();
 		} else {
-			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, data.caster().getLocation().subtract(0, 1, 0));
+			SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, data.caster().getLocation());
 			if (!event.callEvent()) return noTarget(event);
 			data = event.getSpellData();
 		}
@@ -97,8 +97,7 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 				}
 				b = b.getRelative(BlockFace.UP);
 
-				Material type = b.getType();
-				if (type.isAir()) {
+				if (b.getType().isAir()) {
 					if (resolveCropTypePerCrop) cropType = this.cropType.get(data);
 
 					if (cropType instanceof Ageable ageable) {
@@ -112,10 +111,9 @@ public class FarmSpell extends TargetedSpell implements TargetedLocationSpell {
 					continue;
 				}
 
-				BlockData blockData = b.getBlockData();
-				if (!(blockData instanceof Ageable ageable)) continue;
+				if (!(b.getBlockData() instanceof Ageable ageable)) continue;
 
-				switch (type) {
+				switch (b.getType()) {
 					case NETHER_WART -> {
 						if (!growWart) continue;
 					}
