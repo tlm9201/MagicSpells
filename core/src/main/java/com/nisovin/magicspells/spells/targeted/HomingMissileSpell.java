@@ -189,10 +189,9 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 	@Override
 	public CastResult castAtEntity(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-
 		data = data.location(data.caster().getLocation());
-		new MissileTracker(data.location(data.caster().getLocation()));
 
+		new MissileTracker(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
