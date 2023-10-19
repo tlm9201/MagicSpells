@@ -701,6 +701,10 @@ public class ConfigDataUtil {
 			}
 		}
 
+		ConfigData<Double> x;
+		ConfigData<Double> y;
+		ConfigData<Double> z;
+
 		if (config.isConfigurationSection(path)) {
 			ConfigurationSection section = config.getConfigurationSection(path);
 			if (section == null) {
@@ -708,20 +712,56 @@ public class ConfigDataUtil {
 				return data -> def.clone();
 			}
 
-			ConfigData<Double> x = getDouble(section, "x", 0);
-			ConfigData<Double> y = getDouble(section, "y", 0);
-			ConfigData<Double> z = getDouble(section, "z", 0);
-
-			if (x.isConstant() && y.isConstant() && z.isConstant()) {
-				Vector vector = new Vector(x.get(), y.get(), z.get());
-				return data -> vector.clone();
+			x = getDouble(section, "x", 0);
+			y = getDouble(section, "y", 0);
+			z = getDouble(section, "z", 0);
+		} else if (config.isList(path)) {
+			List<?> value = config.getList(path);
+			if (value == null || value.size() != 3) {
+				if (def == null) return data -> null;
+				return data -> def.clone();
 			}
 
-			return data -> new Vector(x.get(data), y.get(data), z.get(data));
+			Object xObj = value.get(0);
+			Object yObj = value.get(1);
+			Object zObj = value.get(2);
+
+			if (xObj instanceof Number number) {
+				double val = number.doubleValue();
+				x = data -> val;
+			} else if (xObj instanceof String string) {
+				x = FunctionData.build(string, Function.identity());
+			} else x = null;
+
+			if (yObj instanceof Number number) {
+				double val = number.doubleValue();
+				y = data -> val;
+			} else if (yObj instanceof String string) {
+				y = FunctionData.build(string, Function.identity());
+			} else y = null;
+
+			if (zObj instanceof Number number) {
+				double val = number.doubleValue();
+				z = data -> val;
+			} else if (zObj instanceof String string) {
+				z = FunctionData.build(string, Function.identity());
+			} else z = null;
+
+			if (x == null || y == null || z == null) {
+				if (def == null) return data -> null;
+				return data -> def.clone();
+			}
+		} else {
+			if (def == null) return data -> null;
+			return data -> def.clone();
 		}
 
-		if (def == null) return data -> null;
-		return data -> def.clone();
+		if (x.isConstant() && y.isConstant() && z.isConstant()) {
+			Vector vector = new Vector(x.get(), y.get(), z.get());
+			return data -> vector.clone();
+		}
+
+		return data -> new Vector(x.get(data), y.get(data), z.get(data));
 	}
 
 	@NotNull
@@ -748,6 +788,10 @@ public class ConfigDataUtil {
 			}
 		}
 
+		ConfigData<Double> x;
+		ConfigData<Double> y;
+		ConfigData<Double> z;
+
 		if (config.isConfigurationSection(path)) {
 			ConfigurationSection section = config.getConfigurationSection(path);
 			if (section == null) {
@@ -755,20 +799,56 @@ public class ConfigDataUtil {
 				return data -> new EulerAngle(def.getX(), def.getY(), def.getZ());
 			}
 
-			ConfigData<Double> x = getDouble(section, "x", 0);
-			ConfigData<Double> y = getDouble(section, "y", 0);
-			ConfigData<Double> z = getDouble(section, "z", 0);
-
-			if (x.isConstant() && y.isConstant() && z.isConstant()) {
-				EulerAngle angle = new EulerAngle(x.get(), y.get(), z.get());
-				return data -> new EulerAngle(angle.getX(), angle.getY(), angle.getZ());
+			x = getDouble(section, "x", 0);
+			y = getDouble(section, "y", 0);
+			z = getDouble(section, "z", 0);
+		} else if (config.isList(path)) {
+			List<?> value = config.getList(path);
+			if (value == null || value.size() != 3) {
+				if (def == null) return data -> null;
+				return data -> new EulerAngle(def.getX(), def.getY(), def.getZ());
 			}
 
-			return data -> new EulerAngle(x.get(data), y.get(data), z.get(data));
+			Object xObj = value.get(0);
+			Object yObj = value.get(1);
+			Object zObj = value.get(2);
+
+			if (xObj instanceof Number number) {
+				double val = number.doubleValue();
+				x = data -> val;
+			} else if (xObj instanceof String string) {
+				x = FunctionData.build(string, Function.identity());
+			} else x = null;
+
+			if (yObj instanceof Number number) {
+				double val = number.doubleValue();
+				y = data -> val;
+			} else if (yObj instanceof String string) {
+				y = FunctionData.build(string, Function.identity());
+			} else y = null;
+
+			if (zObj instanceof Number number) {
+				double val = number.doubleValue();
+				z = data -> val;
+			} else if (zObj instanceof String string) {
+				z = FunctionData.build(string, Function.identity());
+			} else z = null;
+
+			if (x == null || y == null || z == null) {
+				if (def == null) return data -> null;
+				return data -> new EulerAngle(def.getX(), def.getY(), def.getZ());
+			}
+		} else {
+			if (def == null) return data -> null;
+			return data -> new EulerAngle(def.getX(), def.getY(), def.getZ());
 		}
 
-		if (def == null) return data -> null;
-		return data -> new EulerAngle(def.getX(), def.getY(), def.getZ());
+		if (x.isConstant() && y.isConstant() && z.isConstant()) {
+			EulerAngle angle = new EulerAngle(x.get(), y.get(), z.get());
+			return data -> new EulerAngle(angle.getX(), angle.getY(), angle.getZ());
+		}
+
+		return data -> new EulerAngle(x.get(data), y.get(data), z.get(data));
 	}
 
 	public static ConfigData<Color> getColor(@NotNull ConfigurationSection config, @NotNull String path, @Nullable Color def) {

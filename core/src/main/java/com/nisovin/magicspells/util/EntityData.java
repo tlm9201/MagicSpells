@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.List;
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.BiConsumer;
@@ -29,6 +30,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.config.FunctionData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -480,50 +482,81 @@ public class EntityData {
 			}
 		}
 
+		ConfigData<Float> x;
+		ConfigData<Float> y;
+		ConfigData<Float> z;
+
 		if (config.isConfigurationSection(path)) {
 			ConfigurationSection section = config.getConfigurationSection(path);
 			if (section == null) return data -> null;
 
-			ConfigData<Float> x = ConfigDataUtil.getFloat(section, "x");
-			ConfigData<Float> y = ConfigDataUtil.getFloat(section, "y");
-			ConfigData<Float> z = ConfigDataUtil.getFloat(section, "z");
+			x = ConfigDataUtil.getFloat(section, "x");
+			y = ConfigDataUtil.getFloat(section, "y");
+			z = ConfigDataUtil.getFloat(section, "z");
+		} else if (config.isList(path)) {
+			List<?> value = config.getList(path);
+			if (value == null || value.size() != 3) return data -> null;
 
-			if (checkNull(x) && checkNull(y) && checkNull(z)) {
-				if (x.isConstant() && y.isConstant() && z.isConstant()) {
-					float vx = x.get();
-					float vy = y.get();
-					float vz = z.get();
+			Object xObj = value.get(0);
+			Object yObj = value.get(1);
+			Object zObj = value.get(2);
 
-					Vector3f vector = new Vector3f(vx, vy, vz);
-					return data -> vector;
-				}
+			if (xObj instanceof Number number) {
+				float val = number.floatValue();
+				x = data -> val;
+			} else if (xObj instanceof String string) {
+				x = FunctionData.build(string, Double::floatValue);
+			} else x = null;
 
-				return new ConfigData<>() {
+			if (yObj instanceof Number number) {
+				float val = number.floatValue();
+				y = data -> val;
+			} else if (yObj instanceof String string) {
+				y = FunctionData.build(string, Double::floatValue);
+			} else y = null;
 
-					@Override
-					public Vector3f get(@NotNull SpellData data) {
-						Float vx = x.get(data);
-						if (vx == null) return null;
+			if (zObj instanceof Number number) {
+				float val = number.floatValue();
+				z = data -> val;
+			} else if (zObj instanceof String string) {
+				z = FunctionData.build(string, Double::floatValue);
+			} else z = null;
 
-						Float vy = y.get(data);
-						if (vy == null) return null;
-
-						Float vz = z.get(data);
-						if (vz == null) return null;
-
-						return new Vector3f(vx, vy, vz);
-					}
-
-					@Override
-					public boolean isConstant() {
-						return false;
-					}
-
-				};
-			}
+			if (x == null || y == null || z == null) return data -> null;
+		} else {
+			return data -> null;
 		}
 
-		return data -> null;
+		if (!checkNull(x) || !checkNull(y) || !checkNull(z)) return data -> null;
+
+		if (x.isConstant() && y.isConstant() && z.isConstant()) {
+			Vector3f vector = new Vector3f(x.get(), y.get(), z.get());
+			return data -> vector;
+		}
+
+		return new ConfigData<>() {
+
+			@Override
+			public Vector3f get(@NotNull SpellData data) {
+				Float vx = x.get(data);
+				if (vx == null) return null;
+
+				Float vy = y.get(data);
+				if (vy == null) return null;
+
+				Float vz = z.get(data);
+				if (vz == null) return null;
+
+				return new Vector3f(vx, vy, vz);
+			}
+
+			@Override
+			public boolean isConstant() {
+				return false;
+			}
+
+		};
+
 	}
 
 	private ConfigData<Quaternionf> getQuaternion(ConfigurationSection config, String path) {
@@ -576,49 +609,94 @@ public class EntityData {
 			};
 		}
 
-		ConfigData<Float> x = ConfigDataUtil.getFloat(config, path + ".x");
-		ConfigData<Float> y = ConfigDataUtil.getFloat(config, path + ".y");
-		ConfigData<Float> z = ConfigDataUtil.getFloat(config, path + ".z");
-		ConfigData<Float> w = ConfigDataUtil.getFloat(config, path + ".w");
-		if (checkNull(x) && checkNull(y) && checkNull(z) && checkNull(w)) {
-			if (x.isConstant() && y.isConstant() && z.isConstant() && w.isConstant()) {
-				float qx = x.get();
-				float qy = y.get();
-				float qz = z.get();
-				float qw = w.get();
+		ConfigData<Float> x;
+		ConfigData<Float> y;
+		ConfigData<Float> z;
+		ConfigData<Float> w;
 
-				Quaternionf rot = new Quaternionf(qx, qy, qz, qw);
-				return data -> rot;
-			}
+		if (config.isConfigurationSection(path)) {
+			ConfigurationSection section = config.getConfigurationSection(path);
+			if (section == null) return data -> null;
 
-			return new ConfigData<>() {
+			x = ConfigDataUtil.getFloat(section, "x");
+			y = ConfigDataUtil.getFloat(section, "y");
+			z = ConfigDataUtil.getFloat(section, "z");
+			w = ConfigDataUtil.getFloat(section, "w");
+		} else if (config.isList(path)) {
+			List<?> value = config.getList(path);
+			if (value == null || value.size() != 4) return data -> null;
 
-				@Override
-				public Quaternionf get(@NotNull SpellData data) {
-					Float qx = x.get(data);
-					if (qx == null) return null;
+			Object xObj = value.get(0);
+			Object yObj = value.get(1);
+			Object zObj = value.get(2);
+			Object wObj = value.get(3);
 
-					Float qy = y.get(data);
-					if (qy == null) return null;
+			if (xObj instanceof Number number) {
+				float val = number.floatValue();
+				x = data -> val;
+			} else if (xObj instanceof String string) {
+				x = FunctionData.build(string, Double::floatValue);
+			} else x = null;
 
-					Float qz = z.get(data);
-					if (qz == null) return null;
+			if (yObj instanceof Number number) {
+				float val = number.floatValue();
+				y = data -> val;
+			} else if (yObj instanceof String string) {
+				y = FunctionData.build(string, Double::floatValue);
+			} else y = null;
 
-					Float qw = w.get(data);
-					if (qw == null) return null;
+			if (zObj instanceof Number number) {
+				float val = number.floatValue();
+				z = data -> val;
+			} else if (zObj instanceof String string) {
+				z = FunctionData.build(string, Double::floatValue);
+			} else z = null;
 
-					return new Quaternionf(qx, qy, qz, qw);
-				}
+			if (wObj instanceof Number number) {
+				float val = number.floatValue();
+				w = data -> val;
+			} else if (zObj instanceof String string) {
+				w = FunctionData.build(string, Double::floatValue);
+			} else w = null;
 
-				@Override
-				public boolean isConstant() {
-					return false;
-				}
-
-			};
+			if (x == null || y == null || z == null || w == null) return data -> null;
+		} else {
+			return data -> null;
 		}
 
-		return data -> null;
+		if (!checkNull(x) || !checkNull(y) || !checkNull(z) || !checkNull(w)) return data -> null;
+
+		if (x.isConstant() && y.isConstant() && z.isConstant() && w.isConstant()) {
+			Quaternionf rot = new Quaternionf(x.get(), y.get(), z.get(), w.get());
+			return data -> rot;
+		}
+
+		return new ConfigData<>() {
+
+			@Override
+			public Quaternionf get(@NotNull SpellData data) {
+				Float qx = x.get(data);
+				if (qx == null) return null;
+
+				Float qy = y.get(data);
+				if (qy == null) return null;
+
+				Float qz = z.get(data);
+				if (qz == null) return null;
+
+				Float qw = w.get(data);
+				if (qw == null) return null;
+
+				return new Quaternionf(qx, qy, qz, qw);
+			}
+
+			@Override
+			public boolean isConstant() {
+				return false;
+			}
+
+		};
+
 	}
 
 	private boolean checkNull(ConfigData<?> data) {
