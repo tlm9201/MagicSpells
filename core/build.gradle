@@ -11,8 +11,6 @@ dependencies {
     shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.9.10")
 
     shadow(project(path: ":nms:shared", configuration: "apiElements"))
-    shadow(project(path: ":nms:v1_19_R1", configuration: "reobf"))
-    shadow(project(path: ":nms:v1_19_R2", configuration: "reobf"))
     shadow(project(path: ":nms:v1_19_R3", configuration: "reobf"))
     shadow(project(path: ":nms:v1_20_R1", configuration: "reobf"))
     shadow(project(path: ":nms:v1_20_R2", configuration: "reobf"))
