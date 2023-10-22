@@ -33,7 +33,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 	private final ConfigData<Boolean> powerAffectsDamageMultiplier;
 
 	private SpellData currentData = null;
-	private long currentTick = 0;
+	private long currentTick = -1;
 
 	public ExplodeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -86,7 +86,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 			data = data.location(location);
 		}
 
-		currentTick = Bukkit.getWorlds().get(0).getFullTime();
+		currentTick = Bukkit.getCurrentTick();
 		currentData = data;
 
 		boolean success = location.createExplosion(data.caster(), explosionSize, addFire.get(data), !preventBlockDamage.get(data));
@@ -99,7 +99,7 @@ public class ExplodeSpell extends TargetedSpell implements TargetedLocationSpell
 	public void onEntityDamage(EntityDamageByEntityEvent event) {
 		if (event.getCause() != DamageCause.ENTITY_EXPLOSION) return;
 
-		if (currentTick != Bukkit.getWorlds().get(0).getFullTime() || !currentData.caster().equals(event.getDamager()))
+		if (currentTick != Bukkit.getCurrentTick() || !currentData.caster().equals(event.getDamager()))
 			return;
 
 		SpellData data = currentData.target(event.getEntity() instanceof LivingEntity le ? le : null);

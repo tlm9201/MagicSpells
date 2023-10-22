@@ -89,8 +89,8 @@ public class WindglideSpell extends BuffSpell {
 		boolean constantHeight = this.constantHeight.get(data);
 		boolean constantVelocity = this.constantVelocity.get(data);
 
-		double height = constantHeight ? this.height.get(data) / 10 : 0;
-		double velocity = constantVelocity ? this.velocity.get(data) : 0;
+		double height = constantHeight ? this.height.get(data) : 0;
+		double velocity = constantVelocity ? this.velocity.get(data) / 10 : 0;
 
 		entities.put(data.target().getUniqueId(), new GlideData(
 			data,
@@ -211,7 +211,7 @@ public class WindglideSpell extends BuffSpell {
 				SpellData subData = data.spellData.location(location);
 
 				double height = data.constantHeight ? data.height : WindglideSpell.this.height.get(subData);
-				double velocity = data.constantVelocity ? data.velocity : WindglideSpell.this.velocity.get(subData);
+				double velocity = data.constantVelocity ? data.velocity : WindglideSpell.this.velocity.get(subData) / 10;
 
 				Vector v = location.getDirection().multiply(velocity);
 				v.setY(v.getY() + height);
