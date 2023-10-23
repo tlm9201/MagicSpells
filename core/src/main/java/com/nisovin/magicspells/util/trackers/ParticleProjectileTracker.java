@@ -149,11 +149,11 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		if (!changePitch) startLocation.setPitch(0F);
 
 		// Changing the start location
-		Util.applyRelativeOffset(startLocation, from.getDirection(), startXOffset, startYOffset, startZOffset);
+		Util.applyRelativeOffset(startLocation, startLocation.getDirection(), startXOffset, startYOffset, startZOffset);
 
 		previousLocation = startLocation.clone();
 		currentLocation = startLocation.clone();
-		currentVelocity = from.getDirection();
+		currentVelocity = startLocation.getDirection();
 
 		initialize();
 	}
@@ -170,7 +170,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		// Changing the target location
 		Location targetLoc = target.clone();
 		targetLoc.add(0, targetYOffset, 0);
-		Vector dir = targetLoc.clone().subtract(from).toVector();
+		Vector dir = targetLoc.clone().subtract(startLocation).toVector();
 
 		// Changing the start location
 		startDirection = dir.clone().normalize();
