@@ -1479,6 +1479,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected TargetInfo<LivingEntity> getTargetedEntity(SpellData data, boolean forceTargetPlayers, ValidTargetChecker checker) {
 		LivingEntity caster = data.caster();
 		if (targetSelf.get(data) || validTargetList.canTargetSelf()) {
+			if (!checker.isValidTarget(caster)) return new TargetInfo<>(null, data, false);
+
 			SpellTargetEvent event = new SpellTargetEvent(this, data, caster);
 			return new TargetInfo<>(event.callEvent() ? event.getTarget() : null, event.getSpellData(), event.isCastCancelled());
 		}
