@@ -1,10 +1,8 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -216,7 +214,6 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	private class MissileTracker implements Runnable {
-		Random rand = ThreadLocalRandom.current();
 
 		private Location currentLocation;
 		private Vector currentVelocity;
@@ -279,9 +276,9 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 					.normalize();
 
 			if (projectileVertSpread > 0 || projectileHorizSpread > 0) {
-				float rx = -1 + rand.nextFloat() * 2;
-				float ry = -1 + rand.nextFloat() * 2;
-				float rz = -1 + rand.nextFloat() * 2;
+				float rx = -1 + random.nextFloat() * 2;
+				float ry = -1 + random.nextFloat() * 2;
+				float rz = -1 + random.nextFloat() * 2;
 				currentVelocity.add(new Vector(rx * projectileHorizSpread, ry * projectileVertSpread, rz * projectileHorizSpread));
 			}
 			currentLocation.setDirection(currentVelocity);
