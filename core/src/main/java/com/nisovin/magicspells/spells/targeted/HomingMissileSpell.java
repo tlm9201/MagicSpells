@@ -73,6 +73,12 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 	private final ConfigData<Integer> specialEffectInterval;
 	private final ConfigData<Integer> intermediateSpecialEffects;
 
+	private final ConfigData<Float> projectileHorizOffset;
+	private final ConfigData<Float> projectileVertOffset;
+
+	private final ConfigData<Float> projectileHorizSpread;
+	private final ConfigData<Float> projectileVertSpread;
+
 	public HomingMissileSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
@@ -108,6 +114,12 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		airSpellInterval = getConfigDataInt("spell-interval", 20);
 		specialEffectInterval = getConfigDataInt("special-effect-interval", 2);
 		intermediateSpecialEffects = getConfigDataInt("intermediate-special-effect-locations", 0);
+
+		projectileHorizOffset = getConfigDataFloat("projectile-horiz-offset", 0);
+		projectileVertOffset = getConfigDataFloat("projectile-vert-offset", 0);
+
+		projectileHorizSpread = getConfigDataFloat("projectile-horiz-spread", 0);
+		projectileVertSpread = getConfigDataFloat("projectile-vert-spread", 0);
 	}
 
 	@Override
@@ -252,7 +264,23 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			currentLocation.add(startDir.multiply(relativeOffset.getX()));
 			currentLocation.setY(currentLocation.getY() + relativeOffset.getY());
 
-			currentVelocity = data.target().getLocation().subtract(currentLocation).toVector();
+			float projectileHorizOffset = HomingMissileSpell.this.projectileHorizOffset.get(data);
+			float projectileVertOffset = HomingMissileSpell.this.projectileVertOffset.get(data);
+
+			float projectileHorizSpread = HomingMissileSpell.this.projectileHorizSpread.get(data);
+			float projectileVertSpread = HomingMissileSpell.this.projectileVertSpread.get(data);
+
+			currentVelocity = currentLocation.getDirection()
+					.add(new Vector(0, projectileVertOffset, 0))
+					.rotateAroundAxis(new Vector(0, 1, 0), -Math.toRadians(projectileHorizOffset))
+					.normalize();
+
+			if (projectileVertSpread > 0 || projectileHorizSpread > 0) {
+				float rx = -1 + random.nextFloat() * 2;
+				float ry = -1 + random.nextFloat() * 2;
+				float rz = -1 + random.nextFloat() * 2;
+				currentVelocity.add(new Vector(rx * projectileHorizSpread, ry * projectileVertSpread, rz * projectileHorizSpread));
+			}
 			currentLocation.setDirection(currentVelocity);
 			data = data.location(currentLocation);
 			this.data = data;
