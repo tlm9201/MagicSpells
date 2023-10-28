@@ -303,7 +303,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		broadcastRange = getConfigDataInt("broadcast-range", MagicSpells.getBroadcastRange());
 
 		// Cast time
-		castTime = getConfigDataInt(path + "cast-time", 0);
+		castTime = getConfigDataInt("cast-time", 0);
 		interruptOnMove = getConfigDataBoolean("interrupt-on-move", true);
 		interruptOnCast = getConfigDataBoolean("interrupt-on-cast", true);
 		interruptOnDamage = getConfigDataBoolean("interrupt-on-damage", false);
