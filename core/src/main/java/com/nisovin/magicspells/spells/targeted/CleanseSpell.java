@@ -25,6 +25,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 	private final List<BuffSpell> buffSpells;
 	private final List<LoopSpell> loopSpells;
 	private final List<OrbitSpell> orbitSpells;
+	private final List<TotemSpell> totemSpells;
 	private final List<SilenceSpell> silenceSpells;
 	private final List<LevitateSpell> levitateSpells;
 	private final List<PotionEffectType> potionEffectTypes;
@@ -40,6 +41,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		buffSpells = new ArrayList<>();
 		loopSpells = new ArrayList<>();
 		orbitSpells = new ArrayList<>();
+		totemSpells = new ArrayList<>();
 		silenceSpells = new ArrayList<>();
 		levitateSpells = new ArrayList<>();
 		potionEffectTypes = new ArrayList<>();
@@ -101,6 +103,18 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 				}
 				Spell spell = MagicSpells.getSpellByInternalName(s.replace("orbit:", ""));
 				if (spell instanceof OrbitSpell) orbitSpells.add((OrbitSpell) spell);
+				continue;
+			}
+
+			if (s.startsWith("totem:")) {
+				if (s.replace("totem:", "").equalsIgnoreCase("*")) {
+					for (Spell spell : MagicSpells.getSpellsOrdered()) {
+						if (spell instanceof TotemSpell) totemSpells.add((TotemSpell) spell);
+					}
+					continue;
+				}
+				Spell spell = MagicSpells.getSpellByInternalName(s.replace("totem:", ""));
+				if (spell instanceof TotemSpell) totemSpells.add((TotemSpell) spell);
 				continue;
 			}
 
@@ -167,6 +181,10 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 				if (spell.hasOrbit(entity)) return true;
 			}
 
+			for (TotemSpell spell : totemSpells) {
+				if (spell.hasTotem(entity)) return true;
+			}
+
 			for (SilenceSpell spell : silenceSpells) {
 				if (spell.isSilenced(entity)) return true;
 			}
@@ -207,6 +225,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 		stunSpells.forEach(spell -> spell.removeStun(target));
 		loopSpells.forEach(spell -> spell.cancelLoops(target));
 		orbitSpells.forEach(spell -> spell.removeOrbits(target));
+		totemSpells.forEach(spell -> spell.removeTotems(target));
 		silenceSpells.forEach(spell -> spell.removeSilence(target));
 		levitateSpells.forEach(spell -> spell.removeLevitate(target));
 

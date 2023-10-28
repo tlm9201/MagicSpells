@@ -186,9 +186,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	@Override
 	public void turnOff() {
-		for (Totem t : totems) {
-			t.stop();
-		}
+		for (Totem t : totems) t.stop(false);
 
 		totems.clear();
 		ticker.stop();
@@ -258,12 +256,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		totems.add(totem);
 
 		int maxDuration = this.maxDuration.get(data);
-		if (maxDuration > 0) {
-			MagicSpells.scheduleDelayedTask(() -> {
-				totem.stop();
-				totems.remove(totem);
-			}, maxDuration);
-		}
+		if (maxDuration > 0) MagicSpells.scheduleDelayedTask(totem::stop, maxDuration);
 
 		ticker.start();
 		playSpellEffects(data);
@@ -272,14 +265,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		if (totems.isEmpty()) return;
-		Player player = event.getEntity();
-		Iterator<Totem> iter = totems.iterator();
-		while (iter.hasNext()) {
-			Totem pulser = iter.next();
-			if (!pulser.data.caster().equals(player)) continue;
-			pulser.stop();
-			iter.remove();
-		}
+		removeTotems(event.getPlayer());
 	}
 
 	@EventHandler
@@ -298,6 +284,25 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (totems.isEmpty()) return;
 		for (Totem t : totems) {
 			if (t.armorStand.equals(e.getRightClicked())) e.setCancelled(true);
+		}
+	}
+
+	public boolean hasTotem(LivingEntity caster) {
+		for (Totem totem : totems)
+			if (caster.equals(totem.data.caster()))
+				return true;
+
+		return false;
+	}
+
+	public void removeTotems(LivingEntity caster) {
+		Iterator<Totem> it = totems.iterator();
+		while (it.hasNext()) {
+			Totem totem = it.next();
+			if (caster.equals(totem.data.caster())) {
+				totem.stop(false);
+				it.remove();
+			}
 		}
 	}
 
@@ -393,8 +398,13 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		private void stop() {
+			stop(true);
+		}
+
+		private void stop(boolean remove) {
 			if (!totemLocation.getChunk().isLoaded()) totemLocation.getChunk().load();
 			armorStand.remove();
+			if (remove) totems.remove(this);
 			playSpellEffects(EffectPosition.DISABLED, totemLocation, data);
 			if (spellOnBreak != null) spellOnBreak.subcast(data);
 		}
