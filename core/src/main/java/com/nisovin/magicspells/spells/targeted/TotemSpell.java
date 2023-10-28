@@ -186,9 +186,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	@Override
 	public void turnOff() {
-		for (Totem t : totems) {
-			t.stop();
-		}
+		for (Totem t : totems) t.stop(false);
 
 		totems.clear();
 		ticker.stop();
@@ -258,12 +256,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		totems.add(totem);
 
 		int maxDuration = this.maxDuration.get(data);
-		if (maxDuration > 0) {
-			MagicSpells.scheduleDelayedTask(() -> {
-				totem.stop();
-				totems.remove(totem);
-			}, maxDuration);
-		}
+		if (maxDuration > 0) MagicSpells.scheduleDelayedTask(totem::stop, maxDuration);
 
 		ticker.start();
 		playSpellEffects(data);
@@ -277,7 +270,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		while (iter.hasNext()) {
 			Totem pulser = iter.next();
 			if (!pulser.data.caster().equals(player)) continue;
-			pulser.stop();
+			pulser.stop(false);
 			iter.remove();
 		}
 	}
@@ -393,8 +386,13 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		private void stop() {
+			stop(true);
+		}
+
+		private void stop(boolean remove) {
 			if (!totemLocation.getChunk().isLoaded()) totemLocation.getChunk().load();
 			armorStand.remove();
+			if (remove) totems.remove(this);
 			playSpellEffects(EffectPosition.DISABLED, totemLocation, data);
 			if (spellOnBreak != null) spellOnBreak.subcast(data);
 		}
