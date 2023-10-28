@@ -265,14 +265,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	@EventHandler
 	public void onPlayerDeath(PlayerDeathEvent event) {
 		if (totems.isEmpty()) return;
-		Player player = event.getEntity();
-		Iterator<Totem> iter = totems.iterator();
-		while (iter.hasNext()) {
-			Totem pulser = iter.next();
-			if (!pulser.data.caster().equals(player)) continue;
-			pulser.stop(false);
-			iter.remove();
-		}
+		removeTotems(event.getPlayer());
 	}
 
 	@EventHandler
@@ -291,6 +284,25 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (totems.isEmpty()) return;
 		for (Totem t : totems) {
 			if (t.armorStand.equals(e.getRightClicked())) e.setCancelled(true);
+		}
+	}
+
+	public boolean hasTotem(LivingEntity caster) {
+		for (Totem totem : totems)
+			if (caster.equals(totem.data.caster()))
+				return true;
+
+		return false;
+	}
+
+	public void removeTotems(LivingEntity caster) {
+		Iterator<Totem> it = totems.iterator();
+		while (it.hasNext()) {
+			Totem totem = it.next();
+			if (caster.equals(totem.data.caster())) {
+				totem.stop(false);
+				it.remove();
+			}
 		}
 	}
 
