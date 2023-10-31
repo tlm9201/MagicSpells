@@ -1,7 +1,9 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import java.util.Map;
-import java.util.HashMap;
+import java.util.UUID;
+
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
@@ -13,17 +15,22 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
 
-	private static final Map<String, Integer> tasks = new HashMap<>();
+	private static final Object2IntMap<TaskData> tasks;
 
-	private String namespaceKey;
+	static {
+		tasks = new Object2IntOpenHashMap<>();
+		tasks.defaultReturnValue(-1);
+	}
+
+	private ConfigData<String> namespaceKey;
 
 	private String title;
 
@@ -46,10 +53,7 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
-		namespaceKey = config.getString("namespace-key");
-		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
-			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
-		}
+		namespaceKey = ConfigDataUtil.getString(config, "namespace-key", null);
 
 		title = config.getString("title", "");
 
@@ -108,6 +112,9 @@ public class BossBarEffect extends SpellEffect {
 	private void updateBar(Player player, SpellData data) {
 		boolean remove = this.remove.get(data);
 
+		String namespaceKey = this.namespaceKey.get(data);
+		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) return;
+
 		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey, !remove);
 		if (remove) {
 			if (bar != null) bar.remove();
@@ -139,16 +146,19 @@ public class BossBarEffect extends SpellEffect {
 
 		int duration = this.duration.get(data);
 		if (duration > 0) {
-			String key = bar.getNamespaceKey();
-			if (tasks.containsKey(key)) Bukkit.getScheduler().cancelTask(tasks.get(key));
+			TaskData taskData = new TaskData(bar.getNamespaceKey(), player.getUniqueId());
 
-			int task = MagicSpells.scheduleDelayedTask(() -> {
-				tasks.remove(key);
+			int newTask = MagicSpells.scheduleDelayedTask(() -> {
+				tasks.removeInt(taskData);
 				bar.remove();
 			}, duration);
 
-			tasks.put(key, task);
+			int oldTask = tasks.put(taskData, newTask);
+			if (oldTask != -1) Bukkit.getScheduler().cancelTask(oldTask);
 		}
+	}
+
+	private record TaskData(String key, UUID uuid) {
 	}
 
 }
