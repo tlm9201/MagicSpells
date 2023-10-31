@@ -15,10 +15,10 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.variables.Variable;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
@@ -30,7 +30,7 @@ public class BossBarEffect extends SpellEffect {
 		tasks.defaultReturnValue(-1);
 	}
 
-	private String namespaceKey;
+	private ConfigData<String> namespaceKey;
 
 	private String title;
 
@@ -53,10 +53,7 @@ public class BossBarEffect extends SpellEffect {
 
 	@Override
 	protected void loadFromConfig(ConfigurationSection config) {
-		namespaceKey = config.getString("namespace-key");
-		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) {
-			MagicSpells.error("Wrong namespace-key defined! '" + namespaceKey + "'");
-		}
+		namespaceKey = ConfigDataUtil.getString(config, "namespace-key", null);
 
 		title = config.getString("title", "");
 
@@ -114,6 +111,9 @@ public class BossBarEffect extends SpellEffect {
 
 	private void updateBar(Player player, SpellData data) {
 		boolean remove = this.remove.get(data);
+
+		String namespaceKey = this.namespaceKey.get(data);
+		if (namespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(namespaceKey)) return;
 
 		Bar bar = MagicSpells.getBossBarManager().getBar(player, namespaceKey, !remove);
 		if (remove) {
