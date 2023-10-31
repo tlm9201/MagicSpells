@@ -1,7 +1,9 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import java.util.Map;
-import java.util.HashMap;
+import java.util.UUID;
+
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
@@ -21,7 +23,12 @@ import com.nisovin.magicspells.util.managers.BossBarManager.Bar;
 
 public class BossBarEffect extends SpellEffect {
 
-	private static final Map<String, Integer> tasks = new HashMap<>();
+	private static final Object2IntMap<TaskData> tasks;
+
+	static {
+		tasks = new Object2IntOpenHashMap<>();
+		tasks.defaultReturnValue(-1);
+	}
 
 	private String namespaceKey;
 
@@ -139,16 +146,19 @@ public class BossBarEffect extends SpellEffect {
 
 		int duration = this.duration.get(data);
 		if (duration > 0) {
-			String key = bar.getNamespaceKey();
-			if (tasks.containsKey(key)) Bukkit.getScheduler().cancelTask(tasks.get(key));
+			TaskData taskData = new TaskData(bar.getNamespaceKey(), player.getUniqueId());
 
-			int task = MagicSpells.scheduleDelayedTask(() -> {
-				tasks.remove(key);
+			int newTask = MagicSpells.scheduleDelayedTask(() -> {
+				tasks.removeInt(taskData);
 				bar.remove();
 			}, duration);
 
-			tasks.put(key, task);
+			int oldTask = tasks.put(taskData, newTask);
+			if (oldTask != -1) Bukkit.getScheduler().cancelTask(oldTask);
 		}
+	}
+
+	private record TaskData(String key, UUID uuid) {
 	}
 
 }
