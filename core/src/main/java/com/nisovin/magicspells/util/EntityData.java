@@ -246,6 +246,7 @@ public class EntityData {
 		}
 		transformers.put(Display.class, new Transformer<>(transformation, Display::setTransformation, true));
 
+		addOptInteger(transformers, config, "teleport-duration", Display.class, Display::setTeleportDuration);
 		addOptInteger(transformers, config, "interpolation-duration", Display.class, Display::setInterpolationDuration);
 		addOptFloat(transformers, config, "view-range", Display.class, Display::setViewRange);
 		addOptFloat(transformers, config, "shadow-radius", Display.class, Display::setShadowRadius);
