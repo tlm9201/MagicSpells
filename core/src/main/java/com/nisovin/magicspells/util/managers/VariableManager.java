@@ -130,6 +130,9 @@ public class VariableManager {
 		addMetaVariableType("mana", new ManaVariable());
 		addMetaVariableType("max_mana", new MaxManaVariable());
 		addMetaVariableType("mana_regen", new ManaRegenVariable());
+		addMetaVariableType("freeze_ticks", new FreezeTicksVariable());
+		addMetaVariableType("max_freeze_ticks", new MaxFreezeTicksVariable());
+		addMetaVariableType("max_fire_ticks", new MaxFireTicksVariable());
 
 		// meta variable attribute types
 		addMetaVariableType("attribute_generic_max_health_base", new AttributeBaseValueVariable("GENERIC_MAX_HEALTH"));
