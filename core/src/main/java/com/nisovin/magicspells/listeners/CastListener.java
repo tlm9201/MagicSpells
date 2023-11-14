@@ -167,7 +167,7 @@ public class CastListener implements Listener {
 		else showIcon(player, MagicSpells.getSpellIconSlot(), null);
 	}
 
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerDrop(PlayerDropItemEvent event) {
 		noCastUntil.put(event.getPlayer().getName(), System.currentTimeMillis() + 150);
 	}

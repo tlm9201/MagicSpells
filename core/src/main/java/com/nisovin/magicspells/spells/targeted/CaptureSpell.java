@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -17,7 +19,7 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
 public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private static final ValidTargetChecker CAPTURABLE = entity -> MobUtil.hasEggMaterialForEntityType(entity.getType());
+	private static final ValidTargetChecker CAPTURABLE = e -> Bukkit.getItemFactory().getSpawnEgg(e.getType()) != null;
 
 	private final String itemName;
 	private final List<String> itemLore;
@@ -49,8 +51,10 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 	public CastResult castAtEntity(SpellData data) {
 		LivingEntity target = data.target();
 
-		ItemStack item = MobUtil.getEggItemForEntityType(target.getType());
-		if (item == null) return noTarget(data);
+		Material material = Bukkit.getItemFactory().getSpawnEgg(target.getType());
+		if (material == null) return noTarget(data);
+
+		ItemStack item = new ItemStack(material);
 
 		if (powerAffectsQuantity.get(data)) {
 			int q = Math.round(data.power());
