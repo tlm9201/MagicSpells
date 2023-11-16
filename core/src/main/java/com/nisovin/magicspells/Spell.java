@@ -10,18 +10,16 @@ import java.util.concurrent.ThreadLocalRandom;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.LinkedListMultimap;
 
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
-import org.bukkit.util.BlockIterator;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventPriority;
 import org.bukkit.block.data.BlockData;
@@ -35,15 +33,13 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.nisovin.magicspells.events.*;
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.events.*;
 import com.nisovin.magicspells.util.config.*;
 import com.nisovin.magicspells.spelleffects.*;
 import com.nisovin.magicspells.mana.ManaHandler;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spells.PassiveSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.effecttypes.*;
@@ -51,6 +47,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
+import com.nisovin.magicspells.spelleffects.effecttypes.EntityEffect;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 
@@ -165,6 +162,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected DamageCause targetDamageCause;
 
 	protected ValidTargetList validTargetList;
+
+	protected ConfigData<Double> losRaySize;
+	protected ConfigData<Boolean> losIgnorePassableBlocks;
+	protected ConfigData<FluidCollisionMode> losFluidCollisionMode;
 
 	protected long nextCastServer;
 
@@ -341,6 +342,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			losTransparentBlocks.add(Material.CAVE_AIR);
 			losTransparentBlocks.add(Material.VOID_AIR);
 		}
+		losRaySize = getConfigDataDouble("los-ray-size", MagicSpells.getLosRaySize());
+		losIgnorePassableBlocks = getConfigDataBoolean("los-ignore-passable-blocks", MagicSpells.isIgnoringPassableBlocks());
+		losFluidCollisionMode = getConfigDataEnum("los-fluid-collision-mode", FluidCollisionMode.class, MagicSpells.getFluidCollisionMode());
 		targetSelf = getConfigDataBoolean("target-self", false);
 		alwaysActivate = getConfigDataBoolean("always-activate", false);
 		playFizzleSound = getConfigDataBoolean("play-fizzle-sound", false);
@@ -1479,6 +1483,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected TargetInfo<LivingEntity> getTargetedEntity(SpellData data, boolean forceTargetPlayers, ValidTargetChecker checker) {
 		LivingEntity caster = data.caster();
+
 		if (targetSelf.get(data) || validTargetList.canTargetSelf()) {
 			if (checker != null && !checker.isValidTarget(caster)) return new TargetInfo<>(null, data, false);
 
@@ -1486,136 +1491,76 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			return new TargetInfo<>(event.callEvent() ? event.getTarget() : null, event.getSpellData(), event.isCastCancelled());
 		}
 
-		int currentRange = getRange(data);
-		List<Entity> nearbyEntities = caster.getNearbyEntities(currentRange, currentRange, currentRange);
+		World world = caster.getWorld();
 
-		// Get valid targets
-		List<LivingEntity> entities;
-		if (MagicSpells.checkWorldPvpFlag() && validTargetList.canTargetPlayers() && !isBeneficial() && !caster.getWorld().getPVP()) {
-			entities = validTargetList.filterTargetListCastingAsLivingEntities(caster, nearbyEntities, false);
-		} else if (forceTargetPlayers) {
-			entities = validTargetList.filterTargetListCastingAsLivingEntities(caster, nearbyEntities, true);
-		} else {
-			entities = validTargetList.filterTargetListCastingAsLivingEntities(caster, nearbyEntities);
+		boolean targetPlayers = forceTargetPlayers || validTargetList.canTargetPlayers();
+		if (targetPlayers && MagicSpells.checkWorldPvpFlag() && caster instanceof Player && !isBeneficial() && !world.getPVP()){
+			if (forceTargetPlayers) return new TargetInfo<>(null, data, false);
+			targetPlayers = false;
 		}
 
-		if (checker != null) entities.removeIf(entity -> !checker.isValidTarget(entity));
+		Location startLocation = caster.getEyeLocation();
+		Vector direction = startLocation.getDirection();
+		Vector start = startLocation.toVector();
 
-		// Find target
-		BlockIterator blockIterator;
-		try {
-			blockIterator = new BlockIterator(caster, currentRange);
-		} catch (IllegalStateException e) {
-			DebugHandler.debugIllegalState(e);
-			return new TargetInfo<>(null, data, false);
+		double range = getRange(data), raySize = losRaySize.get(data);
+		if (obeyLos) {
+			RayTraceResult blockHit = world.rayTraceBlocks(startLocation, direction, range, losFluidCollisionMode.get(data), losIgnorePassableBlocks.get(data), block -> !losTransparentBlocks.contains(block.getType()));
+			if (blockHit != null) range = blockHit.getHitPosition().distance(start);
 		}
 
-		Block block;
-		Location location;
+		Collection<Entity> nearbyEntities = world.getNearbyEntities(BoundingBox.of(start, start).expand(direction, range).expand(raySize));
+		List<LivingEntity> potentialTargets = new ArrayList<>();
 
-		int blockX;
-		int blockY;
-		int blockZ;
+		for (Entity entity : nearbyEntities) {
+			if (!(entity instanceof LivingEntity target)) continue;
+			if (!validTargetList.canTarget(caster, target, targetPlayers)) continue;
+			if (checker != null && !checker.isValidTarget(target)) continue;
 
-		double entityX;
-		double entityY;
-		double entityZ;
-
-		// How far can a target be from the line of sight along the x, y, and z directions
-		double xLower = 0.75;
-		double xUpper = 1.75;
-		double yLower = 1;
-		double yUpper = 2.5;
-		double zLower = 0.75;
-		double zUpper = 1.75;
-
-		// Do min range
-		for (int i = 0, minRange = this.minRange.get(data); i < minRange && blockIterator.hasNext(); i++) {
-			blockIterator.next();
+			potentialTargets.add(target);
 		}
 
-		Set<Entity> blacklistedEntities = new HashSet<>();
+		potentialTargets.sort(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(startLocation)));
 
-		// Loop through player's line of sight
-		while (blockIterator.hasNext()) {
-			block = blockIterator.next();
-			blockX = block.getX();
-			blockY = block.getY();
-			blockZ = block.getZ();
+		int minRangeSq = this.minRange.get(data);
+		minRangeSq *= minRangeSq;
 
-			// Line of sight is broken, stop without target
-			if (obeyLos && !BlockUtils.isTransparent(this, block)) break;
+		for (LivingEntity target : potentialTargets) {
+			Location targetLocation = target.getLocation();
+			if (targetLocation.distanceSquared(startLocation) < minRangeSq) continue;
 
-			// Check for entities near this block in the line of sight
-			for (LivingEntity target : entities) {
-				if (blacklistedEntities.contains(target)) continue;
-				location = target.getLocation();
-				entityX = location.getX();
-				entityY = location.getY();
-				entityZ = location.getZ();
+			BoundingBox boundingBox = target.getBoundingBox().expand(raySize);
+			if (boundingBox.rayTrace(start, direction, range) == null) continue;
 
-				if (!(blockX - xLower <= entityX && entityX <= blockX + xUpper)) continue;
-				if (!(blockY - yLower <= entityY && entityY <= blockY + yUpper)) continue;
-				if (!(blockZ - zLower <= entityZ && entityZ <= blockZ + zUpper)) continue;
+			if (MagicSpells.getNoMagicZoneManager() != null && MagicSpells.getNoMagicZoneManager().willFizzle(targetLocation, this))
+				continue;
 
-				// Check for invalid target
-				if (target instanceof Player pl && (pl.getGameMode() == GameMode.CREATIVE || pl.getGameMode() == GameMode.SPECTATOR)) {
-					blacklistedEntities.add(target);
-					continue;
-				}
+			if (MagicSpells.checkScoreboardTeams()) {
+				Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 
-				// Check for no-magic-zone
-				if (MagicSpells.getNoMagicZoneManager() != null && MagicSpells.getNoMagicZoneManager().willFizzle(target.getLocation(), this)) {
-					blacklistedEntities.add(target);
-					continue;
-				}
+				Team casterTeam = scoreboard.getEntityTeam(caster);
+				Team targetTeam = scoreboard.getEntityTeam(target);
 
-				// Check for teams
-				if (target instanceof Player && MagicSpells.checkScoreboardTeams()) {
-					Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
-
-					Team playerTeam = null;
-					if (caster instanceof Player) playerTeam = scoreboard.getEntryTeam(caster.getName());
-					Team targetTeam = scoreboard.getEntryTeam(target.getName());
-
-					if (playerTeam != null && targetTeam != null) {
-						if (playerTeam.equals(targetTeam)) {
-							if (!playerTeam.allowFriendlyFire() && !isBeneficial()) {
-								blacklistedEntities.add(target);
-								continue;
-							}
-						} else if (isBeneficial()) {
-							blacklistedEntities.add(target);
-							continue;
-						}
-					}
-				}
-
-				// Call event listeners
-				SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, target);
-				targetEvent.callEvent();
-
-				if (targetEvent.isCastCancelled()) return new TargetInfo<>(null, targetEvent.getSpellData(), true);
-				else if (targetEvent.isCancelled()) {
-					blacklistedEntities.add(target);
-					continue;
-				} else {
-					target = targetEvent.getTarget();
-				}
-
-				// Call damage event
-				if (targetDamageCause != null) {
-					EntityDamageByEntityEvent entityDamageEvent = new MagicSpellsEntityDamageByEntityEvent(caster, target, targetDamageCause, targetDamageAmount, this);
-					EventUtil.call(entityDamageEvent);
-					if (entityDamageEvent.isCancelled()) {
-						blacklistedEntities.add(target);
+				if (casterTeam != null && targetTeam != null) {
+					if (casterTeam.equals(targetTeam) ? !casterTeam.allowFriendlyFire() && !isBeneficial() : isBeneficial())
 						continue;
-
-					}
 				}
-
-				return new TargetInfo<>(target, targetEvent.getSpellData(), false);
 			}
+
+			SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, target);
+			targetEvent.callEvent();
+
+			if (targetEvent.isCastCancelled()) return new TargetInfo<>(null, targetEvent.getSpellData(), true);
+			else if (targetEvent.isCancelled()) continue;
+
+			target = targetEvent.getTarget();
+
+			if (targetDamageCause != null) {
+				EntityDamageByEntityEvent entityDamageEvent = new MagicSpellsEntityDamageByEntityEvent(caster, target, targetDamageCause, targetDamageAmount, this);
+				if (!entityDamageEvent.callEvent()) continue;
+			}
+
+			return new TargetInfo<>(target, targetEvent.getSpellData(), false);
 		}
 
 		return new TargetInfo<>(null, data, false);
