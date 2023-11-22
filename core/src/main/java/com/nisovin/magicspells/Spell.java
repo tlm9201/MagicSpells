@@ -1114,41 +1114,43 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	public void postCast(SpellCastEvent castEvent, CastResult result) {
 		debug(3, "    Post-cast action: " + result.action());
 
-		SpellData data = result.data();
-		LivingEntity caster = data.caster();
+		if (result.action() != PostCastAction.ALREADY_HANDLED) {
+			SpellData data = result.data();
+			LivingEntity caster = data.caster();
 
-		switch (castEvent.getSpellCastState()) {
-			case NORMAL -> {
-				PostCastAction action = result.action();
-				if (action.setCooldown()) setCooldown(caster, castEvent.getCooldown());
-				if (action.chargeReagents()) removeReagents(caster, castEvent.getReagents());
-				if (action.sendMessages()) sendMessages(data);
+			switch (castEvent.getSpellCastState()) {
+				case NORMAL -> {
+					PostCastAction action = result.action();
+					if (action.setCooldown()) setCooldown(caster, castEvent.getCooldown());
+					if (action.chargeReagents()) removeReagents(caster, castEvent.getReagents());
+					if (action.sendMessages()) sendMessages(data);
 
-				int experience = this.experience.get(data);
-				if (experience > 0 && caster instanceof Player player) player.giveExp(experience);
+					int experience = this.experience.get(data);
+					if (experience > 0 && caster instanceof Player player) player.giveExp(experience);
+				}
+				case ON_COOLDOWN -> {
+					MagicSpells.sendMessage(strOnCooldown, caster, data,
+						"%c", String.valueOf(Math.round(getCooldown(caster))),
+						"%s", getName());
+					playSpellEffects(EffectPosition.COOLDOWN, caster, data);
+
+					if (soundOnCooldown != null && caster instanceof Player player)
+						player.playSound(caster.getLocation(), soundOnCooldown, 1F, 1F);
+				}
+				case MISSING_REAGENTS -> {
+					MagicSpells.sendMessage(strMissingReagents, caster, data);
+					playSpellEffects(EffectPosition.MISSING_REAGENTS, caster, data);
+
+					if (MagicSpells.showStrCostOnMissingReagents() && strCost != null && !strCost.isEmpty())
+						MagicSpells.sendMessage("    (" + strCost + ')', caster, data);
+
+					if (soundMissingReagents != null && caster instanceof Player player)
+						player.playSound(caster.getLocation(), soundMissingReagents, 1F, 1F);
+				}
+				case CANT_CAST -> MagicSpells.sendMessage(strCantCast, caster, data);
+				case NO_MAGIC_ZONE -> MagicSpells.getNoMagicZoneManager().sendNoMagicMessage(this, data);
+				case WRONG_WORLD -> MagicSpells.sendMessage(strWrongWorld, caster, data);
 			}
-			case ON_COOLDOWN -> {
-				MagicSpells.sendMessage(strOnCooldown, caster, data,
-					"%c", String.valueOf(Math.round(getCooldown(caster))),
-					"%s", getName());
-				playSpellEffects(EffectPosition.COOLDOWN, caster, data);
-
-				if (soundOnCooldown != null && caster instanceof Player player)
-					player.playSound(caster.getLocation(), soundOnCooldown, 1F, 1F);
-			}
-			case MISSING_REAGENTS -> {
-				MagicSpells.sendMessage(strMissingReagents, caster, data);
-				playSpellEffects(EffectPosition.MISSING_REAGENTS, caster, data);
-
-				if (MagicSpells.showStrCostOnMissingReagents() && strCost != null && !strCost.isEmpty())
-					MagicSpells.sendMessage("    (" + strCost + ')', caster, data);
-
-				if (soundMissingReagents != null && caster instanceof Player player)
-					player.playSound(caster.getLocation(), soundMissingReagents, 1F, 1F);
-			}
-			case CANT_CAST -> MagicSpells.sendMessage(strCantCast, caster, data);
-			case NO_MAGIC_ZONE -> MagicSpells.getNoMagicZoneManager().sendNoMagicMessage(this, data);
-			case WRONG_WORLD -> MagicSpells.sendMessage(strWrongWorld, caster, data);
 		}
 
 		new SpellCastedEvent(castEvent, result).callEvent();
