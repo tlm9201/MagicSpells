@@ -209,23 +209,9 @@ public class MinionSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 
-		spawnSpell = new Subspell(spawnSpellName);
-		if (!spawnSpell.process() && !spawnSpellName.isEmpty()) {
-			MagicSpells.error("MinionSpell '" + internalName + "' has an invalid spell-on-spawn defined!");
-			spawnSpell = null;
-		}
-
-		attackSpell = new Subspell(attackSpellName);
-		if (!attackSpell.process() && !attackSpellName.isEmpty()) {
-			MagicSpells.error("MinionSpell '" + internalName + "' has an invalid spell-on-attack defined!");
-			attackSpell = null;
-		}
-
-		deathSpell = new Subspell(deathSpellName);
-		if (!deathSpell.process() && !deathSpellName.isEmpty()) {
-			MagicSpells.error("MinionSpell '" + internalName + "' has an invalid spell-on-death defined!");
-			deathSpell = null;
-		}
+		spawnSpell = initSubspell(spawnSpellName, "MinionSpell '" + internalName + "' has an invalid spell-on-spawn defined!");
+		attackSpell = initSubspell(attackSpellName, "MinionSpell '" + internalName + "' has an invalid spell-on-attack defined!");
+		deathSpell = initSubspell(deathSpellName, "MinionSpell '" + internalName + "' has an invalid spell-on-death defined!");
 	}
 
 	@Override
