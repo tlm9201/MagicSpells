@@ -12,6 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -155,6 +156,16 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			option.spellSneakRight = initSubspell(option.spellSneakRightName, "MenuSpell '" + internalName + "' has an invalid 'spell-sneak-right' defined for: " + option.menuOptionName);
 			option.spellDrop = initSubspell(option.spellDropName, "MenuSpell '" + internalName + "' has an invalid 'spell-drop' defined for: " + option.menuOptionName);
 			option.spellSwap = initSubspell(option.spellSwapName, "MenuSpell '" + internalName + "' has an invalid 'spell-swap' defined for: " + option.menuOptionName);
+		}
+	}
+
+	@Override
+	protected void turnOff() {
+		InventoryView view;
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			view = player.getOpenInventory();
+			if (view.getTopInventory().getHolder() instanceof MenuInventory menu && menu.getSpell() == this)
+				view.close();
 		}
 	}
 

@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.command.CommandSender;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.InventoryHolder;
@@ -126,6 +127,16 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		spellOnMiddle = initSubspell(spellOnMiddleName, error + "spell-on-middle defined!");
 		spellOnSneakLeft = initSubspell(spellOnSneakLeftName, error + "spell-on-sneak-left defined!");
 		spellOnSneakRight = initSubspell(spellOnSneakRightName, error + "spell-on-sneak-right defined!");
+	}
+
+	@Override
+	protected void turnOff() {
+		InventoryView view;
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			view = player.getOpenInventory();
+			if (view.getTopInventory().getHolder() instanceof PlayerMenuInventory menu && menu.getSpell() == this)
+				view.close();
+		}
 	}
 
 	@Override
