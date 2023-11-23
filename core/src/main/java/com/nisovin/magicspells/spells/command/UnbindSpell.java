@@ -24,7 +24,6 @@ public class UnbindSpell extends CommandSpell {
 	private String strNotBound;
 	private String strUnbindAll;
 	private String strCantUnbind;
-	private String strCantBindSpell;
 
 	public UnbindSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -44,7 +43,6 @@ public class UnbindSpell extends CommandSpell {
 		strNotBound = getConfigString("str-not-bound", "That spell is not bound to that item.");
 		strUnbindAll = getConfigString("str-unbind-all", "All spells from your item were cleared.");
 		strCantUnbind = getConfigString("str-cant-unbind", "You cannot unbind this spell");
-		strCantBindSpell = getConfigString("str-cant-bind-spell", "That spell cannot be bound to an item.");
 	}
 
 	@Override
@@ -87,11 +85,6 @@ public class UnbindSpell extends CommandSpell {
 
 		if (!spellbook.hasSpell(spell)) {
 			sendMessage(strNoSpell, caster, data);
-			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-		}
-
-		if (!spell.canCastWithItem()) {
-			sendMessage(strCantBindSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
@@ -166,14 +159,6 @@ public class UnbindSpell extends CommandSpell {
 
 	public void setStrCantUnbind(String strCantUnbind) {
 		this.strCantUnbind = strCantUnbind;
-	}
-
-	public String getStrCantBindSpell() {
-		return strCantBindSpell;
-	}
-
-	public void setStrCantBindSpell(String strCantBindSpell) {
-		this.strCantBindSpell = strCantBindSpell;
 	}
 
 }
