@@ -289,8 +289,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			if (magicItem != null) {
 				spellIcon = magicItem.getItemStack();
 				if (spellIcon != null && !BlockUtils.isAir(spellIcon.getType())) {
-					spellIcon.setAmount(0);
-					if (!iconStr.contains("|")) {
+					if (!magicItem.getMagicItemData().hasAttribute(MagicItemData.MagicItemAttribute.NAME)) {
 						ItemMeta iconMeta = spellIcon.getItemMeta();
 						iconMeta.displayName(Component.text(MagicSpells.getTextColor() + name));
 						spellIcon.setItemMeta(iconMeta);
