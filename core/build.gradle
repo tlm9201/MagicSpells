@@ -8,7 +8,7 @@ dependencies {
     shadow(group: "org.apache.commons", name: "commons-math4-core", version: "4.0-beta1")
     shadow(group: "com.github.Chronoken", name: "EffectLib", version: "d28b6e2")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.1-SNAPSHOT")
-    shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.9.20")
+    shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.9.21")
 
     shadow(project(path: ":nms:shared", configuration: "apiElements"))
     shadow(project(path: ":nms:v1_20_R2", configuration: "reobf"))
