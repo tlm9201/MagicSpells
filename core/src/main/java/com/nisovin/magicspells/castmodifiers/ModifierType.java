@@ -846,49 +846,51 @@ public enum ModifierType {
 			}
 
 		}
-		
-		private void setVariable(Player player, StringData data) {
-			data.variable.parseAndSet(player, data.value);
+
+		private void setVariable(CustomData customData, SpellData spellData) {
+			if (!customData.isValid()) return;
+			StringData data = (StringData) customData;
+
+			if (!(spellData.caster() instanceof Player caster)) return;
+
+			String value = MagicSpells.doReplacements(data.value, spellData);
+			MagicSpells.getVariableManager().set(data.variable, caster.getName(), value);
 		}
 
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
-			if (!(event.getCaster() instanceof Player caster)) return false;
-			if (check) setVariable(caster, (StringData) customData);
+			if (check) setVariable(customData, event.getSpellData());
 			return true;
 		}
 
 		@Override
 		public boolean apply(ManaChangeEvent event, boolean check, CustomData customData) {
-			if (check) setVariable(event.getPlayer(), (StringData) customData);
+			if (check) setVariable(customData, new SpellData(event.getPlayer()));
 			return true;
 		}
 
 		@Override
 		public boolean apply(SpellTargetEvent event, boolean check, CustomData customData) {
-			if (!(event.getCaster() instanceof Player caster)) return false;
-			if (check) setVariable(caster, (StringData) customData);
+			if (check) setVariable(customData, event.getSpellData());
 			return true;
 		}
 
 		@Override
 		public boolean apply(SpellTargetLocationEvent event, boolean check, CustomData customData) {
-			if (!(event.getCaster() instanceof Player caster)) return false;
-			if (check) setVariable(caster, (StringData) customData);
+			if (check) setVariable(customData, event.getSpellData());
 			return true;
 		}
 
 		@Override
 		public boolean apply(MagicSpellsGenericPlayerEvent event, boolean check, CustomData customData) {
-			if (check) setVariable(event.getPlayer(), (StringData) customData);
+			if (check) setVariable(customData, new SpellData(event.getPlayer()));
 			return true;
 		}
 
 		@Override
 		public ModifierResult apply(LivingEntity caster, ModifierResult result, CustomData customData) {
-			if (!(caster instanceof Player player)) return result.check() ? new ModifierResult(result.data(), false) : result;
 			if (result.check()) {
-				setVariable(player, (StringData) customData);
+				setVariable(customData, result.data());
 				return result;
 			}
 			return new ModifierResult(result.data(), true);
@@ -896,9 +898,8 @@ public enum ModifierType {
 
 		@Override
 		public ModifierResult apply(LivingEntity caster, LivingEntity target, ModifierResult result, CustomData customData) {
-			if (!(caster instanceof Player player)) return result.check() ? new ModifierResult(result.data(), false) : result;
 			if (result.check()) {
-				setVariable(player, (StringData) customData);
+				setVariable(customData, result.data());
 				return result;
 			}
 			return new ModifierResult(result.data(), true);
@@ -906,9 +907,8 @@ public enum ModifierType {
 
 		@Override
 		public ModifierResult apply(LivingEntity caster, Location target, ModifierResult result, CustomData customData) {
-			if (!(caster instanceof Player player)) return result.check() ? new ModifierResult(result.data(), false) : result;
 			if (result.check()) {
-				setVariable(player, (StringData) customData);
+				setVariable(customData, result.data());
 				return result;
 			}
 			return new ModifierResult(result.data(), true);
