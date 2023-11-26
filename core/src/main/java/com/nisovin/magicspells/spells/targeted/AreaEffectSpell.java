@@ -30,6 +30,9 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 	private final ConfigData<Double> cone;
 	private final ConfigData<Double> vRadius;
 	private final ConfigData<Double> hRadius;
+
+	private final ConfigData<Double> minVRadius;
+	private final ConfigData<Double> minHRadius;
 	private final ConfigData<Double> horizontalCone;
 
 	private final ConfigData<Boolean> pointBlank;
@@ -53,6 +56,8 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		vRadius = getConfigDataDouble("vertical-radius", 5);
 		hRadius = getConfigDataDouble("horizontal-radius", 10);
+		minVRadius = getConfigDataDouble("min-vertical-radius", 0);
+		minHRadius = getConfigDataDouble("min-horizontal-radius", 0);
 
 		pointBlank = getConfigDataBoolean("point-blank", true);
 		circleShape = getConfigDataBoolean("circle-shape", false);
@@ -138,6 +143,10 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		double hRadius = Math.min(this.hRadius.get(data), MagicSpells.getGlobalRadius());
 		double hRadiusSquared = hRadius * hRadius;
 
+		double minVRadius = Math.min(this.minVRadius.get(data), MagicSpells.getGlobalRadius());
+		double minHRadius = Math.min(this.minHRadius.get(data), MagicSpells.getGlobalRadius());
+		double minHRadiusSquared = minHRadius * minHRadius;
+
 		if (validTargetList.canTargetOnlyCaster()) {
 			if (caster == null) return false;
 
@@ -147,14 +156,14 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			Location targetLocation = target.getLocation();
 			if (circleShape) {
 				double hDistance = NumberConversions.square(targetLocation.getX() - location.getX()) + NumberConversions.square(targetLocation.getZ() - location.getZ());
-				if (hDistance > hRadiusSquared) return false;
+				if (hDistance > hRadiusSquared || hDistance < minHRadiusSquared) return false;
 			} else {
 				double hDistance = Math.abs(targetLocation.getX() - location.getX()) + Math.abs(targetLocation.getZ() - location.getZ());
-				if (hDistance > hRadius) return false;
+				if (hDistance > hRadius || hDistance < minHRadius) return false;
 			}
 
 			double vDistance = Math.abs(targetLocation.getY() - location.getY());
-			if (vDistance > vRadius) return false;
+			if (vDistance > vRadius || vDistance < minVRadius) return false;
 
 			SpellTargetEvent event = new SpellTargetEvent(this, data, target);
 			if (!event.callEvent()) return false;
@@ -174,6 +183,8 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		if (ignoreRadius) Bukkit.getWorlds().forEach(world -> entities.addAll(world.getLivingEntities()));
 		else entities.addAll(location.getWorld().getNearbyLivingEntities(location, hRadius, vRadius, hRadius));
 
+		if (!circleShape) entities.removeAll(location.getWorld().getNearbyLivingEntities(location, minHRadius, minVRadius, minHRadius));
+
 		if (useProximity) {
 			// check world before distance
 			for (LivingEntity entity : new ArrayList<>(entities)) {
@@ -185,28 +196,34 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			entities.sort(comparator);
 		}
 
+		Location targetLocation;
+		double hDistance;
+		Vector dir;
+		SpellTargetEvent event;
+		SpellData subData;
+		boolean success;
 		for (LivingEntity target : entities) {
 			if (target.isDead()) continue;
 			if (!validTargetList.canTarget(caster, target)) continue;
 
 			if (circleShape && !ignoreRadius) {
-				Location targetLocation = target.getLocation();
+				targetLocation = target.getLocation();
 
-				double hDistance = NumberConversions.square(targetLocation.getX() - location.getX()) + NumberConversions.square(targetLocation.getZ() - location.getZ());
-				if (hDistance > hRadiusSquared) continue;
+				hDistance = NumberConversions.square(targetLocation.getX() - location.getX()) + NumberConversions.square(targetLocation.getZ() - location.getZ());
+				if (hDistance > hRadiusSquared || hDistance < minHRadiusSquared) continue;
 			}
 
 			if (horizontalCone > 0 && horizontalAngle(location, target.getLocation()) > horizontalCone) continue;
 
 			if (cone > 0) {
-				Vector dir = target.getLocation().toVector().subtract(location.toVector());
+				dir = target.getLocation().toVector().subtract(location.toVector());
 				if (AccurateMath.toDegrees(AccurateMath.abs(dir.angle(location.getDirection()))) > cone) continue;
 			}
 
-			SpellTargetEvent event = new SpellTargetEvent(this, data, target);
+			event = new SpellTargetEvent(this, data, target);
 			if (!event.callEvent()) continue;
 
-			SpellData subData = event.getSpellData();
+			subData = event.getSpellData();
 			target = subData.target();
 
 			castSpells(subData, passTargeting);
@@ -226,7 +243,7 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 			if (maxTargets > 0 && count >= maxTargets) break;
 		}
 
-		boolean success = count > 0 || !failIfNoTargets;
+		success = count > 0 || !failIfNoTargets;
 		if (success) {
 			playSpellEffects(EffectPosition.SPECIAL, location, data);
 			if (caster != null) playSpellEffects(EffectPosition.CASTER, caster, data);
