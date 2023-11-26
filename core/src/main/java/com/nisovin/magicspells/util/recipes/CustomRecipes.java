@@ -51,8 +51,7 @@ public class CustomRecipes {
 		Util.forEachPlayerOnline(player -> player.undiscoverRecipes(recipes.keySet()));
 		recipes.keySet().forEach(Bukkit::removeRecipe);
 		recipes.clear();
-		// TODO: This is api added in PaperMC 1.20+
-		// Bukkit.updateRecipes();
+		Bukkit.updateRecipes();
 	}
 
 }
