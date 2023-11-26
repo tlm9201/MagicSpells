@@ -385,21 +385,24 @@ public class MagicSpells extends JavaPlugin {
 		String itemStr = "magic-items";
 		if (config.contains(path + itemStr)) {
 			Set<String> magicItems = config.getKeys(path + itemStr);
+			String str;
+			MagicItem magicItem;
+			ConfigurationSection section;
 			if (magicItems != null) {
 				for (String key : magicItems) {
 					if (config.isString(path + itemStr + "." + key)) {
-						String str = config.getString(path + itemStr + "." + key, null);
+						str = config.getString(path + itemStr + "." + key, null);
 						if (str == null) continue;
 
-						MagicItem magicItem = MagicItems.getMagicItemFromString(str);
+						magicItem = MagicItems.getMagicItemFromString(str);
 						if (magicItem != null) MagicItems.getMagicItems().put(key, magicItem);
 						else MagicSpells.error("Invalid magic item: " + key + ": " + str);
 
 					} else if (config.isSection(path + itemStr + "." + key)) {
-						ConfigurationSection section = config.getSection(path + itemStr + "." + key);
+						section = config.getSection(path + itemStr + "." + key);
 						if (section == null) continue;
 
-						MagicItem magicItem = MagicItems.getMagicItemFromSection(section);
+						magicItem = MagicItems.getMagicItemFromSection(section);
 						if (magicItem != null) MagicItems.getMagicItems().put(key, magicItem);
 						else MagicSpells.error("Invalid magic item: " + key + ": (section)");
 
@@ -413,13 +416,13 @@ public class MagicSpells extends JavaPlugin {
 		log("Loading recipes...");
 		if (config.contains(path + "recipes") && config.isSection(path + "recipes")) {
 			ConfigurationSection recipeSec = config.getSection(path + "recipes");
+			ConfigurationSection recipe;
 			for (String recipeKey : recipeSec.getKeys(false)) {
-				ConfigurationSection recipe = recipeSec.getConfigurationSection(recipeKey);
+				recipe = recipeSec.getConfigurationSection(recipeKey);
 				if (recipe == null) continue;
 				CustomRecipes.create(recipe);
 			}
-			// TODO: This is api added in PaperMC 1.20+
-			// Bukkit.updateRecipes();
+			Bukkit.updateRecipes();
 		}
 		log("..." + CustomRecipes.getRecipes().size() + " recipes loaded");
 
@@ -500,8 +503,7 @@ public class MagicSpells extends JavaPlugin {
 			String[] aliases = spell.getAliases();
 			if (aliases != null && aliases.length > 0) {
 				for (String alias : aliases) {
-					String lowercaseAlias = alias.toLowerCase();
-					if (!spellNames.containsKey(lowercaseAlias)) spellNames.put(lowercaseAlias, spell);
+					if (!spellNames.containsKey(alias.toLowerCase())) spellNames.put(alias.toLowerCase(), spell);
 				}
 			}
 			List<String> incs = spell.getIncantations();
@@ -533,13 +535,17 @@ public class MagicSpells extends JavaPlugin {
 			if (file.exists()) {
 				try {
 					scanner = new Scanner(file);
+					String line;
+					String[] data;
+					long cooldown;
+					Spell spell;
 					while (scanner.hasNext()) {
-						String line = scanner.nextLine();
+						line = scanner.nextLine();
 						if (line.isEmpty()) continue;
-						String[] data = line.split(":");
-						long cooldown = Long.parseLong(data[2]);
+						data = line.split(":");
+						cooldown = Long.parseLong(data[2]);
 						if (cooldown > System.currentTimeMillis()) {
-							Spell spell = getSpellByInternalName(data[0]);
+							spell = getSpellByInternalName(data[0]);
 							if (spell != null) spell.setCooldownManually(UUID.fromString(data[1]), cooldown);
 						}
 					}
@@ -721,10 +727,22 @@ public class MagicSpells extends JavaPlugin {
 		if (spellKeys == null) return;
 
 		Map<String, Constructor<? extends Spell>> constructors = new HashMap<>();
+
+		long startTime;
+		long elapsed;
+		long finalElapsed;
+
+		String className;
+		String permName;
+
+		Constructor<? extends Spell> constructor;
+		Class<? extends Spell> spellClass;
+		Spell spell;
+
 		for (String spellName : spellKeys) {
 			if (!config.getBoolean("spells." + spellName + ".enabled", true)) continue;
-			long startTime = System.currentTimeMillis();
-			String className = "";
+			startTime = System.currentTimeMillis();
+			className = "";
 			if (config.contains("spells." + spellName + ".spell-class")) className = config.getString("spells." + spellName + ".spell-class", "");
 
 			if (className == null || className.isEmpty()) {
@@ -734,12 +752,11 @@ public class MagicSpells extends JavaPlugin {
 
 			if (className.startsWith(".")) className = "com.nisovin.magicspells.spells" + className;
 
-			Constructor<? extends Spell> constructor = constructors.get(className);
+			constructor = constructors.get(className);
 
 			// Load spell class
 			if (constructor == null) {
 				for (ClassLoader cl : classLoaders) {
-					Class<? extends Spell> spellClass;
 					try {
 						spellClass = cl.loadClass(className).asSubclass(Spell.class);
 					} catch (ClassNotFoundException e) {
@@ -763,7 +780,6 @@ public class MagicSpells extends JavaPlugin {
 				continue;
 			}
 
-			Spell spell;
 			try {
 				spell = constructor.newInstance(config, spellName);
 			} catch (Exception e) {
@@ -777,7 +793,7 @@ public class MagicSpells extends JavaPlugin {
 
 			// Add permissions
 			if (!spell.isHelperSpell()) {
-				String permName = spell.getPermissionName();
+				permName = spell.getPermissionName();
 				if (!spell.isAlwaysGranted()) {
 					addPermission(pm, "grant." + permName, PermissionDefault.FALSE);
 					permGrantChildren.put(Perm.GRANT.getNode() + permName, true);
@@ -795,11 +811,11 @@ public class MagicSpells extends JavaPlugin {
 			// Done
 			debug(2, "Loaded spell: " + spellName);
 
-			long elapsed = System.currentTimeMillis() - startTime;
+			elapsed = System.currentTimeMillis() - startTime;
 			if (elapsed > LONG_LOAD_THRESHOLD) getLogger().warning("LONG SPELL LOAD TIME: " + spellName + ": " + elapsed + "ms");
 		}
 
-		long finalElapsed = System.currentTimeMillis() - startTimePre;
+		finalElapsed = System.currentTimeMillis() - startTimePre;
 		if (lastReloadTime != 0) getLogger().warning("Loaded in " + finalElapsed + "ms (previously " + lastReloadTime + " ms)");
 		getLogger().warning("Need help? Check out our discord: discord.gg/6bYqnNy");
 		lastReloadTime = finalElapsed;
