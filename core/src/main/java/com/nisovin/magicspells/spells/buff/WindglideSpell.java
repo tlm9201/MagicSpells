@@ -69,19 +69,13 @@ public class WindglideSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 
-		glideSpell = new Subspell(glideSpellName);
-		if (!glideSpell.process()) {
-			glideSpell = null;
-			if (!glideSpellName.isEmpty())
-				MagicSpells.error("WindglideSpell " + internalName + " has an invalid spell defined: " + glideSpellName);
-		}
+		glideSpell = initSubspell(glideSpellName,
+				"WindglideSpell " + internalName + " has an invalid spell defined: " + glideSpellName,
+				true);
 
-		collisionSpell = new Subspell(collisionSpellName);
-		if (!collisionSpell.process()) {
-			collisionSpell = null;
-			if (!collisionSpellName.isEmpty())
-				MagicSpells.error("WindglideSpell " + internalName + " has an invalid collision-spell defined: " + collisionSpellName);
-		}
+		collisionSpell = initSubspell(collisionSpellName,
+				"WindglideSpell " + internalName + " has an invalid collision-spell defined: " + collisionSpellName,
+				true);
 	}
 
 	@Override

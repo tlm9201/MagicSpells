@@ -113,12 +113,10 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			MagicSpells.error("ThrowBlockSpell '" + internalName + "' has an invalid block-type defined!");
 		}
 
-		spellOnLand = new Subspell(spellOnLandName);
-		if (!spellOnLand.process()) {
-			if (!spellOnLandName.isEmpty())
-				MagicSpells.error("ThrowBlockSpell '" + internalName + "' has an invalid spell-on-land defined!");
-			spellOnLand = null;
-		}
+
+		spellOnLand = initSubspell(spellOnLandName,
+				"ThrowBlockSpell '" + internalName + "' has an invalid spell-on-land defined!",
+				true);
 
 		if (throwBlockListener == null) {
 			throwBlockListener = new ThrowBlockListener();

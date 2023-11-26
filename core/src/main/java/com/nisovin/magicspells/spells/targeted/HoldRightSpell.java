@@ -50,12 +50,8 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 	public void initialize() {
 		super.initialize();
 
-		spellToCast = new Subspell(spellToCastName);
-		if (!spellToCast.process()) {
-			spellToCast = null;
-			MagicSpells.error("HoldRightSpell '" + internalName + "' has an invalid spell defined!");
-		}
-		spellToCastName = null;
+		spellToCast = initSubspell(spellToCastName,
+				"HoldRightSpell '" + internalName + "' has an invalid spell defined!");
 	}
 
 	@Override

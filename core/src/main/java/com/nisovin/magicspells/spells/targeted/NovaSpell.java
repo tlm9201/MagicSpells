@@ -78,29 +78,19 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 	public void initialize() {
 		super.initialize();
 
-		locationSpell = new Subspell(locationSpellName);
-		if (!locationSpell.process()) {
-			if (!locationSpellName.isEmpty())
-				MagicSpells.error("NovaSpell " + internalName + " has an invalid spell defined!");
-			locationSpell = null;
-		}
-		locationSpellName = null;
+		String prefix = "NovaSpell " + internalName + " has an invalid ";
 
-		spellOnWaveRemove = new Subspell(spellOnWaveRemoveName);
-		if (!spellOnWaveRemove.process()) {
-			if (!spellOnWaveRemoveName.isEmpty())
-				MagicSpells.error("NovaSpell " + internalName + " has an invalid spell-on-wave-remove defined!");
-			spellOnWaveRemove = null;
-		}
-		spellOnWaveRemoveName = null;
+		locationSpell = initSubspell(locationSpellName,
+				prefix + "spell defined!",
+				true);
 
-		spellOnEnd = new Subspell(spellOnEndName);
-		if (!spellOnEnd.process()) {
-			if (!spellOnEndName.isEmpty())
-				MagicSpells.error("NovaSpell " + internalName + " has an invalid spell-on-end defined!");
-			spellOnEnd = null;
-		}
-		spellOnEndName = null;
+		spellOnWaveRemove = initSubspell(spellOnWaveRemoveName,
+				prefix + "spell-on-wave-remove defined!",
+				true);
+
+		spellOnEnd = initSubspell(spellOnEndName,
+				prefix + "spell-on-end defined!",
+				true);
 	}
 
 	@Override

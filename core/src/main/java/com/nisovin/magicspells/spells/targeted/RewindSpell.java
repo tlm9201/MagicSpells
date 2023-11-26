@@ -60,13 +60,9 @@ public class RewindSpell extends TargetedSpell implements TargetedEntitySpell {
 	public void initialize() {
 		super.initialize();
 
-		rewindSpell = new Subspell(rewindSpellName);
-		if (!rewindSpell.process()) {
-			if (!rewindSpellName.isEmpty())
-				MagicSpells.error("RewindSpell '" + internalName + "' has an invalid spell-on-rewind defined!");
-			rewindSpell = null;
-		}
-		rewindSpellName = null;
+		rewindSpell = initSubspell(rewindSpellName,
+				"RewindSpell '" + internalName + "' has an invalid spell-on-rewind defined!",
+				true);
 	}
 
 	@Override

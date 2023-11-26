@@ -69,7 +69,7 @@ public class SteedSpell extends InstantSpell {
 		jumpStrength = getConfigDataDouble("jump-strength", 1);
 
 		strInvalidType = getConfigString("str-invalid-type", "Invalid entity type.");
-		spellOnSpawnName = getConfigString("spell-on-spawn", null);
+		spellOnSpawnName = getConfigString("spell-on-spawn", "");
 		strAlreadyMounted = getConfigString("str-already-mounted", "You are already mounted!");
 
 		type = getConfigDataEntityType("type", EntityType.HORSE);
@@ -89,16 +89,9 @@ public class SteedSpell extends InstantSpell {
 	protected void initialize() {
 		super.initialize();
 
-		if (spellOnSpawnName != null) {
-			spellOnSpawn = new Subspell(spellOnSpawnName);
-
-			if (!spellOnSpawn.process()) {
-				MagicSpells.error("SteedSpell '" + internalName + "' has an invalid spell-on-spawn '" + spellOnSpawnName + "' defined!");
-				spellOnSpawn = null;
-			}
-
-			spellOnSpawnName = null;
-		}
+		spellOnSpawn = initSubspell(spellOnSpawnName,
+				"SteedSpell '" + internalName + "' has an invalid spell-on-spawn '" + spellOnSpawnName + "' defined!",
+				true);
 	}
 
 	@Override

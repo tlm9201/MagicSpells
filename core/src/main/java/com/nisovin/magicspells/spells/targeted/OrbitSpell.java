@@ -97,29 +97,19 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	public void initialize() {
 		super.initialize();
 
-		orbitSpell = new Subspell(orbitSpellName);
-		if (!orbitSpell.process()) {
-			orbitSpell = null;
-			if (!orbitSpellName.isEmpty())
-				MagicSpells.error("OrbitSpell '" + internalName + "' has an invalid spell defined!");
-		}
-		orbitSpellName = null;
+		String prefix = "OrbitSpell '" + internalName + "' has an invalid ";
 
-		groundSpell = new Subspell(groundSpellName);
-		if (!groundSpell.process()) {
-			groundSpell = null;
-			if (!groundSpellName.isEmpty())
-				MagicSpells.error("OrbitSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
-		}
-		groundSpellName = null;
+		orbitSpell = initSubspell(orbitSpellName,
+				prefix + "spell defined!",
+				true);
 
-		entitySpell = new Subspell(entitySpellName);
-		if (!entitySpell.process()) {
-			entitySpell = null;
-			if (!entitySpellName.isEmpty())
-				MagicSpells.error("OrbitSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
-		}
-		entitySpellName = null;
+		groundSpell = initSubspell(groundSpellName,
+				prefix + "spell-on-hit-ground defined!",
+				true);
+
+		entitySpell = initSubspell(entitySpellName,
+				prefix + "spell-on-hit-entity defined!",
+				true);
 	}
 
 	@Override

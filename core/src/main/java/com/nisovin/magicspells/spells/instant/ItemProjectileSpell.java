@@ -105,33 +105,23 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 	public void initialize() {
 		super.initialize();
 
-		spellOnTick = new Subspell(spellOnTickName);
-		if (!spellOnTick.process()) {
-			if (!spellOnTickName.isEmpty())
-				MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-tick defined!");
-			spellOnTick = null;
-		}
+		String prefix = "ItemProjectileSpell '" + internalName + "' has an invalid ";
 
-		spellOnDelay = new Subspell(spellOnDelayName);
-		if (!spellOnDelay.process()) {
-			if (!spellOnDelayName.isEmpty())
-				MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-delay defined!");
-			spellOnDelay = null;
-		}
+		spellOnTick = initSubspell(spellOnTickName,
+				prefix + "spell-on-tick defined!",
+				true);
 
-		spellOnHitEntity = new Subspell(spellOnHitEntityName);
-		if (!spellOnHitEntity.process()) {
-			if (!spellOnHitEntityName.isEmpty())
-				MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
-			spellOnHitEntity = null;
-		}
+		spellOnDelay = initSubspell(spellOnDelayName,
+				prefix + "spell-on-delay defined!",
+				true);
 
-		spellOnHitGround = new Subspell(spellOnHitGroundName);
-		if (!spellOnHitGround.process()) {
-			if (!spellOnHitGroundName.isEmpty())
-				MagicSpells.error("ItemProjectileSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
-			spellOnHitGround = null;
-		}
+		spellOnHitEntity = initSubspell(spellOnHitEntityName,
+				prefix + "spell-on-hit-entity defined!",
+				true);
+
+		spellOnHitGround = initSubspell(spellOnHitGroundName,
+				prefix + "spell-on-hit-ground defined!",
+				true);
 	}
 
 	@Override

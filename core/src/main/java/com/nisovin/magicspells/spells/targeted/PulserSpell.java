@@ -44,7 +44,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	private final List<String> spellNames;
 	private List<Subspell> spells;
 
-	private final String spellNameOnBreak;
+	private final String spellOnBreakName;
 	private Subspell spellOnBreak;
 
 	private final String strAtCap;
@@ -68,7 +68,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		onlyCountOnSuccess = getConfigDataBoolean("only-count-on-success", false);
 
 		spellNames = getConfigStringList("spells", null);
-		spellNameOnBreak = getConfigString("spell-on-break", "");
+		spellOnBreakName = getConfigString("spell-on-break", "");
 
 		strAtCap = getConfigString("str-at-cap", "You have too many effects at once.");
 
@@ -80,24 +80,22 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 	public void initialize() {
 		super.initialize();
 
+		String prefix = "PulserSpell '" + internalName + "' has ";
+
 		spells = new ArrayList<>();
 		if (spellNames != null && !spellNames.isEmpty()) {
+			Subspell spell;
 			for (String spellName : spellNames) {
-				Subspell spell = new Subspell(spellName);
-				if (!spell.process()) continue;
+				spell = initSubspell(spellName, prefix + "an invalid spell: '" + spellName + "' defined!");
+				if (spell == null) continue;
+
 				spells.add(spell);
 			}
 		}
 
-		if (!spellNameOnBreak.isEmpty()) {
-			spellOnBreak = new Subspell(spellNameOnBreak);
-			if (!spellOnBreak.process()) {
-				MagicSpells.error("PulserSpell '" + internalName + "' has an invalid spell-on-break defined");
-				spellOnBreak = null;
-			}
-		}
+		spellOnBreak = initSubspell(spellOnBreakName, prefix + "an invalid spell-on-break defined!");
 
-		if (spells.isEmpty()) MagicSpells.error("PulserSpell '" + internalName + "' has no spells defined!");
+		if (spells.isEmpty()) MagicSpells.error(prefix + "no spells defined!");
 	}
 
 	@Override

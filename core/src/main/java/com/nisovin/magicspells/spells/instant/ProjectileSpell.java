@@ -142,41 +142,31 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	public void initialize() {
 		super.initialize();
 
-		hitSpell = new Subspell(hitSpellName);
-		if (!hitSpell.process()) {
-			hitSpell = null;
-			if (!hitSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell defined!");
-		}
+		String prefix = "ProjectileSpell '" + internalName + "' has an invalid ";
 
-		groundSpell = new Subspell(groundSpellName);
-		if (!groundSpell.process()) {
-			groundSpell = null;
-			if (!groundSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
-		}
+		hitSpell = initSubspell(hitSpellName,
+				prefix + "spell defined!",
+				true);
 
-		tickSpell = new Subspell(tickSpellName);
-		if (!tickSpell.process()) {
-			tickSpell = null;
-			if (!tickSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-tick defined!");
-		}
+		groundSpell = initSubspell(groundSpellName,
+				prefix + "spell-on-hit-ground defined!",
+				true);
 
-		durationSpell = new Subspell(durationSpellName);
-		if (!durationSpell.process()) {
-			durationSpell = null;
-			if (!durationSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-after-duration defined!");
-		}
+		tickSpell = initSubspell(tickSpellName,
+				prefix + "spell-on-tick defined!",
+				true);
 
-		modifierSpell = new Subspell(modifierSpellName);
-		if (!modifierSpell.process()) {
-			if (!modifierSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
-			modifierSpell = null;
-		}
+		durationSpell = initSubspell(durationSpellName,
+				prefix + "spell-after-duration defined!",
+				true);
 
-		entityLocationSpell = new Subspell(entityLocationSpellName);
-		if (!entityLocationSpell.process()) {
-			if (!entityLocationSpellName.isEmpty()) MagicSpells.error("ProjectileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
-			entityLocationSpell = null;
-		}
+		modifierSpell = initSubspell(modifierSpellName,
+				prefix + "spell-on-modifier-fail defined!",
+				true);
+
+		entityLocationSpell = initSubspell(entityLocationSpellName,
+				prefix + "spell-on-entity-location defined!",
+				true);
 	}
 
 	@Override

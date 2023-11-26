@@ -102,45 +102,28 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	public void initialize() {
 		super.initialize();
 
-		hitSpell = new Subspell(hitSpellName);
-		if (!hitSpell.process()) {
-			if (!hitSpellName.isEmpty())
-				MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell defined!");
+		String prefix = "BeamSpell '" + internalName + "' has an invalid ";
 
-			hitSpell = null;
-		}
+		hitSpell = initSubspell(hitSpellName,
+				prefix + "spell defined!",
+				true);
 
-		endSpell = new Subspell(endSpellName);
-		if (!endSpell.process()) {
-			if (!endSpellName.isEmpty())
-				MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-end defined!");
+		endSpell = initSubspell(endSpellName,
+				prefix + "spell-on-end defined!",
+				true);
 
-			endSpell = null;
-		}
+		travelSpell = initSubspell(travelSpellName,
+				prefix + "spell-on-travel defined!",
+				true);
 
-		travelSpell = new Subspell(travelSpellName);
-		if (!travelSpell.process()) {
-			if (!travelSpellName.isEmpty())
-				MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-travel defined!");
 
-			travelSpell = null;
-		}
+		groundSpell = initSubspell(groundSpellName,
+				prefix + "spell-on-hit-ground defined!",
+				true);
 
-		groundSpell = new Subspell(groundSpellName);
-		if (!groundSpell.process()) {
-			if (!groundSpellName.isEmpty())
-				MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
-
-			groundSpell = null;
-		}
-
-		entityLocationSpell = new Subspell(entityLocationSpellName);
-		if (!entityLocationSpell.process()) {
-			if (!entityLocationSpellName.isEmpty())
-				MagicSpells.error("BeamSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
-
-			entityLocationSpell = null;
-		}
+		entityLocationSpell = initSubspell(entityLocationSpellName,
+				prefix + "spell-on-entity-location defined!",
+				true);
 
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 	}

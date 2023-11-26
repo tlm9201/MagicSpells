@@ -107,7 +107,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 		strFadeSelf = getConfigString("str-fade-self", "");
 		strFadeTarget = getConfigString("str-fade-target", "");
-		spellOnEndName = getConfigString("spell-on-end", null);
+		spellOnEndName = getConfigString("spell-on-end", "");
 
 		spellNames = getConfigStringList("spells", null);
 		varModsLoop = getConfigStringList("variable-mods-loop", null);
@@ -126,24 +126,17 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			registerEvents(deathListener);
 		}
 
-		if (spellOnEndName != null) {
-			spellOnEnd = new Subspell(spellOnEndName);
-			if (!spellOnEnd.process()) {
-				MagicSpells.error("LoopSpell '" + internalName + "' has an invalid spell-on-end '" + spellOnEndName + "' defined!");
-				spellOnEnd = null;
-			}
-		}
-		spellOnEndName = null;
+		spellOnEnd = initSubspell(spellOnEndName,
+				"LoopSpell '" + internalName + "' has an invalid spell-on-end '" + spellOnEndName + "' defined!");
 
 		if (spellNames != null && !spellNames.isEmpty()) {
 			spells = new ArrayList<>();
 
+			Subspell spell;
 			for (String spellName : spellNames) {
-				Subspell spell = new Subspell(spellName);
-				if (!spell.process()) {
-					MagicSpells.error("LoopSpell '" + internalName + "' has an invalid spell '" + spellName + "' defined!");
-					continue;
-				}
+				spell = initSubspell(spellName,
+						"LoopSpell '" + internalName + "' has an invalid spell '" + spellName + "' defined!");
+				if (spell == null) continue;
 
 				spells.add(spell);
 			}

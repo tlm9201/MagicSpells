@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
@@ -68,7 +67,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private final List<String> spellNames;
 	private List<Subspell> spells;
 
-	private final String spellNameOnBreak;
+	private final String spellOnBreakName;
 	private Subspell spellOnBreak;
 
 	private String spellOnSpawnName;
@@ -142,8 +141,8 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		totemName = getConfigDataComponent("totem-name", null);
 
 		spellNames = getConfigStringList("spells", null);
-		spellNameOnBreak = getConfigString("spell-on-break", "");
-		spellOnSpawnName = getConfigString("spell-on-spawn", null);
+		spellOnBreakName = getConfigString("spell-on-break", "");
+		spellOnSpawnName = getConfigString("spell-on-spawn", "");
 
 		totems = new HashSet<>();
 		ticker = new PulserTicker();
@@ -153,33 +152,25 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	public void initialize() {
 		super.initialize();
 
+		String prefix = "TotemSpell '" + internalName + "' has an invalid ";
+
 		spells = new ArrayList<>();
 		if (spellNames != null && !spellNames.isEmpty()) {
+			Subspell spell;
+
 			for (String spellName : spellNames) {
-				Subspell spell = new Subspell(spellName);
-				if (!spell.process()) continue;
+				spell = initSubspell(spellName, prefix + "spell: '" + spellName + "' defined!");
+				if (spell == null) continue;
+
 				spells.add(spell);
 			}
 		}
 
-		if (!spellNameOnBreak.isEmpty()) {
-			spellOnBreak = new Subspell(spellNameOnBreak);
-			if (!spellOnBreak.process()) {
-				MagicSpells.error("TotemSpell '" + internalName + "' has an invalid spell-on-break defined");
-				spellOnBreak = null;
-			}
-		}
+		spellOnBreak = initSubspell(spellOnBreakName,
+				prefix + "spell-on-break: '" + spellOnBreakName + "' defined!");
 
-		if (spellOnSpawnName != null) {
-			spellOnSpawn = new Subspell(spellOnSpawnName);
-
-			if (!spellOnSpawn.process()) {
-				MagicSpells.error("TotemSpell '" + internalName + "' has an invalid spell-on-spawn '" + spellOnSpawnName + "' defined!");
-				spellOnSpawn = null;
-			}
-
-			spellOnSpawnName = null;
-		}
+		spellOnSpawn = initSubspell(spellOnSpawnName,
+				prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!");
 
 		if (spells.isEmpty()) MagicSpells.error("TotemSpell '" + internalName + "' has no spells defined!");
 	}

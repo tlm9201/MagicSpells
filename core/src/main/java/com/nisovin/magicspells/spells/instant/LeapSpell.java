@@ -56,12 +56,9 @@ public class LeapSpell extends InstantSpell {
 	public void initialize() {
 		super.initialize();
 
-		landSpell = new Subspell(landSpellName);
-		if (!landSpell.process()) {
-			if (!landSpellName.isEmpty())
-				MagicSpells.error("LeapSpell '" + internalName + "' has an invalid land-spell defined!");
-			landSpell = null;
-		}
+		landSpell = initSubspell(landSpellName,
+				"LeapSpell '" + internalName + "' has an invalid land-spell defined!",
+				true);
 
 		if (leapMonitor == null) leapMonitor = new LeapMonitor();
 	}

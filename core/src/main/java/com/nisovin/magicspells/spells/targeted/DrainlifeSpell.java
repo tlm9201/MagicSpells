@@ -81,12 +81,9 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 	public void initialize() {
 		super.initialize();
 
-		spellOnAnimation = new Subspell(spellOnAnimationName);
-		if (!spellOnAnimation.process()) {
-			spellOnAnimation = null;
-			if (!spellOnAnimationName.isEmpty()) MagicSpells.error("DrainlifeSpell '" + internalName + "' has an invalid spell-on-animation defined!");
-		}
-		spellOnAnimationName = null;
+		spellOnAnimation = initSubspell(spellOnAnimationName,
+				"DrainlifeSpell '" + internalName + "' has an invalid spell-on-animation defined!",
+				true);
 	}
 
 	@Override

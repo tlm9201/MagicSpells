@@ -74,13 +74,11 @@ public class PassiveSpell extends Spell {
 
 		// Create spell list
 		spells = new ArrayList<>();
+		Subspell spell;
 		if (spellNames != null) {
 			for (String spellName : spellNames) {
-				Subspell spell = new Subspell(spellName);
-				if (!spell.process()) {
-					MagicSpells.error("PassiveSpell '" + internalName + "' has an invalid spell listed: " + spellName);
-					continue;
-				}
+				spell = initSubspell(spellName, "PassiveSpell '" + internalName + "' has an invalid spell listed: " + spellName);
+				if (spell == null) continue;
 				spells.add(spell);
 			}
 		}

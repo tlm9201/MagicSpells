@@ -243,63 +243,63 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "ParticleProjectileSpell '" + internalName + "'";
+		String prefix = "ParticleProjectileSpell '" + internalName + "' has an invalid ";
 
 		Subspell defaultSpell = new Subspell(defaultSpellName);
-		if (!defaultSpell.process() && !defaultSpellName.isEmpty()) MagicSpells.error(prefix + " has an invalid spell defined!");
+		if (!defaultSpell.process() && !defaultSpellName.isEmpty()) MagicSpells.error(prefix + "spell defined!");
 
 		airSpell = new Subspell(airSpellName);
 		if (!airSpell.process()) {
-			if (!airSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-hit-air defined!");
+			if (!airSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + "spell-on-hit-air defined!");
 			airSpell = null;
 		}
 		airSpellName = null;
 
 		selfSpell = new Subspell(selfSpellName);
 		if (!selfSpell.process()) {
-			if (!selfSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-hit-self defined!");
+			if (!selfSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + "spell-on-hit-self defined!");
 			selfSpell = null;
 		}
 		selfSpellName = null;
 
 		tickSpell = new Subspell(tickSpellName);
 		if (!tickSpell.process()) {
-			if (!tickSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-tick defined!");
+			if (!tickSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + "spell-on-tick defined!");
 			tickSpell = null;
 		}
 		tickSpellName = null;
 
 		groundSpell = new Subspell(groundSpellName);
 		if (!groundSpell.process()) {
-			if (!groundSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-hit-ground defined!");
+			if (!groundSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + "spell-on-hit-ground defined!");
 			groundSpell = null;
 		}
 		groundSpellName = null;
 
 		entitySpell = new Subspell(entitySpellName);
 		if (!entitySpell.process()) {
-			if (!entitySpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-hit-entity defined!");
+			if (!entitySpellName.equals(defaultSpellName)) MagicSpells.error(prefix + "spell-on-hit-entity defined!");
 			entitySpell = null;
 		}
 		entitySpellName = null;
 
 		durationSpell = new Subspell(durationSpellName);
 		if (!durationSpell.process()) {
-			if (!durationSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-duration-end defined!");
+			if (!durationSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + "spell-on-duration-end defined!");
 			durationSpell = null;
 		}
 		durationSpellName = null;
 
 		modifierSpell = new Subspell(modifierSpellName);
 		if (!modifierSpell.process()) {
-			if (!modifierSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + " has an invalid spell-on-modifier-fail defined!");
+			if (!modifierSpellName.equals(defaultSpellName)) MagicSpells.error(prefix + "spell-on-modifier-fail defined!");
 			modifierSpell = null;
 		}
 		modifierSpellName = null;
 
 		entityLocationSpell = new Subspell(entityLocationSpellName);
 		if (!entityLocationSpell.process()) {
-			if (!entityLocationSpellName.isEmpty()) MagicSpells.error(prefix + " has an invalid spell-on-entity-location defined!");
+			if (!entityLocationSpellName.isEmpty()) MagicSpells.error(prefix + "spell-on-entity-location defined!");
 			entityLocationSpell = null;
 		}
 		entityLocationSpellName = null;

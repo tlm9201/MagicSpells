@@ -57,17 +57,13 @@ public class DodgeSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 
-		spellBeforeDodge = new Subspell(spellBeforeDodgeName);
-		if (!spellBeforeDodge.process()) {
-			if (!spellBeforeDodgeName.isEmpty()) MagicSpells.error("DodgeSpell '" + internalName + "' has an invalid spell-before-dodge defined!");
-			spellBeforeDodge = null;
-		}
+		spellBeforeDodge = initSubspell(spellBeforeDodgeName,
+				"DodgeSpell '" + internalName + "' has an invalid spell-before-dodge defined!",
+				true);
 
-		spellAfterDodge = new Subspell(spellAfterDodgeName);
-		if (!spellAfterDodge.process()) {
-			if (!spellAfterDodgeName.isEmpty()) MagicSpells.error("DodgeSpell '" + internalName + "' has an invalid spell-after-dodge defined!");
-			spellAfterDodge = null;
-		}
+		spellAfterDodge = initSubspell(spellAfterDodgeName,
+				"DodgeSpell '" + internalName + "' has an invalid spell-after-dodge defined!",
+				true);
 	}
 
 	@Override

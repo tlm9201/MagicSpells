@@ -136,53 +136,31 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 	public void initialize() {
 		super.initialize();
 
-		hitSpell = new Subspell(hitSpellName);
-		if (!hitSpell.process()) {
-			hitSpell = null;
-			if (!hitSpellName.isEmpty())
-				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell defined!");
-		}
-		hitSpellName = null;
+		String prefix = "HomingMissileSpell '" + internalName + "' has an invalid ";
 
-		groundSpell = new Subspell(groundSpellName);
-		if (!groundSpell.process()) {
-			groundSpell = null;
-			if (!groundSpellName.isEmpty())
-				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
-		}
-		groundSpellName = null;
+		hitSpell = initSubspell(hitSpellName,
+				prefix + "spell defined!",
+				true);
 
-		airSpell = new Subspell(airSpellName);
-		if (!airSpell.process()) {
-			airSpell = null;
-			if (!airSpellName.isEmpty())
-				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-hit-air defined!");
-		}
-		airSpellName = null;
+		groundSpell = initSubspell(groundSpellName,
+				prefix + "spell-on-hit-ground defined!",
+				true);
 
-		durationSpell = new Subspell(durationSpellName);
-		if (!durationSpell.process()) {
-			durationSpell = null;
-			if (!durationSpellName.isEmpty())
-				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-after-duration defined!");
-		}
-		durationSpellName = null;
+		airSpell = initSubspell(airSpellName,
+				prefix + "spell-on-hit-air defined!",
+				true);
 
-		modifierSpell = new Subspell(modifierSpellName);
-		if (!modifierSpell.process()) {
-			if (!modifierSpellName.isEmpty())
-				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-modifier-fail defined!");
-			modifierSpell = null;
-		}
-		modifierSpellName = null;
+		durationSpell = initSubspell(durationSpellName,
+				prefix + "spell-after-duration defined!",
+				true);
 
-		entityLocationSpell = new Subspell(entityLocationSpellName);
-		if (!entityLocationSpell.process()) {
-			if (!entityLocationSpellName.isEmpty())
-				MagicSpells.error("HomingMissileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
-			entityLocationSpell = null;
-		}
-		entityLocationSpellName = null;
+		modifierSpell = initSubspell(modifierSpellName,
+				prefix + "spell-on-modifier-fail defined!",
+				true);
+
+		entityLocationSpell = initSubspell(entityLocationSpellName,
+				prefix + "spell-on-entity-location defined!",
+				true);
 
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 	}
