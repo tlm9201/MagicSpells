@@ -83,6 +83,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		useCostInterval = getConfigInt("use-cost-interval", 0);
 
 		reagents = getConfigReagents("use-cost");
+
 		toggle = getConfigBoolean("toggle", true);
 		targeted = getConfigBoolean("targeted", false);
 		cancelOnJoin = getConfigBoolean("cancel-on-join", false);
@@ -125,26 +126,17 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public void initialize() {
 		super.initialize();
 
-		// Check spell on use increment
-		spellOnUseIncrement = new Subspell(spellOnUseIncrementName);
-		if (!spellOnUseIncrement.process()) {
-			if (!spellOnUseIncrementName.isEmpty()) MagicSpells.error("BuffSpell '" + internalName + "' has an invalid spell-on-use-increment defined!");
-			spellOnUseIncrement = null;
-		}
+		spellOnUseIncrement = initSubspell(spellOnUseIncrementName,
+				"BuffSpell '" + internalName + "' has an invalid spell-on-use-increment defined!",
+				true);
 
-		// Check spell on cost
-		spellOnCost = new Subspell(spellOnCostName);
-		if (!spellOnCost.process()) {
-			if (!spellOnCostName.isEmpty()) MagicSpells.error("BuffSpell '" + internalName + "' has an invalid spell-on-cost defined!");
-			spellOnCost = null;
-		}
+		spellOnCost = initSubspell(spellOnCostName,
+				"BuffSpell '" + internalName + "' has an invalid spell-on-cost defined!",
+				true);
 
-		// Check spell on end
-		spellOnEnd = new Subspell(spellOnEndName);
-		if (!spellOnEnd.process()) {
-			if (!spellOnEndName.isEmpty()) MagicSpells.error("BuffSpell '" + internalName + "' has an invalid spell-on-end defined!");
-			spellOnEnd = null;
-		}
+		spellOnEnd = initSubspell(spellOnEndName,
+				"BuffSpell '" + internalName + "' has an invalid spell-on-end defined!",
+				true);
 
 	}
 
