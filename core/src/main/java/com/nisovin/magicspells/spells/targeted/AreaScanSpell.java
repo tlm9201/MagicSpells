@@ -54,8 +54,8 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 	private final ConfigData<Boolean> powerAffectsRadius;
 	private final ConfigData<Boolean> powerAffectsMaxBlocks;
 
-	private String spellToCast;
-	private Subspell spell;
+	private String spellToCastName;
+	private Subspell spellToCast;
 
 	private List<String> scanModifierStrings;
 	private ModifierSet scanModifiers;
@@ -86,7 +86,7 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 		xVariable = getConfigDataString("x-variable", null);
 		yVariable = getConfigDataString("y-variable", null);
 		zVariable = getConfigDataString("z-variable", null);
-		spellToCast = getConfigString("spell", null);
+		spellToCastName = getConfigString("spell", "");
 
 		pointBlank = getConfigDataBoolean("point-blank", false);
 		blockCoords = getConfigDataBoolean("block-coords", false);
@@ -132,16 +132,8 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 	public void initialize() {
 		super.initialize();
 
-		if (spellToCast != null && !spellToCast.isEmpty()) {
-			spell = new Subspell(spellToCast);
-
-			if (!spell.process()) {
-				MagicSpells.error("AreaScanSpell '" + internalName + "' has an invalid 'spell' '" + spellToCast + "' defined!");
-				spell = null;
-			}
-
-			spellToCast = null;
-		}
+		spellToCast = initSubspell(spellToCastName,
+				"AreaScanSpell '" + internalName + "' has an invalid spell: '" + spellToCastName + "' defined!");
 	}
 
 	@Override
@@ -305,7 +297,7 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 
 						found = true;
 
-						if (spell != null) spell.subcast(subData);
+						if (spellToCast != null) spellToCast.subcast(subData);
 
 						playSpellEffects(EffectPosition.TARGET, target, subData);
 						playSpellEffectsTrail(origin, target, subData);

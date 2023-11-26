@@ -70,18 +70,17 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 
 		spells = new ArrayList<>();
 
+		String prefix = "AreaEffectSpell '" + internalName + "' ";
+
 		if (spellNames == null || spellNames.isEmpty()) {
-			MagicSpells.error("AreaEffectSpell '" + internalName + "' has no spells defined!");
+			MagicSpells.error(prefix + "has no spells defined!");
 			return;
 		}
 
+		Subspell spell;
 		for (String spellName : spellNames) {
-			Subspell spell = new Subspell(spellName);
-
-			if (!spell.process()) {
-				MagicSpells.error("AreaEffectSpell '" + internalName + "' attempted to use invalid spell '" + spellName + '\'');
-				continue;
-			}
+			spell = initSubspell(spellName, prefix + "attempted to use invalid spell '" + spellName + '\'');
+			if (spell == null) continue;
 
 			spells.add(spell);
 		}

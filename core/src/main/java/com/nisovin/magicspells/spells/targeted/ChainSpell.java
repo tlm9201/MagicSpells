@@ -42,13 +42,8 @@ public class ChainSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	public void initialize() {
 		super.initialize();
 
-		spellToCast = new Subspell(spellToCastName);
-		if (!spellToCast.process()) {
-			spellToCast = null;
-			MagicSpells.error("ChainSpell '" + internalName + "' has an invalid spell defined!");
-		}
-
-		spellToCastName = null;
+		spellToCast = initSubspell(spellToCastName,
+				"ChainSpell '" + internalName + "' has an invalid spell defined!");
 	}
 
 	@Override

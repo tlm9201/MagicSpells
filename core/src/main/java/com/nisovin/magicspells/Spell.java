@@ -2024,10 +2024,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected Subspell initSubspell(String subspellName, String errorMessage) {
+		return initSubspell(subspellName, errorMessage, false);
+	}
+
+	protected Subspell initSubspell(String subspellName, String errorMessage, boolean ignoreEmptyName) {
 		if (subspellName.isEmpty()) return null;
 
 		Subspell subspell = new Subspell(subspellName);
 		if (!subspell.process()) {
+			if (ignoreEmptyName && subspellName.isEmpty()) return null;
 			MagicSpells.error(errorMessage);
 			return null;
 		}

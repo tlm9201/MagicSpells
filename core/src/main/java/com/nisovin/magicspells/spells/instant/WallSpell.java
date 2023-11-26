@@ -96,12 +96,9 @@ public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 	public void initialize() {
 		super.initialize();
 
-		spellOnBreak = new Subspell(spellOnBreakName);
-		if (!spellOnBreak.process()) {
-			if (!spellOnBreakName.isEmpty())
-				MagicSpells.error("WallSpell '" + internalName + "' has an invalid spell-on-break defined!");
-			spellOnBreak = null;
-		}
+		spellOnBreak = initSubspell(spellOnBreakName,
+				"WallSpell '" + internalName + "' has an invalid spell-on-break defined!",
+				true);
 
 		if (breakListener == null) {
 			breakListener = new BreakListener();

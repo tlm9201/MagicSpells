@@ -46,12 +46,9 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 	public void initialize() {
 		super.initialize();
 
-		targetSpell = new Subspell(targetSpellName);
-		if (!targetSpell.process()) {
-			if (!targetSpellName.isEmpty()) MagicSpells.error("BombSpell '" + internalName + "' has an invalid spell defined!");
-			targetSpell = null;
-		}
-		targetSpellName = null;
+		targetSpell = initSubspell(targetSpellName,
+				"BombSpell '" + internalName + "' has an invalid spell defined!",
+				true);
 	}
 
 	@Override

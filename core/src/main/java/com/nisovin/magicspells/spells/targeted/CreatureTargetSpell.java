@@ -26,12 +26,9 @@ public class CreatureTargetSpell extends InstantSpell {
 	public void initialize() {
 		super.initialize();
 
-		targetSpell = new Subspell(targetSpellName);
-		if (!targetSpell.process()) {
-			targetSpell = null;
-			if (!targetSpellName.isEmpty()) MagicSpells.error("CreatureTargetSpell '" + internalName + "' has an invalid spell defined!");
-		}
-		targetSpellName = null;
+		targetSpell = initSubspell(targetSpellName,
+				"CreatureTargetSpell '" + internalName + "' has an invalid spell defined!",
+				true);
 	}
 
 	@Override

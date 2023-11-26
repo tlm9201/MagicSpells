@@ -178,7 +178,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		cancelAttack = getConfigDataBoolean("cancel-attack", true);
 
 		attackSpellName = getConfigString("attack-spell", "");
-		spellOnSpawnName = getConfigString("spell-on-spawn", null);
+		spellOnSpawnName = getConfigString("spell-on-spawn", "");
 
 		// Attributes
 		// - [AttributeName] [Number] [Operation]
@@ -220,28 +220,21 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	public void initialize() {
 		super.initialize();
 
+		String prefix = "SpawnEntitySpell '" + internalName + "' has an invalid ";
+
 		if (entityData == null || entityData.getEntityType() == null) {
-			MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid entity defined!");
+			MagicSpells.error(prefix + "entity defined!");
 			entityData = null;
 		}
 
-		if (spellOnSpawnName != null) {
-			spellOnSpawn = new Subspell(spellOnSpawnName);
+		spellOnSpawn = initSubspell(spellOnSpawnName,
+				prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!");
 
-			if (!spellOnSpawn.process()) {
-				MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid spell-on-spawn '" + spellOnSpawnName + "' defined!");
-				spellOnSpawn = null;
-			}
 
-			spellOnSpawnName = null;
-		}
+		attackSpell = initSubspell(attackSpellName,
+				prefix + "attack-spell: '" + spellOnSpawnName + "' defined!",
+				true);
 
-		attackSpell = new Subspell(attackSpellName);
-		if (!attackSpellName.isEmpty() && !attackSpell.process()) {
-			MagicSpells.error("SpawnEntitySpell '" + internalName + "' has an invalid attack-spell defined!");
-			attackSpell = null;
-		}
-		attackSpellName = null;
 	}
 
 	@Override

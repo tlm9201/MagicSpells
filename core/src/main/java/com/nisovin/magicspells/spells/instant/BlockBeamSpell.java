@@ -129,27 +129,20 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 	public void initialize() {
 		super.initialize();
 
-		hitSpell = new Subspell(hitSpellName);
-		if (!hitSpell.process()) {
-			if (!hitSpellName.isEmpty())
-				MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid spell defined!");
-			hitSpell = null;
-		}
+		String prefix = "BlockBeamSpell '" + internalName + "' has an invalid ";
 
-		endSpell = new Subspell(endSpellName);
-		if (!endSpell.process()) {
-			if (!endSpellName.isEmpty())
-				MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid spell-on-end defined!");
-			endSpell = null;
-		}
+		hitSpell = initSubspell(hitSpellName,
+				prefix + "spell defined!",
+				true);
 
-		groundSpell = new Subspell(groundSpellName);
-		if (!groundSpell.process()) {
-			if (!groundSpellName.isEmpty())
-				MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
-			groundSpell = null;
-		}
+		endSpell = initSubspell(endSpellName,
+				prefix + "spell-on-end defined!",
+				true);
 
+		groundSpell = initSubspell(groundSpellName,
+				prefix + "spell-on-hit-ground defined!",
+				true);
+		
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 	}
 

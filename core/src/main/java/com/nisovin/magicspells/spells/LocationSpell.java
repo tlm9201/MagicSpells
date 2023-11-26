@@ -39,12 +39,7 @@ public class LocationSpell extends InstantSpell {
 	public void initialize() {
 		super.initialize();
 
-		spellToCast = new Subspell(spellToCastName);
-		if (!spellToCast.process()) {
-			MagicSpells.error("LocationSpell '" + internalName + "' has an invalid spell defined!");
-			spellToCast = null;
-		}
-		spellToCastName = null;
+		spellToCast = initSubspell(spellToCastName, "LocationSpell '" + internalName + "' has an invalid spell defined!");
 	}
 
 	@Override
