@@ -2,7 +2,6 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.entity.LivingEntity;
 
@@ -34,8 +33,7 @@ public class OnTeamCondition extends Condition {
 	}
 
 	private boolean onTeam(LivingEntity target) {
-		if (!(target instanceof Player pl)) return false;
-		Team team = Bukkit.getScoreboardManager().getMainScoreboard().getEntryTeam(pl.getName());
+		Team team = Bukkit.getScoreboardManager().getMainScoreboard().getEntryTeam(target.getName());
 		return team != null && team.getName().equals(teamName);
 	}
 
