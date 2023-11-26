@@ -1,17 +1,37 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import java.util.EnumSet;
+
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import io.papermc.paper.world.MoonPhase;
+
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class MoonPhaseCondition extends Condition {
 
-	private String phaseName = "";
+	private MoonPhase phase;
+	private MoonPhaseLegacy phaseLegacy;
 
 	@Override
 	public boolean initialize(String var) {
-		phaseName = var.toLowerCase();
+		if (var == null || var.isEmpty()) return false;
+		String phaseName = var.toUpperCase();
+
+		try {
+			phaseLegacy = MoonPhaseLegacy.valueOf(phaseName);
+		} catch (IllegalArgumentException ignored) {}
+		if (phaseLegacy != null) return true;
+
+		try {
+			phase = MoonPhase.valueOf(phaseName);
+		} catch (IllegalArgumentException ignored) {
+			DebugHandler.debugBadEnumValue(MoonPhase.class, phaseName);
+			return false;
+		}
+
 		return true;
 	}
 	
@@ -31,25 +51,25 @@ public class MoonPhaseCondition extends Condition {
 	}
 
 	private boolean moonPhase(Location location) {
-		long time = location.getWorld().getFullTime();
-		int phase = (int) ((time / 24000) % 8);
+		MoonPhase phaseNow = location.getWorld().getMoonPhase();
+		if (phaseLegacy == null) return phase == phaseNow;
+		return phaseLegacy.phases.contains(phaseNow);
+	}
 
-		// Check if the moon is "Full" or "New"
-		if (phase == 0 && phaseName.equals("full")) return true;
-		if (phase == 4 && phaseName.equals("new")) return true;
+	private enum MoonPhaseLegacy {
 
-		// Include backwards compatability for servers that use the vague phases
-		if ((phase == 1 || phase == 2 || phase == 3) && phaseName.equals("waning")) return true;
-		if ((phase == 5 || phase == 6 || phase == 7) && phaseName.equals("waxing")) return true;
+		FULL(EnumSet.of(MoonPhase.FULL_MOON)),
+		WANING(EnumSet.of(MoonPhase.WANING_GIBBOUS, MoonPhase.LAST_QUARTER, MoonPhase.WANING_CRESCENT)),
+		NEW(EnumSet.of(MoonPhase.NEW_MOON)),
+		WAXING(EnumSet.of(MoonPhase.WAXING_CRESCENT, MoonPhase.FIRST_QUARTER, MoonPhase.WAXING_GIBBOUS)),
+		;
 
-		// Specific phases https://minecraft.gamepedia.com/Moon#Phases
-		if ((phase == 1) && phaseName.equals("waning_gibbous")) return true;
-		if ((phase == 2) && phaseName.equals("last_quarter")) return true;
-		if ((phase == 3) && phaseName.equals("waning_crescent")) return true;
-		if ((phase == 5) && phaseName.equals("waxing_crescent")) return true;
-		if ((phase == 6) && phaseName.equals("first_quarter")) return true;
-		if ((phase == 7) && phaseName.equals("waxing_gibbous")) return true;
-		return false;
+		final EnumSet<MoonPhase> phases;
+
+		MoonPhaseLegacy(EnumSet<MoonPhase> phases) {
+			this.phases = phases;
+		}
+
 	}
 
 }
