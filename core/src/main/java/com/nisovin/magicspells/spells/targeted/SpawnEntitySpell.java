@@ -492,12 +492,14 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				equipment.setLeggings(leggings);
 				equipment.setBoots(boots);
 
-				equipment.setItemInMainHandDropChance(mainHandItemDropChance.get(data) / 100);
-				equipment.setItemInOffHandDropChance(offHandItemDropChance.get(data) / 100);
-				equipment.setHelmetDropChance(helmetDropChance.get(data) / 100);
-				equipment.setChestplateDropChance(chestplateDropChance.get(data) / 100);
-				equipment.setLeggingsDropChance(leggingsDropChance.get(data) / 100);
-				equipment.setBootsDropChance(bootsDropChance.get(data) / 100);
+				if (livingEntity instanceof Mob) {
+					equipment.setItemInMainHandDropChance(mainHandItemDropChance.get(data) / 100);
+					equipment.setItemInOffHandDropChance(offHandItemDropChance.get(data) / 100);
+					equipment.setHelmetDropChance(helmetDropChance.get(data) / 100);
+					equipment.setChestplateDropChance(chestplateDropChance.get(data) / 100);
+					equipment.setLeggingsDropChance(leggingsDropChance.get(data) / 100);
+					equipment.setBootsDropChance(bootsDropChance.get(data) / 100);
+				}
 			}
 
 			if (potionEffects != null) livingEntity.addPotionEffects(potionEffects);
