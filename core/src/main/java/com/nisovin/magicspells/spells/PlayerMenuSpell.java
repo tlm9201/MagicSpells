@@ -54,7 +54,6 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	private final String spellOnLeftName;
 	private final String spellOfflineName;
 	private final String spellOnRightName;
-	private final String spellOnMiddleName;
 	private final String spellOnSneakLeftName;
 	private final String spellOnSneakRightName;
 
@@ -62,7 +61,6 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	private Subspell spellRange;
 	private Subspell spellOnLeft;
 	private Subspell spellOnRight;
-	private Subspell spellOnMiddle;
 	private Subspell spellOnSneakLeft;
 	private Subspell spellOnSneakRight;
 
@@ -97,7 +95,6 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		spellOnLeftName = getConfigString("spell-on-left", "");
 		spellOfflineName = getConfigString("spell-offline", "");
 		spellOnRightName = getConfigString("spell-on-right", "");
-		spellOnMiddleName = getConfigString("spell-on-middle", "");
 		spellOnSneakLeftName = getConfigString("spell-on-sneak-left", "");
 		spellOnSneakRightName = getConfigString("spell-on-sneak-right", "");
 
@@ -124,7 +121,6 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		spellRange = initSubspell(spellRangeName, error + "spell-range defined!");
 		spellOnLeft = initSubspell(spellOnLeftName, error + "spell-on-left defined!");
 		spellOnRight = initSubspell(spellOnRightName, error + "spell-on-right defined!");
-		spellOnMiddle = initSubspell(spellOnMiddleName, error + "spell-on-middle defined!");
 		spellOnSneakLeft = initSubspell(spellOnSneakLeftName, error + "spell-on-sneak-left defined!");
 		spellOnSneakRight = initSubspell(spellOnSneakRightName, error + "spell-on-sneak-right defined!");
 	}
@@ -305,7 +301,6 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		switch (event.getClick()) {
 			case LEFT -> processClickSpell(spellOnLeft, targetPlayer, menu);
 			case RIGHT -> processClickSpell(spellOnRight, targetPlayer, menu);
-			case MIDDLE -> processClickSpell(spellOnMiddle, targetPlayer, menu);
 			case SHIFT_LEFT -> processClickSpell(spellOnSneakLeft, targetPlayer, menu);
 			case SHIFT_RIGHT -> processClickSpell(spellOnSneakRight, targetPlayer, menu);
 		}
