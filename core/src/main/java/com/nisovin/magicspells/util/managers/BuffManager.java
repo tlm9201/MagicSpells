@@ -3,8 +3,11 @@ package com.nisovin.magicspells.util.managers;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.function.Consumer;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -14,31 +17,34 @@ import com.nisovin.magicspells.events.BuffStartEvent;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+
 public class BuffManager {
 
 	private Map<LivingEntity, Set<BuffSpell>> activeBuffs;
 
 	private final int interval;
 
-	private Monitor monitor;
+	private BuffMonitor buffMonitor;
 
 	public BuffManager(int interval) {
 		this.interval = interval;
-		activeBuffs = new ConcurrentHashMap<>();
-		monitor = new Monitor();
+		activeBuffs = new HashMap<>();
 	}
 
-	public void addBuff(LivingEntity entity, BuffSpell spell) {
-		Set<BuffSpell> buffs = activeBuffs.computeIfAbsent(entity, s -> new HashSet<>());
-		// Sanity Check
-		if (buffs == null) throw new IllegalStateException("buffs should not be null here");
-		buffs.add(spell);
+	public void initialize() {
+		buffMonitor = new BuffMonitor();
+	}
 
-		monitor.run();
+	public void startBuff(LivingEntity entity, BuffSpell spell) {
+		Set<BuffSpell> buffs = activeBuffs.computeIfAbsent(entity, s -> new HashSet<>());
+		if (buffs == null) throw new IllegalStateException("buffs should not be null here");
+
+		buffs.add(spell);
 		EventUtil.call(new BuffStartEvent(entity, spell));
 	}
 
-	public void removeBuff(LivingEntity entity, BuffSpell spell) {
+	public void endBuff(LivingEntity entity, BuffSpell spell) {
 		Set<BuffSpell> buffs = activeBuffs.get(entity);
 		if (buffs == null) return;
 		buffs.remove(spell);
@@ -55,42 +61,54 @@ public class BuffManager {
 	}
 
 	public void turnOff() {
-		monitor.stop();
-		monitor = null;
+		buffMonitor.stop();
+		buffMonitor = null;
 		activeBuffs.clear();
 		activeBuffs = null;
 	}
 
-	private class Monitor implements Runnable {
+	private class BuffMonitor implements Consumer<ScheduledTask> {
 
-		private final int taskId;
+		private final ScheduledTask task;
 
-		private Monitor() {
-			taskId = MagicSpells.scheduleRepeatingTask(this, interval, interval);
-		}
+		private final NoMagicZoneManager zoneManager;
 
-		@Override
-		public void run() {
-			NoMagicZoneManager zoneManager = MagicSpells.getNoMagicZoneManager();
-			if (zoneManager == null) return;
+		private BuffMonitor() {
+			task = Bukkit.getGlobalRegionScheduler().runAtFixedRate(MagicSpells.getInstance(), this, interval, interval);
 
-			for (LivingEntity entity : activeBuffs.keySet()) {
-				if (entity == null) continue;
-				if (!entity.isValid()) continue;
-
-				Set<BuffSpell> buffs = new HashSet<>(activeBuffs.get(entity));
-
-				for (BuffSpell spell : buffs) {
-					if (spell.isExpired(entity)) spell.turnOff(entity);
-					if (zoneManager.willFizzle(entity, spell)) spell.turnOff(entity);
-				}
-			}
+			zoneManager = MagicSpells.getNoMagicZoneManager();
 		}
 
 		public void stop() {
-			MagicSpells.cancelTask(taskId);
+			task.cancel();
 		}
 
+		@Override
+		public void accept(ScheduledTask scheduledTask) {
+			if (zoneManager == null) return;
+
+			Iterator<LivingEntity> entityIterator = activeBuffs.keySet().iterator();
+			Iterator<BuffSpell> buffIterator;
+			LivingEntity entity;
+			BuffSpell buff;
+			while (entityIterator.hasNext()) {
+				entity = entityIterator.next();
+				if (entity == null) continue;
+				if (!entity.isValid()) continue;
+
+				buffIterator = activeBuffs.get(entity).iterator();
+
+				while (buffIterator.hasNext()) {
+					buff = buffIterator.next();
+					if (!buff.isExpired(entity) && !zoneManager.willFizzle(entity, buff)) continue;
+
+					buff.turnOff(entity, false);
+					EventUtil.call(new BuffEndEvent(entity, buff));
+					buffIterator.remove();
+					if (!buffIterator.hasNext()) entityIterator.remove();
+				}
+			}
+		}
 	}
 
 }
