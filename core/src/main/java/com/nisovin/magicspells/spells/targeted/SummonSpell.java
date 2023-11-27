@@ -8,10 +8,10 @@ import java.util.HashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.command.CommandSender;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
@@ -66,10 +66,10 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 			targetName = data.args()[0];
 			landLoc = data.caster().getLocation().add(0, .25, 0);
 		} else {
-			Block block = getTargetedBlock(data.power(10));
-			if (block != null && block.getState() instanceof Sign sign) {
+			RayTraceResult result = rayTraceBlocks(data.power(10));
+			if (result != null && result.getHitBlock().getState() instanceof Sign sign) {
 				targetName = Util.getStringFromComponent(sign.line(0));
-				landLoc = block.getLocation().add(.5, .25, .5);
+				landLoc = sign.getLocation().add(.5, .25, .5);
 			}
 		}
 

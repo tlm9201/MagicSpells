@@ -12,6 +12,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
@@ -194,9 +195,8 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			}
 		}
 
-		List<Block> lastTwo = getLastTwoTargetedBlocks(data);
-		if (lastTwo.size() != 2) return noTarget(data);
-		Block target = lastTwo.get(0);
+		RayTraceResult result = rayTraceBlocks(data);
+		Block target = result.getHitBlock().getRelative(result.getHitBlockFace());
 
 		int yOffset = this.yOffset.get(data);
 		if (yOffset != 0) target = target.getRelative(0, yOffset, 0);

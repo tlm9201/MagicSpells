@@ -1595,18 +1595,67 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	public TargetInfo<Location> getTargetedBlockLocation(SpellData data, double offX, double offY, double offZ, boolean allowAir) {
-		Block block = getTargetedBlock(data);
-		if (!allowAir && block.getType().isAir()) return new TargetInfo<>(null, data, false);
+		Location start = data.caster().getEyeLocation();
+		Vector direction = start.getDirection();
 
-		Location location = block.getLocation();
+		int range = getRange(data);
+
+		RayTraceResult result = start.getWorld().rayTraceBlocks(start, direction, range, losFluidCollisionMode.get(data), losIgnorePassableBlocks.get(data), block -> !losTransparentBlocks.contains(block.getType()));
+		Location location;
+		if (result == null) {
+			if (!allowAir) return new TargetInfo<>(null, data, false);
+			location = start.add(direction.multiply(range)).toBlockLocation();
+		} else location = result.getHitBlock().getLocation();
+
 		location.add(offX, offY, offZ);
 
-		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
+		location.setDirection(location.toVector().subtract(start.toVector()));
 
 		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, location);
 		if (!event.callEvent()) return new TargetInfo<>(null, event.getSpellData(), event.isCastCancelled());
 
 		return new TargetInfo<>(event.getTargetLocation(), event.getSpellData(), false);
+	}
+
+	public TargetInfo<Location> getTargetedLocation(SpellData data) {
+		return getTargetedLocation(data, true);
+	}
+
+	public TargetInfo<Location> getTargetedLocation(SpellData data, boolean allowAir) {
+		Location start = data.caster().getEyeLocation();
+		Vector direction = start.getDirection();
+		World world = start.getWorld();
+
+		int range = getRange(data);
+
+		RayTraceResult result = world.rayTraceBlocks(start, direction, range, losFluidCollisionMode.get(data), losIgnorePassableBlocks.get(data), block -> !losTransparentBlocks.contains(block.getType()));
+		Location location;
+		if (result == null) {
+			if (!allowAir) return new TargetInfo<>(null, data, false);
+			location = start.add(direction.multiply(range));
+		} else {
+			Vector hitPosition = result.getHitPosition();
+			location = new Location(world, hitPosition.getX(), hitPosition.getY(), hitPosition.getZ());
+		}
+
+		location.setDirection(location.toVector().subtract(start.toVector()));
+
+		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, location);
+		if (!event.callEvent()) return new TargetInfo<>(null, event.getSpellData(), event.isCastCancelled());
+
+		return new TargetInfo<>(event.getTargetLocation(), event.getSpellData(), false);
+	}
+
+	public RayTraceResult rayTraceBlocks(SpellData data) {
+		return rayTraceBlocks(data, getRange(data));
+	}
+
+	public RayTraceResult rayTraceBlocks(SpellData data, double range) {
+		Location start = data.caster().getEyeLocation();
+		Vector direction = start.getDirection();
+		World world = start.getWorld();
+
+		return world.rayTraceBlocks(start, direction, range, losFluidCollisionMode.get(data), losIgnorePassableBlocks.get(data), block -> !losTransparentBlocks.contains(block.getType()));
 	}
 
 	public Set<Material> getLosTransparentBlocks() {

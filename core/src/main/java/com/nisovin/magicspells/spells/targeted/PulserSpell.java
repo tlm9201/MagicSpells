@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -110,10 +111,10 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			}
 		}
 
-		List<Block> lastTwo = getLastTwoTargetedBlocks(data);
-		if (lastTwo.size() != 2) return noTarget(data);
+		RayTraceResult result = rayTraceBlocks(data);
+		if (result == null) return noTarget(data);
 
-		Block block = lastTwo.get(0);
+		Block block = result.getHitBlock().getRelative(result.getHitBlockFace());
 
 		int yOffset = this.yOffset.get(data);
 		if (yOffset != 0) block = block.getRelative(0, yOffset, 0);
@@ -128,7 +129,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		Location location = block.getLocation().add(0.5, 0.5, 0.5);
 		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
 
-		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation().add(0.5, 0.5, 0.5));
+		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, location);
 		if (!event.callEvent()) return noTarget(event);
 
 		event.setTargetLocation(event.getTargetLocation().toCenterLocation());

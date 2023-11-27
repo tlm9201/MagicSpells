@@ -7,6 +7,7 @@ import java.util.HashSet;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.util.RayTraceResult;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
@@ -63,10 +64,11 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	@Override
 	public CastResult cast(SpellData data) {
-		List<Block> blocks = getLastTwoTargetedBlocks(data);
-		if (blocks.size() != 2 || !blocks.get(1).getType().isSolid()) return noTarget(data);
+		RayTraceResult result = rayTraceBlocks(data);
+		if (result == null) return noTarget(data);
 
-		Location target = blocks.get(0).getLocation().add(0.5, 0, 0.5);
+		Location target = result.getHitBlock().getRelative(result.getHitBlockFace()).getLocation().add(0.5, 0, 0.5);
+
 		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, target);
 		if (!event.callEvent()) return noTarget(event);
 

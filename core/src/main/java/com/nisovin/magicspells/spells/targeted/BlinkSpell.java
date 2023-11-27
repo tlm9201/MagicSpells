@@ -1,13 +1,12 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.util.RayTraceResult;
 
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.CastResult;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -30,27 +29,19 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	@Override
 	public CastResult cast(SpellData data) {
-		List<Block> blocks = getLastTwoTargetedBlocks(data);
-		if (blocks.isEmpty()) return noTarget(strCantBlink, data);
+		RayTraceResult result = rayTraceBlocks(data);
+		if (result == null) return noTarget(strCantBlink, data);
 
-		Block prev, found;
-		if (blocks.size() == 1) {
-			prev = null;
-			found = blocks.get(0);
-		} else {
-			prev = blocks.get(0);
-			found = blocks.get(1);
-		}
-
-		if (BlockUtils.isTransparent(this, found)) return noTarget(strCantBlink, data);
+		Block found = result.getHitBlock();
+		Block prev = found.getRelative(result.getHitBlockFace());
 
 		Location loc = null;
 		if (!passThroughCeiling.get(data) && found.getRelative(0, -1, 0).equals(prev) && prev.isPassable()) {
 			Block under = prev.getRelative(0, -1, 0);
 			if (under.isPassable()) loc = under.getLocation().add(0.5, 0, 0.5);
 		} else if (found.getRelative(0, 1, 0).isPassable() && found.getRelative(0, 2, 0).isPassable()) {
-			loc = found.getLocation().add(0, 1, 0).add(0.5, 0, 0.5);
-		} else if (prev != null && prev.isPassable() && prev.getRelative(0, 1, 0).isPassable()) {
+			loc = found.getLocation().add(0.5, 1, 0.5);
+		} else if (prev.isPassable() && prev.getRelative(0, 1, 0).isPassable()) {
 			loc = prev.getLocation().add(0.5, 0, 0.5);
 		}
 		if (loc == null) return noTarget(strCantBlink, data);

@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -122,7 +123,8 @@ public class SpellbookSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Block target = getTargetedBlock(data);
+		RayTraceResult result = rayTraceBlocks(data);
+		Block target = result == null ? null : result.getHitBlock();
 		if (target == null || !spellbookBlock.equals(target.getType())) {
 			sendMessage(strNoTarget, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);

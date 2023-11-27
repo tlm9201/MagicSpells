@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.event.block.BlockBreakEvent;
 
 import com.nisovin.magicspells.util.*;
@@ -116,11 +117,16 @@ public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 	public CastResult cast(SpellData data) {
 		if (checkAtCap(data)) return noTarget(strAtCap, data);
 
-		Block block = getTargetedBlock(data);
-		if (!block.getType().isAir()) return noTarget(data);
+		int range = getRange(data);
 
-		Location location = block.getLocation();
-		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));
+		RayTraceResult result = rayTraceBlocks(data, range);
+		if (result != null) return noTarget(data);
+
+		Location location = data.caster().getEyeLocation();
+		Vector start = location.toVector();
+
+		location.add(location.getDirection().multiply(range));
+		location.setDirection(location.toVector().subtract(start));
 
 		SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, location);
 		if (!targetEvent.callEvent()) return noTarget(targetEvent);

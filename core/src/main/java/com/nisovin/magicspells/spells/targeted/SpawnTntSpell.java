@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Map;
-import java.util.List;
 import java.util.HashMap;
 
 import org.bukkit.Location;
@@ -10,6 +9,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
 import com.nisovin.magicspells.util.*;
@@ -64,11 +64,11 @@ public class SpawnTntSpell extends TargetedSpell implements TargetedLocationSpel
 
 	@Override
 	public CastResult cast(SpellData data) {
-		List<Block> blocks = getLastTwoTargetedBlocks(data);
-		if (blocks.size() != 2) return noTarget(data);
+		RayTraceResult result = rayTraceBlocks(data);
+		if (result == null) return noTarget(data);
 
-		Block prev = blocks.get(0), last = blocks.get(1);
-		if (!last.isSolid()) return noTarget(data);
+		Block last = result.getHitBlock();
+		Block prev = last.getRelative(result.getHitBlockFace());
 
 		Location location = prev.getLocation().add(0.5, 0, 0.5);
 		location.setDirection(location.toVector().subtract(data.caster().getLocation().toVector()));

@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.util.RayTraceResult;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
@@ -142,20 +143,11 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 	public CastResult cast(SpellData data) {
 		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		List<Block> lastTwo;
-		try {
-			lastTwo = getLastTwoTargetedBlocks(data);
-		} catch (IllegalStateException e) {
-			DebugHandler.debugIllegalState(e);
-			lastTwo = null;
-		}
+		RayTraceResult result = rayTraceBlocks(data);
+		if (result == null) return noTarget(data);
 
-		if (lastTwo == null || lastTwo.size() != 2) return noTarget(data);
-		if (!BlockUtils.isAir(lastTwo.get(0).getType()) || BlockUtils.isAir(lastTwo.get(1).getType()))
-			return noTarget(data);
-
-		Block block = lastTwo.get(0);
-		Block against = lastTwo.get(1);
+		Block against = result.getHitBlock();
+		Block block = against.getRelative(result.getHitBlockFace());
 
 		SpellTargetLocationEvent event = new SpellTargetLocationEvent(this, data, block.getLocation());
 		if (!event.callEvent()) return noTarget(strFailed, event);
