@@ -51,16 +51,20 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	private final ConfigData<Boolean> castSpellsOnTarget;
 
 	private final String spellRangeName;
-	private final String spellOnLeftName;
 	private final String spellOfflineName;
+	private final String spellOnLeftName;
 	private final String spellOnRightName;
+	private final String spellOnDropName;
+	private final String spellOnSwapName;
 	private final String spellOnSneakLeftName;
 	private final String spellOnSneakRightName;
 
-	private Subspell spellOffline;
 	private Subspell spellRange;
+	private Subspell spellOffline;
 	private Subspell spellOnLeft;
 	private Subspell spellOnRight;
+	private Subspell spellOnDrop;
+	private Subspell spellOnSwap;
 	private Subspell spellOnSneakLeft;
 	private Subspell spellOnSneakRight;
 
@@ -92,9 +96,11 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		castSpellsOnTarget = getConfigDataBoolean("cast-spells-on-target", true);
 
 		spellRangeName = getConfigString("spell-range", "");
-		spellOnLeftName = getConfigString("spell-on-left", "");
 		spellOfflineName = getConfigString("spell-offline", "");
+		spellOnLeftName = getConfigString("spell-on-left", "");
 		spellOnRightName = getConfigString("spell-on-right", "");
+		spellOnDropName = getConfigString("spell-on-drop", "");
+		spellOnSwapName = getConfigString("spell-on-swap", "");
 		spellOnSneakLeftName = getConfigString("spell-on-sneak-left", "");
 		spellOnSneakRightName = getConfigString("spell-on-sneak-right", "");
 
@@ -117,10 +123,12 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		super.initialize();
 
 		String error = "PlayerMenuSpell '" + internalName + "' has an invalid ";
-		spellOffline = initSubspell(spellOfflineName, error + "spell-offline defined!");
 		spellRange = initSubspell(spellRangeName, error + "spell-range defined!");
+		spellOffline = initSubspell(spellOfflineName, error + "spell-offline defined!");
 		spellOnLeft = initSubspell(spellOnLeftName, error + "spell-on-left defined!");
 		spellOnRight = initSubspell(spellOnRightName, error + "spell-on-right defined!");
+		spellOnDrop = initSubspell(spellOnDropName, error + "spell-on-drop defined!");
+		spellOnSwap = initSubspell(spellOnSwapName, error + "spell-on-swap defined!");
 		spellOnSneakLeft = initSubspell(spellOnSneakLeftName, error + "spell-on-sneak-left defined!");
 		spellOnSneakRight = initSubspell(spellOnSneakRightName, error + "spell-on-sneak-right defined!");
 	}
@@ -301,6 +309,8 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		switch (event.getClick()) {
 			case LEFT -> processClickSpell(spellOnLeft, targetPlayer, menu);
 			case RIGHT -> processClickSpell(spellOnRight, targetPlayer, menu);
+			case DROP -> processClickSpell(spellOnDrop, targetPlayer, menu);
+			case SWAP_OFFHAND -> processClickSpell(spellOnSwap, targetPlayer, menu);
 			case SHIFT_LEFT -> processClickSpell(spellOnSneakLeft, targetPlayer, menu);
 			case SHIFT_RIGHT -> processClickSpell(spellOnSneakRight, targetPlayer, menu);
 		}
