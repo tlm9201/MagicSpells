@@ -242,7 +242,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	@EventHandler
 	public void onItemClick(InventoryClickEvent event) {
 		Inventory inventory = event.getClickedInventory();
-		if (!(inventory.getHolder() instanceof PlayerMenuInventory menu) || menu.getSpell() != this) return;
+		if (inventory == null || !(inventory.getHolder() instanceof PlayerMenuInventory menu) || menu.getSpell() != this) return;
 
 		event.setCancelled(true);
 		if (!(event.getWhoClicked() instanceof Player opener)) return;
