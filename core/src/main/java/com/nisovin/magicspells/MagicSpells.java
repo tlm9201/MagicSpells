@@ -571,6 +571,9 @@ public class MagicSpells extends JavaPlugin {
 		// Load no-magic zones
 		zoneManager.load(config);
 
+		// Initialize BuffManager
+		buffManager.initialize();
+
 		// Load listeners
 		log("Loading cast listeners...");
 		registerEvents(new MagicPlayerListener(this));

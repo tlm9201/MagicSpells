@@ -228,7 +228,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		playSpellEffectsBuff(data.target(), entity -> isActiveAndNotExpired((LivingEntity) entity), data);
 
 		BuffManager manager = MagicSpells.getBuffManager();
-		if (manager != null) manager.addBuff(data.target(), this);
+		if (manager != null) manager.startBuff(data.target(), this);
 	}
 
 	public void setDuration(LivingEntity livingEntity, float duration) {
@@ -354,13 +354,17 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 * @param entity livingEntity to turn the buff off for
 	 */
 	public final void turnOff(LivingEntity entity) {
+		turnOff(entity, true);
+	}
+
+	public final void turnOff(LivingEntity entity, boolean removeFromMap) {
 		if (!isActive(entity)) return;
 
 		if (useCounter != null) useCounter.remove(entity.getUniqueId());
 		if (durationEndTime != null) durationEndTime.remove(entity.getUniqueId());
 
 		BuffManager manager = MagicSpells.getBuffManager();
-		if (manager != null) manager.removeBuff(entity, this);
+		if (manager != null && removeFromMap) manager.endBuff(entity, this);
 
 		turnOffBuff(entity);
 		playSpellEffects(EffectPosition.DISABLED, entity, new SpellData(entity));
