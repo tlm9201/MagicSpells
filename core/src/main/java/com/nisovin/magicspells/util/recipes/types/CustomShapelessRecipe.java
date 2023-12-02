@@ -6,16 +6,19 @@ import java.util.ArrayList;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.recipe.CraftingBookCategory;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.recipes.CustomRecipe;
 
 public class CustomShapelessRecipe extends CustomRecipe {
 
+	private final CraftingBookCategory category;
 	private final List<RecipeChoice> ingredients = new ArrayList<>();
 
 	public CustomShapelessRecipe(ConfigurationSection config) {
 		super(config);
+		category = resolveEnum(CraftingBookCategory.class, "category" , CraftingBookCategory.MISC);
 
 		String path = "ingredients";
 		ConfigurationSection ingredientsConfig;
@@ -44,6 +47,7 @@ public class CustomShapelessRecipe extends CustomRecipe {
 	public Recipe build() {
 		ShapelessRecipe recipe = new ShapelessRecipe(namespaceKey, result);
 		recipe.setGroup(group);
+		recipe.setCategory(category);
 		ingredients.forEach(recipe::addIngredient);
 		return recipe;
 	}

@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.ConfigReaderUtil;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -163,6 +164,20 @@ public abstract class CustomRecipe {
 		if (object instanceof Map<?, ?> map) {
 			ConfigurationSection config = ConfigReaderUtil.mapToSection(map);
 			return MagicItems.getMagicItemFromSection(config);
+		}
+		return null;
+	}
+
+	protected <T extends Enum<T>> T resolveEnum(Class<T> enumClass, String path, T def) {
+		String received = config.getString(path);
+		if (received == null) return def;
+		try {
+			return Enum.valueOf(enumClass, received.toUpperCase());
+		}
+		catch (IllegalArgumentException e) {
+			// DebugHandler sends a sufficient error message.
+			error(path, "");
+			DebugHandler.debugBadEnumValue(enumClass, received);
 		}
 		return null;
 	}
