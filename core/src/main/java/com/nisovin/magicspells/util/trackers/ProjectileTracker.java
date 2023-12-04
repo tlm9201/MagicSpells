@@ -31,6 +31,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.instant.ProjectileSpell;
 import com.nisovin.magicspells.util.projectile.ProjectileManager;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
+import com.nisovin.magicspells.util.projectile.ProjectileManagerThrownPotion;
 
 public class ProjectileTracker implements Runnable, Tracker {
 
@@ -140,6 +141,9 @@ public class ProjectileTracker implements Runnable, Tracker {
 		}
 		if (projectile instanceof WitherSkull witherSkull) witherSkull.setCharged(charged);
 		if (projectile instanceof Explosive explosive) explosive.setIsIncendiary(incendiary);
+		if (projectileManager instanceof ProjectileManagerThrownPotion potion) {
+			((ThrownPotion) projectile).setItem(potion.getItem());
+		}
 
 		if (spell != null) {
 			spell.playEffects(EffectPosition.CASTER, startLocation, data);
