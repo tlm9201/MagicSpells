@@ -5,6 +5,7 @@ import de.slikey.effectlib.Effect;
 import net.kyori.adventure.text.Component;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.common.collect.Multimap;
@@ -1664,6 +1665,21 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public boolean isTransparent(Block block) {
 		return losTransparentBlocks.contains(block.getType());
+	}
+
+	public Predicate<Location> isTransparent(SpellData data) {
+		FluidCollisionMode losFluidCollisionMode = this.losFluidCollisionMode.get(data);
+		boolean losIgnorePassableBlocks = this.losIgnorePassableBlocks.get(data);
+
+		return location -> {
+			Block block = location.getBlock();
+			if (losTransparentBlocks.contains(block.getType())) return true;
+
+			// FIXME: Cannot check if block is a source block or not.
+			if (block.isLiquid()) return losFluidCollisionMode == FluidCollisionMode.NEVER;
+
+			return losIgnorePassableBlocks && block.isPassable();
+		};
 	}
 
 	protected void playSpellEffects(SpellData data) {

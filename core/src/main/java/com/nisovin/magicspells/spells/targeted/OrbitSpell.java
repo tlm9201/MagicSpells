@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.function.Predicate;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -181,6 +182,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		private final BoundingBox box;
 		private final Vector currentDirection;
 		private final Location currentLocation;
+		private final Predicate<Location> transparent;
 
 		private final Set<LivingEntity> immune;
 		private final Set<ArmorStand> armorStandSet;
@@ -243,6 +245,8 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			this.data = data;
 
+			transparent = isTransparent(data);
+
 			immune = new HashSet<>();
 
 			entityMap = playSpellEntityEffects(EffectPosition.PROJECTILE, currentLocation, data);
@@ -268,7 +272,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			Location loc = getLocation();
 			data = data.location(loc);
 
-			if (!isTransparent(loc.getBlock())) {
+			if (!transparent.test(loc)) {
 				if (groundSpell != null) groundSpell.subcast(data.noTarget());
 				if (stopOnHitGround) {
 					stop(true);

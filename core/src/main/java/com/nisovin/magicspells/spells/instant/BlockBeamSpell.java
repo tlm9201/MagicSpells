@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.function.Predicate;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -246,6 +247,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 		boolean stopOnHitEntity = this.stopOnHitEntity.get(data);
 		boolean stopOnHitGround = this.stopOnHitGround.get(data);
 
+		Predicate<Location> transparent = isTransparent(data);
 		List<LivingEntity> armorStandList = new ArrayList<>();
 		HashSet<Entity> immune = new HashSet<>();
 		float d = 0;
@@ -267,7 +269,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 			locData = locData.location(loc);
 
 			//check block collision
-			if (!isTransparent(loc.getBlock())) {
+			if (!transparent.test(loc)) {
 				playSpellEffects(EffectPosition.DISABLED, loc, locData);
 				if (groundSpell != null) groundSpell.subcast(locData);
 				if (stopOnHitGround) break;
