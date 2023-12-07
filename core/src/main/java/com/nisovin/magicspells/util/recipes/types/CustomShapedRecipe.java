@@ -8,6 +8,7 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.recipe.CraftingBookCategory;
 
 import com.nisovin.magicspells.util.recipes.CustomRecipe;
 
@@ -15,10 +16,12 @@ public class CustomShapedRecipe extends CustomRecipe {
 
 	private final List<String> shape;
 	private final Map<Character, RecipeChoice> ingredients = new HashMap<>();
+	private final CraftingBookCategory category;
 
 	public CustomShapedRecipe(ConfigurationSection config) {
 		super(config);
 		shape = config.getStringList("shape");
+		category = resolveEnum(CraftingBookCategory.class, "category" , CraftingBookCategory.MISC);
 
 		ConfigurationSection ingredientConfig = config.getConfigurationSection("ingredients");
 		if (ingredientConfig == null) {
@@ -42,6 +45,7 @@ public class CustomShapedRecipe extends CustomRecipe {
 		recipe.setGroup(group);
 		recipe.shape(shape.toArray(new String[0]));
 		ingredients.forEach(recipe::setIngredient);
+		recipe.setCategory(category);
 		return recipe;
 	}
 

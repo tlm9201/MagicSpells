@@ -2,10 +2,9 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.Scoreboard;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -32,13 +31,10 @@ public class OnSameTeamCondition extends Condition {
 	}
 
 	private boolean checkTeam(LivingEntity caster, LivingEntity target) {
-		if (caster instanceof Player c && target instanceof Player t) {
-			ScoreboardManager manager = Bukkit.getScoreboardManager();
-			Team team1 = manager.getMainScoreboard().getEntryTeam(c.getName());
-			Team team2 = manager.getMainScoreboard().getEntryTeam(t.getName());
-			return (team1 != null && team2 != null) && team1.equals(team2);
-		}
-		return false;
+		Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
+		Team team1 = scoreboard.getEntryTeam(caster.getName());
+		Team team2 = scoreboard.getEntryTeam(target.getName());
+		return (team1 != null && team2 != null) && team1.equals(team2);
 	}
 	
 }

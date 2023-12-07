@@ -183,7 +183,9 @@ public class AreaEffectSpell extends TargetedSpell implements TargetedLocationSp
 		if (ignoreRadius) Bukkit.getWorlds().forEach(world -> entities.addAll(world.getLivingEntities()));
 		else entities.addAll(location.getWorld().getNearbyLivingEntities(location, hRadius, vRadius, hRadius));
 
-		if (!circleShape) entities.removeAll(location.getWorld().getNearbyLivingEntities(location, minHRadius, minVRadius, minHRadius));
+		if (!circleShape && (minHRadius != 0 || minVRadius != 0)) {
+			entities.removeAll(location.getWorld().getNearbyLivingEntities(location, minHRadius, minVRadius, minHRadius));
+		}
 
 		if (useProximity) {
 			// check world before distance

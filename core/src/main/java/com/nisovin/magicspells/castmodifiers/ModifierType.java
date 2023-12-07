@@ -23,9 +23,9 @@ import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 import com.nisovin.magicspells.castmodifiers.customdata.CustomDataFloat;
 
 public enum ModifierType {
-	
+
 	REQUIRED(false, "required", "require") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			if (!check) event.setCancelled(true);
@@ -72,9 +72,9 @@ public enum ModifierType {
 		}
 
 	},
-	
+
 	DENIED(false, "denied", "deny") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			if (check) event.setCancelled(true);
@@ -121,9 +121,9 @@ public enum ModifierType {
 		}
 
 	},
-	
+
 	POWER(true, "power", "empower", "multiply") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			if (check) event.increasePower((CustomDataFloat.from(customData, event)));
@@ -192,11 +192,11 @@ public enum ModifierType {
 		public CustomData buildCustomActionData(String text) {
 			return new CustomDataFloat(text);
 		}
-		
+
 	},
-	
+
 	ADD_POWER(true, "addpower", "add") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			if (check) event.setPower(event.getPower() + CustomDataFloat.from(customData, event));
@@ -264,11 +264,11 @@ public enum ModifierType {
 		public CustomData buildCustomActionData(String text) {
 			return new CustomDataFloat(text);
 		}
-		
+
 	},
-	
+
 	COOLDOWN(true, "cooldown") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			if (check) event.setCooldown(CustomDataFloat.from(customData, event));
@@ -314,11 +314,11 @@ public enum ModifierType {
 		public CustomData buildCustomActionData(String text) {
 			return new CustomDataFloat(text);
 		}
-		
+
 	},
-	
+
 	REAGENTS(true, "reagents") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			if (check) event.setReagents(event.getReagents().multiply(CustomDataFloat.from(customData, event)));
@@ -364,11 +364,11 @@ public enum ModifierType {
 		public CustomData buildCustomActionData(String text) {
 			return new CustomDataFloat(text);
 		}
-		
+
 	},
-	
+
 	CAST_TIME(true, "casttime") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			if (check) event.setCastTime((int) CustomDataFloat.from(customData, event));
@@ -414,11 +414,11 @@ public enum ModifierType {
 		public CustomData buildCustomActionData(String text) {
 			return new CustomDataFloat(text);
 		}
-		
+
 	},
-	
+
 	STOP(false, "stop") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			return !check;
@@ -460,9 +460,9 @@ public enum ModifierType {
 		}
 
 	},
-	
+
 	CONTINUE(false, "continue") {
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
 			return check;
@@ -504,7 +504,7 @@ public enum ModifierType {
 		}
 
 	},
-	
+
 	CAST(true, "cast") {
 
 		static class CastData extends CustomData {
@@ -597,7 +597,7 @@ public enum ModifierType {
 		}
 
 	},
-	
+
 	CAST_INSTEAD(true, "castinstead") {
 
 		static class CustomInsteadData extends CustomData {
@@ -701,11 +701,11 @@ public enum ModifierType {
 	},
 
 	VARIABLE_MODIFY(true, "variable") {
-		
+
 		static class VariableModData extends CustomData {
 
 			private String invalidText = "Variable action is invalid.";
-			
+
 			public VariableOwner variableOwner;
 			public Variable variable;
 			public VariableMod mod;
@@ -823,15 +823,15 @@ public enum ModifierType {
 			if (data.variable == null) data.invalidText = "Variable does not exist.";
 			return data;
 		}
-		
+
 	},
-	
+
 	STRING(true, "string") {
-		
+
 		static class StringData extends CustomData {
 
 			public String invalidText;
-			
+
 			public Variable variable;
 			public String value;
 
@@ -846,49 +846,51 @@ public enum ModifierType {
 			}
 
 		}
-		
-		private void setVariable(Player player, StringData data) {
-			data.variable.parseAndSet(player, data.value);
+
+		private void setVariable(CustomData customData, SpellData spellData) {
+			if (!customData.isValid()) return;
+			StringData data = (StringData) customData;
+
+			if (!(spellData.caster() instanceof Player caster)) return;
+
+			String value = MagicSpells.doReplacements(data.value, spellData);
+			MagicSpells.getVariableManager().set(data.variable, caster.getName(), value);
 		}
-		
+
 		@Override
 		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
-			if (!(event.getCaster() instanceof Player caster)) return false;
-			if (check) setVariable(caster, (StringData) customData);
+			if (check) setVariable(customData, event.getSpellData());
 			return true;
 		}
-		
+
 		@Override
 		public boolean apply(ManaChangeEvent event, boolean check, CustomData customData) {
-			if (check) setVariable(event.getPlayer(), (StringData) customData);
+			if (check) setVariable(customData, new SpellData(event.getPlayer()));
 			return true;
 		}
-		
+
 		@Override
 		public boolean apply(SpellTargetEvent event, boolean check, CustomData customData) {
-			if (!(event.getCaster() instanceof Player caster)) return false;
-			if (check) setVariable(caster, (StringData) customData);
+			if (check) setVariable(customData, event.getSpellData());
 			return true;
 		}
-		
+
 		@Override
 		public boolean apply(SpellTargetLocationEvent event, boolean check, CustomData customData) {
-			if (!(event.getCaster() instanceof Player caster)) return false;
-			if (check) setVariable(caster, (StringData) customData);
+			if (check) setVariable(customData, event.getSpellData());
 			return true;
 		}
-		
+
 		@Override
 		public boolean apply(MagicSpellsGenericPlayerEvent event, boolean check, CustomData customData) {
-			if (check) setVariable(event.getPlayer(), (StringData) customData);
+			if (check) setVariable(customData, new SpellData(event.getPlayer()));
 			return true;
 		}
 
 		@Override
 		public ModifierResult apply(LivingEntity caster, ModifierResult result, CustomData customData) {
-			if (!(caster instanceof Player player)) return result.check() ? new ModifierResult(result.data(), false) : result;
 			if (result.check()) {
-				setVariable(player, (StringData) customData);
+				setVariable(customData, result.data());
 				return result;
 			}
 			return new ModifierResult(result.data(), true);
@@ -896,9 +898,8 @@ public enum ModifierType {
 
 		@Override
 		public ModifierResult apply(LivingEntity caster, LivingEntity target, ModifierResult result, CustomData customData) {
-			if (!(caster instanceof Player player)) return result.check() ? new ModifierResult(result.data(), false) : result;
 			if (result.check()) {
-				setVariable(player, (StringData) customData);
+				setVariable(customData, result.data());
 				return result;
 			}
 			return new ModifierResult(result.data(), true);
@@ -906,9 +907,8 @@ public enum ModifierType {
 
 		@Override
 		public ModifierResult apply(LivingEntity caster, Location target, ModifierResult result, CustomData customData) {
-			if (!(caster instanceof Player player)) return result.check() ? new ModifierResult(result.data(), false) : result;
 			if (result.check()) {
-				setVariable(player, (StringData) customData);
+				setVariable(customData, result.data());
 				return result;
 			}
 			return new ModifierResult(result.data(), true);
@@ -921,32 +921,32 @@ public enum ModifierType {
 				data.invalidText = "Data is invalid.";
 				return data;
 			}
-			
+
 			String[] splits = text.split(" ", 2);
 			data.variable = MagicSpells.getVariableManager().getVariable(splits[0]);
 			if (data.variable == null) data.invalidText = "Variable does not exist.";
 			data.value = splits[1];
 			return data;
 		}
-		
+
 	}
-	
+
 	;
-	
+
 	private final String[] keys;
 	private static boolean initialized = false;
-	
+
 	private final boolean usesCustomData;
-	
+
 	ModifierType(boolean usesCustomData, String... keys) {
 		this.keys = keys;
 		this.usesCustomData = usesCustomData;
 	}
-	
+
 	public boolean usesCustomData() {
 		return usesCustomData;
 	}
-	
+
 	public abstract boolean apply(SpellCastEvent event, boolean check, CustomData customData);
 	public abstract boolean apply(ManaChangeEvent event, boolean check, CustomData customData);
 	public abstract boolean apply(SpellTargetEvent event, boolean check, CustomData customData);
@@ -960,9 +960,9 @@ public enum ModifierType {
 	public CustomData buildCustomActionData(String text) {
 		return null;
 	}
-	
+
 	static Map<String, ModifierType> nameMap;
-	
+
 	static void initialize() {
 		nameMap = new HashMap<>();
 		for (ModifierType type : ModifierType.values()) {
@@ -972,10 +972,10 @@ public enum ModifierType {
 		}
 		initialized = true;
 	}
-	
+
 	public static ModifierType getModifierTypeByName(String name) {
 		if (!initialized) initialize();
 		return nameMap.get(name.toLowerCase());
 	}
-	
+
 }

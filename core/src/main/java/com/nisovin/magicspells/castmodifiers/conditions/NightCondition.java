@@ -28,8 +28,7 @@ public class NightCondition extends Condition {
 	}
 
 	private boolean night(Location location) {
-		long time = location.getWorld().getTime();
-		return time > 13000 && time < 23000;
+		return !location.getWorld().isDayTime();
 	}
 	
 }

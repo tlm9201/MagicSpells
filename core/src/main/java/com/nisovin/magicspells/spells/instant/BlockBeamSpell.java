@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.ArrayList;
 
-import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
@@ -84,11 +83,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 		String item = getConfigString("block-type", "stone");
 		MagicItem magicItem = MagicItems.getMagicItemFromString(item);
 		if (magicItem != null && magicItem.getItemStack() != null) headItem = magicItem.getItemStack();
-		else {
-			Material material = Util.getMaterial(item);
-			if (material != null && material.isBlock()) headItem = new ItemStack(material);
-			else MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid block-type defined!");
-		}
+		else MagicSpells.error("BlockBeamSpell '" + internalName + "' has an invalid 'block-type' defined!");
 
 		relativeOffset = getConfigDataVector("relative-offset", new Vector(0, 0.5, 0));
 		targetRelativeOffset = getConfigDataVector("target-relative-offset", new Vector(0, 0.5, 0));

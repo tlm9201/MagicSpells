@@ -50,7 +50,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	public MenuSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		title = getConfigDataComponent("title", Component.text("Window Title" + spellName));
+		title = getConfigDataComponent("title", Component.text("Window Title " + spellName));
 		delay = getConfigDataInt("delay", 0);
 		filler = createItem("filler");
 		stayOpenNonOption = getConfigDataBoolean("stay-open-non-option", false);
