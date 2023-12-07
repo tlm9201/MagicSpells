@@ -1,12 +1,15 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import java.util.Set;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
+import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.block.data.BlockData;
 
-import com.nisovin.magicspells.util.BlockUtils;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class LookingAtBlockCondition extends Condition {
@@ -53,10 +56,13 @@ public class LookingAtBlockCondition extends Condition {
 	}
 
 	private boolean lookingAt(LivingEntity target) {
-		Block block = BlockUtils.getTargetBlock(null, target, dist);
-		if (block == null) return false;
+		Set<Material> transparent = MagicSpells.getTransparentBlocks();
+		Location location = target.getEyeLocation();
 
-		return block.getBlockData().matches(blockData);
+		RayTraceResult result = location.getWorld().rayTraceBlocks(location, location.getDirection(), dist, MagicSpells.getFluidCollisionMode(), MagicSpells.isIgnoringPassableBlocks(), block -> !transparent.contains(block.getType()));
+		if (result == null) return false;
+
+		return result.getHitBlock().getBlockData().matches(blockData);
 	}
 
 }

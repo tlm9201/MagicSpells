@@ -18,11 +18,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.RayTraceResult;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.BuffSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.MagicSpellsBlockBreakEvent;
 import com.nisovin.magicspells.events.MagicSpellsBlockPlaceEvent;
@@ -96,11 +97,11 @@ public class ReachSpell extends BuffSpell {
 		players.clear();
 	}
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		if (!isActive(event.getPlayer())) return;
 		Player player = event.getPlayer();
-		
+
 		if (isExpired(player)) {
 			turnOff(player);
 			return;
@@ -110,71 +111,66 @@ public class ReachSpell extends BuffSpell {
 
 		// Get targeted block
 		Action action = event.getAction();
-		List<Block> targets = getLastTwoTargetedBlocks(data.spellData);
+		RayTraceResult result = rayTraceBlocks(data.spellData);
+		if (result == null) return;
 
-		Block airBlock;
-		Block targetBlock;
-		if (targets == null) return;
-		if (targets.size() != 2) return;
+		Block targetBlock = result.getHitBlock();
+		Block airBlock = result.getHitBlock().getRelative(result.getHitBlockFace());
 
-		airBlock = targets.get(0);
-		targetBlock = targets.get(1);
-		if ((action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) && !BlockUtils.isAir(targetBlock.getType())) {
+		if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
 			// Break
-			
+
 			// Check for disallowed
 			if (disallowedBreakBlocks.contains(targetBlock.getType())) return;
-			
-			// Call break event
+
 			MagicSpellsBlockBreakEvent evt = new MagicSpellsBlockBreakEvent(targetBlock, player);
-			EventUtil.call(evt);
-			if (evt.isCancelled()) return;
+			if (!evt.callEvent()) return;
+
 			// Remove block
-			if (Effect.STEP_SOUND.getData() == Material.class) targetBlock.getWorld().playEffect(targetBlock.getLocation(), Effect.STEP_SOUND, targetBlock.getType());
-			else targetBlock.getWorld().playEffect(targetBlock.getLocation(), Effect.STEP_SOUND, targetBlock.getBlockData());
-			// Drop item
-			if (data.dropBlocks && player.getGameMode() == GameMode.SURVIVAL) targetBlock.breakNaturally();
-			else targetBlock.setType(Material.AIR);
+			targetBlock.getWorld().playEffect(targetBlock.getLocation(), Effect.STEP_SOUND, targetBlock.getBlockData());
+
+			if (!data.dropBlocks) targetBlock.setType(Material.AIR);
+			else {
+				GameMode mode = player.getGameMode();
+				if (mode == GameMode.SURVIVAL || mode == GameMode.ADVENTURE) targetBlock.breakNaturally();
+			}
+
 			addUseAndChargeCost(player);
-
-		} else if ((action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) && !BlockUtils.isAir(targetBlock.getType())) {
+		} else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK && airBlock.getType().isAir()) {
 			// Place
-			
-			// Check for block in hand
-			ItemStack inHand = player.getEquipment().getItemInMainHand();
-			if (inHand.getType() != Material.AIR && inHand.getType().isBlock()) {
-				
-				// Check for disallowed
-				if (disallowedPlaceBlocks.contains(inHand.getType())) return;
-				
-				BlockState prevState = airBlock.getState();
-				
-				// Place block
-				BlockState state = airBlock.getState();
-				state.setType(inHand.getType());
-				state.setData(inHand.getData());
-				state.update(true);
-				
-				// Call event
-				MagicSpellsBlockPlaceEvent evt = new MagicSpellsBlockPlaceEvent(airBlock, prevState, targetBlock, inHand, player, true);
-				EventUtil.call(evt);
-				if (evt.isCancelled()) {
-					// Cancelled, revert
-					prevState.update(true);
-					return;
-				}
-				// Remove item from hand
-				if (data.consumeBlocks && player.getGameMode() != GameMode.CREATIVE) {
-					if (inHand.getAmount() > 1) {
-						inHand.setAmount(inHand.getAmount() - 1);
-						player.getEquipment().setItemInMainHand(inHand);
-					} else {
-						player.getEquipment().setItemInMainHand(null);
-					}
+			ItemStack item = player.getInventory().getItemInMainHand();
+			if (item.isEmpty()) return;
 
-					addUseAndChargeCost(player);
-					event.setCancelled(true);
+			// Check for block in hand and for disallowed
+			Material type = item.getType();
+			if (!type.isBlock() || disallowedPlaceBlocks.contains(type)) return;
+
+			// Place block
+			BlockData blockData = type.createBlockData();
+			if (!airBlock.canPlace(blockData)) return;
+
+			BlockState oldState = airBlock.getState();
+			airBlock.setBlockData(blockData);
+
+			// Call event
+			MagicSpellsBlockPlaceEvent evt = new MagicSpellsBlockPlaceEvent(airBlock, oldState, targetBlock, item, player, true);
+			if (!evt.callEvent()) {
+				// Cancelled, revert
+				oldState.update(true);
+				return;
+			}
+
+			// Remove item from hand
+			if (data.consumeBlocks && player.getGameMode() != GameMode.CREATIVE) {
+				if (item.getAmount() > 1) {
+					item.setAmount(item.getAmount() - 1);
+					player.getEquipment().setItemInMainHand(item);
+				} else {
+					player.getEquipment().setItemInMainHand(null);
 				}
+
+				addUseAndChargeCost(player);
+				event.setCancelled(true);
 			}
 		}
 	}

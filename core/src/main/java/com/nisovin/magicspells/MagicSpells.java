@@ -25,12 +25,9 @@ import org.jetbrains.annotations.NotNull;
 
 import co.aikar.commands.PaperCommandManager;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.ChatColor;
+import org.bukkit.*;
 import org.bukkit.event.Event;
 import org.bukkit.entity.Player;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.event.Listener;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
@@ -195,6 +192,10 @@ public class MagicSpells extends JavaPlugin {
 
 	private ChatColor textColor;
 
+	private double losRaySize;
+	private boolean losIgnorePassableBlocks;
+	private FluidCollisionMode losFluidCollisionMode;
+
 	// Strings
 	private String strCantCast;
 	private String strCantBind;
@@ -318,6 +319,13 @@ public class MagicSpells extends JavaPlugin {
 			losTransparentBlocks.add(Material.AIR);
 			losTransparentBlocks.add(Material.VOID_AIR);
 			losTransparentBlocks.add(Material.CAVE_AIR);
+		}
+		losRaySize = config.getDouble(path + "los-ray-size", 0.2);
+		losIgnorePassableBlocks = config.getBoolean(path + "los-ignore-passable-blocks", true);
+		try {
+			losFluidCollisionMode = FluidCollisionMode.valueOf(config.getString(path + "los-fluid-collision-mode", "ALWAYS").toUpperCase());
+		} catch (IllegalArgumentException e) {
+			losFluidCollisionMode = FluidCollisionMode.ALWAYS;
 		}
 		globalRadius = config.getInt(path + "global-radius", 500);
 		globalCooldown = config.getInt(path + "global-cooldown", 500);
@@ -962,6 +970,18 @@ public class MagicSpells extends JavaPlugin {
 	 */
 	public static Set<Material> getTransparentBlocks() {
 		return plugin.losTransparentBlocks;
+	}
+
+	public static double getLosRaySize() {
+		return plugin.losRaySize;
+	}
+
+	public static boolean isIgnoringPassableBlocks() {
+		return plugin.losIgnorePassableBlocks;
+	}
+
+	public static FluidCollisionMode getFluidCollisionMode() {
+		return plugin.losFluidCollisionMode;
 	}
 
 	/**

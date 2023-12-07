@@ -11,6 +11,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.RayTraceResult;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
@@ -78,11 +79,11 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 		ItemStack item = player.getInventory().getItem(slot);
 		if (item == null || isDenied(item.getType())) return noTarget(strInvalidBlock, data);
 
-		List<Block> blocks = getLastTwoTargetedBlocks(data);
-		if (blocks.size() != 2 || blocks.get(1).getType().isAir()) return noTarget(strCantBuild, data);
+		RayTraceResult result = rayTraceBlocks(data);
+		if (result == null) return noTarget(strCantBuild, data);
 
-		Block block = blocks.get(0);
-		Block against = blocks.get(1);
+		Block against = result.getHitBlock();
+		Block block = against.getRelative(result.getHitBlockFace());
 		data = data.location(block.getLocation());
 
 		boolean built = build(player, block, against, item, slot, data);
@@ -121,10 +122,7 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 			}
 		}
 
-		if (playBreakEffect.get(data)) {
-			if (Effect.STEP_SOUND.getData() == Material.class) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getType());
-			else block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
-		}
+		if (playBreakEffect.get(data)) block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, block.getBlockData());
 
 		if (consumeBlock.get(data)) {
 			int amt = item.getAmount() - 1;

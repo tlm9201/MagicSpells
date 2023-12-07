@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.EntityEquipment;
@@ -276,9 +277,10 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 					data = targetEvent.getSpellData();
 				}
 				case "target" -> {
-					Block block = getTargetedBlock(data);
-					if (block.getType().isAir()) return noTarget(data);
+					RayTraceResult result = rayTraceBlocks(data);
+					if (result == null) return noTarget(data);
 
+					Block block = result.getHitBlock();
 					if (!block.isPassable()) {
 						Block upper = block.getRelative(BlockFace.UP);
 						if (!upper.isPassable()) return noTarget(data);

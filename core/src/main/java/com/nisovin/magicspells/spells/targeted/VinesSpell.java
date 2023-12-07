@@ -1,13 +1,13 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Set;
-import java.util.List;
 import java.util.TreeSet;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.block.data.MultipleFacing;
 
 import com.nisovin.magicspells.util.*;
@@ -32,11 +32,14 @@ public class VinesSpell extends TargetedSpell {
 
 	@Override
 	public CastResult cast(SpellData data) {
-		List<Block> target = getLastTwoTargetedBlocks(data);
-		if (target.size() != 2) return noTarget(data);
+		RayTraceResult result = rayTraceBlocks(data);
+		if (result == null) return noTarget(data);
 
-		Block air = target.get(0), solid = target.get(1);
-		if (!air.getType().isAir() || !solid.isSolid()) return noTarget(data);
+		Block solid = result.getHitBlock();
+		if (!solid.isSolid()) return noTarget(data);
+
+		Block air = solid.getRelative(result.getHitBlockFace());
+		if (!air.getType().isAir()) return noTarget(data);
 
 		return growVines(data, air, solid);
 	}

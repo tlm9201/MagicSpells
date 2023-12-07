@@ -97,29 +97,10 @@ ignore-cast-item-durability:
 check-world-pvp-flag: true
 check-scoreboard-teams: false
 show-str-cost-on-missing-reagents: true
-los-transparent-blocks:
-    - "air"
-    - "cave_air"
-    - "void_air"
-    - "powered_rail"
-    - "detector_rail"
-    - "grass"
-    - "fern"
-    - "dead_bush"
-    - "dandelion"
-    - "poppy"
-    - "brown_mushroom"
-    - "red_mushroom"
-    - "torch"
-    - "fire"
-    - "redstone_wire"
-    - "ladder"
-    - "rail"
-    - "lever"
-    - "redstone_torch"
-    - "repeater"
-    - "vine"
-    - "lily_pad"
+los-transparent-blocks: []
+los-ray-size: 0.2
+los-ignore-passable-blocks: true
+los-fluid-collision-mode: always
 global-radius: 500
 global-cooldown: 500
 cast-on-animate: false

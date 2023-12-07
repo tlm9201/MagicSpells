@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spells.instant;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.function.Predicate;
 
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
@@ -228,6 +229,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		boolean stopOnHitEntity = this.stopOnHitEntity.get(data);
 		boolean stopOnHitGround = this.stopOnHitGround.get(data);
 
+		Predicate<Location> transparent = isTransparent(data);
 		Set<Entity> immune = new HashSet<>();
 		float d = 0;
 
@@ -249,7 +251,7 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			if (zoneManager.willFizzle(loc, this)) break;
 
 			//check block collision
-			if (!isTransparent(loc.getBlock())) {
+			if (!transparent.test(loc)) {
 				playSpellEffects(EffectPosition.DISABLED, loc, locData);
 				if (groundSpell != null) groundSpell.subcast(locData);
 				if (stopOnHitGround) break;
