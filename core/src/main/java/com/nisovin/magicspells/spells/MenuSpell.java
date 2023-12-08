@@ -15,6 +15,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import net.kyori.adventure.text.Component;
@@ -325,6 +326,22 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			MenuInventory newMenu = new MenuInventory(menu.data, menu.targetOpensMenuInstead);
 			applyOptionsToInventory(player, newMenu);
 			player.openInventory(newMenu.getInventory());
+		}
+	}
+
+	@EventHandler
+	public void onInvDrag(InventoryDragEvent event) {
+		InventoryView view = event.getView();
+
+		Inventory inventory = view.getTopInventory();
+		if (!(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+
+		int size = inventory.getSize();
+		for (int slot : event.getRawSlots()) {
+		    if (slot < size) {
+				event.setCancelled(true);
+				return;
+			}
 		}
 	}
 
