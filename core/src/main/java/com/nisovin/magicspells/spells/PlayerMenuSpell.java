@@ -20,6 +20,7 @@ import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import com.nisovin.magicspells.util.*;
@@ -323,6 +324,22 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		else {
 			opener.closeInventory();
 			playSpellEffects(EffectPosition.DISABLED, opener, menu.data);
+		}
+	}
+
+	@EventHandler
+	public void onInvDrag(InventoryDragEvent event) {
+		InventoryView view = event.getView();
+
+		Inventory inventory = view.getTopInventory();
+		if (!(inventory.getHolder() instanceof PlayerMenuInventory menu) || menu.getSpell() != this) return;
+
+		int size = inventory.getSize();
+		for (int slot : event.getRawSlots()) {
+			if (slot < size) {
+				event.setCancelled(true);
+				return;
+			}
 		}
 	}
 
