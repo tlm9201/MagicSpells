@@ -12,6 +12,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -166,165 +168,56 @@ public class CastItem {
 	public String toString() {
 		if (type == null) return "";
 
-		StringBuilder output = new StringBuilder();
-		boolean previous = false;
+		JsonObject castItem = new JsonObject();
 
-		output.append(type.name());
+		if (!MagicSpells.ignoreCastItemNames() && name != null)
+			castItem.addProperty("name", Util.getLegacyFromMiniMessage(name));
 
-		if (!MagicSpells.ignoreCastItemNames() && name != null) {
-			output.append("{");
+		if (!MagicSpells.ignoreCastItemAmount())
+			castItem.addProperty("amount", amount);
 
-			output
-				.append("\"name\":\"")
-				.append(TxtUtil.escapeJSON(Util.getLegacyFromMiniMessage(name)))
-				.append('"');
+		if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type))
+			castItem.addProperty("durability", durability);
 
-			previous = true;
-		}
+		if (!MagicSpells.ignoreCastItemCustomModelData())
+			castItem.addProperty("custommodeldata", customModelData);
 
-		if (!MagicSpells.ignoreCastItemAmount()) {
-			if (previous) output.append(',');
-			else output.append("{");
+		if (!MagicSpells.ignoreCastItemBreakability())
+			castItem.addProperty("unbreakable", unbreakable);
 
-			output
-				.append("\"amount\":")
-				.append(amount);
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) {
-			if (previous) output.append(',');
-			else output.append("{");
-
-			output
-				.append("\"durability\":")
-				.append(durability);
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemCustomModelData()) {
-			if (previous) output.append(',');
-			else output.append("{");
-
-			output
-				.append("\"custommodeldata\":")
-				.append(customModelData);
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemBreakability()) {
-			if (previous) output.append(',');
-
-			output
-				.append("\"unbreakable\":")
-				.append(unbreakable);
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemColor() && color != null) {
-			if (previous) output.append(',');
-            else output.append("{");
-
-			String hex = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-
-			output
-				.append("\"color\":\"")
-				.append(hex)
-				.append('"');
-
-			previous = true;
-		}
+		if (!MagicSpells.ignoreCastItemColor() && color != null)
+			castItem.addProperty("color", Integer.toHexString(color.asRGB()));
 
 		if (!MagicSpells.ignoreCastItemPotionType() && potionData != null) {
-			if (previous) output.append(',');
-            else output.append("{");
+			String potionDataString = potionData.getType().toString();
+			if (potionData.isExtended()) potionDataString += " extended";
+			else if (potionData.isUpgraded()) potionDataString += " upgraded";
 
-			output
-				.append("\"potiondata\":\"")
-				.append(potionData.getType());
-
-			if (potionData.isExtended()) output.append(" extended");
-			else if (potionData.isUpgraded()) output.append(" upgraded");
-
-			output.append('"');
-
-			previous = true;
+			castItem.addProperty("potiondata", potionDataString);
 		}
 
-		if (!MagicSpells.ignoreCastItemTitle() && title != null) {
-			if (previous) output.append(',');
-            else output.append("{");
+		if (!MagicSpells.ignoreCastItemTitle() && title != null)
+			castItem.addProperty("title", title);
 
-			output
-				.append("\"title\":\"")
-				.append(TxtUtil.escapeJSON(title))
-				.append('"');
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemAuthor() && author != null) {
-			if (previous) output.append(',');
-            else output.append("{");
-
-			output
-				.append("\"author\":\"")
-				.append(TxtUtil.escapeJSON(author))
-				.append('"');
-
-			previous = true;
-		}
+		if (!MagicSpells.ignoreCastItemAuthor() && author != null)
+			castItem.addProperty("author", author);
 
 		if (!MagicSpells.ignoreCastItemEnchants() && enchants != null) {
-			if (previous) output.append(',');
-            else output.append("{");
+			JsonObject enchantsObject = new JsonObject();
+			for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet())
+				enchantsObject.addProperty(entry.getKey().getKey().getKey(), entry.getValue());
 
-			boolean previousEnchantment = false;
-			output.append("\"enchants\":{");
-			for (Enchantment enchant : enchants.keySet()) {
-				if (previousEnchantment) output.append(',');
-
-				output
-					.append('"')
-					.append(enchant.getKey().getKey())
-					.append("\":")
-					.append(enchants.get(enchant));
-
-				previousEnchantment = true;
-			}
-			output.append('}');
-
-			previous = true;
+			castItem.add("enchants", enchantsObject);
 		}
 
 		if (!MagicSpells.ignoreCastItemLore() && lore != null) {
-			if (previous) output.append(',');
-            else output.append("{");
+			JsonArray loreArray = new JsonArray(lore.size());
+			for (String line : lore) loreArray.add(Util.getLegacyFromMiniMessage(line));
 
-			boolean previousLore = false;
-			output.append("\"lore\":[");
-			for (String line : lore) {
-				if (previousLore) output.append(',');
-
-				output
-					.append('"')
-					.append(TxtUtil.escapeJSON(Util.getLegacyFromMiniMessage(line)))
-					.append('"');
-
-				previousLore = true;
-			}
-
-			output.append(']');
-			previous = true;
+			castItem.add("lore", loreArray);
 		}
 
-		if (previous) output.append("}");
-
-		return output.toString();
+		return type.getKey().getKey() + castItem;
 	}
 
 }

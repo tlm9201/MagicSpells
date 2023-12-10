@@ -188,16 +188,13 @@ public class MagicItemDataParser {
 						case "firework_effect":
 							String[] effectString = value.getAsString().split(" ");
 
-							if (effectString.length >= 4) {
+							if (effectString.length >= 3 && effectString.length <= 5) {
 								try {
 									FireworkEffect.Type fireworkType = FireworkEffect.Type.valueOf(effectString[0].toUpperCase());
 									boolean trail = Boolean.parseBoolean(effectString[1]);
 									boolean flicker = Boolean.parseBoolean(effectString[2]);
-									Color[] colors = Util.getColorsFromString(effectString[3]);
-									Color[] fadeColors = null;
-
-									if (effectString.length > 4) fadeColors = Util.getColorsFromString(effectString[4]);
-									if (fadeColors == null) fadeColors = new Color[0];
+									Color[] colors = effectString.length > 3 ? Util.getColorsFromString(effectString[3]) : new Color[0];
+									Color[] fadeColors = effectString.length > 4 ? Util.getColorsFromString(effectString[4]) : new Color[0];
 
 									FireworkEffect effect = FireworkEffect.builder()
 										.flicker(flicker)
@@ -389,16 +386,13 @@ public class MagicItemDataParser {
 							for (JsonElement eff : fireworkEffectStrings) {
 								String[] effString = eff.getAsString().split(" ");
 
-								if (effString.length == 4 || effString.length == 5) {
+								if (effString.length >= 3 && effString.length <= 5) {
 									try {
 										FireworkEffect.Type fireworkType = FireworkEffect.Type.valueOf(effString[0].toUpperCase());
 										boolean trail = Boolean.parseBoolean(effString[1]);
 										boolean flicker = Boolean.parseBoolean(effString[2]);
-										Color[] colors = Util.getColorsFromString(effString[3]);
-										Color[] fadeColors = null;
-
-										if (effString.length > 4) fadeColors = Util.getColorsFromString(effString[4]);
-										if (fadeColors == null) fadeColors = new Color[0];
+										Color[] colors = effString.length > 3 ? Util.getColorsFromString(effString[3]) : new Color[0];
+										Color[] fadeColors = effString.length > 4 ? Util.getColorsFromString(effString[4]) : new Color[0];
 
 										FireworkEffect effect = FireworkEffect.builder()
 											.flicker(flicker)
