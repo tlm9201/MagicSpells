@@ -58,6 +58,10 @@ public class ItemSerializeSpell extends CommandSpell {
 		}
 
 		ConfigurationSection section = AlternativeReaderManager.serialize(serializerKey.get(data), item);
+		if (section == null) {
+			sendMessage("Unable to serialize item.", caster);
+			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		}
 
 		YamlConfiguration config = new YamlConfiguration();
 		config.set("magic-items." + System.currentTimeMillis(), section);
