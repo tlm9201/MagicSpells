@@ -555,7 +555,7 @@ public class MagicCommand extends BaseCommand {
 		if (player == null) player = getPlayerFromIssuer(issuer);
 		if (player == null) return;
 
-		ItemStack item = magicItem.getItemStack();
+		ItemStack item = magicItem.getItemStack().clone();
 		item.setAmount(amount);
 		player.getInventory().addItem(item);
 		issuer.sendMessage(MagicSpells.getTextColor() + player.getName() + " received a magic item (" + args[0] + " x" + amount + ").");
