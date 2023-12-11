@@ -416,7 +416,7 @@ public class MagicItemDataParser {
 						case "ignored-attributes":
 						case "ignored_attributes":
 							if (!value.isJsonArray()) continue;
-							EnumSet<MagicItemAttribute> ignoredAttributes = data.getIgnoredAttributes();
+							Set<MagicItemAttribute> ignoredAttributes = data.getIgnoredAttributes();
 							JsonArray ignoredAttributeStrings = value.getAsJsonArray();
 
 							for (JsonElement element : ignoredAttributeStrings) {
@@ -432,7 +432,7 @@ public class MagicItemDataParser {
 						case "blacklisted-attributes":
 						case "blacklisted_attributes":
 							if (!value.isJsonArray()) continue;
-							EnumSet<MagicItemAttribute> blacklistedAttributes = data.getBlacklistedAttributes();
+							Set<MagicItemAttribute> blacklistedAttributes = data.getBlacklistedAttributes();
 							JsonArray blacklistedAttributeStrings = value.getAsJsonArray();
 
 							for (JsonElement element : blacklistedAttributeStrings) {

@@ -26,13 +26,12 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.attribute.AttributeModifier;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.TxtUtil;
 
 public class MagicItemData {
 
-	private final EnumMap<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
-	private final EnumSet<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
-	private final EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+	private final Map<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
+	private final Set<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+	private final Set<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
 
 	private boolean strictEnchantLevel = true;
 	private boolean strictDurability = true;
@@ -58,11 +57,11 @@ public class MagicItemData {
 		return itemAttributes.containsKey(atr);
 	}
 
-	public EnumSet<MagicItemAttribute> getBlacklistedAttributes() {
+	public Set<MagicItemAttribute> getBlacklistedAttributes() {
 		return blacklistedAttributes;
 	}
 
-	public EnumSet<MagicItemAttribute> getIgnoredAttributes() {
+	public Set<MagicItemAttribute> getIgnoredAttributes() {
 		return ignoredAttributes;
 	}
 
