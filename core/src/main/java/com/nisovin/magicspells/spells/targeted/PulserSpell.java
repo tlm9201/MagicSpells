@@ -118,10 +118,13 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		int yOffset = this.yOffset.get(data);
 		if (yOffset != 0) block = block.getRelative(0, yOffset, 0);
-		if (!block.isPassable()) {
+
+		BlockData blockType = this.blockType.get(data);
+
+		if (!block.canPlace(blockType) || !block.isReplaceable()) {
 			if (checkFace.get(data)) {
 				Block upper = block.getRelative(BlockFace.UP);
-				if (!upper.isPassable()) return noTarget(data);
+				if (!upper.canPlace(blockType) || !block.isReplaceable()) return noTarget(data);
 				block = upper;
 			} else return noTarget(data);
 		}
@@ -136,8 +139,11 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		block = event.getTargetLocation().getBlock();
 		data = event.getSpellData();
 
-		createPulser(block, data);
+		block.setBlockData(blockType);
+		pulsers.put(block, new Pulser(block, blockType.getMaterial(), data));
+		ticker.start();
 
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
@@ -159,10 +165,12 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		int yOffset = this.yOffset.get(data);
 		if (yOffset != 0) block = block.getRelative(0, yOffset, 0);
 
-		if (!block.isPassable()) {
+		BlockData blockType = this.blockType.get(data);
+
+		if (!block.canPlace(blockType) || !block.isReplaceable()) {
 			if (checkFace.get(data)) {
 				Block upper = block.getRelative(BlockFace.UP);
-				if (!upper.isPassable()) return noTarget(data);
+				if (!upper.canPlace(blockType) || !block.isReplaceable()) return noTarget(data);
 				block = upper;
 			} else return noTarget(data);
 		}
@@ -171,21 +179,14 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		location = block.getLocation().toCenterLocation();
 		location.setPitch(pitch);
 		location.setYaw(yaw);
-
 		data = data.location(location);
-		createPulser(block, data);
 
-		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
-	}
-
-	private void createPulser(Block block, SpellData data) {
-		BlockData blockType = this.blockType.get(data);
 		block.setBlockData(blockType);
-
 		pulsers.put(block, new Pulser(block, blockType.getMaterial(), data));
 		ticker.start();
 
 		playSpellEffects(data);
+		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
