@@ -344,7 +344,11 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 						preferredItem = inv.getItem(preferredSlot);
 					}
 
-					if (offhand) player.getEquipment().setItemInOffHand(item);
+					if (offhand) {
+						player.getEquipment().setItemInOffHand(item);
+						added = true;
+						updateInv = true;
+					}
 					else if (requiredSlot >= 0) {
 						ItemStack old = inv.getItem(requiredSlot);
 						if (old != null && item.isSimilar(old)) item.setAmount(item.getAmount() + old.getAmount());

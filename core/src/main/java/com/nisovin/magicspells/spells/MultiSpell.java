@@ -85,12 +85,12 @@ public final class MultiSpell extends InstantSpell {
 
 				double index = random.nextDouble(total);
 				Action action = null;
-				double s = 0;
+				double subChance = 0;
 				for (ActionChance actionChance : actions) {
-					s += actionChance.chance;
+					subChance += actionChance.chance;
 
-					if (s > index) break;
-					else action = actionChance.action;
+					action = actionChance.action;
+					if (subChance > index) break;
 				}
 
 				if (action != null && action.isSpell()) action.getSpell().subcast(data);
@@ -137,12 +137,12 @@ public final class MultiSpell extends InstantSpell {
 
 				double index = random.nextDouble(total);
 				Action action = null;
-				double s = 0;
+				double subChance = 0;
 				for (ActionChance actionChance : actions) {
-					s += actionChance.chance;
+					subChance += actionChance.chance;
 
-					if (s > index) break;
-					else action = actionChance.action;
+					action = actionChance.action;
+					if (subChance > index) break;
 				}
 
 				if (action != null && action.isSpell()) action.getSpell().getSpell().castFromConsole(sender, args);
