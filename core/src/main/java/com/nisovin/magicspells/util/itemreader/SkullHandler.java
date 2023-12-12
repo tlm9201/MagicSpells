@@ -74,14 +74,7 @@ public class SkullHandler {
 		if (data.hasAttribute(SKULL_OWNER)) skullOwner = (String) data.getAttribute(SKULL_OWNER);
 		if (data.hasAttribute(SIGNATURE)) signature = (String) data.getAttribute(SIGNATURE);
 		if (data.hasAttribute(TEXTURE)) texture = (String) data.getAttribute(TEXTURE);
-
-		if (data.hasAttribute(MagicItemAttribute.UUID)) {
-			try {
-				uuid = UUID.fromString((String) data.getAttribute(MagicItemAttribute.UUID));
-			} catch (IllegalArgumentException e) {
-				DebugHandler.debugIllegalArgumentException(e);
-			}
-		}
+		if (data.hasAttribute(MagicItemAttribute.UUID)) uuid = (UUID) data.getAttribute(MagicItemAttribute.UUID);
 
 		if ((uuid != null || skullOwner != null) && texture != null) {
 			PlayerProfile profile = Bukkit.createProfile(uuid, skullOwner);
@@ -98,7 +91,7 @@ public class SkullHandler {
 		if (profile == null) return;
 
 		UUID id = profile.getId();
-		if (id != null) data.setAttribute(MagicItemAttribute.UUID, id.toString());
+		if (id != null) data.setAttribute(MagicItemAttribute.UUID, id);
 
 		String name = profile.getName();
 		if (name != null) data.setAttribute(SKULL_OWNER, name);

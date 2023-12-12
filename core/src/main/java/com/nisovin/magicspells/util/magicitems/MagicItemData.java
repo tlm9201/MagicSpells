@@ -3,6 +3,7 @@ package com.nisovin.magicspells.util.magicitems;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
+import java.util.UUID;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -16,7 +17,7 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.*;
-import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.block.banner.Pattern;
@@ -162,6 +163,12 @@ public class MagicItemData {
 				case ATTRIBUTES -> {
 					if (!hasEqualAttributes(data)) return false;
 				}
+				case AUTHOR, NAME, TITLE -> {
+					String legacySelf = Util.getLegacyFromComponent((Component) itemAttributes.get(attr));
+					String legacyOther = Util.getLegacyFromComponent((Component) data.itemAttributes.get(attr));
+
+					if (!legacySelf.equals(legacyOther)) return false;
+				}
 				case BLOCK_DATA -> {
 					BlockData blockDataSelf = (BlockData) itemAttributes.get(attr);
 					BlockData blockDataOther = (BlockData) data.itemAttributes.get(attr);
@@ -205,22 +212,17 @@ public class MagicItemData {
 						if (strictEnchantLevel ? compare != 0 : compare > 0) return false;
 					}
 				}
-				case NAME -> {
-					Component nameSelf = (Component) itemAttributes.get(attr);
-					Component nameOther = (Component) data.itemAttributes.get(attr);
-					return Util.getLegacyFromComponent(nameSelf).equals(Util.getLegacyFromComponent(nameOther));
-				}
-				case LORE -> {
-					List<Component> loreSelf = (List<Component>) itemAttributes.get(attr);
-					List<Component> loreOther = (List<Component>) data.itemAttributes.get(attr);
-					if (loreSelf.size() != loreOther.size()) return false;
+				case LORE, PAGES -> {
+					List<Component> componentsSelf = (List<Component>) itemAttributes.get(attr);
+					List<Component> componentsOther = (List<Component>) data.itemAttributes.get(attr);
+					if (componentsSelf.size() != componentsOther.size()) return false;
 
-					for (int i = 0; i < loreSelf.size(); i++) {
-						String self = Util.getLegacyFromComponent(loreSelf.get(i));
-						String other = Util.getLegacyFromComponent(loreOther.get(i));
-						if (!self.equals(other)) return false;
+					for (int i = 0; i < componentsSelf.size(); i++) {
+						String legacySelf = Util.getLegacyFromComponent(componentsSelf.get(i));
+						String legacyOther = Util.getLegacyFromComponent(componentsOther.get(i));
+
+						if (!legacySelf.equals(legacyOther)) return false;
 					}
-					return true;
 				}
 				default -> {
 					if (!itemAttributes.get(attr).equals(data.itemAttributes.get(attr))) return false;
@@ -268,12 +270,12 @@ public class MagicItemData {
 		UNBREAKABLE(Boolean.class),
 		HIDE_TOOLTIP(Boolean.class),
 		FAKE_GLINT(Boolean.class),
-		POTION_DATA(PotionData.class),
+		POTION_TYPE(PotionType.class),
 		COLOR(Color.class),
 		FIREWORK_EFFECT(FireworkEffect.class),
-		TITLE(String.class),
-		AUTHOR(String.class),
-		UUID(String.class),
+		TITLE(Component.class),
+		AUTHOR(Component.class),
+		UUID(UUID.class),
 		TEXTURE(String.class),
 		SIGNATURE(String.class),
 		SKULL_OWNER(String.class),
@@ -338,14 +340,9 @@ public class MagicItemData {
 			magicItem.addProperty("color", Integer.toHexString(color.asRGB()));
 		}
 
-		if (hasAttribute(MagicItemAttribute.POTION_DATA)) {
-			PotionData potionData = (PotionData) getAttribute(MagicItemAttribute.POTION_DATA);
-
-			String potionDataString = potionData.getType().toString();
-			if (potionData.isExtended()) potionDataString += " extended";
-			else if (potionData.isUpgraded()) potionDataString += " upgraded";
-
-			magicItem.addProperty("potion-data", potionDataString);
+		if (hasAttribute(MagicItemAttribute.POTION_TYPE)) {
+			PotionType potionType = (PotionType) getAttribute(MagicItemAttribute.POTION_TYPE);
+			magicItem.addProperty("potion-type", potionType.getKey().getKey());
 		}
 
 		if (hasAttribute(MagicItemAttribute.FIREWORK_EFFECT)) {
@@ -390,13 +387,13 @@ public class MagicItemData {
 			magicItem.addProperty("skull-owner", (String) getAttribute(MagicItemAttribute.SKULL_OWNER));
 
 		if (hasAttribute(MagicItemAttribute.TITLE))
-			magicItem.addProperty("title", (String) getAttribute(MagicItemAttribute.TITLE));
+			magicItem.addProperty("title", Util.getStringFromComponent((Component) getAttribute(MagicItemAttribute.TITLE)));
 
 		if (hasAttribute(MagicItemAttribute.AUTHOR))
-			magicItem.addProperty("author", (String) getAttribute(MagicItemAttribute.AUTHOR));
+			magicItem.addProperty("author", Util.getStringFromComponent((Component) getAttribute(MagicItemAttribute.AUTHOR)));
 
 		if (hasAttribute(MagicItemAttribute.UUID))
-			magicItem.addProperty("uuid", (String) getAttribute(MagicItemAttribute.UUID));
+			magicItem.addProperty("uuid", getAttribute(MagicItemAttribute.UUID).toString());
 
 		if (hasAttribute(MagicItemAttribute.TEXTURE))
 			magicItem.addProperty("texture", (String) getAttribute(MagicItemAttribute.TEXTURE));
