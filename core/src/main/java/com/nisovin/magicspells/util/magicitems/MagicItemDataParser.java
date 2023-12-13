@@ -1,12 +1,6 @@
 package com.nisovin.magicspells.util.magicitems;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.ArrayList;
-
+import java.util.*;
 import java.io.IOException;
 import java.io.StringReader;
 
@@ -30,7 +24,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.FireworkEffect;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.attribute.Attribute;
@@ -46,6 +39,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
+import com.nisovin.magicspells.util.itemreader.PotionHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
@@ -152,6 +146,7 @@ public class MagicItemDataParser {
 							data.setAttribute(HIDE_TOOLTIP, value.getAsBoolean());
 							break;
 						case "color":
+						case "potion-color":
 							try {
 								Color color = Color.fromRGB(Integer.parseInt(value.getAsString().replace("#", ""), 16));
 								data.setAttribute(COLOR, color);
@@ -165,39 +160,28 @@ public class MagicItemDataParser {
 						case "potiontype":
 						case "potion-type":
 						case "potion_type":
-							String[] potionDataArgs = value.getAsString().split(" ");
+							String potionTypeString = value.getAsString();
 
-							try {
-								PotionType potionType = PotionType.valueOf(potionDataArgs[0].toUpperCase());
-								boolean extended = false, upgraded = false;
-
-								if (potionDataArgs.length > 1) {
-									if (potionDataArgs[1].equalsIgnoreCase("extended")) extended = true;
-									else if (potionDataArgs[1].equalsIgnoreCase("upgraded")) upgraded = true;
-								}
-
-								PotionData potionData = new PotionData(potionType, extended, upgraded);
-
-								data.setAttribute(POTION_DATA, potionData);
-							} catch (IllegalArgumentException e) {
-								DebugHandler.debugIllegalArgumentException(e);
+							PotionType potionType = PotionHandler.getPotionType(potionTypeString);
+							if (potionType == null) {
+								MagicSpells.error("Invalid potion type '" + potionTypeString + "'.");
+								continue;
 							}
+
+							data.setAttribute(POTION_TYPE, potionType);
 							break;
 						case "fireworkeffect":
 						case "firework-effect":
 						case "firework_effect":
 							String[] effectString = value.getAsString().split(" ");
 
-							if (effectString.length >= 4) {
+							if (effectString.length >= 3 && effectString.length <= 5) {
 								try {
 									FireworkEffect.Type fireworkType = FireworkEffect.Type.valueOf(effectString[0].toUpperCase());
 									boolean trail = Boolean.parseBoolean(effectString[1]);
 									boolean flicker = Boolean.parseBoolean(effectString[2]);
-									Color[] colors = Util.getColorsFromString(effectString[3]);
-									Color[] fadeColors = null;
-
-									if (effectString.length > 4) fadeColors = Util.getColorsFromString(effectString[4]);
-									if (fadeColors == null) fadeColors = new Color[0];
+									Color[] colors = effectString.length > 3 ? Util.getColorsFromString(effectString[3]) : new Color[0];
+									Color[] fadeColors = effectString.length > 4 ? Util.getColorsFromString(effectString[4]) : new Color[0];
 
 									FireworkEffect effect = FireworkEffect.builder()
 										.flicker(flicker)
@@ -220,13 +204,20 @@ public class MagicItemDataParser {
 							data.setAttribute(SKULL_OWNER, value.getAsString());
 							break;
 						case "title":
-							data.setAttribute(TITLE, Util.colorize(value.getAsString()));
+							data.setAttribute(TITLE, Util.getMiniMessage(value.getAsString()));
 							break;
 						case "author":
-							data.setAttribute(AUTHOR, Util.colorize(value.getAsString()));
+							data.setAttribute(AUTHOR, Util.getMiniMessage(value.getAsString()));
 							break;
 						case "uuid":
-							data.setAttribute(UUID, value.getAsString());
+							String uuidString = value.getAsString();
+							try {
+								java.util.UUID uuid = java.util.UUID.fromString(uuidString);
+								data.setAttribute(UUID, uuid);
+							} catch (IllegalArgumentException e) {
+								MagicSpells.error("Invalid UUID '" + uuidString + "'.");
+								continue;
+							}
 							break;
 						case "texture":
 							data.setAttribute(TEXTURE, value.getAsString());
@@ -389,16 +380,13 @@ public class MagicItemDataParser {
 							for (JsonElement eff : fireworkEffectStrings) {
 								String[] effString = eff.getAsString().split(" ");
 
-								if (effString.length == 4 || effString.length == 5) {
+								if (effString.length >= 3 && effString.length <= 5) {
 									try {
 										FireworkEffect.Type fireworkType = FireworkEffect.Type.valueOf(effString[0].toUpperCase());
 										boolean trail = Boolean.parseBoolean(effString[1]);
 										boolean flicker = Boolean.parseBoolean(effString[2]);
-										Color[] colors = Util.getColorsFromString(effString[3]);
-										Color[] fadeColors = null;
-
-										if (effString.length > 4) fadeColors = Util.getColorsFromString(effString[4]);
-										if (fadeColors == null) fadeColors = new Color[0];
+										Color[] colors = effString.length > 3 ? Util.getColorsFromString(effString[3]) : new Color[0];
+										Color[] fadeColors = effString.length > 4 ? Util.getColorsFromString(effString[4]) : new Color[0];
 
 										FireworkEffect effect = FireworkEffect.builder()
 											.flicker(flicker)
@@ -422,7 +410,7 @@ public class MagicItemDataParser {
 						case "ignored-attributes":
 						case "ignored_attributes":
 							if (!value.isJsonArray()) continue;
-							EnumSet<MagicItemAttribute> ignoredAttributes = data.getIgnoredAttributes();
+							Set<MagicItemAttribute> ignoredAttributes = data.getIgnoredAttributes();
 							JsonArray ignoredAttributeStrings = value.getAsJsonArray();
 
 							for (JsonElement element : ignoredAttributeStrings) {
@@ -438,7 +426,7 @@ public class MagicItemDataParser {
 						case "blacklisted-attributes":
 						case "blacklisted_attributes":
 							if (!value.isJsonArray()) continue;
-							EnumSet<MagicItemAttribute> blacklistedAttributes = data.getBlacklistedAttributes();
+							Set<MagicItemAttribute> blacklistedAttributes = data.getBlacklistedAttributes();
 							JsonArray blacklistedAttributeStrings = value.getAsJsonArray();
 
 							for (JsonElement element : blacklistedAttributeStrings) {

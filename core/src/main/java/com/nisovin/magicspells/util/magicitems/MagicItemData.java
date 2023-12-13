@@ -3,6 +3,7 @@ package com.nisovin.magicspells.util.magicitems;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
+import java.util.UUID;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -11,10 +12,12 @@ import java.util.Collection;
 
 import com.google.common.collect.Multimap;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.*;
-import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.block.banner.Pattern;
@@ -24,13 +27,12 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.attribute.AttributeModifier;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.TxtUtil;
 
 public class MagicItemData {
 
-	private final EnumMap<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
-	private final EnumSet<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
-	private final EnumSet<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+	private final Map<MagicItemAttribute, Object> itemAttributes = new EnumMap<>(MagicItemAttribute.class);
+	private final Set<MagicItemAttribute> blacklistedAttributes = EnumSet.noneOf(MagicItemAttribute.class);
+	private final Set<MagicItemAttribute> ignoredAttributes = EnumSet.noneOf(MagicItemAttribute.class);
 
 	private boolean strictEnchantLevel = true;
 	private boolean strictDurability = true;
@@ -56,11 +58,11 @@ public class MagicItemData {
 		return itemAttributes.containsKey(atr);
 	}
 
-	public EnumSet<MagicItemAttribute> getBlacklistedAttributes() {
+	public Set<MagicItemAttribute> getBlacklistedAttributes() {
 		return blacklistedAttributes;
 	}
 
-	public EnumSet<MagicItemAttribute> getIgnoredAttributes() {
+	public Set<MagicItemAttribute> getIgnoredAttributes() {
 		return ignoredAttributes;
 	}
 
@@ -161,6 +163,12 @@ public class MagicItemData {
 				case ATTRIBUTES -> {
 					if (!hasEqualAttributes(data)) return false;
 				}
+				case AUTHOR, NAME, TITLE -> {
+					String legacySelf = Util.getLegacyFromComponent((Component) itemAttributes.get(attr));
+					String legacyOther = Util.getLegacyFromComponent((Component) data.itemAttributes.get(attr));
+
+					if (!legacySelf.equals(legacyOther)) return false;
+				}
 				case BLOCK_DATA -> {
 					BlockData blockDataSelf = (BlockData) itemAttributes.get(attr);
 					BlockData blockDataOther = (BlockData) data.itemAttributes.get(attr);
@@ -204,22 +212,17 @@ public class MagicItemData {
 						if (strictEnchantLevel ? compare != 0 : compare > 0) return false;
 					}
 				}
-				case NAME -> {
-					Component nameSelf = (Component) itemAttributes.get(attr);
-					Component nameOther = (Component) data.itemAttributes.get(attr);
-					return Util.getLegacyFromComponent(nameSelf).equals(Util.getLegacyFromComponent(nameOther));
-				}
-				case LORE -> {
-					List<Component> loreSelf = (List<Component>) itemAttributes.get(attr);
-					List<Component> loreOther = (List<Component>) data.itemAttributes.get(attr);
-					if (loreSelf.size() != loreOther.size()) return false;
+				case LORE, PAGES -> {
+					List<Component> componentsSelf = (List<Component>) itemAttributes.get(attr);
+					List<Component> componentsOther = (List<Component>) data.itemAttributes.get(attr);
+					if (componentsSelf.size() != componentsOther.size()) return false;
 
-					for (int i = 0; i < loreSelf.size(); i++) {
-						String self = Util.getLegacyFromComponent(loreSelf.get(i));
-						String other = Util.getLegacyFromComponent(loreOther.get(i));
-						if (!self.equals(other)) return false;
+					for (int i = 0; i < componentsSelf.size(); i++) {
+						String legacySelf = Util.getLegacyFromComponent(componentsSelf.get(i));
+						String legacyOther = Util.getLegacyFromComponent(componentsOther.get(i));
+
+						if (!legacySelf.equals(legacyOther)) return false;
 					}
-					return true;
 				}
 				default -> {
 					if (!itemAttributes.get(attr).equals(data.itemAttributes.get(attr))) return false;
@@ -267,12 +270,12 @@ public class MagicItemData {
 		UNBREAKABLE(Boolean.class),
 		HIDE_TOOLTIP(Boolean.class),
 		FAKE_GLINT(Boolean.class),
-		POTION_DATA(PotionData.class),
+		POTION_TYPE(PotionType.class),
 		COLOR(Color.class),
 		FIREWORK_EFFECT(FireworkEffect.class),
-		TITLE(String.class),
-		AUTHOR(String.class),
-		UUID(String.class),
+		TITLE(Component.class),
+		AUTHOR(Component.class),
+		UUID(UUID.class),
 		TEXTURE(String.class),
 		SIGNATURE(String.class),
 		SKULL_OWNER(String.class),
@@ -306,297 +309,123 @@ public class MagicItemData {
 
 	@Override
 	public String toString() {
-		StringBuilder output = new StringBuilder();
-		boolean previous = false;
+		JsonObject magicItem = new JsonObject();
 
-		if (hasAttribute(MagicItemAttribute.TYPE))
-			output.append(((Material) getAttribute(MagicItemAttribute.TYPE)).name());
+		if (hasAttribute(MagicItemAttribute.NAME))
+			magicItem.addProperty("name", Util.getStringFromComponent((Component) getAttribute(MagicItemAttribute.NAME)));
 
-		if (hasAttribute(MagicItemAttribute.NAME)) {
-			output.append('{');
+		if (hasAttribute(MagicItemAttribute.AMOUNT))
+			magicItem.addProperty("amount", (int) getAttribute(MagicItemAttribute.AMOUNT));
 
-			output
-				.append("\"name\":\"")
-				.append(TxtUtil.escapeJSON(Util.getStringFromComponent((Component) getAttribute(MagicItemAttribute.NAME))))
-				.append('"');
+		if (hasAttribute(MagicItemAttribute.DURABILITY))
+			magicItem.addProperty("durability", (int) getAttribute(MagicItemAttribute.DURABILITY));
 
-			previous = true;
-		}
+		if (hasAttribute(MagicItemAttribute.REPAIR_COST))
+			magicItem.addProperty("repair-cost", (int) getAttribute(MagicItemAttribute.REPAIR_COST));
 
-		if (hasAttribute(MagicItemAttribute.AMOUNT)) {
-			if (previous) output.append(',');
-			else output.append('{');
+		if (hasAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA))
+			magicItem.addProperty("custom-model-data", (int) getAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA));
 
-			output
-				.append("\"amount\":")
-				.append((int) getAttribute(MagicItemAttribute.AMOUNT));
+		if (hasAttribute(MagicItemAttribute.POWER))
+			magicItem.addProperty("power", (int) getAttribute(MagicItemAttribute.POWER));
 
-			previous = true;
-		}
+		if (hasAttribute(MagicItemAttribute.UNBREAKABLE))
+			magicItem.addProperty("unbreakable", (boolean) getAttribute(MagicItemAttribute.UNBREAKABLE));
 
-		if (hasAttribute(MagicItemAttribute.DURABILITY)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"durability\":")
-				.append((int) getAttribute(MagicItemAttribute.DURABILITY));
-
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.REPAIR_COST)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"repair-cost\":")
-				.append((int) getAttribute(MagicItemAttribute.REPAIR_COST));
-
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"custom-model-data\":")
-				.append((int) getAttribute(MagicItemAttribute.CUSTOM_MODEL_DATA));
-
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.POWER)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"power\":")
-				.append((int) getAttribute(MagicItemAttribute.POWER));
-
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.UNBREAKABLE)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"unbreakable\":")
-				.append((boolean) getAttribute(MagicItemAttribute.UNBREAKABLE));
-
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.HIDE_TOOLTIP)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"hide-tooltip\":")
-				.append((boolean) getAttribute(MagicItemAttribute.HIDE_TOOLTIP));
-
-			previous = true;
-		}
+		if (hasAttribute(MagicItemAttribute.HIDE_TOOLTIP))
+			magicItem.addProperty("hide-tooltip", (boolean) getAttribute(MagicItemAttribute.HIDE_TOOLTIP));
 
 		if (hasAttribute(MagicItemAttribute.COLOR)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
 			Color color = (Color) getAttribute(MagicItemAttribute.COLOR);
-			String hex = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-
-			output
-				.append("\"color\":\"")
-				.append(hex)
-				.append('"');
-
-			previous = true;
+			magicItem.addProperty("color", Integer.toHexString(color.asRGB()));
 		}
 
-		if (hasAttribute(MagicItemAttribute.POTION_DATA)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			PotionData potionData = (PotionData) getAttribute(MagicItemAttribute.POTION_DATA);
-
-			output
-				.append("\"potion-data\":\"")
-				.append(potionData.getType());
-
-			if (potionData.isExtended()) output.append(" extended");
-			else if (potionData.isUpgraded()) output.append(" upgraded");
-
-			output.append('"');
-
-			previous = true;
+		if (hasAttribute(MagicItemAttribute.POTION_TYPE)) {
+			PotionType potionType = (PotionType) getAttribute(MagicItemAttribute.POTION_TYPE);
+			magicItem.addProperty("potion-type", potionType.getKey().getKey());
 		}
 
 		if (hasAttribute(MagicItemAttribute.FIREWORK_EFFECT)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
 			FireworkEffect effect = (FireworkEffect) getAttribute(MagicItemAttribute.FIREWORK_EFFECT);
 
-			output
-				.append("\"firework-effect\":\"")
+			StringBuilder effectBuilder = new StringBuilder();
+			effectBuilder
 				.append(effect.getType())
 				.append(' ')
 				.append(effect.hasTrail())
 				.append(' ')
 				.append(effect.hasFlicker());
 
-			boolean previousColor = false;
 			if (!effect.getColors().isEmpty()) {
-				output.append(' ');
+				effectBuilder.append(' ');
+
+				boolean previousColor = false;
 				for (Color color : effect.getColors()) {
-					if (previousColor) output.append(',');
+					if (previousColor) effectBuilder.append(',');
 
-					String hex = String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-					output.append(hex);
-
+					effectBuilder.append(Integer.toHexString(color.asRGB()));
 					previousColor = true;
 				}
 
 				if (!effect.getFadeColors().isEmpty()) {
-					output.append(' ');
+					effectBuilder.append(' ');
+
 					previousColor = false;
 					for (Color color : effect.getFadeColors()) {
-						if (previousColor) output.append(',');
+						if (previousColor) effectBuilder.append(',');
 
-						String hex = String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-						output.append(hex);
-
+						effectBuilder.append(Integer.toHexString(color.asRGB()));
 						previousColor = true;
 					}
 				}
 			}
 
-			output.append('"');
-			previous = true;
+			magicItem.addProperty("firework-effect", effectBuilder.toString());
 		}
 
-		if (hasAttribute(MagicItemAttribute.SKULL_OWNER)) {
-			if (previous) output.append(',');
-			else output.append('{');
+		if (hasAttribute(MagicItemAttribute.SKULL_OWNER))
+			magicItem.addProperty("skull-owner", (String) getAttribute(MagicItemAttribute.SKULL_OWNER));
 
-			output
-				.append("\"skull-owner\":\"")
-				.append((String) getAttribute(MagicItemAttribute.SKULL_OWNER))
-				.append('"');
+		if (hasAttribute(MagicItemAttribute.TITLE))
+			magicItem.addProperty("title", Util.getStringFromComponent((Component) getAttribute(MagicItemAttribute.TITLE)));
 
-			previous = true;
-		}
+		if (hasAttribute(MagicItemAttribute.AUTHOR))
+			magicItem.addProperty("author", Util.getStringFromComponent((Component) getAttribute(MagicItemAttribute.AUTHOR)));
 
-		if (hasAttribute(MagicItemAttribute.TITLE)) {
-			if (previous) output.append(',');
-			else output.append('{');
+		if (hasAttribute(MagicItemAttribute.UUID))
+			magicItem.addProperty("uuid", getAttribute(MagicItemAttribute.UUID).toString());
 
-			output
-				.append("\"title\":\"")
-				.append(TxtUtil.escapeJSON((String) getAttribute(MagicItemAttribute.TITLE)))
-				.append('"');
+		if (hasAttribute(MagicItemAttribute.TEXTURE))
+			magicItem.addProperty("texture", (String) getAttribute(MagicItemAttribute.TEXTURE));
 
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.AUTHOR)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"author\":\"")
-				.append(TxtUtil.escapeJSON((String) getAttribute(MagicItemAttribute.AUTHOR)))
-				.append('"');
-
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.UUID)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"uuid\":\"")
-				.append(((String) getAttribute(MagicItemAttribute.UUID)))
-				.append('"');
-
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.TEXTURE)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"texture\":\"")
-				.append(((String) getAttribute(MagicItemAttribute.TEXTURE)))
-				.append('"');
-
-			previous = true;
-		}
-
-		if (hasAttribute(MagicItemAttribute.SIGNATURE)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"signature\":\"")
-				.append(((String) getAttribute(MagicItemAttribute.SIGNATURE)))
-				.append('"');
-
-			previous = true;
-		}
+		if (hasAttribute(MagicItemAttribute.SIGNATURE))
+			magicItem.addProperty("signature", (String) getAttribute(MagicItemAttribute.SIGNATURE));
 
 		if (hasAttribute(MagicItemAttribute.ENCHANTS)) {
-			if (previous) output.append(',');
-			else output.append('{');
+			Map<Enchantment, Integer> enchants = (Map<Enchantment, Integer>) getAttribute(MagicItemAttribute.ENCHANTS);
 
-			Map<Enchantment, Integer> enchantments = (Map<Enchantment, Integer>) getAttribute(MagicItemAttribute.ENCHANTS);
-			boolean previousEnchantment = false;
-			output.append("\"enchants\":{");
-			for (Enchantment enchantment : enchantments.keySet()) {
-				if (previousEnchantment) output.append(',');
+			JsonObject enchantsObject = new JsonObject();
+			for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet())
+				enchantsObject.addProperty(entry.getKey().getKey().getKey(), entry.getValue());
 
-				output
-					.append('"')
-					.append(enchantment.getKey().getKey())
-					.append("\":")
-					.append(enchantments.get(enchantment));
-
-				previousEnchantment = true;
-			}
-			output.append('}');
-			previous = true;
+			magicItem.add("enchants", enchantsObject);
 		}
 
-		if (hasAttribute(MagicItemAttribute.FAKE_GLINT)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output
-				.append("\"fake-glint\":")
-				.append((boolean) getAttribute(MagicItemAttribute.FAKE_GLINT));
-
-			previous = true;
-		}
+		if (hasAttribute(MagicItemAttribute.FAKE_GLINT))
+			magicItem.addProperty("fake-glint", (boolean) getAttribute(MagicItemAttribute.FAKE_GLINT));
 
 		if (hasAttribute(MagicItemAttribute.ATTRIBUTES)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
 			Multimap<Attribute, AttributeModifier> attributes = (Multimap<Attribute, AttributeModifier>) getAttribute(MagicItemAttribute.ATTRIBUTES);
-			boolean previousAttribute = false;
-			output.append("\"attributes\":[");
-			for (Map.Entry<Attribute, AttributeModifier> entries : attributes.entries()) {
-				if (previousAttribute) output.append(',');
 
-				AttributeModifier modifier = entries.getValue();
+			StringBuilder modifierBuilder = new StringBuilder();
+			JsonArray attributesArray = new JsonArray();
+			for (Map.Entry<Attribute, AttributeModifier> entry : attributes.entries()) {
+				AttributeModifier modifier = entry.getValue();
+				modifierBuilder.setLength(0);
 
-				output
+				modifierBuilder
 					.append('"')
-					.append(modifier.getName())
+					.append(entry.getKey().getKey())
 					.append(' ')
 					.append(modifier.getAmount())
 					.append(' ')
@@ -604,126 +433,83 @@ public class MagicItemData {
 
 				EquipmentSlot slot = modifier.getSlot();
 				if (slot != null) {
-					output
+					modifierBuilder
 						.append(' ')
 						.append(slot.name().toLowerCase());
 				}
 
-				output.append('"');
-				previousAttribute = true;
+				attributesArray.add(modifierBuilder.toString());
 			}
-			output.append(']');
 
-			previous = true;
+			magicItem.add("attributes", attributesArray);
 		}
 
 		if (hasAttribute(MagicItemAttribute.LORE)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
 			List<Component> lore = (List<Component>) getAttribute(MagicItemAttribute.LORE);
-			boolean previousLore = false;
-			output.append("\"lore\":[");
-			for (Component line : lore) {
-				if (previousLore) output.append(',');
 
-				output
-					.append('"')
-					.append(TxtUtil.escapeJSON(Util.getStringFromComponent(line)))
-					.append('"');
+			JsonArray loreArray = new JsonArray(lore.size());
+			for (Component line : lore) loreArray.add(Util.getStringFromComponent(line));
 
-				previousLore = true;
-			}
-			output.append(']');
-
-			previous = true;
+			magicItem.add("lore", loreArray);
 		}
 
 		if (hasAttribute(MagicItemAttribute.PAGES)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
 			List<Component> pages = (List<Component>) getAttribute(MagicItemAttribute.PAGES);
-			boolean previousPages = false;
-			output.append("\"pages\":[");
-			for (Component page : pages) {
-				if (previousPages) output.append(',');
 
-				output
-					.append('"')
-					.append(TxtUtil.escapeJSON(Util.getStringFromComponent(page)))
-					.append('"');
+			JsonArray pagesArray = new JsonArray(pages.size());
+			for (Component line : pages) pagesArray.add(Util.getStringFromComponent(line));
 
-				previousPages = true;
-			}
-			output.append(']');
-
-			previous = true;
+			magicItem.add("pages", pagesArray);
 		}
 
 		if (hasAttribute(MagicItemAttribute.PATTERNS)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output.append("\"patterns\":[");
 			List<Pattern> patterns = (List<Pattern>) getAttribute(MagicItemAttribute.PATTERNS);
-			boolean previousPattern = false;
+
+			JsonArray patternsArray = new JsonArray(patterns.size());
 			for (Pattern pattern : patterns) {
-				if (previousPattern) output.append(',');
-
-				output
-					.append('"')
-					.append(pattern.getPattern().name())
-					.append(' ')
-					.append(pattern.getColor().name())
-					.append('"');
-
-				previousPattern = true;
+				String patternString = pattern.getPattern().name().toLowerCase() + " " + pattern.getColor().name().toLowerCase();
+				patternsArray.add(patternString);
 			}
-			output.append(']');
 
-			previous = true;
+			magicItem.add("patterns", patternsArray);
 		}
 
 		if (hasAttribute(MagicItemAttribute.POTION_EFFECTS)) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output.append("\"potion-effects\":[");
 			List<PotionEffect> effects = (List<PotionEffect>) getAttribute(MagicItemAttribute.POTION_EFFECTS);
-			boolean previousEffect = false;
-			for (PotionEffect effect : effects) {
-				if (previousEffect) output.append(',');
 
-				output
-					.append('"')
-					.append(effect.getType().getName())
+			StringBuilder effectBuilder = new StringBuilder();
+			JsonArray potionEffectsArray = new JsonArray(effects.size());
+			for (PotionEffect effect : effects) {
+				effectBuilder.setLength(0);
+
+				effectBuilder
+					.append(effect.getType().getKey().getKey())
 					.append(' ')
 					.append(effect.getAmplifier())
 					.append(' ')
 					.append(effect.getDuration())
-					.append('"');
+					.append(' ')
+					.append(effect.isAmbient())
+					.append(' ')
+					.append(effect.hasParticles())
+					.append(' ')
+					.append(effect.hasIcon());
 
-				previousEffect = true;
+				potionEffectsArray.add(effectBuilder.toString());
 			}
-			output.append(']');
 
-			previous = true;
+			magicItem.add("potion-effects", potionEffectsArray);
 		}
 
 		if (hasAttribute(MagicItemAttribute.FIREWORK_EFFECTS)) {
 			List<FireworkEffect> effects = (List<FireworkEffect>) getAttribute(MagicItemAttribute.FIREWORK_EFFECTS);
 
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output.append("\"firework-effects\":[");
-			boolean previousEffect = false;
+			StringBuilder effectBuilder = new StringBuilder();
+			JsonArray fireworkEffectsArray = new JsonArray(effects.size());
 			for (FireworkEffect effect : effects) {
-				if (previousEffect) output.append(',');
+				effectBuilder.setLength(0);
 
-				output
-					.append('"')
+				effectBuilder
 					.append(effect.getType())
 					.append(' ')
 					.append(effect.hasTrail())
@@ -732,111 +518,56 @@ public class MagicItemData {
 
 				boolean previousColor = false;
 				if (!effect.getColors().isEmpty()) {
-					output.append(' ');
+					effectBuilder.append(' ');
+
 					for (Color color : effect.getColors()) {
-						if (previousColor) output.append(',');
-						String hex = String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-						output.append(hex);
+						if (previousColor) effectBuilder.append(',');
+						effectBuilder.append(Integer.toHexString(color.asRGB()));
 						previousColor = true;
 					}
 
 					if (!effect.getFadeColors().isEmpty()) {
-						output.append(' ');
+						effectBuilder.append(' ');
+
 						previousColor = false;
 						for (Color color : effect.getFadeColors()) {
-							if (previousColor) output.append(',');
-							String hex = String.format("%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-							output.append(hex);
+							if (previousColor) effectBuilder.append(',');
+							effectBuilder.append(Integer.toHexString(color.asRGB()));
 							previousColor = true;
 						}
 					}
 				}
 
-				output.append('"');
-				previousEffect = true;
+				fireworkEffectsArray.add(effectBuilder.toString());
 			}
 
-			output.append(']');
-			previous = true;
+			magicItem.add("firework-effects", fireworkEffectsArray);
 		}
 
 		if (!ignoredAttributes.isEmpty()) {
-			if (previous) output.append(",");
-			else output.append('{');
+			JsonArray ignoredAttributesArray = new JsonArray(ignoredAttributes.size());
+			for (MagicItemAttribute attribute : ignoredAttributes) ignoredAttributesArray.add(attribute.name());
 
-			output.append("\"ignored-attributes\":[");
-			boolean previousAttribute = false;
-			for (MagicItemAttribute attr : ignoredAttributes) {
-				if (previousAttribute) output.append(',');
-
-				output
-					.append('"')
-					.append(attr.name())
-					.append('"');
-
-				previousAttribute = true;
-			}
-
-			output.append(']');
-			previous = true;
+			magicItem.add("ignored-attributes", ignoredAttributesArray);
 		}
 
 		if (!blacklistedAttributes.isEmpty()) {
-			if (previous) output.append(",");
-			else output.append('{');
+			JsonArray blacklistedAttributesArray = new JsonArray(blacklistedAttributes.size());
+			for (MagicItemAttribute attribute : blacklistedAttributes) blacklistedAttributesArray.add(attribute.name());
 
-			output.append("\"blacklisted-attributes\":[");
-			boolean previousAttribute = false;
-			for (MagicItemAttribute attr : blacklistedAttributes) {
-				if (previousAttribute) output.append(',');
-
-				output
-					.append('"')
-					.append(attr.name())
-					.append('"');
-
-				previousAttribute = true;
-			}
-
-			output.append(']');
-			previous = true;
+			magicItem.add("blacklisted-attributes", blacklistedAttributesArray);
 		}
 
-		if (!strictEnchants) {
-			if (previous) output.append(",");
-			else output.append('{');
+		if (!strictEnchants) magicItem.addProperty("strict-enchants", false);
+		if (!strictDurability) magicItem.addProperty("strict-durability", false);
+		if (!strictBlockData) magicItem.addProperty("strict-block-data", false);
+		if (!strictEnchantLevel) magicItem.addProperty("strict-enchant-level", false);
 
-			output.append("\"strict-enchants\": false");
-			previous = true;
-		}
+		String output = magicItem.toString();
+		if (hasAttribute(MagicItemAttribute.TYPE))
+			output = ((Material) getAttribute(MagicItemAttribute.TYPE)).getKey().getKey() + output;
 
-		if (!strictDurability) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output.append("\"strict-durability\": false");
-			previous = true;
-		}
-
-		if (!strictBlockData) {
-			if (previous) output.append(',');
-			else output.append('{');
-
-			output.append("\"strict-block-data\": false");
-			previous = true;
-		}
-
-		if (!strictEnchantLevel) {
-			if (previous) output.append(",");
-			else output.append('{');
-
-			output.append("\"strict-enchant-level\": false");
-			previous = true;
-		}
-
-		if (previous) output.append('}');
-
-		return output.toString();
+		return output;
 	}
 
 }

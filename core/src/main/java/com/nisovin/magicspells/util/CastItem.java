@@ -3,16 +3,21 @@ package com.nisovin.magicspells.util;
 import java.util.Map;
 import java.util.List;
 import java.util.Objects;
-import java.util.ArrayList;
+import java.util.stream.Collectors;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.enchantments.Enchantment;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -34,7 +39,7 @@ public class CastItem {
 	private boolean unbreakable = false;
 
 	private Color color = null;
-	private PotionData potionData = null;
+	private PotionType potionType = null;
 	private String title = null;
 	private String author = null;
 
@@ -52,26 +57,23 @@ public class CastItem {
 		type = item.getType();
 		if (isTypeValid()) {
 			if (!MagicSpells.ignoreCastItemNames()) {
-				String nameLocal = Util.getLegacyFromComponent(meta.displayName());
-				if (!meta.hasDisplayName()) name = null;
-				else if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize(nameLocal);
-				else name = nameLocal;
+				if (MagicSpells.ignoreCastItemNameColors())
+					name = PlainTextComponentSerializer.plainText().serializeOrNull(meta.displayName());
+				else
+					name = LegacyComponentSerializer.legacySection().serializeOrNull(meta.displayName());
 			}
 			if (!MagicSpells.ignoreCastItemAmount()) amount = item.getAmount();
 			if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) durability = DurabilityHandler.getDurability(meta);
 			if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = ItemUtil.getCustomModelData(meta);
 			if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = meta.isUnbreakable();
 			if (!MagicSpells.ignoreCastItemColor()) color = LeatherArmorHandler.getColor(meta);
-			if (!MagicSpells.ignoreCastItemPotionType()) potionData = PotionHandler.getPotionData(meta);
-			if (!MagicSpells.ignoreCastItemTitle()) title = WrittenBookHandler.getTitle(meta);
-			if (!MagicSpells.ignoreCastItemAuthor()) author = WrittenBookHandler.getAuthor(meta);
+			if (!MagicSpells.ignoreCastItemPotionType()) potionType = PotionHandler.getPotionType(meta);
+			if (!MagicSpells.ignoreCastItemTitle()) title = LegacyComponentSerializer.legacySection().serializeOrNull(WrittenBookHandler.getTitle(meta));
+			if (!MagicSpells.ignoreCastItemAuthor()) author = LegacyComponentSerializer.legacySection().serializeOrNull(WrittenBookHandler.getAuthor(meta));
 			if (!MagicSpells.ignoreCastItemEnchants()) enchants = meta.getEnchants();
 			if (!MagicSpells.ignoreCastItemLore() && meta.hasLore()) {
-				List<String> loreLocal = new ArrayList<>();
-				for (Component component : meta.lore()) {
-					loreLocal.add(Util.getLegacyFromComponent(component));
-				}
-				lore = loreLocal;
+				List<Component> itemLore = meta.lore();
+				lore = itemLore.stream().map(LegacyComponentSerializer.legacySection()::serialize).collect(Collectors.toList());
 			}
 		}
 	}
@@ -82,9 +84,10 @@ public class CastItem {
 			type = (Material) data.getAttribute(TYPE);
 			if (isTypeValid()) {
 				if (!MagicSpells.ignoreCastItemNames() && data.hasAttribute(NAME)) {
-					String localName = Util.getLegacyFromComponent((Component) data.getAttribute(NAME));
-					if (MagicSpells.ignoreCastItemNameColors()) name = Util.decolorize(localName);
-					else name = localName;
+					if (MagicSpells.ignoreCastItemNameColors())
+						name = PlainTextComponentSerializer.plainText().serialize((Component) data.getAttribute(NAME));
+					else
+						name = LegacyComponentSerializer.legacySection().serialize((Component) data.getAttribute(NAME));
 				}
 
 				if (!MagicSpells.ignoreCastItemAmount() && data.hasAttribute(AMOUNT))
@@ -102,24 +105,21 @@ public class CastItem {
 				if (!MagicSpells.ignoreCastItemColor() && data.hasAttribute(COLOR))
 					color = (Color) data.getAttribute(COLOR);
 
-				if (!MagicSpells.ignoreCastItemPotionType() && data.hasAttribute(POTION_DATA))
-					potionData = (PotionData) data.getAttribute(POTION_DATA);
+				if (!MagicSpells.ignoreCastItemPotionType() && data.hasAttribute(POTION_TYPE))
+					potionType = (PotionType) data.getAttribute(POTION_TYPE);
 
 				if (!MagicSpells.ignoreCastItemTitle() && data.hasAttribute(TITLE))
-					title = (String) data.getAttribute(TITLE);
+					title = LegacyComponentSerializer.legacySection().serialize((Component) data.getAttribute(TITLE));
 
 				if (!MagicSpells.ignoreCastItemAuthor() && data.hasAttribute(AUTHOR))
-					author = (String) data.getAttribute(AUTHOR);
+					author = LegacyComponentSerializer.legacySection().serialize((Component) data.getAttribute(AUTHOR));
 
 				if (!MagicSpells.ignoreCastItemEnchants() && data.hasAttribute(ENCHANTS))
 					enchants = (Map<Enchantment, Integer>) data.getAttribute(ENCHANTS);
 
 				if (!MagicSpells.ignoreCastItemLore() && data.hasAttribute(LORE)) {
-					List<String> loreLocal = new ArrayList<>();
-					for (Component component : (List<Component>) data.getAttribute(LORE)) {
-						loreLocal.add(Util.getLegacyFromComponent(component));
-					}
-					lore = loreLocal;
+					List<Component> itemLore = (List<Component>) data.getAttribute(LORE);
+					lore = itemLore.stream().map(LegacyComponentSerializer.legacySection()::serialize).collect(Collectors.toList());
 				}
 			}
 		}
@@ -150,7 +150,7 @@ public class CastItem {
 			&& (MagicSpells.ignoreCastItemCustomModelData() || customModelData == i.customModelData)
 			&& (MagicSpells.ignoreCastItemBreakability() || unbreakable == i.unbreakable)
 			&& (MagicSpells.ignoreCastItemColor() || Objects.equals(color, i.color))
-			&& (MagicSpells.ignoreCastItemPotionType() || Objects.equals(potionData, i.potionData))
+			&& (MagicSpells.ignoreCastItemPotionType() || Objects.equals(potionType, i.potionType))
 			&& (MagicSpells.ignoreCastItemTitle() || Objects.equals(title, i.title))
 			&& (MagicSpells.ignoreCastItemAuthor() || Objects.equals(author, i.author))
 			&& (MagicSpells.ignoreCastItemEnchants() || Objects.equals(enchants, i.enchants))
@@ -159,172 +159,60 @@ public class CastItem {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(type, name, amount, durability, customModelData, unbreakable, color, potionData, title, author, enchants, lore);
+		return Objects.hash(type, name, amount, durability, customModelData, unbreakable, color, potionType, title, author, enchants, lore);
 	}
 
 	@Override
 	public String toString() {
 		if (type == null) return "";
 
-		StringBuilder output = new StringBuilder();
-		boolean previous = false;
+		JsonObject castItem = new JsonObject();
 
-		output.append(type.name());
+		if (!MagicSpells.ignoreCastItemNames() && name != null)
+			castItem.addProperty("name", name);
 
-		if (!MagicSpells.ignoreCastItemNames() && name != null) {
-			output.append("{");
+		if (!MagicSpells.ignoreCastItemAmount())
+			castItem.addProperty("amount", amount);
 
-			output
-				.append("\"name\":\"")
-				.append(TxtUtil.escapeJSON(Util.getLegacyFromMiniMessage(name)))
-				.append('"');
+		if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type))
+			castItem.addProperty("durability", durability);
 
-			previous = true;
+		if (!MagicSpells.ignoreCastItemCustomModelData())
+			castItem.addProperty("custommodeldata", customModelData);
+
+		if (!MagicSpells.ignoreCastItemBreakability())
+			castItem.addProperty("unbreakable", unbreakable);
+
+		if (!MagicSpells.ignoreCastItemColor() && color != null)
+			castItem.addProperty("color", Integer.toHexString(color.asRGB()));
+
+		if (!MagicSpells.ignoreCastItemPotionType() && potionType != null) {
+			String potionDataString = potionType.getKey().getKey();
+			castItem.addProperty("potiondata", potionDataString);
 		}
 
-		if (!MagicSpells.ignoreCastItemAmount()) {
-			if (previous) output.append(',');
-			else output.append("{");
+		if (!MagicSpells.ignoreCastItemTitle() && title != null)
+			castItem.addProperty("title", title);
 
-			output
-				.append("\"amount\":")
-				.append(amount);
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) {
-			if (previous) output.append(',');
-			else output.append("{");
-
-			output
-				.append("\"durability\":")
-				.append(durability);
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemCustomModelData()) {
-			if (previous) output.append(',');
-			else output.append("{");
-
-			output
-				.append("\"custommodeldata\":")
-				.append(customModelData);
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemBreakability()) {
-			if (previous) output.append(',');
-
-			output
-				.append("\"unbreakable\":")
-				.append(unbreakable);
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemColor() && color != null) {
-			if (previous) output.append(',');
-            else output.append("{");
-
-			String hex = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
-
-			output
-				.append("\"color\":\"")
-				.append(hex)
-				.append('"');
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemPotionType() && potionData != null) {
-			if (previous) output.append(',');
-            else output.append("{");
-
-			output
-				.append("\"potiondata\":\"")
-				.append(potionData.getType());
-
-			if (potionData.isExtended()) output.append(" extended");
-			else if (potionData.isUpgraded()) output.append(" upgraded");
-
-			output.append('"');
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemTitle() && title != null) {
-			if (previous) output.append(',');
-            else output.append("{");
-
-			output
-				.append("\"title\":\"")
-				.append(TxtUtil.escapeJSON(title))
-				.append('"');
-
-			previous = true;
-		}
-
-		if (!MagicSpells.ignoreCastItemAuthor() && author != null) {
-			if (previous) output.append(',');
-            else output.append("{");
-
-			output
-				.append("\"author\":\"")
-				.append(TxtUtil.escapeJSON(author))
-				.append('"');
-
-			previous = true;
-		}
+		if (!MagicSpells.ignoreCastItemAuthor() && author != null)
+			castItem.addProperty("author", author);
 
 		if (!MagicSpells.ignoreCastItemEnchants() && enchants != null) {
-			if (previous) output.append(',');
-            else output.append("{");
+			JsonObject enchantsObject = new JsonObject();
+			for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet())
+				enchantsObject.addProperty(entry.getKey().getKey().getKey(), entry.getValue());
 
-			boolean previousEnchantment = false;
-			output.append("\"enchants\":{");
-			for (Enchantment enchant : enchants.keySet()) {
-				if (previousEnchantment) output.append(',');
-
-				output
-					.append('"')
-					.append(enchant.getKey().getKey())
-					.append("\":")
-					.append(enchants.get(enchant));
-
-				previousEnchantment = true;
-			}
-			output.append('}');
-
-			previous = true;
+			castItem.add("enchants", enchantsObject);
 		}
 
 		if (!MagicSpells.ignoreCastItemLore() && lore != null) {
-			if (previous) output.append(',');
-            else output.append("{");
+			JsonArray loreArray = new JsonArray(lore.size());
+			for (String line : lore) loreArray.add(line);
 
-			boolean previousLore = false;
-			output.append("\"lore\":[");
-			for (String line : lore) {
-				if (previousLore) output.append(',');
-
-				output
-					.append('"')
-					.append(TxtUtil.escapeJSON(Util.getLegacyFromMiniMessage(line)))
-					.append('"');
-
-				previousLore = true;
-			}
-
-			output.append(']');
-			previous = true;
+			castItem.add("lore", loreArray);
 		}
 
-		if (previous) output.append("}");
-
-		return output.toString();
+		return type.getKey().getKey() + castItem;
 	}
 
 }

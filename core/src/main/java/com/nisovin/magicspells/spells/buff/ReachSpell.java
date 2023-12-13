@@ -136,7 +136,7 @@ public class ReachSpell extends BuffSpell {
 			}
 
 			addUseAndChargeCost(player);
-		} else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK && airBlock.getType().isAir()) {
+		} else if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK && airBlock.isReplaceable()) {
 			// Place
 			ItemStack item = player.getInventory().getItemInMainHand();
 			if (item.isEmpty()) return;

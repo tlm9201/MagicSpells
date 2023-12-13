@@ -18,6 +18,7 @@ public class AlternativeReaderManager {
 	
 	static {
 		register(new SpigotReader());
+		register(new VanillaReader());
 	}
 	
 	public static ItemConfigTransformer getReader(String type) {

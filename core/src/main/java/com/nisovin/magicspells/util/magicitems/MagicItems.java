@@ -303,7 +303,7 @@ public class MagicItems {
 				MagicItem magicItem = new MagicItem(item, getMagicItemDataFromItemStack(item));
 
 				if (section.isList("ignored-attributes")) {
-					EnumSet<MagicItemAttribute> ignoredAttributes = magicItem.getMagicItemData().getIgnoredAttributes();
+					Set<MagicItemAttribute> ignoredAttributes = magicItem.getMagicItemData().getIgnoredAttributes();
 					List<String> ignoredAttributeStrings = section.getStringList("ignored-attributes");
 
 					for (String attr : ignoredAttributeStrings) {
@@ -316,7 +316,7 @@ public class MagicItems {
 				}
 
 				if (section.isList("blacklisted-attributes")) {
-					EnumSet<MagicItemAttribute> blacklistedAttributes = magicItem.getMagicItemData().getBlacklistedAttributes();
+					Set<MagicItemAttribute> blacklistedAttributes = magicItem.getMagicItemData().getBlacklistedAttributes();
 					List<String> blacklistedAttributeStrings = section.getStringList("blacklisted-attributes");
 
 					for (String attr : blacklistedAttributeStrings) {
@@ -512,7 +512,7 @@ public class MagicItems {
 
 			if (section.isList("ignored-attributes")) {
 				List<String> ignoredAttributeStrings = section.getStringList("ignored-attributes");
-				EnumSet<MagicItemAttribute> ignoredAttributes = itemData.getIgnoredAttributes();
+				Set<MagicItemAttribute> ignoredAttributes = itemData.getIgnoredAttributes();
 
 				for (String attr : ignoredAttributeStrings) {
 					try {
@@ -525,7 +525,7 @@ public class MagicItems {
 
 			if (section.isList("blacklisted-attributes")) {
 				List<String> blacklistedAttributeStrings = section.getStringList("blacklisted-attributes");
-				EnumSet<MagicItemAttribute> blacklistedAttributes = itemData.getBlacklistedAttributes();
+				Set<MagicItemAttribute> blacklistedAttributes = itemData.getBlacklistedAttributes();
 
 				for (String attr : blacklistedAttributeStrings) {
 					try {

@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
+import org.bukkit.block.data.BlockData;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
@@ -110,8 +111,13 @@ public class BuildSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	private boolean build(Player player, Block block, Block against, ItemStack item, int slot, SpellData data) {
+		if (!block.isReplaceable()) return false;
+
+		BlockData blockData = item.getType().createBlockData();
+		if (!block.canPlace(blockData)) return false;
+
 		BlockState previousState = block.getState();
-		block.setType(item.getType());
+		block.setBlockData(blockData);
 
 		if (checkPlugins.get(data)) {
 			MagicSpellsBlockPlaceEvent event = new MagicSpellsBlockPlaceEvent(block, previousState, against, player.getEquipment().getItemInMainHand(), player, true);
