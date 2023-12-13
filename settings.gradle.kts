@@ -9,6 +9,7 @@ include("towny")
 
 include(":nms:shared")
 include(":nms:v1_20_R2")
+include(":nms:v1_20_R3")
 
 startParameter.isParallelProjectExecutionEnabled = true
 

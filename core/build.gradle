@@ -12,6 +12,7 @@ dependencies {
 
     shadow(project(path: ":nms:shared", configuration: "apiElements"))
     shadow(project(path: ":nms:v1_20_R2", configuration: "reobf"))
+    shadow(project(path: ":nms:v1_20_R3", configuration: "reobf"))
 
     implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.1.0") { transitive = false }
     implementation(group: "com.github.libraryaddict", name: "LibsDisguises", version: "v10.0.25") { transitive = false }
