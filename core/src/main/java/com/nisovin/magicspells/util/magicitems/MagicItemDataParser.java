@@ -414,11 +414,17 @@ public class MagicItemDataParser {
 							JsonArray ignoredAttributeStrings = value.getAsJsonArray();
 
 							for (JsonElement element : ignoredAttributeStrings) {
-								String ignoredAttribute = element.getAsString().toUpperCase();
+								String attr = element.getAsString();
+								String attrValue = attr.toUpperCase().replace("-", "_");;
+
 								try {
-									ignoredAttributes.add(MagicItemAttribute.valueOf(ignoredAttribute));
+									ignoredAttributes.add(MagicItemAttribute.valueOf(attrValue));
 								} catch (IllegalArgumentException e) {
-									DebugHandler.debugBadEnumValue(MagicItemAttribute.class, ignoredAttribute);
+									switch (attrValue) {
+										case "ENCHANTMENTS" -> ignoredAttributes.add(ENCHANTS);
+										case "POTION_DATA" -> ignoredAttributes.add(POTION_TYPE);
+										default -> DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
+									}
 								}
 							}
 							break;
@@ -430,11 +436,17 @@ public class MagicItemDataParser {
 							JsonArray blacklistedAttributeStrings = value.getAsJsonArray();
 
 							for (JsonElement element : blacklistedAttributeStrings) {
-								String blacklistedAttribute = element.getAsString().toUpperCase();
+								String attr = element.getAsString();
+								String attrValue = attr.toUpperCase().replace("-", "_");;
+
 								try {
-									blacklistedAttributes.add(MagicItemAttribute.valueOf(blacklistedAttribute));
+									blacklistedAttributes.add(MagicItemAttribute.valueOf(attrValue));
 								} catch (IllegalArgumentException e) {
-									DebugHandler.debugBadEnumValue(MagicItemAttribute.class, blacklistedAttribute);
+									switch (attrValue) {
+										case "ENCHANTMENTS" -> blacklistedAttributes.add(ENCHANTS);
+										case "POTION_DATA" -> blacklistedAttributes.add(POTION_TYPE);
+										default -> DebugHandler.debugBadEnumValue(MagicItemAttribute.class, attr);
+									}
 								}
 							}
 							break;
