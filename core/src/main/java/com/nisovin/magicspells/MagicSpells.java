@@ -27,6 +27,7 @@ import co.aikar.commands.PaperCommandManager;
 
 import org.bukkit.*;
 import org.bukkit.event.Event;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.entity.EntityType;
@@ -1704,8 +1705,10 @@ public class MagicSpells extends JavaPlugin {
 		return matcher.find();
 	}
 
-	public static String getTargetName(LivingEntity target) {
+	public static String getTargetName(Entity target) {
 		if (target instanceof Player) return target.getName();
+
+		if (target.customName() != null) return Util.getStrictStringFromComponent(target.customName());
 
 		EntityType type = target.getType();
 		String name = plugin.entityNames.get(type);

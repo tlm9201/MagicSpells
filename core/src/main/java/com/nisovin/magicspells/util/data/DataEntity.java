@@ -7,9 +7,11 @@ import java.util.function.Function;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.SpawnCategory;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.util.Util;
-import org.bukkit.event.entity.EntityDamageEvent;
+import com.nisovin.magicspells.MagicSpells;
 
 public class DataEntity {
 	
@@ -40,6 +42,10 @@ public class DataEntity {
 		dataElements.put("lastdamagecause.amount", entity -> {
 			EntityDamageEvent event = entity.getLastDamageCause();
 			return event == null ? "" : event.getDamage() + "";
+		});
+		dataElements.put("lastdamagecause.attacker", entity -> {
+			if (!(entity.getLastDamageCause() instanceof EntityDamageByEntityEvent event)) return "";
+			return MagicSpells.getTargetName(event.getDamager());
 		});
 		dataElements.put("velocity", entity -> entity.getVelocity().toString());
 		dataElements.put("velocity.x", entity -> entity.getVelocity().getX() + "");
