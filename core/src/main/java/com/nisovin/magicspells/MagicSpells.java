@@ -29,6 +29,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.ChatColor;
 import org.bukkit.event.Event;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.event.Listener;
@@ -1681,8 +1682,10 @@ public class MagicSpells extends JavaPlugin {
 		return matcher.find();
 	}
 
-	public static String getTargetName(LivingEntity target) {
+	public static String getTargetName(Entity target) {
 		if (target instanceof Player) return target.getName();
+
+		if (target.customName() != null) return Util.getStrictStringFromComponent(target.customName());
 
 		EntityType type = target.getType();
 		String name = plugin.entityNames.get(type);
