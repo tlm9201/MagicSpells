@@ -199,7 +199,7 @@ public class FireballSpell extends TargetedSpell implements TargetedEntityFromLo
 			List<Entity> inRange = fireball.getNearbyEntities(noExplosionDamageRange, noExplosionDamageRange, noExplosionDamageRange);
 			for (Entity entity : inRange) {
 				if (!(entity instanceof LivingEntity target)) continue;
-				if (!validTargetList.canTarget(entity)) continue;
+				if (!validTargetList.canTarget(caster, entity)) continue;
 
 				double noExplosionDamage = this.noExplosionDamage.get(data);
 				if (powerAffectsNoExplosionDamage.get(data)) noExplosionDamage *= data.power();

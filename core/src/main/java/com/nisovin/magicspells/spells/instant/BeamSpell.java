@@ -263,8 +263,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 
 			//check entities in the beam range
 			for (LivingEntity e : loc.getNearbyLivingEntities(hitRadius, verticalHitRadius)) {
-				if (e == data.caster() || !e.isValid() || immune.contains(e)) continue;
-				if (validTargetList != null && !validTargetList.canTarget(e)) continue;
+				if (!e.isValid() || immune.contains(e)) continue;
+				if (validTargetList != null && !validTargetList.canTarget(data.caster(), e)) continue;
 
 				SpellTargetEvent event = new SpellTargetEvent(this, locData, e);
 				if (!event.callEvent()) continue;
@@ -278,7 +278,6 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 				playSpellEffects(EffectPosition.TARGET, entity, subData);
 				playSpellEffectsTrail(data.caster().getLocation(), entity.getLocation(), subData);
 				immune.add(e);
-
 				if (stopOnHitEntity) break mainLoop;
 			}
 		}
