@@ -420,8 +420,8 @@ public class MinionSpell extends BuffSpell {
 			// Check if player's damaged target is his minion, if it's not, make him attack your target
 			if (!isActive(pl)) return;
 			for (BuffSpell buff : MagicSpells.getBuffManager().getActiveBuffs(pl)) {
-				if (!(buff instanceof MinionSpell)) continue;
-				if (entity.equals(((MinionSpell) buff).minions.get(pl.getUniqueId()))) {
+				if (!(buff instanceof MinionSpell minionBuff)) continue;
+				if (entity.equals(minionBuff.minions.get(pl.getUniqueId()))) {
 					e.setCancelled(true);
 					return;
 				}
@@ -433,7 +433,7 @@ public class MinionSpell extends BuffSpell {
 			}
 
 			// Check if the entity can be targeted by the minion
-			if (!minionTargetList.canTarget(Bukkit.getPlayer(players.get(entity)), entity)) return;
+			if (!minionTargetList.canTarget(pl, entity)) return;
 
 			targets.put(pl.getUniqueId(),entity);
 			MobUtil.setTarget(minions.get(pl.getUniqueId()), entity);
