@@ -178,6 +178,12 @@ public class ConditionManager {
 		addCondition("ownedloopactive", OwnedLoopActiveCondition.class);
 		addCondition("always", AlwaysCondition.class);
 		addCondition("velocityactive", VelocityActiveCondition.class);
+		addCondition("buildable", BuildableCondition.class);
+		addCondition("burnable", BurnableCondition.class);
+		addCondition("collidable", CollidableCondition.class);
+		addCondition("passable", PassableCondition.class);
+		addCondition("replaceable", ReplaceableCondition.class);
+		addCondition("solid", SolidCondition.class);
 	}
 
 }
