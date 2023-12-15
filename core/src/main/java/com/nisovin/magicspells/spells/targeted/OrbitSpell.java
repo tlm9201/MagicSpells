@@ -317,11 +317,8 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			box.setCenter(loc);
 
 			for (LivingEntity e : data.caster().getWorld().getLivingEntities()) {
-				if (e.equals(data.caster())) continue;
-				if (!e.isValid()) continue;
-				if (immune.contains(e)) continue;
-				if (!box.contains(e)) continue;
-				if (entityTargetList != null && !entityTargetList.canTarget(e)) continue;
+				if (!e.isValid() || immune.contains(e) || !box.contains(e)) continue;
+				if (entityTargetList != null && !entityTargetList.canTarget(data.caster(), e)) continue;
 
 				SpellTargetEvent event = new SpellTargetEvent(OrbitSpell.this, data, e);
 				if (!event.callEvent()) continue;

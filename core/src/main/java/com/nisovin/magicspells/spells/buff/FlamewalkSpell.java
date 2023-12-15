@@ -142,7 +142,7 @@ public class FlamewalkSpell extends BuffSpell {
 				radius = Math.min(radius, MagicSpells.getGlobalRadius());
 
 				for (Entity entity : caster.getNearbyEntities(radius, radius, radius)) {
-					if (!(entity instanceof LivingEntity target) || !validTargetList.canTarget(target)) continue;
+					if (!(entity instanceof LivingEntity target) || !validTargetList.canTarget(data.spellData().caster(), target)) continue;
 
 					if (data.checkPlugins) {
 						MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, DamageCause.ENTITY_ATTACK, 1, FlamewalkSpell.this);
