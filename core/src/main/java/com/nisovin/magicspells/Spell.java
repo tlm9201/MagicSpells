@@ -1533,6 +1533,19 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			BoundingBox boundingBox = target.getBoundingBox().expand(raySize);
 			if (boundingBox.rayTrace(start, direction, range) == null) continue;
 
+			if (target instanceof ComplexLivingEntity complexEntity) {
+				boolean collides = false;
+
+				for (Entity part : complexEntity.getParts()) {
+					if (part.getBoundingBox().expand(raySize).rayTrace(start, direction, range) != null) {
+						collides = true;
+						break;
+					}
+				}
+
+				if (!collides) continue;
+			}
+
 			if (MagicSpells.getNoMagicZoneManager() != null && MagicSpells.getNoMagicZoneManager().willFizzle(targetLocation, this))
 				continue;
 
