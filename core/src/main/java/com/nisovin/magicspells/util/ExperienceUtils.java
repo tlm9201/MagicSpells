@@ -45,7 +45,7 @@ public class ExperienceUtils {
 	}
 
 	public static void changeExp(Player player, int amount) {
-		int totalExperience = Math.min(getExperience(player) + amount, 0);
+		int totalExperience = Math.max(getExperience(player) + amount, 0);
 		setExperience(player, totalExperience);
 	}
 
