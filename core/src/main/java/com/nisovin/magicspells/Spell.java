@@ -476,45 +476,62 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		for (String costVal : costList) {
 			try {
 				// Parse cost data
-				data = costVal.split(" ");
+				data = costVal.trim().split(" ", 2);
 
 				switch (data[0].toLowerCase()) {
 					case "health" -> {
-						if (data.length > 1) reagents.setHealth(Double.parseDouble(data[1]));
+						reagents.setHealth(Double.parseDouble(data[1]));
+						continue;
 					}
 					case "mana" -> {
-						if (data.length > 1) reagents.setMana(Integer.parseInt(data[1]));
+						reagents.setMana(Integer.parseInt(data[1]));
+						continue;
 					}
 					case "hunger" -> {
-						if (data.length > 1) reagents.setHunger(Integer.parseInt(data[1]));
+						reagents.setHunger(Integer.parseInt(data[1]));
+						continue;
 					}
 					case "experience" -> {
-						if (data.length > 1) reagents.setExperience(Integer.parseInt(data[1]));
+						reagents.setExperience(Integer.parseInt(data[1]));
+						continue;
 					}
 					case "levels" -> {
-						if (data.length > 1) reagents.setLevels(Integer.parseInt(data[1]));
+						reagents.setLevels(Integer.parseInt(data[1]));
+						continue;
 					}
 					case "durability" -> {
-						if (data.length > 1) reagents.setDurability(Integer.parseInt(data[1]));
+						reagents.setDurability(Integer.parseInt(data[1]));
+						continue;
 					}
 					case "money" -> {
-						if (data.length > 1) reagents.setMoney(Float.parseFloat(data[1]));
+						reagents.setMoney(Float.parseFloat(data[1]));
+						continue;
 					}
 					case "variable" -> {
-						if (data.length > 2) reagents.addVariable(data[1], Double.parseDouble(data[2]));
-					}
-
-					default -> {
-						int amount = 1;
-						if (data.length > 1) amount = Integer.parseInt(data[1]);
-						MagicItemData itemData = MagicItems.getMagicItemDataFromString(data[0]);
-						if (itemData == null) {
-							MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
-							continue;
-						}
-						reagents.addItem(new SpellReagents.ReagentItem(itemData, amount));
+						String[] variableData = data[1].split(" ", 2);
+						reagents.addVariable(variableData[0], Double.parseDouble(variableData[1]));
+						continue;
 					}
 				}
+
+				int i = costVal.lastIndexOf(' ');
+
+				int amount = 1;
+				if (i != -1) {
+					try {
+						amount = Integer.parseInt(costVal.substring(i + 1));
+					} catch (NumberFormatException e) {
+						i = -1;
+					}
+				}
+
+				MagicItemData itemData = MagicItems.getMagicItemDataFromString(i != -1 ? costVal.substring(0, i) : costVal);
+				if (itemData == null) {
+					MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
+					continue;
+				}
+
+				reagents.addItem(new SpellReagents.ReagentItem(itemData, amount));
 			} catch (Exception e) {
 				MagicSpells.error("Failed to process cost value for " + internalName + " spell: " + costVal);
 			}
