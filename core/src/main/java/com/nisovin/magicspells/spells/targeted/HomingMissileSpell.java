@@ -248,7 +248,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			float projectileHorizSpread = HomingMissileSpell.this.projectileHorizSpread.get(data);
 			float projectileVertSpread = HomingMissileSpell.this.projectileVertSpread.get(data);
 
-			currentVelocity = currentLocation.getDirection()
+			currentVelocity = data.target().getLocation().subtract(currentLocation).toVector()
 					.add(new Vector(0, projectileVertOffset, 0))
 					.rotateAroundAxis(new Vector(0, 1, 0), -Math.toRadians(projectileHorizOffset))
 					.normalize();
