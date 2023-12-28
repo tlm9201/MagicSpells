@@ -280,6 +280,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 	public void checkHitbox(Location location) {
 		if (location == null || !data.hasCaster()) return;
+		if (projectile == null) return;
 
 		SpellData data = this.data.location(location);
 
