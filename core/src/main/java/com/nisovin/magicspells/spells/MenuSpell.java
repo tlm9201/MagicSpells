@@ -310,9 +310,13 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 
 	@EventHandler
 	public void onInvClick(InventoryClickEvent event) {
-		Inventory inventory = event.getClickedInventory();
-		if (inventory == null || !(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+		InventoryView view = event.getView();
+
+		Inventory inventory = view.getTopInventory();
+		if (!(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+
 		event.setCancelled(true);
+		if (event.getClickedInventory() != inventory) return;
 
 		Player player = (Player) event.getWhoClicked();
 		PostClickState state = castSpells(menu, event.getCurrentItem(), event.getClick());
@@ -336,13 +340,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		Inventory inventory = view.getTopInventory();
 		if (!(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
 
-		int size = inventory.getSize();
-		for (int slot : event.getRawSlots()) {
-		    if (slot < size) {
-				event.setCancelled(true);
-				return;
-			}
-		}
+		event.setCancelled(true);
 	}
 
 	private PostClickState castSpells(MenuInventory menu, ItemStack item, ClickType click) {
