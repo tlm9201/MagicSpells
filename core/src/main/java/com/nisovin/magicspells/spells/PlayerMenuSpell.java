@@ -246,11 +246,13 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 
 	@EventHandler
 	public void onItemClick(InventoryClickEvent event) {
-		Inventory inventory = event.getClickedInventory();
-		if (inventory == null || !(inventory.getHolder() instanceof PlayerMenuInventory menu) || menu.getSpell() != this) return;
+		InventoryView view = event.getView();
+
+		Inventory inventory = view.getTopInventory();
+		if (!(inventory.getHolder() instanceof PlayerMenuInventory menu) || menu.getSpell() != this) return;
 
 		event.setCancelled(true);
-		if (!(event.getWhoClicked() instanceof Player opener)) return;
+		if (event.getClickedInventory() != inventory || !(event.getWhoClicked() instanceof Player opener)) return;
 
 		ItemStack item = event.getCurrentItem();
 		if (item == null) return;
@@ -334,13 +336,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		Inventory inventory = view.getTopInventory();
 		if (!(inventory.getHolder() instanceof PlayerMenuInventory menu) || menu.getSpell() != this) return;
 
-		int size = inventory.getSize();
-		for (int slot : event.getRawSlots()) {
-			if (slot < size) {
-				event.setCancelled(true);
-				return;
-			}
-		}
+		event.setCancelled(true);
 	}
 
 	private class PlayerMenuInventory implements InventoryHolder {
