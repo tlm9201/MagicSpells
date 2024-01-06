@@ -6,6 +6,8 @@ import java.util.UUID;
 import java.util.HashSet;
 import java.util.HashMap;
 
+import io.papermc.paper.entity.TeleportFlag;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -111,22 +113,16 @@ public class StunSpell extends TargetedSpell implements TargetedEntitySpell {
 			StunnedInfo info = stunnedLivingEntities.get(player.getUniqueId());
 			if (info == null) return;
 
-			// Perform checks whether to stun the player.
-			boolean shouldStun = false;
-			Location from = event.getFrom();
-			Location to = event.getTo();
-			boolean movedBody = from.getX() != to.getX() || from.getY() != to.getY() || from.getZ() != to.getZ();
-			boolean movedMonitor = from.getPitch() != to.getPitch() || from.getYaw() != to.getYaw();
-			if (info.stunBody && movedBody) shouldStun = true;
-			if (info.stunMonitor && movedMonitor) shouldStun = true;
-			if (!shouldStun) return;
-
-			if (info.until > System.currentTimeMillis()) {
-				event.setTo(info.useTargetLocation ? info.targetLocation : from);
+			if (System.currentTimeMillis() >= info.until) {
+				removeStun(player);
 				return;
 			}
 
-			removeStun(player);
+			boolean stunBody = info.stunBody && event.hasExplicitlyChangedPosition();
+			boolean stunMonitor = info.stunMonitor && event.hasChangedOrientation();
+			if (!stunBody && !stunMonitor) return;
+			Location to = info.useTargetLocation ? info.targetLocation : event.getFrom();
+			player.teleport(to, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 		}
 
 		@EventHandler
@@ -164,7 +160,7 @@ public class StunSpell extends TargetedSpell implements TargetedEntitySpell {
 				if (entity instanceof Player) continue;
 
 				if (entity.isValid() && until > System.currentTimeMillis()) {
-					entity.teleportAsync(info.targetLocation);
+					entity.teleport(info.targetLocation, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 					continue;
 				}
 

@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 
+import io.papermc.paper.entity.TeleportFlag;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -93,18 +95,12 @@ public class WindwalkSpell extends BuffSpell {
 
 		float launchSpeed = this.launchSpeed.get(data);
 		if (launchSpeed > 0) {
-			target.teleportAsync(target.getLocation().add(0, 0.25, 0)).thenRun(() -> MagicSpells.scheduleDelayedTask(() -> {
-				target.setVelocity(new Vector(0, launchSpeed, 0));
-
-				target.setAllowFlight(true);
-				target.setFlying(true);
-				target.setFlySpeed(flyData.flySpeed);
-			}, 0));
-		} else {
-			target.setAllowFlight(true);
-			target.setFlying(true);
-			target.setFlySpeed(flyData.flySpeed);
+			target.teleport(target.getLocation().add(0, 0.25, 0), TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
+			target.setVelocity(new Vector(0, launchSpeed, 0));
 		}
+		target.setAllowFlight(true);
+		target.setFlying(true);
+		target.setFlySpeed(flyData.flySpeed);
 
 		return true;
 	}
@@ -203,7 +199,7 @@ public class WindwalkSpell extends BuffSpell {
 			if (!isActive(player) || player.getLocation().subtract(0, 1, 0).getBlock().getType().isAir()) return;
 
 			if (alwaysFly) {
-				player.teleport(player.getLocation().add(0, 0.25, 0));
+				player.teleport(player.getLocation().add(0, 0.25, 0), TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 				player.setFlying(true);
 			} else if (cancelOnLand) turnOff(player);
 		}
