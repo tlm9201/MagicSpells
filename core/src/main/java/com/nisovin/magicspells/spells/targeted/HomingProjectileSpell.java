@@ -3,13 +3,12 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -25,6 +24,7 @@ import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.util.projectile.ProjectileManager;
 import com.nisovin.magicspells.util.projectile.ProjectileManagers;
@@ -57,11 +57,13 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 	private final ConfigData<Component> projectileName;
 
-	private String hitSpellName;
-	private String airSpellName;
-	private String groundSpellName;
-	private String modifierSpellName;
-	private String durationSpellName;
+	private final ConfigData<Color> arrowColor;
+
+	private final String hitSpellName;
+	private final String airSpellName;
+	private final String groundSpellName;
+	private final String modifierSpellName;
+	private final String durationSpellName;
 
 	private Subspell hitSpell;
 	private Subspell airSpell;
@@ -78,6 +80,8 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		monitors = new ArrayList<>();
 
 		projectileType = getConfigDataString("projectile-type", "arrow");
+
+		arrowColor = ConfigDataUtil.getColor(config.getMainConfig(), "spells." + internalName + ".arrow-color", null);
 
 		relativeOffset = getConfigDataVector("relative-offset", new Vector(0.5, 0.5, 0));
 		targetRelativeOffset = getConfigDataVector("target-relative-offset", new Vector(0, 0.5, 0));
@@ -261,10 +265,13 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			ProjectileManager manager = ProjectileManagers.getManager(projectileType.get(data));
 			projectile = currentLocation.getWorld().spawn(currentLocation, manager.getProjectileClass());
 
+			projectile.setShooter(data.caster());
+
 			if (projectileName != null) {
 				projectile.customName(projectileName.get(data));
 				projectile.setCustomNameVisible(true);
 			}
+			if (projectile instanceof Arrow arrow) arrow.setColor(arrowColor.get(data));
 
 			float hitRadius = HomingProjectileSpell.this.hitRadius.get(data);
 			float verticalHitRadius = HomingProjectileSpell.this.verticalHitRadius.get(data);

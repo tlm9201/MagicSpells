@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 
+import org.bukkit.Color;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -19,6 +20,7 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
+import com.nisovin.magicspells.util.projectile.*;
 import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -29,9 +31,7 @@ import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.instant.ProjectileSpell;
-import com.nisovin.magicspells.util.projectile.ProjectileManager;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
-import com.nisovin.magicspells.util.projectile.ProjectileManagerThrownPotion;
 
 public class ProjectileTracker implements Runnable, Tracker {
 
@@ -72,6 +72,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 	private double maxDuration;
 
 	private Component projectileName;
+
+	private Color arrowColor;
 
 	private Subspell hitSpell;
 	private Subspell tickSpell;
@@ -139,6 +141,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 			projectile.customName(projectileName);
 			projectile.setCustomNameVisible(true);
 		}
+		if (projectile instanceof Arrow arrow) arrow.setColor(arrowColor);
 		if (projectile instanceof WitherSkull witherSkull) witherSkull.setCharged(charged);
 		if (projectile instanceof Explosive explosive) explosive.setIsIncendiary(incendiary);
 		if (projectileManager instanceof ProjectileManagerThrownPotion potion) {
@@ -338,14 +341,6 @@ public class ProjectileTracker implements Runnable, Tracker {
 		this.spell = spell;
 	}
 
-	public NoMagicZoneManager getZoneManager() {
-		return zoneManager;
-	}
-
-	public void setZoneManager(NoMagicZoneManager zoneManager) {
-		this.zoneManager = zoneManager;
-	}
-
 	public ProjectileManager getProjectileManager() {
 		return projectileManager;
 	}
@@ -488,6 +483,14 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 	public void setIncendiary(boolean incendiary) {
 		this.incendiary = incendiary;
+	}
+
+	public Color getArrowColor() {
+		return arrowColor;
+	}
+
+	public void setArrowColor(Color arrowColor) {
+		this.arrowColor = arrowColor;
 	}
 
 	public boolean shouldStopOnModifierFail() {
