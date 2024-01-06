@@ -4,35 +4,20 @@ import org.bukkit.Location;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.config.ConfigData;
 
 public class LocationSpell extends InstantSpell {
-
-	private MagicLocation location;
 
 	private Subspell spellToCast;
 	private String spellToCastName;
 
+	private ConfigData<String> locationData;
+
 	public LocationSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		String s = getConfigString("location", "world,0,0,0");
-		try {
-			String[] split = s.split(",");
-			String world = split[0];
-			double x = Double.parseDouble(split[1]);
-			double y = Double.parseDouble(split[2]);
-			double z = Double.parseDouble(split[3]);
-			float yaw = 0;
-			float pitch = 0;
-			if (split.length > 4) yaw = Float.parseFloat(split[4]);
-			if (split.length > 5) pitch = Float.parseFloat(split[5]);
-			location = new MagicLocation(world, x, y, z, yaw, pitch);
-		} catch (Exception e) {
-			MagicSpells.error("LocationSpell '" + spellName + "' has an invalid location defined!");
-		}
-
 		spellToCastName = getConfigString("spell", "");
+		locationData = getConfigDataString("location", "world,0,0,0");
 	}
 
 	@Override
@@ -44,10 +29,23 @@ public class LocationSpell extends InstantSpell {
 
 	@Override
 	public CastResult cast(SpellData data) {
-		Location loc = location.getLocation();
-		if (loc == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
+		MagicLocation location = null;
+		String s = locationData.get(data);
+		try {
+			String[] split = s.split(",");
+			String world = split[0];
+			double x = Double.parseDouble(split[1]);
+			double y = Double.parseDouble(split[2]);
+			double z = Double.parseDouble(split[3]);
+			float yaw = 0;
+			float pitch = 0;
+			if (split.length > 4) yaw = Float.parseFloat(split[4]);
+			if (split.length > 5) pitch = Float.parseFloat(split[5]);
+			location = new MagicLocation(world, x, y, z, yaw, pitch);
+		} catch (Exception ignored) {}
+		if (location == null) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		data = data.location(loc);
+		data = data.location(location.getLocation());
 		if (spellToCast != null) spellToCast.subcast(data);
 		playSpellEffects(data);
 
