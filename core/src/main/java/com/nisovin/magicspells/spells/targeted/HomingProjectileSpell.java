@@ -275,8 +275,9 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			projectile.setShooter(data.caster());
 			projectile.setVisibleByDefault(visible.get(data));
 
-			if (projectileName != null) {
-				projectile.customName(projectileName.get(data));
+			Component projectileName = HomingProjectileSpell.this.projectileName.get(data);
+			if (projectileName != null && !Util.getPlainString(projectileName).isEmpty()) {
+				projectile.customName(projectileName);
 				projectile.setCustomNameVisible(true);
 			}
 			if (projectile instanceof Arrow arrow) arrow.setColor(arrowColor.get(data));
