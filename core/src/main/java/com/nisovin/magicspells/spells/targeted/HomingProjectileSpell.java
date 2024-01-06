@@ -29,6 +29,7 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.util.projectile.ProjectileManager;
 import com.nisovin.magicspells.util.projectile.ProjectileManagers;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
+import com.nisovin.magicspells.util.projectile.ProjectileManagerThrownPotion;
 
 public class HomingProjectileSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
 
@@ -50,6 +51,9 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	private final ConfigData<Float> hitRadius;
 	private final ConfigData<Float> verticalHitRadius;
 
+	private final ConfigData<Boolean> visible;
+	private final ConfigData<Boolean> charged;
+	private final ConfigData<Boolean> incendiary;
 	private final ConfigData<Boolean> stopOnModifierFail;
 	private final ConfigData<Boolean> powerAffectsVelocity;
 
@@ -95,6 +99,9 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		hitRadius = getConfigDataFloat("hit-radius", 2F);
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", 2F);
 
+		visible = getConfigDataBoolean("visible", true);
+		charged = getConfigDataBoolean("charged", false);
+		incendiary = getConfigDataBoolean("incendiary", false);
 		stopOnModifierFail = getConfigDataBoolean("stop-on-modifier-fail", true);
 		powerAffectsVelocity = getConfigDataBoolean("power-affects-velocity", true);
 
@@ -266,12 +273,18 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			projectile = currentLocation.getWorld().spawn(currentLocation, manager.getProjectileClass());
 
 			projectile.setShooter(data.caster());
+			projectile.setVisibleByDefault(visible.get(data));
 
 			if (projectileName != null) {
 				projectile.customName(projectileName.get(data));
 				projectile.setCustomNameVisible(true);
 			}
 			if (projectile instanceof Arrow arrow) arrow.setColor(arrowColor.get(data));
+			if (projectile instanceof WitherSkull witherSkull) witherSkull.setCharged(charged.get(data));
+			if (projectile instanceof Explosive explosive) explosive.setIsIncendiary(incendiary.get(data));
+			if (manager instanceof ProjectileManagerThrownPotion potion) {
+				((ThrownPotion) projectile).setItem(potion.getItem());
+			}
 
 			float hitRadius = HomingProjectileSpell.this.hitRadius.get(data);
 			float verticalHitRadius = HomingProjectileSpell.this.verticalHitRadius.get(data);
