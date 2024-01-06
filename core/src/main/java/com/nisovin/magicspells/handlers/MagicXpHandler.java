@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.ArrayList;
 import java.text.NumberFormat;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -25,7 +26,6 @@ import com.nisovin.magicspells.util.IntMap;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.MagicConfig;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.Spell.SpellCastState;
 import com.nisovin.magicspells.util.compat.EventUtil;
@@ -209,7 +209,7 @@ public class MagicXpHandler implements Listener {
 	
 	public void saveAll() {
 		for (String playerName : dirty) {
-			Player player = PlayerNameUtils.getPlayerExact(playerName);
+			Player player = Bukkit.getPlayerExact(playerName);
 			if (player != null) save(player);
 		}
 		dirty.clear();

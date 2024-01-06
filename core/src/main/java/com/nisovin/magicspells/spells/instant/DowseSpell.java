@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.bukkit.World;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -125,7 +126,7 @@ public class DowseSpell extends InstantSpell {
 			double distanceSq = radius * radius;
 			if (entityType == EntityType.PLAYER && playerName != null) {
 				// Find specific player
-				foundEntity = PlayerNameUtils.getPlayerExact(playerName);
+				foundEntity = Bukkit.getPlayerExact(playerName);
 				if (foundEntity != null) {
 					if (!foundEntity.getWorld().equals(caster.getWorld())) foundEntity = null;
 					else if (radius > 0 && caster.getLocation().distanceSquared(foundEntity.getLocation()) > distanceSq)

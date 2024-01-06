@@ -1,10 +1,10 @@
 package com.nisovin.magicspells.variables.meta;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.variables.variabletypes.MetaVariable;
 
 public class AttributeVariable extends MetaVariable {
@@ -19,7 +19,7 @@ public class AttributeVariable extends MetaVariable {
 
 	@Override
 	public double getValue(String player) {
-		Player p = PlayerNameUtils.getPlayerExact(player);
+		Player p = Bukkit.getPlayerExact(player);
 		if (p == null) return 0D;
 
 		AttributeInstance inst = p.getAttribute(attribute);

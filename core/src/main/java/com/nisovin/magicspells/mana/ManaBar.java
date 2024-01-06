@@ -1,10 +1,10 @@
 package com.nisovin.magicspells.mana;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import com.nisovin.magicspells.util.Util;
 
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.ManaChangeEvent;
 
@@ -36,7 +36,7 @@ public class ManaBar {
 	}
 	
 	public Player getPlayer() {
-		return PlayerNameUtils.getPlayerExact(playerName);
+		return Bukkit.getPlayerExact(playerName);
 	}
 	
 	public ManaRank getManaRank() {

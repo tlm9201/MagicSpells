@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -216,7 +217,7 @@ public class DanceCastListener implements Listener {
 			playerLocations.remove(playerName);
 			playerTasks.remove(playerName);
 			if (cast == null) return;
-			Player player = PlayerNameUtils.getPlayerExact(playerName);
+			Player player = Bukkit.getPlayerExact(playerName);
 			if (player != null) MagicSpells.sendMessage(strDanceFail, player, MagicSpells.NULL_ARGS);
 		}
 	}

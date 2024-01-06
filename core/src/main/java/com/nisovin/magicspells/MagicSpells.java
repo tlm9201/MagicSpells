@@ -2145,8 +2145,3 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 }
-
-/*
- * TODO:
- * - Move NoMagicZoneWorldGuard outside of the core plugin
- */

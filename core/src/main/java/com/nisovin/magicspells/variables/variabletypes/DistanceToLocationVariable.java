@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.variables.variabletypes;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
@@ -7,7 +8,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.util.MagicLocation;
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.util.ConfigReaderUtil;
 
 public class DistanceToLocationVariable extends Variable {
@@ -32,7 +32,7 @@ public class DistanceToLocationVariable extends Variable {
 	
 	@Override
 	public double getValue(String player) {
-		Player p = PlayerNameUtils.getPlayer(player);
+		Player p = Bukkit.getPlayer(player);
 		if (p == null) return defaultValue;
 		
 		Location targetLoc = targetLocation.getLocation();

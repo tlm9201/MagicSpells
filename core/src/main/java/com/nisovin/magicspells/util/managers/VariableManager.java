@@ -396,7 +396,7 @@ public class VariableManager {
 			return;
 		}
 		if (var instanceof PlayerVariable) {
-			Player pl = PlayerNameUtils.getPlayerExact(player);
+			Player pl = Bukkit.getPlayerExact(player);
 			if (pl == null) return;
 			BossBarManager.Bar bar = MagicSpells.getBossBarManager().getBar(pl, var.getBossBarNamespacedKey());
 			if (bar == null) return;
@@ -414,7 +414,7 @@ public class VariableManager {
 			return;
 		}
 		if (var instanceof PlayerVariable) {
-			Player p = PlayerNameUtils.getPlayerExact(player);
+			Player p = Bukkit.getPlayerExact(player);
 			if (p == null) return;
 			p.sendExperienceChange((float) (var.getValue(p) / var.getMaxValue()), (int) var.getValue(p));
 		}

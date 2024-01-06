@@ -219,7 +219,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		if (args.length < 1) return false;
 
-		Player player = PlayerNameUtils.getPlayer(args[0]);
+		Player player = Bukkit.getPlayer(args[0]);
 		if (player == null) return false;
 
 		String[] spellArgs = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : null;

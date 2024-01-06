@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.spells.instant;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Vehicle;
@@ -57,7 +58,7 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 		Location markLocation;
 
 		if (data.hasArgs() && data.args().length == 1 && data.caster().hasPermission("magicspells.advanced." + internalName)) {
-			Player target = PlayerNameUtils.getPlayer(data.args()[0]);
+			Player target = Bukkit.getPlayer(data.args()[0]);
 			markLocation = getRecallLocation(target, data);
 		} else markLocation = getRecallLocation(data.caster(), data);
 

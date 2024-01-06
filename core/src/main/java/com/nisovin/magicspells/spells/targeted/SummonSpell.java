@@ -89,7 +89,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		// Get player
 		Player target = null;
 		if (requireExactName.get(data)) {
-			target = PlayerNameUtils.getPlayer(targetName);
+			target = Bukkit.getPlayer(targetName);
 			if (target != null && !target.getName().equalsIgnoreCase(targetName)) target = null;
 		} else {
 			List<Player> players = Bukkit.getServer().matchPlayer(targetName);

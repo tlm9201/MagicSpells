@@ -1,9 +1,9 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class PlayerOnlineCondition extends Condition {
@@ -32,7 +32,7 @@ public class PlayerOnlineCondition extends Condition {
 	}
 
 	private boolean isOnline() {
-		return PlayerNameUtils.getPlayerExact(name) != null;
+		return Bukkit.getPlayerExact(name) != null;
 	}
 
 }
