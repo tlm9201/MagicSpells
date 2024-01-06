@@ -20,12 +20,9 @@ public class StartSwimListener extends PassiveListener {
 	@EventHandler
 	public void onSwim(EntityToggleSwimEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity caster)) return;
-		if (!isCancelStateOk(event.isCancelled())) return;
 		if (!event.isSwimming()) return;
 		if (!hasSpell(caster) || !canTrigger(caster)) return;
-
-		boolean casted = passiveSpell.activate(caster);
-		if (cancelDefaultAction(casted)) event.setCancelled(true);
+		passiveSpell.activate(caster);
 	}
 
 }
