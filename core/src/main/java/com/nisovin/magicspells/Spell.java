@@ -290,7 +290,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			MagicItem magicItem = MagicItems.getMagicItemFromString(iconStr);
 			if (magicItem != null) {
 				spellIcon = magicItem.getItemStack();
-				if (spellIcon != null && !BlockUtils.isAir(spellIcon.getType())) {
+				if (spellIcon != null && !spellIcon.getType().isAir()) {
 					if (!magicItem.getMagicItemData().hasAttribute(MagicItemData.MagicItemAttribute.NAME)) {
 						ItemMeta iconMeta = spellIcon.getItemMeta();
 						iconMeta.displayName(Component.text(MagicSpells.getTextColor() + name));
@@ -1261,7 +1261,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	public boolean isValidItemForCastCommand(ItemStack item) {
 		if (!requireCastItemOnCommand || castItems == null) return true;
-		if (item == null && castItems.length == 1 && BlockUtils.isAir(castItems[0].getType())) return true;
+		if (item == null && castItems.length == 1 && castItems[0].getType().isAir()) return true;
 		for (CastItem castItem : castItems) {
 			if (castItem.equals(new CastItem(item))) return true;
 		}

@@ -140,7 +140,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 				for (int z = centerZ - horizRadius; z <= centerZ + horizRadius; z++) {
 					Block b = targetLocation.getWorld().getBlockAt(x, y, z);
 					if (b.getType() == Material.BEDROCK) continue;
-					if (BlockUtils.isAir(b.getType())) continue;
+					if (b.getType().isAir()) continue;
 
 					if (checkPlugins && data.caster() instanceof Player player) {
 						MagicSpellsBlockBreakEvent event = new MagicSpellsBlockBreakEvent(b, player);

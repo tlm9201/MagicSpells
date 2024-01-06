@@ -222,7 +222,7 @@ public class FlightPathSpell extends InstantSpell {
 			} else if (state == FlightState.LANDING) {
 				caster.setFlying(false);
 				Location l = caster.getLocation();
-				if (!BlockUtils.isAir(l.getBlock().getType()) || !BlockUtils.isAir(l.subtract(0, 1, 0).getBlock().getType()) || !BlockUtils.isAir(l.subtract(0, 2, 0).getBlock().getType())) {
+				if (!l.getBlock().getType().isAir() || !l.subtract(0, 1, 0).getBlock().getType().isAir() || !l.subtract(0, 2, 0).getBlock().getType().isAir()) {
 					caster.setFallDistance(0f);
 					landSpell.subcast(data);
 					cancel();

@@ -7,7 +7,6 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
@@ -34,17 +33,17 @@ public class CloudEffect extends SpellEffect {
 			for (int z = cz - radius; z <= cz + radius; z++) {
 				if (!inRange(x, z, cx, cz, radius)) continue;
 				b = w.getBlockAt(x, cy, z);
-				if (BlockUtils.isPathable(b)) {
+				if (b.isPassable()) {
 					smoke(w, b, radius);
 					continue;
 				}
 				b = b.getRelative(0, -1, 0);
-				if (BlockUtils.isPathable(b)) {
+				if (b.isPassable()) {
 					smoke(w, b, radius);
 					continue;
 				}
 				b = b.getRelative(0, 2, 0);
-				if (BlockUtils.isPathable(b)) smoke(w, b, radius);
+				if (b.isPassable()) smoke(w, b, radius);
 			}
 		}
 		return null;

@@ -179,7 +179,7 @@ public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 			yOffset = 0;
 
 			Block b = target.getRelative(0, -1, 0);
-			while (BlockUtils.isAir(b.getType()) && yOffset > -5) {
+			while (b.getType().isAir() && yOffset > -5) {
 				yOffset--;
 				b = b.getRelative(0, -1, 0);
 			}

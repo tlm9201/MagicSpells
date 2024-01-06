@@ -67,7 +67,7 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		loc.setY(loc.getY() + relativeOffset.getY());
 		data = data.location(loc);
 
-		if (checkGround.get(data) && !BlockUtils.isPathable(loc.getBlock())) return noTarget(strCantGrip, data);
+		if (checkGround.get(data) && !loc.getBlock().isPassable()) return noTarget(strCantGrip, data);
 
 		data.target().teleportAsync(loc);
 		playSpellEffects(data);

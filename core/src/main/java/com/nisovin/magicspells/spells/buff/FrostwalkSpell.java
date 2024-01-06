@@ -96,7 +96,7 @@ public class FrostwalkSpell extends BuffSpell {
 
 		Block locationToBlock = to.getBlock();
 
-		if (locationToY > locationFromY && locationToY % 1 > .62 && locationToBlock.getType() == Material.WATER && BlockUtils.isAir(locationToBlock.getRelative(0, 1, 0).getType())) {
+		if (locationToY > locationFromY && locationToY % 1 > .62 && locationToBlock.getType() == Material.WATER && locationToBlock.getRelative(0, 1, 0).getType().isAir()) {
 			block = locationToBlock;
 			teleportUp = true;
 		} else block = locationToBlock.getRelative(0, -1, 0);

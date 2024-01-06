@@ -6,7 +6,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.RegexUtil;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class RoofCondition extends Condition {
@@ -39,7 +38,7 @@ public class RoofCondition extends Condition {
 	private boolean hasRoof(Location location) {
 		Block b = location.clone().add(0, 2, 0).getBlock();
 		for (int i = 0; i < height; i++) {
-			if (!BlockUtils.isAir(b.getType())) return true;
+			if (!b.getType().isAir()) return true;
 			b = b.getRelative(BlockFace.UP);
 		}
 		return false;

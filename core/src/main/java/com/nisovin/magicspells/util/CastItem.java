@@ -126,7 +126,7 @@ public class CastItem {
 	}
 
 	public boolean isTypeValid() {
-		return type != null && !BlockUtils.isAir(type);
+		return type != null && !type.isAir();
 	}
 
 	public Material getType() {

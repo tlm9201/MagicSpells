@@ -143,7 +143,7 @@ public class GeyserSpell extends TargetedSpell implements TargetedEntitySpell {
 
 			if (tick < geyserHeight) {
 				Block block = start.clone().add(0, tick, 0).getBlock();
-				if (!BlockUtils.isAir(block.getType())) return;
+				if (!block.getType().isAir()) return;
 				for (Player p : nearby) p.sendBlockChange(block.getLocation(), blockData);
 				return;
 			}

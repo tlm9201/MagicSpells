@@ -129,7 +129,7 @@ public class WaterwalkSpell extends BuffSpell {
 				if (feet.getType() == Material.WATER) {
 					loc.setY(Math.floor(loc.getY() + 1) + 0.1);
 					pl.teleport(loc, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
-				} else if (pl.isFlying() && BlockUtils.isAir(underfeet.getType())) {
+				} else if (pl.isFlying() && underfeet.getType().isAir()) {
 					loc.setY(Math.floor(loc.getY() - 1) + 0.1);
 					pl.teleport(loc, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 				}
@@ -137,7 +137,7 @@ public class WaterwalkSpell extends BuffSpell {
 				feet = pl.getLocation().getBlock();
 				underfeet = feet.getRelative(BlockFace.DOWN);
 
-				if (BlockUtils.isAir(feet.getType()) && underfeet.getType() == Material.WATER) {
+				if (feet.getType().isAir() && underfeet.getType() == Material.WATER) {
 					if (!pl.isFlying()) {
 						pl.setAllowFlight(true);
 						pl.setFlying(true);

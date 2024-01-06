@@ -390,12 +390,12 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 			block = world.getBlockAt(x, y, z);
 			if (block.getType() == Material.WATER) return block.getLocation();
-			if (BlockUtils.isPathable(block)) {
+			if (block.isPassable()) {
 				if (allowSpawnInMidair) return block.getLocation();
 				int c = 0;
 				while (c < 5) {
 					block2 = block.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isPathable(block2)) block = block2;
+					if (block2.isPassable()) block = block2;
 					else return block.getLocation();
 					c++;
 				}

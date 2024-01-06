@@ -135,7 +135,7 @@ public class DodgeSpell extends BuffSpell {
 			spellBeforeDodge.subcast(castData);
 		}
 
-		if (!BlockUtils.isPathable(targetLoc.getBlock().getType()) || !BlockUtils.isPathable(targetLoc.getBlock().getRelative(BlockFace.UP))) return;
+		if (!targetLoc.getBlock().isPassable() || !targetLoc.getBlock().getRelative(BlockFace.UP).isPassable()) return;
 		caster.teleportAsync(targetLoc);
 		addUseAndChargeCost(caster);
 

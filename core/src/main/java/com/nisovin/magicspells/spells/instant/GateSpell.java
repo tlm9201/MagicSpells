@@ -85,7 +85,7 @@ public class GateSpell extends InstantSpell {
 		MagicSpells.debug(3, "Gate location: " + location);
 
 		Block b = location.getBlock();
-		if (!BlockUtils.isPathable(b) || !BlockUtils.isPathable(b.getRelative(0, 1, 0))) {
+		if (!b.isPassable() || !b.getRelative(0, 1, 0).isPassable()) {
 			MagicSpells.error("GateSpell '" + internalName + "' has landing spot blocked!");
 			sendMessage(strGateFailed, data.caster(), data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);

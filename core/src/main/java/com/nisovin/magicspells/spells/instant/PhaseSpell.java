@@ -70,7 +70,7 @@ public class PhaseSpell extends InstantSpell {
 
 		while (i++ < r << 1 && iter.hasNext()) {
 			Block b = iter.next();
-			if (BlockUtils.isAir(b.getType())) continue;
+			if (b.getType().isAir()) continue;
 			if (casterLoc.distanceSquared(b.getLocation()) >= r * r) continue;
 			start = b;
 			break;
@@ -80,7 +80,7 @@ public class PhaseSpell extends InstantSpell {
 			if (canPassThrough(start)) {
 				while (i++ < distance << 1 && iter.hasNext()) {
 					Block block = iter.next();
-					if (BlockUtils.isAir(block.getType()) && BlockUtils.isAir(block.getRelative(0, 1, 0).getType()) && casterLoc.distanceSquared(block.getLocation()) < distance * distance) {
+					if (block.getType().isAir() && block.getRelative(0, 1, 0).getType().isAir() && casterLoc.distanceSquared(block.getLocation()) < distance * distance) {
 						location = block.getLocation();
 						break;
 					}

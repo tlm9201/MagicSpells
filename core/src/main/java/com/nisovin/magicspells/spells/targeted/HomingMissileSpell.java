@@ -377,7 +377,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				}
 			}
 
-			if (stopOnHitGround && !BlockUtils.isPathable(currentLocation.getBlock())) {
+			if (stopOnHitGround && !currentLocation.getBlock().isPassable()) {
 				if (hitGround && groundSpell != null) groundSpell.subcast(data.noTarget());
 				stop();
 				return;

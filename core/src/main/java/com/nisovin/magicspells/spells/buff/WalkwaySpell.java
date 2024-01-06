@@ -269,7 +269,7 @@ public class WalkwaySpell extends BuffSpell {
 
 			// Set new blocks
 			for (Block b : blocks) {
-				if (platform.contains(b) || BlockUtils.isAir(b.getType())) {
+				if (platform.contains(b) || b.getType().isAir()) {
 					b.setBlockData(blockData);
 					platform.add(b);
 				}
