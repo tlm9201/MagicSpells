@@ -7,7 +7,6 @@ import java.util.Iterator;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
@@ -16,6 +15,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -25,12 +25,16 @@ public class FlightPathSpell extends InstantSpell {
 
 	private FlightHandler flightHandler;
 
+	private final String landSpellName;
+
 	private final ConfigData<Float> speed;
 	private final ConfigData<Float> targetX;
 	private final ConfigData<Float> targetZ;
 
 	private final int interval;
 	private final ConfigData<Integer> cruisingAltitude;
+
+	private Subspell landSpell;
 
 	public FlightPathSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -41,11 +45,17 @@ public class FlightPathSpell extends InstantSpell {
 
 		interval = getConfigInt("interval", 5);
 		cruisingAltitude = getConfigDataInt("cruising-altitude", 150);
+
+		landSpellName = getConfigString("land-spell", "");
 	}
 
 	@Override
 	public void initialize() {
 		super.initialize();
+
+		landSpell = initSubspell(landSpellName,
+				"FlightPathSpell '" + internalName + "' has an invalid land-spell defined!",
+				true);
 
 		flightHandler = new FlightHandler();
 	}
@@ -141,7 +151,6 @@ public class FlightPathSpell extends InstantSpell {
 		private final Player caster;
 
 		private FlightState state;
-		private Entity mountActive;
 		private Location lastLocation;
 
 		private final boolean wasFlying;
@@ -215,6 +224,7 @@ public class FlightPathSpell extends InstantSpell {
 				Location l = caster.getLocation();
 				if (!BlockUtils.isAir(l.getBlock().getType()) || !BlockUtils.isAir(l.subtract(0, 1, 0).getBlock().getType()) || !BlockUtils.isAir(l.subtract(0, 2, 0).getBlock().getType())) {
 					caster.setFallDistance(0f);
+					landSpell.subcast(data);
 					cancel();
 					return;
 				} else {
@@ -231,13 +241,7 @@ public class FlightPathSpell extends InstantSpell {
 				state = FlightState.DONE;
 				caster.setFlying(wasFlying);
 				caster.setAllowFlight(wasFlyingAllowed);
-				if (mountActive != null) {
-					mountActive.eject();
-					mountActive.remove();
-				}
 				playSpellEffects(EffectPosition.DELAYED, caster, data);
-
-				mountActive = null;
 			}
 		}
 
