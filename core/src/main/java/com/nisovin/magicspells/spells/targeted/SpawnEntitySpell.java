@@ -39,6 +39,7 @@ import com.nisovin.magicspells.util.ai.LookAtEntityGoal;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
@@ -199,7 +200,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			for (String data : list) {
 				split = data.split(" ");
 				try {
-					type = Util.getPotionEffectType(split[0]);
+					type = PotionEffectHandler.getPotionEffectType(split[0]);
 					if (type == null) throw new Exception("");
 
 					duration = 600;

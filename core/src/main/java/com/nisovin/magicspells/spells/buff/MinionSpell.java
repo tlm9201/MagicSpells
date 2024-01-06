@@ -26,6 +26,7 @@ import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 
 public class MinionSpell extends BuffSpell {
@@ -116,7 +117,7 @@ public class MinionSpell extends BuffSpell {
 			for (String potion : potionEffectList) {
 				String[] split = potion.split(" ");
 				try {
-					PotionEffectType type = Util.getPotionEffectType(split[0]);
+					PotionEffectType type = PotionEffectHandler.getPotionEffectType(split[0]);
 					if (type == null) throw new Exception("");
 					int duration = 600;
 					if (split.length > 1) duration = Integer.parseInt(split[1]);

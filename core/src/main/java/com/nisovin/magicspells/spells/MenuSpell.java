@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -107,7 +108,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 						MagicSpells.error("MenuSpell '" + internalName + "' has an invalid item listed in '" + optionName + "': " + itemName);
 						continue;
 					}
-					items.add(itemStack);
+					items.add(itemStack.clone());
 				}
 				// Skip if list was invalid.
 				if (items.isEmpty()) {
@@ -232,7 +233,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		MagicItem magicItem = isConfigSection(path) ?
 				MagicItems.getMagicItemFromSection(getConfigSection(path)) :
 				MagicItems.getMagicItemFromString(getConfigString(path, ""));
-		return magicItem == null ? null : magicItem.getItemStack();
+		ItemStack item = magicItem == null ? null : magicItem.getItemStack();
+		return item == null ? null : item.clone();
 	}
 
 	private void open(Player opener, SpellData data, boolean targetOpensMenuInstead) {
@@ -262,7 +264,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				if (event.isCancelled()) continue;
 			}
 			// Select and finalise item to display.
-			ItemStack item = (option.item != null ? option.item : option.items.get(Util.getRandomInt(option.items.size()))).clone();
+			ItemStack item = option.item != null ? option.item : option.items.get(ThreadLocalRandom.current().nextInt(option.items.size()));
 			DataUtil.setString(item, "menuOption", option.menuOptionName);
 			item = translateItem(opener, item, menu.data);
 

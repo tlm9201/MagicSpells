@@ -114,7 +114,7 @@ public class DowseSpell extends InstantSpell {
 
 			if (rotatePlayer.get(data)) {
 				Vector v = foundBlock.getLocation().add(0.5, 0.5, 0.5).subtract(caster.getEyeLocation()).toVector().normalize();
-				Util.setFacing(caster, v);
+				caster.teleport(caster.getLocation().setDirection(v));
 			}
 
 			if (setCompass.get(data)) caster.setCompassTarget(foundBlock.getLocation());
@@ -169,7 +169,7 @@ public class DowseSpell extends InstantSpell {
 			if (rotatePlayer.get(data)) {
 				Location l = foundEntity instanceof LivingEntity ? ((LivingEntity) foundEntity).getEyeLocation() : foundEntity.getLocation();
 				Vector v = l.subtract(caster.getEyeLocation()).toVector().normalize();
-				Util.setFacing(caster, v);
+				caster.teleport(caster.getLocation().setDirection(v));
 			}
 
 			if (setCompass.get(data)) caster.setCompassTarget(foundEntity.getLocation());

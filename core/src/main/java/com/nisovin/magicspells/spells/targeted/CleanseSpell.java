@@ -13,6 +13,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 
 // TODO setup a system for registering "CleanseProvider"s
 public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
@@ -154,7 +155,7 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 				continue;
 			}
 
-			PotionEffectType type = Util.getPotionEffectType(s);
+			PotionEffectType type = PotionEffectHandler.getPotionEffectType(s);
 			if (type != null) potionEffectTypes.add(type);
 		}
 

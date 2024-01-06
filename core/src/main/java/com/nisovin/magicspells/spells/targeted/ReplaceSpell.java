@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -184,7 +185,7 @@ public class ReplaceSpell extends TargetedSpell implements TargetedLocationSpell
 						BlockState previousState = block.getState();
 
 						// Place block.
-						if (replaceRandom) block.setBlockData(replaceWith.get(Util.getRandomInt(replaceWith.size())));
+						if (replaceRandom) block.setBlockData(replaceWith.get(ThreadLocalRandom.current().nextInt(replaceWith.size())));
 						else block.setBlockData(replaceWith.get(i));
 
 						if (checkPlugins && data.caster() instanceof Player player) {

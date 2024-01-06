@@ -1,10 +1,12 @@
 package com.nisovin.magicspells.util.config;
 
+import java.util.List;
+import java.util.function.Function;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.function.Function;
+import net.kyori.adventure.text.Component;
 
 import org.bukkit.Color;
 import org.bukkit.Bukkit;
@@ -19,9 +21,8 @@ import org.bukkit.Particle.DustTransition;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.configuration.ConfigurationSection;
 
-import net.kyori.adventure.text.Component;
-
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 
 public class ConfigDataUtil {
 
@@ -529,7 +530,7 @@ public class ConfigDataUtil {
 		String value = config.getString(path);
 		if (value == null) return data -> def;
 
-		PotionEffectType type = Util.getPotionEffectType(value);
+		PotionEffectType type = PotionEffectHandler.getPotionEffectType(value);
 		if (type != null) return data -> type;
 
 		ConfigData<String> supplier = getString(value);
@@ -542,7 +543,7 @@ public class ConfigDataUtil {
 				String val = supplier.get(data);
 				if (val == null) return def;
 
-				PotionEffectType type = Util.getPotionEffectType(val);
+				PotionEffectType type = PotionEffectHandler.getPotionEffectType(val);
 				return type == null ? def : type;
 			}
 

@@ -13,10 +13,6 @@ import java.util.regex.Pattern;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.Predicate;
-import java.util.concurrent.ThreadLocalRandom;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import org.bukkit.*;
 import org.bukkit.inventory.*;
@@ -37,7 +33,6 @@ import org.apache.commons.math4.core.jdkmath.AccurateMath;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import com.destroystokyo.paper.profile.ProfileProperty;
 
-import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -53,27 +48,11 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class Util {
 
-	private static final Random random = ThreadLocalRandom.current();
-
 	private static final Pattern WEIRD_HEX_PATTERN = Pattern.compile("[&§]x(([&§][0-9a-f]){6})", Pattern.CASE_INSENSITIVE);
 	private static final Pattern COLOR_PATTERN = Pattern.compile("[&§]([0-9a-fk-or])", Pattern.CASE_INSENSITIVE);
 	private static final Pattern HEX_PATTERN = Pattern.compile("[&§](#[0-9a-f]{6})", Pattern.CASE_INSENSITIVE);
 
 	private static final MiniMessage STRICT_SERIALIZER = MiniMessage.builder().strict(true).build();
-
-	public static int getRandomInt(int bound) {
-		return random.nextInt(bound);
-	}
-
-	public static double round(double value, int places) {
-		return round(value, places, RoundingMode.HALF_UP);
-	}
-
-	public static double round(double value, int places, RoundingMode roundingMode) {
-		if (places < 0) throw new IllegalArgumentException("places cant be lower than 0");
-
-		return BigDecimal.valueOf(value).setScale(places, roundingMode).doubleValue();
-	}
 
 	public static Material getMaterial(String name) {
 		return Material.matchMaterial(name);
@@ -82,7 +61,7 @@ public class Util {
 	// - <potionEffectType> (level) (duration) (ambient)
 	public static PotionEffect buildPotionEffect(String effectString) {
 		String[] data = effectString.split(" ");
-		PotionEffectType t = getPotionEffectType(data[0]);
+		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 
 		if (t == null) {
 			MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
@@ -119,7 +98,7 @@ public class Util {
 	// - <potionEffectType> (duration)
 	public static PotionEffect buildSuspiciousStewPotionEffect(String effectString) {
 		String[] data = effectString.split(" ");
-		PotionEffectType t = getPotionEffectType(data[0]);
+		PotionEffectType t = PotionEffectHandler.getPotionEffectType(data[0]);
 
 		if (t == null) {
 			MagicSpells.error('\'' + data[0] + "' could not be connected to a potion effect type");
@@ -158,28 +137,6 @@ public class Util {
 		return c;
 	}
 
-	public static PotionEffectType getPotionEffectType(String type) {
-		return PotionEffectHandler.getPotionEffectType(type);
-	}
-
-	public static Particle getParticle(String type) {
-		return ParticleUtil.getParticle(type);
-	}
-
-	public static Subspell.CastMode getCastMode(String type) {
-		return Subspell.CastMode.getFromString(type);
-	}
-
-	public static void setFacing(Player player, Vector vector) {
-		Location loc = player.getLocation();
-		loc.setDirection(vector);
-		player.teleportAsync(loc);
-	}
-
-	public static void setLocationFacingFromVector(Location location, Vector vector) {
-		location.setDirection(vector);
-	}
-
 	public static double getYawOfVector(Vector vector) {
 		return AccurateMath.toDegrees(AccurateMath.atan2(-vector.getX(), vector.getZ()));
 	}
@@ -197,27 +154,6 @@ public class Util {
 		MagicSpells.getVolatileCodeHandler().playHurtAnimation(receiver, angle);
 	}
 
-	public static boolean arrayContains(int[] array, int value) {
-		for (int i : array) {
-			if (i == value) return true;
-		}
-		return false;
-	}
-
-	public static boolean arrayContains(String[] array, String value) {
-		for (String i : array) {
-			if (Objects.equals(i, value)) return true;
-		}
-		return false;
-	}
-
-	public static boolean arrayContains(Object[] array, Object value) {
-		for (Object i : array) {
-			if (Objects.equals(i, value)) return true;
-		}
-		return false;
-	}
-
 	public static String arrayJoin(String[] array, char with) {
 		if (array == null || array.length == 0) return "";
 		int len = array.length;
@@ -226,18 +162,6 @@ public class Util {
 		for (int i = 1; i < len; i++) {
 			sb.append(with);
 			sb.append(array[i]);
-		}
-		return sb.toString();
-	}
-
-	public static String listJoin(List<String> list) {
-		if (list == null || list.isEmpty()) return "";
-		int len = list.size();
-		StringBuilder sb = new StringBuilder(len * 12);
-		sb.append(list.get(0));
-		for (int i = 1; i < len; i++) {
-			sb.append(' ');
-			sb.append(list.get(i));
 		}
 		return sb.toString();
 	}
@@ -539,10 +463,6 @@ public class Util {
 		Bukkit.getOnlinePlayers().forEach(consumer);
 	}
 
-	public static int clampValue(int min, int max, int value) {
-		return Math.min(Math.max(value, min), max);
-	}
-
 	public static <C extends Collection<Material>> C getMaterialList(List<String> strings, Supplier<C> supplier) {
 		C ret = supplier.get();
 		strings.forEach(string -> ret.add(getMaterial(string)));
@@ -633,11 +553,6 @@ public class Util {
 		}
 
 		return new Location(location.getWorld(), x, y, z, yaw, pitch);
-	}
-
-	public static Vector getVector(String str) {
-		String[] vecStrings = str.split(",");
-		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
 	}
 
 	public static Component getLegacyFromString(String input) {
