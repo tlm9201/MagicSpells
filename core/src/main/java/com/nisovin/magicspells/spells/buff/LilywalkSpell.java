@@ -92,10 +92,6 @@ public class LilywalkSpell extends BuffSpell {
 		if (Util.containsValueParallel(entities, lilies -> lilies.contains(block))) event.setCancelled(true);
 	}
 
-	public Map<UUID, Lilies> getEntities() {
-		return entities;
-	}
-
 	private static class Lilies {
 
 		private final Set<Block> blocks = new HashSet<>();

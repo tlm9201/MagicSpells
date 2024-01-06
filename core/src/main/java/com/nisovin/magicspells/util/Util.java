@@ -700,11 +700,6 @@ public class Util {
 		return matcher.appendTail(builder).toString();
 	}
 
-	public static String decolorize(String string) {
-		if (string.isEmpty()) return "";
-		return ChatColor.stripColor(colorize(string));
-	}
-
 	public static PlayerProfile setTexture(PlayerProfile profile, String texture, String signature) {
 		if (signature == null || signature.isEmpty()) profile.setProperty(new ProfileProperty("textures", texture));
 		else profile.setProperty(new ProfileProperty("textures", texture, signature));

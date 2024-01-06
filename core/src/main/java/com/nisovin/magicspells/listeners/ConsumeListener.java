@@ -22,9 +22,7 @@ public class ConsumeListener implements Listener {
 	
 	public ConsumeListener() {
 		for (Spell spell : MagicSpells.getSpells().values()) {
-			CastItem[] items = spell.getConsumeCastItems();
-			if (items.length <= 0) continue;
-			for (CastItem item : items) {
+			for (CastItem item : spell.getConsumeCastItems()) {
 				Spell old = consumeCastItems.put(item, spell);
 				if (old == null) continue;
 				MagicSpells.error("The spell '" + spell.getInternalName() + "' has same consume-cast-item as '" + old.getInternalName() + "'!");

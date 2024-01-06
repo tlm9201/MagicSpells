@@ -387,7 +387,6 @@ public class Spellbook {
 		if (hasSpell(spell)) return;
 		addSpell(spell);
 		Set<Spell> temps = temporarySpells.computeIfAbsent(plugin, pl -> new HashSet<>());
-		if (temps == null) throw new IllegalStateException("temporarySpells should not contain a null value!");
 		temps.add(spell);
 	}
 
@@ -409,8 +408,7 @@ public class Spellbook {
 	public void addCastItem(Spell spell, CastItem castItem) {
 		// Add to custom bindings
 		Set<CastItem> bindings = customBindings.computeIfAbsent(spell, s -> new HashSet<>());
-		if (bindings == null) throw new IllegalStateException("customBindings spells should not contain a null value!");
-		if (!bindings.contains(castItem)) bindings.add(castItem);
+		bindings.add(castItem);
 
 		// Add to item bindings
 		List<Spell> bindList = itemSpells.get(castItem);

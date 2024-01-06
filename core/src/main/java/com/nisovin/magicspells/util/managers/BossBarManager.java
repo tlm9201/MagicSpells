@@ -16,10 +16,10 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class BossBarManager {
 
-	private final Pattern VALID_NAMESPACE_KEY = Pattern.compile("[a-z0-9._-]+");
+	private static final Pattern VALID_NAMESPACE_KEY = Pattern.compile("[a-z0-9._-]+");
 
-	private final String NAMESPACE_KEY_DEFAULT = "ms_default";
-	private final String NAMESPACE_KEY_VARIABLE = "ms_variable";
+	private static final String NAMESPACE_KEY_DEFAULT = "ms_default";
+	private static final String NAMESPACE_KEY_VARIABLE = "ms_variable";
 
 	private final Set<Bar> bars = new HashSet<>();
 

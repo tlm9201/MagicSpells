@@ -43,7 +43,7 @@ public class Modifier implements IModifier {
 		if (MagicSpells.getConditionManager() == null) return false;
 
 		String[] s = RegexUtil.split(MODIFIER_STR_FAILED_PATTERN, string, 0);
-		if (s == null || s.length <= 0) return false;
+		if (s == null || s.length == 0) return false;
 		String[] data = s[0].trim().split(" ", 4);
 
 		if (data.length < 2) return false;

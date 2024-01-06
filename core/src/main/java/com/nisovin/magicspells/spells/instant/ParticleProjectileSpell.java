@@ -188,7 +188,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		}
 
 		hugSurface = getConfigDataBoolean("hug-surface", false);
-        heightFromSurface = getConfigDataFloat("height-from-surface", 0.6F);
+		heightFromSurface = getConfigDataFloat("height-from-surface", 0.6F);
 
 		controllable = getConfigDataBoolean("controllable", false);
 		checkPlugins = getConfigDataBoolean("check-plugins", true);

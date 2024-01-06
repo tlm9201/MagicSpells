@@ -415,7 +415,7 @@ public class MagicItemDataParser {
 
 							for (JsonElement element : ignoredAttributeStrings) {
 								String attr = element.getAsString();
-								String attrValue = attr.toUpperCase().replace("-", "_");;
+								String attrValue = attr.toUpperCase().replace("-", "_");
 
 								try {
 									ignoredAttributes.add(MagicItemAttribute.valueOf(attrValue));
@@ -437,7 +437,7 @@ public class MagicItemDataParser {
 
 							for (JsonElement element : blacklistedAttributeStrings) {
 								String attr = element.getAsString();
-								String attrValue = attr.toUpperCase().replace("-", "_");;
+								String attrValue = attr.toUpperCase().replace("-", "_");
 
 								try {
 									blacklistedAttributes.add(MagicItemAttribute.valueOf(attrValue));

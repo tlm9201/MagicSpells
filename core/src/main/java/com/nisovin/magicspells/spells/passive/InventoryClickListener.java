@@ -72,7 +72,7 @@ public class InventoryClickListener extends PassiveListener {
 		// Valid cursor item, but not used.
 		if (itemCursor != null) {
 			ItemStack item = event.getCursor();
-			if (item == null) return;
+			if (item.isEmpty()) return;
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
 			if (itemData == null) return;

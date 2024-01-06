@@ -1032,7 +1032,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * This method is called when a player casts a spell, either by command, with a wand item, or otherwise.
 	 *
 	 * @param caster the living entity casting the spell
-	 * @param state  the state of the spell cast (normal, on cooldown, missing reagents, etc)
+	 * @param state  the state of the spell cast (normal, on cooldown, missing reagents, etc.)
 	 * @param power  the power multiplier the spell should be cast with (1.0 is normal)
 	 * @param args   the spell arguments, if cast by command
 	 * @return the action to take after the spell is processed

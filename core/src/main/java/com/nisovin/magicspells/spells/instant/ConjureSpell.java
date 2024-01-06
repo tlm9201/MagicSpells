@@ -181,7 +181,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 
 					double chance = 100;
 
-					// add default values if there arent any specified
+					// add default values if there aren't any specified
 					if (conjureData == null) {
 						itemMinQuantities[i] = minAmount;
 						itemMaxQuantities[i] = maxAmount;

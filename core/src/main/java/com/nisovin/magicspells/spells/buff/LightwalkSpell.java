@@ -123,10 +123,6 @@ public class LightwalkSpell extends BuffSpell {
 		data.current = newBlock;
 	}
 
-	public Map<UUID, LightWalkData> getPlayers() {
-		return players;
-	}
-
 	public Set<Material> getAllowedTypes() {
 		return allowedTypes;
 	}

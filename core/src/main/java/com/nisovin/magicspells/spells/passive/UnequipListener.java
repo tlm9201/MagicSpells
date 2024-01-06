@@ -45,7 +45,7 @@ public class UnequipListener extends PassiveListener {
 
 		if (!items.isEmpty()) {
 			ItemStack oldItem = event.getOldItem();
-			if (oldItem == null) return;
+			if (oldItem.isEmpty()) return;
 
 			MagicItemData oldData = MagicItems.getMagicItemDataFromItemStack(oldItem);
 			if (oldData == null) return;

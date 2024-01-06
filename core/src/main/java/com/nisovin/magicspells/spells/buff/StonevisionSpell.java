@@ -111,10 +111,6 @@ public class StonevisionSpell extends BuffSpell {
 		addUseAndChargeCost(pl);
 	}
 
-	public Map<UUID, TransparentBlockSet> getPlayers() {
-		return players;
-	}
-
 	public Set<Material> getTransparentTypes() {
 		return transparentTypes;
 	}

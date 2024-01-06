@@ -54,11 +54,7 @@ public class ChestContainsCondition extends Condition {
 		Block block = location.getLocation().getBlock();
 		if (!BlockUtils.isChest(block)) return false;
 
-		Chest chest = (Chest) block.getState();
-		ItemStack[] items = chest.getInventory().getContents();
-		if (items.length == 0) return false;
-
-		for (ItemStack item : items) {
+		for (ItemStack item : ((Chest) block.getState()).getInventory().getContents()) {
 			MagicItemData data = MagicItems.getMagicItemDataFromItemStack(item);
 			if (data == null) continue;
 			if (itemData.matches(data)) return true;

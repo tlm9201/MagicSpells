@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -210,7 +211,7 @@ public class VariableManager {
 				Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 				objective = scoreboard.getObjective(objName);
 				if (objective != null) objective.unregister();
-				objective = scoreboard.registerNewObjective(objName, "dummy", Util.getMiniMessage(scoreName));
+				objective = scoreboard.registerNewObjective(objName, Criteria.DUMMY, Util.getMiniMessage(scoreName));
 				if (scorePos.equalsIgnoreCase("nameplate")) objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
 				else if (scorePos.equalsIgnoreCase("playerlist")) objective.setDisplaySlot(DisplaySlot.PLAYER_LIST);
 				else objective.setDisplaySlot(DisplaySlot.SIDEBAR);

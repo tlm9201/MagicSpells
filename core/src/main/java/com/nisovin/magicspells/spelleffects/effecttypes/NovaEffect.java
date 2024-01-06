@@ -149,7 +149,7 @@ public class NovaEffect extends SpellEffect {
 			super.stop();
 
 			for (Player p : nearby) {
-				p.sendMultiBlockChange(previousBlocks, true);
+				p.sendMultiBlockChange(previousBlocks);
 			}
 
 			previousBlocks.clear();
@@ -176,7 +176,7 @@ public class NovaEffect extends SpellEffect {
 			// Remove old blocks
 			if (removePreviousBlocks) {
 				for (Player p : nearby) {
-					p.sendMultiBlockChange(previousBlocks, true);
+					p.sendMultiBlockChange(previousBlocks);
 				}
 
 				previousBlocks.clear();
@@ -226,7 +226,7 @@ public class NovaEffect extends SpellEffect {
 			}
 
 			for (Player p : nearby) {
-				p.sendMultiBlockChange(currentBlocks, true);
+				p.sendMultiBlockChange(currentBlocks);
 			}
 
 			currentBlocks.clear();
@@ -252,7 +252,7 @@ public class NovaEffect extends SpellEffect {
 			// Remove old blocks
 			if (removePreviousBlocks) {
 				for (Player p : nearby) {
-					p.sendMultiBlockChange(previousBlocks, true);
+					p.sendMultiBlockChange(previousBlocks);
 				}
 
 				previousBlocks.clear();
@@ -330,7 +330,7 @@ public class NovaEffect extends SpellEffect {
 			}
 
 			for (Player p : nearby) {
-				p.sendMultiBlockChange(currentBlocks, true);
+				p.sendMultiBlockChange(currentBlocks);
 			}
 
 			currentBlocks.clear();

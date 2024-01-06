@@ -105,10 +105,6 @@ public class FlamewalkSpell extends BuffSpell {
 		burner = null;
 	}
 
-	public Map<UUID, FlamewalkData> getEntities() {
-		return entities;
-	}
-
 	private record FlamewalkData(SpellData spellData, boolean checkPlugins, double radius, boolean constantRadius, int fireTicks, boolean constantFireTicks) {
 	}
 

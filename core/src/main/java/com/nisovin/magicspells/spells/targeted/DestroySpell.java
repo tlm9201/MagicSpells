@@ -174,7 +174,7 @@ public class DestroySpell extends TargetedSpell implements TargetedLocationSpell
 
 		for (Block b : blocksToThrow) {
 			Location l = b.getLocation().clone().add(0.5, 0.5, 0.5);
-			FallingBlock fb = b.getWorld().spawnFallingBlock(l, b.getBlockData());
+			FallingBlock fb = b.getWorld().spawn(l, FallingBlock.class, consumer -> consumer.setBlockData(b.getBlockData()));
 			fb.setDropItem(false);
 			playSpellEffects(EffectPosition.PROJECTILE, fb, data);
 			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, source, fb.getLocation(), null, fb, data);

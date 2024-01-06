@@ -93,10 +93,6 @@ public class WalkwaySpell extends BuffSpell {
 		listener = null;
 	}
 
-	public Map<UUID, Platform> getEntities() {
-		return entities;
-	}
-
 	public class WalkwayListener implements Listener {
 
 		private void handleMove(LivingEntity entity) {

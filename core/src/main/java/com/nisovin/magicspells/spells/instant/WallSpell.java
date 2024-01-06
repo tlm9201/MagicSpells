@@ -230,20 +230,8 @@ public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	public Multimap<UUID, WallData> getBlockSets() {
-		return blockSets;
-	}
-
 	public List<Material> getMaterials() {
 		return materials;
-	}
-
-	public String getStrNoTarget() {
-		return strNoTarget;
-	}
-
-	public void setStrNoTarget(String strNoTarget) {
-		this.strNoTarget = strNoTarget;
 	}
 
 	public Subspell getSpellOnBreak() {

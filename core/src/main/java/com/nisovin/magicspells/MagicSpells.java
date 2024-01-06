@@ -510,7 +510,7 @@ public class MagicSpells extends JavaPlugin {
 		for (Spell spell : spells.values()) {
 			spellNames.put(Util.getPlainString(Util.getMiniMessage(spell.getName().toLowerCase())), spell);
 			String[] aliases = spell.getAliases();
-			if (aliases != null && aliases.length > 0) {
+			if (aliases != null) {
 				for (String alias : aliases) {
 					if (!spellNames.containsKey(alias.toLowerCase())) spellNames.put(alias.toLowerCase(), spell);
 				}
@@ -956,9 +956,7 @@ public class MagicSpells extends JavaPlugin {
 	 * @return the player's spellbook
 	 */
 	public static Spellbook getSpellbook(Player player) {
-		Spellbook spellbook = plugin.spellbooks.computeIfAbsent(player.getName(), playerName -> new Spellbook(player));
-		if (spellbook == null) throw new IllegalStateException();
-		return spellbook;
+		return plugin.spellbooks.computeIfAbsent(player.getName(), playerName -> new Spellbook(player));
 	}
 
 	public static ChatColor getTextColor() {
@@ -1069,7 +1067,7 @@ public class MagicSpells extends JavaPlugin {
 	public static boolean isDebugNumberFormat() {
 		return plugin.debugNumberFormat;
 	}
-	
+
 	public static boolean areBowCycleButtonsReversed() {
 		return plugin.reverseBowCycleButtons;
 	}
@@ -1551,7 +1549,7 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	public static String doReplacements(String message, SpellData data, String... replacements) {
-        return doReplacements(message, data.recipient(), data, replacements);
+		return doReplacements(message, data.recipient(), data, replacements);
 	}
 
 	/**
@@ -1570,7 +1568,7 @@ public class MagicSpells extends JavaPlugin {
 	 * @param replacements the replacements to be made, in pairs
 	 */
 	public static String doReplacements(String message, LivingEntity recipient, SpellData data, String... replacements) {
-        if (message == null || message.isEmpty()) return message;
+		if (message == null || message.isEmpty()) return message;
 
 		message = doArgumentSubstitution(message, data.args());
 		message = doVariableReplacements(message, recipient, data.caster(), data.target());

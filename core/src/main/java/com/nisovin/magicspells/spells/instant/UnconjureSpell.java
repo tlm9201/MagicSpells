@@ -58,7 +58,7 @@ public class UnconjureSpell extends InstantSpell {
 		// Search for the hovering item first.
 		InventoryView invView = caster.getOpenInventory();
 		boolean stop = false;
-		if (invView.getCursor() != null) {
+		if (!invView.getCursor().isEmpty()) {
 			contents[0] = invView.getCursor();
 			stop = filterItems(contents);
 			invView.setCursor(contents[0]);
@@ -85,7 +85,7 @@ public class UnconjureSpell extends InstantSpell {
 			MagicItemData unconjuredItemData = unconjuredItem.magicItemData;
 
 			// Only look for an ItemStack with specified quantity.
-			if (unconjuredItem.hasSpecialQuantity) {
+			if (unconjuredItem.amountSpecified) {
 				for (int i = 0; i < oldItems.length; i++) {
 					if (oldItems[i] == null) continue;
 					MagicItemData oldItemData = MagicItems.getMagicItemDataFromItemStack(oldItems[i]);
@@ -113,17 +113,9 @@ public class UnconjureSpell extends InstantSpell {
 		return stop;
 	}
 
-	public List<String> getItemNames() {
-		return itemNames;
-	}
-
-	public List<UnconjuredItem> getItems() {
-		return items;
-	}
-
 	private static class UnconjuredItem {
 
-		private boolean hasSpecialQuantity = false;
+		private boolean amountSpecified = false;
 		private MagicItemData magicItemData;
 		private int amount;
 
@@ -139,7 +131,7 @@ public class UnconjureSpell extends InstantSpell {
 
 			try {
 				amount = Integer.parseInt(splits[1]);
-				hasSpecialQuantity = true;
+				amountSpecified = true;
 			} catch (NumberFormatException e) {
 				DebugHandler.debugNumberFormat(e);
 			}

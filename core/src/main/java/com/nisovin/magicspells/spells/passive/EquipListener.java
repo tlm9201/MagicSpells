@@ -45,7 +45,7 @@ public class EquipListener extends PassiveListener {
 
 		if (!items.isEmpty()) {
 			ItemStack newItem = event.getNewItem();
-			if (newItem == null) return;
+			if (newItem.isEmpty()) return;
 
 			MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(newItem);
 			if (newData == null) return;

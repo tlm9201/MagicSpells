@@ -120,7 +120,7 @@ public class ModifierSet {
 
 	public ModifierResult apply(LivingEntity caster, SpellData data) {
 		for (Modifier modifier : modifiers) {
-		    ModifierResult result = modifier.apply(caster, data);
+			ModifierResult result = modifier.apply(caster, data);
 			if (result.check()) {
 				data = result.data();
 				continue;

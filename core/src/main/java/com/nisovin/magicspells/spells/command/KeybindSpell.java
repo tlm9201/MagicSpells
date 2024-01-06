@@ -173,10 +173,6 @@ public class KeybindSpell extends CommandSpell {
 		return null;
 	}
 
-	public Map<String, Keybinds> getPlayerKeybinds() {
-		return playerKeybinds;
-	}
-
 	public ItemStack getWandItem() {
 		return wandItem;
 	}
