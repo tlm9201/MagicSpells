@@ -13,7 +13,7 @@ import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
 public class VariableCondition extends OperatorCondition {
 
-	private static final Pattern VARIABLE_NAME_PATTERN = Pattern.compile("[0-9a-zA-Z_]+");
+	private static final Pattern VARIABLE_NAME_PATTERN = Pattern.compile("\\w+");
 
 	private String variable;
 	private String variableCompared;
