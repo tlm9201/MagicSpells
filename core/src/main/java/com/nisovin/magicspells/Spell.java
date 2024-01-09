@@ -2733,15 +2733,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				return;
 			}
 
+			if (caster instanceof Player pl)
+				MagicSpells.getExpBarManager().update(pl, 0, (float) elapsed / (float) castTime, this);
+
 			if (elapsed >= castTime) {
 				end();
 
 				spellCast.setSpellCastState(getCastState(caster));
 				spellCast.getSpell().onCast(spellCast);
 			}
-
-			if (caster instanceof Player pl)
-				MagicSpells.getExpBarManager().update(pl, 0, (float) elapsed / (float) castTime, this);
 		}
 
 		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
