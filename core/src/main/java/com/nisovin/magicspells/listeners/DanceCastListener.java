@@ -77,7 +77,7 @@ public class DanceCastListener implements Listener {
 		for (Spell spell : MagicSpells.spells()) {
 			String seq = spell.getDanceCastSequence();
 			if (seq == null) continue;
-			if (!RegexUtil.matches(DANCE_CAST_PATTERN, seq)) continue;
+			if (!DANCE_CAST_PATTERN.asMatchPredicate().test(seq)) continue;
 			spells.put(seq, spell);
 			if (seq.contains("D")) enableDoubleJump = true;
 			if (seq.contains("F") || seq.contains("B") || seq.contains("L") || seq.contains("R") || seq.contains("J")) enableMovement = true;

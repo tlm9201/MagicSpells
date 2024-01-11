@@ -9,7 +9,6 @@ import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class NamePatternCondition extends Condition {
@@ -42,7 +41,7 @@ public class NamePatternCondition extends Condition {
 
 	private boolean namePattern(LivingEntity target) {
 		if (!(target instanceof Player pl)) return false;
-		return RegexUtil.matches(compiledPattern, pl.getName()) || RegexUtil.matches(compiledPattern, Util.getLegacyFromComponent(pl.displayName()));
+		return compiledPattern.asMatchPredicate().test(pl.getName()) || compiledPattern.asMatchPredicate().test(Util.getLegacyFromComponent(pl.displayName()));
 
 	}
 

@@ -26,10 +26,10 @@ public class StringData implements ConfigData<String> {
 	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("""
 		%(?:\
 		((var|castervar|targetvar):(\\w+)(?::(\\d+))?)|\
-		(playervar:([a-zA-Z0-9_]{3,16}):(\\w+)(?::(\\d+))?)|\
+		(playervar:(\\w{3,16}):(\\w+)(?::(\\d+))?)|\
 		(arg:(\\d+):(\\w+))|\
 		((papi|casterpapi|targetpapi):([^%]+))|\
-		(playerpapi:([a-zA-Z0-9_]{3,16}):([^%]+))\
+		(playerpapi:(\\w{3,16}):([^%]+))\
 		)%|\
 		(%[at])""", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 

@@ -50,7 +50,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 		if (spellList == null) return;
 
 		for (String s : spellList) {
-			if (RegexUtil.matches(DELAY_PATTERN, s)) {
+			if (DELAY_PATTERN.asMatchPredicate().test(s)) {
 				int delay = Integer.parseInt(s.split(" ")[1]);
 				actions.add(new Action(delay));
 				continue;

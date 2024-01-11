@@ -46,7 +46,7 @@ public class SpellbookSpell extends CommandSpell {
 
 	private Material spellbookBlock;
 
-	private ConfigData<Integer> defaultUses;
+	private final ConfigData<Integer> defaultUses;
 
 	private boolean destroySpellbook;
 
@@ -97,7 +97,7 @@ public class SpellbookSpell extends CommandSpell {
 	public CastResult cast(SpellData data) {
 		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		if (!data.hasArgs() || data.args().length > 2 || (data.args().length == 2 && !RegexUtil.matches(PATTERN_CAST_ARG_USAGE, data.args()[1]))) {
+		if (!data.hasArgs() || data.args().length > 2 || (data.args().length == 2 && !PATTERN_CAST_ARG_USAGE.asMatchPredicate().test(data.args()[1]))) {
 			sendMessage(strUsage, player, data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}

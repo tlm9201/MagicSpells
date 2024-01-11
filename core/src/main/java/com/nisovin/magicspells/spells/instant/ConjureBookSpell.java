@@ -111,8 +111,8 @@ public class ConjureBookSpell extends InstantSpell implements TargetedLocationSp
 
 	private static Component createComponent(String raw, Player player, String displayName, SpellData data) {
 		if (player != null) {
-			raw = RegexUtil.replaceAll(NAME_VARIABLE_PATTERN, raw, player.getName());
-			if (displayName != null) raw = RegexUtil.replaceAll(DISPLAY_NAME_VARIABLE_PATTERN, raw, displayName);
+			raw = NAME_VARIABLE_PATTERN.matcher(raw).replaceAll(player.getName());
+			if (displayName != null) raw = DISPLAY_NAME_VARIABLE_PATTERN.matcher(raw).replaceAll(displayName);
 			raw = MagicSpells.doReplacements(raw, player, data);
 		}
 		return Util.getMiniMessage(raw);

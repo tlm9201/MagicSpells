@@ -16,7 +16,7 @@ public class RoofCondition extends Condition {
 	
 	@Override
 	public boolean initialize(@NotNull String var) {
-		if (RegexUtil.matches(RegexUtil.SIMPLE_INT_PATTERN, var)) {
+		if (RegexUtil.SIMPLE_INT_PATTERN.asMatchPredicate().test(var)) {
 			height = Integer.parseInt(var);
 		}
 		return true;

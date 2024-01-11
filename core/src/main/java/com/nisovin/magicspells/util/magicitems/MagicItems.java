@@ -96,7 +96,7 @@ public class MagicItems {
 		NameHandler.processMagicItemData(meta, data);
 
 		// durability
-		if (ItemUtil.hasDurability(itemStack.getType())) DurabilityHandler.processMagicItemData(meta, data);
+		if (itemStack.getType().getMaxDurability() > 0) DurabilityHandler.processMagicItemData(meta, data);
 
 		// repairCost
 		RepairableHandler.processMagicItemData(meta, data);
@@ -243,7 +243,7 @@ public class MagicItems {
 		SkullHandler.processItemMeta(meta, data);
 
 		// Durability
-		if (ItemUtil.hasDurability(type)) DurabilityHandler.processItemMeta(meta, data);
+		if (type.getMaxDurability() > 0) DurabilityHandler.processItemMeta(meta, data);
 
 		// Repair cost
 		RepairableHandler.processItemMeta(meta, data);
@@ -447,7 +447,7 @@ public class MagicItems {
 			SkullHandler.process(section, meta, itemData);
 
 			// Durability
-			if (ItemUtil.hasDurability(type)) DurabilityHandler.process(section, meta, itemData);
+			if (type.getMaxDurability() > 0) DurabilityHandler.process(section, meta, itemData);
 
 			// Repair cost
 			RepairableHandler.process(section, meta, itemData);

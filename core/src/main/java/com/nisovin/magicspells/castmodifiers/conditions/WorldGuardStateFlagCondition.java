@@ -17,8 +17,7 @@ import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardC
 @DependsOn(plugin = "WorldGuard")
 public class WorldGuardStateFlagCondition extends AbstractWorldGuardCondition {
 
-	protected static final Map<String, StateFlag> flags = new HashMap<>()
-			;
+	private static final Map<String, StateFlag> flags = new HashMap<>();
 	static {
 		for (Flag<?> flag : WorldGuard.getInstance().getFlagRegistry().getAll()) {
 			if (!(flag instanceof StateFlag stateFlag)) continue;

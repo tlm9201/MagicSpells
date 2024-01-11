@@ -19,7 +19,7 @@ import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 
-// REMOVE LATER - REPLACED BY CONJURESPELL
+// TODO: REMOVE LATER - REPLACED BY CONJURESPELL
 public class ConjureFireworkSpell extends InstantSpell implements TargetedLocationSpell {
 
 	private static final Pattern COLORS_PATTERN = Pattern.compile("^[A-Fa-f0-9]{6}(,[A-Fa-f0-9]{6})*$");
@@ -75,7 +75,7 @@ public class ConjureFireworkSpell extends InstantSpell implements TargetedLocati
 						trail = true;
 					} else if (s.equalsIgnoreCase("twinkle") || s.equalsIgnoreCase("flicker")) {
 						twinkle = true;
-					} else if (RegexUtil.matches(COLORS_PATTERN, s)) {
+					} else if (COLORS_PATTERN.asMatchPredicate().test(s)) {
 						String[] scolors = s.split(",");
 						int[] icolors = new int[scolors.length];
 						for (int i = 0; i < scolors.length; i++) {

@@ -62,8 +62,6 @@ public class GillsSpell extends BuffSpell {
 			ItemStack item = getHelmet(data);
 			if (item == null) return false;
 
-			item.editMeta(meta -> meta.getPersistentDataContainer().set(MARKER, PersistentDataType.BYTE, (byte) 1));
-
 			gillData = new GillData(refillAirBar.get(data), true, eq.getHelmet());
 			eq.setHelmet(item);
 		} else gillData = new GillData(refillAirBar.get(data), false, null);
@@ -106,7 +104,7 @@ public class GillsSpell extends BuffSpell {
 		if (headMaterial.getEquipmentSlot() != EquipmentSlot.HEAD && !headMaterial.isBlock()) return null;
 
 		ItemStack helmet = new ItemStack(headMaterial);
-		helmet.editMeta(meta -> meta.getPersistentDataContainer().set(MARKER, PersistentDataType.BYTE, (byte) 1));
+		helmet.editMeta(meta -> meta.getPersistentDataContainer().set(MARKER, PersistentDataType.BOOLEAN, true));
 
 		return helmet;
 	}

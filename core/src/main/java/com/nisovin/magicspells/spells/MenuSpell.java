@@ -7,6 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -16,6 +17,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
@@ -35,6 +37,8 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
 public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
+
+	private static final NamespacedKey OPTION_KEY = new NamespacedKey(MagicSpells.getInstance(), "menu_option");
 
 	private final Map<String, MenuOption> options = new LinkedHashMap<>();
 
@@ -265,7 +269,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			}
 			// Select and finalise item to display.
 			ItemStack item = option.item != null ? option.item : option.items.get(ThreadLocalRandom.current().nextInt(option.items.size()));
-			DataUtil.setString(item, "menuOption", option.menuOptionName);
+			item.editMeta(meta -> meta.getPersistentDataContainer().set(OPTION_KEY, PersistentDataType.STRING, option.menuOptionName));
 			item = translateItem(opener, item, menu.data);
 
 			int quantity;
@@ -346,12 +350,12 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	private PostClickState castSpells(MenuInventory menu, ItemStack item, ClickType click) {
-		// Outside inventory.
-		if (item == null) return menu.stayOpenNonOption ? PostClickState.IGNORE : PostClickState.CLOSE;
+		// Outside inventory or not an option item.
+		if (item == null || !item.hasItemMeta())
+			return menu.stayOpenNonOption ? PostClickState.IGNORE : PostClickState.CLOSE;
 
-		// Probably a filler or air.
-		String key = DataUtil.getString(item, "menuOption");
-		if (key == null || key.isEmpty() || !options.containsKey(key))
+		String key = item.getItemMeta().getPersistentDataContainer().get(OPTION_KEY, PersistentDataType.STRING);
+		if (key == null || !options.containsKey(key))
 			return menu.stayOpenNonOption ? PostClickState.IGNORE : PostClickState.CLOSE;
 
 		MenuOption option = options.get(key);
