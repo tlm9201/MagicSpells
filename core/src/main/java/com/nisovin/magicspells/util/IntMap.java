@@ -1,113 +1,50 @@
 package com.nisovin.magicspells.util;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.HashMap;
 
-public class IntMap<T> {
+public class IntMap<T> extends HashMap<T, Integer> {
 
-	private Map<T, Integer> map = new HashMap<>();
-	
-	public int put(T key, int value) {
-		Integer prev = map.put(key, value);
-		if (prev != null) return prev;
-		return 0;
+	/**
+	 * Same as {@link HashMap#getOrDefault(Object, Object)} with a default value of 0.
+	 * @return the value to which the specified key is mapped, or 0 if this map contains no mapping for the key
+	 */
+	@Override
+	public Integer get(Object key) {
+		return super.getOrDefault(key, 0);
 	}
-	
-	public void set(T key, int value) {
-		put(key, value);
+
+	/**
+	 * @return the previous value associated with {@code key}, or {@code 0} if there was no mapping for {@code key}.
+	 */
+	@Override
+	public Integer put(T key, Integer value) {
+		Integer prev = super.put(key, value);
+		return prev == null ? 0 : prev;
 	}
-	
-	public int get(T key) {
-		Integer value = map.get(key);
-		if (value != null) return value;
-		return 0;
+
+	/**
+	 * @return the previous value associated with {@code key}, or {@code 0} if there was no mapping for {@code key}.
+	 */
+	@Override
+	public Integer remove(Object key) {
+		Integer prev = super.remove(key);
+		return prev == null ? 0 : prev;
 	}
-	
-	public int remove(T key) {
-		Integer value = map.remove(key);
-		if (value != null) return value;
-		return 0;
-	}
-	
-	public int size() {
-		return map.size();
-	}
-	
-	public boolean contains(T key) {
-		return map.containsKey(key);
-	}
-	
-	public boolean containsKey(T key) {
-		return map.containsKey(key);
-	}
-	
-	public boolean containsValue(int value) {
-		return map.containsValue(value);
-	}
-	
+
 	public int increment(T key) {
 		return increment(key, 1);
 	}
-	
+
 	public int increment(T key, int amount) {
-		int value = get(key) + amount;
-		put(key, value);
-		return value;
+		return compute(key, (k, v) -> (v == null ? 0 : v) + amount);
 	}
-	
+
 	public int decrement(T key) {
 		return decrement(key, 1);
 	}
-	
+
 	public int decrement(T key, int amount) {
-		int value = get(key) - amount;
-		put(key, value);
-		return value;
+		return compute(key, (k, v) -> (v == null ? 0 : v) - amount);
 	}
-	
-	public int multiply(T key, int amount) {
-		int value = get(key) * amount;
-		put(key, value);
-		return value;
-	}
-	
-	public Set<T> keySet() {
-		return map.keySet();
-	}
-	
-	public void clear() {
-		map.clear();
-	}
-	
-	public boolean isEmpty() {
-		return map.isEmpty();
-	}
-	
-	public void putAll(IntMap<? extends T> otherMap) {
-		map.putAll(otherMap.map);
-	}
-	
-	public void putAll(Map<? extends T, Integer> otherMap) {
-		map.putAll(otherMap);
-	}
-	
-	public Map<T, Integer> getIntegerMap() {
-		return map;
-	}
-	
-	@Override
-	public IntMap<T> clone() {
-		IntMap<T> newMap = new IntMap<>();
-		newMap.putAll(map);
-		return newMap;
-	}
-	
-	public void useTreeMap() {
-		Map<T, Integer> newMap = new TreeMap<>(map);
-		map.clear();
-		map = newMap;
-	}
-	
+
 }

@@ -21,6 +21,11 @@ import java.nio.file.Files;
 
 import de.slikey.effectlib.EffectManager;
 
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
+import org.bstats.charts.AdvancedPie;
+import org.bstats.charts.DrilldownPie;
+
 import org.jetbrains.annotations.NotNull;
 
 import co.aikar.commands.PaperCommandManager;
@@ -72,6 +77,7 @@ import com.nisovin.magicspells.volatilecode.ManagerVolatile;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
+import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 import com.nisovin.magicspells.variables.variabletypes.GlobalVariable;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
@@ -218,7 +224,44 @@ public class MagicSpells extends JavaPlugin {
 	public void onEnable() {
 		load();
 
-		new Metrics(this);
+		Metrics metrics = new Metrics(this, 892);
+
+		metrics.addCustomChart(new DrilldownPie("spells", () -> {
+			Map<String, Map<String, Integer>> map = new HashMap<>();
+			if (spells == null) return map;
+
+			for (Spell spell : spells.values()) {
+				String name = spell.getClass().getName();
+				if (!name.startsWith("com.nisovin.magicspells.spells")) continue;
+				name = name.replace("com.nisovin.magicspells.spells.", "");
+
+				String[] typeSplit = name.split("\\.", 2);
+				String formalPackage = typeSplit[0].substring(0, 1).toUpperCase() + typeSplit[0].substring(1);
+
+				String spellPackage = (typeSplit.length == 1 ? "General" : formalPackage) + " Spells";
+				String spellClass = typeSplit.length == 1 ? typeSplit[0] : typeSplit[1];
+
+				map.computeIfAbsent(spellPackage, key -> new HashMap<>());
+				map.get(spellPackage).compute(spellClass, (k, v) -> (v == null ? 0 : v) + 1);
+			}
+			return map;
+		}));
+		metrics.addCustomChart(new AdvancedPie("passive_listeners", () -> {
+			IntMap<String> map = new IntMap<>();
+			if (spells == null) return map;
+
+			for (Spell spell : spells.values()) {
+				if (!spell.getName().startsWith("com.nisovin.magicspells.spells")) continue;
+				if (!(spell instanceof PassiveSpell passiveSpell)) continue;
+
+				for (PassiveListener listener : passiveSpell.getPassiveListeners()) {
+					String name = listener.getClass().getSimpleName();
+					map.increment(name.substring(0, name.lastIndexOf("Listener")));
+				}
+			}
+			return map;
+		}));
+		metrics.addCustomChart(new SimplePie("reload_time", () -> (lastReloadTime - lastReloadTime % 20) + " ms"));
 	}
 
 	public void load() {

@@ -9,6 +9,7 @@ dependencies {
     shadow(group: "com.github.Chronoken", name: "EffectLib", version: "d28b6e2")
     shadow(group: "co.aikar", name: "acf-paper", version: "0.5.1-SNAPSHOT")
     shadow(group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.9.21")
+    shadow(group: "org.bstats", name: "bstats-bukkit", version: "3.0.2")
 
     shadow(project(path: ":nms:shared", configuration: "apiElements"))
     shadow(project(path: ":nms:v1_20_R2", configuration: "reobf"))
@@ -55,6 +56,7 @@ shadowJar {
     relocate("kotlin", "com.nisovin.magicspells.shaded.kotlin")
     relocate("co.aikar.commands", "com.nisovin.magicspells.shaded.acf")
     relocate("co.aikar.locales", "com.nisovin.magicspells.shaded.locales")
+    relocate("org.bstats", "com.nisovin.magicspells.shaded.bstats")
     archiveClassifier.set("")
 }
 
