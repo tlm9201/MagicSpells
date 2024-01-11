@@ -3,13 +3,14 @@
     <img src="https://media.discordapp.net/attachments/335237931633606656/595352328341684427/Untitled.png" alt="MagicSpells Icon">
     <hr>
     <h2><i>Magic without writing Java</i></h2>
-    <!--
-        Build badge is commented out until it is fixed.
-        <a href="https://travis-ci.org/TheComputerGeek2/MagicSpells"><img src="https://travis-ci.org/TheComputerGeek2/MagicSpells.svg?branch=main" alt="Build Status"></a>
-    -->
+    <a href="https://github.com/TheComputerGeek2/MagicSpells/actions"><img src="https://img.shields.io/github/actions/workflow/status/TheComputerGeek2/MagicSpells/build.yml" alt="Build Status"></a>
     <a href="https://discord.magicspells.dev"><img src="https://img.shields.io/discord/335237931633606656?color=5562e9&logo=discord&logoColor=white" alt="Discord Server"></a>
-    <a href="https://github.com/TheComputerGeek2/MagicSpells/releases"><img src="https://img.shields.io/github/downloads/TheComputerGeek2/MagicSpells/total.svg" alt="Github Releases"></a>
-    <img src="https://img.shields.io/bstats/servers/892" alt="In MC servers">
+    <a href="https://github.com/TheComputerGeek2/MagicSpells/releases">
+        <img src="https://img.shields.io/github/downloads/TheComputerGeek2/MagicSpells/total.svg" alt="Github Downloads">
+        <img src="https://img.shields.io/github/downloads-pre/TheComputerGeek2/MagicSpells/latest/total.svg" alt="Github Downloads Latest">
+    </a>
+    <img src="https://img.shields.io/github/license/TheComputerGeek2/MagicSpells" alt="Licence">
+    <a href="https://bstats.org/plugin/bukkit/MagicSpells/892"><img src="https://img.shields.io/bstats/servers/892" alt="In MC servers"></a>
 </div>
 
 [//]: # (These links are here for easier hyperlink referencing and less clutter in the actual text below.)
