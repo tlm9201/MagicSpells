@@ -27,7 +27,10 @@ public class ValidTargetList {
 		
 	}
 
-	private final Set<EntityType> types = new HashSet<>();
+	private static final Set<GameMode> DEFAULT_GAME_MODES = EnumSet.of(GameMode.SURVIVAL, GameMode.ADVENTURE);
+
+	private final Set<GameMode> gameModes = EnumSet.noneOf(GameMode.class);
+	private final Set<EntityType> types = EnumSet.noneOf(EntityType.class);
 
 	private final List<String> targetList = new ArrayList<>();
 
@@ -103,6 +106,11 @@ public class ValidTargetList {
 				case "casterpassenger", "selfpassenger" -> targetCasterPassenger = true;
 				case "entitytarget", "mobtarget" -> targetEntityTarget = true;
 				default -> {
+					try {
+						gameModes.add(GameMode.valueOf(s.toUpperCase()));
+						targetPlayers = true;
+					} catch (IllegalArgumentException ignored) {}
+
 					EntityType type = MobUtil.getEntityType(s);
 					if (type != null) types.add(type);
 					else MagicSpells.error("Spell '" + spell.getInternalName() + "' has an invalid target type defined: " + s);
@@ -125,12 +133,8 @@ public class ValidTargetList {
 		if (!(target instanceof LivingEntity) && !targetNonLivingEntities) return false;
 		boolean targetIsPlayer = target instanceof Player;
 
-		// Todo, Make it optional for both CREATIVE and SPECTATOR to be no target
-		if (targetIsPlayer) {
-			GameMode gameMode = ((Player) target).getGameMode();
-			if (gameMode == GameMode.CREATIVE) return false;
-			if (gameMode == GameMode.SPECTATOR) return false;
-		}
+		if (targetIsPlayer && !canTargetGameMode(((Player) target).getGameMode())) return false;
+
 		if (targetSelf && target.equals(caster)) return true;
 		if (!targetSelf && target.equals(caster)) return false;
 
@@ -143,8 +147,8 @@ public class ValidTargetList {
 
 		if (targetPassengers && target instanceof LivingEntity && target.isInsideVehicle()) return true;
 		if (targetMounts && target instanceof LivingEntity && !target.getPassengers().isEmpty() && !target.isInsideVehicle()) return true;
-		if (targetCasterPassenger && target instanceof LivingEntity && target.isInsideVehicle() && target.getVehicle().equals(caster)) return true;
-		if (targetCasterMount && target instanceof LivingEntity && caster.isInsideVehicle() && caster.getVehicle().equals(target)) return true;
+		if (targetCasterPassenger && target instanceof LivingEntity && target.isInsideVehicle() && caster.equals(target.getVehicle())) return true;
+		if (targetCasterMount && target instanceof LivingEntity && caster.isInsideVehicle() && target.equals(caster.getVehicle())) return true;
 
 		if (targetEntityTarget && (caster instanceof Creature creature) && creature.getTarget() != null && ((Creature) caster).getTarget().equals(target)) return true;
 		if (types.contains(target.getType())) return true;
@@ -154,9 +158,8 @@ public class ValidTargetList {
 	public boolean canTarget(Entity target) {
 		if (!(target instanceof LivingEntity) && !targetNonLivingEntities) return false;
 		boolean targetIsPlayer = target instanceof Player;
-		// Todo, Make it optional for both CREATIVE and SPECTATOR to be no target
-		if (targetIsPlayer && ((Player) target).getGameMode() == GameMode.CREATIVE) return false;
-		if (targetIsPlayer && ((Player) target).getGameMode() == GameMode.SPECTATOR) return false;
+
+		if (targetIsPlayer && !canTargetGameMode(((Player) target).getGameMode())) return false;
 
 		if (targetPlayers && targetIsPlayer) return true;
 		if (targetNonPlayers && !targetIsPlayer) return true;
@@ -171,13 +174,17 @@ public class ValidTargetList {
 		return false;
 	}
 
+	private boolean canTargetGameMode(GameMode gameMode) {
+		if (gameModes.isEmpty()) return DEFAULT_GAME_MODES.contains(gameMode);
+		return gameModes.contains(gameMode);
+	}
+
 	public boolean canTarget(Entity target, boolean ignoreGameMode) {
 		if (!(target instanceof LivingEntity) && !targetNonLivingEntities) return false;
 		boolean targetIsPlayer = target instanceof Player;
-		if (!ignoreGameMode) {
-			if (targetIsPlayer && ((Player) target).getGameMode() == GameMode.CREATIVE) return false;
-			if (targetIsPlayer && ((Player) target).getGameMode() == GameMode.SPECTATOR) return false;
-		}
+
+		if (!ignoreGameMode && targetIsPlayer && !canTargetGameMode(((Player) target).getGameMode())) return false;
+
 		if (targetPlayers && targetIsPlayer) return true;
 		if (targetNonPlayers && !targetIsPlayer) return true;
 
