@@ -150,7 +150,7 @@ public class FlamewalkSpell extends BuffSpell {
 					}
 
 					SpellTargetEvent targetEvent = new SpellTargetEvent(FlamewalkSpell.this, data.spellData, target);
-					if (targetEvent.callEvent()) continue;
+					if (!targetEvent.callEvent()) continue;
 
 					SpellData subData = targetEvent.getSpellData();
 
