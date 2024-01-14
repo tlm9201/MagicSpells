@@ -132,11 +132,13 @@ public class PassiveManager {
 		addListener("spelltarget", SpellTargetListener.class);
 		addListener("startfly", StartFlyListener.class);
 		addListener("startglide", StartGlideListener.class);
+		addListener("startpose", StartPoseListener.class);
 		addListener("startsneak", StartSneakListener.class);
 		addListener("startsprint", StartSprintListener.class);
 		addListener("startswim", StartSwimListener.class);
 		addListener("stopfly", StopFlyListener.class);
 		addListener("stopglide", StopGlideListener.class);
+		addListener("stoppose", StopPoseListener.class);
 		addListener("stopsneak", StopSneakListener.class);
 		addListener("stopsprint", StopSprintListener.class);
 		addListener("stopswim", StopSwimListener.class);
