@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.buff;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.papermc.paper.entity.TeleportFlag;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
@@ -545,7 +547,7 @@ public class MinionSpell extends BuffSpell {
 			if (!owner.isOnline()) continue;
 			if (owner.isDead()) continue;
 
-			minion.teleport(owner);
+			minion.teleport(owner.getLocation(), TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 		}
 	}
 
