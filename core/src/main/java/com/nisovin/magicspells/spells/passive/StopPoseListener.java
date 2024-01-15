@@ -14,14 +14,15 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 public class StopPoseListener extends PassiveListener {
 
-	private final Set<Pose> poses = EnumSet.noneOf(Pose.class);
+	private Set<Pose> poses;
 
 	@Override
 	public void initialize(String var) {
 		if (var == null || var.isEmpty()) return;
 
-		String[] split = var.split(",");
-		for (String pose : split) {
+		poses = EnumSet.noneOf(Pose.class);
+
+		for (String pose : var.split(",")) {
 			try {
 				poses.add(Pose.valueOf(pose.trim().toUpperCase()));
 			} catch (IllegalArgumentException e) {
@@ -34,7 +35,7 @@ public class StopPoseListener extends PassiveListener {
 	@EventHandler
 	public void onPoseChange(EntityPoseChangeEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity caster) || !canTrigger(caster) || !hasSpell(caster)) return;
-		if (!poses.isEmpty() && !poses.contains(caster.getPose())) return;
+		if (poses != null && !poses.contains(caster.getPose())) return;
 
 		passiveSpell.activate(caster);
 	}
