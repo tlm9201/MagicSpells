@@ -36,14 +36,14 @@ public class InsideBlockListener extends PassiveListener {
 
 	@OverridePriority
 	@EventHandler
-	public void onSwim(EntityInsideBlockEvent event) {
+	public void insideBlock(EntityInsideBlockEvent event) {
 		if (!isCancelStateOk(event.isCancelled())) return;
 		if (!(event.getEntity() instanceof LivingEntity caster) || !canTrigger(caster) || !hasSpell(caster)) return;
 
 		Block block = event.getBlock();
 		if (blockData != null && check(block)) return;
 
-		boolean casted = passiveSpell.activate(caster, block.getLocation().add(0.5, 0.5, 0.5));
+		boolean casted = passiveSpell.activate(caster, block.getLocation().toCenterLocation());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
 	}
 
