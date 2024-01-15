@@ -78,7 +78,7 @@ public class PotionEffectListener extends PassiveListener {
 
 		if (!actions.contains(event.getAction()) || !causes.contains(event.getCause())) return;
 
-		if (!hasSpell(entity) || !canTrigger(entity)) return;
+		if (!canTrigger(entity)) return;
 
 		PotionEffectType type = null;
 		PotionEffect effect;

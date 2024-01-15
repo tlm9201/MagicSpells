@@ -36,7 +36,7 @@ public class SignBookListener extends PassiveListener {
 		if (!event.isSigning()) return;
 
 		Player player = event.getPlayer();
-		if (!hasSpell(player) || !canTrigger(player)) return;
+		if (!canTrigger(player)) return;
 
 		if (text.isEmpty()) {
 			boolean casted = passiveSpell.activate(player);

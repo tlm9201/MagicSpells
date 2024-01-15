@@ -94,7 +94,7 @@ public class GrindstoneListener extends PassiveListener {
 		if (!(inventory instanceof GrindstoneInventory grindstone)) return;
 
 		LivingEntity caster = event.getView().getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (upperItem != null && !contains(upperItem, grindstone.getUpperItem())) return;
 		if (lowerItem != null && !contains(lowerItem, grindstone.getLowerItem())) return;

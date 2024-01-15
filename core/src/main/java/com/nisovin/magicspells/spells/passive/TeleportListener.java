@@ -51,7 +51,7 @@ public class TeleportListener extends PassiveListener {
 		if (!teleportCauses.isEmpty() && !teleportCauses.contains(event.getCause())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

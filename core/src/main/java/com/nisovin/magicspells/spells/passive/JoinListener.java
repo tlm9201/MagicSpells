@@ -20,7 +20,7 @@ public class JoinListener extends PassiveListener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		passiveSpell.activate(caster);
 	}

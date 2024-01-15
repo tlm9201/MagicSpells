@@ -88,7 +88,7 @@ public class AnvilListener extends PassiveListener {
 	@EventHandler
 	public void onAnvil(PrepareAnvilEvent event) {
 		LivingEntity caster = event.getView().getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (firstItem != null && !contains(firstItem, event.getInventory().getFirstItem())) return;
 		if (secondItem != null && !contains(secondItem, event.getInventory().getSecondItem())) return;

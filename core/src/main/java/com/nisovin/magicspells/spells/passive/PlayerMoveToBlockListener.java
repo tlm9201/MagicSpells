@@ -21,7 +21,7 @@ public class PlayerMoveToBlockListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(event.getPlayer()) || !canTrigger(caster) || !event.hasChangedBlock()) return;
+		if (!canTrigger(caster) || !event.hasChangedBlock()) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

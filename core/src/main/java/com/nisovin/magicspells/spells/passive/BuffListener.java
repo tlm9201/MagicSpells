@@ -129,7 +129,6 @@ public class BuffListener extends PassiveListener {
 
 	private void on(LivingEntity entity) {
 		if (!canTrigger(entity, false)) return;
-		if (!hasSpell(entity)) return;
 
 		for (Subspell s : passiveSpell.getActivatedSpells()) {
 			if (s.getSpell() instanceof BuffSpell buff && buff.isActive(entity)) continue;
@@ -139,7 +138,6 @@ public class BuffListener extends PassiveListener {
 
 	private void off(LivingEntity entity) {
 		if (!canTrigger(entity, false)) return;
-		if (!hasSpell(entity)) return;
 
 		for (Subspell s : passiveSpell.getActivatedSpells()) {
 			if (!(s.getSpell() instanceof BuffSpell buff)) continue;

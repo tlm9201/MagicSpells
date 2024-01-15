@@ -50,11 +50,9 @@ public class ResourcePackListener extends PassiveListener {
 	@EventHandler
 	public void onPlayerResourcePack(PlayerResourcePackStatusEvent event) {
 		if (!packStatus.isEmpty() && !packStatus.contains(event.getStatus())) return;
-
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
-
-		passiveSpell.activate(event.getPlayer());
+		if (!canTrigger(caster)) return;
+		passiveSpell.activate(caster);
 	}
 
 }

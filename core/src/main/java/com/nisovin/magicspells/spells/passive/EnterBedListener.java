@@ -22,7 +22,7 @@ public class EnterBedListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player player = event.getPlayer();
-		if (!hasSpell(player) || !canTrigger(player)) return;
+		if (!canTrigger(player)) return;
 
 		boolean casted = passiveSpell.activate(player);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

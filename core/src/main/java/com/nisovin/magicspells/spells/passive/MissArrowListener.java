@@ -62,7 +62,7 @@ public class MissArrowListener extends PassiveListener {
 		if (!(event.getEntity() instanceof Arrow)) return;
 
 		LivingEntity caster = getAttacker(event);
-		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
+		if (caster == null || !canTrigger(caster)) return;
 
 		String name = caster.getName();
 		UUID id = caster.getUniqueId();

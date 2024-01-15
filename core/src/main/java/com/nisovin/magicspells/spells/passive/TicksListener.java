@@ -49,7 +49,6 @@ public class TicksListener extends PassiveListener {
 		for (World world : Bukkit.getWorlds()) {
 			for (LivingEntity livingEntity : world.getLivingEntities()) {
 				if (!livingEntity.isValid()) continue;
-				if (livingEntity instanceof Player && !hasSpell(livingEntity)) continue;
 				if (!canTrigger(livingEntity)) continue;
 				ticker.add(livingEntity);
 			}
@@ -95,7 +94,6 @@ public class TicksListener extends PassiveListener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
 		if (!canTrigger(player)) return;
 		ticker.add(player);
 	}
@@ -120,7 +118,6 @@ public class TicksListener extends PassiveListener {
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
 		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
 		if (!canTrigger(player)) return;
 		ticker.add(player);
 	}

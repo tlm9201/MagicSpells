@@ -22,7 +22,7 @@ public class MagicSpellsLoadedListener extends PassiveListener {
 	public void onLoaded(MagicSpellsLoadedEvent e) {
 		for (World world : Bukkit.getWorlds())
 			for (LivingEntity livingEntity : world.getLivingEntities())
-				if (hasSpell(livingEntity) && canTrigger(livingEntity)) passiveSpell.activate(livingEntity);
+				if (canTrigger(livingEntity)) passiveSpell.activate(livingEntity);
 	}
 
 }

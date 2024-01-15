@@ -48,7 +48,7 @@ public class FishListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!states.isEmpty() && !states.contains(event.getState())) return;
 

@@ -40,7 +40,7 @@ public class EntityTargetListener extends PassiveListener {
 		if (!(event.getTarget() instanceof LivingEntity target)) return;
 
 		if (!targetReasons.isEmpty() && !targetReasons.contains(event.getReason())) return;
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster, target);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

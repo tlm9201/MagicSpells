@@ -36,7 +36,7 @@ public class StartPoseListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onPoseChange(EntityPoseChangeEvent event) {
-		if (!(event.getEntity() instanceof LivingEntity caster) || !canTrigger(caster) || !hasSpell(caster)) return;
+		if (!(event.getEntity() instanceof LivingEntity caster) || !canTrigger(caster)) return;
 		if (poses != null && !poses.contains(event.getPose())) return;
 
 		passiveSpell.activate(caster);

@@ -42,7 +42,7 @@ public class FoodLevelChangeListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		HumanEntity caster = event.getEntity();
-		if (!canTrigger(caster) || !hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			ItemStack item = event.getItem();

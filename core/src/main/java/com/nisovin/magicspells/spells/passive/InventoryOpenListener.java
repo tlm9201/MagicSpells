@@ -33,7 +33,7 @@ public class InventoryOpenListener extends PassiveListener {
 		if (!inventoryNames.contains(Util.getStringFromComponent(event.getView().title()))) return;
 
 		HumanEntity caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

@@ -31,7 +31,7 @@ public class PlayerMoveListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 		if (tolerance >= 0 && LocationUtil.distanceLessThan(event.getFrom(), event.getTo(), tolerance)) return;
 
 		boolean casted = passiveSpell.activate(caster);

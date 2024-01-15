@@ -43,7 +43,7 @@ public class HotbarSelectListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			ItemStack item = caster.getInventory().getItem(event.getNewSlot());

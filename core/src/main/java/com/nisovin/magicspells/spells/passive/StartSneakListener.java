@@ -23,7 +23,7 @@ public class StartSneakListener extends PassiveListener {
 		if (!event.isSneaking()) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

@@ -91,7 +91,7 @@ public class SmithListener extends PassiveListener {
 		SmithingInventory inventory = event.getInventory();
 
 		LivingEntity caster = event.getView().getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (firstItem != null && !contains(firstItem, inventory.getInputEquipment())) return;
 		if (secondItem != null && !contains(secondItem, inventory.getInputMineral())) return;

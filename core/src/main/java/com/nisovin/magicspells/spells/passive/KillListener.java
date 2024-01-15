@@ -42,7 +42,7 @@ public class KillListener extends PassiveListener {
 		if (!types.isEmpty() && !types.contains(event.getEntityType())) return;
 
 		LivingEntity caster = event.getEntity().getKiller();
-		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
+		if (caster == null || !canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster, event.getEntity());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

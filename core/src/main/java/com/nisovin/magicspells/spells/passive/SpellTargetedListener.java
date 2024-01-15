@@ -27,7 +27,7 @@ public class SpellTargetedListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity target = event.getTarget();
-		if (!hasSpell(target) || !canTrigger(target)) return;
+		if (!canTrigger(target)) return;
 
 		if (filter != null && !filter.check(event.getSpell())) return;
 

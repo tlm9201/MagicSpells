@@ -42,7 +42,7 @@ public class SheepShearListener extends PassiveListener {
 		if (!(entity instanceof Sheep)) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		Sheep target = (Sheep) event.getEntity();
 		if (!dyeColors.isEmpty() && !dyeColors.contains(target.getColor())) return;

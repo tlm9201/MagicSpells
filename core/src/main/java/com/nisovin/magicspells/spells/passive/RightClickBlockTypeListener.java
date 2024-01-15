@@ -44,7 +44,7 @@ public class RightClickBlockTypeListener extends PassiveListener {
 		if (!isCancelStateOk(isCancelled(event))) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		Block block = event.getClickedBlock();
 		if (block == null) return;

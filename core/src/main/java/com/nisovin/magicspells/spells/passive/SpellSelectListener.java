@@ -24,7 +24,7 @@ public class SpellSelectListener extends PassiveListener {
 	@EventHandler
 	public void onSpellSelect(SpellSelectionChangedEvent event) {
 		if (!(event.getCaster() instanceof Player caster)) return;
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 		if (filter != null && !filter.check(event.getSpell())) return;
 		passiveSpell.activate(caster);
 	}

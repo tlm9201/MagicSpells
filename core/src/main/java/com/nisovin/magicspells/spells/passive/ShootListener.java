@@ -22,7 +22,7 @@ public class ShootListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity caster = event.getEntity();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster, event.getForce());
 		if (cancelDefaultAction(casted)) {

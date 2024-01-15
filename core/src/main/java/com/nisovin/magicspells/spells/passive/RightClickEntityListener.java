@@ -46,7 +46,7 @@ public class RightClickEntityListener extends PassiveListener {
 		if (!entities.isEmpty() && !entities.contains(entity.getType())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = entity instanceof LivingEntity ? passiveSpell.activate(caster, (LivingEntity) entity)
 				: passiveSpell.activate(caster, entity.getLocation());

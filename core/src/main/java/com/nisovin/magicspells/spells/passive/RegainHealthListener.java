@@ -37,7 +37,7 @@ public class RegainHealthListener extends PassiveListener {
 
 		Entity entity = event.getEntity();
 		if (!(entity instanceof LivingEntity caster)) return;
-		if (!canTrigger(caster) || !hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 		if (!reasons.isEmpty() && !reasons.contains(event.getRegainReason())) return;
 
 		boolean casted = passiveSpell.activate(caster);

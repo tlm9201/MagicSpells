@@ -35,7 +35,7 @@ public class ManaChangeListener extends PassiveListener {
 		if (!reasons.isEmpty() && !reasons.contains(event.getReason())) return;
 
 		Player caster = event.getPlayer();
-		if (!canTrigger(caster) || !hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setNewAmount(event.getOldAmount());

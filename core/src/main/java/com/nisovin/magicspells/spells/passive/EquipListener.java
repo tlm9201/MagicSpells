@@ -42,7 +42,7 @@ public class EquipListener extends PassiveListener {
 	@EventHandler
 	public void onEquip(PlayerArmorChangeEvent event) {
 		Player caster = event.getPlayer();
-		if (!canTrigger(caster) || !hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			ItemStack newItem = event.getNewItem();

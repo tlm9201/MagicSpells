@@ -43,7 +43,7 @@ public class PickupItemListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity caster = event.getEntity();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			ItemStack item = event.getItem().getItemStack();

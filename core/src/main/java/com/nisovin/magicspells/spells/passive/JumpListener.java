@@ -38,7 +38,7 @@ public class JumpListener extends PassiveListener {
 
 	private void handleEvent(LivingEntity caster, Cancellable event) {
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

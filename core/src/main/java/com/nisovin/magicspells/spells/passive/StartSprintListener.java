@@ -22,7 +22,7 @@ public class StartSprintListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player caster = event.getPlayer();
-		if (!event.isSprinting() || !hasSpell(caster)) return;
+		if (!event.isSprinting() || !canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

@@ -44,7 +44,7 @@ public class HitArrowListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity caster = getAttacker(event);
-		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
+		if (caster == null || !canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			EntityEquipment eq = caster.getEquipment();

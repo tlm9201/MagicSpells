@@ -30,7 +30,7 @@ public class SpellCastListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity caster = event.getCaster();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		Spell spell = event.getSpell();
 		if (spell.equals(passiveSpell)) return;

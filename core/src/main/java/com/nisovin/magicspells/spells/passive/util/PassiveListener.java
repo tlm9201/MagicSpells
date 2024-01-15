@@ -33,10 +33,11 @@ public abstract class PassiveListener implements Listener {
 	}
 
 	public boolean canTrigger(LivingEntity livingEntity) {
-		return passiveSpell.getTriggerList().canTarget(livingEntity, true);
+		return canTrigger(livingEntity, true);
 	}
 
 	public boolean canTrigger(LivingEntity livingEntity, boolean ignoreGameMode) {
+		if (livingEntity instanceof Player player && !MagicSpells.getSpellbook(player).hasSpell(passiveSpell)) return false;
 		return passiveSpell.getTriggerList().canTarget(livingEntity, ignoreGameMode);
 	}
 		
@@ -51,11 +52,6 @@ public abstract class PassiveListener implements Listener {
 		if (passiveSpell == null) return false;
 		if (passiveSpell.ignoreCancelled() && cancelled) return false;
 		if (passiveSpell.requireCancelledEvent() && !cancelled) return false;
-		return true;
-	}
-
-	public boolean hasSpell(LivingEntity entity) {
-		if (entity instanceof Player player) return MagicSpells.getSpellbook(player).hasSpell(passiveSpell);
 		return true;
 	}
 	

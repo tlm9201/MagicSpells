@@ -20,7 +20,7 @@ public class DeathListener extends PassiveListener {
 	@EventHandler
 	public void onDeath(EntityDeathEvent event) {
 		LivingEntity entity = event.getEntity();
-		if (!hasSpell(entity) || !canTrigger(entity)) return;
+		if (!canTrigger(entity)) return;
 
 		boolean casted = passiveSpell.activate(entity);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

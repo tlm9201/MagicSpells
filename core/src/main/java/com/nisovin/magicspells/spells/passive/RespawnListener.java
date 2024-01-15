@@ -20,7 +20,7 @@ public class RespawnListener extends PassiveListener {
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		passiveSpell.activate(caster);
 	}

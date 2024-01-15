@@ -47,7 +47,7 @@ public class RightClickItemListener extends PassiveListener {
 		if (!event.hasItem()) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			ItemStack item = event.getItem();

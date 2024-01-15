@@ -41,7 +41,7 @@ public class UnequipListener extends PassiveListener {
 	@EventHandler
 	public void onUnequip(PlayerArmorChangeEvent event) {
 		Player caster = event.getPlayer();
-		if (!canTrigger(caster) || !hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			ItemStack oldItem = event.getOldItem();

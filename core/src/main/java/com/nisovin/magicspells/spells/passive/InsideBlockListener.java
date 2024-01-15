@@ -40,7 +40,7 @@ public class InsideBlockListener extends PassiveListener {
 	@EventHandler
 	public void insideBlock(EntityInsideBlockEvent event) {
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!(event.getEntity() instanceof LivingEntity caster) || !canTrigger(caster) || !hasSpell(caster)) return;
+		if (!(event.getEntity() instanceof LivingEntity caster) || !canTrigger(caster)) return;
 
 		Block block = event.getBlock();
 		if (blockData != null && check(block)) return;

@@ -21,7 +21,7 @@ public class StopSwimListener extends PassiveListener {
 	public void onSwim(EntityToggleSwimEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity caster)) return;
 		if (event.isSwimming()) return;
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 		passiveSpell.activate(caster);
 	}
 

@@ -47,7 +47,7 @@ public class WorldChangeListener extends PassiveListener {
 		if (!worldNames.isEmpty() && !worldNames.contains(worldTo.getName())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

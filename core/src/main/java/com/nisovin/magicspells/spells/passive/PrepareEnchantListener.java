@@ -45,7 +45,7 @@ public class PrepareEnchantListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity caster = event.getEnchanter();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (items != null && !contains(event.getItem())) return;
 

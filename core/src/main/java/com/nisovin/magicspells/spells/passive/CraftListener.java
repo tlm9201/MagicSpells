@@ -43,7 +43,7 @@ public class CraftListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		HumanEntity caster = event.getWhoClicked();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			ItemStack item = event.getCurrentItem();

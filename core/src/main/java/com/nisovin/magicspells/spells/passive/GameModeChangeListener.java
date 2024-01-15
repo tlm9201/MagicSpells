@@ -37,7 +37,7 @@ public class GameModeChangeListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!gameModes.isEmpty() && !gameModes.contains(event.getNewGameMode())) return;
 
