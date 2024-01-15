@@ -91,6 +91,7 @@ public class PassiveManager {
 		addListener("hitarrow", HitArrowListener.class);
 		addListener("hotbardeselect", HotbarDeselectListener.class);
 		addListener("hotbarselect", HotbarSelectListener.class);
+		addListener("insideblock", InsideBlockListener.class);
 		addListener("inventoryaction", InventoryActionListener.class);
 		addListener("inventoryclick", InventoryClickListener.class);
 		addListener("inventoryclose", InventoryCloseListener.class);
