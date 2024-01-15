@@ -184,6 +184,8 @@ public class ConditionManager {
 		addCondition("passable", PassableCondition.class);
 		addCondition("replaceable", ReplaceableCondition.class);
 		addCondition("solid", SolidCondition.class);
+		addCondition("pose", PoseCondition.class);
+		addCondition("fixedpose", FixedPoseCondition.class);
 	}
 
 }
