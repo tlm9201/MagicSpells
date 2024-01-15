@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -20,22 +22,18 @@ public class EnchantListener extends PassiveListener {
 	private Set<MagicItemData> items;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 
-		String[] data = var.split("\\|");
 		items = new HashSet<>();
-
-		for (String item : data) {
+		for (String item : var.split("\\|")) {
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(item);
 			if (itemData == null) {
 				MagicSpells.error("Invalid magic item '" + item + "' in enchant trigger on passive spell '" + passiveSpell.getInternalName() + "'.");
 				continue;
 			}
-
 			items.add(itemData);
 		}
-
 		if (items.isEmpty()) items = null;
 	}
 

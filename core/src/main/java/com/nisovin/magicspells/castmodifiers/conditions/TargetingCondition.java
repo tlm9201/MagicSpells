@@ -8,6 +8,8 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -18,8 +20,8 @@ public class TargetingCondition extends Condition {
 	private boolean targetingCaster = false;
 	
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) {
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) {
 			anyType = true;
 			return true;
 		}

@@ -10,6 +10,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.EntityEquipment;
 
+import org.jetbrains.annotations.NotNull;
+
 import net.kyori.adventure.text.Component;
 
 import com.nisovin.magicspells.util.Util;
@@ -25,7 +27,7 @@ public class HoldingCondition extends Condition {
 	private boolean[] checkName;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		try {
 			String[] varData = var.split(",");
 			ids = new Material[varData.length];

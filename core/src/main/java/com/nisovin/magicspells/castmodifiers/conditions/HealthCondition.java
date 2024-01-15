@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
@@ -13,7 +15,7 @@ public class HealthCondition extends OperatorCondition {
 	private boolean percent = false;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		String number = var.substring(1);

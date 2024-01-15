@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -35,8 +37,8 @@ public class TicksListener extends PassiveListener {
 	private Ticker ticker;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		try {
 			int interval = Integer.parseInt(var);
 			ticker = new Ticker(passiveSpell, interval);

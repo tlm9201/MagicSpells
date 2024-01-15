@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
@@ -13,8 +15,8 @@ public class LightLevelCondition extends OperatorCondition {
 	private byte level = 0;
 
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		String[] splits = var.split(";");
 		if (splits.length > 1) {
 			try {

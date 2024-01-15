@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class FacingCondition extends Condition {
@@ -10,7 +12,7 @@ public class FacingCondition extends Condition {
 	private String direction;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		direction = var;
 		return true;
 	}

@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -34,7 +36,7 @@ public class BuffListener extends PassiveListener {
 	private final EnumSet<GameMode> invalidGameModes = EnumSet.of(GameMode.CREATIVE, GameMode.SPECTATOR);
 
 	@Override
-	public void initialize(String var) {
+	public void initialize(@NotNull String var) {
 		for (Subspell s : passiveSpell.getActivatedSpells()) {
 			if (!(s.getSpell() instanceof BuffSpell buff)) continue;
 			buff.setAsEverlasting();

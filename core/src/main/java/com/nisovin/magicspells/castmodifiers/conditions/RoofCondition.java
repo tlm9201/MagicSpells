@@ -5,6 +5,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -13,8 +15,8 @@ public class RoofCondition extends Condition {
 	private int height = 10;
 	
 	@Override
-	public boolean initialize(String var) {
-		if (var != null && RegexUtil.matches(RegexUtil.SIMPLE_INT_PATTERN, var)) {
+	public boolean initialize(@NotNull String var) {
+		if (RegexUtil.matches(RegexUtil.SIMPLE_INT_PATTERN, var)) {
 			height = Integer.parseInt(var);
 		}
 		return true;

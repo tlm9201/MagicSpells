@@ -8,6 +8,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OnFireCondition extends Condition {
@@ -15,7 +17,7 @@ public class OnFireCondition extends Condition {
 	private final EnumSet<Material> fireTypes = EnumSet.of(Material.FIRE, Material.SOUL_FIRE);
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		return true;
 	}
 

@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -18,11 +20,9 @@ public class BlockPlaceListener extends PassiveListener {
 	private final EnumSet<Material> materials = EnumSet.noneOf(Material.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split(",")) {
 			s = s.trim();
 			Material m = Util.getMaterial(s);
 			if (m == null) continue;

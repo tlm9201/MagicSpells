@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class PermissionCondition extends Condition {
@@ -10,7 +12,7 @@ public class PermissionCondition extends Condition {
 	private String perm;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		perm = var;
 		return true;
 	}

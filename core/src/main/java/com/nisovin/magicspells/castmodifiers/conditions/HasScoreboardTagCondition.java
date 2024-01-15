@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -13,12 +15,10 @@ public class HasScoreboardTagCondition extends Condition {
 	private String tag;
 
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
-
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		doReplacement = MagicSpells.requireReplacement(var);
 		tag = var;
-
 		return true;
 	}
 

@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.event.Event;
@@ -25,10 +27,9 @@ public class LeftClickBlockCoordListener extends PassiveListener {
 	private final Set<MagicLocation> locations = new HashSet<>();
 
 	@Override
-	public void initialize(String var) {
-		String[] split = var.split(";");
-
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split(";")) {
 			try {
 				String[] data = s.split(",");
 				String world = data[0];

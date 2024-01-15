@@ -8,6 +8,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.EntityEquipment;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -19,7 +21,7 @@ public class HasItemPreciseCondition extends Condition {
 	private MagicItemData itemData = null;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		itemData = MagicItems.getMagicItemDataFromString(var);
 		return itemData != null;
 	}

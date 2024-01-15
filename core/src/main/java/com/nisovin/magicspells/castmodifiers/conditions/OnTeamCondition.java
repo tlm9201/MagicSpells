@@ -5,6 +5,8 @@ import org.bukkit.Location;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OnTeamCondition extends Condition {
@@ -12,7 +14,7 @@ public class OnTeamCondition extends Condition {
 	private String teamName;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		teamName = var;
 		return true;
 	}

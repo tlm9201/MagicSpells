@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class AgeCondition extends Condition {
@@ -12,18 +14,9 @@ public class AgeCondition extends Condition {
 	private boolean passAdult = false;
 	
 	@Override
-	public boolean initialize(String var) {
-		if (var != null) {
-			if (var.equalsIgnoreCase("baby")) {
-				passBaby = true;
-				return true;
-			} else if (var.equalsIgnoreCase("adult")) {
-				passAdult = true;
-				return true;
-			}
-		}
-		passBaby = true;
-		passAdult = true;
+	public boolean initialize(@NotNull String var) {
+		passBaby = var.isEmpty() || var.equalsIgnoreCase("baby");
+		passAdult = var.isEmpty() || var.equalsIgnoreCase("adult");
 		return true;
 	}
 
@@ -43,8 +36,8 @@ public class AgeCondition extends Condition {
 	}
 
 	private boolean age(LivingEntity target) {
-		if (!(target instanceof Ageable t)) return false;
-		boolean adult = t.isAdult();
+		if (!(target instanceof Ageable age)) return false;
+		boolean adult = age.isAdult();
 		return adult ? passAdult : passBaby;
 	}
 

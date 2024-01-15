@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
 public class PlayerCountCondition extends OperatorCondition {
@@ -11,7 +13,7 @@ public class PlayerCountCondition extends OperatorCondition {
 	private int count;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		try {

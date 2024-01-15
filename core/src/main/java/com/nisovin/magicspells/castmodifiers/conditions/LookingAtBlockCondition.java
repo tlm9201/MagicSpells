@@ -9,6 +9,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.block.data.BlockData;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -18,7 +20,7 @@ public class LookingAtBlockCondition extends Condition {
 	private int dist = 4;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		String[] split = var.split(",(?![^\\[]*])");
 
 		try {

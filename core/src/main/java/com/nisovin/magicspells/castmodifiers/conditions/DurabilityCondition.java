@@ -10,6 +10,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.EntityEquipment;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -18,7 +20,7 @@ public class DurabilityCondition extends Condition {
 	private Set<DurabilityChecker> durabilitySet;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		durabilitySet = new HashSet<>();
 
 		String[] args = var.split(",");
@@ -75,6 +77,7 @@ public class DurabilityCondition extends Condition {
 
 	private boolean checkDurability(LivingEntity target) {
 		EntityEquipment equipment = target.getEquipment();
+		if (equipment == null) return false;
 		for (DurabilityChecker d : durabilitySet) {
 			ItemStack item = switch (d.slot) {
 				case 0 -> equipment.getHelmet();

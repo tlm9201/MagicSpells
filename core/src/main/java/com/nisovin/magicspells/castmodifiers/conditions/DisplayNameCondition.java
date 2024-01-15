@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -12,8 +14,8 @@ public class DisplayNameCondition extends Condition {
 	private String displayName;
 
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		displayName = Util.getStringFromComponent(Util.getMiniMessage(var));
 		return true;
 	}

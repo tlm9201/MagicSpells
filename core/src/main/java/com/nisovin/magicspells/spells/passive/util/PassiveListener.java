@@ -5,6 +5,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 
@@ -57,7 +59,7 @@ public abstract class PassiveListener implements Listener {
 		return true;
 	}
 	
-	public abstract void initialize(String var);
+	public abstract void initialize(@NotNull String var);
 
 	public void turnOff() {
 		// No op

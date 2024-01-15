@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.Spell.PostCastAction;
@@ -17,8 +19,8 @@ public class SpellCastedListener extends PassiveListener {
 	private SpellFilter filter;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		filter = SpellFilter.fromString(var);
 	}
 

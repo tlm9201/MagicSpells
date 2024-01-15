@@ -9,6 +9,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.BlockData;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -20,8 +22,8 @@ public class InsideBlockListener extends PassiveListener {
 	private List<BlockData> blockData;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 
 		blockData = new ArrayList<>();
 

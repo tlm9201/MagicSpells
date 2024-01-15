@@ -11,6 +11,8 @@ import org.bukkit.block.Block;
 import org.bukkit.block.sign.Side;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import net.kyori.adventure.text.Component;
 
 import com.nisovin.magicspells.util.Util;
@@ -33,7 +35,7 @@ public class SignTextCondition extends Condition {
 	private final List<String> text = new ArrayList<>();
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		Matcher matcher = FORMAT.matcher(var);
 		if (!matcher.find()) return false;
 		String sideName = matcher.group("side");

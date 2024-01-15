@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
@@ -19,9 +21,8 @@ public class CraftListener extends PassiveListener {
 	private final Set<MagicItemData> items = new HashSet<>();
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		for (String s : var.split("\\|")) {
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
 			if (itemData == null) {

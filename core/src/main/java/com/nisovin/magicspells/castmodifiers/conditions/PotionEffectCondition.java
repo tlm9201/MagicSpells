@@ -8,6 +8,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
@@ -20,7 +22,7 @@ public class PotionEffectCondition extends OperatorCondition {
 	private boolean matchOnlyType;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		Matcher matcher = PATTERN.matcher(var);
 		if (!matcher.find()) return false;
 		String potion = matcher.group("potion");

@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -13,7 +15,7 @@ public class LastDamageTypeCondition extends Condition {
 	private DamageCause cause;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		for (DamageCause dc : DamageCause.values()) {
 			if (dc.name().equalsIgnoreCase(var)) {
 				cause = dc;

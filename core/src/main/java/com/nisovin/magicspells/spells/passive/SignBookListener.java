@@ -4,6 +4,8 @@ import java.util.Set;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.entity.Player;
@@ -22,11 +24,9 @@ public class SignBookListener extends PassiveListener {
 	private final Set<String> text = new HashSet<>();
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split(",");
-		text.addAll(Arrays.asList(split));
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		text.addAll(Arrays.asList(var.split(",")));
 	}
 
 	@OverridePriority

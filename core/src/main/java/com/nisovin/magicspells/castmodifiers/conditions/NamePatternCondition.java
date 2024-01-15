@@ -6,6 +6,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -15,8 +17,8 @@ public class NamePatternCondition extends Condition {
 	private Pattern compiledPattern;
 	
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		compiledPattern = Pattern.compile(var);
 		// note, currently won't translate the & to the color code,
 		// this will need to be done through regex unicode format 

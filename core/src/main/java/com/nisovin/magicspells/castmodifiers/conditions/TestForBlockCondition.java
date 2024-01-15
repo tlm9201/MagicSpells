@@ -5,6 +5,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.BlockData;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -15,7 +17,7 @@ public class TestForBlockCondition extends Condition {
 	private BlockData blockData;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		try {
 			String[] vars = var.split("=");
 			String[] locs = vars[0].split(",");

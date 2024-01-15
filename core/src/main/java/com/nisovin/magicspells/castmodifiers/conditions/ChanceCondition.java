@@ -5,6 +5,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -13,7 +15,7 @@ public class ChanceCondition extends Condition {
 	private double chance;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		try {
 			chance = Double.parseDouble(var) / 100D;
 			return chance >= 0D && chance <= 1D;

@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
 import com.nisovin.magicspells.handlers.DebugHandler;
@@ -14,7 +16,7 @@ public class AngleCondition extends OperatorCondition {
 	private double angle;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		try {

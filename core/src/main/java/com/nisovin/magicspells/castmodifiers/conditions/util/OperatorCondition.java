@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions.util;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class OperatorCondition extends Condition {
@@ -12,7 +14,7 @@ public class OperatorCondition extends Condition {
 	public boolean lessThan;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		switch (var.charAt(0)) {
 			case '=', ':' -> equals = true;
 			case '>' -> moreThan = true;

@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityToggleSwimEvent;
@@ -11,8 +13,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class StartSwimListener extends PassiveListener {
 
 	@Override
-	public void initialize(String var) {
-
+	public void initialize(@NotNull String var) {
 	}
 
 	@OverridePriority

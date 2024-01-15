@@ -5,6 +5,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.MagicSpellsLoadedEvent;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -12,8 +14,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class MagicSpellsLoadedListener extends PassiveListener {
 
 	@Override
-	public void initialize(String var) {
-
+	public void initialize(@NotNull String var) {
 	}
 
 	@OverridePriority

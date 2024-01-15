@@ -4,6 +4,8 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.destroystokyo.paper.event.entity.EntityJumpEvent;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 
@@ -19,8 +21,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class JumpListener extends PassiveListener {
 
 	@Override
-	public void initialize(String var) {
-
+	public void initialize(@NotNull String var) {
 	}
 
 	@OverridePriority

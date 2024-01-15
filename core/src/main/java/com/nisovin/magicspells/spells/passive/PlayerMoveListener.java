@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -14,9 +16,8 @@ public class PlayerMoveListener extends PassiveListener {
 	private double tolerance = -1;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		try {
 			tolerance = Double.parseDouble(var);
 		} catch (NumberFormatException e) {

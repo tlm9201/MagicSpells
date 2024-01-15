@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -13,7 +15,7 @@ public class HasMarkCondition extends Condition {
 	private MarkSpell spell;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		Spell s = MagicSpells.getSpellByInternalName(var);
 		if (s == null) return false;
 		if (!(s instanceof MarkSpell)) return false;

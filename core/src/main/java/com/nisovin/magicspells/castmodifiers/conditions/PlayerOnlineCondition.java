@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class PlayerOnlineCondition extends Condition {
@@ -11,7 +13,7 @@ public class PlayerOnlineCondition extends Condition {
 	private String name;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		name = var;
 		return true;
 	}

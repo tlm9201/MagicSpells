@@ -12,6 +12,7 @@ import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
+import org.jetbrains.annotations.NotNull;
 
 public class HasItemAmountCondition extends OperatorCondition {
 
@@ -19,7 +20,7 @@ public class HasItemAmountCondition extends OperatorCondition {
 	private int amount;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		String[] args = var.split(";");
 		if (args.length < 2) return false;
 

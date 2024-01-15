@@ -7,6 +7,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
@@ -20,7 +22,7 @@ public class VariableCondition extends OperatorCondition {
 	private double value = 0;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		Matcher matcher = VARIABLE_NAME_PATTERN.matcher(var);
 		String variableName;
 

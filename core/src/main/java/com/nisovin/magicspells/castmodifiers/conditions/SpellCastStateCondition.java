@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.ModifierResult;
@@ -29,8 +31,8 @@ public class SpellCastStateCondition extends Condition implements IModifier {
 	private SpellCastState state;
 
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		try {
 			state = SpellCastState.valueOf(var.trim().toUpperCase());
 			return true;

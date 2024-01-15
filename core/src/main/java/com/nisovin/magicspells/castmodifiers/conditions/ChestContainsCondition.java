@@ -6,6 +6,8 @@ import org.bukkit.block.Chest;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.MagicLocation;
 import com.nisovin.magicspells.handlers.DebugHandler;
@@ -22,7 +24,7 @@ public class ChestContainsCondition extends Condition {
 	private MagicItemData itemData;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		try {
 			String[] vars = var.split(",");
 			location = new MagicLocation(vars[0], Integer.parseInt(vars[1]), Integer.parseInt(vars[2]), Integer.parseInt(vars[3]));

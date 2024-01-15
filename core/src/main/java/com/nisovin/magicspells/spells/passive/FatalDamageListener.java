@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -17,8 +19,8 @@ public class FatalDamageListener extends PassiveListener {
 	private final EnumSet<DamageCause> damageCauses = EnumSet.noneOf(DamageCause.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		for (String causeName : var.split("\\|")) {
 			DamageCause cause = null;
 			try {

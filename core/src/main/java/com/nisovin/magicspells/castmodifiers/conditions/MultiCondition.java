@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -58,7 +60,7 @@ public class MultiCondition extends Condition implements IModifier {
 	private PassCondition passCondition = PassCondition.ALL;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		configPrefix += var;
 		MagicConfig config = MagicSpells.plugin.getMagicConfig();
 		if (!(config.contains(configPrefix) && config.isSection(configPrefix))) return false;
