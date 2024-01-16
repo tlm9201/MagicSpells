@@ -6,9 +6,11 @@ import java.util.Scanner;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.io.BufferedWriter;
-import java.util.regex.Pattern;
 import java.io.FileNotFoundException;
 
+import org.bukkit.World;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -38,11 +40,9 @@ import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 
 public class SpellbookSpell extends CommandSpell {
 
-	private static final Pattern PATTERN_CAST_ARG_USAGE = Pattern.compile("^[0-9]+$");
-
 	private List<String> bookSpells;
 	private List<Integer> bookUses;
-	private List<MagicLocation> bookLocations;
+	private List<Location> bookLocations;
 
 	private Material spellbookBlock;
 
@@ -97,7 +97,7 @@ public class SpellbookSpell extends CommandSpell {
 	public CastResult cast(SpellData data) {
 		if (!(data.caster() instanceof Player player)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		if (!data.hasArgs() || data.args().length > 2 || (data.args().length == 2 && !PATTERN_CAST_ARG_USAGE.asMatchPredicate().test(data.args()[1]))) {
+		if (!data.hasArgs() || data.args().length > 2 || (data.args().length == 2 && !RegexUtil.SIMPLE_INT_PATTERN.asMatchPredicate().test(data.args()[1]))) {
 			sendMessage(strUsage, player, data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
@@ -130,12 +130,12 @@ public class SpellbookSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		if (bookLocations.contains(new MagicLocation(target.getLocation()))) {
+		if (bookLocations.contains(target.getLocation())) {
 			sendMessage(strHasSpellbook, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		bookLocations.add(new MagicLocation(target.getLocation()));
+		bookLocations.add(target.getLocation());
 		bookSpells.add(spell.getInternalName());
 
 		if (data.args().length == 1) bookUses.add(defaultUses.get(data));
@@ -178,7 +178,7 @@ public class SpellbookSpell extends CommandSpell {
 		if (!event.hasBlock() || !spellbookBlock.equals(clickedBlock.getType()) || event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;
 		if (slot == EquipmentSlot.OFF_HAND) return;
-		MagicLocation loc = new MagicLocation(event.getClickedBlock().getLocation());
+		Location loc = event.getClickedBlock().getLocation();
 		if (!bookLocations.contains(loc)) return;
 
 		event.setCancelled(true);
@@ -214,7 +214,7 @@ public class SpellbookSpell extends CommandSpell {
 
 		uses--;
 		if (uses == 0) {
-			if (destroySpellbook) bookLocations.get(i).getLocation().getBlock().setType(Material.AIR);
+			if (destroySpellbook) bookLocations.get(i).getBlock().setType(Material.AIR);
 			removeSpellbook(i);
 		} else bookUses.set(i, uses);
 	}
@@ -222,7 +222,7 @@ public class SpellbookSpell extends CommandSpell {
 	@EventHandler(ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
 		if (spellbookBlock == null || !spellbookBlock.equals(event.getBlock().getType())) return;
-		MagicLocation loc = new MagicLocation(event.getBlock().getLocation());
+		Location loc = event.getBlock().getLocation();
 		if (!bookLocations.contains(loc)) return;
 		Player pl = event.getPlayer();
 		if (pl.isOp() || Perm.ADVANCED_SPELLBOOK.has(pl)) {
@@ -249,9 +249,14 @@ public class SpellbookSpell extends CommandSpell {
 				if (line.isEmpty()) continue;
 				try {
 					String[] data = line.split(":");
-					MagicLocation loc = new MagicLocation(data[0], Integer.parseInt(data[1]), Integer.parseInt(data[2]), Integer.parseInt(data[3]));
+
+					World world = Bukkit.getWorld(data[0]);
+					int x = Integer.parseInt(data[1]);
+					int y = Integer.parseInt(data[2]);
+					int z = Integer.parseInt(data[3]);
 					int uses = Integer.parseInt(data[5]);
-					bookLocations.add(loc);
+
+					bookLocations.add(new Location(world, x, y, z));
 					bookSpells.add(data[4]);
 					bookUses.add(uses);
 				} catch (Exception e) {
@@ -266,21 +271,26 @@ public class SpellbookSpell extends CommandSpell {
 	private void saveSpellbooks() {
 		try {
 			BufferedWriter writer = new BufferedWriter(new FileWriter(new File(MagicSpells.plugin.getDataFolder(), "books.txt"), false));
-			MagicLocation loc;
 			for (int i = 0; i < bookLocations.size(); i++) {
-				loc = bookLocations.get(i);
-				writer.write(loc.getWorld() + ':' + (int) loc.getX() + ':' + (int) loc.getY() + ':' + (int) loc.getZ() + ':');
-				writer.write(bookSpells.get(i) + ':' + bookUses.get(i));
+				Location loc = bookLocations.get(i);
+
+				writer.append(loc.getWorld().getName())
+					.append(":")
+					.append(String.valueOf(loc.getBlockX()))
+					.append(":")
+					.append(String.valueOf(loc.getBlockY()))
+					.append(":")
+					.append(String.valueOf(loc.getBlockZ()))
+					.append(":")
+					.append(bookSpells.get(i))
+					.append(":")
+					.append(String.valueOf(bookUses.get(i)));
 				writer.newLine();
 			}
 			writer.close();
 		} catch (Exception e) {
 			MagicSpells.plugin.getServer().getLogger().severe("MagicSpells: Error saving spellbooks");
 		}
-	}
-
-	public static Pattern getPatternCastArgUsage() {
-		return PATTERN_CAST_ARG_USAGE;
 	}
 
 	public List<String> getBookSpells() {
@@ -291,7 +301,7 @@ public class SpellbookSpell extends CommandSpell {
 		return bookUses;
 	}
 
-	public List<MagicLocation> getBookLocations() {
+	public List<Location> getBookLocations() {
 		return bookLocations;
 	}
 

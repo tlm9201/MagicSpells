@@ -1,5 +1,8 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -9,32 +12,30 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.util.BlockUtils;
-import com.nisovin.magicspells.util.MagicLocation;
-import com.nisovin.magicspells.handlers.DebugHandler;
+import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 public class ChestContainsCondition extends Condition {
 
+	private static final Pattern FORMAT = Pattern.compile("(?<loc>[^,]+,-?\\d+,-?\\d+,-?\\d+),(?<item>.*)");
+
 	//world,x,y,z,item
 
-	private MagicLocation location;
+	private Location location;
 
 	private MagicItemData itemData;
 
 	@Override
 	public boolean initialize(@NotNull String var) {
-		try {
-			String[] vars = var.split(",");
-			location = new MagicLocation(vars[0], Integer.parseInt(vars[1]), Integer.parseInt(vars[2]), Integer.parseInt(vars[3]));
+		Matcher matcher = FORMAT.matcher(var);
+		if (!matcher.find()) return false;
 
-			itemData = MagicItems.getMagicItemDataFromString(vars[4].trim());
-			return itemData != null;
-		} catch (Exception e) {
-			DebugHandler.debugGeneral(e);
-			return false;
-		}
+		location = LocationUtil.fromString(matcher.group("loc"));
+		itemData = MagicItems.getMagicItemDataFromString(matcher.group("item").trim());
+
+		return location != null && itemData != null;
 	}
 
 	@Override
@@ -53,7 +54,7 @@ public class ChestContainsCondition extends Condition {
 	}
 
 	private boolean checkChest() {
-		Block block = location.getLocation().getBlock();
+		Block block = location.getBlock();
 		if (!BlockUtils.isChest(block)) return false;
 
 		for (ItemStack item : ((Chest) block.getState()).getInventory().getContents()) {

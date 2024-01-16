@@ -75,14 +75,14 @@ public class RemoveMarksSpell extends TargetedSpell implements TargetedLocationS
 
 		Location loc = data.location();
 
-		Map<UUID, MagicLocation> marks = markSpell.getMarks();
+		Map<UUID, Location> marks = markSpell.getMarks();
 		Iterator<UUID> iter = marks.keySet().iterator();
 		World locWorld = loc.getWorld();
 
 		while (iter.hasNext()) {
-			MagicLocation l = marks.get(iter.next());
-			if (!l.getWorld().equals(locWorld.getName())) continue;
-			if (l.getLocation().distanceSquared(loc) < radSq) iter.remove();
+			Location l = marks.get(iter.next());
+			if (!l.getWorld().equals(locWorld)) continue;
+			if (l.distanceSquared(loc) < radSq) iter.remove();
 		}
 
 		markSpell.setMarks(marks);

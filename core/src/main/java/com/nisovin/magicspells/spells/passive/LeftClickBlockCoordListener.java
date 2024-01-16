@@ -14,7 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.MagicLocation;
+import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
@@ -24,24 +24,18 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // And x, y, and z are integers
 public class LeftClickBlockCoordListener extends PassiveListener {
 
-	private final Set<MagicLocation> locations = new HashSet<>();
+	private final Set<Location> locations = new HashSet<>();
 
 	@Override
 	public void initialize(@NotNull String var) {
 		if (var.isEmpty()) return;
-		for (String s : var.split(";")) {
-			try {
-				String[] data = s.split(",");
-				String world = data[0];
-				int x = Integer.parseInt(data[1]);
-				int y = Integer.parseInt(data[2]);
-				int z = Integer.parseInt(data[3]);
-
-				MagicLocation location = new MagicLocation(world, x, y, z);
-				locations.add(location);
-			} catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-				MagicSpells.error("Invalid coords on leftclickblockcoord trigger for spell '" + passiveSpell.getInternalName() + "'");
+		for (String string : var.split(";")) {
+			Location location = LocationUtil.fromString(string);
+			if (location == null) {
+				MagicSpells.error("Invalid coords on leftclickblockcoord trigger for spell '" + passiveSpell.getInternalName() + "': " + string);
+				continue;
 			}
+			locations.add(location);
 		}
 	}
 
@@ -58,8 +52,7 @@ public class LeftClickBlockCoordListener extends PassiveListener {
 		if (!canTrigger(caster)) return;
 
 		Location location = event.getClickedBlock().getLocation();
-		MagicLocation loc = new MagicLocation(location.getWorld().getName(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
-		if (!locations.contains(loc)) return;
+		if (!locations.contains(location)) return;
 
 		boolean casted = passiveSpell.activate(caster, location.add(0.5, 0.5, 0.5));
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
