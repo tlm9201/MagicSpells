@@ -319,16 +319,16 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 			boolean added = false;
 			PlayerInventory inv = player.getInventory();
 			if (autoEquip && item.getAmount() == 1) {
-				if (item.getType().name().endsWith("HELMET") && InventoryUtil.isNothing(inv.getHelmet())) {
+				if (item.getType().name().endsWith("HELMET") && isNothing(inv.getHelmet())) {
 					inv.setHelmet(item);
 					added = true;
-				} else if (item.getType().name().endsWith("CHESTPLATE") && InventoryUtil.isNothing(inv.getChestplate())) {
+				} else if (item.getType().name().endsWith("CHESTPLATE") && isNothing(inv.getChestplate())) {
 					inv.setChestplate(item);
 					added = true;
-				} else if (item.getType().name().endsWith("LEGGINGS") && InventoryUtil.isNothing(inv.getLeggings())) {
+				} else if (item.getType().name().endsWith("LEGGINGS") && isNothing(inv.getLeggings())) {
 					inv.setLeggings(item);
 					added = true;
-				} else if (item.getType().name().endsWith("BOOTS") && InventoryUtil.isNothing(inv.getBoots())) {
+				} else if (item.getType().name().endsWith("BOOTS") && isNothing(inv.getBoots())) {
 					inv.setBoots(item);
 					added = true;
 				}
@@ -355,7 +355,7 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 						inv.setItem(requiredSlot, item);
 						added = true;
 						updateInv = true;
-					} else if (preferredSlot >= 0 && InventoryUtil.isNothing(preferredItem)) {
+					} else if (preferredSlot >= 0 && isNothing(preferredItem)) {
 						inv.setItem(preferredSlot, item);
 						added = true;
 						updateInv = true;
@@ -389,6 +389,10 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 
 		if (updateInv && forceUpdateInventory) player.updateInventory();
 		playSpellEffects(EffectPosition.CASTER, player, data);
+	}
+
+	private boolean isNothing(ItemStack item) {
+		return item == null || item.isEmpty();
 	}
 
 	private void individual(List<ItemStack> items, SpellData data) {
