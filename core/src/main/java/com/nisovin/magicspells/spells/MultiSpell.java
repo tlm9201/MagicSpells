@@ -14,8 +14,8 @@ import com.nisovin.magicspells.util.config.ConfigData;
 
 public final class MultiSpell extends InstantSpell {
 
-	private static final Pattern RANGED_DELAY_PATTERN = Pattern.compile("DELAY [0-9]+ [0-9]+");
-	private static final Pattern BASIC_DELAY_PATTERN = Pattern.compile("DELAY [0-9]+");
+	private static final Pattern RANGED_DELAY_PATTERN = Pattern.compile("DELAY \\d+ \\d+");
+	private static final Pattern BASIC_DELAY_PATTERN = Pattern.compile("DELAY \\d+");
 
 	private List<String> spellList;
 	private final List<ActionChance> actions;
@@ -43,12 +43,12 @@ public final class MultiSpell extends InstantSpell {
 				String[] parts = s.split(":");
 				double chance = parts.length == 2 ? Double.parseDouble(parts[1]) : 0.0D;
 				s = parts[0];
-				if (RegexUtil.matches(RANGED_DELAY_PATTERN, s)) {
+				if (RANGED_DELAY_PATTERN.asMatchPredicate().test(s)) {
 					String[] splits = s.split(" ");
 					int minDelay = Integer.parseInt(splits[1]);
 					int maxDelay = Integer.parseInt(splits[2]);
 					actions.add(new ActionChance(new Action(minDelay, maxDelay), chance));
-				} else if (RegexUtil.matches(BASIC_DELAY_PATTERN, s)) {
+				} else if (BASIC_DELAY_PATTERN.asMatchPredicate().test(s)) {
 					int delay = Integer.parseInt(s.split(" ")[1]);
 					actions.add(new ActionChance(new Action(delay), chance));
 				} else {

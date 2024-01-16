@@ -9,6 +9,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerFishEvent;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -22,11 +24,9 @@ public class FishListener extends PassiveListener {
 	private final EnumSet<EntityType> types = EnumSet.noneOf(EntityType.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] data = var.replace(" ", "").toUpperCase().split(",");
-		for (String val : data) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String val : var.replace(" ", "").split(",")) {
 			try {
 				states.add(PlayerFishEvent.State.valueOf(val.toUpperCase()));
 			} catch (IllegalArgumentException e) {
@@ -48,7 +48,7 @@ public class FishListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!states.isEmpty() && !states.contains(event.getState())) return;
 

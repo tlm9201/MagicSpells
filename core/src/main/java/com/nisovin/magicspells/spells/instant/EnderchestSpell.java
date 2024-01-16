@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.spells.instant;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.util.*;
@@ -17,7 +18,7 @@ public class EnderchestSpell extends InstantSpell implements TargetedEntitySpell
 		if (!(data.caster() instanceof Player caster)) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
 		if (data.hasArgs() && data.args().length == 1 && caster.hasPermission("magicspells.advanced." + internalName)) {
-			Player target = PlayerNameUtils.getPlayer(data.args()[0]);
+			Player target = Bukkit.getPlayer(data.args()[0]);
 			if (target == null) {
 				sendMessage(caster, "Invalid player target.");
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);

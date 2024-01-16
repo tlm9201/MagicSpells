@@ -23,10 +23,7 @@ public class LeftClickListener implements Listener {
 
 	public LeftClickListener() {
 		for (Spell spell : MagicSpells.getSpells().values()) {
-			CastItem[] items = spell.getLeftClickCastItems();
-			if (items.length == 0) continue;
-
-			for (CastItem item : items) {
+			for (CastItem item : spell.getLeftClickCastItems()) {
 				if (item == null) continue;
 
 				Spell old = leftClickCastItems.put(item, spell);

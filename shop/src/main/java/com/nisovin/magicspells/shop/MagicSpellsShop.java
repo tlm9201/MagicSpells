@@ -3,7 +3,6 @@ package com.nisovin.magicspells.shop;
 import java.io.File;
 import java.util.regex.Pattern;
 
-import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
@@ -152,7 +151,7 @@ public class MagicSpellsShop extends JavaPlugin implements Listener {
 		if (spell == null) return;
 		
 		// Get uses
-		if (!RegexUtil.matches(USE_COUNT_PATTERN, lines[2])) return;
+		if (!USE_COUNT_PATTERN.asMatchPredicate().test(lines[2])) return;
 		int uses = Integer.parseInt(lines[2].split(" ")[0]);
 		
 		// Get cost
@@ -193,11 +192,11 @@ public class MagicSpellsShop extends JavaPlugin implements Listener {
 		// Can we exit early?
 		if (line.isEmpty()) return cost;
 		
-		if (!line.contains(" ") && RegexUtil.matches(CURRENCY_PATTERN, line)) {
+		if (!line.contains(" ") && CURRENCY_PATTERN.asMatchPredicate().test(line)) {
 			cost.amount = Double.parseDouble(line);
 		} else if (line.contains(" ")) {
 			String[] s = line.split(" ");
-			if (RegexUtil.matches(CURRENCY_PATTERN, s[0])) {
+			if (CURRENCY_PATTERN.asMatchPredicate().test(s[0])) {
 				cost.amount = Double.parseDouble(s[0]);
 				cost.currency = s[1];
 			}

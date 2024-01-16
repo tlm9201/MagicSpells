@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerBedEnterEvent;
@@ -11,8 +13,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class EnterBedListener extends PassiveListener {
 
 	@Override
-	public void initialize(String var) {
-
+	public void initialize(@NotNull String var) {
 	}
 
 	@OverridePriority
@@ -21,7 +22,7 @@ public class EnterBedListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player player = event.getPlayer();
-		if (!hasSpell(player) || !canTrigger(player)) return;
+		if (!canTrigger(player)) return;
 
 		boolean casted = passiveSpell.activate(player);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

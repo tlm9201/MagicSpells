@@ -38,8 +38,6 @@ public class BuffManager {
 
 	public void startBuff(LivingEntity entity, BuffSpell spell) {
 		Set<BuffSpell> buffs = activeBuffs.computeIfAbsent(entity, s -> new HashSet<>());
-		if (buffs == null) throw new IllegalStateException("buffs should not be null here");
-
 		buffs.add(spell);
 		EventUtil.call(new BuffStartEvent(entity, spell));
 	}

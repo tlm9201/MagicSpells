@@ -100,7 +100,7 @@ public class EntombSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		BlockData blockType = this.blockType.get(data);
 		for (Block b : tempBlocks) {
-			if (!BlockUtils.isAir(b.getType())) continue;
+			if (!b.getType().isAir()) continue;
 			tombBlocks.add(b);
 			b.setBlockData(blockType);
 			playSpellEffects(EffectPosition.SPECIAL, b.getLocation().add(0.5, 0.5, 0.5), data);

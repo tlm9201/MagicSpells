@@ -146,10 +146,6 @@ public class HasteSpell extends BuffSpell {
 		MagicSpells.cancelTask(data.task);
 	}
 
-	public Map<UUID, HasteData> getPlayers() {
-		return players;
-	}
-
 	private class HasteData {
 
 		private final int accelerationIncrease;

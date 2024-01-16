@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.command;
 import java.util.List;
 import java.util.Collection;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -50,7 +51,7 @@ public class SublistSpell extends CommandSpell {
 		Spellbook spellbook = MagicSpells.getSpellbook(caster);
 		String extra = "";
 		if (data.hasArgs() && spellbook.hasAdvancedPerm("list")) {
-			Player p = PlayerNameUtils.getPlayer(data.args()[0]);
+			Player p = Bukkit.getPlayer(data.args()[0]);
 			if (p != null) {
 				spellbook = MagicSpells.getSpellbook(p);
 				extra = '(' + Util.getStringFromComponent(p.displayName()) + ") ";
@@ -90,7 +91,7 @@ public class SublistSpell extends CommandSpell {
 
 		Collection<Spell> spells = MagicSpells.spells();
 		if (args != null && args.length > 0) {
-			Player player = PlayerNameUtils.getPlayer(args[0]);
+			Player player = Bukkit.getPlayer(args[0]);
 			if (player == null) {
 				sender.sendPlainMessage("No such player.");
 				return true;

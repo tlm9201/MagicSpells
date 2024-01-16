@@ -113,7 +113,7 @@ public class KeybindSpell extends CommandSpell {
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		if (!BlockUtils.isAir(item.getType())) {
+		if (!item.getType().isAir()) {
 			caster.sendMessage("Not empty.");
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
@@ -171,10 +171,6 @@ public class KeybindSpell extends CommandSpell {
 	@Override
 	public List<String> tabComplete(CommandSender sender, String partial) {
 		return null;
-	}
-
-	public Map<String, Keybinds> getPlayerKeybinds() {
-		return playerKeybinds;
 	}
 
 	public ItemStack getWandItem() {

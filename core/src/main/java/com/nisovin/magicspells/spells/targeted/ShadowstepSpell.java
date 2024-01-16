@@ -66,8 +66,7 @@ public class ShadowstepSpell extends TargetedSpell implements TargetedEntitySpel
 		targetLoc.setYaw(targetLoc.getYaw() + yaw.get(data));
 
 		Block b = targetLoc.getBlock();
-		if (!BlockUtils.isPathable(b.getType()) || !BlockUtils.isPathable(b.getRelative(BlockFace.UP)))
-			return noTarget(strNoLandingSpot, data);
+		if (!b.isPassable() || !b.getRelative(BlockFace.UP).isPassable()) return noTarget(strNoLandingSpot, data);
 
 		playSpellEffects(data.caster(), targetLoc, data);
 		data.caster().teleportAsync(targetLoc);

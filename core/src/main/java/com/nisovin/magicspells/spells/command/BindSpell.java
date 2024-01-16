@@ -102,7 +102,7 @@ public class BindSpell extends CommandSpell {
 		CastItem castItem = new CastItem(caster.getEquipment().getItemInMainHand());
 		MagicSpells.debug(3, "Trying to bind spell '" + spell.getInternalName() + "' to cast item " + castItem + "...");
 
-		if (BlockUtils.isAir(castItem.getType()) && !allowBindToFist.get(data)) {
+		if (castItem.getType().isAir() && !allowBindToFist.get(data)) {
 			sendMessage(strCantBindItem, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}

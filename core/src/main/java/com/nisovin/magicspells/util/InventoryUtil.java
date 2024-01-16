@@ -4,10 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.*;
 import org.bukkit.event.inventory.InventoryType;
 
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -86,12 +83,6 @@ public class InventoryUtil {
 		
 		return ret;
 	}
-	
-	public static boolean isNothing(ItemStack itemStack) {
-		if (itemStack == null) return true;
-		if (itemStack.getType().isAir()) return true;
-		return itemStack.getAmount() == 0;
-	}
 
 	public static boolean inventoryContains(EntityEquipment entityEquipment, SpellReagents.ReagentItem item) {
 		if (entityEquipment == null) return false;
@@ -99,17 +90,7 @@ public class InventoryUtil {
 		if (itemData == null) return false;
 
 		int count = 0;
-		ItemStack[] armorContents = entityEquipment.getArmorContents();
-		ItemStack mainHand = entityEquipment.getItemInMainHand();
-		ItemStack offHand = entityEquipment.getItemInOffHand();
-		ItemStack[] equipment = new ItemStack[6];
-
-		// first 4 slots are filled with armor
-		System.arraycopy(armorContents, 0, equipment, 0, 4);
-		equipment[4] = mainHand;
-		equipment[5] = offHand;
-
-		for (ItemStack itemInside : equipment) {
+		for (ItemStack itemInside : getEquipmentItems(entityEquipment)) {
 			if (itemInside == null) continue;
 
 			MagicItemData magicItemData = MagicItems.getMagicItemDataFromItemStack(itemInside);
@@ -139,18 +120,13 @@ public class InventoryUtil {
 		return false;
 	}
 
-	public static ItemStack[] getEquipmentItems(EntityEquipment entityEquipment) {
-		ItemStack[] armorContents = entityEquipment.getArmorContents();
-		ItemStack mainHand = entityEquipment.getItemInMainHand();
-		ItemStack offHand = entityEquipment.getItemInOffHand();
-		ItemStack[] equipment = new ItemStack[6];
-
-		// first 4 slots are filled with armor
-		System.arraycopy(armorContents, 0, equipment, 0, 4);
-		equipment[4] = mainHand;
-		equipment[5] = offHand;
-
-		return equipment;
+	public static ItemStack[] getEquipmentItems(EntityEquipment equipment) {
+		EquipmentSlot[] slots = EquipmentSlot.values();
+		ItemStack[] items = new ItemStack[slots.length];
+		for (int i = 0; i < slots.length; i++) {
+			items[i] = equipment.getItem(slots[i]);
+		}
+		return items;
 	}
 	
 }

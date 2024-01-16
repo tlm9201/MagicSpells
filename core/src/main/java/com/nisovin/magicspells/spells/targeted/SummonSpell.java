@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.block.sign.Side;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.util.RayTraceResult;
@@ -68,7 +69,8 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		} else {
 			RayTraceResult result = rayTraceBlocks(data.power(10));
 			if (result != null && result.getHitBlock().getState() instanceof Sign sign) {
-				targetName = Util.getStringFromComponent(sign.line(0));
+				targetName = Util.getStringFromComponent(sign.getSide(Side.FRONT).line(0));
+				if (targetName.isEmpty()) targetName = Util.getStringFromComponent(sign.getSide(Side.BACK).line(0));
 				landLoc = sign.getLocation().add(.5, .25, .5);
 			}
 		}
@@ -89,7 +91,7 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		// Get player
 		Player target = null;
 		if (requireExactName.get(data)) {
-			target = PlayerNameUtils.getPlayer(targetName);
+			target = Bukkit.getPlayer(targetName);
 			if (target != null && !target.getName().equalsIgnoreCase(targetName)) target = null;
 		} else {
 			List<Player> players = Bukkit.getServer().matchPlayer(targetName);

@@ -5,6 +5,8 @@ import java.util.Set;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.ModifierResult;
@@ -21,8 +23,8 @@ public class SpellTagCondition extends Condition implements IModifier {
 	private String tag;
 
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		tag = var.trim();
 		return true;
 	}

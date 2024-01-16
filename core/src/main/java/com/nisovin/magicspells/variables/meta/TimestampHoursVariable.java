@@ -6,11 +6,11 @@ import com.nisovin.magicspells.variables.variabletypes.MetaVariable;
 
 public class TimestampHoursVariable extends MetaVariable {
 
-    @Override
-    public double getValue(String player) {
-        Instant instant = Instant.now();
-        long mins = instant.getEpochSecond();
-        return Math.floor(mins / 60F / 60F);
-    }
+	@Override
+	public double getValue(String player) {
+		Instant instant = Instant.now();
+		long mins = instant.getEpochSecond();
+		return Math.floor(mins / 60F / 60F);
+	}
 
 }

@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -35,8 +37,8 @@ public class TicksListener extends PassiveListener {
 	private Ticker ticker;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		try {
 			int interval = Integer.parseInt(var);
 			ticker = new Ticker(passiveSpell, interval);
@@ -47,7 +49,6 @@ public class TicksListener extends PassiveListener {
 		for (World world : Bukkit.getWorlds()) {
 			for (LivingEntity livingEntity : world.getLivingEntities()) {
 				if (!livingEntity.isValid()) continue;
-				if (livingEntity instanceof Player && !hasSpell(livingEntity)) continue;
 				if (!canTrigger(livingEntity)) continue;
 				ticker.add(livingEntity);
 			}
@@ -93,7 +94,6 @@ public class TicksListener extends PassiveListener {
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
 		if (!canTrigger(player)) return;
 		ticker.add(player);
 	}
@@ -118,7 +118,6 @@ public class TicksListener extends PassiveListener {
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
 		Player player = event.getPlayer();
-		if (!hasSpell(player)) return;
 		if (!canTrigger(player)) return;
 		ticker.add(player);
 	}

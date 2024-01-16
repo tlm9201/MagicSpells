@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -14,6 +15,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 
@@ -26,9 +28,9 @@ import com.nisovin.magicspells.spells.CommandSpell;
 
 public class ScrollSpell extends CommandSpell {
 
-	private static final String key = "scroll_data";
-	private static final Pattern CAST_ARGUMENT_USE_COUNT_PATTERN = Pattern.compile("^-?[0-9]+$");
-	private static final Pattern SCROLL_DATA_USES_PATTERN = Pattern.compile("^[0-9]+$");
+	private static final Pattern SCROLL_DATA_USES_PATTERN = Pattern.compile("^\\d+$");
+	private static final Pattern CAST_ARGUMENT_USE_COUNT_PATTERN = Pattern.compile("^-?\\d+$");
+	private static final NamespacedKey KEY = new NamespacedKey(MagicSpells.getInstance(), "scroll_data");
 
 	private final List<String> predefinedScrolls;
 
@@ -144,7 +146,7 @@ public class ScrollSpell extends CommandSpell {
 		}
 
 		int uses = defaultUses;
-		if (data.args().length > 1 && RegexUtil.matches(CAST_ARGUMENT_USE_COUNT_PATTERN, data.args()[1])) uses = Integer.parseInt(data.args()[1]);
+		if (data.args().length > 1 && CAST_ARGUMENT_USE_COUNT_PATTERN.asMatchPredicate().test(data.args()[1])) uses = Integer.parseInt(data.args()[1]);
 		if (uses > maxUses || (maxUses > 0 && uses <= 0)) uses = maxUses;
 
 		if (chargeReagentsForSpellPerCharge && uses > 0) {
@@ -184,7 +186,7 @@ public class ScrollSpell extends CommandSpell {
 		}
 
 		int uses = defaultUses;
-		if (args.length > 2 && RegexUtil.matches(CAST_ARGUMENT_USE_COUNT_PATTERN, args[2])) {
+		if (args.length > 2 && CAST_ARGUMENT_USE_COUNT_PATTERN.asMatchPredicate().test(args[2])) {
 			uses = Integer.parseInt(args[2]);
 		}
 
@@ -219,8 +221,8 @@ public class ScrollSpell extends CommandSpell {
 		}
 
 		ItemUtil.addFakeEnchantment(meta);
+		meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
 		item.setItemMeta(meta);
-		DataUtil.setString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
 
 		return item;
 	}
@@ -237,7 +239,8 @@ public class ScrollSpell extends CommandSpell {
 		if (!actionAllowedForCast(event.getAction())) return;
 		Player player = event.getPlayer();
 		ItemStack inHand = player.getInventory().getItemInMainHand();
-		if (itemType != inHand.getType() || inHand.getAmount() > 1) return;
+		ItemMeta meta = inHand.getItemMeta();
+		if (itemType != inHand.getType() || inHand.getAmount() > 1 || meta == null) return;
 		
 		// Check for predefined scroll
 		if (ItemUtil.getDurability(inHand) > 0 && predefinedScrollSpells != null) {
@@ -250,13 +253,13 @@ public class ScrollSpell extends CommandSpell {
 		}
 		
 		// Get scroll data (spell and uses)
-		String scrollDataString = DataUtil.getString(inHand, key);
+		String scrollDataString = meta.getPersistentDataContainer().get(KEY, PersistentDataType.STRING);
 		if (scrollDataString == null || scrollDataString.isEmpty()) return;
 		String[] scrollData = scrollDataString.split(",");
 		Spell spell = MagicSpells.getSpellByInternalName(scrollData[0]);
 		if (spell == null) return;
 		int uses = 0;
-		if (scrollData.length > 1 && RegexUtil.matches(SCROLL_DATA_USES_PATTERN, scrollData[1])) uses = Integer.parseInt(scrollData[1]);
+		if (scrollData.length > 1 && SCROLL_DATA_USES_PATTERN.asMatchPredicate().test(scrollData[1])) uses = Integer.parseInt(scrollData[1]);
 
 		if (requireScrollCastPermOnUse && !MagicSpells.getSpellbook(player).canCast(this)) {
 			sendMessage(strUseFail, player, SpellData.NULL);

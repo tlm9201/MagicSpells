@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.DyeColor;
 import org.bukkit.entity.Sheep;
 import org.bukkit.entity.Entity;
@@ -19,11 +21,9 @@ public class SheepShearListener extends PassiveListener {
 	private final EnumSet<DyeColor> dyeColors = EnumSet.noneOf(DyeColor.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split(",")) {
 			try {
 				DyeColor color = DyeColor.valueOf(s.trim().toUpperCase());
 				dyeColors.add(color);
@@ -42,7 +42,7 @@ public class SheepShearListener extends PassiveListener {
 		if (!(entity instanceof Sheep)) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		Sheep target = (Sheep) event.getEntity();
 		if (!dyeColors.isEmpty() && !dyeColors.contains(target.getColor())) return;

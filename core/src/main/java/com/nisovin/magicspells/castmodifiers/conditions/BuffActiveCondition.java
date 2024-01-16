@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
@@ -13,7 +15,7 @@ public class BuffActiveCondition extends Condition {
 	private BuffSpell buff;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		Spell spell = MagicSpells.getSpellByInternalName(var);
 		if (spell instanceof BuffSpell) {
 			buff = (BuffSpell) spell;

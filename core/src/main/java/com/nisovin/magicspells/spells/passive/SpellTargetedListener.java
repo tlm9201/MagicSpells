@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellTargetEvent;
@@ -14,8 +16,8 @@ public class SpellTargetedListener extends PassiveListener {
 	private SpellFilter filter;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		filter = SpellFilter.fromString(var);
 	}
 
@@ -25,7 +27,7 @@ public class SpellTargetedListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity target = event.getTarget();
-		if (!hasSpell(target) || !canTrigger(target)) return;
+		if (!canTrigger(target)) return;
 
 		if (filter != null && !filter.check(event.getSpell())) return;
 

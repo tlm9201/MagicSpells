@@ -5,6 +5,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.EventPriority;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 
@@ -31,10 +33,11 @@ public abstract class PassiveListener implements Listener {
 	}
 
 	public boolean canTrigger(LivingEntity livingEntity) {
-		return passiveSpell.getTriggerList().canTarget(livingEntity, true);
+		return canTrigger(livingEntity, true);
 	}
 
 	public boolean canTrigger(LivingEntity livingEntity, boolean ignoreGameMode) {
+		if (livingEntity instanceof Player player && !MagicSpells.getSpellbook(player).hasSpell(passiveSpell)) return false;
 		return passiveSpell.getTriggerList().canTarget(livingEntity, ignoreGameMode);
 	}
 		
@@ -51,13 +54,8 @@ public abstract class PassiveListener implements Listener {
 		if (passiveSpell.requireCancelledEvent() && !cancelled) return false;
 		return true;
 	}
-
-	public boolean hasSpell(LivingEntity entity) {
-		if (entity instanceof Player player) return MagicSpells.getSpellbook(player).hasSpell(passiveSpell);
-		return true;
-	}
 	
-	public abstract void initialize(String var);
+	public abstract void initialize(@NotNull String var);
 
 	public void turnOff() {
 		// No op

@@ -63,7 +63,7 @@ public class CastItem {
 					name = LegacyComponentSerializer.legacySection().serializeOrNull(meta.displayName());
 			}
 			if (!MagicSpells.ignoreCastItemAmount()) amount = item.getAmount();
-			if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type)) durability = DurabilityHandler.getDurability(meta);
+			if (!MagicSpells.ignoreCastItemDurability(type) && type.getMaxDurability() > 0) durability = DurabilityHandler.getDurability(meta);
 			if (!MagicSpells.ignoreCastItemCustomModelData()) customModelData = ItemUtil.getCustomModelData(meta);
 			if (!MagicSpells.ignoreCastItemBreakability()) unbreakable = meta.isUnbreakable();
 			if (!MagicSpells.ignoreCastItemColor()) color = LeatherArmorHandler.getColor(meta);
@@ -93,7 +93,7 @@ public class CastItem {
 				if (!MagicSpells.ignoreCastItemAmount() && data.hasAttribute(AMOUNT))
 					amount = (int) data.getAttribute(AMOUNT);
 
-				if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type) && data.hasAttribute(DURABILITY))
+				if (!MagicSpells.ignoreCastItemDurability(type) && type.getMaxDurability() > 0 && data.hasAttribute(DURABILITY))
 					durability = (int) data.getAttribute(DURABILITY);
 
 				if (!MagicSpells.ignoreCastItemCustomModelData() && data.hasAttribute(CUSTOM_MODEL_DATA))
@@ -126,7 +126,7 @@ public class CastItem {
 	}
 
 	public boolean isTypeValid() {
-		return type != null && !BlockUtils.isAir(type);
+		return type != null && !type.isAir();
 	}
 
 	public Material getType() {
@@ -174,7 +174,7 @@ public class CastItem {
 		if (!MagicSpells.ignoreCastItemAmount())
 			castItem.addProperty("amount", amount);
 
-		if (!MagicSpells.ignoreCastItemDurability(type) && ItemUtil.hasDurability(type))
+		if (!MagicSpells.ignoreCastItemDurability(type) && type.getMaxDurability() > 0)
 			castItem.addProperty("durability", durability);
 
 		if (!MagicSpells.ignoreCastItemCustomModelData())

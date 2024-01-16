@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Arrow;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -20,11 +22,9 @@ public class HitArrowListener extends PassiveListener {
 	private final Set<MagicItemData> items = new HashSet<>();
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split("\\|");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split("\\|")) {
 			s = s.trim();
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
@@ -44,7 +44,7 @@ public class HitArrowListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		LivingEntity caster = getAttacker(event);
-		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
+		if (caster == null || !canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			EntityEquipment eq = caster.getEquipment();

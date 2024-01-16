@@ -3,9 +3,11 @@ package com.nisovin.magicspells.spells;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -15,6 +17,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
@@ -34,6 +37,8 @@ import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
 public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
+
+	private static final NamespacedKey OPTION_KEY = new NamespacedKey(MagicSpells.getInstance(), "menu_option");
 
 	private final Map<String, MenuOption> options = new LinkedHashMap<>();
 
@@ -107,7 +112,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 						MagicSpells.error("MenuSpell '" + internalName + "' has an invalid item listed in '" + optionName + "': " + itemName);
 						continue;
 					}
-					items.add(itemStack);
+					items.add(itemStack.clone());
 				}
 				// Skip if list was invalid.
 				if (items.isEmpty()) {
@@ -219,7 +224,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		if (args.length < 1) return false;
 
-		Player player = PlayerNameUtils.getPlayer(args[0]);
+		Player player = Bukkit.getPlayer(args[0]);
 		if (player == null) return false;
 
 		String[] spellArgs = args.length > 1 ? Arrays.copyOfRange(args, 1, args.length) : null;
@@ -232,7 +237,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		MagicItem magicItem = isConfigSection(path) ?
 				MagicItems.getMagicItemFromSection(getConfigSection(path)) :
 				MagicItems.getMagicItemFromString(getConfigString(path, ""));
-		return magicItem == null ? null : magicItem.getItemStack();
+		ItemStack item = magicItem == null ? null : magicItem.getItemStack();
+		return item == null ? null : item.clone();
 	}
 
 	private void open(Player opener, SpellData data, boolean targetOpensMenuInstead) {
@@ -262,8 +268,8 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 				if (event.isCancelled()) continue;
 			}
 			// Select and finalise item to display.
-			ItemStack item = (option.item != null ? option.item : option.items.get(Util.getRandomInt(option.items.size()))).clone();
-			DataUtil.setString(item, "menuOption", option.menuOptionName);
+			ItemStack item = option.item != null ? option.item : option.items.get(ThreadLocalRandom.current().nextInt(option.items.size()));
+			item.editMeta(meta -> meta.getPersistentDataContainer().set(OPTION_KEY, PersistentDataType.STRING, option.menuOptionName));
 			item = translateItem(opener, item, menu.data);
 
 			int quantity;
@@ -344,12 +350,12 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	}
 
 	private PostClickState castSpells(MenuInventory menu, ItemStack item, ClickType click) {
-		// Outside inventory.
-		if (item == null) return menu.stayOpenNonOption ? PostClickState.IGNORE : PostClickState.CLOSE;
+		// Outside inventory or not an option item.
+		if (item == null || !item.hasItemMeta())
+			return menu.stayOpenNonOption ? PostClickState.IGNORE : PostClickState.CLOSE;
 
-		// Probably a filler or air.
-		String key = DataUtil.getString(item, "menuOption");
-		if (key == null || key.isEmpty() || !options.containsKey(key))
+		String key = item.getItemMeta().getPersistentDataContainer().get(OPTION_KEY, PersistentDataType.STRING);
+		if (key == null || !options.containsKey(key))
 			return menu.stayOpenNonOption ? PostClickState.IGNORE : PostClickState.CLOSE;
 
 		MenuOption option = options.get(key);

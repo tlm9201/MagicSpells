@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.protection.flags.Flag;
@@ -15,7 +17,7 @@ import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardC
 @DependsOn(plugin = "WorldGuard")
 public class WorldGuardBooleanFlagCondition extends AbstractWorldGuardCondition {
 
-	protected static Map<String, BooleanFlag> flags = new HashMap<>();
+	protected static final Map<String, BooleanFlag> flags = new HashMap<>();
 
 	static {
 		for (Flag<?> flag : WorldGuard.getInstance().getFlagRegistry().getAll()) {
@@ -27,8 +29,8 @@ public class WorldGuardBooleanFlagCondition extends AbstractWorldGuardCondition 
 	private BooleanFlag flag = null;
 	
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		flag = flags.get(var.toLowerCase());
 		return flag != null;
 	}

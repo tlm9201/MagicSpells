@@ -1,21 +1,19 @@
 package com.nisovin.magicspells.variables.variabletypes;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.variables.Variable;
-import com.nisovin.magicspells.util.MagicLocation;
-import com.nisovin.magicspells.util.PlayerNameUtils;
-import com.nisovin.magicspells.util.ConfigReaderUtil;
 
 public class DistanceToLocationVariable extends Variable {
 
 	// If true, distance will be calculated across worlds.
 	protected boolean crossWorld = false;
 	
-	protected MagicLocation targetLocation;
+	protected Location targetLocation;
 	
 	// When calculating distance between locations between multiple worlds, the distance is multiplied by this value.
 	protected double crossWorldDistanceMultiplier = 1.0;
@@ -32,11 +30,11 @@ public class DistanceToLocationVariable extends Variable {
 	
 	@Override
 	public double getValue(String player) {
-		Player p = PlayerNameUtils.getPlayer(player);
+		Player p = Bukkit.getPlayer(player);
 		if (p == null) return defaultValue;
 		
-		Location targetLoc = targetLocation.getLocation();
-		if (targetLoc == null) return defaultValue;
+		if (targetLocation == null) return defaultValue;
+		Location targetLoc = targetLocation.clone();
 
 		Location originLocation = p.getLocation();
 		if (!crossWorld && !LocationUtil.isSameWorld(originLocation, targetLoc)) return defaultValue;
@@ -60,7 +58,7 @@ public class DistanceToLocationVariable extends Variable {
 	public void loadExtraData(ConfigurationSection section) {
 		super.loadExtraData(section);
 		crossWorld = section.getBoolean("cross-world", false);
-		targetLocation = ConfigReaderUtil.readLocation(section, "target-location", "world,0,0,0");
+		targetLocation = LocationUtil.fromString(section.getString("target-location", "world,0,0,0"));
 		crossWorldDistanceMultiplier = section.getDouble("cross-world-distance-multiplier", 1.0);
 	}
 	

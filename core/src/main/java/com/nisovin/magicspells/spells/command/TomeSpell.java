@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.Spell;
@@ -26,16 +28,17 @@ import com.nisovin.magicspells.events.SpellLearnEvent.LearnSource;
 // TODO this should not be hardcoded to use a book
 public class TomeSpell extends CommandSpell {
 
-	private static final String key = "tome_data";
-	private static final Pattern INT_PATTERN = Pattern.compile("^[0-9]+$");
+	private static final Pattern INT_PATTERN = Pattern.compile("^\\d+$");
+	private static final NamespacedKey KEY = new NamespacedKey(MagicSpells.getInstance(), "tome_data");
 	
 	private boolean consumeBook;
 	private boolean cancelReadOnLearn;
-	private ConfigData<Boolean> allowOverwrite;
-	private ConfigData<Boolean> requireTeachPerm;
 
-	private ConfigData<Integer> maxUses;
-	private ConfigData<Integer> defaultUses;
+	private final ConfigData<Boolean> allowOverwrite;
+	private final ConfigData<Boolean> requireTeachPerm;
+
+	private final ConfigData<Integer> maxUses;
+	private final ConfigData<Integer> defaultUses;
 
 	private String strUsage;
 	private String strNoBook;
@@ -93,13 +96,13 @@ public class TomeSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		if (!allowOverwrite.get(data) && DataUtil.getString(item, key) != null) {
+		if (!allowOverwrite.get(data) && item.getItemMeta().getPersistentDataContainer().has(KEY)) {
 			sendMessage(strAlreadyHasSpell, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
 		int uses = -1;
-		if (data.args().length > 1 && RegexUtil.matches(INT_PATTERN, data.args()[1])) uses = Integer.parseInt(data.args()[1]);
+		if (data.args().length > 1 && INT_PATTERN.asMatchPredicate().test(data.args()[1])) uses = Integer.parseInt(data.args()[1]);
 		item = createTome(spell, uses, item, data);
 		player.getInventory().setItemInMainHand(item);
 
@@ -123,13 +126,12 @@ public class TomeSpell extends CommandSpell {
 		else if (uses < 0) uses = defaultUses.get(data);
 
 		if (item == null) {
-			item = new ItemStack(Material.WRITTEN_BOOK, 1);
-			BookMeta bookMeta = (BookMeta)item.getItemMeta();
-			bookMeta.setTitle(getName() + ": " + spell.getName());
-			item.setItemMeta(bookMeta);
+			item = new ItemStack(Material.WRITTEN_BOOK);
+			item.editMeta(BookMeta.class, meta -> meta.setTitle(getName() + ": " + spell.getName()));
 		}
 
-		DataUtil.setString(item, key, spell.getInternalName() + (uses > 0 ? "," + uses : ""));
+		int finalUses = uses;
+		item.editMeta(meta -> meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, spell.getInternalName() + (finalUses > 0 ? "," + finalUses : "")));
 		return item;
 	}
 	
@@ -140,8 +142,8 @@ public class TomeSpell extends CommandSpell {
 		ItemStack item = event.getItem();
 		if (item == null) return;
 		if (item.getType() != Material.WRITTEN_BOOK) return;
-		
-		String spellData = DataUtil.getString(item, key);
+
+		String spellData = item.getItemMeta().getPersistentDataContainer().get(KEY, PersistentDataType.STRING);
 		if (spellData == null || spellData.isEmpty()) return;
 		
 		String[] data = spellData.split(",");
@@ -172,16 +174,14 @@ public class TomeSpell extends CommandSpell {
 
 		if (uses > 0) {
 			uses--;
-			if (uses > 0) DataUtil.setString(item, key, data[0] + "," + uses);
-			else DataUtil.remove(item, key);
-
+			String tomeData = uses > 0 ? data[0] + "," + uses : "";
+			item.editMeta(meta -> {
+				if (tomeData.isEmpty()) meta.getPersistentDataContainer().remove(KEY);
+				else meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, tomeData);
+			});
 		}
 		if (uses <= 0 && consumeBook) event.getPlayer().getInventory().setItemInMainHand(null);
 		playSpellEffects(EffectPosition.DELAYED, event.getPlayer(), new SpellData(event.getPlayer()));
-	}
-
-	public static Pattern getIntPattern() {
-		return INT_PATTERN;
 	}
 
 	public boolean shouldConsumeBook() {

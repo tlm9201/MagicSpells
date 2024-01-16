@@ -8,7 +8,7 @@ import com.nisovin.magicspells.MagicSpells;
 
 public class ProjectileManagers {
 
-	private static Map<String, Class<? extends ProjectileManager>> managerKeys = new HashMap<>();
+	private static final Map<String, Class<? extends ProjectileManager>> managerKeys = new HashMap<>();
 	
 	private static <E extends ProjectileManager> E constructProjectileManager(Class<E> clazz) {
 		E ret = null;
@@ -69,7 +69,6 @@ public class ProjectileManagers {
 		tryRegister(ProjectileManagerSplashPotion.class, "splashpotion");
 		tryRegister(ProjectileManagerThrownExpBottle.class, "thrownexpbottle");
 		tryRegister(ProjectileManagerThrownPotion.class, "thrownpotion");
-		tryRegister(ProjectileManagerTippedArrow.class, "tippedarrow");
 		tryRegister(ProjectileManagerTrident.class, "trident");
 		tryRegister(ProjectileManagerWitherSkull.class, "witherskull");
 	}

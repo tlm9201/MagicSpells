@@ -2,7 +2,6 @@ package com.nisovin.magicspells.util;
 
 import java.util.Map;
 
-import org.bukkit.util.Vector;
 import org.bukkit.conversations.Prompt;
 import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.configuration.MemoryConfiguration;
@@ -12,40 +11,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.prompt.PromptType;
 
 public class ConfigReaderUtil {
-
-	public static Vector readVector(String key, String defaultValue) {
-		if (key == null || key.isEmpty()) key = defaultValue;
-		return readVector(key);
-	}
-
-	public static Vector readVector(String key) {
-		String[] vecStrings = key.trim().split(",");
-		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
-	}
-
-	public static MagicLocation readLocation(ConfigurationSection section, String path) {
-		return readLocation(section, path, "world,0,0,0");
-	}
-
-	public static MagicLocation readLocation(ConfigurationSection section, String path, String defaultText) {
-		String s = section.getString(path, defaultText);
-		MagicLocation ret;
-		try {
-			String[] split = s.split(",");
-			String world = split[0];
-			double x = Double.parseDouble(split[1]);
-			double y = Double.parseDouble(split[2]);
-			double z = Double.parseDouble(split[3]);
-			float yaw = 0;
-			float pitch = 0;
-			if (split.length > 4) yaw = Float.parseFloat(split[4]);
-			if (split.length > 5) pitch = Float.parseFloat(split[5]);
-			ret = new MagicLocation(world, x, y, z, yaw, pitch);
-		} catch (Exception e) {
-			return null;
-		}
-		return ret;
-	}
 
 	public static Prompt readPrompt(ConfigurationSection section) {
 		return readPrompt(section, Prompt.END_OF_CONVERSATION);

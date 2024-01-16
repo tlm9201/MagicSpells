@@ -1,26 +1,28 @@
 package com.nisovin.magicspells.spells.passive;
 
-import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.spells.passive.util.PassiveListener;
-import com.nisovin.magicspells.util.MobUtil;
-import com.nisovin.magicspells.util.OverridePriority;
+import java.util.EnumSet;
+
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
+
+import org.jetbrains.annotations.NotNull;
+
 import org.spigotmc.event.entity.EntityMountEvent;
 
-import java.util.EnumSet;
+import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.MobUtil;
+import com.nisovin.magicspells.util.OverridePriority;
+import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 public class MountListener extends PassiveListener {
 
 	private final EnumSet<EntityType> types = EnumSet.noneOf(EntityType.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.replace(" ", "").split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.replace(" ", "").split(",")) {
 			EntityType type = MobUtil.getEntityType(s);
 			if (type == null) {
 				MagicSpells.error("Invalid entity type '" + s + "' in mount trigger on passive spell '" + passiveSpell.getInternalName() + "'");
@@ -37,7 +39,7 @@ public class MountListener extends PassiveListener {
 		if (!(event.getEntity() instanceof LivingEntity caster)) return;
 		if (!isCancelStateOk(event.isCancelled())) return;
 		if (!types.isEmpty() && !types.contains(event.getMount().getType())) return;
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

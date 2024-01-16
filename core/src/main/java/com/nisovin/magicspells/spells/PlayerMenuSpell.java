@@ -179,10 +179,8 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		if (magicItem != null) return magicItem.getItemStack().clone();
 
 		ItemStack item = new ItemStack(Material.GREEN_WOOL);
-		ItemMeta meta = item.getItemMeta();
-
-		meta.displayName(Component.text(defaultName).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
-		item.setItemMeta(meta);
+		Component name = Component.text(defaultName).color(NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false);
+		item.editMeta(meta -> meta.displayName(name));
 
 		return item;
 	}

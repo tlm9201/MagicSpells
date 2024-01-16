@@ -81,37 +81,37 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
 		if (magicMainHandItem != null) {
 			mainHand = magicMainHandItem.getItemStack();
-			if (mainHand != null && BlockUtils.isAir(mainHand.getType())) mainHand = null;
+			if (mainHand != null && mainHand.getType().isAir()) mainHand = null;
 		}
 
 		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
 		if (magicOffHandItem != null) {
 			offHand = magicOffHandItem.getItemStack();
-			if (offHand != null && BlockUtils.isAir(offHand.getType())) offHand = null;
+			if (offHand != null && offHand.getType().isAir()) offHand = null;
 		}
 
 		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
 		if (magicHelmetItem != null) {
 			helmet = magicHelmetItem.getItemStack();
-			if (helmet != null && BlockUtils.isAir(helmet.getType())) helmet = null;
+			if (helmet != null && helmet.getType().isAir()) helmet = null;
 		}
 
 		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
 		if (magicChestplateItem != null) {
 			chestplate = magicChestplateItem.getItemStack();
-			if (chestplate != null && BlockUtils.isAir(chestplate.getType())) chestplate = null;
+			if (chestplate != null && chestplate.getType().isAir()) chestplate = null;
 		}
 
 		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
 		if (magicLeggingsItem != null) {
 			leggings = magicLeggingsItem.getItemStack();
-			if (leggings != null && BlockUtils.isAir(leggings.getType())) leggings = null;
+			if (leggings != null && leggings.getType().isAir()) leggings = null;
 		}
 
 		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
 		if (magicBootsItem != null) {
 			boots = magicBootsItem.getItemStack();
-			if (boots != null && BlockUtils.isAir(boots.getType())) boots = null;
+			if (boots != null && boots.getType().isAir()) boots = null;
 		}
 
 		if (mainHand != null) mainHand.setAmount(1);

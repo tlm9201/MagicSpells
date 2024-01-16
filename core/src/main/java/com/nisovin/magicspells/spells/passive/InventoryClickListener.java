@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
@@ -19,9 +21,8 @@ public class InventoryClickListener extends PassiveListener {
 	private InventoryAction action = null;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		String[] splits = var.split(" ");
 
 		if (!splits[0].equals("null")) {
@@ -53,7 +54,7 @@ public class InventoryClickListener extends PassiveListener {
 	@EventHandler
 	public void onInvClick(InventoryClickEvent event) {
 		if (!(event.getWhoClicked() instanceof Player player)) return;
-		if (!hasSpell(player) || !canTrigger(player)) return;
+		if (!canTrigger(player)) return;
 
 		// Valid action, but not used.
 		if (action != null && !event.getAction().equals(action)) return;
@@ -72,7 +73,7 @@ public class InventoryClickListener extends PassiveListener {
 		// Valid cursor item, but not used.
 		if (itemCursor != null) {
 			ItemStack item = event.getCursor();
-			if (item == null) return;
+			if (item.isEmpty()) return;
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromItemStack(item);
 			if (itemData == null) return;

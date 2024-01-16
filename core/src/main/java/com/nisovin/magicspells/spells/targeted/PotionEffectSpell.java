@@ -18,6 +18,7 @@ import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 
 public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -68,7 +69,7 @@ public class PotionEffectSpell extends TargetedSpell implements TargetedEntitySp
 				String[] data = potionEffectString.split(" ");
 				if (data.length == 0) continue;
 
-				PotionEffectType type = Util.getPotionEffectType(data[0]);
+				PotionEffectType type = PotionEffectHandler.getPotionEffectType(data[0]);
 				if (type == null) {
 					MagicSpells.error("Invalid potion effect string '" + potionEffectString + "' in PotionEffectSpell '" + internalName + "'.");
 					continue;

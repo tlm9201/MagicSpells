@@ -5,6 +5,8 @@ import java.util.EnumSet;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.ManaChangeEvent;
@@ -16,11 +18,9 @@ public class ManaChangeListener extends PassiveListener {
 	private final EnumSet<ManaChangeReason> reasons = EnumSet.noneOf(ManaChangeReason.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] data = var.split(",");
-		for (String datum : data) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String datum : var.split(",")) {
 			try {
 				reasons.add(ManaChangeReason.valueOf(datum.toUpperCase()));
 			} catch (IllegalArgumentException e) {
@@ -35,7 +35,7 @@ public class ManaChangeListener extends PassiveListener {
 		if (!reasons.isEmpty() && !reasons.contains(event.getReason())) return;
 
 		Player caster = event.getPlayer();
-		if (!canTrigger(caster) || !hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setNewAmount(event.getOldAmount());

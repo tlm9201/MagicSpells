@@ -3,6 +3,8 @@ package com.nisovin.magicspells.castmodifiers.conditions;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 
@@ -11,8 +13,7 @@ public class PluginEnabledCondition extends Condition {
 	private String pluginName = null;
 	
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
+	public boolean initialize(@NotNull String var) {
 		var = var.trim();
 		if (var.isEmpty()) return false;
 		pluginName = var;

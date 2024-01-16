@@ -8,6 +8,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityPoseChangeEvent;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -17,8 +19,8 @@ public class StopPoseListener extends PassiveListener {
 	private Set<Pose> poses;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 
 		poses = EnumSet.noneOf(Pose.class);
 
@@ -34,7 +36,7 @@ public class StopPoseListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onPoseChange(EntityPoseChangeEvent event) {
-		if (!(event.getEntity() instanceof LivingEntity caster) || !canTrigger(caster) || !hasSpell(caster)) return;
+		if (!(event.getEntity() instanceof LivingEntity caster) || !canTrigger(caster)) return;
 		if (poses != null && !poses.contains(caster.getPose())) return;
 
 		passiveSpell.activate(caster);

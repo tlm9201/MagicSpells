@@ -1,9 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Set;
-import java.util.List;
-import java.util.HashSet;
-import java.util.ArrayList;
+import java.util.*;
 
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -12,13 +9,13 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.util.RayTraceResult;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -180,21 +177,21 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		int height = this.height.get(data);
 
-		//If height is 0, the code ceases to function. Lets not have that.
+		//If height is 0, the code ceases to function. Let's not have that.
 		if (height == 0) height = 1;
 
-		//Lets start at the bottom floor then work our way up; or down if height is less than 0.
+		//Let's start at the bottom floor then work our way up; or down if height is less than 0.
 		for (int y = 0; y < height; y++) {
 				/*The pattern position is the pattern being read for a specific row
 				This should always reset when it goes over into a new height.*/
 			int patternPosition = 0;
 
-			//The block placement loop will start finish a row of coloumns then move down a row..
+			//The block placement loop will start finish a row of coloumns then move down a row.
 			for (int z = 0; z < columnSize; z++) {
 				//Everytime a shape row is finished, we need to start at the topleft and move down 1 row.
 				spawnBlock = patternStart.clone().add(0, y, z);
 
-				//Lets parse the list of patterns for that row.
+				//Let's parse the list of patterns for that row.
 				if (patterns != null && patternPosition >= patterns.size()) patternPosition = 0;
 
 				int rowLength = getRowLength(patternPosition);
@@ -202,13 +199,13 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 				//If they want the pattern to restart on each row, reset rowpositon to 0.
 				if (restartPatternEachRow) rowPosition = 0;
 
-				//Lets spawn a block on each column before we move down a row.
+				//Let's spawn a block on each column before we move down a row.
 				for (int x = 0; x < rowSize; x++) {
 					ground = spawnBlock.getBlock();
 					air = ground.getRelative(BlockFace.UP);
 
-						/*Now if we are looking for a block outside of the rowlist range.
-						We need to go back to the start and repeat that row pattern*/
+					//Now if we are looking for a block outside the rowlist range.
+					//We need to go back to the start and repeat that row pattern
 					if (rowPosition >= rowLength) rowPosition = 0;
 
 					//Doesn't really become a pattern if you randomize it but ok!
@@ -290,7 +287,7 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 
 		rowPatterns = new Material[patternSize][];
 
-		//Lets parse all the rows within patternList
+		//Let's parse all the rows within patternList
 		for (String list : patternList) {
 			String[] split = list.split(",");
 			int arraySize = split.length;
@@ -333,9 +330,11 @@ public class MaterializeSpell extends TargetedSpell implements TargetedLocationS
 			blockState.update(true);
 			if (event.isCancelled()) return false;
 		}
-		if (!falling) block.setType(material, applyPhysics);
-		else
-			block.getLocation().getWorld().spawnFallingBlock(block.getLocation().add(0.5, fallHeight.get(data), 0.5), material.createBlockData());
+		if (falling) {
+			Location location = block.getLocation().add(0.5, fallHeight.get(data), 0.5);
+			block.getWorld().spawn(location, FallingBlock.class, fb -> fb.setBlockData(material.createBlockData()));
+		}
+		else block.setType(material, applyPhysics);
 
 		playSpellEffects(EffectPosition.TARGET, block.getLocation(), data);
 		if (player != null) {

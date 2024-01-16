@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,13 +18,10 @@ public class GameModeChangeListener extends PassiveListener {
 	private final EnumSet<GameMode> gameModes = EnumSet.noneOf(GameMode.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split(",")) {
 			s = s.trim();
-
 			try {
 				GameMode mode = GameMode.valueOf(s.toUpperCase());
 				gameModes.add(mode);
@@ -38,7 +37,7 @@ public class GameModeChangeListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!gameModes.isEmpty() && !gameModes.contains(event.getNewGameMode())) return;
 

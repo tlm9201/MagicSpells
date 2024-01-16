@@ -26,6 +26,7 @@ import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 
 public class ParticleCloudSpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntitySpell {
 
@@ -105,7 +106,7 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 	private static PotionEffect getPotionEffectFromString(String s) {
 		String[] splits = s.split(" ");
-		PotionEffectType type = Util.getPotionEffectType(splits[0]);
+		PotionEffectType type = PotionEffectHandler.getPotionEffectType(splits[0]);
 
 		int durationTicks = Integer.parseInt(splits[1]);
 		int amplifier = Integer.parseInt(splits[2]);

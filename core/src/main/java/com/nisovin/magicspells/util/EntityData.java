@@ -345,7 +345,7 @@ public class EntityData {
 				BlockData blockData = fallingBlockData.get(data);
 				if (blockData == null) yield null;
 
-				Entity e = startLoc.getWorld().spawnFallingBlock(startLoc, blockData);
+				Entity e = startLoc.getWorld().spawn(startLoc, FallingBlock.class, fb -> fb.setBlockData(blockData));
 				if (consumer != null) consumer.accept(e);
 
 				yield e;

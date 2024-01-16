@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
@@ -20,11 +22,9 @@ public class KillListener extends PassiveListener {
 	private final EnumSet<EntityType> types = EnumSet.noneOf(EntityType.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.replace(" ", "").split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.replace(" ", "").split(",")) {
 			EntityType type = MobUtil.getEntityType(s);
 			if (type == null) {
 				MagicSpells.error("Invalid entity type '" + s + "' in kill trigger on passive spell '" + passiveSpell.getInternalName() + "'");
@@ -42,7 +42,7 @@ public class KillListener extends PassiveListener {
 		if (!types.isEmpty() && !types.contains(event.getEntityType())) return;
 
 		LivingEntity caster = event.getEntity().getKiller();
-		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
+		if (caster == null || !canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster, event.getEntity());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

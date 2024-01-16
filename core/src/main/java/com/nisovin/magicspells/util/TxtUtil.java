@@ -44,7 +44,7 @@ public class TxtUtil {
 					continue;
 				}
 				String[] aliases = spell.getAliases();
-				if (aliases == null || aliases.length <= 0) continue;
+				if (aliases == null) continue;
 				for (String alias : aliases) {
 					if (alias.toLowerCase().startsWith(partial)) matches.add(alias);
 				}
@@ -56,7 +56,7 @@ public class TxtUtil {
 					continue;
 				}
 				String[] aliases = spell.getAliases();
-				if (aliases == null || aliases.length <= 0) continue;
+				if (aliases == null) continue;
 				for (String alias : aliases) {
 					if (alias.toLowerCase().startsWith(partial)) matches.add(alias);
 				}

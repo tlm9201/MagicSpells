@@ -179,7 +179,7 @@ public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 			yOffset = 0;
 
 			Block b = target.getRelative(0, -1, 0);
-			while (BlockUtils.isAir(b.getType()) && yOffset > -5) {
+			while (b.getType().isAir() && yOffset > -5) {
 				yOffset--;
 				b = b.getRelative(0, -1, 0);
 			}
@@ -230,20 +230,8 @@ public class WallSpell extends TargetedSpell implements TargetedLocationSpell {
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
-	public Multimap<UUID, WallData> getBlockSets() {
-		return blockSets;
-	}
-
 	public List<Material> getMaterials() {
 		return materials;
-	}
-
-	public String getStrNoTarget() {
-		return strNoTarget;
-	}
-
-	public void setStrNoTarget(String strNoTarget) {
-		this.strNoTarget = strNoTarget;
 	}
 
 	public Subspell getSpellOnBreak() {

@@ -26,6 +26,7 @@ import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 
 public class MinionSpell extends BuffSpell {
@@ -116,7 +117,7 @@ public class MinionSpell extends BuffSpell {
 			for (String potion : potionEffectList) {
 				String[] split = potion.split(" ");
 				try {
-					PotionEffectType type = Util.getPotionEffectType(split[0]);
+					PotionEffectType type = PotionEffectHandler.getPotionEffectType(split[0]);
 					if (type == null) throw new Exception("");
 					int duration = 600;
 					if (split.length > 1) duration = Integer.parseInt(split[1]);
@@ -139,37 +140,37 @@ public class MinionSpell extends BuffSpell {
 		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
 		if (magicMainHandItem != null) {
 			mainHandItem = magicMainHandItem.getItemStack();
-			if (mainHandItem != null && BlockUtils.isAir(mainHandItem.getType())) mainHandItem = null;
+			if (mainHandItem != null && mainHandItem.getType().isAir()) mainHandItem = null;
 		}
 
 		MagicItem magicOffHandItem = MagicItems.getMagicItemFromString(getConfigString("off-hand", ""));
 		if (magicOffHandItem != null) {
 			offHandItem = magicOffHandItem.getItemStack();
-			if (offHandItem != null && BlockUtils.isAir(offHandItem.getType())) offHandItem = null;
+			if (offHandItem != null && offHandItem.getType().isAir()) offHandItem = null;
 		}
 
 		MagicItem magicHelmetItem = MagicItems.getMagicItemFromString(getConfigString("helmet", ""));
 		if (magicHelmetItem != null) {
 			helmet = magicHelmetItem.getItemStack();
-			if (helmet != null && BlockUtils.isAir(helmet.getType())) helmet = null;
+			if (helmet != null && helmet.getType().isAir()) helmet = null;
 		}
 
 		MagicItem magicChestplateItem = MagicItems.getMagicItemFromString(getConfigString("chestplate", ""));
 		if (magicChestplateItem != null) {
 			chestplate = magicChestplateItem.getItemStack();
-			if (chestplate != null && BlockUtils.isAir(chestplate.getType())) chestplate = null;
+			if (chestplate != null && chestplate.getType().isAir()) chestplate = null;
 		}
 
 		MagicItem magicLeggingsItem = MagicItems.getMagicItemFromString(getConfigString("leggings", ""));
 		if (magicLeggingsItem != null) {
 			leggings = magicLeggingsItem.getItemStack();
-			if (leggings != null && BlockUtils.isAir(leggings.getType())) leggings = null;
+			if (leggings != null && leggings.getType().isAir()) leggings = null;
 		}
 
 		MagicItem magicBootsItem = MagicItems.getMagicItemFromString(getConfigString("boots", ""));
 		if (magicBootsItem != null) {
 			boots = magicBootsItem.getItemStack();
-			if (boots != null && BlockUtils.isAir(boots.getType())) boots = null;
+			if (boots != null && boots.getType().isAir()) boots = null;
 		}
 
 		if (mainHandItem != null) mainHandItem.setAmount(1);

@@ -150,7 +150,7 @@ public class MagicCommand extends BaseCommand {
 		Spell spell = MagicSpells.getSpellByInternalName(name);
 		if (spell == null) {
 			// Remove quotations for ingame name - previous handling.
-			name = RegexUtil.replaceAll(QUOTATIONS_PATTERN, name, "");
+			name = QUOTATIONS_PATTERN.matcher(name).replaceAll("");
 			spell = MagicSpells.getSpellByInGameName(name);
 		}
 		if (spell == null) {

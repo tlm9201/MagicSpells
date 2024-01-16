@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
@@ -14,9 +16,8 @@ public class HoveringWithCondition extends Condition {
 	private MagicItemData itemData;
 
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
-
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		itemData = MagicItems.getMagicItemDataFromString(var);
 		return itemData != null;
 	}
@@ -40,7 +41,7 @@ public class HoveringWithCondition extends Condition {
 		if (!(target instanceof Player pl)) return false;
 
 		ItemStack itemCursor = pl.getOpenInventory().getCursor();
-		if (itemCursor == null) return false;
+		if (itemCursor.isEmpty()) return false;
 
 		MagicItemData cursorData = MagicItems.getMagicItemDataFromItemStack(itemCursor);
 		if (cursorData == null) return false;

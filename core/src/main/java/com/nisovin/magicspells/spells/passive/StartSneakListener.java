@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -11,8 +13,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class StartSneakListener extends PassiveListener {
 
 	@Override
-	public void initialize(String var) {
-
+	public void initialize(@NotNull String var) {
 	}
 
 	@OverridePriority
@@ -22,7 +23,7 @@ public class StartSneakListener extends PassiveListener {
 		if (!event.isSneaking()) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(event.getPlayer()) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

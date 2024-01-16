@@ -8,6 +8,8 @@ import java.util.function.Function;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.data.DataLivingEntity;
@@ -25,7 +27,7 @@ public class DataCondition extends OperatorCondition {
 	private double value;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		Matcher matcher = DATA_PATTERN.matcher(var);
 		if (!matcher.matches()) return false;
 

@@ -15,6 +15,28 @@ import org.apache.commons.math4.core.jdkmath.JdkMath;
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
 public class LocationUtil {
+
+	/**
+	 * @param string Formatted: "world,x,y,z,yaw,pitch", where x, y, z are
+	 *               double values, and yaw & pitch are optional float values.
+	 * @return Parsed {@link Location}
+	 */
+	public static Location fromString(String string) {
+		try {
+			String[] split = string.split(",");
+
+			World world = Bukkit.getWorld(split[0]);
+			double x = Double.parseDouble(split[1]);
+			double y = Double.parseDouble(split[2]);
+			double z = Double.parseDouble(split[3]);
+			float yaw = split.length > 4 ? Float.parseFloat(split[4]) : 0;
+			float pitch = split.length > 5 ? Float.parseFloat(split[5]) : 0;
+
+			return new Location(world, x, y, z, yaw, pitch);
+		} catch (Exception e) {
+			return null;
+		}
+	}
 	
 	// -------------------------------------------- //
 	// IS SAME X LOGIC
@@ -115,9 +137,6 @@ public class LocationUtil {
 		// Handle as Block
 		if (object instanceof Block) return ((Block) object).getLocation();
 		
-		// Handle as MagicLocation
-		if (object instanceof MagicLocation) return ((MagicLocation) object).getLocation();
-		
 		// Handle as BlockCommandSender
 		if (object instanceof BlockCommandSender) return getLocation(((BlockCommandSender) object).getBlock());
 		
@@ -142,9 +161,6 @@ public class LocationUtil {
 		
 		// Handle as Block
 		if (object instanceof Block) return ((Block) object).getWorld();
-		
-		// Handle as MagicLocation
-		if (object instanceof MagicLocation) return ((MagicLocation) object).getLocation().getWorld();
 		
 		// Handle as BlockCommandSender
 		if (object instanceof BlockCommandSender) return getWorld(((BlockCommandSender) object).getBlock());

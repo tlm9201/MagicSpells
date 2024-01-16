@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.bukkit.World;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -113,7 +114,7 @@ public class DowseSpell extends InstantSpell {
 
 			if (rotatePlayer.get(data)) {
 				Vector v = foundBlock.getLocation().add(0.5, 0.5, 0.5).subtract(caster.getEyeLocation()).toVector().normalize();
-				Util.setFacing(caster, v);
+				caster.teleport(caster.getLocation().setDirection(v));
 			}
 
 			if (setCompass.get(data)) caster.setCompassTarget(foundBlock.getLocation());
@@ -125,7 +126,7 @@ public class DowseSpell extends InstantSpell {
 			double distanceSq = radius * radius;
 			if (entityType == EntityType.PLAYER && playerName != null) {
 				// Find specific player
-				foundEntity = PlayerNameUtils.getPlayerExact(playerName);
+				foundEntity = Bukkit.getPlayerExact(playerName);
 				if (foundEntity != null) {
 					if (!foundEntity.getWorld().equals(caster.getWorld())) foundEntity = null;
 					else if (radius > 0 && caster.getLocation().distanceSquared(foundEntity.getLocation()) > distanceSq)
@@ -168,7 +169,7 @@ public class DowseSpell extends InstantSpell {
 			if (rotatePlayer.get(data)) {
 				Location l = foundEntity instanceof LivingEntity ? ((LivingEntity) foundEntity).getEyeLocation() : foundEntity.getLocation();
 				Vector v = l.subtract(caster.getEyeLocation()).toVector().normalize();
-				Util.setFacing(caster, v);
+				caster.teleport(caster.getLocation().setDirection(v));
 			}
 
 			if (setCompass.get(data)) caster.setCompassTarget(foundEntity.getLocation());

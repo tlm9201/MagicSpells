@@ -74,7 +74,7 @@ public class VariableMod {
 
 		value = data;
 
-		if (RegexUtil.matches(RegexUtil.DOUBLE_PATTERN, data)) {
+		if (RegexUtil.DOUBLE_PATTERN.asMatchPredicate().test(data)) {
 			if (data.startsWith("-")) {
 				data = data.substring(1);
 				negate = true;

@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -16,11 +18,9 @@ public class InventoryActionListener extends PassiveListener {
 	private final EnumSet<InventoryAction> actions = EnumSet.noneOf(InventoryAction.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.replace(" ", "").split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.replace(" ", "").split(",")) {
 			try {
 				InventoryAction action = InventoryAction.valueOf(s.toUpperCase());
 				actions.add(action);
@@ -38,7 +38,7 @@ public class InventoryActionListener extends PassiveListener {
 		if (!actions.isEmpty() && !actions.contains(InventoryAction.OPEN)) return;
 
 		HumanEntity caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
@@ -50,7 +50,7 @@ public class InventoryActionListener extends PassiveListener {
 		if (!actions.isEmpty() && !actions.contains(InventoryAction.CLOSE)) return;
 
 		HumanEntity caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		passiveSpell.activate(caster);
 	}

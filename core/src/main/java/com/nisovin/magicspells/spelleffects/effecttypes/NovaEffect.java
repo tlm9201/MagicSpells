@@ -18,7 +18,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.SpellAnimation;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
@@ -150,7 +149,7 @@ public class NovaEffect extends SpellEffect {
 			super.stop();
 
 			for (Player p : nearby) {
-				p.sendMultiBlockChange(previousBlocks, true);
+				p.sendMultiBlockChange(previousBlocks);
 			}
 
 			previousBlocks.clear();
@@ -177,7 +176,7 @@ public class NovaEffect extends SpellEffect {
 			// Remove old blocks
 			if (removePreviousBlocks) {
 				for (Player p : nearby) {
-					p.sendMultiBlockChange(previousBlocks, true);
+					p.sendMultiBlockChange(previousBlocks);
 				}
 
 				previousBlocks.clear();
@@ -205,14 +204,14 @@ public class NovaEffect extends SpellEffect {
 					if (Math.abs(x - bx) != tick && Math.abs(z - bz) != tick) continue;
 
 					b = center.getWorld().getBlockAt(x, y, z);
-					if (BlockUtils.isPathable(b) && !b.isLiquid()) {
+					if (b.isPassable() && !b.isLiquid()) {
 						under = b.getRelative(BlockFace.DOWN);
-						if (BlockUtils.isPathable(under) && !under.isLiquid()) b = under;
-					} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !b.getRelative(BlockFace.UP).isLiquid()) {
+						if (under.isPassable() && !under.isLiquid()) b = under;
+					} else if (b.getRelative(BlockFace.UP).isPassable() && !b.getRelative(BlockFace.UP).isLiquid()) {
 						b = b.getRelative(BlockFace.UP);
 					}
 
-					if (!BlockUtils.isPathable(b) || b.isLiquid()) continue;
+					if (!b.isPassable() || b.isLiquid()) continue;
 					if (previousBlocks.containsKey(b.getLocation()) || currentBlocks.containsKey(b.getLocation()))
 						continue;
 
@@ -227,7 +226,7 @@ public class NovaEffect extends SpellEffect {
 			}
 
 			for (Player p : nearby) {
-				p.sendMultiBlockChange(currentBlocks, true);
+				p.sendMultiBlockChange(currentBlocks);
 			}
 
 			currentBlocks.clear();
@@ -253,7 +252,7 @@ public class NovaEffect extends SpellEffect {
 			// Remove old blocks
 			if (removePreviousBlocks) {
 				for (Player p : nearby) {
-					p.sendMultiBlockChange(previousBlocks, true);
+					p.sendMultiBlockChange(previousBlocks);
 				}
 
 				previousBlocks.clear();
@@ -276,14 +275,14 @@ public class NovaEffect extends SpellEffect {
 			Block under;
 			if (startRadius == 0 && tick == 0) {
 				b = centerLocation.getBlock();
-				if (BlockUtils.isPathable(b) && !b.isLiquid()) {
+				if (b.isPassable() && !b.isLiquid()) {
 					under = b.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isPathable(under) && !under.isLiquid()) b = under;
-				} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !b.getRelative(BlockFace.UP).isLiquid()) {
+					if (under.isPassable() && !under.isLiquid()) b = under;
+				} else if (b.getRelative(BlockFace.UP).isPassable() && !b.getRelative(BlockFace.UP).isLiquid()) {
 					b = b.getRelative(BlockFace.UP);
 				}
 
-				if (!BlockUtils.isPathable(b) || b.isLiquid()) return;
+				if (!b.isPassable() || b.isLiquid()) return;
 				if (previousBlocks.containsKey(b.getLocation()) || currentBlocks.containsKey(b.getLocation())) return;
 
 				if (blockDataList != null && !blockDataList.isEmpty()) {
@@ -311,14 +310,14 @@ public class NovaEffect extends SpellEffect {
 				b = centerLocation.add(v).getBlock();
 				centerLocation.subtract(v);
 
-				if (BlockUtils.isPathable(b) && !b.isLiquid()) {
+				if (b.isPassable() && !b.isLiquid()) {
 					under = b.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isPathable(under) && !under.isLiquid()) b = under;
-				} else if (BlockUtils.isPathable(b.getRelative(BlockFace.UP)) && !b.getRelative(BlockFace.UP).isLiquid()) {
+					if (under.isPassable() && !under.isLiquid()) b = under;
+				} else if (b.getRelative(BlockFace.UP).isPassable() && !b.getRelative(BlockFace.UP).isLiquid()) {
 					b = b.getRelative(BlockFace.UP);
 				}
 
-				if (!BlockUtils.isPathable(b) || b.isLiquid()) continue;
+				if (!b.isPassable() || b.isLiquid()) continue;
 				if (previousBlocks.containsKey(b.getLocation()) || currentBlocks.containsKey(b.getLocation())) continue;
 
 				if (blockDataList != null && !blockDataList.isEmpty()) {
@@ -331,7 +330,7 @@ public class NovaEffect extends SpellEffect {
 			}
 
 			for (Player p : nearby) {
-				p.sendMultiBlockChange(currentBlocks, true);
+				p.sendMultiBlockChange(currentBlocks);
 			}
 
 			currentBlocks.clear();

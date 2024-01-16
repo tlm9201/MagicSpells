@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -17,11 +19,9 @@ public class TeleportListener extends PassiveListener {
 	private final EnumSet<TeleportCause> teleportCauses = EnumSet.noneOf(TeleportCause.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split(",")) {
 			try {
 				TeleportCause cause = TeleportCause.valueOf(s.trim().toUpperCase());
 				teleportCauses.add(cause);
@@ -51,7 +51,7 @@ public class TeleportListener extends PassiveListener {
 		if (!teleportCauses.isEmpty() && !teleportCauses.contains(event.getCause())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

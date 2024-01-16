@@ -6,6 +6,8 @@ import org.bukkit.Location;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -15,7 +17,7 @@ public class BiomeCondition extends Condition {
 	private final EnumSet<Biome> biomes = EnumSet.noneOf(Biome.class);
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		String[] s = var.split(",");
 
 		for (String value : s) {

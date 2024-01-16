@@ -110,7 +110,7 @@ public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		GlowData glowData;
 
-		String name = target.getUniqueId().toString() + caster.getUniqueId().toString() + internalName;
+		String name = target.getUniqueId() + caster.getUniqueId().toString() + internalName;
 		ChatColor color = this.color.get(data);
 
 		Glow glow = new Glow(color, name);

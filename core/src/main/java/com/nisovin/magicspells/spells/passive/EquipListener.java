@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -20,11 +22,10 @@ public class EquipListener extends PassiveListener {
 	private final Set<MagicItemData> items = new HashSet<>();
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 
-		String[] split = var.split("\\|");
-		for (String s : split) {
+		for (String s : var.split("\\|")) {
 			s = s.trim();
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);
@@ -41,11 +42,11 @@ public class EquipListener extends PassiveListener {
 	@EventHandler
 	public void onEquip(PlayerArmorChangeEvent event) {
 		Player caster = event.getPlayer();
-		if (!canTrigger(caster) || !hasSpell(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
 			ItemStack newItem = event.getNewItem();
-			if (newItem == null) return;
+			if (newItem.isEmpty()) return;
 
 			MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(newItem);
 			if (newData == null) return;

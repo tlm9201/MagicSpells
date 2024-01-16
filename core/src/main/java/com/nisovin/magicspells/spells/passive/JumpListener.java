@@ -4,6 +4,8 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.destroystokyo.paper.event.entity.EntityJumpEvent;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 
@@ -19,8 +21,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 public class JumpListener extends PassiveListener {
 
 	@Override
-	public void initialize(String var) {
-
+	public void initialize(@NotNull String var) {
 	}
 
 	@OverridePriority
@@ -37,7 +38,7 @@ public class JumpListener extends PassiveListener {
 
 	private void handleEvent(LivingEntity caster, Cancellable event) {
 		if (!isCancelStateOk(event.isCancelled())) return;
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

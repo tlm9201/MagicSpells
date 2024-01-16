@@ -18,6 +18,11 @@ public class SpellFilter {
 	
 	private final boolean defaultReturn;
 	private boolean emptyFilter = false;
+
+	private SpellFilter() {
+		defaultReturn = true;
+		emptyFilter = true;
+	}
 	
 	public SpellFilter(List<String> allowedSpells, List<String> blacklistedSpells, List<String> allowedTags, List<String> disallowedTags) {
 		
@@ -125,13 +130,14 @@ public class SpellFilter {
 	 * @param string Follows format: allowedSpell, !disallowedSpell, tag:allowedTag, !tag:disallowedTag
 	 */
 	public static SpellFilter fromString(String string) {
+		if (string.equals("*")) return new SpellFilter();
+
 		List<String> spells = new ArrayList<>();
 		List<String> deniedSpells = new ArrayList<>();
 		List<String> spellTags = new ArrayList<>();
 		List<String> deniedSpellTags = new ArrayList<>();
 
-		String[] split = string.split(",");
-		for (String s : split) {
+		for (String s : string.split(",")) {
 			boolean denied = false;
 			s = s.trim();
 

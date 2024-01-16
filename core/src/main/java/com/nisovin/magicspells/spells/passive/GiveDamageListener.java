@@ -4,6 +4,8 @@ import java.util.Set;
 import java.util.EnumSet;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
@@ -27,11 +29,9 @@ public class GiveDamageListener extends PassiveListener {
 	private final Set<MagicItemData> items = new HashSet<>();
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split("\\|");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split("\\|")) {
 			s = s.trim();
 
 			boolean isDamCause = false;
@@ -62,7 +62,7 @@ public class GiveDamageListener extends PassiveListener {
 		if (event.getFinalDamage() == 0D) return;
 
 		LivingEntity caster = getAttacker(event);
-		if (caster == null || !hasSpell(caster) || !canTrigger(caster)) return;
+		if (caster == null || !canTrigger(caster)) return;
 
 		if (!damageCauses.isEmpty() && !damageCauses.contains(event.getCause())) return;
 

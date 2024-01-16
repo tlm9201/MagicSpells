@@ -111,10 +111,6 @@ public class StonevisionSpell extends BuffSpell {
 		addUseAndChargeCost(pl);
 	}
 
-	public Map<UUID, TransparentBlockSet> getPlayers() {
-		return players;
-	}
-
 	public Set<Material> getTransparentTypes() {
 		return transparentTypes;
 	}
@@ -181,7 +177,7 @@ public class StonevisionSpell extends BuffSpell {
 							if (types.contains(block.getType()) && dx <= radius && dy <= radius && dz <= radius) {
 								player.sendBlockChange(block.getLocation(), material);
 								newBlocks.add(block);
-							} else if (!BlockUtils.isAir(block.getType())) {
+							} else if (!block.getType().isAir()) {
 								player.sendBlockChange(block.getLocation(), block.getType().createBlockData());
 							}
 						}

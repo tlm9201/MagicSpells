@@ -107,11 +107,12 @@ public class PassiveSpell extends Spell {
 
 		for (String trigger : triggers) {
 			String type = trigger;
-			String args = null;
+			String args = "";
 			if (trigger.contains(" ")) {
 				String[] data = Util.splitParams(trigger, 2);
 				type = data[0];
-				args = data[1];
+				// Util#splitParams does not return empty-string elements.
+				if (data.length > 1) args = data[1];
 			}
 			type = type.toLowerCase();
 

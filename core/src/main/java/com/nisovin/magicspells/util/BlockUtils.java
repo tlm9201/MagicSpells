@@ -6,12 +6,8 @@ import java.util.ArrayList;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.data.Ageable;
-import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.block.data.AnaloguePowerable;
@@ -32,10 +28,6 @@ public class BlockUtils {
 			}
 		}
 		return blocks;
-	}
-
-	public static boolean isTransparent(Spell spell, Block block) {
-		return spell.getLosTransparentBlocks().contains(block.getType());
 	}
 
 	public static Block getTargetBlock(Spell spell, LivingEntity entity, int range) {
@@ -68,127 +60,24 @@ public class BlockUtils {
 		block.setBlockData(blockData, physics);
 	}
 
-	public static void setGrowthLevel(Block block, int level) {
-		Ageable age = ((Ageable) block.getBlockData());
-		age.setAge(level);
-		block.setBlockData(age);
-	}
-
-	public static int getWaterLevel(Block block) {
-		return ((Levelled) block.getBlockData()).getLevel();
-	}
-
-	public static int getGrowthLevel(Block block) {
-		return ((Ageable) block.getBlockData()).getAge();
-	}
-
-	public static int getMaxGrowthLevel(Block block) {
-		return ((Ageable) block.getBlockData()).getMaximumAge();
-	}
-
-	public static boolean isPlant(Block b) {
-		return b.getBlockData() instanceof Ageable;
-	}
-
-	public static int getWaterLevel(BlockState blockState) {
-		return ((Levelled) blockState.getBlockData()).getLevel();
-	}
-
 	public static boolean isChest(Block block) {
-		return isChest(block.getType());
-	}
-
-	public static boolean isChest(Material m) {
-		return switch (m) {
+		return switch (block.getType()) {
 			case CHEST, TRAPPED_CHEST -> true;
 			default -> false;
 		};
 	}
 
-	public static boolean isLiquid(Material m) {
-		return switch (m) {
-			case WATER, LAVA -> true;
-			default -> false;
-		};
-
-	}
-
-	public static boolean isPathable(Block block) {
-		return isPathable(block.getType());
-	}
-
-	public static boolean isAir(ItemStack item) {
-		return isAir(item.getType());
-	}
-
-	public static boolean isAir(Material m) {
-		return m.isAir();
-	}
-
-	public static boolean isBed(Material m) {
-		return m.name().contains("_BED");
-	}
-
-	public static boolean isDoor(Material m) {
-		return m.name().contains("_DOOR");
-	}
-
-	public static boolean isButton(Material m) {
-		return m.name().contains("_BUTTON");
-	}
-
-	public static boolean isPressurePlate(Material m) {
-		return m.name().contains("_PRESSURE_PLATE");
-	}
-
-	public static boolean isTrapdoor(Material m) {
-		return m.name().contains("_TRAPDOOR");
-	}
-
-	public static boolean isFenceGate(Material m) {
-		return m.name().contains("_FENCE_GATE");
-	}
-
-	public static boolean isShulkerBox(Material m) {
-		return m.name().contains("SHULKER_BOX");
-	}
-
-	public static boolean isWood(Material m) {
-		return m.name().contains("_WOOD");
-	}
-
-	public static boolean isLog(Material m) {
-		return m.name().contains("_LOG");
-	}
-
 	public static boolean isPathable(Material mat) {
-		String name = mat.name();
-
-		if (mat.isAir()) return true;
-		if (isLiquid(mat)) return true;
-		if (isPressurePlate(mat)) return true;
-		if (isButton(mat)) return true;
-
-		if (name.contains("SIGN")) return true;
-		if (name.contains("CARPET")) return true;
-		if (name.contains("TULIP")) return true;
-		if (name.contains("SAPLING")) return true;
-		if (name.contains("RAIL")) return true;
-		if (name.contains("CORAL") && !name.endsWith("_BLOCK")) return true;
-
 		return switch (mat) {
-			case LIGHT, TALL_GRASS, LARGE_FERN, GRASS, DEAD_BUSH, FERN, SEAGRASS, TALL_SEAGRASS, LILY_PAD,
-					DANDELION, POPPY, BLUE_ORCHID, ALLIUM, AZURE_BLUET, OXEYE_DAISY, SUNFLOWER, LILAC, PEONY, ROSE_BUSH,
-					BROWN_MUSHROOM, RED_MUSHROOM, TORCH, FIRE, REDSTONE_WIRE, WHEAT, LADDER, LEVER, REDSTONE_TORCH, SNOW,
-					SUGAR_CANE, VINE, SCULK_VEIN, NETHER_WART -> true;
-			default -> false;
+			case LIGHT, SNOW -> true;
+			default -> mat.isBlock() && !mat.isCollidable();
 		};
 	}
 
 	public static boolean isSafeToStand(Location location) {
-		if (!isPathable(location.getBlock())) return false;
-		if (!isPathable(location.add(0, 1, 0).getBlock())) return false;
-		return !isPathable(location.subtract(0, 2, 0).getBlock()) || !isPathable(location.subtract(0, 1, 0).getBlock());
+		if (!location.getBlock().isPassable()) return false;
+		if (!location.add(0, 1, 0).getBlock().isPassable()) return false;
+		return !location.subtract(0, 2, 0).getBlock().isPassable() || !location.subtract(0, 1, 0).getBlock().isPassable();
 	}
 
 	public static void activatePowerable(Block block) {

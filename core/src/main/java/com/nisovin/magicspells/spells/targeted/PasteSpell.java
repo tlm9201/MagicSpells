@@ -30,17 +30,18 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private List<EditSession> sessions;
+	private final List<EditSession> sessions;
 
-	private File file;
 	private Clipboard clipboard;
 
-	private ConfigData<Integer> yOffset;
-	private ConfigData<Integer> undoDelay;
+	private final File file;
 
-	private ConfigData<Boolean> pasteAir;
-	private ConfigData<Boolean> removePaste;
-	private ConfigData<Boolean> pasteAtCaster;
+	private final ConfigData<Integer> yOffset;
+	private final ConfigData<Integer> undoDelay;
+
+	private final ConfigData<Boolean> pasteAir;
+	private final ConfigData<Boolean> removePaste;
+	private final ConfigData<Boolean> pasteAtCaster;
 
 	public PasteSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -66,10 +67,12 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 		super.initialize();
 
 		ClipboardFormat format = ClipboardFormats.findByFile(file);
-		try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
-			clipboard = reader.read();
-		} catch (IOException e) {
-			e.printStackTrace();
+		if (format != null) {
+			try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+				clipboard = reader.read();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		if (clipboard == null) MagicSpells.error("PasteSpell " + internalName + " has a wrong schematic!");
@@ -107,12 +110,13 @@ public class PasteSpell extends TargetedSpell implements TargetedLocationSpell {
 		target.add(0, yOffset.get(data), 0);
 		data = data.location(target);
 
-		try (EditSession editSession = WorldEdit.getInstance().getEditSessionFactory().getEditSession(BukkitAdapter.adapt(target.getWorld()), -1)) {
+		try (EditSession editSession = WorldEdit.getInstance().newEditSession(BukkitAdapter.adapt(target.getWorld()))) {
 			Operation operation = new ClipboardHolder(clipboard)
 				.createPaste(editSession)
 				.to(BlockVector3.at(target.getX(), target.getY(), target.getZ()))
 				.ignoreAirBlocks(!pasteAir.get(data))
 				.build();
+
 			Operations.complete(operation);
 			if (removePaste.get(data)) sessions.add(editSession);
 

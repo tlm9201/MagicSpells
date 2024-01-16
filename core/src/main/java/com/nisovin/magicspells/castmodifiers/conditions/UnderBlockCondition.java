@@ -10,6 +10,8 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.BlockData;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -19,7 +21,7 @@ public class UnderBlockCondition extends Condition {
 	private int height;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		String[] args = var.split(";", 2);
 		if (args.length != 2) return false;
 

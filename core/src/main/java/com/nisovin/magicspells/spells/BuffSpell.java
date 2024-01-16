@@ -279,72 +279,29 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 	/**
 	 * Adds a use to the spell for the livingEntity. If the number of uses exceeds the amount allowed, the spell will immediately expire.
-	 * This does not automatically charge the use cost.
+	 * It also removes this spell's use-cost from the livingEntity's inventory. If the reagents aren't available, the spell will expire.
+	 * NOTE: Because the spell may expire, it's safest to call this method at end to avoid possible exceptions during turnOff logic.
 	 *
-	 * @param entity the livingEntity to add the use for
-	 * @return the livingEntity's current number of uses (returns 0 if the use counting feature is disabled)
-	 */
-	protected int addUse(LivingEntity entity) {
-		// Run spell on use increment first thing in case we want to intervene
-		if (spellOnUseIncrement != null) spellOnUseIncrement.subcast(new SpellData(entity));
-
-		if (numUses > 0 || (reagents != null && useCostInterval > 0)) {
-
-			Integer uses = useCounter.get(entity.getUniqueId());
-
-			if (uses == null) uses = 1;
-			else uses++;
-
-			if (numUses > 0 && uses >= numUses) turnOff(entity);
-			else useCounter.put(entity.getUniqueId(), uses);
-
-			return uses;
-		}
-
-		return 0;
-
-	}
-
-	/**
-	 * Removes this spell's use cost from the livingEntity's inventory. If the reagents aren't available, the spell will expire.
-	 *
-	 * @param entity the livingEntity to remove the cost from
-	 * @return true if the reagents were removed, or if the use cost is disabled, false otherwise
-	 */
-	protected boolean chargeUseCost(LivingEntity entity) {
-		// Run spell on cost first thing to dodge the early returns and allow intervention
-		if (spellOnCost != null) spellOnCost.subcast(new SpellData(entity));
-
-		if (reagents == null) return true;
-		if (useCostInterval <= 0) return true;
-		if (useCounter == null) return true;
-
-		Integer uses = useCounter.get(entity.getUniqueId());
-		if (uses == null) return true;
-		if (uses % useCostInterval != 0) return true;
-
-		if (hasReagents(entity, reagents)) {
-			removeReagents(entity, reagents);
-			return true;
-		}
-
-		if (!hasReagents(entity, reagents)) {
-			turnOff(entity);
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * This method calls {@link BuffSpell#addUse(LivingEntity)} and {@link BuffSpell#chargeUseCost(LivingEntity)}.
-	 * For that reason, it may cause the buff spell to end. It's safest to call at end.
-	 *
-	 * @param entity the livingEntity to add a use and charge cost to
+	 * @param entity The livingEntity to add the use and remove the reagents from.
 	 */
 	protected void addUseAndChargeCost(LivingEntity entity) {
-		addUse(entity);
-		chargeUseCost(entity);
+		if (!isActive(entity)) return;
+
+		boolean hasNoCost = reagents == null && useCostInterval <= 0;
+		if (numUses <= 0 && hasNoCost) return;
+
+		// Increment uses.
+		if (spellOnUseIncrement != null) spellOnUseIncrement.subcast(new SpellData(entity));
+		int uses = useCounter.getOrDefault(entity.getUniqueId(), 0) + 1;
+		if (numUses > 0 && uses >= numUses) turnOff(entity);
+		else useCounter.put(entity.getUniqueId(), uses);
+
+		// Charge cost.
+		if (hasNoCost) return;
+		if (uses % useCostInterval != 0) return;
+		if (hasReagents(entity, reagents)) removeReagents(entity, reagents);
+		else turnOff(entity);
+		if (spellOnCost != null) spellOnCost.subcast(new SpellData(entity));
 	}
 
 	/**

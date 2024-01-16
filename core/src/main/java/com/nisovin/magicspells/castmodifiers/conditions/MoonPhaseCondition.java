@@ -7,6 +7,8 @@ import org.bukkit.entity.LivingEntity;
 
 import io.papermc.paper.world.MoonPhase;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -16,8 +18,8 @@ public class MoonPhaseCondition extends Condition {
 	private MoonPhaseLegacy phaseLegacy;
 
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return false;
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return false;
 		String phaseName = var.toUpperCase();
 
 		try {

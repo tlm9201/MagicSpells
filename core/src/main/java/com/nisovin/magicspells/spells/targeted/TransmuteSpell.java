@@ -20,7 +20,7 @@ public class TransmuteSpell extends TargetedSpell implements TargetedLocationSpe
 	private final List<BlockData> blockTypes;
 
 	private final ConfigData<BlockData> transmuteType;
-	
+
 	public TransmuteSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
@@ -29,7 +29,7 @@ public class TransmuteSpell extends TargetedSpell implements TargetedLocationSpe
 		List<String> list = getConfigStringList("transmutable-types", null);
 		if (list != null && !list.isEmpty()) {
 			for (String s : list) {
-			    try {
+				try {
 					BlockData data = Bukkit.createBlockData(s.toLowerCase());
 					blockTypes.add(data);
 				} catch (IllegalArgumentException e) {

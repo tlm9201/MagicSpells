@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spells.instant;
 
 import java.util.*;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
@@ -26,6 +27,7 @@ import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
+import com.nisovin.magicspells.util.config.ConfigDataUtil;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.util.trackers.ProjectileTracker;
@@ -72,6 +74,8 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	private final String entityLocationSpellName;
 
 	private final ConfigData<Component> projectileName;
+
+	private final ConfigData<Color> arrowColor;
 
 	private Subspell hitSpell;
 	private Subspell tickSpell;
@@ -123,6 +127,8 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		entityLocationSpellName = getConfigString("spell-on-entity-location", "");
 
 		projectileName = getConfigDataComponent("projectile-name", null);
+
+		arrowColor = ConfigDataUtil.getColor(config.getMainConfig(), "spells." + internalName + ".arrow-color", null);
 
 		projectileModifiersStrings = getConfigStringList("projectile-modifiers", null);
 	}
@@ -230,6 +236,8 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		tracker.setMaxDuration(maxDuration.get(data) * TimeUtil.MILLISECONDS_PER_SECOND);
 
 		tracker.setProjectileName(projectileName.get(data));
+
+		tracker.setArrowColor(arrowColor.get(data));
 
 		tracker.setHitSpell(hitSpell);
 		tracker.setTickSpell(tickSpell);

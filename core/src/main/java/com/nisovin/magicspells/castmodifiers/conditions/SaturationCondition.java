@@ -4,6 +4,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
 public class SaturationCondition extends OperatorCondition {
@@ -11,7 +13,7 @@ public class SaturationCondition extends OperatorCondition {
 	private float saturation;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		try {

@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
@@ -12,6 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.Perm;
@@ -25,8 +27,8 @@ import com.nisovin.magicspells.util.config.ConfigData;
 
 public class ImbueSpell extends CommandSpell {
 
-	private static final String key = "imbue_data";
-	private static final Pattern CAST_ARG_USES_PATTERN = Pattern.compile("[0-9]+");
+	private static final Pattern CAST_ARG_USES_PATTERN = Pattern.compile("\\d+");
+	private static final NamespacedKey KEY = new NamespacedKey(MagicSpells.getInstance(), "imbue_data");
 
 	private final Set<Material> allowedItemTypes;
 	private final List<Material> allowedItemMaterials;
@@ -98,7 +100,7 @@ public class ImbueSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		if (!allowedItemTypes.contains(inHand.getType()) || DataUtil.getString(inHand, key) != null) {
+		if (!inHand.hasItemMeta() || inHand.getItemMeta().getPersistentDataContainer().has(KEY)) {
 			sendMessage(strCantImbueItem, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
@@ -115,7 +117,7 @@ public class ImbueSpell extends CommandSpell {
 		}
 
 		int uses = defaultUses.get(data), maxUses = this.maxUses.get(data);
-		if (data.args().length > 1 && RegexUtil.matches(CAST_ARG_USES_PATTERN, data.args()[1]) && (allowSpecifyUses.get(data) || Perm.ADVANCED_IMBUE.has(caster))) {
+		if (data.args().length > 1 && CAST_ARG_USES_PATTERN.asMatchPredicate().test(data.args()[1]) && (allowSpecifyUses.get(data) || Perm.ADVANCED_IMBUE.has(caster))) {
 			uses = Integer.parseInt(data.args()[1]);
 		}
 		uses = Math.max(Math.min(uses, maxUses), 1);
@@ -130,8 +132,9 @@ public class ImbueSpell extends CommandSpell {
 			removeReagents(caster, reagents);
 		}
 
+		int finalUses = uses;
 		setItemNameAndLore(inHand, spell, uses);
-		DataUtil.setString(inHand, key, spell.getInternalName() + ',' + uses);
+		inHand.editMeta(meta -> meta.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, spell.getInternalName() + ',' + finalUses));
 		caster.getInventory().setItemInMainHand(inHand);
 
 		playSpellEffects(data);
@@ -151,7 +154,8 @@ public class ImbueSpell extends CommandSpell {
 		if (!actionAllowedForCast(action)) return;
 		ItemStack item = event.getItem();
 		if (item == null) return;
-		if (!allowedItemTypes.contains(item.getType())) return;
+		ItemMeta meta = item.getItemMeta();
+		if (meta == null || !allowedItemTypes.contains(item.getType())) return;
 
 		boolean allowed = false;
 		for (Material m : allowedItemMaterials) {
@@ -162,14 +166,14 @@ public class ImbueSpell extends CommandSpell {
 		}
 		if (!allowed) return;
 
-		String imbueData = DataUtil.getString(item, key);
+		String imbueData = meta.getPersistentDataContainer().get(KEY, PersistentDataType.STRING);
 		if (imbueData == null || imbueData.isEmpty()) return;
 		String[] data = imbueData.split(",");
 		Spell spell = MagicSpells.getSpellByInternalName(data[0]);
 		int uses = Integer.parseInt(data[1]);
 
 		if (spell == null || uses <= 0) {
-			DataUtil.remove(item, key);
+			item.editMeta(m -> m.getPersistentDataContainer().remove(KEY));
 			return;
 		}
 
@@ -178,12 +182,13 @@ public class ImbueSpell extends CommandSpell {
 		if (uses <= 0) {
 			if (consumeItem) event.getPlayer().getInventory().setItemInMainHand(null);
 			else {
-				DataUtil.remove(item, key);
+				item.editMeta(m -> m.getPersistentDataContainer().remove(KEY));
 				if (nameAndLoreHaveUses) setItemNameAndLore(item, spell, 0);
 			}
 		} else {
 			if (nameAndLoreHaveUses) setItemNameAndLore(item, spell, uses);
-			DataUtil.setString(item, key, spell.getInternalName() + ',' + uses);
+			int finalUses = uses;
+			item.editMeta(m -> m.getPersistentDataContainer().set(KEY, PersistentDataType.STRING, spell.getInternalName() + ',' + finalUses));
 		}
 	}
 

@@ -5,6 +5,8 @@ import java.util.Collection;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -16,7 +18,7 @@ public class OwnedLoopActiveCondition extends Condition {
 	private LoopSpell loopSpell;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		Spell spell = MagicSpells.getSpellByInternalName(var);
 		if (spell instanceof LoopSpell loop) {
 			loopSpell = loop;

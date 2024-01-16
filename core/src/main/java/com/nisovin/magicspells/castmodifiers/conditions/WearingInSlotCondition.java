@@ -6,8 +6,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EntityEquipment;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -18,7 +19,7 @@ public class WearingInSlotCondition extends Condition {
 	private Material material;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		try {
 			String[] data = var.split("=");
 			String s = data[0].toLowerCase();
@@ -62,7 +63,7 @@ public class WearingInSlotCondition extends Condition {
 		if (equipment == null) return false;
 
 		ItemStack item = equipment.getArmorContents()[slot];
-		if (material == null && (item == null || BlockUtils.isAir(item.getType()))) return true;
+		if (material == null && (item == null || item.getType().isAir())) return true;
 		return material != null && item != null && material == item.getType();
 	}
 

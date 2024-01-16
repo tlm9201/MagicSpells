@@ -130,7 +130,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 		throwBlockListener = null;
 
 		for (Map.Entry<Entity, FallingBlockInfo> entry : fallingBlocks.entrySet()) {
-		    Entity entity = entry.getKey();
+			Entity entity = entry.getKey();
 			FallingBlockInfo info = entry.getValue();
 
 			if (entity.isValid()) {
@@ -210,7 +210,7 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			BlockData blockData = this.material.get(data);
 			info = new FallingBlockInfo(data, blockData.getMaterial());
 
-			FallingBlock block = location.getWorld().spawnFallingBlock(location, blockData);
+			FallingBlock block = location.getWorld().spawn(location, FallingBlock.class, fb -> fb.setBlockData(blockData));
 			block.setVelocity(velocity);
 			block.setDropItem(dropItem.get(data));
 			block.setGravity(projectileHasGravity.get(data));
@@ -444,10 +444,6 @@ public class ThrowBlockSpell extends InstantSpell implements TargetedLocationSpe
 			return ThrowBlockSpell.this;
 		}
 
-	}
-
-	public Map<Entity, FallingBlockInfo> getFallingBlocks() {
-		return fallingBlocks;
 	}
 
 	public Subspell getSpellOnLand() {

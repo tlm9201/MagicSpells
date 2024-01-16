@@ -169,10 +169,6 @@ public class WindwalkSpell extends BuffSpell {
 		heightMonitor = null;
 	}
 
-	public Map<UUID, FlyData> getPlayers() {
-		return players;
-	}
-
 	public boolean shouldCancelOnLand() {
 		return cancelOnLand;
 	}

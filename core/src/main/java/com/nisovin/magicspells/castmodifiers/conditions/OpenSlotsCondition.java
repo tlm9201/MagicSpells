@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
@@ -14,7 +16,7 @@ public class OpenSlotsCondition extends OperatorCondition {
 	private int slots;
 	
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		if (var.length() < 2 || !super.initialize(var)) return false;
 
 		try {
@@ -43,10 +45,10 @@ public class OpenSlotsCondition extends OperatorCondition {
 
 	private boolean openSlots(LivingEntity target) {
 		int c = 0;
-		ItemStack[] inv;
+		ItemStack[] inv = null;
 
 		if (target instanceof Player pl) inv = pl.getInventory().getContents();
-		else inv = InventoryUtil.getEquipmentItems(target.getEquipment());
+		else if (target.getEquipment() != null) inv = InventoryUtil.getEquipmentItems(target.getEquipment());
 
 		if (inv == null) return false;
 

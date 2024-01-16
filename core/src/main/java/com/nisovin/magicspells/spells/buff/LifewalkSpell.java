@@ -136,7 +136,7 @@ public class LifewalkSpell extends BuffSpell {
 				Block feet = livingEntity.getLocation().getBlock();
 				Block ground = feet.getRelative(BlockFace.DOWN);
 
-				if (!BlockUtils.isAir(feet.getType())) continue;
+				if (!feet.getType().isAir()) continue;
 				if (ground.getType() != Material.DIRT && ground.getType() != Material.GRASS_BLOCK) continue;
 				if (ground.getType() == Material.DIRT) ground.setType(Material.GRASS_BLOCK);
 

@@ -8,6 +8,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.block.data.BlockData;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class InBlockCondition extends Condition {
@@ -16,7 +18,7 @@ public class InBlockCondition extends Condition {
 	private BlockData blockData;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		String[] split = var.split(",(?![^\\[]*])");
 
 		if (split.length > 1) {

@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -18,9 +20,8 @@ public class WorldChangeListener extends PassiveListener {
 	private final Set<String> worldNames = new HashSet<>();
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		for (String worldName : var.split(",")) {
 			World world = Bukkit.getWorld(worldName);
 			if (world == null) {
@@ -46,7 +47,7 @@ public class WorldChangeListener extends PassiveListener {
 		if (!worldNames.isEmpty() && !worldNames.contains(worldTo.getName())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(event.getPlayer());
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

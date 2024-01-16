@@ -1,9 +1,9 @@
 package com.nisovin.magicspells.variables.meta;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.attribute.Attribute;
 
-import com.nisovin.magicspells.util.PlayerNameUtils;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.variables.variabletypes.MetaVariable;
 
@@ -31,7 +31,7 @@ public class AttributeBaseValueVariable extends MetaVariable {
 		// Not usable here
 		if (!safeHere) return 0D;
 		
-		Player p = PlayerNameUtils.getPlayerExact(player);
+		Player p = Bukkit.getPlayerExact(player);
 		if (p == null) return 0D;
 		
 		return p.getAttribute(targetAttribute).getBaseValue();
@@ -47,7 +47,7 @@ public class AttributeBaseValueVariable extends MetaVariable {
 		// Not usable here
 		if (!safeHere) return;
 		
-		Player p = PlayerNameUtils.getPlayerExact(player);
+		Player p = Bukkit.getPlayerExact(player);
 		if (p == null) return;
 		
 		p.getAttribute(targetAttribute).setBaseValue(amount);

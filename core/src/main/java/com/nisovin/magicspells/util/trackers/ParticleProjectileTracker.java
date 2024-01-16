@@ -558,9 +558,9 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		int attempts = 0;
 		boolean ok = false;
 		while (attempts++ < maxAttempts) {
-			if (BlockUtils.isPathable(b)) {
+			if (b.isPassable()) {
 				b = b.getRelative(BlockFace.DOWN);
-				if (BlockUtils.isPathable(b)) currentLocation.add(0, -1, 0);
+				if (b.isPassable()) currentLocation.add(0, -1, 0);
 				else {
 					ok = true;
 					break;
@@ -570,7 +570,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 			b = b.getRelative(BlockFace.UP);
 			currentLocation.add(0, 1, 0);
-			if (BlockUtils.isPathable(b)) {
+			if (b.isPassable()) {
 				ok = true;
 				break;
 			}

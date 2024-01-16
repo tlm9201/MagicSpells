@@ -83,7 +83,7 @@ public class TXTFileStorage extends StorageHandler {
 				spell = MagicSpells.getSpellByInternalName(data[0]);
 
 				if (spell == null) continue;
-				if (data.length <= 1) continue;
+				if (data.length == 1) continue;
 
 				items = new ArrayList<>();
 				split = data[1].split(MagicItemDataParser.DATA_REGEX);

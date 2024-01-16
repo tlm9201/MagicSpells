@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
 import java.util.Set;
-import java.util.List;
 import java.util.HashSet;
 
 import org.bukkit.Location;

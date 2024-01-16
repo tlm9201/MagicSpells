@@ -39,6 +39,7 @@ import com.nisovin.magicspells.util.ai.LookAtEntityGoal;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
@@ -199,7 +200,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			for (String data : list) {
 				split = data.split(" ");
 				try {
-					type = Util.getPotionEffectType(split[0]);
+					type = PotionEffectHandler.getPotionEffectType(split[0]);
 					if (type == null) throw new Exception("");
 
 					duration = 600;
@@ -390,12 +391,12 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 			block = world.getBlockAt(x, y, z);
 			if (block.getType() == Material.WATER) return block.getLocation();
-			if (BlockUtils.isPathable(block)) {
+			if (block.isPassable()) {
 				if (allowSpawnInMidair) return block.getLocation();
 				int c = 0;
 				while (c < 5) {
 					block2 = block.getRelative(BlockFace.DOWN);
-					if (BlockUtils.isPathable(block2)) block = block2;
+					if (block2.isPassable()) block = block2;
 					else return block.getLocation();
 					c++;
 				}

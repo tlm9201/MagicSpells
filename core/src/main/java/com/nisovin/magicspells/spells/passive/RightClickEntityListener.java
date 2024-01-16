@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.EntityType;
@@ -22,11 +24,9 @@ public class RightClickEntityListener extends PassiveListener {
 	private final EnumSet<EntityType> entities = EnumSet.noneOf(EntityType.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.replace(" ", "").toUpperCase().split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.replace(" ", "").split(",")) {
 			EntityType type = MobUtil.getEntityType(s);
 			if (type == null) {
 				MagicSpells.error("Invalid entity type '" + s + "' in rightclickentity trigger on passive spell '" + passiveSpell.getInternalName() + "'");
@@ -46,7 +46,7 @@ public class RightClickEntityListener extends PassiveListener {
 		if (!entities.isEmpty() && !entities.contains(entity.getType())) return;
 
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = entity instanceof LivingEntity ? passiveSpell.activate(caster, (LivingEntity) entity)
 				: passiveSpell.activate(caster, entity.getLocation());

@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.command;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.command.CommandSender;
 
@@ -132,7 +133,7 @@ public class ForgetSpell extends CommandSpell {
 			sender.sendMessage(strUsage);
 			return false;
 		}
-		Player target = PlayerNameUtils.getPlayer(args[0]);
+		Player target = Bukkit.getPlayer(args[0]);
 		if (target == null) {
 			sender.sendMessage(strNoTarget);
 			return false;

@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.HashSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -25,9 +27,8 @@ public class GrindstoneListener extends PassiveListener {
 	private Set<MagicItemData> resultItem;
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
 		String[] split = var.split(" ", 3);
 
 		if (split.length > 0) {
@@ -93,7 +94,7 @@ public class GrindstoneListener extends PassiveListener {
 		if (!(inventory instanceof GrindstoneInventory grindstone)) return;
 
 		LivingEntity caster = event.getView().getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		if (upperItem != null && !contains(upperItem, grindstone.getUpperItem())) return;
 		if (lowerItem != null && !contains(lowerItem, grindstone.getLowerItem())) return;

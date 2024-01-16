@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.events.SpellCastEvent;
@@ -42,8 +41,8 @@ public class Modifier implements IModifier {
 	public boolean process(String string) {
 		if (MagicSpells.getConditionManager() == null) return false;
 
-		String[] s = RegexUtil.split(MODIFIER_STR_FAILED_PATTERN, string, 0);
-		if (s == null || s.length <= 0) return false;
+		String[] s = MODIFIER_STR_FAILED_PATTERN.split(string);
+		if (s == null || s.length == 0) return false;
 		String[] data = s[0].trim().split(" ", 4);
 
 		if (data.length < 2) return false;

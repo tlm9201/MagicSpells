@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -76,7 +77,7 @@ public class DanceCastListener implements Listener {
 		for (Spell spell : MagicSpells.spells()) {
 			String seq = spell.getDanceCastSequence();
 			if (seq == null) continue;
-			if (!RegexUtil.matches(DANCE_CAST_PATTERN, seq)) continue;
+			if (!DANCE_CAST_PATTERN.asMatchPredicate().test(seq)) continue;
 			spells.put(seq, spell);
 			if (seq.contains("D")) enableDoubleJump = true;
 			if (seq.contains("F") || seq.contains("B") || seq.contains("L") || seq.contains("R") || seq.contains("J")) enableMovement = true;
@@ -216,7 +217,7 @@ public class DanceCastListener implements Listener {
 			playerLocations.remove(playerName);
 			playerTasks.remove(playerName);
 			if (cast == null) return;
-			Player player = PlayerNameUtils.getPlayerExact(playerName);
+			Player player = Bukkit.getPlayerExact(playerName);
 			if (player != null) MagicSpells.sendMessage(strDanceFail, player, MagicSpells.NULL_ARGS);
 		}
 	}

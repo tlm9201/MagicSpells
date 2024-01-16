@@ -3,6 +3,8 @@ package com.nisovin.magicspells.spells.passive;
 import java.util.Set;
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityTargetEvent;
@@ -18,11 +20,9 @@ public class EntityTargetListener extends PassiveListener {
 	private final Set<TargetReason> targetReasons = EnumSet.noneOf(TargetReason.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split("\\|");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split("\\|")) {
 			try {
 				TargetReason reason = TargetReason.valueOf(s.trim().toUpperCase());
 				targetReasons.add(reason);
@@ -40,7 +40,7 @@ public class EntityTargetListener extends PassiveListener {
 		if (!(event.getTarget() instanceof LivingEntity target)) return;
 
 		if (!targetReasons.isEmpty() && !targetReasons.contains(event.getReason())) return;
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
+		if (!canTrigger(caster)) return;
 
 		boolean casted = passiveSpell.activate(caster, target);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

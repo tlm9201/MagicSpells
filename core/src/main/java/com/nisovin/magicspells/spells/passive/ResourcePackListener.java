@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.passive;
 
 import java.util.EnumSet;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
@@ -21,11 +23,9 @@ public class ResourcePackListener extends PassiveListener {
 	private final EnumSet<Status> packStatus = EnumSet.noneOf(Status.class);
 
 	@Override
-	public void initialize(String var) {
-		if (var == null || var.isEmpty()) return;
-
-		String[] split = var.split(",");
-		for (String s : split) {
+	public void initialize(@NotNull String var) {
+		if (var.isEmpty()) return;
+		for (String s : var.split(",")) {
 			s = s.trim().toUpperCase();
 
 			switch (s) {
@@ -50,11 +50,9 @@ public class ResourcePackListener extends PassiveListener {
 	@EventHandler
 	public void onPlayerResourcePack(PlayerResourcePackStatusEvent event) {
 		if (!packStatus.isEmpty() && !packStatus.contains(event.getStatus())) return;
-
 		Player caster = event.getPlayer();
-		if (!hasSpell(caster) || !canTrigger(caster)) return;
-
-		passiveSpell.activate(event.getPlayer());
+		if (!canTrigger(caster)) return;
+		passiveSpell.activate(caster);
 	}
 
 }

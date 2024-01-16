@@ -13,6 +13,8 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.meta.Damageable;
 
+import org.jetbrains.annotations.NotNull;
+
 import net.kyori.adventure.text.Component;
 
 import com.nisovin.magicspells.util.Util;
@@ -28,7 +30,7 @@ public class HasItemCondition extends Condition {
 	private boolean checkName;
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		try {
 			if (var.contains("|")) {
 				String[] subVarData = var.split("\\|");

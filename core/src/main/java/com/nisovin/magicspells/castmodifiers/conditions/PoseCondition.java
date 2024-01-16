@@ -7,6 +7,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Pose;
 import org.bukkit.entity.LivingEntity;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class PoseCondition extends Condition {
@@ -14,7 +16,7 @@ public class PoseCondition extends Condition {
 	private final Set<Pose> poses = EnumSet.noneOf(Pose.class);
 
 	@Override
-	public boolean initialize(String var) {
+	public boolean initialize(@NotNull String var) {
 		String[] split = var.split(",");
 
 		for (String pose : split) {

@@ -35,7 +35,8 @@ public class CompatBasics {
 	
 	public static boolean doesClassExist(String name) {
 		try {
-			return Class.forName(name) != null;
+			Class.forName(name);
+			return true;
 		} catch (Throwable throwable) {
 			return false;
 		}

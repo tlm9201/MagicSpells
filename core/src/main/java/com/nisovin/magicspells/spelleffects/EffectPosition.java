@@ -41,7 +41,7 @@ public enum EffectPosition {
 		if (nameMap == null) nameMap = new HashMap<>();
 		nameMap.clear();
 		for (EffectPosition position : EffectPosition.values()) {
-			// For all of the names
+			// For all the names
 			for (String name : position.names) {
 				nameMap.put(name.toLowerCase(), position);
 			}

@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
@@ -13,8 +15,8 @@ public class WorldGuardRegionMembershipCondition extends AbstractWorldGuardCondi
 	private Type type = Type.MEMBER;
 
 	@Override
-	public boolean initialize(String var) {
-		if (var == null || var.isEmpty()) return true;
+	public boolean initialize(@NotNull String var) {
+		if (var.isEmpty()) return true;
 		try {
 			type = Type.valueOf(var.toUpperCase());
 		} catch (IllegalArgumentException ignored) {
