@@ -2,8 +2,7 @@ package com.nisovin.magicspells.commands;
 
 import java.util.*;
 import java.io.File;
-import java.io.Writer;
-import java.io.FileWriter;
+import java.io.IOException;
 import java.util.regex.Pattern;
 
 import org.bukkit.*;
@@ -16,11 +15,14 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import co.aikar.commands.*;
 import co.aikar.commands.annotation.*;
 import co.aikar.commands.annotation.Optional;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
+
+import com.destroystokyo.paper.profile.ProfileProperty;
 
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.Spell;
@@ -29,6 +31,7 @@ import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
 import com.nisovin.magicspells.spells.PassiveSpell;
+import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -61,9 +64,11 @@ public class MagicCommand extends BaseCommand {
 			return spells;
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("owned_spells", context -> {
-			Set<Spell> spells = new HashSet<>();
 			Player player = context.getPlayer();
+			if (player == null) return getSpellNames(MagicSpells.spells());
+
 			Spellbook spellbook = MagicSpells.getSpellbook(player);
+			Set<Spell> spells = new HashSet<>();
 			for (Spell spell : MagicSpells.getSpellsOrdered()) {
 				if (spell.isHelperSpell()) continue;
 				if (spell instanceof PassiveSpell) continue;
@@ -75,9 +80,7 @@ public class MagicCommand extends BaseCommand {
 		commandManager.getCommandCompletions().registerAsyncCompletion("players+", context -> {
 			Set<String> players = new HashSet<>();
 			players.add("*");
-			for (Player player : Bukkit.getOnlinePlayers()) {
-				players.add(player.getName());
-			}
+			players.addAll(getPlayers());
 			return players;
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("variables", context ->
@@ -88,12 +91,13 @@ public class MagicCommand extends BaseCommand {
 		);
 		commandManager.getCommandCompletions().registerAsyncCompletion("looking_at", context -> {
 			Set<String> completions = new HashSet<>();
-			if (!context.getIssuer().isPlayer()) return completions;
+
+			Player player = context.getPlayer();
+			if (player == null) return completions;
 
 			String config = context.getConfig();
 			if (config == null || config.isEmpty()) return completions;
 
-			Player player = context.getPlayer();
 			Block block = player.getTargetBlockExact(6, FluidCollisionMode.SOURCE_ONLY);
 			if (block == null) return null;
 			if (block.getType().isAir()) return completions;
@@ -112,10 +116,17 @@ public class MagicCommand extends BaseCommand {
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("power", context -> {
 			Player player = context.getPlayer();
-			if (player == null) return Collections.emptyList();
-			if (!Perm.COMMAND_CAST_POWER.has(player)) return Collections.emptyList();
+			if (player != null && !Perm.COMMAND_CAST_POWER.has(player)) return Collections.emptyList();
 			return Collections.singleton("-p:");
 		});
+	}
+
+	private static Set<String> getPlayers() {
+		Set<String> players = new HashSet<>();
+		for (Player player : Bukkit.getOnlinePlayers()) {
+			players.add(player.getName());
+		}
+		return players;
 	}
 
 	private static Set<String> getSpellNames(Collection<Spell> spells) {
@@ -612,21 +623,25 @@ public class MagicCommand extends BaseCommand {
 		@HelpPermission(permission = Perm.COMMAND_UTIL_SAVE_SKIN)
 		public void onSaveSkin(CommandIssuer issuer, @Optional Player player) {
 			if (!MagicSpells.isLoaded()) return;
+
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_UTIL_SAVE_SKIN)) return;
 			if (player == null) player = getPlayerFromIssuer(issuer);
 			if (player == null) return;
-			String data = Util.getSkinData(player);
 
-			File folder = new File(MagicSpells.getInstance().getDataFolder(), "skins");
+			List<ProfileProperty> skins = player.getPlayerProfile().getProperties().stream().filter(prop -> prop.getName().equals("textures")).toList();
+			ProfileProperty latestSkin = skins.get(0);
+
+			YamlConfiguration data = new YamlConfiguration();
+			data.set("skin", latestSkin.getValue());
+			data.set("signature", latestSkin.getSignature());
+
+			File folder = new File(PLUGIN_FOLDER, "skins");
 			if (!folder.exists()) folder.mkdir();
-			File file = new File(folder, System.currentTimeMillis() + ".yml");
 			try {
-				Writer writer = new FileWriter(file);
-				writer.write(data);
-				writer.flush();
-				writer.close();
-			} catch (Exception e) {
+				data.save(new File(folder, System.currentTimeMillis() + ".yml"));
+			} catch (IOException e) {
 				e.printStackTrace();
+				return;
 			}
 
 			issuer.sendMessage(MagicSpells.getTextColor() + TxtUtil.getPossessiveName(player.getName()) + " skin was saved.");
@@ -785,11 +800,10 @@ public class MagicCommand extends BaseCommand {
 				throw new ConditionFailedException("Spell is not a targeted entity spell.");
 			}
 
-			boolean casted;
-			// Handle with or without caster.
-			if (issuer.getIssuer() instanceof LivingEntity) casted = newSpell.castAtEntity(issuer.getIssuer(), target, 1F);
-			else casted = newSpell.castAtEntity(target, 1F);
-			if (!casted) throw new ConditionFailedException("Spell probably cannot be cast from console.");
+			LivingEntity caster = issuer.getIssuer() instanceof LivingEntity ? issuer.getIssuer() : null;
+			CastResult result = newSpell.castAtEntity(new SpellData(caster, target));
+			if (result.action() == PostCastAction.ALREADY_HANDLED)
+				throw new ConditionFailedException("Spell probably cannot be cast from console.");
 		}
 
 		@Subcommand("at")
@@ -851,7 +865,7 @@ public class MagicCommand extends BaseCommand {
 			SpellData data = new SpellData(issuer.getIssuer() instanceof LivingEntity le ? le : null, location, 1f, null);
 			CastResult result = newSpell.castAtLocation(data);
 
-			if (result.action() == Spell.PostCastAction.ALREADY_HANDLED)
+			if (result.action() == PostCastAction.ALREADY_HANDLED)
 				throw new ConditionFailedException("Spell probably cannot be cast from console.");
 		}
 
