@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Item;
@@ -23,6 +24,8 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+
+import com.destroystokyo.paper.MaterialTags;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.*;
@@ -319,16 +322,18 @@ public class ConjureSpell extends InstantSpell implements TargetedEntitySpell, T
 			boolean added = false;
 			PlayerInventory inv = player.getInventory();
 			if (autoEquip && item.getAmount() == 1) {
-				if (item.getType().name().endsWith("HELMET") && isNothing(inv.getHelmet())) {
+				Material type = item.getType();
+
+				if (MaterialTags.HEAD_EQUIPPABLE.isTagged(type) && isNothing(inv.getHelmet())) {
 					inv.setHelmet(item);
 					added = true;
-				} else if (item.getType().name().endsWith("CHESTPLATE") && isNothing(inv.getChestplate())) {
+				} else if (MaterialTags.CHEST_EQUIPPABLE.isTagged(type) && isNothing(inv.getChestplate())) {
 					inv.setChestplate(item);
 					added = true;
-				} else if (item.getType().name().endsWith("LEGGINGS") && isNothing(inv.getLeggings())) {
+				} else if (MaterialTags.LEGGINGS.isTagged(type) && isNothing(inv.getLeggings())) {
 					inv.setLeggings(item);
 					added = true;
-				} else if (item.getType().name().endsWith("BOOTS") && isNothing(inv.getBoots())) {
+				} else if (MaterialTags.BOOTS.isTagged(type) && isNothing(inv.getBoots())) {
 					inv.setBoots(item);
 					added = true;
 				}
