@@ -9,6 +9,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.RayTraceResult;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
@@ -56,13 +57,9 @@ public class MagicCommand extends BaseCommand {
 		});
 
 		// Create command completions.
-		commandManager.getCommandCompletions().registerAsyncCompletion("spells", context -> {
-			Set<String> spells = new HashSet<>();
-			if (context.getConfig() != null && context.getConfig().equals("*")) spells.add("*");
-			// Collect spell names.
-			spells.addAll(getSpellNames(MagicSpells.spells()));
-			return spells;
-		});
+		commandManager.getCommandCompletions().registerAsyncCompletion("spells", context ->
+			getSpellNames(MagicSpells.spells())
+		);
 		commandManager.getCommandCompletions().registerAsyncCompletion("owned_spells", context -> {
 			Player player = context.getPlayer();
 			if (player == null) return getSpellNames(MagicSpells.spells());
@@ -77,12 +74,6 @@ public class MagicCommand extends BaseCommand {
 			}
 			return getSpellNames(spells);
 		});
-		commandManager.getCommandCompletions().registerAsyncCompletion("players+", context -> {
-			Set<String> players = new HashSet<>();
-			players.add("*");
-			players.addAll(getPlayers());
-			return players;
-		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("variables", context ->
 			MagicSpells.getVariableManager().getVariables().keySet()
 		);
@@ -90,29 +81,40 @@ public class MagicCommand extends BaseCommand {
 			MagicItems.getMagicItemKeys()
 		);
 		commandManager.getCommandCompletions().registerAsyncCompletion("looking_at", context -> {
-			Set<String> completions = new HashSet<>();
-
 			Player player = context.getPlayer();
-			if (player == null) return completions;
+			if (player == null) return Collections.emptySet();
 
 			String config = context.getConfig();
-			if (config == null || config.isEmpty()) return completions;
+			if (config == null || config.isEmpty()) return Collections.emptySet();
 
-			Block block = player.getTargetBlockExact(6, FluidCollisionMode.SOURCE_ONLY);
-			if (block == null) return null;
-			if (block.getType().isAir()) return completions;
+			RayTraceResult result = player.rayTraceBlocks(6, FluidCollisionMode.SOURCE_ONLY);
+			if (result == null) return Collections.emptySet();
 
-			Location location = block.getLocation();
-			String num = "";
-			switch (config.toLowerCase()) {
-				case "x" -> num += location.getX();
-				case "y" -> num += location.getY();
-				case "z" -> num += location.getZ();
-				case "pitch" -> num += player.getLocation().getPitch();
-				case "yaw" -> num += player.getLocation().getYaw();
+			Block block = result.getHitBlock();
+			if (block == null) return Collections.emptySet();
+
+			String value = switch (config.toLowerCase()) {
+				case "x" -> String.valueOf(block.getX());
+				case "y" -> String.valueOf(block.getY());
+				case "z" -> String.valueOf(block.getZ());
+				case "pitch" -> String.valueOf(player.getLocation().getPitch());
+				case "yaw" -> String.valueOf(player.getLocation().getYaw());
+				default -> "";
+			};
+			return Set.of(value);
+		});
+		commandManager.getCommandCompletions().registerAsyncCompletion("spell_target", context -> {
+			Player player = context.getPlayer();
+			if (player == null) return getPlayers();
+			RayTraceResult result = player.rayTraceEntities(6);
+
+			Set<String> targets = new HashSet<>();
+			// Add the targeted entity's uuid/username first.
+			if (result != null && result.getHitEntity() instanceof LivingEntity entity) {
+				targets.add(entity instanceof Player pl ? pl.getName() : entity.getUniqueId().toString());
 			}
-			if (!num.isEmpty()) completions.add(num);
-			return completions;
+			targets.addAll(getPlayers());
+			return targets;
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("power", context -> {
 			Player player = context.getPlayer();
@@ -309,7 +311,7 @@ public class MagicCommand extends BaseCommand {
 	}
 
 	@Subcommand("resetcd")
-	@CommandCompletion("@players+ @spells:* @nothing")
+	@CommandCompletion("*|@players *|@spells @nothing")
 	@Syntax("[player/*] [spell/*]")
 	@Description("Reset cooldown of all players or a player for a spell or all spells.")
 	@HelpPermission(permission = Perm.COMMAND_RESET_COOLDOWN)
@@ -758,7 +760,7 @@ public class MagicCommand extends BaseCommand {
 		}
 
 		@Subcommand("as")
-		@CommandCompletion("@players @spells @power @nothing")
+		@CommandCompletion("@spell_target @spells @power @nothing")
 		@Syntax("<player/UUID> <spell> (-p:[power]) [spellArgs]")
 		@Description("Force a player to cast a spell. (You can optionally define power: -p:1.0)")
 		@HelpPermission(permission = Perm.COMMAND_CAST_AS)
@@ -783,7 +785,7 @@ public class MagicCommand extends BaseCommand {
 		}
 
 		@Subcommand("on")
-		@CommandCompletion("@players @spells @nothing")
+		@CommandCompletion("@spell_target @spells @nothing")
 		@Syntax("<player/UUID> <spell>")
 		@Description("Cast a spell on an entity.")
 		@HelpPermission(permission = Perm.COMMAND_CAST_ON)
