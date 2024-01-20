@@ -27,8 +27,6 @@ public class ValidTargetList {
 		
 	}
 
-	private static final Set<GameMode> DEFAULT_GAME_MODES = EnumSet.of(GameMode.SURVIVAL, GameMode.ADVENTURE);
-
 	private final Set<GameMode> gameModes = EnumSet.noneOf(GameMode.class);
 	private final Set<EntityType> types = EnumSet.noneOf(EntityType.class);
 
@@ -95,7 +93,6 @@ public class ValidTargetList {
 
 			switch (s.toLowerCase()) {
 				case "self", "caster" -> targetSelf = true;
-				case "player", "players" -> targetPlayers = true;
 				case "invisible", "invisibles" -> targetInvisibles = true;
 				case "nonplayer", "nonplayers" -> targetNonPlayers = true;
 				case "monster", "monsters" -> targetMonsters = true;
@@ -105,6 +102,11 @@ public class ValidTargetList {
 				case "castermount", "selfmount" -> targetCasterMount = true;
 				case "casterpassenger", "selfpassenger" -> targetCasterPassenger = true;
 				case "entitytarget", "mobtarget" -> targetEntityTarget = true;
+				case "player", "players" -> {
+					gameModes.add(GameMode.SURVIVAL);
+					gameModes.add(GameMode.ADVENTURE);
+					targetPlayers = true;
+				}
 				default -> {
 					try {
 						gameModes.add(GameMode.valueOf(s.toUpperCase()));
@@ -115,6 +117,11 @@ public class ValidTargetList {
 					if (type != null) types.add(type);
 					else MagicSpells.error("Spell '" + spell.getInternalName() + "' has an invalid target type defined: " + s);
 				}
+			}
+
+			if (gameModes.isEmpty()) {
+				gameModes.add(GameMode.SURVIVAL);
+				gameModes.add(GameMode.ADVENTURE);
 			}
 		}
 	}
@@ -133,7 +140,7 @@ public class ValidTargetList {
 		if (!(target instanceof LivingEntity) && !targetNonLivingEntities) return false;
 		boolean targetIsPlayer = target instanceof Player;
 
-		if (targetIsPlayer && !canTargetGameMode(((Player) target).getGameMode())) return false;
+		if (targetIsPlayer && !gameModes.contains(((Player) target).getGameMode())) return false;
 
 		if (targetSelf && target.equals(caster)) return true;
 		if (!targetSelf && target.equals(caster)) return false;
@@ -159,7 +166,7 @@ public class ValidTargetList {
 		if (!(target instanceof LivingEntity) && !targetNonLivingEntities) return false;
 		boolean targetIsPlayer = target instanceof Player;
 
-		if (targetIsPlayer && !canTargetGameMode(((Player) target).getGameMode())) return false;
+		if (targetIsPlayer && !gameModes.contains(((Player) target).getGameMode())) return false;
 
 		if (targetPlayers && targetIsPlayer) return true;
 		if (targetNonPlayers && !targetIsPlayer) return true;
@@ -174,16 +181,11 @@ public class ValidTargetList {
 		return false;
 	}
 
-	private boolean canTargetGameMode(GameMode gameMode) {
-		if (gameModes.isEmpty()) return DEFAULT_GAME_MODES.contains(gameMode);
-		return gameModes.contains(gameMode);
-	}
-
 	public boolean canTarget(Entity target, boolean ignoreGameMode) {
 		if (!(target instanceof LivingEntity) && !targetNonLivingEntities) return false;
 		boolean targetIsPlayer = target instanceof Player;
 
-		if (!ignoreGameMode && targetIsPlayer && !canTargetGameMode(((Player) target).getGameMode())) return false;
+		if (!ignoreGameMode && targetIsPlayer && !gameModes.contains(((Player) target).getGameMode())) return false;
 
 		if (targetPlayers && targetIsPlayer) return true;
 		if (targetNonPlayers && !targetIsPlayer) return true;
