@@ -186,6 +186,7 @@ public class ConditionManager {
 		addCondition("solid", SolidCondition.class);
 		addCondition("pose", PoseCondition.class);
 		addCondition("fixedpose", FixedPoseCondition.class);
+		addCondition("silent", SilentCondition.class);
 	}
 
 }
