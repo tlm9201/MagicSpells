@@ -474,6 +474,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	private boolean canInteractWith(ParticleProjectileTracker collisionTracker) {
 		if (collisionTracker == null) return false;
+		if (collisionTracker.currentLocation == null) return false;
 		if (tracker == null) return false;
 		if (!tracker.data.hasCaster()) return false;
 		if (!collisionTracker.data.hasCaster()) return false;
