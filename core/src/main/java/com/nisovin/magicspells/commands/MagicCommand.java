@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import org.bukkit.*;
+import org.bukkit.entity.Mob;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -23,6 +24,7 @@ import co.aikar.commands.annotation.*;
 import co.aikar.commands.annotation.Optional;
 import co.aikar.commands.bukkit.contexts.OnlinePlayer;
 
+import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.profile.ProfileProperty;
 
 import com.nisovin.magicspells.Perm;
@@ -115,6 +117,15 @@ public class MagicCommand extends BaseCommand {
 			}
 			targets.addAll(getPlayers());
 			return targets;
+		});
+		commandManager.getCommandCompletions().registerAsyncCompletion("target_uuid", context -> {
+			Player player = context.getPlayer();
+			if (player == null) return Collections.emptySet();
+
+			RayTraceResult result = player.rayTraceEntities(6);
+			if (result == null || !(result.getHitEntity() instanceof LivingEntity entity))
+				return Collections.emptySet();
+			return Set.of(entity.getUniqueId().toString());
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("power", context -> {
 			Player player = context.getPlayer();
@@ -647,6 +658,37 @@ public class MagicCommand extends BaseCommand {
 			}
 
 			issuer.sendMessage(MagicSpells.getTextColor() + TxtUtil.getPossessiveName(player.getName()) + " skin was saved.");
+		}
+
+		@Subcommand("listgoals")
+		@CommandCompletion("@target_uuid @nothing")
+		@Syntax("[uuid]")
+		@Description("List an entity's mob goals.")
+		@HelpPermission(permission = Perm.COMMAND_UTIL_LIST_GOALS)
+		public void onListGoals(CommandIssuer issuer, String uuidString) {
+			if (noPermission(issuer.getIssuer(), Perm.COMMAND_UTIL_LIST_GOALS)) return;
+
+			UUID uuid;
+			try {
+				uuid = UUID.fromString(uuidString);
+			} catch (IllegalArgumentException e) {
+				throw new ConditionFailedException("Passed UUID argument is not a valid UUIO.");
+			}
+			if (!(Bukkit.getEntity(uuid) instanceof Mob mob))
+				throw new ConditionFailedException("UUID did not match an entity of Mob type.");
+
+			Collection<Goal<Mob>> goals = Bukkit.getMobGoals().getAllGoals(mob);
+			if (goals.isEmpty()) {
+				issuer.sendMessage(MagicSpells.getTextColor() + "Entity '" + uuid + "' has no mob goals.");
+				return;
+			}
+
+			issuer.sendMessage(MagicSpells.getTextColor() + "Mob goals of entity '" + uuid + "':");
+			for (Goal<Mob> goal : goals) {
+				String entity = goal.getKey().getEntityClass().getSimpleName();
+				String key = goal.getKey().getNamespacedKey().toString();
+				issuer.sendMessage(MagicSpells.getTextColor() + "  - " + entity + ": " + key + " " + goal.getTypes());
+			}
 		}
 
 	}
