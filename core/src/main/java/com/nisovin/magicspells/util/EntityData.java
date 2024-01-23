@@ -339,7 +339,6 @@ public class EntityData {
 		if (entityType == null || (!entityType.isSpawnable() && entityType != EntityType.FALLING_BLOCK && entityType != EntityType.DROPPED_ITEM))
 			return null;
 
-		boolean[] displayHack = new boolean[] {false, false};
 		Entity entity = switch (entityType) {
 			case FALLING_BLOCK -> {
 				BlockData blockData = fallingBlockData.get(data);
@@ -371,24 +370,9 @@ public class EntityData {
 						transformer.apply(e, data);
 
 					if (consumer != null) consumer.accept(e);
-
-					if (e instanceof Display) {
-						String version = org.bukkit.Bukkit.getMinecraftVersion();
-						if ("1.19.4".equals(version) || "1.20".equals(version)) {
-							displayHack[0] = true;
-							displayHack[1] = e.isVisibleByDefault();
-
-							e.setVisibleByDefault(false);
-						}
-					}
 				});
 			}
 		};
-
-		if (displayHack[0]) {
-			entity.teleport(startLoc);
-			entity.setVisibleByDefault(displayHack[1]);
-		}
 
 		return entity;
 	}
