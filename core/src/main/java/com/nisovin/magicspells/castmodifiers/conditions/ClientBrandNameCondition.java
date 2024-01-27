@@ -7,13 +7,14 @@ import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.castmodifiers.Condition;
 
-public class ClientNameCondition extends Condition {
+public class ClientBrandNameCondition extends Condition {
 
-	private String clientName;
+	private String clientBrandName;
+
 	@Override
 	public boolean initialize(@NotNull String var) {
 		if (var.isEmpty()) return false;
-		clientName = var;
+		clientBrandName = var;
 		return true;
 	}
 
@@ -35,7 +36,7 @@ public class ClientNameCondition extends Condition {
 	private boolean checkClientName(LivingEntity target) {
 		if (!(target instanceof Player pl)) return false;
 		if (pl.getClientBrandName() == null) return false;
-		return (pl.getClientBrandName().equalsIgnoreCase(clientName));
+		return (pl.getClientBrandName().equalsIgnoreCase(clientBrandName));
 	}
 
 }

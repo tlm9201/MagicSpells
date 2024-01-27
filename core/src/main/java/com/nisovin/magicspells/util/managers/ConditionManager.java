@@ -187,7 +187,7 @@ public class ConditionManager {
 		addCondition("pose", PoseCondition.class);
 		addCondition("fixedpose", FixedPoseCondition.class);
 		addCondition("silent", SilentCondition.class);
-		addCondition("clientname", ClientNameCondition.class);
+		addCondition("clientname", ClientBrandNameCondition.class);
 	}
 
 }

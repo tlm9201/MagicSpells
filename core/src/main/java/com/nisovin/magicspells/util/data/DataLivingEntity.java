@@ -39,8 +39,8 @@ public class DataLivingEntity {
 		dataElements.put("health", livingEntity -> livingEntity.getHealth() + "");
 		dataElements.put("clientbrandname", livingEntity -> {
 			if (!(livingEntity instanceof Player player)) return "";
-			String clientname = player.getClientBrandName();
-			return clientname == null ? "" : clientname;
+			String clientbrandname = player.getClientBrandName();
+			return clientbrandname == null ? "" : clientbrandname;
 		});
 	}
 
