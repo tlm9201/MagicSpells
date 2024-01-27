@@ -1,13 +1,11 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-
-import com.nisovin.magicspells.castmodifiers.Condition;
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import com.nisovin.magicspells.castmodifiers.Condition;
 
 public class ClientNameCondition extends Condition {
 
@@ -39,4 +37,5 @@ public class ClientNameCondition extends Condition {
 		if (pl.getClientBrandName() == null) return false;
 		return (pl.getClientBrandName().equalsIgnoreCase(clientName));
 	}
+
 }
