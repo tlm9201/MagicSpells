@@ -23,7 +23,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.inventory.meta.SkullMeta;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -700,40 +699,10 @@ public class Util {
 		return matcher.appendTail(builder).toString();
 	}
 
-	public static PlayerProfile setTexture(PlayerProfile profile, String texture, String signature) {
-		if (signature == null || signature.isEmpty()) profile.setProperty(new ProfileProperty("textures", texture));
-		else profile.setProperty(new ProfileProperty("textures", texture, signature));
-		return profile;
-	}
-
-	public static String getSkinData(Player player) {
-		List<ProfileProperty> skins = player.getPlayerProfile().getProperties().stream().filter(prop -> prop.getName().equals("textures")).toList();
-		ProfileProperty latestSkin = skins.get(0);
-		return "Skin: " + latestSkin.getValue() + "\nSignature: " + latestSkin.getSignature();
-	}
-
-	public static void setTexture(SkullMeta meta, String texture, String signature) {
-		PlayerProfile profile = meta.getPlayerProfile();
-		setTexture(profile, texture, signature);
-		meta.setPlayerProfile(profile);
-	}
-
 	public static void setSkin(Player player, String skin, String signature) {
-		player.setPlayerProfile(setTexture(player.getPlayerProfile(), skin, signature));
-	}
-
-	public static void setTexture(SkullMeta meta, String texture, String signature, String uuid, OfflinePlayer offlinePlayer) {
-		try {
-			PlayerProfile profile;
-
-			if (uuid != null) profile = Bukkit.createProfile(UUID.fromString(uuid), offlinePlayer.getName());
-			else profile = Bukkit.createProfile(null, offlinePlayer.getName());
-
-			setTexture(profile, texture, signature);
-			meta.setPlayerProfile(profile);
-		} catch (SecurityException | IllegalArgumentException e) {
-			MagicSpells.handleException(e);
-		}
+		PlayerProfile profile = player.getPlayerProfile();
+		profile.setProperty(new ProfileProperty("textures", skin, signature));
+		player.setPlayerProfile(profile);
 	}
 
 	@Nullable

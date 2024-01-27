@@ -39,6 +39,7 @@ public enum Perm {
 	COMMAND_UTIL_DOWNLOAD("magicspells.command.util.download"),
 	COMMAND_UTIL_UPDATE("magicspells.command.util.update"),
 	COMMAND_UTIL_SAVE_SKIN("magicspells.command.util.saveskin"),
+	COMMAND_UTIL_LIST_GOALS("magicspells.command.util.listgoals"),
 	COMMAND_PROFILE_REPORT("magicspells.command.profilereport"),
 	COMMAND_DEBUG("magicspells.command.debug"),
 	COMMAND_TASKINFO("magicspells.command.taskinfo"),

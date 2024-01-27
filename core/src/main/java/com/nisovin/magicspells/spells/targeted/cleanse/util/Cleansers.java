@@ -14,7 +14,7 @@ import com.nisovin.magicspells.spells.targeted.cleanse.*;
 
 public class Cleansers {
 
-	private static final List<Class<? extends Cleanser>> cleanserClasses = Arrays.asList(
+	private static final List<Class<? extends Cleanser>> cleanserClasses = new ArrayList<>(Arrays.asList(
 			PotionCleanser.class,
 			BuffSpellCleanser.class,
 			DotSpellCleanser.class,
@@ -26,7 +26,7 @@ public class Cleansers {
 			TotemSpellCleanser.class,
 			FireCleanser.class,
 			FreezeCleanser.class
-	);
+	));
 
 	private final List<Cleanser> cleansers = new ArrayList<>();
 

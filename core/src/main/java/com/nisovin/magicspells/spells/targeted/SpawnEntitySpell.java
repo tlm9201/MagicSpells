@@ -35,13 +35,13 @@ import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
-import com.nisovin.magicspells.util.ai.LookAtEntityGoal;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
+import com.nisovin.magicspells.util.ai.goals.LookAtEntityTypeGoal;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntityFromLocationSpell {
@@ -88,10 +88,10 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private final ConfigData<Boolean> allowSpawnInMidair;
 
 	private Subspell attackSpell;
-	private String attackSpellName;
+	private final String attackSpellName;
 
 	private Subspell spellOnSpawn;
-	private String spellOnSpawnName;
+	private final String spellOnSpawnName;
 
 	private List<PotionEffect> potionEffects;
 	private Set<AttributeManager.AttributeInfo> attributes;
@@ -513,7 +513,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 					MobGoals mobGoals = Bukkit.getMobGoals();
 
 					mobGoals.removeAllGoals(mob);
-					mobGoals.addGoal(mob, 1, new LookAtEntityGoal(mob, HumanEntity.class, 10F, 1F));
+					mobGoals.addGoal(mob, 1, new LookAtEntityTypeGoal(mob, data));
 				} else livingEntity.setAI(false);
 			}
 
