@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.function.Function;
 
 import org.bukkit.block.Block;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 public class DataLivingEntity {
 	
