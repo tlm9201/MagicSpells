@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 
 public class DataLivingEntity {
 	
@@ -36,6 +37,11 @@ public class DataLivingEntity {
 		dataElements.put("eyelocation.yaw", livingEntity -> livingEntity.getEyeLocation().getYaw() + "");
 		dataElements.put("nodamageticks", livingEntity -> livingEntity.getNoDamageTicks() + "");
 		dataElements.put("health", livingEntity -> livingEntity.getHealth() + "");
+		dataElements.put("clientbrandname", livingEntity -> {
+			if (!(livingEntity instanceof Player player)) return "";
+			String clientname = player.getClientBrandName();
+			return clientname == null ? "" : clientname;
+		});
 	}
 
 	public static Function<? super LivingEntity, String> getDataFunction(String elementId) {
