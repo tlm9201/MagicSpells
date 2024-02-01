@@ -55,9 +55,9 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	private final ConfigData<Boolean> counterClockwise;
 	private final ConfigData<Boolean> requireEntityTarget;
 
-	private String orbitSpellName;
-	private String groundSpellName;
-	private String entitySpellName;
+	private final String orbitSpellName;
+	private final String groundSpellName;
+	private final String entitySpellName;
 
 	private Subspell orbitSpell;
 	private Subspell groundSpell;
@@ -257,6 +257,8 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			if (data.hasTarget()) playSpellEffects(data.caster(), data.target(), data);
 			else playSpellEffects(data.caster(), currentLocation, data);
+
+			trackerSet.add(this);
 		}
 
 		@Override
