@@ -8,6 +8,7 @@ import org.bukkit.Location
 import org.bukkit.util.Vector
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.Recipe
+import org.bukkit.attribute.Attribute
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.RecipeChoice
 import org.bukkit.event.entity.ExplosionPrimeEvent
@@ -180,8 +181,13 @@ class VolatileCode1_20_R2(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
         ))
     }
 
-    override fun sendStatusUpdate(player: Player?, health: Double, food: Int, saturation: Float) {
-        (player as CraftPlayer).handle.connection.send(ClientboundSetHealthPacket(health.toFloat(), food, saturation))
+    override fun sendStatusUpdate(player: Player, health: Double, food: Int, saturation: Float) {
+        var displayedHealth = health
+        if (player.isHealthScaled) {
+            displayedHealth = player.health / player.getAttribute(Attribute.GENERIC_MAX_HEALTH)!!.value * player.healthScale
+        }
+
+        (player as CraftPlayer).handle.connection.send(ClientboundSetHealthPacket(displayedHealth.toFloat(), food, saturation))
     }
 
     override fun addGameTestMarker(player: Player, location: Location, color: Int, name: String, lifetime: Int) {

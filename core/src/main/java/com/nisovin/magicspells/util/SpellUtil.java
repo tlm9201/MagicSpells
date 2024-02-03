@@ -18,8 +18,9 @@ import org.bukkit.inventory.meta.Damageable;
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.handlers.MoneyHandler;
+import com.nisovin.magicspells.mana.ManaSystem;
 import com.nisovin.magicspells.mana.ManaChangeReason;
+import com.nisovin.magicspells.handlers.MoneyHandler;
 import com.nisovin.magicspells.util.managers.VariableManager;
 
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
@@ -216,6 +217,12 @@ public class SpellUtil {
 				}
 			}
 		}
+	}
+
+	public static void updateManaBar(Player player) {
+		if (!(MagicSpells.getManaHandler() instanceof ManaSystem system)) return;
+		if (!system.usingHungerBar()) return;
+		MagicSpells.scheduleDelayedTask(() -> system.showMana(player), 1);
 	}
 	
 }

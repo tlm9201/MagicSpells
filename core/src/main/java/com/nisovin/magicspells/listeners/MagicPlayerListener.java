@@ -6,10 +6,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.SpellUtil;
 
 public class MagicPlayerListener implements Listener {
 	
@@ -42,6 +46,23 @@ public class MagicPlayerListener implements Listener {
 		Player player = event.getPlayer();
 		MagicSpells.debug("Player '" + player.getName() + "' changed from world '" + event.getFrom().getName() + "' to '" + player.getWorld().getName() + "', reloading spells");
 		MagicSpells.getSpellbook(player).reload();
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onDamage(EntityDamageEvent event) {
+		if (!(event.getEntity() instanceof Player player)) return;
+		SpellUtil.updateManaBar(player);
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onHealthRegain(EntityRegainHealthEvent event) {
+		if (!(event.getEntity() instanceof Player player)) return;
+		SpellUtil.updateManaBar(player);
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onFoodLevelChange(FoodLevelChangeEvent event) {
+		SpellUtil.updateManaBar((Player) event.getEntity());
 	}
 	
 }
