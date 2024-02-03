@@ -55,6 +55,8 @@ public class SpellEffectManager {
 		addSpellEffect("entity", EntityEffect.class);
 		addSpellEffect("explosion", ExplosionEffect.class);
 		addSpellEffect("fireworks", FireworksEffect.class);
+		addSpellEffect("gametestaddmarker", GameTestAddMarkerEffect.class);
+		addSpellEffect("gametestclearmarkers", GameTestClearMarkersEffect.class);
 		addSpellEffect("itemcooldown", ItemCooldownEffect.class);
 		addSpellEffect("itemspray", ItemSprayEffect.class);
 		addSpellEffect("lightning", LightningEffect.class);

@@ -14,7 +14,6 @@ import net.kyori.adventure.text.Component;
 
 import io.papermc.paper.advancement.AdvancementDisplay.Frame;
 
-
 public class VolatileCodeDisabled extends VolatileCodeHandle {
 
 	public VolatileCodeDisabled() {
@@ -68,6 +67,16 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 
 	@Override
 	public void sendStatusUpdate(Player player, double health, int food, float saturation) {
+
+	}
+
+	@Override
+	public void addGameTestMarker(Player player, Location location, int color, String name, int lifetime) {
+
+	}
+
+	@Override
+	public void clearGameTestMarkers(Player player) {
 
 	}
 

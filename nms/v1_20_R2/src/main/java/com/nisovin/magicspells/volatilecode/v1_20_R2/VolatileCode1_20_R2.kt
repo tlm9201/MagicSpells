@@ -20,6 +20,7 @@ import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack
 
 import net.kyori.adventure.text.Component
 
+import io.papermc.paper.util.MCUtil
 import io.papermc.paper.adventure.PaperAdventure
 import io.papermc.paper.advancement.AdvancementDisplay
 
@@ -33,6 +34,9 @@ import net.minecraft.world.item.alchemy.PotionUtils
 import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.advancements.critereon.ImpossibleTrigger
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket
+import net.minecraft.network.protocol.common.custom.GameTestAddMarkerDebugPayload
+import net.minecraft.network.protocol.common.custom.GameTestClearMarkersDebugPayload
 
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 import com.nisovin.magicspells.volatilecode.VolatileCodeHelper
@@ -178,6 +182,16 @@ class VolatileCode1_20_R2(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
 
     override fun sendStatusUpdate(player: Player?, health: Double, food: Int, saturation: Float) {
         (player as CraftPlayer).handle.connection.send(ClientboundSetHealthPacket(health.toFloat(), food, saturation))
+    }
+
+    override fun addGameTestMarker(player: Player, location: Location, color: Int, name: String, lifetime: Int) {
+        val payload = GameTestAddMarkerDebugPayload(MCUtil.toBlockPosition(location), color, name, lifetime)
+        (player as CraftPlayer).handle.connection.send(ClientboundCustomPayloadPacket(payload))
+    }
+
+    override fun clearGameTestMarkers(player: Player) {
+        val payload = GameTestClearMarkersDebugPayload()
+        (player as CraftPlayer).handle.connection.send(ClientboundCustomPayloadPacket(payload))
     }
 
 }
