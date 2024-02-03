@@ -49,4 +49,8 @@ public abstract class VolatileCodeHandle {
 
 	public abstract void sendStatusUpdate(Player player, double health, int food, float saturation);
 
+	public abstract void addGameTestMarker(Player player, Location location, int color, String name, int lifetime);
+
+	public abstract void clearGameTestMarkers(Player player);
+
 }
