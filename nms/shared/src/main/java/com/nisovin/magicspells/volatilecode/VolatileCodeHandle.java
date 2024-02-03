@@ -47,4 +47,6 @@ public abstract class VolatileCodeHandle {
 
 	public abstract void sendToastEffect(Player receiver, ItemStack icon, Frame frameType, Component text);
 
+	public abstract void sendStatusUpdate(Player player, double health, int food, float saturation);
+
 }

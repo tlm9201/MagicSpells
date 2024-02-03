@@ -176,4 +176,8 @@ class VolatileCode1_20_R3(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
         ))
     }
 
+    override fun sendStatusUpdate(player: Player?, health: Double, food: Int, saturation: Float) {
+        (player as CraftPlayer).handle.connection.send(ClientboundSetHealthPacket(health.toFloat(), food, saturation))
+    }
+
 }

@@ -253,8 +253,8 @@ public class ManaSystem extends ManaHandler {
 	}
 	
 	private void showManaOnHungerBar(Player player, ManaBar bar) {
-		player.setFoodLevel(Math.round(((float) bar.getMana() / (float) bar.getMaxMana()) * 20));
-		player.setSaturation(20);
+		int food = Math.round(((float) bar.getMana() / (float) bar.getMaxMana()) * 20);
+		MagicSpells.getVolatileCodeHandler().sendStatusUpdate(player, player.getHealth(), food, player.getSaturation());
 	}
 
 	private void showManaOnActionBar(Player player, ManaBar bar) {
@@ -304,7 +304,7 @@ public class ManaSystem extends ManaHandler {
 			Iterator<ManaBar> manaBarIterator = manaBars.values().iterator();
 			ManaBar manaBar;
 			Player player;
-			while(manaBarIterator.hasNext()) {
+			while (manaBarIterator.hasNext()) {
 				manaBar = manaBarIterator.next();
 				if (!manaBar.getManaRank().equals(rank)) continue;
 

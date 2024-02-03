@@ -22,6 +22,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 
@@ -30,6 +31,7 @@ import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BowSpell;
+import com.nisovin.magicspells.mana.ManaSystem;
 
 public class CastListener implements Listener {
 
@@ -170,6 +172,14 @@ public class CastListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerDrop(PlayerDropItemEvent event) {
 		noCastUntil.put(event.getPlayer().getName(), System.currentTimeMillis() + 150);
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onFoodLevelChange(FoodLevelChangeEvent event) {
+		Player player = (Player) event.getEntity();
+		if (!(MagicSpells.getManaHandler() instanceof ManaSystem system)) return;
+		if (!system.usingHungerBar()) return;
+		MagicSpells.scheduleDelayedTask(() -> system.showMana(player), 1);
 	}
 
 	private void castSpell(Player player, ItemStack item) {
