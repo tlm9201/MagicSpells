@@ -66,4 +66,9 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 
 	}
 
+	@Override
+	public void sendStatusUpdate(Player player, double health, int food, float saturation) {
+
+	}
+
 }
