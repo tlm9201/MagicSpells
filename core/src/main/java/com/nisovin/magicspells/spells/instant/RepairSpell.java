@@ -146,7 +146,7 @@ public class RepairSpell extends InstantSpell {
 					ItemStack chestplate = repair(inventory.getChestplate(), data, repairAmt, resolveRepairAmtPerItem);
 					if (chestplate == null) continue;
 
-					inventory.setHelmet(chestplate);
+					inventory.setChestplate(chestplate);
 					repaired = true;
 				}
 				case LEGGINGS -> {
