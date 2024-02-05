@@ -42,6 +42,8 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.events.SpellbookReloadEvent;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
+import com.nisovin.magicspells.variables.variabletypes.GlobalVariable;
+import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 
 @CommandAlias("ms|magicspells")
 public class MagicCommand extends BaseCommand {
@@ -503,18 +505,21 @@ public class MagicCommand extends BaseCommand {
 		public void onShowVariable(CommandIssuer issuer, String[] args) {
 			if (!MagicSpells.isLoaded()) return;
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_VARIABLE_SHOW)) return;
-			Variable variable;
-			Player player;
 			if (args.length == 0) throw new InvalidCommandArgument();
 
-			variable = MagicSpells.getVariableManager().getVariable(args[0]);
+			Variable variable = MagicSpells.getVariableManager().getVariable(args[0]);
 			if (variable == null) throw new ConditionFailedException("No matching variable found: '" + args[0] + "'");
 
-			if (args.length == 1) player = getPlayerFromIssuer(issuer);
-			else player = ACFBukkitUtil.findPlayerSmart(issuer, args[1]);
-			if (player == null) return;
+			String name = null;
+			if (!(variable instanceof GlobalVariable || variable instanceof GlobalStringVariable)) {
+				Player player = args.length == 1 ? getPlayerFromIssuer(issuer) : ACFBukkitUtil.findPlayerSmart(issuer, args[1]);
+				if (player == null) return;
 
-			issuer.sendMessage(MagicSpells.getTextColor() + TxtUtil.getPossessiveName(player.getName()) + " variable value for " + args[0] + " is: " + variable.getStringValue(player));
+				name = player.getName();
+			}
+
+			String message = name == null ? "Variable" : TxtUtil.getPossessiveName(name) + " variable";
+			issuer.sendMessage(MagicSpells.getTextColor() + message + " value for " + args[0] + " is: " + variable.getStringValue(name));
 		}
 
 		@Subcommand("modify")

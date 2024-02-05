@@ -373,11 +373,15 @@ public class VariableManager {
 
 	public void reset(Variable variable, Player player) {
 		if (variable == null) return;
-		variable.reset(player);
-		updateBossBar(variable, player != null ? player.getName() : "");
-		updateExpBar(variable, player != null ? player.getName() : "");
+
+		String name = player != null ? player.getName() : "";
+		variable.reset(name);
+		updateBossBar(variable, name);
+		updateExpBar(variable, name);
+
 		if (!variable.isPermanent()) return;
-		if (variable instanceof PlayerVariable) dirtyPlayerVars.add(player != null ? player.getName() : "");
+
+		if (variable instanceof PlayerVariable) dirtyPlayerVars.add(name);
 		else if (variable instanceof GlobalVariable) dirtyGlobalVars = true;
 		else if (variable instanceof GlobalStringVariable) dirtyGlobalVars = true;
 	}
@@ -598,11 +602,10 @@ public class VariableManager {
 	}
 
 	public String processVariableMods(String var, VariableMod mod, Player playerToMod, SpellData data) {
-		if (mod == null) return 0 + "";
-		if (playerToMod == null) return 0 + "";
+		if (mod == null) return "0";
 
 		Variable variable = getVariable(var);
-		if (variable == null) return 0 + "";
+		if (variable == null) return "0";
 
 		return processVariableMods(variable, mod, playerToMod, data);
 	}
@@ -610,30 +613,35 @@ public class VariableManager {
 	public String processVariableMods(Variable variable, VariableMod mod, Player playerToMod, SpellData data) {
 		VariableMod.Operation op = mod.getOperation();
 
+		if (playerToMod == null && !(variable instanceof GlobalVariable || variable instanceof GlobalStringVariable))
+			return "0";
+
+		String playerToModName = playerToMod == null ? null : playerToMod.getName();
+
 		if (variable instanceof PlayerStringVariable || variable instanceof GlobalStringVariable) {
 			switch (op) {
 				case SET -> {
 					String value = mod.getStringValue(data);
 
 					if (value.equals(variable.getDefaultStringValue())) reset(variable, playerToMod);
-					else set(variable, playerToMod.getName(), value);
+					else set(variable, playerToModName, value);
 
 					return value;
 				}
 				case ADD -> {
-					String value = variable.getStringValue(playerToMod) + mod.getStringValue(data);
+					String value = variable.getStringValue(playerToModName) + mod.getStringValue(data);
 
 					if (value.equals(variable.getDefaultStringValue())) reset(variable, playerToMod);
-					else set(variable, playerToMod.getName(), value);
+					else set(variable, playerToModName, value);
 
 					return value;
 				}
 				case MULTIPLY -> {
 					int count = (int) mod.getValue(data);
-					String value = variable.getStringValue(playerToMod).repeat(count);
+					String value = variable.getStringValue(playerToModName).repeat(count);
 
 					if (value.equals(variable.getDefaultStringValue())) reset(variable, playerToMod);
-					else set(variable, playerToMod.getName(), value);
+					else set(variable, playerToModName, value);
 
 					return value;
 				}
@@ -645,7 +653,7 @@ public class VariableManager {
 		if (value == variable.getDefaultValue() && !(variable instanceof MetaVariable)) {
 			reset(variable, playerToMod);
 		} else {
-			set(variable, playerToMod.getName(), value);
+			set(variable, playerToModName, value);
 		}
 
 		return Double.toString(value);
