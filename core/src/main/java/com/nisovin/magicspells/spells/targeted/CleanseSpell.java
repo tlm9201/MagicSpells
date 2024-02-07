@@ -26,11 +26,8 @@ public class CleanseSpell extends TargetedSpell implements TargetedEntitySpell {
 	@Override
 	public void initialize() {
 		super.initialize();
-		try {
-			cleansers = new Cleansers(cleanseList);
-		} catch (IllegalArgumentException exception) {
-			MagicSpells.error("CleanseSpell '" + internalName + "' has an invalid item listed under 'remove': '" + exception.getMessage() + "'");
-		}
+
+		cleansers = new Cleansers(cleanseList, internalName);
 	}
 
 	@Override

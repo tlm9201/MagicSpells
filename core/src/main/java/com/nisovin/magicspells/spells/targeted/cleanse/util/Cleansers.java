@@ -8,6 +8,7 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.ValidTargetChecker;
 import com.nisovin.magicspells.spells.targeted.cleanse.*;
@@ -34,7 +35,7 @@ public class Cleansers {
 
 	private Cleansers() {}
 
-	public Cleansers(List<String> toCleanse) throws IllegalArgumentException {
+	public Cleansers(List<String> toCleanse, String spellName) {
 		try {
 			for (Class<? extends Cleanser> clazz : cleanserClasses) {
 				cleansers.add(clazz.getDeclaredConstructor().newInstance());
@@ -52,14 +53,13 @@ public class Cleansers {
 			return false;
 		};
 
+		outer:
 		for (String string : toCleanse) {
-			boolean added = false;
-			for (Cleanser cleanser : cleansers) {
-				added = cleanser.add(string);
-				if (added) break;
-			}
-			if (added) continue;
-			throw new IllegalArgumentException(string);
+			for (Cleanser cleanser : cleansers)
+				if (cleanser.add(string))
+					continue outer;
+
+			MagicSpells.error("CleanseSpell '" + spellName + "' has an invalid cleanser '" + string + "' defined in 'remove'.");
 		}
 	}
 

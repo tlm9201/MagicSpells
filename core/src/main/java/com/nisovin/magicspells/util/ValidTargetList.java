@@ -129,6 +129,9 @@ public class ValidTargetList {
 	public ValidTargetList(boolean targetPlayers, boolean targetNonPlayers) {
 		this.targetPlayers = targetPlayers;
 		this.targetNonPlayers = targetNonPlayers;
+
+		gameModes.add(GameMode.SURVIVAL);
+		gameModes.add(GameMode.ADVENTURE);
 	}
 	
 	public boolean canTarget(LivingEntity caster, Entity target) {

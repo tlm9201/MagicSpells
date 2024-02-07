@@ -70,8 +70,6 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 
 		if (preventChat) silenced = new ConcurrentHashMap<>();
 		else silenced = new HashMap<>();
-
-		validTargetList = new ValidTargetList(true, false);
 	}
 
 	@Override
