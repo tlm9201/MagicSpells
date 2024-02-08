@@ -144,10 +144,19 @@ public class BowSpell extends Spell {
 	public void initialize() {
 		super.initialize();
 
-		spellOnShoot = initSubspell(spellOnShootName, "BowSpell '" + internalName + "' has an invalid spell defined!");
-		spellOnHitEntity = initSubspell(spellOnHitEntityName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
-		spellOnHitGround = initSubspell(spellOnHitGroundName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
-		spellOnEntityLocation = initSubspell(spellOnEntityLocationName, "ProjectileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
+		String error = "BowSpell '" + internalName + "' has an invalid '%s' defined!";
+		spellOnShoot = initSubspell(spellOnShootName,
+				error.formatted("spell"),
+				true);
+		spellOnHitEntity = initSubspell(spellOnHitEntityName,
+				error.formatted("spell-on-hit-entity"),
+				true);
+		spellOnHitGround = initSubspell(spellOnHitGroundName,
+				error.formatted("spell-on-hit-ground"),
+				true);
+		spellOnEntityLocation = initSubspell(spellOnEntityLocationName,
+				error.formatted("spell-on-entity-location"),
+				true);
 
 		spellOnShootName = null;
 		spellOnHitEntityName = null;

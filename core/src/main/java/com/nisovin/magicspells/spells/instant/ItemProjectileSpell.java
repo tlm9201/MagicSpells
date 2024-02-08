@@ -104,22 +104,18 @@ public class ItemProjectileSpell extends InstantSpell implements TargetedLocatio
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "ItemProjectileSpell '" + internalName + "' has an invalid ";
-
+		String error = "ItemProjectileSpell '" + internalName + "' has an invalid '%s' defined!";
 		spellOnTick = initSubspell(spellOnTickName,
-				prefix + "spell-on-tick defined!",
+				error.formatted("spell-on-tick"),
 				true);
-
 		spellOnDelay = initSubspell(spellOnDelayName,
-				prefix + "spell-on-delay defined!",
+				error.formatted("spell-on-delay"),
 				true);
-
 		spellOnHitEntity = initSubspell(spellOnHitEntityName,
-				prefix + "spell-on-hit-entity defined!",
+				error.formatted("spell-on-hit-entity"),
 				true);
-
 		spellOnHitGround = initSubspell(spellOnHitGroundName,
-				prefix + "spell-on-hit-ground defined!",
+				error.formatted("spell-on-hit-ground"),
 				true);
 	}
 

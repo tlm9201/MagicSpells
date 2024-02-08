@@ -103,27 +103,21 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "BeamSpell '" + internalName + "' has an invalid ";
-
+		String error = "BeamSpell '" + internalName + "' has an invalid '%s' defined!";
 		hitSpell = initSubspell(hitSpellName,
-				prefix + "spell defined!",
+				error.formatted("spell"),
 				true);
-
 		endSpell = initSubspell(endSpellName,
-				prefix + "spell-on-end defined!",
+				error.formatted("spell-on-end"),
 				true);
-
 		travelSpell = initSubspell(travelSpellName,
-				prefix + "spell-on-travel defined!",
+				error.formatted("spell-on-travel"),
 				true);
-
-
 		groundSpell = initSubspell(groundSpellName,
-				prefix + "spell-on-hit-ground defined!",
+				error.formatted("spell-on-hit-ground"),
 				true);
-
 		entityLocationSpell = initSubspell(entityLocationSpellName,
-				prefix + "spell-on-entity-location defined!",
+				error.formatted("spell-on-entity-location"),
 				true);
 
 		zoneManager = MagicSpells.getNoMagicZoneManager();

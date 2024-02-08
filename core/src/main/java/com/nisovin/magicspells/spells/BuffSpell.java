@@ -126,19 +126,16 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "BuffSpell '" + internalName + "' has an invalid ";
+		String error = "BuffSpell '" + internalName + "' has an invalid '%s' defined!";
 		spellOnUseIncrement = initSubspell(spellOnUseIncrementName,
-				prefix + "spell-on-use-increment defined!",
+				error.formatted("spell-on-use-increment"),
 				true);
-
 		spellOnCost = initSubspell(spellOnCostName,
-				prefix + "spell-on-cost defined!",
+				error.formatted("spell-on-cost"),
 				true);
-
 		spellOnEnd = initSubspell(spellOnEndName,
-				prefix + "spell-on-end defined!",
+				error.formatted("spell-on-end"),
 				true);
-
 	}
 
 	@Override

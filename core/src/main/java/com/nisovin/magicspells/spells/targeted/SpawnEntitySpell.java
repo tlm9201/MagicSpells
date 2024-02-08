@@ -230,13 +230,11 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		}
 
 		spellOnSpawn = initSubspell(spellOnSpawnName,
-				prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!");
-
-
+				prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!",
+				true);
 		attackSpell = initSubspell(attackSpellName,
 				prefix + "attack-spell: '" + spellOnSpawnName + "' defined!",
 				true);
-
 	}
 
 	@Override
@@ -553,11 +551,11 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				damager = entity;
 
 			if (damager != monster) return;
+			if (!(event.getEntity() instanceof LivingEntity damaged)) return;
+			if (attackSpell == null) return;
 
-			if (event.getEntity() instanceof LivingEntity damaged) {
-				attackSpell.subcast(data.retarget(damaged, monster.getLocation()));
-				event.setCancelled(cancelAttack);
-			}
+			attackSpell.subcast(data.retarget(damaged, monster.getLocation()));
+			event.setCancelled(cancelAttack);
 		}
 
 		@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

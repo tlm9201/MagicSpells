@@ -147,30 +147,24 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "ProjectileSpell '" + internalName + "' has an invalid ";
-
+		String error = "ProjectileSpell '" + internalName + "' has an invalid '%s' defined!";
 		hitSpell = initSubspell(hitSpellName,
-				prefix + "spell defined!",
+				error.formatted("spell"),
 				true);
-
 		groundSpell = initSubspell(groundSpellName,
-				prefix + "spell-on-hit-ground defined!",
+				error.formatted("spell-on-hit-ground"),
 				true);
-
 		tickSpell = initSubspell(tickSpellName,
-				prefix + "spell-on-tick defined!",
+				error.formatted("spell-on-tick"),
 				true);
-
 		durationSpell = initSubspell(durationSpellName,
-				prefix + "spell-after-duration defined!",
+				error.formatted("spell-after-duration"),
 				true);
-
 		modifierSpell = initSubspell(modifierSpellName,
-				prefix + "spell-on-modifier-fail defined!",
+				error.formatted("spell-on-modifier-fail"),
 				true);
-
 		entityLocationSpell = initSubspell(entityLocationSpellName,
-				prefix + "spell-on-entity-location defined!",
+				error.formatted("spell-on-entity-location"),
 				true);
 	}
 

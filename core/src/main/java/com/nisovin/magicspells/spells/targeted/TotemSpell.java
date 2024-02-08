@@ -71,7 +71,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 	private final String spellOnBreakName;
 	private Subspell spellOnBreak;
 
-	private String spellOnSpawnName;
+	private final String spellOnSpawnName;
 	private Subspell spellOnSpawn;
 
 	public TotemSpell(MagicConfig config, String spellName) {
@@ -168,10 +168,11 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		spellOnBreak = initSubspell(spellOnBreakName,
-				prefix + "spell-on-break: '" + spellOnBreakName + "' defined!");
-
+				prefix + "spell-on-break: '" + spellOnBreakName + "' defined!",
+				true);
 		spellOnSpawn = initSubspell(spellOnSpawnName,
-				prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!");
+				prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!",
+				true);
 
 		if (spells.isEmpty()) MagicSpells.error("TotemSpell '" + internalName + "' has no spells defined!");
 	}

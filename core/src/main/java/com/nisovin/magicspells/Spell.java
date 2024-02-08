@@ -657,12 +657,13 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		registerEvents();
 
 		// Other processing
-		if (spellNameOnFail != null && !spellNameOnFail.isEmpty())
-			spellOnFail = initSubspell(spellNameOnFail, "Spell '" + internalName + "' has an invalid spell-on-fail defined!");
-
-		if (spellNameOnInterrupt != null && !spellNameOnInterrupt.isEmpty()) {
-			spellOnInterrupt = initSubspell(spellNameOnInterrupt, "Spell '" + internalName + "' has an invalid spell-on-interrupt defined!");
-		}
+		String error = "Spell '" + internalName + "' has an invalid '%s' defined!";
+		spellOnFail = initSubspell(spellNameOnFail,
+				error.formatted("spell-on-fail"),
+				true);
+		spellOnInterrupt = initSubspell(spellNameOnInterrupt,
+				error.formatted("spell-on-interrupt"),
+				true);
 	}
 
 	protected boolean configKeyExists(String key) {
@@ -2034,16 +2035,27 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return castItems;
 	}
 
+	/**
+	 * Attempts to initialise a subspell. This method never ignores empty names.
+	 * @see Spell#initSubspell(String, String, boolean)
+	 */
 	protected Subspell initSubspell(String subspellName, String errorMessage) {
 		return initSubspell(subspellName, errorMessage, false);
 	}
 
+	/**
+	 * Attempts to initialise a subspell.
+	 * @see Spell#initSubspell(String, String)
+	 */
 	protected Subspell initSubspell(String subspellName, String errorMessage, boolean ignoreEmptyName) {
-		if (subspellName.isEmpty()) return null;
+		if (ignoreEmptyName && (subspellName == null || subspellName.isEmpty())) return null;
 
+		if (subspellName == null) {
+			MagicSpells.error(errorMessage);
+			return null;
+		}
 		Subspell subspell = new Subspell(subspellName);
 		if (!subspell.process()) {
-			if (ignoreEmptyName && subspellName.isEmpty()) return null;
 			MagicSpells.error(errorMessage);
 			return null;
 		}

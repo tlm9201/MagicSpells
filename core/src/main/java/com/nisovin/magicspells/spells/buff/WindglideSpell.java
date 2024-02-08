@@ -69,12 +69,12 @@ public class WindglideSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 
+		String error = "WindglideSpell " + internalName + " has an invalid '%s' defined!";
 		glideSpell = initSubspell(glideSpellName,
-				"WindglideSpell " + internalName + " has an invalid spell defined: " + glideSpellName,
+				error.formatted("spell"),
 				true);
-
 		collisionSpell = initSubspell(collisionSpellName,
-				"WindglideSpell " + internalName + " has an invalid collision-spell defined: " + collisionSpellName,
+				error.formatted("collision-spell"),
 				true);
 	}
 

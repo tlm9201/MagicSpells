@@ -131,26 +131,21 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "HomingProjectileSpell '" + internalName + "' has an invalid ";
-
+		String error = "HomingProjectileSpell '" + internalName + "' has an invalid '%s' defined!";
 		hitSpell = initSubspell(hitSpellName,
-				prefix + "spell defined!",
+				error.formatted("spell"),
 				true);
-
 		groundSpell = initSubspell(groundSpellName,
-				prefix + "spell-on-hit-ground defined!",
+				error.formatted("spell-on-hit-ground"),
 				true);
-
 		airSpell = initSubspell(airSpellName,
-				prefix + "spell-on-hit-air defined!",
+				error.formatted("spell-on-hit-air"),
 				true);
-
 		durationSpell = initSubspell(durationSpellName,
-				prefix + "spell-after-duration defined!",
+				error.formatted("spell-after-duration"),
 				true);
-
 		modifierSpell = initSubspell(modifierSpellName,
-				prefix + "spell-on-modifier-fail defined!",
+				error.formatted("spell-on-modifier-fail"),
 				true);
 
 		zoneManager = MagicSpells.getNoMagicZoneManager();

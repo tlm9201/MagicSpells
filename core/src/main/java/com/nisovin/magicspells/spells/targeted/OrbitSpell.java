@@ -100,18 +100,15 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "OrbitSpell '" + internalName + "' has an invalid ";
-
+		String error = "OrbitSpell '" + internalName + "' has an invalid '%s' defined!";
 		orbitSpell = initSubspell(orbitSpellName,
-				prefix + "spell defined!",
+				error.formatted("spell"),
 				true);
-
 		groundSpell = initSubspell(groundSpellName,
-				prefix + "spell-on-hit-ground defined!",
+				error.formatted("spell-on-hit-ground"),
 				true);
-
 		entitySpell = initSubspell(entitySpellName,
-				prefix + "spell-on-hit-entity defined!",
+				error.formatted("spell-on-hit-entity"),
 				true);
 	}
 
