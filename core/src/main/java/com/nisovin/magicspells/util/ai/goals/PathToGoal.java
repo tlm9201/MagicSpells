@@ -18,7 +18,7 @@ import com.nisovin.magicspells.util.ai.CustomGoal;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
-@Name(name = "path_to")
+@Name("path_to")
 public class PathToGoal extends CustomGoal {
 
 	private ConfigData<Double> speed;

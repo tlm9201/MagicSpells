@@ -39,7 +39,7 @@ public abstract class CustomGoal implements Goal<Mob> {
 	public final GoalKey<Mob> getKey() {
 		Name name = getClass().getAnnotation(Name.class);
 		if (name == null) throw new IllegalStateException("Missing 'Name' annotation from Goal class");
-		return GoalKey.of(Mob.class, new NamespacedKey(MagicSpells.getInstance(), name.name()));
+		return GoalKey.of(Mob.class, new NamespacedKey(MagicSpells.getInstance(), name.value()));
 	}
 
 }

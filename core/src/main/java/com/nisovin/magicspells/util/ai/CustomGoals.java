@@ -48,7 +48,7 @@ public class CustomGoals {
 	public static void addGoal(Class<? extends CustomGoal> goal) {
 		Name name = goal.getAnnotation(Name.class);
 		if (name == null) throw new IllegalStateException("Missing 'Name' annotation from CustomGoal class.");
-		GOALS.put(name.name(), goal);
+		GOALS.put(name.value(), goal);
 	}
 
 	public static CustomGoal getGoal(String name, Mob mob, SpellData data) {
