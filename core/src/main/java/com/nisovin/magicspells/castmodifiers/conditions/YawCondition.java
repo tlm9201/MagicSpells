@@ -5,8 +5,10 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
+@Name("yaw")
 public class YawCondition extends OperatorCondition {
 	
 	private float yaw;

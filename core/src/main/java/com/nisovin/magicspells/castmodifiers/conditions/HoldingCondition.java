@@ -14,10 +14,12 @@ import org.jetbrains.annotations.NotNull;
 
 import net.kyori.adventure.text.Component;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("holding")
 public class HoldingCondition extends Condition {
 
 	private Material[] ids;

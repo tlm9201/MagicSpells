@@ -10,12 +10,14 @@ import org.bukkit.inventory.EntityEquipment;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
 // Only accepts magic items and uses a much stricter match
+@Name("hasitemprecise")
 public class HasItemPreciseCondition extends Condition {
 
 	private MagicItemData itemData = null;

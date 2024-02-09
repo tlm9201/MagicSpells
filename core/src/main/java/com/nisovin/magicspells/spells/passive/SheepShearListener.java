@@ -11,11 +11,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerShearEntityEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Optional trigger variable that can either be set to a dye color to accept or "all"
+@Name("sheepshear")
 public class SheepShearListener extends PassiveListener {
 
 	private final EnumSet<DyeColor> dyeColors = EnumSet.noneOf(DyeColor.class);

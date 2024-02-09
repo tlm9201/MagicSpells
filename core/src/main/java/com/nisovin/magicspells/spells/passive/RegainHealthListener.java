@@ -10,10 +10,12 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("regainhealth")
 public class RegainHealthListener extends PassiveListener {
 
 	private final EnumSet<RegainReason> reasons = EnumSet.noneOf(RegainReason.class);

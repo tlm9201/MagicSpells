@@ -7,11 +7,12 @@ import org.bukkit.inventory.EntityEquipment;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
-// TODO this should be refactored along with the other 'has item' related conditions to reduce redundant code
+@Name("holdingprecise")
 public class HoldingPreciseCondition extends Condition {
 
 	private MagicItemData itemData = null;

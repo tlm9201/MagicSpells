@@ -5,8 +5,10 @@ import org.jetbrains.annotations.NotNull;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("silent")
 public class SilentCondition extends Condition {
 
 	@Override

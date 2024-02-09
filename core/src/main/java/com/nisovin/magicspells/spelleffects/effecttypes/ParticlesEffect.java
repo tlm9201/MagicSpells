@@ -15,6 +15,7 @@ import org.bukkit.Vibration.Destination;
 import org.bukkit.Particle.DustTransition;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
@@ -22,6 +23,7 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 import static org.bukkit.Vibration.Destination.*;
 
+@Name("particles")
 public class ParticlesEffect extends SpellEffect {
 
 	protected ConfigData<Particle> particle;

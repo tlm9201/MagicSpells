@@ -12,9 +12,11 @@ import org.bukkit.inventory.EntityEquipment;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("durability")
 public class DurabilityCondition extends Condition {
 
 	private Set<DurabilityChecker> durabilitySet;

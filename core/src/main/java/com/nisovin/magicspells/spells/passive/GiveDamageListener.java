@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -23,6 +24,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Optional trigger variable of a pipe separated list that can contain
 // damage causes or damaging magic items to accept
+@Name("givedamage")
 public class GiveDamageListener extends PassiveListener {
 
 	private final EnumSet<DamageCause> damageCauses = EnumSet.noneOf(DamageCause.class);

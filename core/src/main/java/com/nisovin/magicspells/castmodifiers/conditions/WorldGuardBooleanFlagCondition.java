@@ -11,10 +11,12 @@ import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.flags.BooleanFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardCondition;
 
 @DependsOn("WorldGuard")
+@Name("worldguardbooleanflag")
 public class WorldGuardBooleanFlagCondition extends AbstractWorldGuardCondition {
 
 	protected static final Map<String, BooleanFlag> flags = new HashMap<>();

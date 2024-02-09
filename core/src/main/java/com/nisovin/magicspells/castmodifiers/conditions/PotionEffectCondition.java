@@ -10,9 +10,11 @@ import org.bukkit.potion.PotionEffectType;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
+@Name("potioneffect")
 public class PotionEffectCondition extends OperatorCondition {
 
 	private static final Pattern PATTERN = Pattern.compile("^(?<potion>\\w+)(?:(?<op>[:=<>])(?<potency>\\d+))?$");

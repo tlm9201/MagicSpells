@@ -9,11 +9,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Optional trigger variable of comma separated list of teleport causes to accept
+@Name("teleport")
 public class TeleportListener extends PassiveListener {
 
 	private final EnumSet<TeleportCause> teleportCauses = EnumSet.noneOf(TeleportCause.class);

@@ -7,12 +7,14 @@ import org.bukkit.event.EventHandler;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
-import com.nisovin.magicspells.events.ManaChangeEvent;
 import com.nisovin.magicspells.mana.ManaChangeReason;
+import com.nisovin.magicspells.events.ManaChangeEvent;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("manachange")
 public class ManaChangeListener extends PassiveListener {
 
 	private final EnumSet<ManaChangeReason> reasons = EnumSet.noneOf(ManaChangeReason.class);

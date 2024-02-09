@@ -6,8 +6,10 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
+@Name("saturation")
 public class SaturationCondition extends OperatorCondition {
 
 	private float saturation;

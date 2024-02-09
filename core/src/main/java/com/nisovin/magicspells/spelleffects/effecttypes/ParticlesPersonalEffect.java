@@ -7,10 +7,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
+@Name("particlespersonal")
 public class ParticlesPersonalEffect extends ParticlesEffect {
 
 	protected ConfigData<ParticlePosition> target;

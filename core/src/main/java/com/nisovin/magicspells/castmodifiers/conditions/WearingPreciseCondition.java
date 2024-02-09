@@ -7,10 +7,12 @@ import org.bukkit.inventory.EntityEquipment;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
+@Name("wearingprecise")
 public class WearingPreciseCondition extends Condition {
 
 	private MagicItemData itemData = null;

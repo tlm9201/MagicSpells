@@ -1,9 +1,11 @@
 package com.nisovin.magicspells.variables.variabletypes;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.variables.Variable;
 
 import org.bukkit.configuration.ConfigurationSection;
 
+@Name("globalstring")
 public class GlobalStringVariable extends Variable {
 
 	private String value;

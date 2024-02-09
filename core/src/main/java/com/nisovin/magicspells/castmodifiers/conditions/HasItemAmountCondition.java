@@ -7,13 +7,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.EntityEquipment;
 
+import org.jetbrains.annotations.NotNull;
+
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.InventoryUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
-import org.jetbrains.annotations.NotNull;
 
+@Name("hasitemamount")
 public class HasItemAmountCondition extends OperatorCondition {
 
 	private MagicItemData itemData;

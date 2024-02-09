@@ -6,10 +6,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityShootBowEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// No trigger variable is used here
+@Name("shoot")
 public class ShootListener extends PassiveListener {
 
 	@Override

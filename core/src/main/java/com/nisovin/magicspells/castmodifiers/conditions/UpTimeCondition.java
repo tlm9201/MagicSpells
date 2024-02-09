@@ -5,10 +5,12 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("uptime")
 public class UpTimeCondition extends Condition {
 
 	private static final long startTime = System.currentTimeMillis();

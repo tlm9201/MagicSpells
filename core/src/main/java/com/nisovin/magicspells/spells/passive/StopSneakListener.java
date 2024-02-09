@@ -6,9 +6,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("stopsneak")
 public class StopSneakListener extends PassiveListener {
 
 	@Override

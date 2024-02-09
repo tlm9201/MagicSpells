@@ -8,12 +8,14 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
+@Name("smoketrail")
 public class SmokeTrailEffect extends SpellEffect {
 
 	private ConfigData<Integer> interval;
@@ -37,10 +39,10 @@ public class SmokeTrailEffect extends SpellEffect {
 	// Thanks to DrBowe for sharing the code
 	private static class SmokeStreamEffect implements Runnable {
 
-		private Location startLoc;
-		private Location endLoc;
-		private List<Location> locationsForProjection;
-		private World world;
+		private final Location startLoc;
+		private final Location endLoc;
+		private final List<Location> locationsForProjection;
+		private final World world;
 
 		private int i;
 		private int id;

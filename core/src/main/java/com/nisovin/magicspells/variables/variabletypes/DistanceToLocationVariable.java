@@ -5,9 +5,11 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.variables.Variable;
 
+@Name("distancetolocation")
 public class DistanceToLocationVariable extends Variable {
 
 	// If true, distance will be calculated across worlds.

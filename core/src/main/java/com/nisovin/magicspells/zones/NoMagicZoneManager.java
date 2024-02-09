@@ -11,6 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -25,8 +26,8 @@ public class NoMagicZoneManager {
 	public NoMagicZoneManager() {
 		// Create zone types
 		zoneTypes = new HashMap<>();
-		zoneTypes.put("cuboid", NoMagicZoneCuboid.class);
-		zoneTypes.put("worldguard", NoMagicZoneWorldGuard.class);
+		addZoneType(NoMagicZoneCuboid.class);
+		addZoneType(NoMagicZoneWorldGuard.class);
 	}
 
 	// DEBUG INFO: level 3, loaded no magic zone, zoneName
@@ -129,14 +130,23 @@ public class NoMagicZoneManager {
 		}
 	}
 
-	public int zoneCount() {
-		return zones.size();
-	}
-
 	public Map<String, NoMagicZone> getZones() {
 		return zones;
 	}
 
+	/**
+	 * @param type must be annotated with {@link Name}.
+	 */
+	public void addZoneType(Class<? extends NoMagicZone> type) {
+		Name name = type.getAnnotation(Name.class);
+		if (name == null) throw new IllegalStateException("Missing 'Name' annotation on NoMagicZone class: " + type.getName());
+		zoneTypes.put(name.value(), type);
+	}
+
+	/**
+	 * @deprecated Use {@link NoMagicZoneManager#addZoneType(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addZoneType(String name, Class<? extends NoMagicZone> clazz) {
 		zoneTypes.put(name, clazz);
 	}

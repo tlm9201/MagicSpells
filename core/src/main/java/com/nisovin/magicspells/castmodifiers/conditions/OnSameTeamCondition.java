@@ -8,8 +8,10 @@ import org.bukkit.scoreboard.Scoreboard;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("onsameteam")
 public class OnSameTeamCondition extends Condition {
 	
 	@Override

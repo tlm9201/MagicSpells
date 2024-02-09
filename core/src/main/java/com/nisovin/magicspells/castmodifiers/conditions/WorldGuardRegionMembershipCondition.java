@@ -5,11 +5,13 @@ import org.jetbrains.annotations.NotNull;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardCondition;
 
 @DependsOn("WorldGuard")
+@Name("worldguardmembership")
 public class WorldGuardRegionMembershipCondition extends AbstractWorldGuardCondition {
 
 	private Type type = Type.MEMBER;

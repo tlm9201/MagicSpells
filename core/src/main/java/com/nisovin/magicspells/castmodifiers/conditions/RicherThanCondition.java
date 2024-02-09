@@ -6,6 +6,7 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
@@ -14,6 +15,7 @@ import com.nisovin.magicspells.castmodifiers.Condition;
  * 
  * @author TheComputerGeek2
  */
+@Name("richerthan")
 public class RicherThanCondition extends Condition {
 	
 	@Override

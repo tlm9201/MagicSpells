@@ -8,10 +8,12 @@ import org.jetbrains.annotations.NotNull;
 import me.ryanhamshire.GriefPrevention.Claim;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 @DependsOn("GriefPrevention")
+@Name("griefpreventionisowner")
 public class GriefPreventionIsOwnerCondition extends Condition {
 
 	@Override

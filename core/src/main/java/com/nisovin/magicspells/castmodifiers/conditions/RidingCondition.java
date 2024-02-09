@@ -7,9 +7,11 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("riding")
 public class RidingCondition extends Condition {
 
 	private EntityType entityType;

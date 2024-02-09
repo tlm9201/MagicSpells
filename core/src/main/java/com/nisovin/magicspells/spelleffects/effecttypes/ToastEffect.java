@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
@@ -18,6 +19,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 import io.papermc.paper.advancement.AdvancementDisplay.Frame;
 
+@Name("toast")
 public class ToastEffect extends SpellEffect {
 
 	private String text;

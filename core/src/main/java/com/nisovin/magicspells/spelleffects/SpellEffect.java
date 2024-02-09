@@ -12,6 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
 import com.nisovin.magicspells.util.SpellData;
@@ -27,6 +28,9 @@ import com.nisovin.magicspells.spelleffects.trackers.OrbitEffectlibTracker;
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.util.VectorUtils;
 
+/**
+ * Annotate this class with {@link Name} which will hold the configuration name of the spell effect.
+ */
 public abstract class SpellEffect {
 
 	protected final Random random = ThreadLocalRandom.current();

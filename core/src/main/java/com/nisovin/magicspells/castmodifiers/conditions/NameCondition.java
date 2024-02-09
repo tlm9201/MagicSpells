@@ -5,9 +5,11 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("name")
 public class NameCondition extends Condition {
 
 	private String name;

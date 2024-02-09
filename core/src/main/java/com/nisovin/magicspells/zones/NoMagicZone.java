@@ -5,8 +5,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.SpellFilter;
 
+/**
+ * Annotate this class with {@link Name} which will hold the configuration name of the no magic zone.
+ */
 public abstract class NoMagicZone implements Comparable<NoMagicZone> {
 
 	private String id;

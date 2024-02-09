@@ -1,8 +1,11 @@
 package com.nisovin.magicspells.zones;
 
+import com.nisovin.magicspells.util.Name;
+
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
+@Name("cuboid")
 public class NoMagicZoneCuboid extends NoMagicZone {
 	
 	private String worldName;

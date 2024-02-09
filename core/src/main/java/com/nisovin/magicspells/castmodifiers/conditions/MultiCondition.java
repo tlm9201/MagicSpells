@@ -8,6 +8,7 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
@@ -50,7 +51,7 @@ import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
  * - collection <modifier_name> action action_var
  * where <modifier_name> is the name that you assigned to the modifier collection as shown above
  */
-
+@Name("collection")
 public class MultiCondition extends Condition implements IModifier {
 	
 	private String configPrefix = "general.modifiers.";

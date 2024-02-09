@@ -12,9 +12,11 @@ import org.bukkit.advancement.Advancement;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("advancement")
 public class AdvancementCondition extends Condition {
 
 	private Set<Advancement> advancements;

@@ -3,6 +3,7 @@ package com.nisovin.magicspells.util.managers;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.spelleffects.*;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.spelleffects.effecttypes.*;
@@ -19,10 +20,27 @@ public class SpellEffectManager {
 		return spellEffects;
 	}
 
+	/**
+	 * @param spellEffect must be annotated with {@link Name}.
+	 */
+	public void addSpellEffect(Class<? extends SpellEffect> spellEffect) {
+		Name name = spellEffect.getAnnotation(Name.class);
+		if (name == null) throw new IllegalStateException("Missing 'Name' annotation on SpellEffect class: " + spellEffect.getName());
+		spellEffects.put(name.value(), spellEffect);
+	}
+
+	/**
+	 * @deprecated Use {@link SpellEffectManager#addSpellEffect(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addSpellEffect(String name, Class<? extends SpellEffect> spellEffect) {
 		spellEffects.put(name.toLowerCase(), spellEffect);
 	}
 
+	/**
+	 * @deprecated Use {@link SpellEffectManager#addSpellEffect(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addSpellEffect(Class<? extends SpellEffect> spellEffect, String name) {
 		spellEffects.put(name.toLowerCase(), spellEffect);
 	}
@@ -44,38 +62,38 @@ public class SpellEffectManager {
 	}
 
 	private void initialize() {
-		addSpellEffect("armorstand", ArmorStandEffect.class);
-		addSpellEffect("actionbartext", ActionBarTextEffect.class);
-		addSpellEffect("bossbar", BossBarEffect.class);
-		addSpellEffect("blockbreak", BlockBreakEffect.class);
-		addSpellEffect("broadcast", BroadcastEffect.class);
-		addSpellEffect("cloud", CloudEffect.class);
-		addSpellEffect("dragondeath", DragonDeathEffect.class);
-		addSpellEffect("ender", EnderSignalEffect.class);
-		addSpellEffect("entity", EntityEffect.class);
-		addSpellEffect("explosion", ExplosionEffect.class);
-		addSpellEffect("fireworks", FireworksEffect.class);
-		addSpellEffect("gametestaddmarker", GameTestAddMarkerEffect.class);
-		addSpellEffect("gametestclearmarkers", GameTestClearMarkersEffect.class);
-		addSpellEffect("itemcooldown", ItemCooldownEffect.class);
-		addSpellEffect("itemspray", ItemSprayEffect.class);
-		addSpellEffect("lightning", LightningEffect.class);
-		addSpellEffect("nova", NovaEffect.class);
-		addSpellEffect("particles", ParticlesEffect.class);
-		addSpellEffect("particlespersonal", ParticlesPersonalEffect.class);
-		addSpellEffect("particlecloud", ParticleCloudEffect.class);
-		addSpellEffect("potion", PotionEffect.class);
-		addSpellEffect("smokeswirl", SmokeSwirlEffect.class);
-		addSpellEffect("smoketrail", SmokeTrailEffect.class);
-		addSpellEffect("sound", SoundEffect.class);
-		addSpellEffect("soundpersonal", SoundPersonalEffect.class);
-		addSpellEffect("spawn", MobSpawnerEffect.class);
-		addSpellEffect("splash", SplashPotionEffect.class);
-		addSpellEffect("title", TitleEffect.class);
-		addSpellEffect("toast", ToastEffect.class);
-		addSpellEffect("effectlib", EffectLibEffect.class);
-		addSpellEffect("effectlibline", EffectLibLineEffect.class);
-		addSpellEffect("effectlibentity", EffectLibEntityEffect.class);
+		addSpellEffect(ArmorStandEffect.class);
+		addSpellEffect(ActionBarTextEffect.class);
+		addSpellEffect(BossBarEffect.class);
+		addSpellEffect(BlockBreakEffect.class);
+		addSpellEffect(BroadcastEffect.class);
+		addSpellEffect(CloudEffect.class);
+		addSpellEffect(DragonDeathEffect.class);
+		addSpellEffect(EnderSignalEffect.class);
+		addSpellEffect(EntityEffect.class);
+		addSpellEffect(ExplosionEffect.class);
+		addSpellEffect(FireworksEffect.class);
+		addSpellEffect(GameTestAddMarkerEffect.class);
+		addSpellEffect(GameTestClearMarkersEffect.class);
+		addSpellEffect(ItemCooldownEffect.class);
+		addSpellEffect(ItemSprayEffect.class);
+		addSpellEffect(LightningEffect.class);
+		addSpellEffect(NovaEffect.class);
+		addSpellEffect(ParticlesEffect.class);
+		addSpellEffect(ParticlesPersonalEffect.class);
+		addSpellEffect(ParticleCloudEffect.class);
+		addSpellEffect(PotionEffect.class);
+		addSpellEffect(SmokeSwirlEffect.class);
+		addSpellEffect(SmokeTrailEffect.class);
+		addSpellEffect(SoundEffect.class);
+		addSpellEffect(SoundPersonalEffect.class);
+		addSpellEffect(MobSpawnerEffect.class);
+		addSpellEffect(SplashPotionEffect.class);
+		addSpellEffect(TitleEffect.class);
+		addSpellEffect(ToastEffect.class);
+		addSpellEffect(EffectLibEffect.class);
+		addSpellEffect(EffectLibLineEffect.class);
+		addSpellEffect(EffectLibEntityEffect.class);
 	}
 
 }

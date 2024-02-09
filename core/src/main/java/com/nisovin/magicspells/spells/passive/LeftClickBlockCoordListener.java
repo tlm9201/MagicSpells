@@ -13,6 +13,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -22,6 +23,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // The format of locations is world,x,y,z
 // Where "world" is a string
 // And x, y, and z are integers
+@Name("leftclickblockcoord")
 public class LeftClickBlockCoordListener extends PassiveListener {
 
 	private final Set<Location> locations = new HashSet<>();

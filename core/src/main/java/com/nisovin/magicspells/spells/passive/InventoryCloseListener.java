@@ -9,11 +9,13 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Optional trigger variable that may contain a comma separated list of inventory names to trigger on
+@Name("inventoryclose")
 public class InventoryCloseListener extends PassiveListener {
 
 	private final Set<String> inventoryNames = new HashSet<>();

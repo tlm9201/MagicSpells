@@ -6,10 +6,12 @@ import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("buffactive")
 public class BuffActiveCondition extends Condition {
 
 	private BuffSpell buff;

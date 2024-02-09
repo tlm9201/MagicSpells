@@ -10,8 +10,10 @@ import org.bukkit.block.data.BlockData;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("inblock")
 public class InBlockCondition extends Condition {
 
 	private Set<BlockData> blockDataSet;

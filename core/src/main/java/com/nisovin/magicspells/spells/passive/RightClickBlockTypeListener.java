@@ -12,12 +12,14 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Trigger variable accepts a comma separated list of blocks to accept
+@Name("rightclickblocktype")
 public class RightClickBlockTypeListener extends PassiveListener {
 
 	private final EnumSet<Material> materials = EnumSet.noneOf(Material.class);

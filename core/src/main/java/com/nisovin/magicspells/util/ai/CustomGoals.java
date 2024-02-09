@@ -45,9 +45,12 @@ public class CustomGoals {
 		return VANILLA_GOAL_KEYS.get(fieldName.toUpperCase());
 	}
 
+	/**
+	 * @param goal must be annotated with {@link Name}.
+	 */
 	public static void addGoal(Class<? extends CustomGoal> goal) {
 		Name name = goal.getAnnotation(Name.class);
-		if (name == null) throw new IllegalStateException("Missing 'Name' annotation from CustomGoal class.");
+		if (name == null) throw new IllegalStateException("Missing 'Name' annotation from CustomGoal class: " + goal.getName());
 		GOALS.put(name.value(), goal);
 	}
 

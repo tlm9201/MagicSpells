@@ -5,9 +5,11 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.compat.CompatBasics;
 
+@Name("pluginenabled")
 public class PluginEnabledCondition extends Condition {
 
 	private String pluginName = null;

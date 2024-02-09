@@ -5,6 +5,7 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.ModifierResult;
@@ -18,14 +19,9 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 import com.nisovin.magicspells.events.MagicSpellsGenericPlayerEvent;
 
 /**
- * Valid condition variable arguments are any of the following:
- * NORMAL
- * ON_COOLDOWN
- * MISSING_REAGENTS
- * CANT_CAST
- * NO_MAGIC_ZONE
- * WRONG_WORLD
+ * Valid condition variable arguments are any of the following: {@link SpellCastState}
  */
+@Name("spellcaststate")
 public class SpellCastStateCondition extends Condition implements IModifier {
 
 	private SpellCastState state;

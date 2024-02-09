@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -19,6 +20,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // Trigger variable option is optional
 // If not defined, it will trigger regardless of entity type
 // If specified, it should be a comma separated list of entity types to accept
+@Name("rightclickentity")
 public class RightClickEntityListener extends PassiveListener {
 
 	private final EnumSet<EntityType> entities = EnumSet.noneOf(EntityType.class);

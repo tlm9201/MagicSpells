@@ -6,11 +6,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("playermove")
 public class PlayerMoveListener extends PassiveListener {
 
 	private double tolerance = -1;

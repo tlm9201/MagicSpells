@@ -3,8 +3,10 @@ package com.nisovin.magicspells.variables.variabletypes;
 import java.util.Map;
 import java.util.HashMap;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.variables.Variable;
 
+@Name("player")
 public class PlayerVariable extends Variable {
 
 	private final Map<String, Double> map = new HashMap<>();

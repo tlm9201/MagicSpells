@@ -8,10 +8,12 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("biome")
 public class BiomeCondition extends Condition {
 	
 	private final EnumSet<Biome> biomes = EnumSet.noneOf(Biome.class);

@@ -6,10 +6,12 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import de.slikey.effectlib.util.DynamicLocation;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
+@Name("effectlibline")
 public class EffectLibLineEffect extends EffectLibEffect {
 
 	private ConfigData<Boolean> forceStaticOriginLocation;

@@ -10,11 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import org.spigotmc.event.entity.EntityMountEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("mount")
 public class MountListener extends PassiveListener {
 
 	private final EnumSet<EntityType> types = EnumSet.noneOf(EntityType.class);

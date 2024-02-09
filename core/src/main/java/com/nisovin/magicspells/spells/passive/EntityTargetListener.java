@@ -9,12 +9,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityTargetEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 import static org.bukkit.event.entity.EntityTargetEvent.TargetReason;
 
+@Name("entitytarget")
 public class EntityTargetListener extends PassiveListener {
 
 	private final Set<TargetReason> targetReasons = EnumSet.noneOf(TargetReason.class);

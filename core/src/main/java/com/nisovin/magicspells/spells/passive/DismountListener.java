@@ -10,11 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 import org.spigotmc.event.entity.EntityDismountEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("dismount")
 public class DismountListener extends PassiveListener {
 
 	private final EnumSet<EntityType> types = EnumSet.noneOf(EntityType.class);

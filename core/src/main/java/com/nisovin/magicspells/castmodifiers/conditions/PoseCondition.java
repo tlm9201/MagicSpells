@@ -9,8 +9,10 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("pose")
 public class PoseCondition extends Condition {
 
 	private final Set<Pose> poses = EnumSet.noneOf(Pose.class);
