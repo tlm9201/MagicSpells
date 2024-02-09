@@ -224,7 +224,7 @@ public class FlightPathSpell extends InstantSpell {
 				Location l = caster.getLocation();
 				if (!l.getBlock().getType().isAir() || !l.subtract(0, 1, 0).getBlock().getType().isAir() || !l.subtract(0, 2, 0).getBlock().getType().isAir()) {
 					caster.setFallDistance(0f);
-					landSpell.subcast(data);
+					if (landSpell != null) landSpell.subcast(data);
 					cancel();
 					return;
 				} else {
