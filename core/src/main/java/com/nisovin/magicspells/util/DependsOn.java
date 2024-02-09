@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.castmodifiers.conditions.util;
+package com.nisovin.magicspells.util;
 
 import java.lang.annotation.Target;
 import java.lang.annotation.Retention;
@@ -9,6 +9,6 @@ import java.lang.annotation.RetentionPolicy;
 @Target(ElementType.TYPE)
 public @interface DependsOn {
 
-	String plugin();
+	String[] value();
 
 }

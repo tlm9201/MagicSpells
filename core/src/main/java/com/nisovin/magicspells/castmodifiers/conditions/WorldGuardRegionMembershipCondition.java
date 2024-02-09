@@ -6,10 +6,10 @@ import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.castmodifiers.conditions.util.DependsOn;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardCondition;
 
-@DependsOn(plugin = "WorldGuard")
+@DependsOn("WorldGuard")
 public class WorldGuardRegionMembershipCondition extends AbstractWorldGuardCondition {
 
 	private Type type = Type.MEMBER;

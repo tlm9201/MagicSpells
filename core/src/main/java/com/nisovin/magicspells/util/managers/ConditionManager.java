@@ -3,12 +3,11 @@ package com.nisovin.magicspells.util.managers;
 import java.util.Map;
 import java.util.HashMap;
 
-import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.castmodifiers.conditions.*;
-import com.nisovin.magicspells.castmodifiers.conditions.util.DependsOn;
 
 public class ConditionManager {
 
@@ -42,10 +41,7 @@ public class ConditionManager {
 
 		// Check if depending plugin is enabled.
 		DependsOn dependsOn = clazz.getAnnotation(DependsOn.class);
-		if (dependsOn != null && !CompatBasics.pluginEnabled(dependsOn.plugin())) {
-			MagicSpells.error("Could not load modifier condition '" + name + "' because plugin '" + dependsOn.plugin() + "' is not enabled.");
-			return null;
-		}
+		if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) return null;
 
 		try {
 			return clazz.getDeclaredConstructor().newInstance();

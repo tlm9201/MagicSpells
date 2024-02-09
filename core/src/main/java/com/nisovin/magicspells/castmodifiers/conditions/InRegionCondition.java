@@ -12,10 +12,10 @@ import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.castmodifiers.conditions.util.DependsOn;
 
-@DependsOn(plugin = "WorldGuard")
+@DependsOn("WorldGuard")
 public class InRegionCondition extends Condition {
 
 	private String worldName;

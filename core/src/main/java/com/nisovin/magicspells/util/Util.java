@@ -554,6 +554,16 @@ public class Util {
 		return new Location(location.getWorld(), x, y, z, yaw, pitch);
 	}
 
+	public static boolean checkPluginsEnabled(String[] plugins) {
+		boolean all = true;
+		for (String plugin : plugins) {
+			if (Bukkit.getPluginManager().isPluginEnabled(plugin)) continue;
+			MagicSpells.error("Plugin '" + plugin + "' is not enabled.");
+			all = false;
+		}
+		return all;
+	}
+
 	public static Component getLegacyFromString(String input) {
 		if (input.isEmpty()) return Component.text("");
 		Component component = LegacyComponentSerializer.builder()
