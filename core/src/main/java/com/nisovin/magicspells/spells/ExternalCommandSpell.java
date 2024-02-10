@@ -2,29 +2,25 @@ package com.nisovin.magicspells.spells;
 
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.conversations.Prompt;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.BlockCommandSender;
-import org.bukkit.conversations.StringPrompt;
-import org.bukkit.conversations.Conversation;
-import org.bukkit.conversations.ConversationContext;
-import org.bukkit.conversations.ConversationFactory;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
+import com.nisovin.magicspells.util.messagelistener.MessageListener;
+import com.nisovin.magicspells.util.messagelistener.MessageListenerFactory;
+import com.nisovin.magicspells.util.messagelistener.MessageListener.ListenerData;
 
 public class ExternalCommandSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private static MessageBlocker messageBlocker;
+	private static MessageListener messageListener;
 
 	private final List<String> commandToBlock;
 	private final List<String> commandToExecute;
@@ -33,18 +29,18 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 
 	private final ConfigData<Integer> commandDelay;
 
-	private final boolean blockChatOutput;
 	private final boolean requirePlayerTarget;
 	private final ConfigData<Boolean> temporaryOp;
+	private final ConfigData<Boolean> blockChatOutput;
 	private final ConfigData<Boolean> doVariableReplacement;
 	private final ConfigData<Boolean> executeAsTargetInstead;
 	private final ConfigData<Boolean> executeOnConsoleInstead;
 	private final ConfigData<Boolean> useTargetVariablesInstead;
 
-	private final String strBlockedOutput;
 	private final String strCantUseCommand;
 
-	private ConversationFactory convoFac;
+	private final ConfigData<String> storeChatOutput;
+	private final ConfigData<String> strBlockedOutput;
 
 	public ExternalCommandSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -57,7 +53,7 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 		commandDelay = getConfigDataInt("command-delay", 0);
 
 		temporaryOp = getConfigDataBoolean("temporary-op", false);
-		blockChatOutput = getConfigBoolean("block-chat-output", false);
+		blockChatOutput = getConfigDataBoolean("block-chat-output", false);
 		requirePlayerTarget = getConfigBoolean("require-player-target", false);
 		doVariableReplacement = getConfigDataBoolean("do-variable-replacement", false);
 		executeAsTargetInstead = getConfigDataBoolean("execute-as-target-instead", false);
@@ -65,43 +61,22 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 		useTargetVariablesInstead = getConfigDataBoolean("use-target-variables-instead", false);
 
 		strNoTarget = getConfigString("str-no-target", "No target found.");
-		strBlockedOutput = getConfigString("str-blocked-output", "");
 		strCantUseCommand = getConfigString("str-cant-use-command", "&4You don't have permission to do that.");
+
+		strBlockedOutput = getConfigDataString("str-blocked-output", "");
+		storeChatOutput = getConfigDataString("store-chat-output", null);
 
 		if (requirePlayerTarget) validTargetList = new ValidTargetList(true, false);
 
-		if (blockChatOutput) {
-			if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
-				if (messageBlocker == null) messageBlocker = new MessageBlocker();
-			} else {
-				Prompt convoPrompt = new StringPrompt() {
-
-					@NotNull
-					@Override
-					public String getPromptText(@NotNull ConversationContext context) {
-						return strBlockedOutput;
-					}
-
-					@Override
-					public Prompt acceptInput(@NotNull ConversationContext context, String input) {
-						return Prompt.END_OF_CONVERSATION;
-					}
-
-				};
-
-				convoFac = new ConversationFactory(MagicSpells.plugin)
-					.withModality(true)
-					.withFirstPrompt(convoPrompt)
-					.withTimeout(1);
-			}
-		}
+		if (messageListener != null) return;
+		messageListener = MessageListenerFactory.create();
 	}
 
 	@Override
 	public void turnOff() {
-		if (messageBlocker == null) return;
-		messageBlocker.turnOff();
-		messageBlocker = null;
+		if (messageListener == null) return;
+		messageListener.turnOff();
+		messageListener = null;
 	}
 
 	@Override
@@ -161,15 +136,13 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 		// Perform commands
 		try {
 			if (commandToExecute != null && !commandToExecute.isEmpty()) {
-
-				Conversation convo = null;
 				if (sender instanceof Player player) {
-					if (blockChatOutput && messageBlocker != null) {
-						messageBlocker.addPlayer(player);
-					} else if (convoFac != null) {
-						convo = convoFac.buildConversation(player);
-						convo.begin();
-					}
+					ListenerData listenerData = new ListenerData(
+							blockChatOutput.get(data),
+							strBlockedOutput.get(data),
+							storeChatOutput.get(data)
+					);
+					messageListener.addPlayer(player, listenerData);
 				}
 
 				int delay = 0;
@@ -206,9 +179,7 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 						Bukkit.dispatchCommand(actualSender, comm);
 					}
 				}
-				if (blockChatOutput && messageBlocker != null && sender instanceof Player player)
-					messageBlocker.removePlayer(player);
-				else if (convo != null) convo.abandon();
+				if (sender instanceof Player player) messageListener.removePlayer(player);
 			}
 		} catch (Exception e) {
 			// Catch all exceptions to make sure we don't leave someone opped
@@ -296,14 +267,13 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 
 			// Run commands
 			try {
-				Conversation convo = null;
 				if (sender instanceof Player player) {
-					if (blockChatOutput && messageBlocker != null) {
-						messageBlocker.addPlayer(player);
-					} else if (convoFac != null) {
-						convo = convoFac.buildConversation(player);
-						convo.begin();
-					}
+					ListenerData listenerData = new ListenerData(
+							blockChatOutput.get(data),
+							strBlockedOutput.get(data),
+							storeChatOutput.get(data)
+					);
+					messageListener.addPlayer(player, listenerData);
 				}
 				for (String comm : commandToExecuteLater) {
 					if (comm == null) continue;
@@ -312,9 +282,7 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 					if (target != null) comm = comm.replace("%t", target.getName());
 					Bukkit.dispatchCommand(actualSender, comm);
 				}
-				if (blockChatOutput && messageBlocker != null && sender instanceof Player player)
-					messageBlocker.removePlayer(player);
-				else if (convo != null) convo.abandon();
+				if (sender instanceof Player player) messageListener.removePlayer(player);
 			} catch (Exception e) {
 				// Catch exceptions to make sure we don't leave someone opped
 				e.printStackTrace();
