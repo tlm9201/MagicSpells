@@ -2,6 +2,7 @@ package com.nisovin.magicspells.spells.command;
 
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.command.CommandSender;
 
@@ -50,7 +51,7 @@ public class TeachSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		List<Player> players = MagicSpells.plugin.getServer().matchPlayer(data.args()[0]);
+		List<Player> players = Bukkit.matchPlayer(data.args()[0]);
 		if (players.size() != 1) {
 			sendMessage(strNoTarget, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -110,7 +111,7 @@ public class TeachSpell extends CommandSpell {
 			sender.sendMessage(strUsage);
 			return true;
 		}
-		List<Player> players = MagicSpells.plugin.getServer().matchPlayer(args[0]);
+		List<Player> players = Bukkit.matchPlayer(args[0]);
 		if (players.size() != 1) {
 			sender.sendMessage(strNoTarget);
 			return true;

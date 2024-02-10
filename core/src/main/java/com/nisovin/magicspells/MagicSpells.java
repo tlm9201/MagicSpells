@@ -266,7 +266,6 @@ public class MagicSpells extends JavaPlugin {
 
 	public void load() {
 		plugin = this;
-		PluginManager pm = plugin.getServer().getPluginManager();
 
 		effectManager = new EffectManager(this);
 		effectManager.enableDebug(debug);
@@ -415,7 +414,7 @@ public class MagicSpells extends JavaPlugin {
 		lifeLengthTracker = new LifeLengthTracker();
 
 		// Call loading event
-		pm.callEvent(new MagicSpellsLoadingEvent(this));
+		Bukkit.getPluginManager().callEvent(new MagicSpellsLoadingEvent(this));
 
 		// Init permissions
 		log("Initializing permissions");
@@ -480,7 +479,7 @@ public class MagicSpells extends JavaPlugin {
 
 		// Load spells
 		log("Loading spells...");
-		loadSpells(config, pm, permGrantChildren, permLearnChildren, permCastChildren, permTeachChildren);
+		loadSpells(permGrantChildren, permLearnChildren, permCastChildren, permTeachChildren);
 		log("...spells loaded: " + spells.size());
 		if (spells.isEmpty()) {
 			MagicSpells.error("No spells loaded!");
@@ -489,55 +488,55 @@ public class MagicSpells extends JavaPlugin {
 
 		log("Finalizing perms...");
 		// Finalize spell permissions
-		addPermission(pm, "grant.*", PermissionDefault.FALSE, permGrantChildren);
-		addPermission(pm, "learn.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permLearnChildren);
-		addPermission(pm, "cast.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permCastChildren);
-		addPermission(pm, "teach.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permTeachChildren);
+		addPermission("grant.*", PermissionDefault.FALSE, permGrantChildren);
+		addPermission("learn.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permLearnChildren);
+		addPermission("cast.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permCastChildren);
+		addPermission("teach.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE, permTeachChildren);
 
 		// Op permissions
-		addPermission(pm, "noreagents", opsIgnoreReagents? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without needing reagents");
-		addPermission(pm, "nocooldown", opsIgnoreCooldowns? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without being affected by cooldowns");
-		addPermission(pm, "nocasttime", opsIgnoreCastTimes? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without being affected by cast times");
-		addPermission(pm, "notarget", PermissionDefault.FALSE, "Prevents being targeted by any targeted spells");
-		addPermission(pm, "silent", PermissionDefault.FALSE, "Prevents cast messages from being broadcast to players");
+		addPermission("noreagents", opsIgnoreReagents? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without needing reagents");
+		addPermission("nocooldown", opsIgnoreCooldowns? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without being affected by cooldowns");
+		addPermission("nocasttime", opsIgnoreCastTimes? PermissionDefault.OP : PermissionDefault.FALSE, "Allows casting without being affected by cast times");
+		addPermission("notarget", PermissionDefault.FALSE, "Prevents being targeted by any targeted spells");
+		addPermission("silent", PermissionDefault.FALSE, "Prevents cast messages from being broadcast to players");
 
 		// Advanced permissions
-		addPermission(pm, "advanced.list", PermissionDefault.FALSE);
-		addPermission(pm, "advanced.forget", PermissionDefault.FALSE);
-		addPermission(pm, "advanced.scroll", PermissionDefault.FALSE);
+		addPermission("advanced.list", PermissionDefault.FALSE);
+		addPermission("advanced.forget", PermissionDefault.FALSE);
+		addPermission("advanced.scroll", PermissionDefault.FALSE);
 		Map<String, Boolean> advancedPermChildren = new HashMap<>();
 		advancedPermChildren.put(Perm.ADVANCED_LIST.getNode(), true);
 		advancedPermChildren.put(Perm.ADVANCED_FORGET.getNode(), true);
 		advancedPermChildren.put(Perm.ADVANCED_SCROLL.getNode(), true);
-		addPermission(pm, "advanced.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.OP, advancedPermChildren);
+		addPermission("advanced.*", defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.OP, advancedPermChildren);
 
 		// Command permissions
-		addPermission(pm, "command.help", PermissionDefault.OP);
-		addPermission(pm, "command.reload", PermissionDefault.OP);
-		addPermission(pm, "command.reload.spellbook", PermissionDefault.OP);
-		addPermission(pm, "command.reload.effectlib", PermissionDefault.OP);
-		addPermission(pm, "command.resetcd", PermissionDefault.OP);
-		addPermission(pm, "command.mana.show", PermissionDefault.OP);
-		addPermission(pm, "command.mana.reset", PermissionDefault.OP);
-		addPermission(pm, "command.mana.setmax", PermissionDefault.OP);
-		addPermission(pm, "command.mana.add", PermissionDefault.OP);
-		addPermission(pm, "command.mana.set", PermissionDefault.OP);
-		addPermission(pm, "command.mana.updaterank", PermissionDefault.OP);
-		addPermission(pm, "command.variable.show", PermissionDefault.OP);
-		addPermission(pm, "command.variable.modify", PermissionDefault.OP);
-		addPermission(pm, "command.magicitem", PermissionDefault.OP);
-		addPermission(pm, "command.util.download", PermissionDefault.OP);
-		addPermission(pm, "command.util.update", PermissionDefault.OP);
-		addPermission(pm, "command.util.saveskin", PermissionDefault.OP);
-		addPermission(pm, "command.profilereport", PermissionDefault.OP);
-		addPermission(pm, "command.debug", PermissionDefault.OP);
-		addPermission(pm, "command.taskinfo", PermissionDefault.OP);
-		addPermission(pm, "command.magicxp", PermissionDefault.OP);
-		addPermission(pm, "command.cast.power", PermissionDefault.OP);
-		addPermission(pm, "command.cast.self", PermissionDefault.TRUE);
-		addPermission(pm, "command.cast.as", PermissionDefault.OP);
-		addPermission(pm, "command.cast.on", PermissionDefault.OP);
-		addPermission(pm, "command.cast.at", PermissionDefault.OP);
+		addPermission("command.help", PermissionDefault.OP);
+		addPermission("command.reload", PermissionDefault.OP);
+		addPermission("command.reload.spellbook", PermissionDefault.OP);
+		addPermission("command.reload.effectlib", PermissionDefault.OP);
+		addPermission("command.resetcd", PermissionDefault.OP);
+		addPermission("command.mana.show", PermissionDefault.OP);
+		addPermission("command.mana.reset", PermissionDefault.OP);
+		addPermission("command.mana.setmax", PermissionDefault.OP);
+		addPermission("command.mana.add", PermissionDefault.OP);
+		addPermission("command.mana.set", PermissionDefault.OP);
+		addPermission("command.mana.updaterank", PermissionDefault.OP);
+		addPermission("command.variable.show", PermissionDefault.OP);
+		addPermission("command.variable.modify", PermissionDefault.OP);
+		addPermission("command.magicitem", PermissionDefault.OP);
+		addPermission("command.util.download", PermissionDefault.OP);
+		addPermission("command.util.update", PermissionDefault.OP);
+		addPermission("command.util.saveskin", PermissionDefault.OP);
+		addPermission("command.profilereport", PermissionDefault.OP);
+		addPermission("command.debug", PermissionDefault.OP);
+		addPermission("command.taskinfo", PermissionDefault.OP);
+		addPermission("command.magicxp", PermissionDefault.OP);
+		addPermission("command.cast.power", PermissionDefault.OP);
+		addPermission("command.cast.self", PermissionDefault.TRUE);
+		addPermission("command.cast.as", PermissionDefault.OP);
+		addPermission("command.cast.on", PermissionDefault.OP);
+		addPermission("command.cast.at", PermissionDefault.OP);
 
 		log("...done");
 
@@ -668,24 +667,23 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	private void loadExternalData() {
-		PluginManager pm = plugin.getServer().getPluginManager();
 		log("Loading external data...");
 
-		loadVariables(pm);
-		loadSpellEffects(pm);
-		loadConditions(pm);
-		loadPassiveListeners(pm);
+		loadVariables();
+		loadSpellEffects();
+		loadConditions();
+		loadPassiveListeners();
 
 		log("...done");
 
 		// Call loaded event
-		pm.callEvent(new MagicSpellsLoadedEvent(this));
+		Bukkit.getPluginManager().callEvent(new MagicSpellsLoadedEvent(this));
 		loaded = true;
 
 		log("MagicSpells loading complete!");
 	}
 
-	private void loadVariables(PluginManager pm) {
+	private void loadVariables() {
 		// Load variables
 		log("Loading variables...");
 		String path = "general.";
@@ -696,7 +694,7 @@ public class MagicSpells extends JavaPlugin {
 		variableManager = new VariableManager();
 
 		// Call variable event
-		pm.callEvent(new VariablesLoadingEvent(plugin, variableManager));
+		Bukkit.getPluginManager().callEvent(new VariablesLoadingEvent(plugin, variableManager));
 
 		variableManager.loadVariables(varSec);
 
@@ -709,26 +707,26 @@ public class MagicSpells extends JavaPlugin {
 		log("...variables loaded: " + (variableManager.getVariables().size() - variableManager.getMetaVariables().size()));
 	}
 
-	private void loadSpellEffects(PluginManager pm) {
+	private void loadSpellEffects() {
 		// Load spell effects
 		log("Loading spell effect types...");
 		spellEffectManager = new SpellEffectManager();
 
 		// Call spell effect event
-		pm.callEvent(new SpellEffectsLoadingEvent(plugin, spellEffectManager));
+		Bukkit.getPluginManager().callEvent(new SpellEffectsLoadingEvent(plugin, spellEffectManager));
 
 		spells.values().forEach(Spell::initializeSpellEffects);
 
 		log("...spell effect types loaded: " + spellEffectManager.getSpellEffects().size());
 	}
 
-	private void loadConditions(PluginManager pm) {
+	private void loadConditions() {
 		// Load conditions
 		log("Loading conditions...");
 		conditionManager = new ConditionManager();
 
 		// Call condition event
-		pm.callEvent(new ConditionsLoadingEvent(plugin, conditionManager));
+		Bukkit.getPluginManager().callEvent(new ConditionsLoadingEvent(plugin, conditionManager));
 
 		for (Spell spell : spells.values()) {
 			spell.initializeModifiers();
@@ -746,13 +744,13 @@ public class MagicSpells extends JavaPlugin {
 		log("...conditions loaded: " + conditionManager.getConditions().size());
 	}
 
-	private void loadPassiveListeners(PluginManager pm) {
+	private void loadPassiveListeners() {
 		// Load passive listeners
 		log("Loading passive listeners...");
 		passiveManager = new PassiveManager();
 
 		// Call passive event
-		pm.callEvent(new PassiveListenersLoadingEvent(plugin, passiveManager));
+		Bukkit.getPluginManager().callEvent(new PassiveListenersLoadingEvent(plugin, passiveManager));
 
 		for (Spell spell : spells.values()) {
 			if (!(spell instanceof PassiveSpell)) continue;
@@ -764,7 +762,7 @@ public class MagicSpells extends JavaPlugin {
 
 	private static final int LONG_LOAD_THRESHOLD = 50;
 	// DEBUG INFO: level 2, loaded spell spellName
-	private void loadSpells(MagicConfig config, PluginManager pm, Map<String, Boolean> permGrantChildren, Map<String, Boolean> permLearnChildren, Map<String, Boolean> permCastChildren, Map<String, Boolean> permTeachChildren) {
+	private void loadSpells(Map<String, Boolean> permGrantChildren, Map<String, Boolean> permLearnChildren, Map<String, Boolean> permCastChildren, Map<String, Boolean> permTeachChildren) {
 		long startTimePre = System.currentTimeMillis();
 
 		// Load classes from folders inside the plugin
@@ -853,13 +851,13 @@ public class MagicSpells extends JavaPlugin {
 			if (!spell.isHelperSpell()) {
 				permName = spell.getPermissionName();
 				if (!spell.isAlwaysGranted()) {
-					addPermission(pm, "grant." + permName, PermissionDefault.FALSE);
+					addPermission("grant." + permName, PermissionDefault.FALSE);
 					permGrantChildren.put(Perm.GRANT.getNode() + permName, true);
 				}
-				addPermission(pm, "learn." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
-				addPermission(pm, "cast." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
-				addPermission(pm, "teach." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
-				if (areTempGrantPermsEnabled()) addPermission(pm, "tempgrant." + permName, PermissionDefault.FALSE);
+				addPermission("learn." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
+				addPermission("cast." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
+				addPermission("teach." + permName, defaultAllPermsFalse ? PermissionDefault.FALSE : PermissionDefault.TRUE);
+				if (areTempGrantPermsEnabled()) addPermission("tempgrant." + permName, PermissionDefault.FALSE);
 
 				permLearnChildren.put(Perm.LEARN.getNode() + permName, true);
 				permCastChildren.put(Perm.CAST.getNode() + permName, true);
@@ -909,23 +907,22 @@ public class MagicSpells extends JavaPlugin {
 		return cl;
 	}
 
-	private void addPermission(PluginManager pm, String perm, PermissionDefault permDefault) {
-		addPermission(pm, perm, permDefault, null, null);
+	private void addPermission(String perm, PermissionDefault permDefault) {
+		addPermission(perm, permDefault, null, null);
 	}
 
-	private void addPermission(PluginManager pm, String perm, PermissionDefault permDefault, String description) {
-		addPermission(pm, perm, permDefault, null, description);
+	private void addPermission(String perm, PermissionDefault permDefault, String description) {
+		addPermission(perm, permDefault, null, description);
 	}
 
-	private void addPermission(PluginManager pm, String perm, PermissionDefault permDefault, Map<String,Boolean> children) {
-		addPermission(pm, perm, permDefault, children, null);
+	private void addPermission(String perm, PermissionDefault permDefault, Map<String,Boolean> children) {
+		addPermission(perm, permDefault, children, null);
 	}
 
-	private void addPermission(PluginManager pm, String perm, PermissionDefault permDefault, Map<String,Boolean> children, String description) {
-		if (pm.getPermission("magicspells." + perm) == null) {
-			if (description == null) pm.addPermission(new Permission("magicspells." + perm, permDefault, children));
-			else pm.addPermission(new Permission("magicspells." + perm, description, permDefault, children));
-		}
+	private void addPermission(String perm, PermissionDefault permDefault, Map<String,Boolean> children, String description) {
+		PluginManager pm = Bukkit.getPluginManager();
+		if (pm.getPermission("magicspells." + perm) != null) return;
+		pm.addPermission(new Permission("magicspells." + perm, description, permDefault, children));
 	}
 
 	public static void setupEffectlib() {
@@ -1814,7 +1811,7 @@ public class MagicSpells extends JavaPlugin {
 					}
 				}
 			};
-			plugin.getServer().getPluginManager().registerEvent(eventClass, listener, priority, executor, plugin, eh.ignoreCancelled());
+			Bukkit.getPluginManager().registerEvent(eventClass, listener, priority, executor, plugin, eh.ignoreCancelled());
 		}
 	}
 
@@ -1866,7 +1863,7 @@ public class MagicSpells extends JavaPlugin {
 			}
 
 			plugin.getLogger().severe("This error has been saved in the errors folder.");
-			writer.println("Server version: " + Bukkit.getServer().getVersion());
+			writer.println("Server version: " + Bukkit.getVersion());
 			writer.println("MagicSpells version: " + plugin.getDescription().getVersion());
 			writer.println("Error log date: " + new Date());
 		} catch (Exception e) {
@@ -2152,7 +2149,7 @@ public class MagicSpells extends JavaPlugin {
 		soundFailMissingReagents = null;
 
 		// Remove star permissions (to allow new spells to be added to them)
-		PluginManager pm = getServer().getPluginManager();
+		PluginManager pm = Bukkit.getPluginManager();
 		pm.removePermission("magicspells.grant.*");
 		pm.removePermission("magicspells.cast.*");
 		pm.removePermission("magicspells.learn.*");

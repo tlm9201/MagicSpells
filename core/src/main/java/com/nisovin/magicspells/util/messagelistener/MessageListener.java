@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.util.messagelistener;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public interface MessageListener {

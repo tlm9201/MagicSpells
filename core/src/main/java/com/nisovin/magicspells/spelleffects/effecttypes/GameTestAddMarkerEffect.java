@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;

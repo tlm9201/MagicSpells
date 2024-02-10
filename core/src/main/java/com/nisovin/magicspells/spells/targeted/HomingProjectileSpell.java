@@ -85,7 +85,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 
 		projectileType = getConfigDataString("projectile-type", "arrow");
 
-		arrowColor = ConfigDataUtil.getColor(config.getMainConfig(), "spells." + internalName + ".arrow-color", null);
+		arrowColor = ConfigDataUtil.getColor(config.getMainConfig(), internalKey + "arrow-color", null);
 
 		relativeOffset = getConfigDataVector("relative-offset", new Vector(0.5, 0.5, 0));
 		targetRelativeOffset = getConfigDataVector("target-relative-offset", new Vector(0, 0.5, 0));

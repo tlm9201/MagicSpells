@@ -27,7 +27,7 @@ public class HoldRightSpell extends TargetedSpell implements TargetedEntitySpell
 	private final ConfigData<Boolean> targetLocation;
 
 	private Subspell spellToCast;
-	private String spellToCastName;
+	private final String spellToCastName;
 
 	public HoldRightSpell(MagicConfig config, String spellName) {
 		super(config, spellName);

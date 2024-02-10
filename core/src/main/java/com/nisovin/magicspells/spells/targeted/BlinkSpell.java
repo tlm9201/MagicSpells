@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.spells.targeted;
 
-
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.util.RayTraceResult;

@@ -146,7 +146,7 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 
 						marks.put(uuid, new Location(world, x, y, z, yaw, pitch));
 					} catch (Exception e) {
-						MagicSpells.plugin.getServer().getLogger().severe("MarkSpell '" + internalName + "' failed to load mark:" + line);
+						MagicSpells.error("MarkSpell '" + internalName + "' failed to load mark: " + line);
 					}
 				}
 			}
@@ -181,7 +181,7 @@ public class MarkSpell extends InstantSpell implements TargetedLocationSpell {
 			}
 			writer.close();
 		} catch (Exception e) {
-			MagicSpells.plugin.getServer().getLogger().severe("MagicSpells: Error saving marks");
+			MagicSpells.error("Error saving marks with MarkSpell: " + internalName);
 		}
 	}
 

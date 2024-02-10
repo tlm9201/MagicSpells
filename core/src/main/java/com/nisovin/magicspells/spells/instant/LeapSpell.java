@@ -176,7 +176,6 @@ public class LeapSpell extends InstantSpell {
 			for (LeapData data : queue) jumping.put(data.spellData.caster(), data);
 			queue.clear();
 
-
 			if (jumping.isEmpty()) stop();
 		}
 

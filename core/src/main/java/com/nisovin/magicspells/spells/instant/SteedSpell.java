@@ -56,7 +56,7 @@ public class SteedSpell extends InstantSpell {
 	private ItemStack armor;
 
 	private Subspell spellOnSpawn;
-	private String spellOnSpawnName;
+	private final String spellOnSpawnName;
 
 	public SteedSpell(MagicConfig config, String spellName) {
 		super(config, spellName);

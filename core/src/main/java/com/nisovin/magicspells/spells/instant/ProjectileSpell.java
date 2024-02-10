@@ -128,7 +128,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 		projectileName = getConfigDataComponent("projectile-name", null);
 
-		arrowColor = ConfigDataUtil.getColor(config.getMainConfig(), "spells." + internalName + ".arrow-color", null);
+		arrowColor = ConfigDataUtil.getColor(config.getMainConfig(), internalKey + "arrow-color", null);
 
 		projectileModifiersStrings = getConfigStringList("projectile-modifiers", null);
 	}

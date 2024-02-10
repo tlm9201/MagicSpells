@@ -366,7 +366,6 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			return currentLocation.clone().add(0, yOffset, 0).add(currentDirection.clone().multiply(orbitRadius)).setDirection(perp);
 		}
 
-
 		private void stop(boolean removeTracker) {
 			playSpellEffects(EffectPosition.DELAYED, getLocation(), data);
 

@@ -36,11 +36,6 @@ public class InvisibilitySpell extends BuffSpell {
 	}
 	
 	@Override
-	public void initialize() {
-		super.initialize();
-	}
-
-	@Override
 	public boolean castBuff(SpellData data) {
 		if (!(data.target() instanceof Player target)) return false;
 		makeInvisible(target, data);

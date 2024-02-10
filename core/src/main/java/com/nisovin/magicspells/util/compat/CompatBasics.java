@@ -21,7 +21,7 @@ public class CompatBasics {
 	}
 	
 	public static <T> RegisteredServiceProvider<T> getServiceProvider(Class<T> clazz) {
-		return Bukkit.getServer().getServicesManager().getRegistration(clazz);
+		return Bukkit.getServicesManager().getRegistration(clazz);
 	}
 	
 	public static boolean runsWithoutError(Runnable runnable) {

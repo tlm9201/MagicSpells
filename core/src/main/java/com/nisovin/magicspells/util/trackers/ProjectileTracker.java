@@ -5,7 +5,6 @@ import java.util.Set;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-
 import org.bukkit.Color;
 import org.bukkit.entity.*;
 import org.bukkit.Location;

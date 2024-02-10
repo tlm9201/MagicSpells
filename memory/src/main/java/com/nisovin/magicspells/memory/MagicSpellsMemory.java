@@ -108,8 +108,6 @@ public class MagicSpellsMemory extends JavaPlugin {
 		return true;
 	}
 
-
-
 	public int getRequiredMemory(Spell spell) {
 		// FIXME this should be a get or default type thing
 		if (this.memoryRequirements.containsKey(spell.getInternalName())) return this.memoryRequirements.get(spell.getInternalName());

@@ -6,7 +6,6 @@ import java.util.Arrays;
 import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.*;
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.targeted.cleanse.util.Cleansers;

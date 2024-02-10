@@ -81,7 +81,6 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		if (addToInventory.get(data) && data.caster() instanceof Player player)
 			added = Util.addToInventory(player.getInventory(), item, true, false);
 
-
 		if (!added) {
 			Item dropped = target.getWorld().dropItem(target.getLocation().add(0, 1, 0), item);
 			dropped.setItemStack(item);

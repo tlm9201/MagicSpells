@@ -221,8 +221,6 @@ public class MagicItems {
 				if (meta instanceof EnchantmentStorageMeta) ((EnchantmentStorageMeta) meta).addStoredEnchant(enchant, level, true);
 				else meta.addEnchant(enchant, level, true);
 			}
-
-
 		}
 
 		if (data.hasAttribute(FAKE_GLINT)) {
