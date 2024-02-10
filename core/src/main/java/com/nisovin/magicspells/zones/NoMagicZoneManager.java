@@ -12,7 +12,9 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.zones.NoMagicZone.ZoneCheckResult;
@@ -61,6 +63,12 @@ public class NoMagicZoneManager {
 				clazz = zoneTypes.get(type);
 				if (clazz == null) {
 					MagicSpells.error("Invalid no-magic zone type '" + type + "' on zone '" + node + "'");
+					continue;
+				}
+
+				DependsOn dependsOn = clazz.getAnnotation(DependsOn.class);
+				if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) {
+					MagicSpells.error("Could not load no magic zone type '" + type + "'.");
 					continue;
 				}
 

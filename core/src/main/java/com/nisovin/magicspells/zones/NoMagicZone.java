@@ -6,10 +6,15 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.util.SpellFilter;
 
 /**
- * Annotate this class with {@link Name} which will hold the configuration name of the no magic zone.
+ * Annotations:
+ * <ul>
+ *     <li>{@link Name} (required): Holds the configuration name of the no magic zone.</li>
+ *     <li>{@link DependsOn} (optional): Requires listed plugins to be enabled before this no magic zone is created.</li>
+ * </ul>
  */
 public abstract class NoMagicZone implements Comparable<NoMagicZone> {
 

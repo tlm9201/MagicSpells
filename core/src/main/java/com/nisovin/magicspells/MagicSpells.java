@@ -818,6 +818,9 @@ public class MagicSpells extends JavaPlugin {
 						continue;
 					}
 
+					DependsOn dependsOn = spellClass.getAnnotation(DependsOn.class);
+					if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) continue;
+
 					try {
 						constructor = spellClass.getConstructor(MagicConfig.class, String.class);
 					} catch (NoSuchMethodException e) {

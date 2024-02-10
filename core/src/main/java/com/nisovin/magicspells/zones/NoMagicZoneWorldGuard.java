@@ -7,22 +7,21 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.compat.CompatBasics;
+import com.nisovin.magicspells.util.DependsOn;
 
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 @Name("worldguard")
+@DependsOn("WorldGuard")
 public class NoMagicZoneWorldGuard extends NoMagicZone {
 
 	private String worldName;
 	private String regionName;
 
 	private ProtectedRegion region;
-	private WorldGuardPlugin worldGuard;
 
 	private boolean global = false;
 
@@ -30,9 +29,6 @@ public class NoMagicZoneWorldGuard extends NoMagicZone {
 	public void initialize(ConfigurationSection config) {
 		worldName = config.getString("world", "");
 		regionName = config.getString("region", "");
-
-		if (CompatBasics.pluginEnabled("WorldGuard")) worldGuard = (WorldGuardPlugin) CompatBasics.getPlugin("WorldGuard");
-		if (worldGuard == null) return;
 
 		World world = Bukkit.getWorld(worldName);
 		if (world == null) return;

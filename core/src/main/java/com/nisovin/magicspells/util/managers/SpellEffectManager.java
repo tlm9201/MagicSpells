@@ -4,6 +4,8 @@ import java.util.Map;
 import java.util.HashMap;
 
 import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.spelleffects.*;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.spelleffects.effecttypes.*;
@@ -52,6 +54,9 @@ public class SpellEffectManager {
 	public SpellEffect getSpellEffectByName(String name) {
 		Class<? extends SpellEffect> clazz = spellEffects.get(name.toLowerCase());
 		if (clazz == null) return null;
+
+		DependsOn dependsOn = clazz.getAnnotation(DependsOn.class);
+		if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) return null;
 
 		try {
 			return clazz.getDeclaredConstructor().newInstance();

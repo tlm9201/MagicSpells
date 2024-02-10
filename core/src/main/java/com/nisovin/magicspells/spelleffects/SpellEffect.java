@@ -15,6 +15,7 @@ import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.TimeUtil;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -29,7 +30,11 @@ import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.util.VectorUtils;
 
 /**
- * Annotate this class with {@link Name} which will hold the configuration name of the spell effect.
+ * Annotations:
+ * <ul>
+ *     <li>{@link Name} (required): Holds the configuration name of the spell effect.</li>
+ *     <li>{@link DependsOn} (optional): Requires listed plugins to be enabled before this spell effect is created.</li>
+ * </ul>
  */
 public abstract class SpellEffect {
 

@@ -6,6 +6,8 @@ import java.util.HashMap;
 import org.bukkit.event.EventPriority;
 
 import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.spells.passive.*;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -56,6 +58,10 @@ public class PassiveManager {
 	public PassiveListener getListenerByName(String name) {
 		Class<? extends PassiveListener> clazz = listeners.get(name.toLowerCase());
 		if (clazz == null) return null;
+
+		// Check if depending plugin is enabled.
+		DependsOn dependsOn = clazz.getAnnotation(DependsOn.class);
+		if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) return null;
 
 		try {
 			return clazz.getDeclaredConstructor().newInstance();

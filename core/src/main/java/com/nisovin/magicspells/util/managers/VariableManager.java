@@ -20,6 +20,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.*;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.variables.meta.*;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.variables.variabletypes.*;
@@ -74,6 +75,9 @@ public class VariableManager {
 	public Variable getVariableType(String name) {
 		Class<? extends Variable> clazz = variableTypes.get(name.toLowerCase());
 		if (clazz == null) return null;
+
+		DependsOn dependsOn = clazz.getAnnotation(DependsOn.class);
+		if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) return null;
 
 		try {
 			return clazz.getDeclaredConstructor().newInstance();

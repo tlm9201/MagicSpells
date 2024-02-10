@@ -9,10 +9,15 @@ import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.spells.PassiveSpell;
 
 /**
- * Annotate this class with {@link Name} which will hold the configuration name of the passive listener.
+ * Annotations:
+ * <ul>
+ *     <li>{@link Name} (required): Holds the configuration name of the passive listener.</li>
+ *     <li>{@link DependsOn} (optional): Requires listed plugins to be enabled before this passive listener is created.</li>
+ * </ul>
  */
 public abstract class PassiveListener implements Listener {
 

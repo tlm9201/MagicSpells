@@ -52,6 +52,9 @@ import com.nisovin.magicspells.spelleffects.effecttypes.EntityEffect;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 
+/**
+ * Annotate this class with {@link DependsOn} if you require certain plugins to be enabled before this spell is.
+ */
 public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected static final Random random = ThreadLocalRandom.current();
