@@ -16,7 +16,6 @@ public class ClientBrandNameCondition extends Condition {
 
 	@Override
 	public boolean initialize(@NotNull String var) {
-		if (var.isEmpty()) return false;
 		clientBrandName = var;
 		return true;
 	}
@@ -37,9 +36,9 @@ public class ClientBrandNameCondition extends Condition {
 	}
 
 	private boolean checkClientName(LivingEntity target) {
-		if (!(target instanceof Player pl)) return false;
-		if (pl.getClientBrandName() == null) return false;
-		return (pl.getClientBrandName().equalsIgnoreCase(clientBrandName));
+		if (!(target instanceof Player player)) return false;
+		String name = player.getClientBrandName();
+		return clientBrandName.equalsIgnoreCase(name == null ? "null" : name);
 	}
 
 }
