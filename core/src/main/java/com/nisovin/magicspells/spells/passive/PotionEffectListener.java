@@ -14,9 +14,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent.*;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("potioneffect")
 public class PotionEffectListener extends PassiveListener {
 
 	private List<PotionEffectType> types;

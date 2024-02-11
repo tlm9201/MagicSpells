@@ -94,7 +94,9 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			}
 		}
 
-		spellOnBreak = initSubspell(spellOnBreakName, prefix + "an invalid spell-on-break defined!");
+		spellOnBreak = initSubspell(spellOnBreakName,
+				prefix + "an invalid spell-on-break defined!",
+				true);
 
 		if (spells.isEmpty()) MagicSpells.error(prefix + "no spells defined!");
 	}

@@ -52,6 +52,9 @@ import com.nisovin.magicspells.spelleffects.effecttypes.EntityEffect;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 
+/**
+ * Annotate this class with {@link DependsOn} if you require certain plugins to be enabled before this spell is.
+ */
 public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected static final Random random = ThreadLocalRandom.current();
@@ -187,7 +190,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected float maxCooldown = -1F;
 
 	protected final String internalKey;
-	private final String className;
 
 	private final ConfigurationSection defaultSection;
 
@@ -196,78 +198,42 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		this.internalName = spellName;
 
 		internalKey = "spells." + internalName + '.';
-		className = getClass().getCanonicalName().replace("com.nisovin.magicspells.spells", "");
 
 		Set<String> zoneNodes = config.getKeys("defaults");
+		String className = getClass().getCanonicalName().replace("com.nisovin.magicspells.spells", "");
 		if (zoneNodes != null) defaultSection = config.getSection("defaults." + className);
 		else defaultSection = null;
 
 		callbacks = new HashMap<>();
-		loadConfigData(config, spellName, "spells");
-	}
 
-	private void loadConfigData(MagicConfig config, String spellName, String section) {
-		String path = section + '.' + spellName + '.';
-		debug = config.getBoolean(path + "debug", false);
-		name = config.getString(path + "name", spellName);
-		profilingKey = "Spell:" + getClass().getName().replace("com.nisovin.magicspells.spells.", "") + '-' + spellName;
-		List<String> temp = config.getStringList(path + "aliases", null);
-		if (temp != null) {
-			aliases = new String[temp.size()];
-			aliases = temp.toArray(aliases);
-		}
-		helperSpell = config.getBoolean(path + "helper-spell", false);
-		alwaysGranted = config.getBoolean(path + "always-granted", false);
-		permName = config.getString(path + "permission-name", spellName);
-		incantations = config.getStringList(path + "incantations", null);
+		profilingKey = "Spell:" + getClass().getName().replace("com.nisovin.magicspells.spells.", "") + '-' + internalName;
+
+		name = config.getString(internalKey + "name", internalName);
+		debug = config.getBoolean(internalKey + "debug", false);
+		helperSpell = config.getBoolean(internalKey + "helper-spell", false);
+		alwaysGranted = config.getBoolean(internalKey + "always-granted", false);
+		permName = config.getString(internalKey + "permission-name", internalName);
+		incantations = config.getStringList(internalKey + "incantations", null);
+		List<String> temp = config.getStringList(internalKey + "aliases", null);
+		if (temp != null) aliases = temp.toArray(new String[0]);
 
 		// General options
-		description = config.getString(path + "description", "");
-		if (config.contains(path + "cast-item")) {
-			String[] sItems = config.getString(path + "cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
-			castItems = setupCastItems(sItems, "Spell '" + internalName + "' has an invalid cast item specified: %i");
-		} else if (config.contains(path + "cast-items")) {
-			List<String> sItems = config.getStringList(path + "cast-items", null);
-			if (sItems == null) sItems = new ArrayList<>();
-			castItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid cast item specified: %i");
-		} else castItems = new CastItem[0];
+		description = config.getString(internalKey + "description", "");
 
-		if (config.contains(path + "left-click-cast-item")) {
-			String[] sItems = config.getString(path + "left-click-cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
-			leftClickCastItems = setupCastItems(sItems, "Spell '" + internalName + "' has an invalid left click cast item specified: %i");
-		} else if (config.contains(path + "left-click-cast-items")) {
-			List<String> sItems = config.getStringList(path + "left-click-cast-items", null);
-			if (sItems == null) sItems = new ArrayList<>();
-			leftClickCastItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid left click cast item listed: %i");
-		} else leftClickCastItems = new CastItem[0];
+		castItems = setupCastItems("cast-item", "cast-items", "cast item");
+		leftClickCastItems = setupCastItems("left-click-cast-item", "left-click-cast-items", "left click cast item");
+		rightClickCastItems = setupCastItems("right-click-cast-item", "right-click-cast-items", "right click cast item");
+		consumeCastItems = setupCastItems("consume-cast-item", "consume-cast-items", "consume cast item");
 
-		if (config.contains(path + "right-click-cast-item")) {
-			String[] sItems = config.getString(path + "right-click-cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
-			rightClickCastItems = setupCastItems(sItems, "Spell '" + internalName + "' has an invalid right click cast item specified: %i");
-		} else if (config.contains(path + "right-click-cast-items")) {
-			List<String> sItems = config.getStringList(path + "right-click-cast-items", null);
-			if (sItems == null) sItems = new ArrayList<>();
-			rightClickCastItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid right click cast item listed: %i");
-		} else rightClickCastItems = new CastItem[0];
+		castWithLeftClick = config.getBoolean(internalKey + "cast-with-left-click", MagicSpells.canCastWithLeftClick());
+		castWithRightClick = config.getBoolean(internalKey + "cast-with-right-click", MagicSpells.canCastWithRightClick());
 
-		if (config.contains(path + "consume-cast-item")) {
-			String[] sItems = config.getString(path + "consume-cast-item", "-5").trim().replace(" ", "").split(MagicItemDataParser.DATA_REGEX);
-			consumeCastItems = setupCastItems(sItems, "Spell '" + internalName + "' has an invalid consume cast item specified: %i");
-		} else if (config.contains(path + "consume-cast-items")) {
-			List<String> sItems = config.getStringList(path + "consume-cast-items", null);
-			if (sItems == null) sItems = new ArrayList<>();
-			consumeCastItems = setupCastItems(sItems.toArray(new String[0]), "Spell '" + internalName + "' has an invalid consume cast item listed: %i");
-		} else consumeCastItems = new CastItem[0];
+		usePreciseCooldowns = config.getBoolean(internalKey + "use-precise-cooldowns", false);
 
-		castWithLeftClick = config.getBoolean(path + "cast-with-left-click", MagicSpells.canCastWithLeftClick());
-		castWithRightClick = config.getBoolean(path + "cast-with-right-click", MagicSpells.canCastWithRightClick());
-
-		usePreciseCooldowns = config.getBoolean(path + "use-precise-cooldowns", false);
-
-		danceCastSequence = config.getString(path + "dance-cast-sequence", null);
-		requireCastItemOnCommand = config.getBoolean(path + "require-cast-item-on-command", false);
-		bindable = config.getBoolean(path + "bindable", true);
-		List<String> bindables = config.getStringList(path + "bindable-items", null);
+		danceCastSequence = config.getString(internalKey + "dance-cast-sequence", null);
+		requireCastItemOnCommand = config.getBoolean(internalKey + "require-cast-item-on-command", false);
+		bindable = config.getBoolean(internalKey + "bindable", true);
+		List<String> bindables = config.getStringList(internalKey + "bindable-items", null);
 		if (bindables != null) {
 			bindableItems = new HashSet<>();
 			for (String str : bindables) {
@@ -285,7 +251,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				bindableItems.add(new CastItem(item));
 			}
 		}
-		String iconStr = config.getString(path + "spell-icon", null);
+		String iconStr = config.getString(internalKey + "spell-icon", null);
 		if (iconStr != null) {
 			MagicItem magicItem = MagicItems.getMagicItemFromString(iconStr);
 			if (magicItem != null) {
@@ -309,25 +275,25 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		interruptOnCast = getConfigDataBoolean("interrupt-on-cast", true);
 		interruptOnDamage = getConfigDataBoolean("interrupt-on-damage", false);
 		interruptOnTeleport = getConfigDataBoolean("interrupt-on-teleport", true);
-		spellNameOnInterrupt = config.getString(path + "spell-on-interrupt", null);
+		spellNameOnInterrupt = config.getString(internalKey + "spell-on-interrupt", null);
 
 		// Targeting
 		minRange = getConfigDataInt("min-range", 0);
 		range = getConfigDataInt("range", 20);
 		spellPowerAffectsRange = getConfigDataBoolean("spell-power-affects-range", false);
-		obeyLos = config.getBoolean(path + "obey-los", true);
-		if (config.contains(path + "can-target")) {
-			if (config.isList(path + "can-target"))
-				validTargetList = new ValidTargetList(this, config.getStringList(path + "can-target", null));
-			else validTargetList = new ValidTargetList(this, config.getString(path + "can-target", ""));
+		obeyLos = config.getBoolean(internalKey + "obey-los", true);
+		if (config.contains(internalKey + "can-target")) {
+			if (config.isList(internalKey + "can-target"))
+				validTargetList = new ValidTargetList(this, config.getStringList(internalKey + "can-target", null));
+			else validTargetList = new ValidTargetList(this, config.getString(internalKey + "can-target", ""));
 		} else {
-			boolean targetPlayers = config.getBoolean(path + "target-players", true);
-			boolean targetNonPlayers = config.getBoolean(path + "target-non-players", true);
+			boolean targetPlayers = config.getBoolean(internalKey + "target-players", true);
+			boolean targetNonPlayers = config.getBoolean(internalKey + "target-non-players", true);
 			validTargetList = new ValidTargetList(targetPlayers, targetNonPlayers);
 		}
-		beneficial = config.getBoolean(path + "beneficial", isBeneficialDefault());
+		beneficial = config.getBoolean(internalKey + "beneficial", isBeneficialDefault());
 		targetDamageCause = null;
-		String causeStr = config.getString(path + "target-damage-cause", null);
+		String causeStr = config.getString(internalKey + "target-damage-cause", null);
 		if (causeStr != null) {
 			for (DamageCause cause : DamageCause.values()) {
 				if (!cause.name().equalsIgnoreCase(causeStr)) continue;
@@ -335,10 +301,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				break;
 			}
 		}
-		targetDamageAmount = config.getDouble(path + "target-damage-amount", 0);
+		targetDamageAmount = config.getDouble(internalKey + "target-damage-amount", 0);
 		losTransparentBlocks = MagicSpells.getTransparentBlocks();
-		if (config.contains(path + "los-transparent-blocks")) {
-			losTransparentBlocks = Util.getMaterialList(config.getStringList(path + "los-transparent-blocks", Collections.emptyList()), HashSet::new);
+		if (config.contains(internalKey + "los-transparent-blocks")) {
+			losTransparentBlocks = Util.getMaterialList(config.getStringList(internalKey + "los-transparent-blocks", Collections.emptyList()), HashSet::new);
 			losTransparentBlocks.add(Material.AIR);
 			losTransparentBlocks.add(Material.CAVE_AIR);
 			losTransparentBlocks.add(Material.VOID_AIR);
@@ -354,7 +320,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		spellNameOnFail = getConfigString("spell-on-fail", "");
 
 		// Cooldowns
-		String cooldownRange = config.getString(path + "cooldown", "0");
+		String cooldownRange = config.getString(internalKey + "cooldown", "0");
 		try {
 			cooldown = Float.parseFloat(cooldownRange);
 		} catch (NumberFormatException e) {
@@ -376,32 +342,32 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		}
 
-		serverCooldown = (float) config.getDouble(path + "server-cooldown", 0);
-		rawSharedCooldowns = config.getStringList(path + "shared-cooldowns", null);
-		ignoreGlobalCooldown = config.getBoolean(path + "ignore-global-cooldown", false);
-		charges = config.getInt(path + "charges", 0);
-		rechargeSound = config.getString(path + "recharge-sound", "");
+		serverCooldown = (float) config.getDouble(internalKey + "server-cooldown", 0);
+		rawSharedCooldowns = config.getStringList(internalKey + "shared-cooldowns", null);
+		ignoreGlobalCooldown = config.getBoolean(internalKey + "ignore-global-cooldown", false);
+		charges = config.getInt(internalKey + "charges", 0);
+		rechargeSound = config.getString(internalKey + "recharge-sound", "");
 		nextCast = new WeakHashMap<>();
 		chargesConsumed = new IntMap<>();
 		nextCastServer = 0;
 
 		// Modifiers
-		modifierStrings = config.getStringList(path + "modifiers", null);
-		targetModifierStrings = config.getStringList(path + "target-modifiers", null);
-		locationModifierStrings = config.getStringList(path + "location-modifiers", null);
+		modifierStrings = config.getStringList(internalKey + "modifiers", null);
+		targetModifierStrings = config.getStringList(internalKey + "target-modifiers", null);
+		locationModifierStrings = config.getStringList(internalKey + "location-modifiers", null);
 
 		// Variables
-		varModsCast = config.getStringList(path + "variable-mods-cast", null);
-		varModsCasted = config.getStringList(path + "variable-mods-casted", null);
-		varModsTarget = config.getStringList(path + "variable-mods-target", null);
+		varModsCast = config.getStringList(internalKey + "variable-mods-cast", null);
+		varModsCasted = config.getStringList(internalKey + "variable-mods-casted", null);
+		varModsTarget = config.getStringList(internalKey + "variable-mods-target", null);
 
 		// Hierarchy options
-		prerequisites = config.getStringList(path + "prerequisites", null);
-		replaces = config.getStringList(path + "replaces", null);
-		precludes = config.getStringList(path + "precludes", null);
-		worldRestrictions = config.getStringList(path + "restrict-to-worlds", null);
-		List<String> sXpGranted = config.getStringList(path + "xp-granted", null);
-		List<String> sXpRequired = config.getStringList(path + "xp-required", null);
+		prerequisites = config.getStringList(internalKey + "prerequisites", null);
+		replaces = config.getStringList(internalKey + "replaces", null);
+		precludes = config.getStringList(internalKey + "precludes", null);
+		worldRestrictions = config.getStringList(internalKey + "restrict-to-worlds", null);
+		List<String> sXpGranted = config.getStringList(internalKey + "xp-granted", null);
+		List<String> sXpRequired = config.getStringList(internalKey + "xp-required", null);
 		if (sXpGranted != null) {
 			xpGranted = new LinkedHashMap<>();
 			for (String s : sXpGranted) {
@@ -427,29 +393,29 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		}
 
-		soundOnCooldown = config.getString(path + "sound-on-cooldown", MagicSpells.getCooldownSound());
-		soundMissingReagents = config.getString(path + "sound-missing-reagents", MagicSpells.getMissingReagentsSound());
+		soundOnCooldown = config.getString(internalKey + "sound-on-cooldown", MagicSpells.getCooldownSound());
+		soundMissingReagents = config.getString(internalKey + "sound-missing-reagents", MagicSpells.getMissingReagentsSound());
 		if (soundOnCooldown != null && soundOnCooldown.isEmpty()) soundOnCooldown = null;
 		if (soundMissingReagents != null && soundMissingReagents.isEmpty()) soundMissingReagents = null;
 
 		// Strings
-		strCost = config.getString(path + "str-cost", null);
-		strCantCast = config.getString(path + "str-cant-cast", MagicSpells.getCantCastMessage());
-		strCantBind = config.getString(path + "str-cant-bind", null);
-		strCastSelf = config.getString(path + "str-cast-self", null);
-		strCastStart = config.getString(path + "str-cast-start", null);
-		strCastOthers = config.getString(path + "str-cast-others", null);
-		strOnTeach = config.getString(path + "str-on-teach", null);
-		strOnCooldown = config.getString(path + "str-on-cooldown", MagicSpells.getOnCooldownMessage());
-		strWrongWorld = config.getString(path + "str-wrong-world", MagicSpells.getWrongWorldMessage());
-		strInterrupted = config.getString(path + "str-interrupted", null);
-		strXpAutoLearned = config.getString(path + "str-xp-auto-learned", MagicSpells.getXpAutoLearnedMessage());
-		strWrongCastItem = config.getString(path + "str-wrong-cast-item", strCantCast);
-		strModifierFailed = config.getString(path + "str-modifier-failed", null);
-		strMissingReagents = config.getString(path + "str-missing-reagents", MagicSpells.getMissingReagentsMessage());
+		strCost = config.getString(internalKey + "str-cost", null);
+		strCantCast = config.getString(internalKey + "str-cant-cast", MagicSpells.getCantCastMessage());
+		strCantBind = config.getString(internalKey + "str-cant-bind", null);
+		strCastSelf = config.getString(internalKey + "str-cast-self", null);
+		strCastStart = config.getString(internalKey + "str-cast-start", null);
+		strCastOthers = config.getString(internalKey + "str-cast-others", null);
+		strOnTeach = config.getString(internalKey + "str-on-teach", null);
+		strOnCooldown = config.getString(internalKey + "str-on-cooldown", MagicSpells.getOnCooldownMessage());
+		strWrongWorld = config.getString(internalKey + "str-wrong-world", MagicSpells.getWrongWorldMessage());
+		strInterrupted = config.getString(internalKey + "str-interrupted", null);
+		strXpAutoLearned = config.getString(internalKey + "str-xp-auto-learned", MagicSpells.getXpAutoLearnedMessage());
+		strWrongCastItem = config.getString(internalKey + "str-wrong-cast-item", strCantCast);
+		strModifierFailed = config.getString(internalKey + "str-modifier-failed", null);
+		strMissingReagents = config.getString(internalKey + "str-missing-reagents", MagicSpells.getMissingReagentsMessage());
 		if (strXpAutoLearned != null) strXpAutoLearned = strXpAutoLearned.replace("%s", name);
 
-		tags = new HashSet<>(config.getStringList(path + "tags", new ArrayList<>()));
+		tags = new HashSet<>(config.getStringList(internalKey + "tags", new ArrayList<>()));
 		tags.add("spell-class:" + getClass().getCanonicalName());
 		tags.add("spell-package:" + getClass().getPackage().getName());
 	}
@@ -467,7 +433,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected SpellReagents getConfigReagents(String option) {
-		List<String> costList = config.getStringList("spells." + internalName + '.' + option, null);
+		List<String> costList = config.getStringList(internalKey + option, null);
 		if (costList == null || costList.isEmpty()) return null;
 
 		SpellReagents reagents = new SpellReagents();
@@ -589,16 +555,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected void initializeSpellEffects() {
 		// Graphical effects
-		String path = "spells" + '.' + internalName + '.';
 		effectTrackerSet = new HashSet<>();
 		asyncEffectTrackerSet = new HashSet<>();
-		if (!config.contains(path + "effects")) return;
+		if (!config.contains(internalKey + "effects")) return;
 
 		effects = new EnumMap<>(EffectPosition.class);
 
-		if (!config.isSection(path + "effects")) return;
-		for (String key : config.getKeys(path + "effects")) {
-			ConfigurationSection section = config.getSection(path + "effects." + key);
+		if (!config.isSection(internalKey + "effects")) return;
+		for (String key : config.getKeys(internalKey + "effects")) {
+			ConfigurationSection section = config.getSection(internalKey + "effects." + key);
 			if (section == null) {
 				MagicSpells.error("Spell effect '" + key + "' on spell '" + internalName + "' does not contain a configuration section.");
 				continue;
@@ -687,12 +652,13 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		registerEvents();
 
 		// Other processing
-		if (spellNameOnFail != null && !spellNameOnFail.isEmpty())
-			spellOnFail = initSubspell(spellNameOnFail, "Spell '" + internalName + "' has an invalid spell-on-fail defined!");
-
-		if (spellNameOnInterrupt != null && !spellNameOnInterrupt.isEmpty()) {
-			spellOnInterrupt = initSubspell(spellNameOnInterrupt, "Spell '" + internalName + "' has an invalid spell-on-interrupt defined!");
-		}
+		String error = "Spell '" + internalName + "' has an invalid '%s' defined!";
+		spellOnFail = initSubspell(spellNameOnFail,
+				error.formatted("spell-on-fail"),
+				true);
+		spellOnInterrupt = initSubspell(spellNameOnInterrupt,
+				error.formatted("spell-on-interrupt"),
+				true);
 	}
 
 	protected boolean configKeyExists(String key) {
@@ -842,7 +808,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected ConfigData<Component> getConfigDataComponent(String key, Component def) {
-		return ConfigDataUtil.getComponent(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getComponent(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected <T extends Enum<T>> ConfigData<T> getConfigDataEnum(String key, Class<T> type, T def) {
@@ -850,19 +816,19 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected ConfigData<Vector> getConfigDataVector(String key, Vector def) {
-		return ConfigDataUtil.getVector(config.getMainConfig(), "spells." + internalName + '.' + key, def);
+		return ConfigDataUtil.getVector(config.getMainConfig(), internalKey + key, def);
 	}
 
 	public ConfigData<Material> getConfigDataMaterial(String key, Material def) {
-		return ConfigDataUtil.getMaterial(config.getMainConfig(), "spells." + internalName + '.' + key, getDefaultEnum(key, Material.class, def));
+		return ConfigDataUtil.getMaterial(config.getMainConfig(), internalKey + key, getDefaultEnum(key, Material.class, def));
 	}
 
 	public ConfigData<TargetBooleanState> getConfigDataTargetBooleanState(String key, TargetBooleanState def) {
-		return ConfigDataUtil.getTargetBooleanState(config.getMainConfig(), "spells." + internalName + '.' + key, getDefaultEnum(key, TargetBooleanState.class, def));
+		return ConfigDataUtil.getTargetBooleanState(config.getMainConfig(), internalKey + key, getDefaultEnum(key, TargetBooleanState.class, def));
 	}
 
 	public ConfigData<EntityType> getConfigDataEntityType(String key, EntityType def) {
-		return ConfigDataUtil.getEntityType(config.getMainConfig(), "spells." + internalName + '.' + key, getDefaultEnum(key, EntityType.class, def));
+		return ConfigDataUtil.getEntityType(config.getMainConfig(), internalKey + key, getDefaultEnum(key, EntityType.class, def));
 	}
 
 	protected ConfigData<BlockData> getConfigDataBlockData(String key, BlockData def) {
@@ -2044,18 +2010,19 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return MagicSpells.scheduleRepeatingTask(task, delay, interval);
 	}
 
-	protected CastItem[] setupCastItems(String[] items, String errorMessage) {
+	protected CastItem[] setupCastItems(String stringKey, String listKey, String errorOptionName) {
+		String[] items = new String[0];
+		if (config.isString(internalKey + stringKey))
+			items = config.getString(internalKey + stringKey, "").split(MagicItemDataParser.DATA_REGEX);
+		else if (config.isList(internalKey + listKey))
+			items = config.getStringList(internalKey + listKey, new ArrayList<>()).toArray(new String[0]);
+
 		CastItem[] castItems = new CastItem[items.length];
 		for (int i = 0; i < items.length; i++) {
 			MagicItem magicItem = MagicItems.getMagicItemFromString(items[i]);
-			if (magicItem == null) {
-				MagicSpells.error(errorMessage.replace("%i", items[i]));
-				continue;
-			}
-
-			ItemStack item = magicItem.getItemStack();
+			ItemStack item = magicItem == null ? null : magicItem.getItemStack();
 			if (item == null) {
-				MagicSpells.error(errorMessage.replace("%i", items[i]));
+				MagicSpells.error("Spell '" + internalName + "' has an invalid " + errorOptionName + " specified: " + items[i]);
 				continue;
 			}
 			castItems[i] = new CastItem(item);
@@ -2063,16 +2030,27 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return castItems;
 	}
 
+	/**
+	 * Attempts to initialise a subspell. This method never ignores empty names.
+	 * @see Spell#initSubspell(String, String, boolean)
+	 */
 	protected Subspell initSubspell(String subspellName, String errorMessage) {
 		return initSubspell(subspellName, errorMessage, false);
 	}
 
+	/**
+	 * Attempts to initialise a subspell.
+	 * @see Spell#initSubspell(String, String)
+	 */
 	protected Subspell initSubspell(String subspellName, String errorMessage, boolean ignoreEmptyName) {
-		if (subspellName.isEmpty()) return null;
+		if (ignoreEmptyName && (subspellName == null || subspellName.isEmpty())) return null;
 
+		if (subspellName == null) {
+			MagicSpells.error(errorMessage);
+			return null;
+		}
 		Subspell subspell = new Subspell(subspellName);
 		if (!subspell.process()) {
-			if (ignoreEmptyName && subspellName.isEmpty()) return null;
 			MagicSpells.error(errorMessage);
 			return null;
 		}

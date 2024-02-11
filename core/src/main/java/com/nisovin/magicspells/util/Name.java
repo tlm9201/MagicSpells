@@ -11,7 +11,7 @@ import org.intellij.lang.annotations.Pattern;
 @Target(ElementType.TYPE)
 public @interface Name {
 
-	@Pattern("[a-z0-9_.-]+")
-	String name();
+	@Pattern("[a-z0-9_]+")
+	String value();
 
 }

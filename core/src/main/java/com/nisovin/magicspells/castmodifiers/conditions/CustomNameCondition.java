@@ -5,11 +5,13 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("customname")
 public class CustomNameCondition extends Condition {
 
 	private boolean requireReplacement;

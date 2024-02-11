@@ -5,11 +5,13 @@ import org.bukkit.event.EventHandler;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellSelectionChangedEvent;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("spellselect")
 public class SpellSelectListener extends PassiveListener {
 
 	private SpellFilter filter;

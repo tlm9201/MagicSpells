@@ -29,11 +29,6 @@ public class ResourcePackSpell extends TargetedSpell implements TargetedEntitySp
 	}
 
 	@Override
-	public void initialize() {
-		super.initialize();
-	}
-
-	@Override
 	public CastResult cast(SpellData data) {
 		TargetInfo<Player> info = getTargetedPlayer(data);
 		if (info.noTarget()) return noTarget(info);

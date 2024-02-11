@@ -38,5 +38,4 @@ public class MobUtil {
 		if (mob instanceof Mob m) m.setTarget(target);
 	}
 
-
 }

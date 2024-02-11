@@ -8,9 +8,11 @@ import org.jetbrains.annotations.NotNull;
 
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
+@Name("angle")
 public class AngleCondition extends OperatorCondition {
 
 	private double angle;

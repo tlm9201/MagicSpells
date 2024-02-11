@@ -94,7 +94,7 @@ public class BowSpell extends Spell {
 			disallowedNames.forEach(str -> disallowedBowNames.add(Util.getMiniMessage(str)));
 		} else disallowedBowNames = null;
 
-		if (config.isList("spells." + internalName + ".can-trigger")) {
+		if (config.isList(internalKey + "can-trigger")) {
 			List<String> targets = getConfigStringList("can-trigger", new ArrayList<>());
 			if (targets.isEmpty()) targets.add("players");
 			triggerList = new ValidTargetList(this, targets);
@@ -144,10 +144,19 @@ public class BowSpell extends Spell {
 	public void initialize() {
 		super.initialize();
 
-		spellOnShoot = initSubspell(spellOnShootName, "BowSpell '" + internalName + "' has an invalid spell defined!");
-		spellOnHitEntity = initSubspell(spellOnHitEntityName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-entity defined!");
-		spellOnHitGround = initSubspell(spellOnHitGroundName, "BowSpell '" + internalName + "' has an invalid spell-on-hit-ground defined!");
-		spellOnEntityLocation = initSubspell(spellOnEntityLocationName, "ProjectileSpell '" + internalName + "' has an invalid spell-on-entity-location defined!");
+		String error = "BowSpell '" + internalName + "' has an invalid '%s' defined!";
+		spellOnShoot = initSubspell(spellOnShootName,
+				error.formatted("spell"),
+				true);
+		spellOnHitEntity = initSubspell(spellOnHitEntityName,
+				error.formatted("spell-on-hit-entity"),
+				true);
+		spellOnHitGround = initSubspell(spellOnHitGroundName,
+				error.formatted("spell-on-hit-ground"),
+				true);
+		spellOnEntityLocation = initSubspell(spellOnEntityLocationName,
+				error.formatted("spell-on-entity-location"),
+				true);
 
 		spellOnShootName = null;
 		spellOnHitEntityName = null;
@@ -306,7 +315,7 @@ public class BowSpell extends Spell {
 				if (!MagicSpells.plugin.equals(meta.getOwningPlugin())) continue;
 
 				ProjectileSource shooter = proj.getShooter();
-				if (!(shooter instanceof LivingEntity caster)) break;
+				if (!(shooter instanceof LivingEntity)) break;
 
 				List<ArrowData> arrowDataList = (List<ArrowData>) meta.value();
 				if (arrowDataList == null || arrowDataList.isEmpty()) break;
@@ -345,7 +354,7 @@ public class BowSpell extends Spell {
 				if (!(damaged instanceof LivingEntity target)) break;
 
 				ProjectileSource shooter = arrow.getShooter();
-				if (!(shooter instanceof LivingEntity caster)) break;
+				if (!(shooter instanceof LivingEntity)) break;
 
 				List<ArrowData> arrowDataList = (List<ArrowData>) meta.value();
 				if (arrowDataList == null || arrowDataList.isEmpty()) break;

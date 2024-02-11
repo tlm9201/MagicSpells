@@ -26,7 +26,7 @@ public class BombSpell extends TargetedSpell implements TargetedLocationSpell {
 	private final ConfigData<Integer> interval;
 
 	private Subspell targetSpell;
-	private String targetSpellName;
+	private final String targetSpellName;
 	
 	public BombSpell(MagicConfig config, String spellName) {
 		super(config, spellName);

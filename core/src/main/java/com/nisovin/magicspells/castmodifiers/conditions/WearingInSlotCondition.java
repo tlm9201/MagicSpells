@@ -8,10 +8,12 @@ import org.bukkit.inventory.EntityEquipment;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("wearinginslot")
 public class WearingInSlotCondition extends Condition {
 
 	private int slot = -1;

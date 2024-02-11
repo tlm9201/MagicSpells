@@ -6,10 +6,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// No trigger variable is currently used
+@Name("startglide")
 public class StartGlideListener extends PassiveListener {
 	
 	@Override

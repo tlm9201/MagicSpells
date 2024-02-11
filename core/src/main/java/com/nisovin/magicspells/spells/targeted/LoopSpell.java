@@ -59,7 +59,7 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	private final String strFadeTarget;
 
 	private Subspell spellOnEnd;
-	private String spellOnEndName;
+	private final String spellOnEndName;
 
 	private List<Subspell> spells;
 	private List<String> spellNames;
@@ -127,7 +127,8 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		}
 
 		spellOnEnd = initSubspell(spellOnEndName,
-				"LoopSpell '" + internalName + "' has an invalid spell-on-end '" + spellOnEndName + "' defined!");
+				"LoopSpell '" + internalName + "' has an invalid spell-on-end '" + spellOnEndName + "' defined!",
+				true);
 
 		if (spellNames != null && !spellNames.isEmpty()) {
 			spells = new ArrayList<>();

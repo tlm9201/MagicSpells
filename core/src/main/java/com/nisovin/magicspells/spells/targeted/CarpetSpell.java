@@ -35,7 +35,7 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	private final ConfigData<Boolean> removeOnTouch;
 	private final ConfigData<Boolean> powerAffectsRadius;
 
-	private String spellOnTouchName;
+	private final String spellOnTouchName;
 	private Subspell spellOnTouch;
 
 	private TouchChecker checker;

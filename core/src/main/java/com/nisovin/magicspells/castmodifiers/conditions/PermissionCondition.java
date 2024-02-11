@@ -5,8 +5,10 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("permission")
 public class PermissionCondition extends Condition {
 
 	private String perm;

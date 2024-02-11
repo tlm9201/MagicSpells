@@ -4,9 +4,11 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 
+@Name("ender")
 public class EnderSignalEffect extends SpellEffect {
 
 	@Override

@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerEditBookEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -19,6 +20,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // Trigger variable is optional
 // If not specified, it will trigger on any book
 // If specified, it should be a comma separated list of page text to trigger on
+@Name("signbook")
 public class SignBookListener extends PassiveListener {
 
 	private final Set<String> text = new HashSet<>();

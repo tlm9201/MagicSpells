@@ -6,11 +6,13 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("magicxpbelow")
 public class MagicXpBelowCondition extends Condition {
 
 	private static MagicXpHandler handler;

@@ -5,12 +5,14 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Optional trigger variable of comma separated list of internal spell names to accept
+@Name("spelltargeted")
 public class SpellTargetedListener extends PassiveListener {
 
 	private SpellFilter filter;

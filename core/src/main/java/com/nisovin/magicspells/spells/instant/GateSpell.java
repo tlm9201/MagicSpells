@@ -32,8 +32,8 @@ public class GateSpell extends InstantSpell {
 
 		World effectiveWorld = switch (world.toUpperCase()) {
 			case "CURRENT" -> data.caster().getWorld();
-			case "DEFAULT" -> Bukkit.getServer().getWorlds().get(0);
-			default -> Bukkit.getServer().getWorld(world);
+			case "DEFAULT" -> Bukkit.getWorlds().get(0);
+			default -> Bukkit.getWorld(world);
 		};
 
 		if (effectiveWorld == null) {

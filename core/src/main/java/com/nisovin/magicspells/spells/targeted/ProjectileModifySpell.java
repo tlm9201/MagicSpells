@@ -24,7 +24,7 @@ import com.nisovin.magicspells.util.trackers.ParticleProjectileTracker;
 public class ProjectileModifySpell extends TargetedSpell implements TargetedLocationSpell {
 
 	private Subspell projectileSpell;
-	private String projectileSpellName;
+	private final String projectileSpellName;
 
 	private final ConfigData<Boolean> stop;
 	private final ConfigData<Boolean> circleShape;
@@ -85,14 +85,14 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 	private Subspell durationSpell;
 	private Subspell modifierSpell;
 	private Subspell entityLocationSpell;
-	private String airSpellName;
-	private String selfSpellName;
-	private String tickSpellName;
-	private String entitySpellName;
-	private String groundSpellName;
-	private String durationSpellName;
-	private String modifierSpellName;
-	private String entityLocationSpellName;
+	private final String airSpellName;
+	private final String selfSpellName;
+	private final String tickSpellName;
+	private final String entitySpellName;
+	private final String groundSpellName;
+	private final String durationSpellName;
+	private final String modifierSpellName;
+	private final String entityLocationSpellName;
 
 	private ModifierSet projModifiers;
 	private List<String> projModifiersStrings;
@@ -178,42 +178,33 @@ public class ProjectileModifySpell extends TargetedSpell implements TargetedLoca
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "ProjectileModifySpell '" + internalName + "' has an invalid ";
-
+		String error = "ProjectileModifySpell '" + internalName + "' has an invalid '%s' defined!";
 		projectileSpell = initSubspell(projectileSpellName,
-				prefix + "spell defined!",
+				error.formatted("spell"),
 				true);
-
 		airSpell = initSubspell(airSpellName,
-				prefix + "spell-on-hit-air defined!",
+				error.formatted("spell-on-hit-air"),
 				true);
-
 		selfSpell = initSubspell(selfSpellName,
-				prefix + "spell-on-hit-self defined!",
+				error.formatted("spell-on-hit-self"),
 				true);
-
 		tickSpell = initSubspell(tickSpellName,
-				prefix + "spell-on-tick defined!",
+				error.formatted("spell-on-tick"),
 				true);
-
 		groundSpell = initSubspell(groundSpellName,
-				prefix + "spell-on-hit-ground defined!",
+				error.formatted("spell-on-hit-ground"),
 				true);
-
 		entitySpell = initSubspell(entitySpellName,
-				prefix + "spell-on-hit-entity defined!",
+				error.formatted("spell-on-hit-entity"),
 				true);
-
 		durationSpell = initSubspell(durationSpellName,
-				prefix + "spell-on-duration-end defined!",
+				error.formatted("spell-on-duration-end"),
 				true);
-
 		modifierSpell = initSubspell(modifierSpellName,
-				prefix + "spell-on-modifier-fail defined!",
+				error.formatted("spell-on-modifier-fail"),
 				true);
-
 		entityLocationSpell = initSubspell(entityLocationSpellName,
-				prefix + "spell-on-entity-location defined!",
+				error.formatted("spell-on-entity-location"),
 				true);
 	}
 

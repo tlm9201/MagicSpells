@@ -260,7 +260,7 @@ public class SpellbookSpell extends CommandSpell {
 					bookSpells.add(data[4]);
 					bookUses.add(uses);
 				} catch (Exception e) {
-					MagicSpells.plugin.getServer().getLogger().severe("MagicSpells: Failed to load spellbook: " + line);
+					MagicSpells.error("Failed to load spellbook with SpellbookSpell '" + internalName + "': " + line);
 				}
 			}
 		} catch (FileNotFoundException e) {
@@ -289,7 +289,7 @@ public class SpellbookSpell extends CommandSpell {
 			}
 			writer.close();
 		} catch (Exception e) {
-			MagicSpells.plugin.getServer().getLogger().severe("MagicSpells: Error saving spellbooks");
+			MagicSpells.error("Error saving spellbooks with SpellBookSpell: " + internalName);
 		}
 	}
 

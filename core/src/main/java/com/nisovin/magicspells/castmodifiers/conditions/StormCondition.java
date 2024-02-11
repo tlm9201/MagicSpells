@@ -5,8 +5,10 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("storm")
 public class StormCondition extends Condition {
 
 	@Override

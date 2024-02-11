@@ -5,6 +5,9 @@ import java.util.HashMap;
 
 import org.bukkit.event.EventPriority;
 
+import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.spells.passive.*;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -19,10 +22,27 @@ public class PassiveManager {
 		initialize();
 	}
 
+	/**
+	 * @param listener must be annotated with {@link Name}.
+	 */
+	public void addListener(Class<? extends PassiveListener> listener) {
+		Name name = listener.getAnnotation(Name.class);
+		if (name == null) throw new IllegalStateException("Missing 'Name' annotation on PassiveListener class: " + listener.getName());
+		listeners.put(name.value(), listener);
+	}
+
+	/**
+	 * @deprecated Use {@link PassiveManager#addListener(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addListener(String name, Class<? extends PassiveListener> listener) {
 		listeners.put(name.toLowerCase(), listener);
 	}
 
+	/**
+	 * @deprecated Use {@link PassiveManager#addListener(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addListener(Class<? extends PassiveListener> listener, String name) {
 		listeners.put(name.toLowerCase(), listener);
 	}
@@ -38,6 +58,10 @@ public class PassiveManager {
 	public PassiveListener getListenerByName(String name) {
 		Class<? extends PassiveListener> clazz = listeners.get(name.toLowerCase());
 		if (clazz == null) return null;
+
+		// Check if depending plugin is enabled.
+		DependsOn dependsOn = clazz.getAnnotation(DependsOn.class);
+		if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) return null;
 
 		try {
 			return clazz.getDeclaredConstructor().newInstance();
@@ -70,84 +94,84 @@ public class PassiveManager {
 			eventPriorities.put("_" + priority.name().toLowerCase() + "priority", priority);
 		}
 
-		addListener("anvil", AnvilListener.class);
-		addListener("blockbreak", BlockBreakListener.class);
-		addListener("blockplace", BlockPlaceListener.class);
-		addListener("buff", BuffListener.class);
-		addListener("craft", CraftListener.class);
-		addListener("death", DeathListener.class);
-		addListener("dropitem", DropItemListener.class);
-		addListener("enterbed", EnterBedListener.class);
-		addListener("dismount", DismountListener.class);
-		addListener("enchant", EnchantListener.class);
-		addListener("entitytarget", EntityTargetListener.class);
-		addListener("equip", EquipListener.class);
-		addListener("fataldamage", FatalDamageListener.class);
-		addListener("fish", FishListener.class);
-		addListener("foodlevelchange", FoodLevelChangeListener.class);
-		addListener("gamemodechange", GameModeChangeListener.class);
-		addListener("givedamage", GiveDamageListener.class);
-		addListener("grindstone", GrindstoneListener.class);
-		addListener("hitarrow", HitArrowListener.class);
-		addListener("hotbardeselect", HotbarDeselectListener.class);
-		addListener("hotbarselect", HotbarSelectListener.class);
-		addListener("insideblock", InsideBlockListener.class);
-		addListener("inventoryaction", InventoryActionListener.class);
-		addListener("inventoryclick", InventoryClickListener.class);
-		addListener("inventoryclose", InventoryCloseListener.class);
-		addListener("inventoryopen", InventoryOpenListener.class);
-		addListener("join", JoinListener.class);
-		addListener("jump", JumpListener.class);
-		addListener("kill", KillListener.class);
-		addListener("leavebed", LeaveBedListener.class);
-		addListener("leftclickblockcoord", LeftClickBlockCoordListener.class);
-		addListener("leftclickblocktype", LeftClickBlockTypeListener.class);
-		addListener("leftclickitem", LeftClickItemListener.class);
-		addListener("magicspellsloaded", MagicSpellsLoadedListener.class);
-		addListener("manachange", ManaChangeListener.class);
-		addListener("missarrow", MissArrowListener.class);
-		addListener("mount", MountListener.class);
-		addListener("offhandswap", OffhandSwapListener.class);
-		addListener("pickupitem", PickupItemListener.class);
-		addListener("playeranimate", PlayerAnimationListener.class);
-		addListener("playermove", PlayerMoveListener.class);
-		addListener("playermovetoblock", PlayerMoveToBlockListener.class);
-		addListener("potioneffect", PotionEffectListener.class);
-		addListener("prepareenchant", PrepareEnchantListener.class);
-		addListener("quit", QuitListener.class);
-		addListener("regainhealth", RegainHealthListener.class);
-		addListener("resourcepack", ResourcePackListener.class);
-		addListener("respawn", RespawnListener.class);
-		addListener("rightclickblockcoord", RightClickBlockCoordListener.class);
-		addListener("rightclickblocktype", RightClickBlockTypeListener.class);
-		addListener("rightclickentity", RightClickEntityListener.class);
-		addListener("rightclickitem", RightClickItemListener.class);
-		addListener("sheepshear", SheepShearListener.class);
-		addListener("shoot", ShootListener.class);
-		addListener("signbook", SignBookListener.class);
-		addListener("smith", SmithListener.class);
-		addListener("spellcasted", SpellCastedListener.class);
-		addListener("spellcast", SpellCastListener.class);
-		addListener("spellselect", SpellSelectListener.class);
-		addListener("spelltargeted", SpellTargetedListener.class);
-		addListener("spelltarget", SpellTargetListener.class);
-		addListener("startfly", StartFlyListener.class);
-		addListener("startglide", StartGlideListener.class);
-		addListener("startpose", StartPoseListener.class);
-		addListener("startsneak", StartSneakListener.class);
-		addListener("startsprint", StartSprintListener.class);
-		addListener("startswim", StartSwimListener.class);
-		addListener("stopfly", StopFlyListener.class);
-		addListener("stopglide", StopGlideListener.class);
-		addListener("stoppose", StopPoseListener.class);
-		addListener("stopsneak", StopSneakListener.class);
-		addListener("stopsprint", StopSprintListener.class);
-		addListener("stopswim", StopSwimListener.class);
-		addListener("takedamage", TakeDamageListener.class);
-		addListener("teleport", TeleportListener.class);
-		addListener("ticks", TicksListener.class);
-		addListener("unequip", UnequipListener.class);
-		addListener("worldchange", WorldChangeListener.class);
+		addListener(AnvilListener.class);
+		addListener(BlockBreakListener.class);
+		addListener(BlockPlaceListener.class);
+		addListener(BuffListener.class);
+		addListener(CraftListener.class);
+		addListener(DeathListener.class);
+		addListener(DropItemListener.class);
+		addListener(EnterBedListener.class);
+		addListener(DismountListener.class);
+		addListener(EnchantListener.class);
+		addListener(EntityTargetListener.class);
+		addListener(EquipListener.class);
+		addListener(FatalDamageListener.class);
+		addListener(FishListener.class);
+		addListener(FoodLevelChangeListener.class);
+		addListener(GameModeChangeListener.class);
+		addListener(GiveDamageListener.class);
+		addListener(GrindstoneListener.class);
+		addListener(HitArrowListener.class);
+		addListener(HotbarDeselectListener.class);
+		addListener(HotbarSelectListener.class);
+		addListener(InsideBlockListener.class);
+		addListener(InventoryActionListener.class);
+		addListener(InventoryClickListener.class);
+		addListener(InventoryCloseListener.class);
+		addListener(InventoryOpenListener.class);
+		addListener(JoinListener.class);
+		addListener(JumpListener.class);
+		addListener(KillListener.class);
+		addListener(LeaveBedListener.class);
+		addListener(LeftClickBlockCoordListener.class);
+		addListener(LeftClickBlockTypeListener.class);
+		addListener(LeftClickItemListener.class);
+		addListener(MagicSpellsLoadedListener.class);
+		addListener(ManaChangeListener.class);
+		addListener(MissArrowListener.class);
+		addListener(MountListener.class);
+		addListener(OffhandSwapListener.class);
+		addListener(PickupItemListener.class);
+		addListener(PlayerAnimationListener.class);
+		addListener(PlayerMoveListener.class);
+		addListener(PlayerMoveToBlockListener.class);
+		addListener(PotionEffectListener.class);
+		addListener(PrepareEnchantListener.class);
+		addListener(QuitListener.class);
+		addListener(RegainHealthListener.class);
+		addListener(ResourcePackListener.class);
+		addListener(RespawnListener.class);
+		addListener(RightClickBlockCoordListener.class);
+		addListener(RightClickBlockTypeListener.class);
+		addListener(RightClickEntityListener.class);
+		addListener(RightClickItemListener.class);
+		addListener(SheepShearListener.class);
+		addListener(ShootListener.class);
+		addListener(SignBookListener.class);
+		addListener(SmithListener.class);
+		addListener(SpellCastedListener.class);
+		addListener(SpellCastListener.class);
+		addListener(SpellSelectListener.class);
+		addListener(SpellTargetedListener.class);
+		addListener(SpellTargetListener.class);
+		addListener(StartFlyListener.class);
+		addListener(StartGlideListener.class);
+		addListener(StartPoseListener.class);
+		addListener(StartSneakListener.class);
+		addListener(StartSprintListener.class);
+		addListener(StartSwimListener.class);
+		addListener(StopFlyListener.class);
+		addListener(StopGlideListener.class);
+		addListener(StopPoseListener.class);
+		addListener(StopSneakListener.class);
+		addListener(StopSprintListener.class);
+		addListener(StopSwimListener.class);
+		addListener(TakeDamageListener.class);
+		addListener(TeleportListener.class);
+		addListener(TicksListener.class);
+		addListener(UnequipListener.class);
+		addListener(WorldChangeListener.class);
 	}
 
 }

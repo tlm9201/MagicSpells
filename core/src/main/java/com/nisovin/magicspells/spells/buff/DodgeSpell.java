@@ -56,12 +56,12 @@ public class DodgeSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 
+		String error = "DodgeSpell '" + internalName + "' has an invalid '%s' defined!";
 		spellBeforeDodge = initSubspell(spellBeforeDodgeName,
-				"DodgeSpell '" + internalName + "' has an invalid spell-before-dodge defined!",
+				error.formatted("spell-before-dodge"),
 				true);
-
 		spellAfterDodge = initSubspell(spellAfterDodgeName,
-				"DodgeSpell '" + internalName + "' has an invalid spell-after-dodge defined!",
+				error.formatted("spell-after-dodge"),
 				true);
 	}
 

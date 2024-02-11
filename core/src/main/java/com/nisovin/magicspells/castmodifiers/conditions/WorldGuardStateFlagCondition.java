@@ -11,10 +11,12 @@ import com.sk89q.worldguard.protection.flags.Flag;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
-import com.nisovin.magicspells.castmodifiers.conditions.util.DependsOn;
+import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.castmodifiers.conditions.util.AbstractWorldGuardCondition;
 
-@DependsOn(plugin = "WorldGuard")
+@DependsOn("WorldGuard")
+@Name("worldguardstateflag")
 public class WorldGuardStateFlagCondition extends AbstractWorldGuardCondition {
 
 	private static final Map<String, StateFlag> flags = new HashMap<>();

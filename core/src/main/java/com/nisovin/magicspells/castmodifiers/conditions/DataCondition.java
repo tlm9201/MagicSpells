@@ -10,11 +10,13 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.data.DataLivingEntity;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
+@Name("data")
 public class DataCondition extends OperatorCondition {
 
 	private static final Pattern DATA_PATTERN = Pattern.compile("([.\\w]+)([<>=:])(.+)");

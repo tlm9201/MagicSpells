@@ -6,9 +6,11 @@ import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("oncooldown")
 public class OnCooldownCondition extends Condition {
 
 	private Spell spell;

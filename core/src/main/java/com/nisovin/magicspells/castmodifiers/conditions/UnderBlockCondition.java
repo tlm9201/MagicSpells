@@ -12,9 +12,11 @@ import org.bukkit.block.data.BlockData;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("underblock")
 public class UnderBlockCondition extends Condition {
 
 	private Set<BlockData> blockDataSet;

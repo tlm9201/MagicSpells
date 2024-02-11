@@ -20,6 +20,7 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.nisovin.magicspells.Spell;
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -32,6 +33,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // The value reflects how often the trigger runs
 // Where the value of the trigger variable is x
 // The trigger will activate every x ticks
+@Name("ticks")
 public class TicksListener extends PassiveListener {
 
 	private Ticker ticker;

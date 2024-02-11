@@ -212,9 +212,16 @@ public class MinionSpell extends BuffSpell {
 	public void initialize() {
 		super.initialize();
 
-		spawnSpell = initSubspell(spawnSpellName, "MinionSpell '" + internalName + "' has an invalid spell-on-spawn defined!");
-		attackSpell = initSubspell(attackSpellName, "MinionSpell '" + internalName + "' has an invalid spell-on-attack defined!");
-		deathSpell = initSubspell(deathSpellName, "MinionSpell '" + internalName + "' has an invalid spell-on-death defined!");
+		String error = "MinionSpell '" + internalName + "' has an invalid '%s' defined!";
+		spawnSpell = initSubspell(spawnSpellName,
+				error.formatted("spell-on-spawn"),
+				true);
+		attackSpell = initSubspell(attackSpellName,
+				error.formatted("spell-on-attack"),
+				true);
+		deathSpell = initSubspell(deathSpellName,
+				error.formatted("spell-on-death"),
+				true);
 	}
 
 	@Override

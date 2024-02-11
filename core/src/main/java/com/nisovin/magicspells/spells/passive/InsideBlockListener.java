@@ -13,10 +13,12 @@ import org.jetbrains.annotations.NotNull;
 
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("insideblock")
 public class InsideBlockListener extends PassiveListener {
 
 	private List<BlockData> blockData;

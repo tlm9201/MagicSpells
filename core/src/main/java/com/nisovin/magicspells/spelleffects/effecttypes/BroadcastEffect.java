@@ -6,6 +6,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
@@ -13,6 +14,7 @@ import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
+@Name("broadcast")
 public class BroadcastEffect extends SpellEffect {
 
 	private String message;

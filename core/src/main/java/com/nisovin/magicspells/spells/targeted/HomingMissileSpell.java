@@ -46,12 +46,12 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 	private final ConfigData<Boolean> stopOnModifierFail;
 	private final ConfigData<Boolean> hitAirAfterDuration;
 
-	private String hitSpellName;
-	private String airSpellName;
-	private String groundSpellName;
-	private String modifierSpellName;
-	private String durationSpellName;
-	private String entityLocationSpellName;
+	private final String hitSpellName;
+	private final String airSpellName;
+	private final String groundSpellName;
+	private final String modifierSpellName;
+	private final String durationSpellName;
+	private final String entityLocationSpellName;
 
 	private Subspell hitSpell;
 	private Subspell airSpell;
@@ -136,30 +136,24 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "HomingMissileSpell '" + internalName + "' has an invalid ";
-
+		String error = "HomingMissileSpell '" + internalName + "' has an invalid '%s' defined!";
 		hitSpell = initSubspell(hitSpellName,
-				prefix + "spell defined!",
+				error.formatted("spell"),
 				true);
-
 		groundSpell = initSubspell(groundSpellName,
-				prefix + "spell-on-hit-ground defined!",
+				error.formatted("spell-on-hit-ground"),
 				true);
-
 		airSpell = initSubspell(airSpellName,
-				prefix + "spell-on-hit-air defined!",
+				error.formatted("spell-on-hit-air"),
 				true);
-
 		durationSpell = initSubspell(durationSpellName,
-				prefix + "spell-after-duration defined!",
+				error.formatted("spell-after-duration"),
 				true);
-
 		modifierSpell = initSubspell(modifierSpellName,
-				prefix + "spell-on-modifier-fail defined!",
+				error.formatted("spell-on-modifier-fail"),
 				true);
-
 		entityLocationSpell = initSubspell(entityLocationSpellName,
-				prefix + "spell-on-entity-location defined!",
+				error.formatted("spell-on-entity-location"),
 				true);
 
 		zoneManager = MagicSpells.getNoMagicZoneManager();

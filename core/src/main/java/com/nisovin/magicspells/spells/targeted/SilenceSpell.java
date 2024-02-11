@@ -25,9 +25,9 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
 public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private Map<UUID, Unsilencer> silenced;
+	private final Map<UUID, Unsilencer> silenced;
 
-	private SpellFilter filter;
+	private final SpellFilter filter;
 
 	private final String strSilenced;
 
@@ -40,9 +40,9 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 	private final boolean notifyPassiveSpells;
 	private final ConfigData<Boolean> powerAffectsDuration;
 
-	private String preventCastSpellName;
-	private String preventChatSpellName;
-	private String preventCommandSpellName;
+	private final String preventCastSpellName;
+	private final String preventChatSpellName;
+	private final String preventCommandSpellName;
 
 	private Subspell preventCastSpell;
 	private Subspell preventChatSpell;
@@ -66,7 +66,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		preventChatSpellName = getConfigString("spell-on-denied-chat", "");
 		preventCommandSpellName = getConfigString("spell-on-denied-command", "");
 
-		filter = SpellFilter.fromLegacyConfig(config.getMainConfig(), "spells." + internalName);
+		filter = SpellFilter.fromLegacyConfig(config.getMainConfig(), internalKey);
 
 		if (preventChat) silenced = new ConcurrentHashMap<>();
 		else silenced = new HashMap<>();
@@ -76,23 +76,25 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 	public void initialize() {
 		super.initialize();
 
+		String error = "SilenceSpell '" + internalName + "' has an invalid '%s' defined!";
 		if (preventCast) {
-			preventCastSpell = initSubspell(preventCastSpellName, "SilenceSpell '" + internalName + "' has an invalid spell-on-denied-cast defined.");
+			preventCastSpell = initSubspell(preventCastSpellName,
+					error.formatted("spell-on-denied-cast"),
+					true);
 			registerEvents(new CastListener());
 		}
-		preventCastSpellName = null;
-
 		if (preventChat) {
-			preventChatSpell = initSubspell(preventChatSpellName, "SilenceSpell '" + internalName + "' has an invalid spell-on-denied-chat defined.");
+			preventChatSpell = initSubspell(preventChatSpellName,
+					error.formatted("spell-on-denied-chat"),
+					true);
 			registerEvents(new ChatListener());
 		}
-		preventChatSpellName = null;
-
 		if (preventCommands) {
-			preventCommandSpell = initSubspell(preventCommandSpellName, "SilenceSpell '" + internalName + "' has an invalid spell-on-denied-command defined.");
+			preventCommandSpell = initSubspell(preventCommandSpellName,
+					error.formatted("spell-on-denied-command"),
+					true);
 			registerEvents(new CommandListener());
 		}
-		preventCommandSpellName = null;
 	}
 
 	@Override

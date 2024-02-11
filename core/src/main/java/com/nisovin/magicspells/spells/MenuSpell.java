@@ -156,12 +156,25 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		super.initialize();
 
 		for (MenuOption option : options.values()) {
-			option.spell = initSubspell(option.spellName, "MenuSpell '" + internalName + "' has an invalid 'spell' defined for: " + option.menuOptionName);
-			option.spellRight = initSubspell(option.spellRightName, "MenuSpell '" + internalName + "' has an invalid 'spell-right' defined for: " + option.menuOptionName);
-			option.spellSneakLeft = initSubspell(option.spellSneakLeftName, "MenuSpell '" + internalName + "' has an invalid 'spell-sneak-left' defined for: " + option.menuOptionName);
-			option.spellSneakRight = initSubspell(option.spellSneakRightName, "MenuSpell '" + internalName + "' has an invalid 'spell-sneak-right' defined for: " + option.menuOptionName);
-			option.spellDrop = initSubspell(option.spellDropName, "MenuSpell '" + internalName + "' has an invalid 'spell-drop' defined for: " + option.menuOptionName);
-			option.spellSwap = initSubspell(option.spellSwapName, "MenuSpell '" + internalName + "' has an invalid 'spell-swap' defined for: " + option.menuOptionName);
+			String error = "MenuSpell '" + internalName + "' has an invalid '%s' defined for: " + option.menuOptionName;
+			option.spell = initSubspell(option.spellName,
+					error.formatted("spell"),
+					true);
+			option.spellRight = initSubspell(option.spellRightName,
+					error.formatted("spell-right"),
+					true);
+			option.spellSneakLeft = initSubspell(option.spellSneakLeftName,
+					error.formatted("spell-sneak-left"),
+					true);
+			option.spellSneakRight = initSubspell(option.spellSneakRightName,
+					error.formatted("spell-sneak-right"),
+					true);
+			option.spellDrop = initSubspell(option.spellDropName,
+					error.formatted("spell-drop"),
+					true);
+			option.spellSwap = initSubspell(option.spellSwapName,
+					error.formatted("spell-swap"),
+					true);
 		}
 	}
 

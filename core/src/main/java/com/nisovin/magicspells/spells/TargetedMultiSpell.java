@@ -56,9 +56,9 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 				continue;
 			}
 
-			Subspell spell = new Subspell(s);
-			if (spell.process()) actions.add(new Action(spell));
-			else MagicSpells.error("TargetedMultiSpell '" + internalName + "' has an invalid spell '" + s + "' defined!");
+			Subspell spell = initSubspell(s, "TargetedMultiSpell '" + internalName + "' has an invalid spell '" + s + "' defined!");
+			if (spell == null) continue;
+			actions.add(new Action(spell));
 		}
 
 		spellList = null;

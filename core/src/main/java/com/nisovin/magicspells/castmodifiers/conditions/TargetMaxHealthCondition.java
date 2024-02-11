@@ -5,9 +5,11 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
+@Name("targetmaxhealth")
 public class TargetMaxHealthCondition extends OperatorCondition {
 
 	private double health;

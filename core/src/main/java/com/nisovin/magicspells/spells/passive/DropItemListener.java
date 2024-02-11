@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
@@ -17,6 +18,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Optional trigger variable that may contain a pipe separated list of items to accept
+@Name("dropitem")
 public class DropItemListener extends PassiveListener {
 
 	private final Set<MagicItemData> items = new HashSet<>();

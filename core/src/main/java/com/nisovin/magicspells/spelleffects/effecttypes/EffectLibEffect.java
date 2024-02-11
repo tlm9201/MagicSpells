@@ -19,12 +19,14 @@ import de.slikey.effectlib.EffectManager;
 import de.slikey.effectlib.util.CustomSound;
 import de.slikey.effectlib.effect.ModifiedEffect;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
+@Name("effectlib")
 public class EffectLibEffect extends SpellEffect {
 
 	private static final Set<String> CLASS_STRINGS = Set.of("class", "effectClass", "subEffectClass", "subEffectAtEndClass", "subEffectAtEndCachedClass");
@@ -69,7 +71,6 @@ public class EffectLibEffect extends SpellEffect {
 			} catch (NoSuchFieldException e) {
 				MagicSpells.error("Invalid option '" + actualKey + "' on EffectLib effect.");
 				e.printStackTrace();
-
 				continue;
 			}
 

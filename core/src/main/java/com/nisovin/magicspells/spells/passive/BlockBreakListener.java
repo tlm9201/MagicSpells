@@ -10,11 +10,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 // Optional trigger variable of a comma separated list of blocks to accept
+@Name("blockbreak")
 public class BlockBreakListener extends PassiveListener {
 
 	private final EnumSet<Material> materials = EnumSet.noneOf(Material.class);

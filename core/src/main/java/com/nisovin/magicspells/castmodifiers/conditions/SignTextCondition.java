@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import net.kyori.adventure.text.Component;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
@@ -25,6 +26,7 @@ import com.nisovin.magicspells.castmodifiers.Condition;
  * world,x,y,z is optional, "x,y,z" must be integers.
  * "lines" should follow strict MiniMessage format.
  */
+@Name("signtext")
 public class SignTextCondition extends Condition {
 
 	private static final Pattern FORMAT = Pattern.compile("(?:(?<side>front|back);)?(?:(?<location>[^,]+,-?\\d+,-?\\d+,-?\\d+),)?(?<lines>.+)", Pattern.DOTALL);

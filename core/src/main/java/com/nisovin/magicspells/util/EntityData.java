@@ -339,7 +339,7 @@ public class EntityData {
 		if (entityType == null || (!entityType.isSpawnable() && entityType != EntityType.FALLING_BLOCK && entityType != EntityType.DROPPED_ITEM))
 			return null;
 
-		Entity entity = switch (entityType) {
+		return switch (entityType) {
 			case FALLING_BLOCK -> {
 				BlockData blockData = fallingBlockData.get(data);
 				if (blockData == null) yield null;
@@ -373,8 +373,6 @@ public class EntityData {
 				});
 			}
 		};
-
-		return entity;
 	}
 
 	private <T> ConfigData<Boolean> addBoolean(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, boolean def, Class<T> type, BiConsumer<T, Boolean> setter) {

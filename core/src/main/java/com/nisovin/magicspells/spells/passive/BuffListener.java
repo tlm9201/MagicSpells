@@ -22,6 +22,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Subspell;
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
@@ -30,7 +31,7 @@ import com.nisovin.magicspells.events.SpellLearnEvent;
 import com.nisovin.magicspells.events.SpellForgetEvent;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// No trigger variable currently used
+@Name("buff")
 public class BuffListener extends PassiveListener {
 
 	private final EnumSet<GameMode> invalidGameModes = EnumSet.of(GameMode.CREATIVE, GameMode.SPECTATOR);

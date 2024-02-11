@@ -11,12 +11,14 @@ import org.bukkit.inventory.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.BlockUtils;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 
+@Name("chestcontains")
 public class ChestContainsCondition extends Condition {
 
 	private static final Pattern FORMAT = Pattern.compile("(?<loc>[^,]+,-?\\d+,-?\\d+,-?\\d+),(?<item>.*)");

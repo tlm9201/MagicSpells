@@ -1,7 +1,7 @@
 package com.nisovin.magicspells.handlers;
 
+import java.util.EnumSet;
 import java.util.logging.Level;
-import java.lang.reflect.InvocationTargetException;
 
 import com.nisovin.magicspells.MagicSpells;
 
@@ -16,21 +16,12 @@ public class DebugHandler {
 		MagicSpells.plugin.getLogger().log(Level.WARNING, t.toString() + '\n' + throwableToString(t));
 	}
 	
-	public static void debugBadEnumValue(Class<? extends Enum<?>> e, String receivedValue) {
-		try {
-			StringBuilder enumValues = new StringBuilder();
-			Enum<?>[] values = (Enum<?>[]) e.getMethod("values").invoke(null);
-			int lastIndex = values.length - 1;
-			for (int i = 0; i < values.length; i++) {
-				enumValues.append(values[i].name());
-				if (i < lastIndex) enumValues.append(", ");
-			}
-			MagicSpells.plugin.getLogger().log(Level.WARNING, "Bad enum value of \"" + receivedValue + "\" received for type \"" + e.getName() + '\"');
-			MagicSpells.plugin.getLogger().log(Level.WARNING, "Valid enum values are: " + enumValues);
-		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
-			MagicSpells.plugin.getLogger().severe("Bad news, one of the logging methods just failed hard");
-			e1.printStackTrace();
-		}
+	public static <E extends Enum<E>> void debugBadEnumValue(Class<E> enumClass, String receivedValue) {
+		MagicSpells.plugin.getLogger().log(Level.WARNING, "Bad enum value of '" + receivedValue + "' received for type '" + enumClass.getName() + "'");
+
+		EnumSet<E> values = EnumSet.allOf(enumClass);
+		if (values.size() > 100) return;
+		MagicSpells.plugin.getLogger().log(Level.WARNING, "Valid enum values are: " + EnumSet.allOf(enumClass));
 	}
 	
 	private static String throwableToString(Throwable t) {

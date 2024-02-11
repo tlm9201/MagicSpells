@@ -11,13 +11,14 @@ import org.bukkit.event.player.PlayerFishEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.MobUtil;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// Trigger variable can optionally include a comma-separated list of
-// fish event states and entity types
+// Trigger variable can optionally include a comma-separated list of fish event states and entity types
+@Name("fish")
 public class FishListener extends PassiveListener {
 
 	private final EnumSet<PlayerFishEvent.State> states = EnumSet.noneOf(PlayerFishEvent.State.class);

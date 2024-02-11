@@ -48,10 +48,10 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 	private final ConfigData<Boolean> powerAffectsAmount;
 	private final ConfigData<Boolean> avoidDamageModification;
 
-	private String spellOnAnimationName;
 	private Subspell spellOnAnimation;
+	private final String spellOnAnimationName;
 
-	private ConfigData<DamageCause> damageType;
+	private final ConfigData<DamageCause> damageType;
 
 	public DrainlifeSpell(MagicConfig config, String spellName) {
 		super(config, spellName);

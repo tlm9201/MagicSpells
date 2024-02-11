@@ -9,15 +9,16 @@ import org.jetbrains.annotations.NotNull;
 import com.destroystokyo.paper.event.entity.EntityJumpEvent;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
-// No trigger variable is currently used.
 // Cancelling this event causes the entity to be teleported back
 // to the location they jumped from. This may cause unintended effects
 // such as velocity being reset for the entity.
 // The effect of the player's jump attempt is not visible to other
 // players, but it is visible to the player doing the jump action.
+@Name("jump")
 public class JumpListener extends PassiveListener {
 
 	@Override

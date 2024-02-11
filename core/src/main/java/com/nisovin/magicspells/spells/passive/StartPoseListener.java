@@ -10,10 +10,12 @@ import org.bukkit.event.entity.EntityPoseChangeEvent;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
+@Name("startpose")
 public class StartPoseListener extends PassiveListener {
 
 	private Set<Pose> poses;

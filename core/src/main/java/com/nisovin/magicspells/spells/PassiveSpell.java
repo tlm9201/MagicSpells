@@ -50,7 +50,7 @@ public class PassiveSpell extends Spell {
 		triggers = getConfigStringList("triggers", null);
 		spellNames = getConfigStringList("spells", null);
 
-		if (config.isList("spells." + internalName + '.' + "can-trigger")) {
+		if (config.isList(internalKey + "can-trigger")) {
 			List<String> defaultTargets = getConfigStringList("can-trigger", null);
 			if (defaultTargets.isEmpty()) defaultTargets.add("players");
 			triggerList = new ValidTargetList(this, defaultTargets);

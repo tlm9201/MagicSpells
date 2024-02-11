@@ -5,13 +5,15 @@ import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
+@Name("smokeswirl")
 public class SmokeSwirlEffect extends SpellEffect {
 
 	private static final int[] X = {1, 1, 0, -1, -1, -1, 0, 1};
@@ -43,10 +45,10 @@ public class SmokeSwirlEffect extends SpellEffect {
 
 		private Entity entity;
 		private Location location;
-		private int interval;
-		private int animatorDuration;
 		private int iteration;
-		private int animatorTaskId;
+		private final int interval;
+		private final int animatorDuration;
+		private final int animatorTaskId;
 
 		Animator(Location location, int interval, int duration) {
 			this(interval, duration);

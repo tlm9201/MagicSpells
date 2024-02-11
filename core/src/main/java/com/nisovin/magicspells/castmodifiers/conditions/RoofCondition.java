@@ -7,9 +7,11 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.RegexUtil;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("roof")
 public class RoofCondition extends Condition {
 
 	private int height = 10;

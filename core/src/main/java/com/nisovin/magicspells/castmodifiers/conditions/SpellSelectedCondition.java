@@ -7,11 +7,13 @@ import org.bukkit.inventory.ItemStack;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellFilter;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("spellselected")
 public class SpellSelectedCondition extends Condition {
 
 	private SpellFilter filter;

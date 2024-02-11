@@ -4,13 +4,13 @@ import org.bukkit.entity.Player;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 
-import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
-// NOTE: PLACEHOLDERAPI IS REQUIRED FOR THIS
+@DependsOn("PlaceholderAPI")
 public class PlaceholderAPIDataSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final String placeholderAPITemplate;

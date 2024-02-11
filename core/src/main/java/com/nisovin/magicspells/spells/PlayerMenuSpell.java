@@ -123,15 +123,31 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 	public void initialize() {
 		super.initialize();
 
-		String error = "PlayerMenuSpell '" + internalName + "' has an invalid ";
-		spellRange = initSubspell(spellRangeName, error + "spell-range defined!");
-		spellOffline = initSubspell(spellOfflineName, error + "spell-offline defined!");
-		spellOnLeft = initSubspell(spellOnLeftName, error + "spell-on-left defined!");
-		spellOnRight = initSubspell(spellOnRightName, error + "spell-on-right defined!");
-		spellOnDrop = initSubspell(spellOnDropName, error + "spell-on-drop defined!");
-		spellOnSwap = initSubspell(spellOnSwapName, error + "spell-on-swap defined!");
-		spellOnSneakLeft = initSubspell(spellOnSneakLeftName, error + "spell-on-sneak-left defined!");
-		spellOnSneakRight = initSubspell(spellOnSneakRightName, error + "spell-on-sneak-right defined!");
+		String error = "PlayerMenuSpell '" + internalName + "' has an invalid '%s' defined!";
+		spellRange = initSubspell(spellRangeName,
+				error.formatted("spell-range"),
+				true);
+		spellOffline = initSubspell(spellOfflineName,
+				error.formatted("spell-offline"),
+				true);
+		spellOnLeft = initSubspell(spellOnLeftName,
+				error.formatted("spell-on-left"),
+				true);
+		spellOnRight = initSubspell(spellOnRightName,
+				error.formatted("spell-on-right"),
+				true);
+		spellOnDrop = initSubspell(spellOnDropName,
+				error.formatted("spell-on-drop"),
+				true);
+		spellOnSwap = initSubspell(spellOnSwapName,
+				error.formatted("spell-on-swap"),
+				true);
+		spellOnSneakLeft = initSubspell(spellOnSneakLeftName,
+				error.formatted("spell-on-sneak-left"),
+				true);
+		spellOnSneakRight = initSubspell(spellOnSneakRightName,
+				error.formatted("spell-on-sneak-right"),
+				true);
 	}
 
 	@Override

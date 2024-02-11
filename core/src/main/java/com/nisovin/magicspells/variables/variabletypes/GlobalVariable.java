@@ -1,7 +1,9 @@
 package com.nisovin.magicspells.variables.variabletypes;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.variables.Variable;
 
+@Name("global")
 public class GlobalVariable extends Variable {
 
 	private double value = 0;

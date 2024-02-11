@@ -14,9 +14,11 @@ import org.jetbrains.annotations.NotNull;
 
 import net.kyori.adventure.text.Component;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("offhand")
 public class OffhandCondition extends Condition {
 
 	private Material[] ids;

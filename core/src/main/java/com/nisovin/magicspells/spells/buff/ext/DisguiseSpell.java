@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.EntityData;
 import com.nisovin.magicspells.spells.BuffSpell;
@@ -26,7 +27,7 @@ import me.libraryaddict.disguise.disguisetypes.*;
 import me.libraryaddict.disguise.disguisetypes.watchers.*;
 import me.libraryaddict.disguise.utilities.parser.DisguiseParser;
 
-// NOTE: LIBSDISGUISES IS REQUIRED FOR THIS
+@DependsOn({"ProtocolLib", "LibsDisguises"})
 public class DisguiseSpell extends BuffSpell {
 
 	private final Set<UUID> entities;

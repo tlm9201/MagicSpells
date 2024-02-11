@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.listeners;
 
-
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.util.Util;

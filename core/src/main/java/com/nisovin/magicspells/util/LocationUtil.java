@@ -154,7 +154,7 @@ public class LocationUtil {
 		if (object instanceof Location) return ((Location) object).getWorld();
 		
 		// Handle as String
-		if (object instanceof String) return Bukkit.getServer().getWorld((String) object);
+		if (object instanceof String) return Bukkit.getWorld((String) object);
 		
 		// Handle as Entity
 		if (object instanceof Entity) return ((Entity) object).getWorld();

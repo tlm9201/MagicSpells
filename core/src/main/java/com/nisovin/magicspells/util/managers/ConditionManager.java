@@ -3,12 +3,12 @@ package com.nisovin.magicspells.util.managers;
 import java.util.Map;
 import java.util.HashMap;
 
-import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
-import com.nisovin.magicspells.util.compat.CompatBasics;
 import com.nisovin.magicspells.castmodifiers.conditions.*;
-import com.nisovin.magicspells.castmodifiers.conditions.util.DependsOn;
 
 public class ConditionManager {
 
@@ -22,14 +22,35 @@ public class ConditionManager {
 		return conditions;
 	}
 
+	/**
+	 * @param condition must be annotated with {@link Name}.
+	 */
+	public void addCondition(Class<? extends Condition> condition) {
+		Name name = condition.getAnnotation(Name.class);
+		if (name == null) throw new IllegalStateException("Missing 'Name' annotation on Condition class: " + condition.getName());
+		conditions.put(name.value(), condition);
+	}
+
+	/**
+	 * @deprecated Use {@link ConditionManager#addCondition(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addCondition(String name, Class<? extends Condition> condition) {
 		conditions.put(name.toLowerCase(), condition);
 	}
 
+	/**
+	 * @deprecated Use {@link ConditionManager#addCondition(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addCondition(Class<? extends Condition> condition, String name) {
 		conditions.put(name.toLowerCase(), condition);
 	}
 
+	/**
+	 * @deprecated Use {@link ConditionManager#addCondition(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addCondition(Class<? extends Condition> condition, String... names) {
 		for (String name : names) {
 			conditions.put(name.toLowerCase(), condition);
@@ -40,12 +61,8 @@ public class ConditionManager {
 		Class<? extends Condition> clazz = conditions.get(name.toLowerCase());
 		if (clazz == null) return null;
 
-		// Check if depending plugin is enabled.
 		DependsOn dependsOn = clazz.getAnnotation(DependsOn.class);
-		if (dependsOn != null && !CompatBasics.pluginEnabled(dependsOn.plugin())) {
-			MagicSpells.error("Could not load modifier condition '" + name + "' because plugin '" + dependsOn.plugin() + "' is not enabled.");
-			return null;
-		}
+		if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) return null;
 
 		try {
 			return clazz.getDeclaredConstructor().newInstance();
@@ -56,138 +73,138 @@ public class ConditionManager {
 	}
 
 	private void initialize() {
-		addCondition("advancement", AdvancementCondition.class);
-		addCondition("data", DataCondition.class);
-		addCondition("displayname", DisplayNameCondition.class);
-		addCondition("hoveringwith", HoveringWithCondition.class);
-		addCondition("day", DayCondition.class);
-		addCondition("night", NightCondition.class);
-		addCondition("time", TimeCondition.class);
-		addCondition("storm", StormCondition.class);
-		addCondition("moonphase", MoonPhaseCondition.class);
-		addCondition("lightlevel", LightLevelCondition.class);
-		addCondition("los", LineOfSightCondition.class);
-		addCondition("onblock", OnBlockCondition.class);
-		addCondition("inblock", InBlockCondition.class);
-		addCondition("onground", OnGroundCondition.class);
-		addCondition("overground", OverGroundCondition.class);
-		addCondition("underblock", UnderBlockCondition.class);
-		addCondition("overblock", OverBlockCondition.class);
-		addCondition("inregion", InRegionCondition.class);
-		addCondition("incuboid", InCuboidCondition.class);
-		addCondition("innomagiczone", InNoMagicZoneCondition.class);
-		addCondition("outside", OutsideCondition.class);
-		addCondition("roof", RoofCondition.class);
-		addCondition("elevation", ElevationCondition.class);
-		addCondition("biome", BiomeCondition.class);
-		addCondition("sneaking", SneakingCondition.class);
-		addCondition("swimming", SwimmingCondition.class);
-		addCondition("sprinting", SprintingCondition.class);
-		addCondition("flying", FlyingCondition.class);
-		addCondition("falling", FallingCondition.class);
-		addCondition("blocking", BlockingCondition.class);
-		addCondition("riding", RidingCondition.class);
-		addCondition("riptiding", RiptidingCondition.class);
-		addCondition("wearing", WearingCondition.class);
-		addCondition("wearinginslot", WearingInSlotCondition.class);
-		addCondition("holding", HoldingCondition.class);
-		addCondition("offhand", OffhandCondition.class);
-		addCondition("offhandprecise", OffHandPreciseCondition.class);
-		addCondition("durability", DurabilityCondition.class);
-		addCondition("hasitem", HasItemCondition.class);
-		addCondition("hasitemamount", HasItemAmountCondition.class);
-		addCondition("openslots", OpenSlotsCondition.class);
-		addCondition("onteam", OnTeamCondition.class);
-		addCondition("onsameteam", OnSameTeamCondition.class);
-		addCondition("health", HealthCondition.class);
-		addCondition("absorption", AbsorptionCondition.class);
-		addCondition("mana", ManaCondition.class);
-		addCondition("maxmana", MaxManaCondition.class);
-		addCondition("food", FoodCondition.class);
-		addCondition("gamemode", GameModeCondition.class);
-		addCondition("level", LevelCondition.class);
-		addCondition("magicxpabove", MagicXpAboveCondition.class);
-		addCondition("magicxpbelow", MagicXpBelowCondition.class);
-		addCondition("pitch", PitchCondition.class);
-		addCondition("rotation", RotationCondition.class);
-		addCondition("facing", FacingCondition.class);
-		addCondition("potioneffect", PotionEffectCondition.class);
-		addCondition("onfire", OnFireCondition.class);
-		addCondition("buffactive", BuffActiveCondition.class);
-		addCondition("ownedbuffactive", OwnedBuffActiveCondition.class);
-		addCondition("lastdamagetype", LastDamageTypeCondition.class);
-		addCondition("world", InWorldCondition.class);
-		addCondition("isnpc", IsNPCCondition.class);
-		addCondition("permission", PermissionCondition.class);
-		addCondition("playeronline", PlayerOnlineCondition.class);
-		addCondition("chance", ChanceCondition.class);
-		addCondition("chestcontains", ChestContainsCondition.class);
-		addCondition("entitytype", EntityTypeCondition.class);
-		addCondition("distance", DistanceCondition.class);
-		addCondition("name", NameCondition.class);
-		addCondition("namepattern", NamePatternCondition.class);
-		addCondition("uptime", UpTimeCondition.class);
-		addCondition("variable", VariableCondition.class);
-		addCondition("variablematches", VariableMatchesCondition.class);
-		addCondition("variablestringequals", VariableStringEqualsCondition.class);
-		addCondition("alive", AliveCondition.class);
-		addCondition("lastlife", LastLifeCondition.class);
-		addCondition("testforblock", TestForBlockCondition.class);
-		addCondition("richerthan", RicherThanCondition.class);
-		addCondition("lookingatblock", LookingAtBlockCondition.class);
-		addCondition("oncooldown", OnCooldownCondition.class);
-		addCondition("hasmark", HasMarkCondition.class);
-		addCondition("hastarget", HasTargetCondition.class);
-		addCondition("playercount", PlayerCountCondition.class);
-		addCondition("targetmaxhealth", TargetMaxHealthCondition.class);
-		addCondition("worldguardmembership", WorldGuardRegionMembershipCondition.class);
-		addCondition("worldguardbooleanflag", WorldGuardBooleanFlagCondition.class);
-		addCondition("worldguardstateflag", WorldGuardStateFlagCondition.class);
-		addCondition("oxygen", OxygenCondition.class);
-		addCondition("yaw", YawCondition.class);
-		addCondition("saturation", SaturationCondition.class);
-		addCondition("signtext", SignTextCondition.class);
-		addCondition("money", MoneyCondition.class);
-		addCondition("collection", MultiCondition.class);
-		addCondition("age", AgeCondition.class);
-		addCondition("targeting", TargetingCondition.class);
-		addCondition("power", PowerCondition.class);
-		addCondition("spelltag", SpellTagCondition.class);
-		addCondition("spellselected", SpellSelectedCondition.class);
-		addCondition("beneficial", SpellBeneficialCondition.class);
-		addCondition("customname", CustomNameCondition.class);
-		addCondition("customnamevisible", CustomNameVisibleCondition.class);
-		addCondition("canpickupitems", CanPickupItemsCondition.class);
-		addCondition("gliding", GlidingCondition.class);
-		addCondition("spellcaststate", SpellCastStateCondition.class);
-		addCondition("pluginenabled", PluginEnabledCondition.class);
-		addCondition("leaping", LeapingCondition.class);
-		addCondition("hasitemprecise", HasItemPreciseCondition.class);
-		addCondition("wearingprecise", WearingPreciseCondition.class);
-		addCondition("holdingprecise", HoldingPreciseCondition.class);
-		addCondition("receivingredstone", ReceivingRedstoneCondition.class);
-		addCondition("angle", AngleCondition.class);
-		addCondition("thundering", ThunderingCondition.class);
-		addCondition("raining", RainingCondition.class);
-		addCondition("onleash", OnLeashCondition.class);
-		addCondition("griefpreventionisowner", GriefPreventionIsOwnerCondition.class);
-		addCondition("slotselected", SlotSelectedCondition.class);
-		addCondition("hasscoreboardtag", HasScoreboardTagCondition.class);
-		addCondition("hasspell", HasSpellCondition.class);
-		addCondition("loopactive", LoopActiveCondition.class);
-		addCondition("ownedloopactive", OwnedLoopActiveCondition.class);
-		addCondition("always", AlwaysCondition.class);
-		addCondition("velocityactive", VelocityActiveCondition.class);
-		addCondition("buildable", BuildableCondition.class);
-		addCondition("burnable", BurnableCondition.class);
-		addCondition("collidable", CollidableCondition.class);
-		addCondition("passable", PassableCondition.class);
-		addCondition("replaceable", ReplaceableCondition.class);
-		addCondition("solid", SolidCondition.class);
-		addCondition("pose", PoseCondition.class);
-		addCondition("fixedpose", FixedPoseCondition.class);
-		addCondition("silent", SilentCondition.class);
-		addCondition("clientname", ClientBrandNameCondition.class);
+		addCondition(AdvancementCondition.class);
+		addCondition(DataCondition.class);
+		addCondition(DisplayNameCondition.class);
+		addCondition(HoveringWithCondition.class);
+		addCondition(DayCondition.class);
+		addCondition(NightCondition.class);
+		addCondition(TimeCondition.class);
+		addCondition(StormCondition.class);
+		addCondition(MoonPhaseCondition.class);
+		addCondition(LightLevelCondition.class);
+		addCondition(LineOfSightCondition.class);
+		addCondition(OnBlockCondition.class);
+		addCondition(InBlockCondition.class);
+		addCondition(OnGroundCondition.class);
+		addCondition(OverGroundCondition.class);
+		addCondition(UnderBlockCondition.class);
+		addCondition(OverBlockCondition.class);
+		addCondition(InRegionCondition.class);
+		addCondition(InCuboidCondition.class);
+		addCondition(InNoMagicZoneCondition.class);
+		addCondition(OutsideCondition.class);
+		addCondition(RoofCondition.class);
+		addCondition(ElevationCondition.class);
+		addCondition(BiomeCondition.class);
+		addCondition(SneakingCondition.class);
+		addCondition(SwimmingCondition.class);
+		addCondition(SprintingCondition.class);
+		addCondition(FlyingCondition.class);
+		addCondition(FallingCondition.class);
+		addCondition(BlockingCondition.class);
+		addCondition(RidingCondition.class);
+		addCondition(RiptidingCondition.class);
+		addCondition(WearingCondition.class);
+		addCondition(WearingInSlotCondition.class);
+		addCondition(HoldingCondition.class);
+		addCondition(OffhandCondition.class);
+		addCondition(OffHandPreciseCondition.class);
+		addCondition(DurabilityCondition.class);
+		addCondition(HasItemCondition.class);
+		addCondition(HasItemAmountCondition.class);
+		addCondition(OpenSlotsCondition.class);
+		addCondition(OnTeamCondition.class);
+		addCondition(OnSameTeamCondition.class);
+		addCondition(HealthCondition.class);
+		addCondition(AbsorptionCondition.class);
+		addCondition(ManaCondition.class);
+		addCondition(MaxManaCondition.class);
+		addCondition(FoodCondition.class);
+		addCondition(GameModeCondition.class);
+		addCondition(LevelCondition.class);
+		addCondition(MagicXpAboveCondition.class);
+		addCondition(MagicXpBelowCondition.class);
+		addCondition(PitchCondition.class);
+		addCondition(RotationCondition.class);
+		addCondition(FacingCondition.class);
+		addCondition(PotionEffectCondition.class);
+		addCondition(OnFireCondition.class);
+		addCondition(BuffActiveCondition.class);
+		addCondition(OwnedBuffActiveCondition.class);
+		addCondition(LastDamageTypeCondition.class);
+		addCondition(InWorldCondition.class);
+		addCondition(IsNPCCondition.class);
+		addCondition(PermissionCondition.class);
+		addCondition(PlayerOnlineCondition.class);
+		addCondition(ChanceCondition.class);
+		addCondition(ChestContainsCondition.class);
+		addCondition(EntityTypeCondition.class);
+		addCondition(DistanceCondition.class);
+		addCondition(NameCondition.class);
+		addCondition(NamePatternCondition.class);
+		addCondition(UpTimeCondition.class);
+		addCondition(VariableCondition.class);
+		addCondition(VariableMatchesCondition.class);
+		addCondition(VariableStringEqualsCondition.class);
+		addCondition(AliveCondition.class);
+		addCondition(LastLifeCondition.class);
+		addCondition(TestForBlockCondition.class);
+		addCondition(RicherThanCondition.class);
+		addCondition(LookingAtBlockCondition.class);
+		addCondition(OnCooldownCondition.class);
+		addCondition(HasMarkCondition.class);
+		addCondition(HasTargetCondition.class);
+		addCondition(PlayerCountCondition.class);
+		addCondition(TargetMaxHealthCondition.class);
+		addCondition(WorldGuardRegionMembershipCondition.class);
+		addCondition(WorldGuardBooleanFlagCondition.class);
+		addCondition(WorldGuardStateFlagCondition.class);
+		addCondition(OxygenCondition.class);
+		addCondition(YawCondition.class);
+		addCondition(SaturationCondition.class);
+		addCondition(SignTextCondition.class);
+		addCondition(MoneyCondition.class);
+		addCondition(MultiCondition.class);
+		addCondition(AgeCondition.class);
+		addCondition(TargetingCondition.class);
+		addCondition(PowerCondition.class);
+		addCondition(SpellTagCondition.class);
+		addCondition(SpellSelectedCondition.class);
+		addCondition(SpellBeneficialCondition.class);
+		addCondition(CustomNameCondition.class);
+		addCondition(CustomNameVisibleCondition.class);
+		addCondition(CanPickupItemsCondition.class);
+		addCondition(GlidingCondition.class);
+		addCondition(SpellCastStateCondition.class);
+		addCondition(PluginEnabledCondition.class);
+		addCondition(LeapingCondition.class);
+		addCondition(HasItemPreciseCondition.class);
+		addCondition(WearingPreciseCondition.class);
+		addCondition(HoldingPreciseCondition.class);
+		addCondition(ReceivingRedstoneCondition.class);
+		addCondition(AngleCondition.class);
+		addCondition(ThunderingCondition.class);
+		addCondition(RainingCondition.class);
+		addCondition(OnLeashCondition.class);
+		addCondition(GriefPreventionIsOwnerCondition.class);
+		addCondition(SlotSelectedCondition.class);
+		addCondition(HasScoreboardTagCondition.class);
+		addCondition(HasSpellCondition.class);
+		addCondition(LoopActiveCondition.class);
+		addCondition(OwnedLoopActiveCondition.class);
+		addCondition(AlwaysCondition.class);
+		addCondition(VelocityActiveCondition.class);
+		addCondition(BuildableCondition.class);
+		addCondition(BurnableCondition.class);
+		addCondition(CollidableCondition.class);
+		addCondition(PassableCondition.class);
+		addCondition(ReplaceableCondition.class);
+		addCondition(SolidCondition.class);
+		addCondition(PoseCondition.class);
+		addCondition(FixedPoseCondition.class);
+		addCondition(SilentCondition.class);
+		addCondition(ClientBrandNameCondition.class);
 	}
 
 }

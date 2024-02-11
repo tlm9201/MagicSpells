@@ -38,10 +38,27 @@ public class VariableManager {
 		initialize();
 	}
 
+	/**
+	 * @param variable must be annotated with {@link Name}.
+	 */
+	public void addVariableType(Class<? extends Variable> variable) {
+		Name name = variable.getAnnotation(Name.class);
+		if (name == null) throw new IllegalStateException("Missing 'Name' annotation on Variable class: " + variable.getName());
+		variableTypes.put(name.value(), variable);
+	}
+
+	/**
+	 * @deprecated Use {@link VariableManager#addVariableType(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addVariableType(String name, Class<? extends Variable> variable) {
 		variableTypes.put(name.toLowerCase(), variable);
 	}
 
+	/**
+	 * @deprecated Use {@link VariableManager#addVariableType(Class)}
+	 */
+	@Deprecated(forRemoval = true)
 	public void addVariableType(Class<? extends Variable> variable, String name) {
 		variableTypes.put(name.toLowerCase(), variable);
 	}
@@ -57,6 +74,9 @@ public class VariableManager {
 	public Variable getVariableType(String name) {
 		Class<? extends Variable> clazz = variableTypes.get(name.toLowerCase());
 		if (clazz == null) return null;
+
+		DependsOn dependsOn = clazz.getAnnotation(DependsOn.class);
+		if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) return null;
 
 		try {
 			return clazz.getDeclaredConstructor().newInstance();
@@ -80,12 +100,12 @@ public class VariableManager {
 
 	private void initialize() {
 		// variable types
-		addVariableType("player", PlayerVariable.class);
-		addVariableType("global", GlobalVariable.class);
-		addVariableType("globalstring", GlobalStringVariable.class);
-		addVariableType("distancetolocation", DistanceToLocationVariable.class);
-		addVariableType("squareddistancetolocation", SquaredDistanceToLocationVariable.class);
-		addVariableType("playerstring", PlayerStringVariable.class);
+		addVariableType(PlayerVariable.class);
+		addVariableType(GlobalVariable.class);
+		addVariableType(GlobalStringVariable.class);
+		addVariableType(DistanceToLocationVariable.class);
+		addVariableType(SquaredDistanceToLocationVariable.class);
+		addVariableType(PlayerStringVariable.class);
 
 		// meta variable types
 		addMetaVariableType("location_x", new CoordXVariable());

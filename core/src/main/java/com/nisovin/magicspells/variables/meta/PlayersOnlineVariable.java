@@ -8,7 +8,7 @@ public class PlayersOnlineVariable extends MetaVariable {
 
 	@Override
 	public double getValue(String player) {
-		return Bukkit.getServer().getOnlinePlayers().size();
+		return Bukkit.getOnlinePlayers().size();
 	}
 
 }

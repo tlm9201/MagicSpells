@@ -9,9 +9,11 @@ import io.papermc.paper.world.MoonPhase;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("moonphase")
 public class MoonPhaseCondition extends Condition {
 
 	private MoonPhase phase;

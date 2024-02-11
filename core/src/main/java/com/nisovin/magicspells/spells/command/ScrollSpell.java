@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import net.kyori.adventure.text.Component;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -173,7 +174,7 @@ public class ScrollSpell extends CommandSpell {
 			return false;
 		}
 
-		List<Player> players = MagicSpells.plugin.getServer().matchPlayer(args[0]);
+		List<Player> players = Bukkit.matchPlayer(args[0]);
 		if (players.isEmpty()) {
 			sender.sendMessage("Invalid player defined!");
 			return false;

@@ -10,8 +10,10 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("onfire")
 public class OnFireCondition extends Condition {
 
 	private final EnumSet<Material> fireTypes = EnumSet.of(Material.FIRE, Material.SOUL_FIRE);

@@ -8,9 +8,11 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
+@Name("variablestringequals")
 public class VariableStringEqualsCondition extends Condition {
 
 	private String variable;

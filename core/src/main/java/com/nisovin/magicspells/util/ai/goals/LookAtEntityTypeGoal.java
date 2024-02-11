@@ -22,7 +22,7 @@ import com.nisovin.magicspells.util.ai.CustomGoal;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
-@Name(name = "look_at_entity_type")
+@Name("look_at_entity_type")
 public class LookAtEntityTypeGoal extends CustomGoal {
 
 	private ConfigData<Float> range = spellData -> 10f;

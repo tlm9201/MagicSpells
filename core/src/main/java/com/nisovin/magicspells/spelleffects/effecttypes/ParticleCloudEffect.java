@@ -6,10 +6,12 @@ import org.bukkit.Particle;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
+@Name("particlecloud")
 public class ParticleCloudEffect extends ParticlesEffect {
 
 	private ConfigData<Integer> color;

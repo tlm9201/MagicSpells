@@ -5,8 +5,10 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
+@Name("absorption")
 public class AbsorptionCondition extends OperatorCondition {
 
 	private float health = 0;

@@ -13,6 +13,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.LocationUtil;
 import com.nisovin.magicspells.util.OverridePriority;
@@ -21,6 +22,7 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 // Trigger variable is a semicolon separated list of locations to accept
 // Locations follow the format of world,x,y,z
 // Where "world" is a string and x, y, and z are integers
+@Name("rightclickblockcoord")
 public class RightClickBlockCoordListener extends PassiveListener {
 
 	private final Set<Location> locations = new HashSet<>();

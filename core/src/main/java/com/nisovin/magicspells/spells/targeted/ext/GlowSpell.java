@@ -21,15 +21,13 @@ import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spells.buff.InvisibilitySpell;
 
-/*
- * NOTE: ProtocolLib and XGlow are required for this spell class.
- * XGlow: https://github.com/Xezard/XGlow
- */
+// XGlow: https://github.com/Xezard/XGlow
+@DependsOn({"ProtocolLib", "XGlow"})
 public class GlowSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final Multimap<UUID, GlowData> glowing;
 
-	private ConfigData<ChatColor> color;
+	private final ConfigData<ChatColor> color;
 
 	private final ConfigData<Integer> duration;
 

@@ -45,9 +45,9 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 	private Subspell locationSpell;
 	private Subspell spellOnWaveRemove;
 
-	private String spellOnEndName;
-	private String locationSpellName;
-	private String spellOnWaveRemoveName;
+	private final String spellOnEndName;
+	private final String locationSpellName;
+	private final String spellOnWaveRemoveName;
 
 	public NovaSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -78,18 +78,15 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "NovaSpell " + internalName + " has an invalid ";
-
+		String error = "NovaSpell " + internalName + " has an invalid '%s' defined!";
 		locationSpell = initSubspell(locationSpellName,
-				prefix + "spell defined!",
+				error.formatted("spell"),
 				true);
-
 		spellOnWaveRemove = initSubspell(spellOnWaveRemoveName,
-				prefix + "spell-on-wave-remove defined!",
+				error.formatted("spell-on-wave-remove"),
 				true);
-
 		spellOnEnd = initSubspell(spellOnEndName,
-				prefix + "spell-on-end defined!",
+				error.formatted("spell-on-end"),
 				true);
 	}
 

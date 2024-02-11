@@ -37,7 +37,6 @@ public class RepairSpell extends InstantSpell {
 
 		strNothingToRepair = getConfigString("str-nothing-to-repair", "Nothing to repair.");
 
-
 		List<String> toRepairList = getConfigStringList("to-repair", null);
 		if (toRepairList == null) toRepair = EnumSet.of(RepairSelector.HELD);
 		else {

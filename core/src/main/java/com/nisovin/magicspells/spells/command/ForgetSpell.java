@@ -62,7 +62,7 @@ public class ForgetSpell extends CommandSpell {
 		Player target;
 		if (data.args().length == 1 && allowSelfForget.get(data)) target = caster;
 		else if (data.args().length == 2 && casterSpellbook.hasAdvancedPerm("forget")) {
-			List<Player> players = MagicSpells.plugin.getServer().matchPlayer(data.args()[0]);
+			List<Player> players = Bukkit.matchPlayer(data.args()[0]);
 			if (players.size() != 1) {
 				sendMessage(strNoTarget, caster, data);
 				return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -94,7 +94,6 @@ public class ForgetSpell extends CommandSpell {
 			sendMessage(strDoesntKnow, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
-
 
 		String playerDisplayName = Util.getStringFromComponent(caster.displayName());
 		String targetDisplayName = Util.getStringFromComponent(target.displayName());
