@@ -72,6 +72,7 @@ public class ForgetSpell extends CommandSpell {
 			sendMessage(strUsage, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
+		data = data.target(target);
 
 		String spellName = data.args().length == 1 ? data.args()[0] : data.args()[1];
 		boolean all = false;
@@ -95,19 +96,17 @@ public class ForgetSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		String playerDisplayName = Util.getStringFromComponent(caster.displayName());
-		String targetDisplayName = Util.getStringFromComponent(target.displayName());
 		// Remove spell(s)
 		if (!all) {
 			targetSpellbook.removeSpell(spell);
 			targetSpellbook.save();
 			if (!caster.equals(target)) {
-				sendMessage(strCastTarget, target, data, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
-				sendMessage(strCastSelf, caster, data, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
-				playSpellEffects(caster, target, data);
+				sendMessage(strCastTarget, target, data, "%s", spell.getName());
+				sendMessage(strCastSelf, caster, data, "%s", spell.getName());
+				playSpellEffects(data);
 			} else {
 				sendMessage(strCastSelfTarget, caster, data, "%s", spell.getName());
-				playSpellEffects(EffectPosition.CASTER, caster, data);
+				playSpellEffects(data);
 			}
 			return new CastResult(PostCastAction.NO_MESSAGES, data);
 		}
@@ -116,11 +115,11 @@ public class ForgetSpell extends CommandSpell {
 		targetSpellbook.save();
 
 		if (!caster.equals(target)) {
-			sendMessage(strResetTarget, caster, data, "%t", targetDisplayName);
-			playSpellEffects(caster, target, data);
+			sendMessage(strResetTarget, caster, data);
+			playSpellEffects(data);
 		} else {
 			sendMessage(strResetSelf, caster, data);
-			playSpellEffects(EffectPosition.CASTER, caster, data);
+			playSpellEffects(data);
 		}
 
 		return new CastResult(PostCastAction.NO_MESSAGES, data);
@@ -154,19 +153,19 @@ public class ForgetSpell extends CommandSpell {
 		}
 
 		SpellForgetEvent forgetEvent = new SpellForgetEvent(spell, target);
-		EventUtil.call(forgetEvent);
-		if (forgetEvent.isCancelled()) return false;
+		if (!forgetEvent.callEvent()) return false;
+
+		String consoleName = MagicSpells.getConsoleName();
 		String targetDisplayName = Util.getStringFromComponent(target.displayName());
 		if (!all) {
 			targetSpellbook.removeSpell(spell);
 			targetSpellbook.save();
-			String consoleName = MagicSpells.getConsoleName();
 			sendMessage(strCastTarget, target, args, "%a", consoleName, "%s", spell.getName(), "%t", targetDisplayName);
 			sender.sendMessage(formatMessage(strCastSelf, "%a", consoleName, "%s", spell.getName(), "%t", targetDisplayName));
 		} else {
 			targetSpellbook.removeAllSpells();
 			targetSpellbook.save();
-			sender.sendMessage(formatMessage(strResetTarget, "%t", targetDisplayName));
+			sender.sendMessage(formatMessage(strResetTarget, "%a", consoleName, "%t", targetDisplayName));
 		}
 		return true;
 	}

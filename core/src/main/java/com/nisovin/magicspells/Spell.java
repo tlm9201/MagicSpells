@@ -1157,8 +1157,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	public void sendMessages(SpellData data, String... replacements) {
-		replacements = getReplacements(data, replacements);
-
 		sendMessage(strCastSelf, data.caster(), data, replacements);
 		sendMessage(strCastTarget, data.target(), data, replacements);
 		sendMessageNear(strCastOthers, data, broadcastRange.get(data), replacements);
@@ -2199,22 +2197,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return MagicSpells.getTargetName(target);
 	}
 
-	protected String[] getReplacements(SpellData data, String... replacements) {
-		List<String> replacementList = new ArrayList<>(Arrays.asList(replacements));
-
-		if (data.hasCaster()) {
-			replacementList.add("%a");
-			replacementList.add(getTargetName(data.caster()));
-		}
-
-		if (data.hasTarget()) {
-			replacementList.add("%t");
-			replacementList.add(getTargetName(data.target()));
-		}
-
-		return replacementList.toArray(new String[0]);
-	}
-
 	/**
 	 * This should be called if a target should not be found. It sends the no target message
 	 * and returns the appropriate return value.
@@ -2308,7 +2290,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	protected CastResult noTarget(String message, SpellData data) {
 		fizzle(data);
-		if (message != null && !message.isEmpty()) sendMessage(message, data, getReplacements(data));
+		if (message != null && !message.isEmpty()) sendMessage(message, data);
 		if (spellOnFail != null) spellOnFail.subcast(data.noTargeting());
 		return new CastResult(alwaysActivate.get(data) ? PostCastAction.NO_MESSAGES : PostCastAction.ALREADY_HANDLED, data);
 	}

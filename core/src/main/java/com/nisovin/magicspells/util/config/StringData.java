@@ -31,7 +31,7 @@ public class StringData implements ConfigData<String> {
 		((papi|casterpapi|targetpapi):([^%]+))|\
 		(playerpapi:(\\w{3,16}):([^%]+))\
 		)%|\
-		(%[at])""", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+		(%[art])""", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	private final List<ConfigData<String>> values;
 	private final List<String> fragments;
@@ -130,6 +130,7 @@ public class StringData implements ConfigData<String> {
 		}
 
 		return switch (matcher.group(18)) {
+			case "%r" -> new DefaultNameData();
 			case "%a" -> new CasterNameData();
 			case "%t" -> new TargetNameData();
 			default -> null;
@@ -401,6 +402,20 @@ public class StringData implements ConfigData<String> {
 		public String get(@NotNull SpellData data) {
 			if (!Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) return placeholder;
 			return PlaceholderAPI.setPlaceholders(Bukkit.getOfflinePlayer(player), papiPlaceholder);
+		}
+
+	}
+
+	public static class DefaultNameData extends PlaceholderData {
+
+		public DefaultNameData() {
+			super("%r");
+		}
+
+		@Override
+		public String get(@NotNull SpellData data) {
+			if (!data.hasRecipient()) return placeholder;
+			return MagicSpells.getTargetName(data.recipient());
 		}
 
 	}

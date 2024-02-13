@@ -1613,10 +1613,12 @@ public class MagicSpells extends JavaPlugin {
 	public static String doReplacements(String message, LivingEntity recipient, SpellData data, String... replacements) {
 		if (message == null || message.isEmpty()) return message;
 
+		data = data.recipient(recipient);
+
 		message = doArgumentSubstitution(message, data.args());
 		message = doVariableReplacements(message, recipient, data.caster(), data.target());
 		message = doPlaceholderReplacements(message, recipient, data.caster(), data.target());
-		message = formatMessage(message, replacements);
+		message = formatMessage(message, data, replacements);
 
 		return message;
 	}
@@ -1723,16 +1725,46 @@ public class MagicSpells extends JavaPlugin {
 	 * @return the formatted string
 	 */
 	public static String formatMessage(String message, String... replacements) {
-		if (message == null || message.isEmpty() || replacements == null || replacements.length == 0) return message;
+		return formatMessage(message, SpellData.NULL, replacements);
+	}
 
-		String msg = message;
-		for (int i = 0; i < replacements.length; i += 2) {
-			if (replacements[i] == null) continue;
+	/**
+	 * Formats a string by performing the specified replacements.
+	 *
+	 * @param message      the string to format
+	 * @param data         the data of an associated spell cast
+	 * @param replacements the replacements to make, in pairs.
+	 * @return the formatted string
+	 */
+	public static String formatMessage(String message, SpellData data, String... replacements) {
+		if (message == null || message.isEmpty()) return message;
 
-			if (replacements[i + 1] != null) msg = msg.replace(replacements[i], replacements[i + 1]);
-			else msg = msg.replace(replacements[i], "");
+		List<String> replacementList = new ArrayList<>();
+		if (replacements != null) replacementList.addAll(Arrays.asList(replacements));
+
+		if (data.hasRecipient()) {
+			replacementList.add("%r");
+			replacementList.add(getTargetName(data.recipient()));
 		}
-		return msg;
+
+		if (data.hasCaster()) {
+			replacementList.add("%a");
+			replacementList.add(getTargetName(data.caster()));
+		}
+
+		if (data.hasTarget()) {
+			replacementList.add("%t");
+			replacementList.add(getTargetName(data.target()));
+		}
+
+		for (int i = 0; i < replacementList.size() - 1; i += 2) {
+			String pattern = replacementList.get(i), replacement = replacementList.get(i + 1);
+			if (pattern == null) continue;
+
+			message = message.replace(pattern, replacement == null ? "" : replacement);
+		}
+
+		return message;
 	}
 
 	public static boolean requireReplacement(String message) {

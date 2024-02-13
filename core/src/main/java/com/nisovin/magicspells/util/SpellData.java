@@ -137,6 +137,10 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 		return location != null;
 	}
 
+	public boolean hasRecipient() {
+		return recipient != null || caster != null;
+	}
+
 	public boolean hasArgs() {
 		return args != null && args.length > 0;
 	}

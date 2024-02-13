@@ -207,13 +207,6 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 		else open(opener, new PlayerMenuInventory(data));
 	}
 
-	private Component translate(Player opener, Player target, String string, SpellData data) {
-		return Util.getMiniMessage(MagicSpells.doReplacements(string, opener, data,
-			"%a", opener.getName(),
-			"%t", target == null ? null : target.getName()
-		));
-	}
-
 	private void processClickSpell(Subspell subspell, Player target, PlayerMenuInventory menu) {
 		if (subspell == null) return;
 
@@ -237,11 +230,11 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 			ItemStack head = new ItemStack(Material.PLAYER_HEAD);
 			head.editMeta(SkullMeta.class, meta -> {
 				meta.setOwningPlayer(player);
-				meta.displayName(translate(opener, player, skullName, subData));
+				meta.displayName(Util.getMiniMessage(skullName, opener, subData));
 
 				if (skullLore != null) {
 					List<Component> lore = new ArrayList<>();
-					for (String loreLine : skullLore) lore.add(translate(opener, player, loreLine, subData));
+					for (String loreLine : skullLore) lore.add(Util.getMiniMessage(loreLine, opener, subData));
 
 					meta.lore(lore);
 				}
@@ -290,7 +283,7 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 
 		OfflinePlayer target = skullMeta.getOwningPlayer();
 		if (target == null || !target.isOnline()) {
-			meta.displayName(translate(opener, null, skullNameOffline, menu.openerData));
+			meta.displayName(Util.getMiniMessage(skullNameOffline, opener, menu.openerData));
 			if (spellOffline != null) spellOffline.subcast(menu.openerData);
 
 			if (menu.stayOpen) item.setItemMeta(meta);
@@ -307,11 +300,11 @@ public class PlayerMenuSpell extends TargetedSpell implements TargetedEntitySpel
 
 		SpellData targetData = menu.openerData.target(targetPlayer);
 
-		meta.displayName(translate(opener, targetPlayer, skullName, targetData));
+		meta.displayName(Util.getMiniMessage(skullName, opener, targetData));
 		item.setItemMeta(meta);
 
 		if (menu.radius > 0 && targetPlayer.getLocation().distance(opener.getLocation()) > menu.radius) {
-			meta.displayName(translate(opener, targetPlayer, skullNameRadius, targetData));
+			meta.displayName(Util.getMiniMessage(skullNameRadius, opener, targetData));
 			if (spellRange != null) spellRange.subcast(menu.openerData);
 
 			if (menu.stayOpen) item.setItemMeta(meta);
