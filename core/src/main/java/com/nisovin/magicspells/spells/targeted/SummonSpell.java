@@ -102,13 +102,12 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		data = data.target(target);
 
 		// Teleport player
-		String displayName = Util.getStringFromComponent(caster.displayName());
 		if (requireAcceptance.get(data)) {
 			pending.put(target.getUniqueId(), new SummonData(landLoc, System.currentTimeMillis(), maxAcceptDelay.get(data), data));
-			sendMessage(strSummonPending, target, data, "%a", displayName);
+			sendMessage(strSummonPending, target, data);
 		} else {
 			target.teleportAsync(landLoc);
-			sendMessage(strSummonAccepted, target, data, "%a", displayName);
+			sendMessage(strSummonAccepted, target, data);
 		}
 
 		playSpellEffects(data);
@@ -119,13 +118,12 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 	public CastResult castAtEntity(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		String displayName = getTargetName(data.caster());
 		if (requireAcceptance.get(data) && data.target() instanceof Player target) {
 			pending.put(target.getUniqueId(), new SummonData(data.caster().getLocation(), System.currentTimeMillis(), maxAcceptDelay.get(data), data));
-			sendMessage(strSummonPending, target, data, "%a", displayName);
+			sendMessage(strSummonPending, target, data);
 		} else {
 			data.target().teleportAsync(data.caster().getLocation());
-			sendMessage(strSummonAccepted, data.target(), data, "%a", displayName);
+			sendMessage(strSummonAccepted, data.target(), data);
 		}
 
 		playSpellEffects(data);
@@ -136,13 +134,12 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 	public CastResult castAtEntityFromLocation(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 
-		String displayName = getTargetName(data.caster());
 		if (requireAcceptance.get(data) && data.target() instanceof Player target) {
 			pending.put(target.getUniqueId(), new SummonData(data.location(), System.currentTimeMillis(), maxAcceptDelay.get(data), data));
-			sendMessage(strSummonPending, target, data, "%a", displayName);
+			sendMessage(strSummonPending, target, data);
 		} else {
 			data.target().teleportAsync(data.location());
-			sendMessage(strSummonAccepted, data.target(), data, "%a", displayName);
+			sendMessage(strSummonAccepted, data.target(), data);
 		}
 
 		playSpellEffects(data);

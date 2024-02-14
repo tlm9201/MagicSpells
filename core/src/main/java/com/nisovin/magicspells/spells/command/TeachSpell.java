@@ -57,8 +57,10 @@ public class TeachSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(data.args()[1]);
 		Player target = players.get(0);
+		data = data.target(target);
+
+		Spell spell = MagicSpells.getSpellByInGameName(data.args()[1]);
 		if (spell == null) {
 			sendMessage(strNoSpell, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -95,13 +97,10 @@ public class TeachSpell extends CommandSpell {
 		targetSpellbook.addSpell(spell);
 		targetSpellbook.save();
 
-		String playerDisplayName = Util.getStringFromComponent(player.displayName());
-		String targetDisplayName = Util.getStringFromComponent(target.displayName());
+		sendMessage(spell.getStrOnTeach() == null ? strCastTarget : spell.getStrOnTeach(), target, data, "%s", spell.getName());
+		sendMessage(strCastSelf, player, data, "%s", spell.getName());
 
-		sendMessage(spell.getStrOnTeach() == null ? strCastTarget : spell.getStrOnTeach(), target, data, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
-		sendMessage(strCastSelf, player, data, "%a", playerDisplayName, "%s", spell.getName(), "%t", targetDisplayName);
-
-		playSpellEffects(player, target, data);
+		playSpellEffects(data);
 		return new CastResult(PostCastAction.NO_MESSAGES, data);
 	}
 
@@ -139,9 +138,8 @@ public class TeachSpell extends CommandSpell {
 		targetSpellbook.addSpell(spell);
 		targetSpellbook.save();
 
-		String displayName = Util.getStringFromComponent(players.get(0).displayName());
-
 		String consoleName = MagicSpells.getConsoleName();
+		String displayName = Util.getStringFromComponent(players.get(0).displayName());
 		sendMessage(spell.getStrOnTeach() == null ? strCastTarget : spell.getStrOnTeach(), players.get(0), args, "%a", consoleName, "%s", spell.getName(), "%t", displayName);
 		sender.sendMessage(formatMessage(strCastSelf, "%a", consoleName, "%s", spell.getName(), "%t", displayName));
 		return true;

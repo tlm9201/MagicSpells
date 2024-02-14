@@ -62,7 +62,7 @@ public class CaptureSpell extends TargetedSpell implements TargetedEntitySpell {
 		}
 
 		if (itemName != null || itemLore != null) {
-			String[] replacements = getReplacements(data, "%name%", getTargetName(target));
+			String[] replacements = {"%name%", getTargetName(target)};
 
 			item.editMeta(meta -> {
 				if (itemName != null) meta.displayName(Util.getMiniMessage(itemName, data, replacements));

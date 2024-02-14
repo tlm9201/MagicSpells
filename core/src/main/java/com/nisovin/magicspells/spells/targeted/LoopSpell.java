@@ -456,12 +456,8 @@ public class LoopSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 			else if (data.hasLocation()) playSpellEffects(EffectPosition.DELAYED, data.location(), data);
 			else if (data.hasCaster()) playSpellEffects(EffectPosition.DELAYED, data.caster(), data);
 
-			if (data.hasCaster() || data.hasTarget()) {
-				String[] replacements = getReplacements(data);
-
-				sendMessage(strFadeSelf, data.caster(), data, replacements);
-				sendMessage(strFadeTarget, data.target(), data, replacements);
-			}
+			sendMessage(strFadeSelf, data.caster(), data);
+			sendMessage(strFadeTarget, data.target(), data);
 
 			if (spellOnEnd != null) spellOnEnd.subcast(data);
 		}
