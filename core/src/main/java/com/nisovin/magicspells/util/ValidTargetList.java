@@ -111,6 +111,7 @@ public class ValidTargetList {
 					try {
 						gameModes.add(GameMode.valueOf(s.toUpperCase()));
 						targetPlayers = true;
+						continue;
 					} catch (IllegalArgumentException ignored) {}
 
 					EntityType type = MobUtil.getEntityType(s);
