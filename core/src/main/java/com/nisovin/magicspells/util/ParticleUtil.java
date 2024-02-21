@@ -4,48 +4,42 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.bukkit.Particle;
+import org.bukkit.Registry;
+import org.bukkit.NamespacedKey;
 
 public enum ParticleUtil {
 
-	EXPLOSION_NORMAL("poof", "explode"),
-	EXPLOSION_LARGE("explosion", "largeexplode"),
-	EXPLOSION_HUGE("explosion_emitter", "hugeexplosion"),
-	WATER_BUBBLE("bubble"),
-	WATER_SPLASH("splash"),
-	WATER_WAKE("fishing", "wake"),
-	WATER_DROP("rain", "droplet"),
-	SPELL("effect"),
-	SPELL_INSTANT("instant_effect", "instantspell"),
-	SPELL_MOB("entity_effect", "mobspell"),
-	SPELL_MOB_AMBIENT("ambient_entity_effect", "mobspellambient"),
-	SPELL_WITCH("witch", "witchmagic"),
-	ITEM_CRACK("item", "iconcrack"),
+	EXPLOSION_NORMAL("explode"),
+	EXPLOSION_LARGE("largeexplode"),
+	EXPLOSION_HUGE("hugeexplosion"),
+	WATER_WAKE("wake"),
+	WATER_DROP("droplet"),
+	SPELL_INSTANT("instantspell"),
+	SPELL_MOB("mobspell"),
+	SPELL_MOB_AMBIENT("mobspellambient"),
+	SPELL_WITCH("witchmagic"),
+	ITEM_CRACK("iconcrack"),
 	BLOCK_CRACK("blockcrack"),
-	BLOCK_DUST("blockdust", "block"),
-	SMOKE_NORMAL("smoke"),
-	SMOKE_LARGE("large_smoke", "largesmoke"),
-	DRIP_WATER("dripping_water", "dripwater"),
-	DRIP_LAVA("dripping_lava", "driplava"),
-	VILLAGER_ANGRY("angry_villager", "angryvillager"),
-	VILLAGER_HAPPY("happy_villager", "happyvillager"),
-	FIREWORKS_SPARK("firework", "fireworksspark"),
-	SUSPENDED("underwater"),
+	BLOCK_DUST("blockdust"),
+	SMOKE_LARGE("largesmoke"),
+	DRIP_WATER("dripwater"),
+	DRIP_LAVA("driplava"),
+	VILLAGER_ANGRY("angryvillager"),
+	VILLAGER_HAPPY("happyvillager"),
+	FIREWORKS_SPARK("fireworksspark"),
 	SUSPENDED_DEPTH("depthsuspend"),
-	CRIT_MAGIC("enchanted_hit", "magiccrit"),
-	TOWN_AURA("mycelium", "townaura"),
-	ENCHANTMENT_TABLE("enchant", "enchantmenttable"),
-	REDSTONE("dust", "reddust"),
-	SNOWBALL("item_snowball", "snowballpoof"),
-	SLIME("item_slime"),
-	MOB_APPEARANCE("elder_guardian", "mobappearance"),
+	CRIT_MAGIC("magiccrit"),
+	TOWN_AURA("townaura"),
+	ENCHANTMENT_TABLE("enchantmenttable"),
+	REDSTONE("reddust"),
+	SNOWBALL("snowballpoof"),
+	MOB_APPEARANCE("mobappearance"),
 	SNOW_SHOVEL("snowshovel"),
 	DRAGON_BREATH("dragonbreath"),
 	END_ROD("endrod"),
 	DAMAGE_INDICATOR("damageindicator"),
 	SWEEP_ATTACK("sweepattack"),
-	FALLING_DUST("fallingdust"),
-	TOTEM("totem_of_undying")
-	;
+	FALLING_DUST("fallingdust");
 
 	private static final Map<String, Particle> namesToType = new HashMap<>();
 	private static boolean initialized = false;
@@ -84,14 +78,18 @@ public enum ParticleUtil {
 	public static Particle getParticle(String particleName) {
 		initialize();
 
-		Particle particle = namesToType.get(particleName.toLowerCase());
+		String lower = particleName.toLowerCase();
+
+		Particle particle = namesToType.get(lower);
 		if (particle != null) return particle;
 
 		try {
-			particle = Particle.valueOf(particleName.toUpperCase());
-		} catch (IllegalArgumentException ignored) {}
+			return Particle.valueOf(particleName.toUpperCase());
+		} catch (IllegalArgumentException ignored) {
+		}
 
-		return particle;
+		NamespacedKey key = NamespacedKey.fromString(lower);
+		return key != null ? Registry.PARTICLE_TYPE.get(key) : null;
 	}
 
 }
