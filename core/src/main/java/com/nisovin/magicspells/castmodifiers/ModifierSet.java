@@ -58,7 +58,8 @@ public class ModifierSet {
 				continue;
 			}
 
-			if (m.getStrModifierFailed() == null) m.setStrModifierFailed(spell.getStrModifierFailed());
+			if (m.getStrModifierFailed() == null && spell != null)
+				m.setStrModifierFailed(spell.getStrModifierFailed());
 
 			modifiers.add(m);
 
