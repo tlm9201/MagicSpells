@@ -1,0 +1,75 @@
+name: Bug Report
+description: Create a bug report to help us identify issues and improve our plugin.
+labels: ["Bug / Unintended"]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        This report is intended to help us figure out if this is a bug or not and to
+        track its status. If you simply need help with your configuration and couldn't
+        find an answer through [our
+        documentation](https://github.com/TheComputerGeek2/MagicSpells/wiki/), please
+        use our [Discord support server](https://discord.magicspells.dev).
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: "Confirmation:"
+      description: Please confirm to the following.
+      options:
+        - label: "[My server is supported by MagicSpells.](https://github.com/TheComputerGeek2/MagicSpells/wiki/Supported-Versions)"
+          required: true
+        - label: This bug occurs on PaperMC itself, not just its forks which I might be using.
+          required: true
+  - type: textarea
+    id: intended-outcome
+    attributes:
+      label: "Intended outcome:"
+      description: Please provide a concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: actual-outcome
+    attributes:
+      label: "Actual outcome:"
+      description: Please provide information on what was happening instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: "Reproduction steps:"
+      description: Please explain if there's any additional steps to reproduce this behaviour.
+  - type: textarea
+    id: console-errors
+    attributes:
+      label: "Errors:"
+      description: Please send relevant error logs, if there are any.
+      render: Shell
+  - type: textarea
+    id: config
+    attributes:
+      label: "Relevant configuration:"
+      description: Please avoid pasting sensitive lines.
+      render: YAML
+  - type: input
+    id: version-ms
+    attributes:
+      label: "MagicSpells version:"
+      description: Fetch by running the `/version MagicSpells` command in your console or chat.
+      placeholder: 4.0-Beta-14
+    validations:
+      required: true
+  - type: input
+    id: version-mc
+    attributes:
+      label: "Minecraft server version:"
+      description: Fetch by running the `/version` command in your console or chat.
+      placeholder: "git-Paper-318 (MC: 1.20.2) (Implementing API version 1.20.2-R0.1-SNAPSHOT) (Git: 9271ee7)"
+    validations:
+      required: true
+  - type: textarea
+    id: version-plugins
+    attributes:
+      label: "Relevant plugins:"
+      description: Please provide us with any relevant plugins and their with versions.
+      placeholder: PlaceholderAPI 2.11.5
