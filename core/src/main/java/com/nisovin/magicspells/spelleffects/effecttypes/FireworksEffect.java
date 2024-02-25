@@ -1,14 +1,11 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import org.bukkit.Color;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
+import org.bukkit.*;
 import org.bukkit.event.Listener;
-import org.bukkit.FireworkEffect;
 import org.bukkit.entity.Firework;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.meta.FireworkMeta;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
@@ -21,6 +18,8 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 @Name("fireworks")
 public class FireworksEffect extends SpellEffect implements Listener {
+
+	private static final NamespacedKey MS_FIREWORK = new NamespacedKey(MagicSpells.getInstance(), "fireworks_effect");
 
 	private ConfigData<Integer> type;
 	private ConfigData<Integer> flightDuration;
@@ -91,30 +90,25 @@ public class FireworksEffect extends SpellEffect implements Listener {
 				.withColor(c1)
 				.withFade(c2)
 				.build();
-		Firework firework = location.getWorld().spawn(location, Firework.class);
-		FireworkMeta meta = firework.getFireworkMeta();
 
-		meta.addEffect(effect);
-		meta.setPower(0);
+		location.getWorld().spawn(location, Firework.class, firework -> {
+			FireworkMeta meta = firework.getFireworkMeta();
+			meta.addEffect(effect);
+			meta.setPower(0);
+			firework.setFireworkMeta(meta);
 
-		firework.setFireworkMeta(meta);
-		firework.setSilent(true);
-		firework.setMetadata("MSFirework", new FixedMetadataValue(MagicSpells.getInstance(), "MSFirework"));
+			firework.setSilent(true);
+			firework.setTicksToDetonate(flightDuration.get(data));
 
-		MagicSpells.scheduleDelayedTask(() -> {
-			if (!firework.isValid()) return;
-			if (firework.isDead()) return;
-			firework.detonate();
-		}, flightDuration.get(data));
+			firework.getPersistentDataContainer().set(MS_FIREWORK, PersistentDataType.BOOLEAN, true);
+		});
 
 		return null;
 	}
 
 	@EventHandler
 	public void onFireworkDamage(EntityDamageByEntityEvent e) {
-		Entity damager = e.getDamager();
-		if (!damager.hasMetadata("MSFirework")) return;
-		e.setCancelled(true);
+		if (e.getDamager().getPersistentDataContainer().has(MS_FIREWORK)) e.setCancelled(true);
 	}
 
 }
