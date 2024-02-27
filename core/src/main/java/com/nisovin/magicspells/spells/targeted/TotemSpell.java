@@ -1,10 +1,9 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Set;
-import java.util.List;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
+
+import com.google.common.collect.Multimap;
+import com.google.common.collect.HashMultimap;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -33,11 +32,10 @@ import com.nisovin.magicspells.events.SpellTargetLocationEvent;
 
 public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
-	private final Set<Totem> totems;
-	private final PulserTicker ticker;
+	private final Multimap<UUID, Totem> totems;
 
-	private final int interval;
 	private final int capPerPlayer;
+	private final ConfigData<Integer> interval;
 	private final ConfigData<Integer> yOffset;
 	private final ConfigData<Integer> maxDuration;
 	private final ConfigData<Integer> totalPulses;
@@ -122,7 +120,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		if (boots != null) boots.setAmount(1);
 
 		yOffset = getConfigDataInt("y-offset", 0);
-		interval = getConfigInt("interval", 30);
+		interval = getConfigDataInt("interval", 30);
 		maxDuration = getConfigDataInt("max-duration", 0);
 		totalPulses = getConfigDataInt("total-pulses", 5);
 		capPerPlayer = getConfigInt("cap-per-player", 10);
@@ -145,8 +143,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		spellOnBreakName = getConfigString("spell-on-break", "");
 		spellOnSpawnName = getConfigString("spell-on-spawn", "");
 
-		totems = new HashSet<>();
-		ticker = new PulserTicker();
+		totems = HashMultimap.create();
 	}
 
 	@Override
@@ -168,35 +165,29 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		spellOnBreak = initSubspell(spellOnBreakName,
-				prefix + "spell-on-break: '" + spellOnBreakName + "' defined!",
-				true);
+			prefix + "spell-on-break: '" + spellOnBreakName + "' defined!",
+			true);
 		spellOnSpawn = initSubspell(spellOnSpawnName,
-				prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!",
-				true);
+			prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!",
+			true);
 
 		if (spells.isEmpty()) MagicSpells.error("TotemSpell '" + internalName + "' has no spells defined!");
 	}
 
 	@Override
 	public void turnOff() {
-		for (Totem t : totems) t.stop(false);
-
+		totems.values().forEach(totem -> totem.stop(false));
 		totems.clear();
-		ticker.stop();
 	}
 
 	@Override
 	public CastResult cast(SpellData data) {
-		if (capPerPlayer > 0) {
-			int count = 0;
-
-			for (Totem pulser : totems) {
-				if (!data.caster().equals(pulser.data.caster())) continue;
-				if (++count >= capPerPlayer) return noTarget(strAtCap, data);
-			}
-		}
+		if (capPerPlayer > 0 && totems.get(data.caster().getUniqueId()).size() >= capPerPlayer)
+			return noTarget(strAtCap, data);
 
 		RayTraceResult result = rayTraceBlocks(data);
+		if (result == null) return noTarget(data);
+
 		Block target = result.getHitBlock().getRelative(result.getHitBlockFace());
 
 		int yOffset = this.yOffset.get(data);
@@ -214,14 +205,8 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	@Override
 	public CastResult castAtLocation(SpellData data) {
-		if (capPerPlayer > 0 && data.hasCaster()) {
-			int count = 0;
-
-			for (Totem pulser : totems) {
-				if (!data.caster().equals(pulser.data.caster())) continue;
-				if (++count >= capPerPlayer) return noTarget(strAtCap, data);
-			}
-		}
+		if (capPerPlayer > 0 && data.hasCaster() && totems.get(data.caster().getUniqueId()).size() >= capPerPlayer)
+			return noTarget(strAtCap, data);
 
 		Location location = data.location();
 
@@ -245,12 +230,11 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		Totem totem = new Totem(data);
-		totems.add(totem);
+		totems.put(data.hasCaster() ? data.caster().getUniqueId() : null, totem);
 
 		int maxDuration = this.maxDuration.get(data);
 		if (maxDuration > 0) MagicSpells.scheduleDelayedTask(totem::stop, maxDuration);
 
-		ticker.start();
 		playSpellEffects(data);
 	}
 
@@ -262,57 +246,55 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 
 	@EventHandler
 	public void onSpellTarget(SpellTargetEvent e) {
-		LivingEntity target = e.getTarget();
 		if (totems.isEmpty()) return;
-		for (Totem t : totems) {
-			if (target.equals(t.armorStand) && !t.targetable) e.setCancelled(true);
-			else if (e.getCaster().equals(t.data.caster()) && target.equals(t.armorStand) && !t.allowCasterTarget)
-				e.setCancelled(true);
+
+		LivingEntity target = e.getTarget();
+		for (Totem totem : totems.values()) {
+			if (!target.equals(totem.armorStand)) continue;
+
+			if (!totem.targetable) e.setCancelled(true);
+			else if (!totem.allowCasterTarget && e.getCaster().equals(totem.data.caster())) e.setCancelled(true);
+
+			return;
 		}
 	}
 
 	@EventHandler
 	public void onArmorStandManipulate(PlayerArmorStandManipulateEvent e) {
 		if (totems.isEmpty()) return;
-		for (Totem t : totems) {
-			if (t.armorStand.equals(e.getRightClicked())) e.setCancelled(true);
-		}
-	}
 
-	public boolean hasTotem(LivingEntity caster) {
-		for (Totem totem : totems)
-			if (caster.equals(totem.data.caster()))
-				return true;
-
-		return false;
-	}
-
-	public void removeTotems(LivingEntity caster) {
-		Iterator<Totem> it = totems.iterator();
-		while (it.hasNext()) {
-			Totem totem = it.next();
-			if (caster.equals(totem.data.caster())) {
-				totem.stop(false);
-				it.remove();
+		for (Totem totem : totems.values()) {
+			if (totem.armorStand.equals(e.getRightClicked())) {
+				e.setCancelled(true);
+				return;
 			}
 		}
 	}
 
-	private class Totem {
+	public boolean hasTotem(LivingEntity caster) {
+		return !totems.get(caster.getUniqueId()).isEmpty();
+	}
+
+	public void removeTotems(LivingEntity caster) {
+		Collection<Totem> removed = totems.removeAll(caster.getUniqueId());
+		removed.forEach(totem -> totem.stop(false));
+	}
+
+	private class Totem implements Runnable {
 
 		private final ArmorStand armorStand;
 		private final Location totemLocation;
 		private SpellData data;
 
-		private final double maxDistanceSq;
-
-		private final int totalPulses;
-
 		private final boolean targetable;
 		private final boolean allowCasterTarget;
 		private final boolean onlyCountOnSuccess;
 
+		private int taskId;
 		private int pulseCount;
+		private final int totalPulses;
+
+		private final double maxDistanceSq;
 
 		private Totem(SpellData data) {
 			double maxDistance = TotemSpell.this.maxDistance.get(data);
@@ -353,40 +335,39 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			this.data = data.location(totemLocation);
 
 			if (spellOnSpawn != null) spellOnSpawn.subcast(this.data.retarget(armorStand, null));
+
+			taskId = MagicSpells.scheduleRepeatingTask(this, 0, interval.get(data));
 		}
 
-		private boolean pulse() {
+		@Override
+		public void run() {
 			armorStand.getLocation(totemLocation);
 			data = data.location(totemLocation);
 
-			if (!data.caster().isValid() || !armorStand.isValid() || !totemLocation.isChunkLoaded()) {
+			if (!armorStand.isValid() || !totemLocation.isChunkLoaded()) {
 				stop();
-				return true;
-
+				return;
 			}
 
-			if (maxDistanceSq > 0 && (!data.caster().getWorld().equals(totemLocation.getWorld()) || totemLocation.distanceSquared(data.caster().getLocation()) > maxDistanceSq)) {
-				stop();
-				return true;
+			if (data.hasCaster()) {
+				if (!data.caster().isValid()) {
+					stop();
+					return;
+				}
+
+				if (maxDistanceSq > 0 && (!data.caster().getWorld().equals(totemLocation.getWorld()) || totemLocation.distanceSquared(data.caster().getLocation()) > maxDistanceSq)) {
+					stop();
+					return;
+				}
 			}
 
-			return activate();
-		}
-
-		private boolean activate() {
 			boolean activated = false;
 			for (Subspell spell : spells) activated = spell.subcast(data).success() || activated;
 
 			playSpellEffects(EffectPosition.SPECIAL, totemLocation, data);
-			if (totalPulses > 0 && (activated || !onlyCountOnSuccess)) {
-				pulseCount += 1;
-				if (pulseCount >= totalPulses) {
-					stop();
-					return true;
-				}
-			}
 
-			return false;
+			if (totalPulses > 0 && (activated || !onlyCountOnSuccess) && ++pulseCount >= totalPulses)
+				stop();
 		}
 
 		private void stop() {
@@ -394,37 +375,16 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 
 		private void stop(boolean remove) {
-			if (!totemLocation.getChunk().isLoaded()) totemLocation.getChunk().load();
-			armorStand.remove();
-			if (remove) totems.remove(this);
+			if (taskId < 0) return;
+
+			MagicSpells.cancelTask(taskId);
+			taskId = -1;
+
+			totemLocation.getWorld().getChunkAtAsync(totemLocation).thenAccept(chunk -> armorStand.remove());
+			if (remove) totems.remove(data.hasCaster() ? data.caster().getUniqueId() : null, this);
+
 			playSpellEffects(EffectPosition.DISABLED, totemLocation, data);
 			if (spellOnBreak != null) spellOnBreak.subcast(data);
-		}
-
-	}
-
-	private class PulserTicker implements Runnable {
-
-		private int taskId = -1;
-
-		private void start() {
-			if (taskId < 0) taskId = MagicSpells.scheduleRepeatingTask(this, 0, interval);
-		}
-
-		@Override
-		public void run() {
-			for (Totem p : new HashSet<>(totems)) {
-				boolean remove = p.pulse();
-				if (remove) totems.remove(p);
-			}
-			if (totems.isEmpty()) stop();
-		}
-
-		private void stop() {
-			if (taskId > 0) {
-				MagicSpells.cancelTask(taskId);
-				taskId = -1;
-			}
 		}
 
 	}
