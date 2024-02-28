@@ -31,9 +31,9 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	private final ConfigData<BlockData> blockType;
 
-	private final int interval;
 	private final int capPerPlayer;
 	private final ConfigData<Integer> yOffset;
+	private final ConfigData<Integer> interval;
 	private final ConfigData<Integer> totalPulses;
 
 	private final ConfigData<Double> maxDistance;
@@ -50,15 +50,13 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	private final String strAtCap;
 
-	private final PulserTicker ticker;
-
 	public PulserSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		blockType = getConfigDataBlockData("block-type", Material.DIAMOND_BLOCK.createBlockData());
 
 		yOffset = getConfigDataInt("y-offset", 0);
-		interval = getConfigInt("interval", 30);
+		interval = getConfigDataInt("interval", 30);
 		totalPulses = getConfigDataInt("total-pulses", 5);
 		capPerPlayer = getConfigInt("cap-per-player", 10);
 
@@ -74,7 +72,6 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		strAtCap = getConfigString("str-at-cap", "You have too many effects at once.");
 
 		pulsers = new HashMap<>();
-		ticker = new PulserTicker();
 	}
 
 	@Override
@@ -95,8 +92,8 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		}
 
 		spellOnBreak = initSubspell(spellOnBreakName,
-				prefix + "an invalid spell-on-break defined!",
-				true);
+			prefix + "an invalid spell-on-break defined!",
+			true);
 
 		if (spells.isEmpty()) MagicSpells.error(prefix + "no spells defined!");
 	}
@@ -143,7 +140,6 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		block.setBlockData(blockType);
 		pulsers.put(block, new Pulser(block, blockType.getMaterial(), data));
-		ticker.start();
 
 		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
@@ -155,9 +151,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			int count = 0;
 			for (Pulser pulser : pulsers.values()) {
 				if (!Objects.equals(pulser.data.caster(), data.caster())) continue;
-
-				count++;
-				if (count >= capPerPlayer) return noTarget(strAtCap, data);
+				if (++count >= capPerPlayer) return noTarget(strAtCap, data);
 			}
 		}
 
@@ -185,7 +179,6 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		block.setBlockData(blockType);
 		pulsers.put(block, new Pulser(block, blockType.getMaterial(), data));
-		ticker.start();
 
 		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
@@ -193,67 +186,65 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
+		if (pulsers.isEmpty()) return;
+
 		Pulser pulser = pulsers.get(event.getBlock());
 		if (pulser == null) return;
+
 		event.setCancelled(true);
-		if (pulser.unbreakable) return;
-		pulser.stop();
-		event.getBlock().setType(Material.AIR);
-		pulsers.remove(event.getBlock());
+		if (!pulser.unbreakable) pulser.stop();
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onEntityExplode(EntityExplodeEvent event) {
 		if (pulsers.isEmpty()) return;
+
 		Iterator<Block> iter = event.blockList().iterator();
 		while (iter.hasNext()) {
-			Block b = iter.next();
-			Pulser pulser = pulsers.get(b);
+			Pulser pulser = pulsers.get(iter.next());
 			if (pulser == null) continue;
-			iter.remove();
 
-			if (pulser.unbreakable) continue;
-			pulser.stop();
-			pulsers.remove(b);
+			iter.remove();
+			if (!pulser.unbreakable) pulser.stop();
 		}
 	}
 
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPiston(BlockPistonExtendEvent event) {
 		if (pulsers.isEmpty()) return;
-		for (Block b : event.getBlocks()) {
-			Pulser pulser = pulsers.get(b);
+
+		for (Block block : event.getBlocks()) {
+			Pulser pulser = pulsers.get(block);
 			if (pulser == null) continue;
+
 			event.setCancelled(true);
-			if (pulser.unbreakable) continue;
-			pulser.stop();
-			pulsers.remove(b);
+			if (!pulser.unbreakable) pulser.stop();
 		}
 	}
 
 	@EventHandler
 	public void onDeath(PlayerDeathEvent event) {
 		if (pulsers.isEmpty()) return;
+
 		Player player = event.getEntity();
-		Iterator<Pulser> iter = pulsers.values().iterator();
-		while (iter.hasNext()) {
-			Pulser pulser = iter.next();
-			if (player.equals(pulser.data.caster())) continue;
-			pulser.stop();
-			iter.remove();
-		}
+
+		pulsers.values().removeIf(pulser -> {
+			if (player.equals(pulser.data.caster())) {
+				pulser.stop(false);
+				return true;
+			}
+
+			return false;
+		});
 	}
 
 	@Override
 	public void turnOff() {
-		for (Pulser p : new ArrayList<>(pulsers.values())) {
-			p.stop();
-		}
+		for (Pulser pulser : pulsers.values()) pulser.stop(false);
 		pulsers.clear();
-		ticker.stop();
 	}
 
-	private class Pulser {
+	private class Pulser implements Runnable {
 
 		private final Block block;
 		private final Material type;
@@ -267,6 +258,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		private final double maxDistanceSq;
 
+		private int taskId;
 		private int pulseCount;
 
 		private Pulser(Block block, Material type, SpellData data) {
@@ -284,69 +276,53 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			maxDistanceSq = maxDistance * maxDistance;
 
 			pulseCount = 0;
+
+			taskId = MagicSpells.scheduleRepeatingTask(this, 0, interval.get(data));
 		}
 
-		private boolean pulse() {
-			if (!type.equals(block.getType()) || !block.getChunk().isLoaded()) return stop();
+		@Override
+		public void run() {
+			if (!type.equals(block.getType()) || !block.getChunk().isLoaded()) {
+				stop();
+				return;
+			}
 
 			if (data.hasCaster()) {
-				if (!data.caster().isValid()) return stop();
+				if (!data.caster().isValid()) {
+					stop();
+					return;
+				}
 
-				if (maxDistanceSq > 0) {
-					if (!data.caster().getWorld().equals(location.getWorld())) return stop();
-					if (location.distanceSquared(data.caster().getLocation()) > maxDistanceSq) return stop();
+				if (maxDistanceSq > 0 && (!data.caster().getWorld().equals(location.getWorld()) || location.distanceSquared(data.caster().getLocation()) > maxDistanceSq)) {
+					stop();
+					return;
 				}
 			}
 
-			return activate();
-		}
-
-		private boolean activate() {
 			boolean activated = false;
 			for (Subspell spell : spells) activated = spell.subcast(data).success() || activated;
 
 			playSpellEffects(EffectPosition.DELAYED, location, data);
 
-			if (totalPulses > 0 && (activated || !onlyCountOnSuccess)) {
-				pulseCount += 1;
-				if (pulseCount >= totalPulses) {
-					stop();
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private boolean stop() {
-			if (!block.getWorld().isChunkLoaded(block.getX() >> 4, block.getZ() >> 4)) block.getChunk().load();
-			block.setType(Material.AIR);
-			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-			if (spellOnBreak != null) spellOnBreak.subcast(data);
-			return true;
-		}
-
-	}
-
-	private class PulserTicker implements Runnable {
-
-		private int taskId = -1;
-
-		private void start() {
-			if (taskId < 0) taskId = MagicSpells.scheduleRepeatingTask(this, 0, interval);
+			if (totalPulses > 0 && (activated || !onlyCountOnSuccess) && ++pulseCount >= totalPulses)
+				stop();
 		}
 
 		private void stop() {
-			if (taskId > 0) {
-				MagicSpells.cancelTask(taskId);
-				taskId = -1;
-			}
+			stop(true);
 		}
 
-		@Override
-		public void run() {
-			pulsers.values().removeIf(Pulser::pulse);
-			if (pulsers.isEmpty()) stop();
+		private void stop(boolean remove) {
+			if (taskId < 0) return;
+
+			MagicSpells.cancelTask(taskId);
+			taskId = -1;
+
+			block.getWorld().getChunkAtAsync(block).thenAccept(chunk -> block.setType(Material.AIR));
+			if (remove) pulsers.remove(block);
+
+			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
+			if (spellOnBreak != null) spellOnBreak.subcast(data);
 		}
 
 	}
