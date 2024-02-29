@@ -16,6 +16,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 
+import com.destroystokyo.paper.event.block.BlockDestroyEvent;
+
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
@@ -186,6 +188,17 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onBlockBreak(BlockBreakEvent event) {
+		if (pulsers.isEmpty()) return;
+
+		Pulser pulser = pulsers.get(event.getBlock());
+		if (pulser == null) return;
+
+		event.setCancelled(true);
+		if (!pulser.unbreakable) pulser.stop();
+	}
+
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onBlockBreak(BlockDestroyEvent event) {
 		if (pulsers.isEmpty()) return;
 
 		Pulser pulser = pulsers.get(event.getBlock());
