@@ -329,6 +329,8 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 				totemEquipment.setChestplate(chestplate);
 				totemEquipment.setLeggings(leggings);
 				totemEquipment.setBoots(boots);
+
+				stand.setPersistent(false);
 			});
 
 			totemLocation = armorStand.getLocation();
@@ -380,11 +382,14 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 			MagicSpells.cancelTask(taskId);
 			taskId = -1;
 
-			totemLocation.getWorld().getChunkAtAsync(totemLocation).thenAccept(chunk -> armorStand.remove());
 			if (remove) totems.remove(data.hasCaster() ? data.caster().getUniqueId() : null, this);
 
-			playSpellEffects(EffectPosition.DISABLED, totemLocation, data);
-			if (spellOnBreak != null) spellOnBreak.subcast(data);
+			totemLocation.getWorld().getChunkAtAsync(totemLocation).thenAccept(chunk -> {
+				armorStand.remove();
+
+				playSpellEffects(EffectPosition.DISABLED, totemLocation, data);
+				if (spellOnBreak != null) spellOnBreak.subcast(data);
+			});
 		}
 
 	}

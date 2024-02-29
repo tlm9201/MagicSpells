@@ -318,11 +318,14 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			MagicSpells.cancelTask(taskId);
 			taskId = -1;
 
-			block.getWorld().getChunkAtAsync(block).thenAccept(chunk -> block.setType(Material.AIR));
 			if (remove) pulsers.remove(block);
 
-			playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
-			if (spellOnBreak != null) spellOnBreak.subcast(data);
+			block.getWorld().getChunkAtAsync(block).thenAccept(chunk -> {
+				block.setType(Material.AIR);
+
+				playSpellEffects(EffectPosition.BLOCK_DESTRUCTION, block.getLocation(), data);
+				if (spellOnBreak != null) spellOnBreak.subcast(data);
+			});
 		}
 
 	}
