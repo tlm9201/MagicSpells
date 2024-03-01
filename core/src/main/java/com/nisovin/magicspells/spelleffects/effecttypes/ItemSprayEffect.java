@@ -1,13 +1,13 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
-import java.util.Arrays;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.util.Vector;
+import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -20,6 +20,8 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 @Name("itemspray")
 public class ItemSprayEffect extends SpellEffect {
+
+	private static final List<Item> items = new ArrayList<>();
 
 	private ConfigData<Material> material;
 
@@ -46,10 +48,8 @@ public class ItemSprayEffect extends SpellEffect {
 	public Runnable playEffectLocation(Location location, SpellData data) {
 		Material material = this.material.get(data);
 		if (material == null) return null;
+		ItemStack itemStack = new ItemStack(material);
 
-		ItemStack item = new ItemStack(material);
-
-		Random rand = ThreadLocalRandom.current();
 		Location loc = location.clone().add(0, 1, 0);
 
 		boolean resolveForcePerItem = this.resolveForcePerItem.get(data);
@@ -57,17 +57,32 @@ public class ItemSprayEffect extends SpellEffect {
 		int duration = this.duration.get(data);
 
 		int amount = this.amount.get(data);
-		Item[] items = new Item[amount];
 		for (int i = 0; i < amount; i++) {
-			items[i] = loc.getWorld().dropItem(loc, item);
+			Item dropped = loc.getWorld().dropItem(loc, itemStack, item -> {
+				double f = resolveForcePerItem ? this.force.get(data) : force;
+				item.setVelocity(new Vector(
+						(random.nextDouble() - 0.5d) * f,
+						(random.nextDouble() - 0.5d) * f,
+						(random.nextDouble() - 0.5d) * f
+				));
+				// Prevents merging too.
+				item.setCanPlayerPickup(false);
+				item.setCanMobPickup(false);
+			});
 
-			if (resolveForcePerItem) force = this.force.get(data);
-			items[i].setVelocity(new Vector((rand.nextDouble() - 0.5d) * force, (rand.nextDouble() - 0.5d) * force, (rand.nextDouble() - 0.5d) * force));
-			items[i].setPickupDelay(duration << 1);
+			items.add(dropped);
+			MagicSpells.scheduleDelayedTask(() -> {
+				items.remove(dropped);
+				dropped.remove();
+			}, duration);
 		}
-
-		MagicSpells.scheduleDelayedTask(() -> Arrays.stream(items).forEach(Item::remove), duration);
 		return null;
+	}
+
+	@Override
+	public void turnOff() {
+		items.forEach(Entity::remove);
+		items.clear();
 	}
 
 }
