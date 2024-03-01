@@ -93,6 +93,12 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private Subspell spellOnSpawn;
 	private final String spellOnSpawnName;
 
+	private Subspell spellOnDeath;
+	private final String spellOnDeathName;
+
+	private Subspell spellOnTarget;
+	private final String spellOnTargetName;
+
 	private List<PotionEffect> potionEffects;
 	private Set<AttributeManager.AttributeInfo> attributes;
 
@@ -181,6 +187,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 		attackSpellName = getConfigString("attack-spell", "");
 		spellOnSpawnName = getConfigString("spell-on-spawn", "");
+		spellOnDeathName = getConfigString("spell-on-death", "");
+		spellOnTargetName = getConfigString("spell-on-target", "");
 
 		// Attributes
 		// - [AttributeName] [Number] [Operation]
@@ -231,6 +239,12 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 		spellOnSpawn = initSubspell(spellOnSpawnName,
 				prefix + "spell-on-spawn: '" + spellOnSpawnName + "' defined!",
+				true);
+		spellOnDeath = initSubspell(spellOnDeathName,
+				prefix + "spell-on-death: '" + spellOnDeathName + "' defined!",
+				true);
+		spellOnTarget = initSubspell(spellOnTargetName,
+				prefix + "spell-on-target: '" + spellOnTargetName + "' defined!",
 				true);
 		attackSpell = initSubspell(attackSpellName,
 				prefix + "attack-spell: '" + spellOnSpawnName + "' defined!",
@@ -567,6 +581,10 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 				if (target == null) retarget(null);
 				event.setTarget(target);
 			}
+			if (spellOnTarget != null) {
+				if (newTarget instanceof LivingEntity le) spellOnTarget.subcast(data.retarget(le, null));
+				else spellOnTarget.subcast(data.retarget(null, newTarget.getLocation()));
+			}
 		}
 
 		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -581,6 +599,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 			retarget(entity);
 			if (target != null) MobUtil.setTarget(monster, target);
+
+			if (spellOnDeath != null) spellOnDeath.subcast(data.retarget(entity, null));
 		}
 
 		@EventHandler(ignoreCancelled = true)
