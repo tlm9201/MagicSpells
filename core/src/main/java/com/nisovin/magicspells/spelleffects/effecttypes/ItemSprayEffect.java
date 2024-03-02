@@ -11,6 +11,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.configuration.ConfigurationSection;
 
+import net.kyori.adventure.util.TriState;
+
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
@@ -31,6 +33,7 @@ public class ItemSprayEffect extends SpellEffect {
 	private ConfigData<Integer> duration;
 
 	private ConfigData<Boolean> gravity;
+	private ConfigData<Boolean> removeItemFriction;
 	private ConfigData<Boolean> resolveForcePerItem;
 
 	@Override
@@ -43,6 +46,7 @@ public class ItemSprayEffect extends SpellEffect {
 		duration = ConfigDataUtil.getInteger(config, "duration", 10);
 
 		gravity = ConfigDataUtil.getBoolean(config, "gravity", true);
+		removeItemFriction = ConfigDataUtil.getBoolean(config, "remove-item-friction", false);
 		resolveForcePerItem = ConfigDataUtil.getBoolean(config, "resolve-force-per-item", false);
 	}
 
@@ -58,6 +62,7 @@ public class ItemSprayEffect extends SpellEffect {
 		double force = resolveForcePerItem ? 0 : this.force.get(data);
 		int duration = this.duration.get(data);
 		boolean gravity = this.gravity.get(data);
+		boolean removeItemFriction = this.removeItemFriction.get(data);
 
 		int amount = this.amount.get(data);
 		for (int i = 0; i < amount; i++) {
@@ -72,6 +77,7 @@ public class ItemSprayEffect extends SpellEffect {
 				item.setCanPlayerPickup(false);
 				item.setCanMobPickup(false);
 				item.setGravity(gravity);
+				if (removeItemFriction) item.setFrictionState(TriState.FALSE);
 			});
 
 			items.add(dropped);
