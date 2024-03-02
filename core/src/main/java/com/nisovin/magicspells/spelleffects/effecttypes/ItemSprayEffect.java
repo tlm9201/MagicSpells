@@ -30,6 +30,7 @@ public class ItemSprayEffect extends SpellEffect {
 	private ConfigData<Integer> amount;
 	private ConfigData<Integer> duration;
 
+	private ConfigData<Boolean> gravity;
 	private ConfigData<Boolean> resolveForcePerItem;
 
 	@Override
@@ -41,6 +42,7 @@ public class ItemSprayEffect extends SpellEffect {
 		amount = ConfigDataUtil.getInteger(config, "amount", 15);
 		duration = ConfigDataUtil.getInteger(config, "duration", 10);
 
+		gravity = ConfigDataUtil.getBoolean(config, "gravity", true);
 		resolveForcePerItem = ConfigDataUtil.getBoolean(config, "resolve-force-per-item", false);
 	}
 
@@ -55,6 +57,7 @@ public class ItemSprayEffect extends SpellEffect {
 		boolean resolveForcePerItem = this.resolveForcePerItem.get(data);
 		double force = resolveForcePerItem ? 0 : this.force.get(data);
 		int duration = this.duration.get(data);
+		boolean gravity = this.gravity.get(data);
 
 		int amount = this.amount.get(data);
 		for (int i = 0; i < amount; i++) {
@@ -68,6 +71,7 @@ public class ItemSprayEffect extends SpellEffect {
 				// Prevents merging too.
 				item.setCanPlayerPickup(false);
 				item.setCanMobPickup(false);
+				item.setGravity(gravity);
 			});
 
 			items.add(dropped);
