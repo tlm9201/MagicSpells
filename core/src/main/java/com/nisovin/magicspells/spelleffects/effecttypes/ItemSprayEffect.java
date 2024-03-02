@@ -35,6 +35,7 @@ public class ItemSprayEffect extends SpellEffect {
 	private ConfigData<Boolean> gravity;
 	private ConfigData<Boolean> removeItemFriction;
 	private ConfigData<Boolean> resolveForcePerItem;
+	private ConfigData<Boolean> resolveDurationPerItem;
 
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
@@ -48,6 +49,7 @@ public class ItemSprayEffect extends SpellEffect {
 		gravity = ConfigDataUtil.getBoolean(config, "gravity", true);
 		removeItemFriction = ConfigDataUtil.getBoolean(config, "remove-item-friction", false);
 		resolveForcePerItem = ConfigDataUtil.getBoolean(config, "resolve-force-per-item", false);
+		resolveDurationPerItem = ConfigDataUtil.getBoolean(config, "resolve-duration-per-item", false);
 	}
 
 	@Override
@@ -60,7 +62,10 @@ public class ItemSprayEffect extends SpellEffect {
 
 		boolean resolveForcePerItem = this.resolveForcePerItem.get(data);
 		double force = resolveForcePerItem ? 0 : this.force.get(data);
-		int duration = this.duration.get(data);
+
+		boolean resolveDurationPerItem = this.resolveDurationPerItem.get(data);
+		int duration = resolveDurationPerItem ? 0 : this.duration.get(data);
+
 		boolean gravity = this.gravity.get(data);
 		boolean removeItemFriction = this.removeItemFriction.get(data);
 
@@ -80,11 +85,12 @@ public class ItemSprayEffect extends SpellEffect {
 				if (removeItemFriction) item.setFrictionState(TriState.FALSE);
 			});
 
+			int dur = resolveDurationPerItem ? this.duration.get(data) : duration;
 			items.add(dropped);
 			MagicSpells.scheduleDelayedTask(() -> {
 				items.remove(dropped);
 				dropped.remove();
-			}, duration);
+			}, dur);
 		}
 		return null;
 	}
