@@ -27,6 +27,8 @@ public class ItemSprayEffect extends SpellEffect {
 
 	private ConfigData<Material> material;
 
+	private ConfigData<Vector> velocity;
+
 	private ConfigData<Double> force;
 
 	private ConfigData<Integer> amount;
@@ -40,6 +42,8 @@ public class ItemSprayEffect extends SpellEffect {
 	@Override
 	public void loadFromConfig(ConfigurationSection config) {
 		material = ConfigDataUtil.getMaterial(config, "type", null);
+
+		velocity = ConfigDataUtil.getVector(config, "velocity", null);
 
 		force = ConfigDataUtil.getDouble(config, "force", 1);
 
@@ -72,12 +76,15 @@ public class ItemSprayEffect extends SpellEffect {
 		int amount = this.amount.get(data);
 		for (int i = 0; i < amount; i++) {
 			Item dropped = loc.getWorld().dropItem(loc, itemStack, item -> {
+				Vector velocity = this.velocity.get(data);
+				if (velocity == null) velocity = new Vector(
+						random.nextDouble() - 0.5,
+						random.nextDouble() - 0.5,
+						random.nextDouble() - 0.5
+				);
 				double f = resolveForcePerItem ? this.force.get(data) : force;
-				item.setVelocity(new Vector(
-						(random.nextDouble() - 0.5d) * f,
-						(random.nextDouble() - 0.5d) * f,
-						(random.nextDouble() - 0.5d) * f
-				));
+				item.setVelocity(velocity.clone().multiply(f));
+
 				// Prevents merging too.
 				item.setCanPlayerPickup(false);
 				item.setCanMobPickup(false);
