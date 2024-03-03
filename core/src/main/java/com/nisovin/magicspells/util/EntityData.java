@@ -27,6 +27,8 @@ import org.bukkit.util.EulerAngle;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.config.ConfigData;
@@ -108,6 +110,22 @@ public class EntityData {
 		});
 
 		addOptInteger(transformers, config, "age", Ageable.class, Ageable::setAge);
+
+		// LivingEntity
+		addOptEquipment(transformers, config, "equipment.main-hand", EquipmentSlot.HAND);
+		addOptEquipment(transformers, config, "equipment.off-hand", EquipmentSlot.OFF_HAND);
+		addOptEquipment(transformers, config, "equipment.helmet", EquipmentSlot.HEAD);
+		addOptEquipment(transformers, config, "equipment.chestplate", EquipmentSlot.CHEST);
+		addOptEquipment(transformers, config, "equipment.leggings", EquipmentSlot.LEGS);
+		addOptEquipment(transformers, config, "equipment.boots", EquipmentSlot.FEET);
+
+		// Mob
+		addOptEquipmentDropChance(transformers, config, "equipment.main-hand-drop-chance", EquipmentSlot.HAND);
+		addOptEquipmentDropChance(transformers, config, "equipment.off-hand-drop-chance", EquipmentSlot.OFF_HAND);
+		addOptEquipmentDropChance(transformers, config, "equipment.helmet-drop-chance", EquipmentSlot.HEAD);
+		addOptEquipmentDropChance(transformers, config, "equipment.chestplate-drop-chance", EquipmentSlot.CHEST);
+		addOptEquipmentDropChance(transformers, config, "equipment.leggings-drop-chance", EquipmentSlot.LEGS);
+		addOptEquipmentDropChance(transformers, config, "equipment.boots-drop-chance", EquipmentSlot.FEET);
 
 		// Tameable
 		tamed = addBoolean(transformers, config, "tamed", false, Tameable.class, Tameable::setTamed);
@@ -286,11 +304,7 @@ public class EntityData {
 		addOptBlockData(transformers, config, "block", BlockDisplay.class, BlockDisplay::setBlock);
 
 		// ItemDisplay
-		MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString("item"));
-		if (magicItem != null) {
-			ItemStack item = magicItem.getItemStack();
-			transformers.put(ItemDisplay.class, new Transformer<>(data -> item, ItemDisplay::setItemStack));
-		}
+		addOptMagicItem(transformers, config, "item", ItemDisplay.class, ItemDisplay::setItemStack);
 
 		addOptEnum(transformers, config, "item-display-transform", ItemDisplay.class, ItemDisplay.ItemDisplayTransform.class, ItemDisplay::setItemDisplayTransform);
 
@@ -446,6 +460,30 @@ public class EntityData {
 	private <T> void addOptBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, BlockData> setter) {
 		ConfigData<BlockData> supplier = ConfigDataUtil.getBlockData(config, name, null);
 		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+	private <T> void addOptMagicItem(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, ItemStack> setter) {
+		MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString(name));
+		if (magicItem == null) return;
+
+		ItemStack item = magicItem.getItemStack();
+		transformers.put(type, new Transformer<>(data -> item, setter, true));
+	}
+
+	private <T> void addOptEquipment(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
+		addOptMagicItem(transformers, config, name, LivingEntity.class, (entity, item) -> {
+			EntityEquipment equipment = entity.getEquipment();
+			if (equipment == null) return;
+
+			equipment.setItem(slot, item);
+		});
+	}
+
+	private <T> void addOptEquipmentDropChance(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
+		addOptFloat(transformers, config, name, Mob.class, (entity, chance) -> {
+			EntityEquipment equipment = entity.getEquipment();
+			equipment.setDropChance(slot, chance);
+		});
 	}
 
 	public ConfigData<Vector3f> getVector(ConfigurationSection config, String path) {
