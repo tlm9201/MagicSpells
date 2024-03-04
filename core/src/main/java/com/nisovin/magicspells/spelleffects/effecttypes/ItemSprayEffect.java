@@ -88,6 +88,7 @@ public class ItemSprayEffect extends SpellEffect {
 				// Prevents merging too.
 				item.setCanPlayerPickup(false);
 				item.setCanMobPickup(false);
+				item.setPersistent(false);
 				item.setGravity(gravity);
 				if (removeItemFriction) item.setFrictionState(TriState.FALSE);
 			});
