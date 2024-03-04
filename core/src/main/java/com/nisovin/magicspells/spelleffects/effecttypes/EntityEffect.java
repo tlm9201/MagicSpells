@@ -51,6 +51,7 @@ public class EntityEffect extends SpellEffect {
 			entity.addScoreboardTag(ENTITY_TAG);
 			entity.setGravity(gravity.get(data));
 			entity.setSilent(silent.get(data));
+			entity.setPersistent(false);
 
 			if (entity instanceof LivingEntity livingEntity) livingEntity.setAI(enableAI.get(data));
 		});
@@ -59,6 +60,8 @@ public class EntityEffect extends SpellEffect {
 	@Override
 	public Runnable playEffectLocation(Location location, SpellData data) {
 		Entity entity = playEntityEffectLocation(location, data);
+		if (entity == null) return null;
+
 		entities.add(entity);
 
 		int duration = this.duration.get(data);
@@ -66,14 +69,13 @@ public class EntityEffect extends SpellEffect {
 			entities.remove(entity);
 			entity.remove();
 		}, duration);
+
 		return null;
 	}
 
 	@Override
 	public void turnOff() {
-		for (Entity entity : entities) {
-			entity.remove();
-		}
+		for (Entity entity : entities) entity.remove();
 		entities.clear();
 	}
 
