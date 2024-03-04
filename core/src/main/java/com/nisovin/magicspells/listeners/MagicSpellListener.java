@@ -22,7 +22,7 @@ import com.nisovin.magicspells.spelleffects.effecttypes.ArmorStandEffect;
 public class MagicSpellListener implements Listener {
 
 	private NoMagicZoneManager noMagicZoneManager;
-		
+
 	public MagicSpellListener(MagicSpells plugin) {
 		noMagicZoneManager = MagicSpells.getNoMagicZoneManager();
 	}
@@ -43,16 +43,19 @@ public class MagicSpellListener implements Listener {
 
 	@EventHandler
 	public void onProjectileHit(ParticleProjectileHitEvent event) {
-		// Check if target is an armor stand with the specified tag
 		LivingEntity target = event.getTarget();
-
 		if (target == null) return;
 		if (isMSEntity(target)) event.setCancelled(true);
 	}
 
+	/**
+	 * Remove entities in unloaded chunks.
+	 * @implNote If you don't need any other listener handling done aside from this one that
+	 *           {@link Entity#setPersistent(boolean)} exists. This code is only here due to
+	 *           backwards compatibility for removing old entities.
+	 */
 	@EventHandler
 	public void onChunkLoad(ChunkLoadEvent event) {
-		// remove entities in unloaded chunks
 		for (Entity entity : event.getChunk().getEntities()) {
 			if (!isMSEntity(entity)) continue;
 			entity.remove();
