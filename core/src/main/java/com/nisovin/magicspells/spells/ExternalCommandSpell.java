@@ -156,27 +156,16 @@ public class ExternalCommandSpell extends TargetedSpell implements TargetedEntit
 				}
 				SpellData varData = data.builder().caster(varOwner).target(varTarget).build();
 
-				String[] replacements = new String[4];
-				if (sender != null) {
-					replacements[0] = "%a";
-					replacements[1] = sender.getName();
-				}
-				if (target != null) {
-					replacements[2] = "%t";
-					replacements[3] = target.getName();
-				}
-
 				boolean doVariableReplacement = this.doVariableReplacement.get(data);
 				for (String comm : commandToExecute) {
 					if (comm == null || comm.isEmpty()) continue;
 					if (doVariableReplacement)
-						comm = MagicSpells.doReplacements(comm, varOwner, varData, replacements);
+						comm = MagicSpells.doReplacements(comm, varOwner, varData);
 					if (data.hasArgs()) {
 						for (int i = 0; i < data.args().length; i++) {
 							comm = comm.replace("%" + (i + 1), data.args()[i]);
 						}
 					}
-					if (!doVariableReplacement) comm = MagicSpells.formatMessage(comm, replacements);
 					if (comm.startsWith("DELAY ")) {
 						String[] split = comm.split(" ");
 						delay += Integer.parseInt(split[1]);
