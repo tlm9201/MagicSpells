@@ -38,27 +38,36 @@ public final class MultiSpell extends InstantSpell {
 	@Override
 	public void initialize() {
 		super.initialize();
-		if (spellList != null) {
-			for (String s : spellList) {
-				String[] parts = s.split(":");
-				double chance = parts.length == 2 ? Double.parseDouble(parts[1]) : 0.0D;
-				s = parts[0];
-				if (RANGED_DELAY_PATTERN.asMatchPredicate().test(s)) {
-					String[] splits = s.split(" ");
-					int minDelay = Integer.parseInt(splits[1]);
-					int maxDelay = Integer.parseInt(splits[2]);
-					actions.add(new ActionChance(new Action(minDelay, maxDelay), chance));
-				} else if (BASIC_DELAY_PATTERN.asMatchPredicate().test(s)) {
-					int delay = Integer.parseInt(s.split(" ")[1]);
-					actions.add(new ActionChance(new Action(delay), chance));
-				} else {
-					Subspell spell = new Subspell(s);
-					if (spell.process()) actions.add(new ActionChance(new Action(spell), chance));
-					else
-						MagicSpells.error("MultiSpell '" + internalName + "' has an invalid spell '" + s + "' defined!");
+
+		if (spellList == null) return;
+
+		for (String spellString : spellList) {
+			int chanceIndex = spellString.lastIndexOf(':');
+
+			double chance = 0d;
+			if (chanceIndex != -1) {
+				try {
+					chance = Double.parseDouble(spellString.substring(chanceIndex + 1));
+					spellString = spellString.substring(0, chanceIndex);
+				} catch (NumberFormatException ignored) {
 				}
 			}
+
+			if (RANGED_DELAY_PATTERN.asMatchPredicate().test(spellString)) {
+				String[] splits = spellString.split(" ");
+				int minDelay = Integer.parseInt(splits[1]);
+				int maxDelay = Integer.parseInt(splits[2]);
+				actions.add(new ActionChance(new Action(minDelay, maxDelay), chance));
+			} else if (BASIC_DELAY_PATTERN.asMatchPredicate().test(spellString)) {
+				int delay = Integer.parseInt(spellString.split(" ")[1]);
+				actions.add(new ActionChance(new Action(delay), chance));
+			} else {
+				Subspell spell = new Subspell(spellString);
+				if (spell.process()) actions.add(new ActionChance(new Action(spell), chance));
+				else MagicSpells.error("MultiSpell '" + internalName + "' has an invalid spell '" + spellString + "' defined!");
+			}
 		}
+
 		spellList = null;
 	}
 
