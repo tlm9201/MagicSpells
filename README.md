@@ -35,6 +35,7 @@ Check out more examples of what this plugin can do in our [Discord server] (in t
 
 ---
 ## Resources 📝
+ 
 * [Plugin Releases (Downloads)][Releases]
 * [Community Wiki][Wiki]
 * [Discord server]
@@ -42,22 +43,71 @@ Check out more examples of what this plugin can do in our [Discord server] (in t
 * [MagicSpells PAPI Expansion][PAPIExp]
 * [JasperLorelai's Soundboard][Soundboard]
 
+
+
 ---
 ## Classical MagicSpells ⭐
+
 This plugin was originally created by [Nisovin], and published on [Bukkit]. After some time TheComputerGeek2 took over the project and published it on [Spigot]. Since then we dropped support for Spigot and moved to [PaperMC], and the plugin was published on [Modrinth].
+
+
 
 ---
 ## Support 📞
+
 If you need help with the plugin, our Discord server can provide you community support. You can also post suggestions there or find more resources that can be useful for you.
 
 [![Join our Discord][DiscordBadge]][Discord server]
 
 ![Screenshot of the server][WelcomeChannel]
 
+
+
 ---
 ## Building 🧱
+
 The move to Gradle has made building much easier. After cloning and navigating to the source's directory, you can simply run this command:
 ```
 ./gradlew build
 ```
 Simple right?
+
+
+
+---
+## Dependency 📚
+
+#### Gradle:
+
+```groovy
+repositories {
+    maven {url "https://jitpack.io"}
+}
+
+dependencies {
+    implementation("com.github.TheComputerGeek2.MagicSpells:core:main-SNAPSHOT") {transitive = false}
+}
+```
+
+
+#### Maven:
+
+```xml
+<repository>
+    <id>jitpack-repo</id>
+    <url>https://jitpack.io</url>
+</repository>
+```
+```xml
+<dependency>
+    <groupId>com.github.TheComputerGeek2.MagicSpells</groupId>
+    <artifactId>core</artifactId>
+    <version>main-SNAPSHOT</version>
+    <exclusions>
+        <exclusion>
+            <groupId>*</groupId>
+            <artifactId>*</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
