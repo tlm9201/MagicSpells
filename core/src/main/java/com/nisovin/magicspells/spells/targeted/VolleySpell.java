@@ -185,9 +185,9 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 			removeDelay = VolleySpell.this.removeDelay.get(subData);
 			knockbackStrength = VolleySpell.this.knockbackStrength.get(subData);
 
-			speed = VolleySpell.this.speed.get(subData);
+			speed = VolleySpell.this.speed.get(subData) / 10;
 			if (powerAffectsSpeed.get(subData)) speed *= subData.power();
-			spread = VolleySpell.this.spread.get(subData);
+			spread = VolleySpell.this.spread.get(subData) / 10;
 
 			damage = VolleySpell.this.damage.get(subData);
 		}
