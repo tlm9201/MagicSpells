@@ -12,10 +12,8 @@ import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.CommandSpell;
-import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellForgetEvent;
-import com.nisovin.magicspells.spelleffects.EffectPosition;
 
 // Advanced perm allows you to make others forget a spell
 // Put * for the spell to forget all of them
