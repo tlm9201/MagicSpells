@@ -208,6 +208,8 @@ public class ConditionManager {
 		addCondition(AttributeCondition.class);
 		addCondition(AttributeBaseCondition.class);
 		addCondition(AttributeDefaultCondition.class);
+		addCondition(PulserActiveCondition.class);
+		addCondition(TotemActiveCondition.class);
 	}
 
 }

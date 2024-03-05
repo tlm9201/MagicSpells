@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.block.data.BlockData;
@@ -251,13 +252,17 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		});
 	}
 
+	public Map<Block, Pulser> getPulsers() {
+		return pulsers;
+	}
+
 	@Override
 	public void turnOff() {
 		for (Pulser pulser : pulsers.values()) pulser.stop(false);
 		pulsers.clear();
 	}
 
-	private class Pulser implements Runnable {
+	public class Pulser implements Runnable {
 
 		private final Block block;
 		private final Material type;
@@ -291,6 +296,10 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 			pulseCount = 0;
 
 			taskId = MagicSpells.scheduleRepeatingTask(this, 0, interval.get(data));
+		}
+
+		public LivingEntity getCaster() {
+			return data.caster();
 		}
 
 		@Override

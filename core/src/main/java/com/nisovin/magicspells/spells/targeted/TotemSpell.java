@@ -271,6 +271,10 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 	}
 
+	public Multimap<UUID, Totem> getTotems() {
+		return totems;
+	}
+
 	public boolean hasTotem(LivingEntity caster) {
 		return !totems.get(caster.getUniqueId()).isEmpty();
 	}
@@ -280,7 +284,7 @@ public class TotemSpell extends TargetedSpell implements TargetedLocationSpell {
 		removed.forEach(totem -> totem.stop(false));
 	}
 
-	private class Totem implements Runnable {
+	public class Totem implements Runnable {
 
 		private final ArmorStand armorStand;
 		private final Location totemLocation;
