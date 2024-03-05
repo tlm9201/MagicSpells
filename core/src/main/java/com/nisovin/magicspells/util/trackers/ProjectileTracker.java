@@ -120,8 +120,6 @@ public class ProjectileTracker implements Runnable, Tracker {
 		startLocation.setY(startLocation.getY() + relativeOffset.getY());
 
 		currentLocation = startLocation.clone();
-
-		projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass());
 		currentVelocity = startLocation.getDirection();
 		currentVelocity.multiply(velocity * data.power());
 		if (rotation != 0) Util.rotateVector(currentVelocity, rotation);
@@ -132,20 +130,22 @@ public class ProjectileTracker implements Runnable, Tracker {
 			currentVelocity.add(new Vector(rx * horizSpread, ry * vertSpread, rz * horizSpread));
 		}
 
-		projectile.setVisibleByDefault(visible);
-		projectile.setVelocity(currentVelocity);
-		projectile.setShooter(data.caster());
-		projectile.setGravity(gravity);
-		if (projectileName != null && !Util.getPlainString(projectileName).isEmpty()) {
-			projectile.customName(projectileName);
-			projectile.setCustomNameVisible(true);
-		}
-		if (projectile instanceof Arrow arrow) arrow.setColor(arrowColor);
-		if (projectile instanceof WitherSkull witherSkull) witherSkull.setCharged(charged);
-		if (projectile instanceof Explosive explosive) explosive.setIsIncendiary(incendiary);
-		if (projectileManager instanceof ProjectileManagerThrownPotion potion) {
-			((ThrownPotion) projectile).setItem(potion.getItem());
-		}
+		projectile = startLocation.getWorld().spawn(startLocation, projectileManager.getProjectileClass(), proj -> {
+			proj.setVisibleByDefault(visible);
+			proj.setVelocity(currentVelocity);
+			proj.setShooter(data.caster());
+			proj.setGravity(gravity);
+			if (projectileName != null && !Util.getPlainString(projectileName).isEmpty()) {
+				proj.customName(projectileName);
+				proj.setCustomNameVisible(true);
+			}
+			if (proj instanceof Arrow arrow) arrow.setColor(arrowColor);
+			if (proj instanceof WitherSkull witherSkull) witherSkull.setCharged(charged);
+			if (proj instanceof Explosive explosive) explosive.setIsIncendiary(incendiary);
+			if (projectileManager instanceof ProjectileManagerThrownPotion potion) {
+				((ThrownPotion) proj).setItem(potion.getItem());
+			}
+		});
 
 		if (spell != null) {
 			spell.playEffects(EffectPosition.CASTER, startLocation, data);

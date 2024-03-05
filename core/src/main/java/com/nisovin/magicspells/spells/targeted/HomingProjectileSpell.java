@@ -265,22 +265,23 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			this.data = data;
 
 			ProjectileManager manager = ProjectileManagers.getManager(projectileType.get(data));
-			projectile = currentLocation.getWorld().spawn(currentLocation, manager.getProjectileClass());
+			SpellData finalData = data;
+			projectile = currentLocation.getWorld().spawn(currentLocation, manager.getProjectileClass(), proj -> {
+				proj.setShooter(finalData.caster());
+				proj.setVisibleByDefault(visible.get(finalData));
 
-			projectile.setShooter(data.caster());
-			projectile.setVisibleByDefault(visible.get(data));
-
-			Component projectileName = HomingProjectileSpell.this.projectileName.get(data);
-			if (projectileName != null && !Util.getPlainString(projectileName).isEmpty()) {
-				projectile.customName(projectileName);
-				projectile.setCustomNameVisible(true);
-			}
-			if (projectile instanceof Arrow arrow) arrow.setColor(arrowColor.get(data));
-			if (projectile instanceof WitherSkull witherSkull) witherSkull.setCharged(charged.get(data));
-			if (projectile instanceof Explosive explosive) explosive.setIsIncendiary(incendiary.get(data));
-			if (manager instanceof ProjectileManagerThrownPotion potion) {
-				((ThrownPotion) projectile).setItem(potion.getItem());
-			}
+				Component projectileName = HomingProjectileSpell.this.projectileName.get(finalData);
+				if (projectileName != null && !Util.getPlainString(projectileName).isEmpty()) {
+					proj.customName(projectileName);
+					proj.setCustomNameVisible(true);
+				}
+				if (proj instanceof Arrow arrow) arrow.setColor(arrowColor.get(finalData));
+				if (proj instanceof WitherSkull witherSkull) witherSkull.setCharged(charged.get(finalData));
+				if (proj instanceof Explosive explosive) explosive.setIsIncendiary(incendiary.get(finalData));
+				if (proj instanceof ProjectileManagerThrownPotion potion) {
+					((ThrownPotion) proj).setItem(potion.getItem());
+				}
+			});
 
 			float hitRadius = HomingProjectileSpell.this.hitRadius.get(data);
 			float verticalHitRadius = HomingProjectileSpell.this.verticalHitRadius.get(data);
