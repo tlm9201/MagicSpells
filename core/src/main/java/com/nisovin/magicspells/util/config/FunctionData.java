@@ -32,10 +32,10 @@ public class FunctionData<T extends Number> implements ConfigData<T> {
 
 	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(?:" +
 		"(?<var>(?<varOwner>var|castervar|targetvar):(?<varName>\\w+)(?::(?<varPrecision>\\d+))?)|" +
-		"(?<pVar>playervar:(?<pVarUser>" + RegexUtil.USERNAME_PATTERN + "):(?<pVarName>\\w+)(?::(?<pVarPrecision>\\d+))?)|" +
+		"(?<pVar>playervar:(?<pVarUser>[^:]+):(?<pVarName>\\w+)(?::(?<pVarPrecision>\\d+))?)|" +
 		"(?<arg>arg:(?<argValue>\\d+):(?<argDefault>" + RegexUtil.DOUBLE_PATTERN + "))|" +
 		"(?<papi>(?<papiOwner>papi|casterpapi|targetpapi):(?<papiValue>[^%]+))|" +
-		"(?<playerPapi>playerpapi:(?<playerPapiUser>" + RegexUtil.USERNAME_PATTERN + "):(?<playerPapiValue>[^%]+))" +
+		"(?<playerPapi>playerpapi:(?<playerPapiUser>[^:]+):(?<playerPapiValue>[^%]+))" +
 		")%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	private final Map<String, ConfigData<Double>> variables;

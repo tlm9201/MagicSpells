@@ -652,6 +652,7 @@ public class MagicSpells extends JavaPlugin {
 		// Register commands
 		commandManager.enableUnstableAPI("help");
 		commandManager.registerCommand(new MagicCommand());
+		commandManager.setValidNamePredicate(string -> true);
 		CommandHelpFilter.mapPerms();
 
 		// Setup profiling
@@ -1517,7 +1518,7 @@ public class MagicSpells extends JavaPlugin {
 		return matcher.appendTail(builder).toString();
 	}
 
-	private static final Pattern chatPlayerVarMatchPattern = Pattern.compile("%playervar:(" + RegexUtil.USERNAME_REGEXP + "):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern chatPlayerVarMatchPattern = Pattern.compile("%playervar:([^:]+):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doVariableReplacements(Player player, String string) {
 		string = doSubjectVariableReplacements(player, string);
 		if (string == null || string.isEmpty() || plugin.variableManager == null) return string;
@@ -1642,7 +1643,7 @@ public class MagicSpells extends JavaPlugin {
 		return matcher.appendTail(builder).toString();
 	}
 
-	private static final Pattern VARIABLE_PATTERN = Pattern.compile("%(var|castervar|targetvar|playervar:(" + RegexUtil.USERNAME_REGEXP + ")):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern VARIABLE_PATTERN = Pattern.compile("%(var|castervar|targetvar|playervar:([^:]+)):(\\w+)(?::(\\d+))?%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doVariableReplacements(String message, LivingEntity recipient, LivingEntity caster, LivingEntity target) {
 		if (message == null || message.isEmpty()) return message;
 
@@ -1691,7 +1692,7 @@ public class MagicSpells extends JavaPlugin {
 		return matcher.appendTail(builder).toString();
 	}
 
-	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(papi|casterpapi|targetpapi|playerpapi:(" + RegexUtil.USERNAME_REGEXP + ")):([^%]+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(papi|casterpapi|targetpapi|playerpapi:([^:]+)):([^%]+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doPlaceholderReplacements(String message, LivingEntity recipient, LivingEntity caster, LivingEntity target) {
 		if (message == null || message.isEmpty() || !Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI"))
 			return message;
