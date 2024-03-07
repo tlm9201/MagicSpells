@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -73,8 +74,8 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	public void turnOff() {
 		super.turnOff();
 
-		for (Block block : blocks.keySet()) {
-			block.setType(Material.AIR);
+		for (Entry<Block, CarpetData> entry : blocks.entrySet()) {
+			entry.getKey().setType(entry.getValue().air());
 		}
 		blocks.clear();
 		if (checker != null) checker.stop();
@@ -151,9 +152,9 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 
 				if (!b.getType().isAir() && !b.getRelative(0, -1, 0).getType().isSolid()) continue;
 
+				blocks.put(b, new CarpetData(data, material, b.getType(), removeOnTouch));
 				b.setType(material, false);
 				blockList.add(b);
-				blocks.put(b, new CarpetData(data, material, b.getType(), removeOnTouch));
 
 				Location subLoc = b.getLocation().add(0.5, 0, 0.5);
 				playSpellEffects(EffectPosition.TARGET, subLoc, data.location(subLoc));
