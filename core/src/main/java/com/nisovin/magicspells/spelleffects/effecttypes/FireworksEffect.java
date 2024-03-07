@@ -1,13 +1,10 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
 import org.bukkit.*;
-import org.bukkit.event.Listener;
 import org.bukkit.entity.Firework;
-import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
@@ -17,9 +14,9 @@ import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 @Name("fireworks")
-public class FireworksEffect extends SpellEffect implements Listener {
+public class FireworksEffect extends SpellEffect {
 
-	private static final NamespacedKey MS_FIREWORK = new NamespacedKey(MagicSpells.getInstance(), "fireworks_effect");
+	public static final NamespacedKey MS_FIREWORK = new NamespacedKey(MagicSpells.getInstance(), "fireworks_effect");
 
 	private ConfigData<Integer> type;
 	private ConfigData<Integer> flightDuration;
@@ -61,8 +58,6 @@ public class FireworksEffect extends SpellEffect implements Listener {
 				}
 			}
 		}
-
-		MagicSpells.registerEvents(this);
 	}
 
 	@Override
@@ -104,11 +99,6 @@ public class FireworksEffect extends SpellEffect implements Listener {
 		});
 
 		return null;
-	}
-
-	@EventHandler
-	public void onFireworkDamage(EntityDamageByEntityEvent e) {
-		if (e.getDamager().getPersistentDataContainer().has(MS_FIREWORK)) e.setCancelled(true);
 	}
 
 }
