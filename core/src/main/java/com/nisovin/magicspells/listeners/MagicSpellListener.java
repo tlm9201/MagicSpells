@@ -1,8 +1,6 @@
 package com.nisovin.magicspells.listeners;
 
-import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
@@ -26,13 +24,12 @@ public class MagicSpellListener implements Listener {
 
 	@EventHandler
 	public void onSpellTarget(SpellTargetEvent event) {
-		// Check if target has noTarget permission / spectator gamemode / is in noMagicZone / is an invisible marker armorstand
+		// Check if target has noTarget permission / is in noMagicZone / is an invisible marker armorstand
 		LivingEntity target = event.getTarget();
 		Spell spell = event.getSpell();
 		if (target == null) return;
 
 		if (Perm.NO_TARGET.has(target)) event.setCancelled(true);
-		if (target instanceof Player && ((Player) target).getGameMode() == GameMode.SPECTATOR) event.setCancelled(true);
 		if (spell != null && noMagicZoneManager != null && noMagicZoneManager.willFizzle(target, spell)) event.setCancelled(true);
 		if (isMSEntity(target)) event.setCancelled(true);
 		if (target instanceof ArmorStand && target.isInvisible() && ((ArmorStand) target).isMarker()) event.setCancelled(true);
