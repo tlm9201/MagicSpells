@@ -144,10 +144,8 @@ public class ValidTargetList {
 		if (!(target instanceof LivingEntity) && !targetNonLivingEntities) return false;
 		boolean targetIsPlayer = target instanceof Player;
 
+		if (target.equals(caster)) return targetSelf;
 		if (targetIsPlayer && !gameModes.contains(((Player) target).getGameMode())) return false;
-
-		if (targetSelf && target.equals(caster)) return true;
-		if (!targetSelf && target.equals(caster)) return false;
 
 		if (!targetInvisibles && targetIsPlayer && caster instanceof Player player && !player.canSee((Player) target)) return false;
 		if (targetPlayers && targetIsPlayer) return true;
