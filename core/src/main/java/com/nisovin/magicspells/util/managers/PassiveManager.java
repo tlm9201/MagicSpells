@@ -136,6 +136,8 @@ public class PassiveManager {
 		addListener(PlayerAnimationListener.class);
 		addListener(PlayerMoveListener.class);
 		addListener(PlayerMoveToBlockListener.class);
+		addListener(PortalEnterListener.class);
+		addListener(PortalLeaveListener.class);
 		addListener(PotionEffectListener.class);
 		addListener(PrepareEnchantListener.class);
 		addListener(QuitListener.class);
