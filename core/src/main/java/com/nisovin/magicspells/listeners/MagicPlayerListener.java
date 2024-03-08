@@ -16,12 +16,6 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellUtil;
 
 public class MagicPlayerListener implements Listener {
-	
-	private final MagicSpells plugin;
-	
-	public MagicPlayerListener(MagicSpells plugin) {
-		this.plugin = plugin;
-	}
 
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerJoin(PlayerJoinEvent event) {

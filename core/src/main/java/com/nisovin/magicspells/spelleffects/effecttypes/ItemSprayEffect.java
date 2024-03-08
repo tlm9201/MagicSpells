@@ -7,8 +7,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Item;
 import org.bukkit.util.Vector;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.configuration.ConfigurationSection;
 
 import net.kyori.adventure.util.TriState;
@@ -22,6 +24,8 @@ import com.nisovin.magicspells.util.config.ConfigDataUtil;
 
 @Name("itemspray")
 public class ItemSprayEffect extends SpellEffect {
+
+	public static final NamespacedKey MS_ITEM_SPRAY = new NamespacedKey(MagicSpells.getInstance(), "ms_item_spray");
 
 	private static final List<Item> items = new ArrayList<>();
 
@@ -76,6 +80,8 @@ public class ItemSprayEffect extends SpellEffect {
 		int amount = this.amount.get(data);
 		for (int i = 0; i < amount; i++) {
 			Item dropped = loc.getWorld().dropItem(loc, itemStack, item -> {
+				item.getPersistentDataContainer().set(MS_ITEM_SPRAY, PersistentDataType.BOOLEAN, true);
+
 				Vector velocity = this.velocity.get(data);
 				if (velocity == null) velocity = new Vector(
 						random.nextDouble() - 0.5,

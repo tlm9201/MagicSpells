@@ -9,23 +9,20 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.inventory.InventoryPickupItemEvent;
 
 import com.nisovin.magicspells.Perm;
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.zones.NoMagicZoneManager;
+import com.nisovin.magicspells.spelleffects.effecttypes.*;
 import com.nisovin.magicspells.events.ParticleProjectileHitEvent;
-import com.nisovin.magicspells.spelleffects.effecttypes.EntityEffect;
-import com.nisovin.magicspells.spelleffects.effecttypes.ArmorStandEffect;
 
 public class MagicSpellListener implements Listener {
 
-	private NoMagicZoneManager noMagicZoneManager;
-
-	public MagicSpellListener(MagicSpells plugin) {
-		noMagicZoneManager = MagicSpells.getNoMagicZoneManager();
-	}
+	private final NoMagicZoneManager noMagicZoneManager = MagicSpells.getNoMagicZoneManager();
 
 	@EventHandler
 	public void onSpellTarget(SpellTargetEvent event) {
@@ -71,6 +68,18 @@ public class MagicSpellListener implements Listener {
 
 	private boolean isMSEntity(Entity entity) {
 		return entity.getScoreboardTags().contains(ArmorStandEffect.ENTITY_TAG) || entity.getScoreboardTags().contains(EntityEffect.ENTITY_TAG);
+	}
+
+	@EventHandler
+	public void onFireworkDamage(EntityDamageByEntityEvent event) {
+		if (!event.getDamager().getPersistentDataContainer().has(FireworksEffect.MS_FIREWORK)) return;
+		event.setCancelled(true);
+	}
+
+	@EventHandler
+	public void onInvPickup(InventoryPickupItemEvent event) {
+		if (!event.getItem().getPersistentDataContainer().has(ItemSprayEffect.MS_ITEM_SPRAY)) return;
+		event.setCancelled(true);
 	}
 
 }
