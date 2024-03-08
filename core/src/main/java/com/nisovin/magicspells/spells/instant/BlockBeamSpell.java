@@ -299,7 +299,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 			//check entities in the beam range
 			for (LivingEntity e : loc.getNearbyLivingEntities(hitRadius, verticalHitRadius)) {
 				if (!e.isValid() || immune.contains(e)) continue;
-				if (validTargetList != null && !validTargetList.canTarget(data.caster(), e)) continue;
+				if (!validTargetList.canTarget(data.caster(), e)) continue;
 
 				SpellTargetEvent event = new SpellTargetEvent(this, locData, e);
 				if (!event.callEvent()) continue;

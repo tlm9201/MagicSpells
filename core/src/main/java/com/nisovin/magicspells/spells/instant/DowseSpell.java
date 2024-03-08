@@ -145,18 +145,18 @@ public class DowseSpell extends InstantSpell {
 				}
 				if (!ordered.isEmpty()) {
 					for (NearbyEntity ne : ordered) {
-						if (ne.entity instanceof LivingEntity le) {
-							SpellTargetEvent event = new SpellTargetEvent(this, data, le);
-							EventUtil.call(event);
-							if (!event.isCancelled()) {
-								foundEntity = event.getTarget();
-								data = event.getSpellData();
-								break;
-							}
-						} else {
+						if (!(ne.entity instanceof LivingEntity le)) {
 							foundEntity = ne.entity;
 							break;
 						}
+
+						if (!validTargetList.canTarget(caster, le)) continue;
+						SpellTargetEvent event = new SpellTargetEvent(this, data, le);
+						EventUtil.call(event);
+						if (event.isCancelled()) continue;
+						foundEntity = event.getTarget();
+						data = event.getSpellData();
+						break;
 					}
 				}
 			}

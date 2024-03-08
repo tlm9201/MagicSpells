@@ -192,13 +192,12 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 		public void run() {
 			if (blocks.isEmpty()) return;
 			for (Player player : Bukkit.getOnlinePlayers()) {
-
 				Block b = player.getLocation().getBlock();
 				CarpetData data = blocks.get(b);
-
 				if (data == null) continue;
-				if (player.equals(data.data.caster())) continue;
+
 				if (!data.material.equals(b.getType())) continue;
+				if (!validTargetList.canTarget(data.data.caster(), player)) continue;
 
 				if (data.removeOnTouch) {
 					b.setType(data.air);
