@@ -30,4 +30,11 @@ public abstract class OperatorCondition extends Condition {
 		return false;
 	}
 
+	protected boolean compare(long a, long b) {
+		if (equals) return a == b;
+		else if (moreThan) return a > b;
+		else if (lessThan) return a < b;
+		return false;
+	}
+
 }

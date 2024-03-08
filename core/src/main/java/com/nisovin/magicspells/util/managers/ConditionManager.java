@@ -205,6 +205,11 @@ public class ConditionManager {
 		addCondition(FixedPoseCondition.class);
 		addCondition(SilentCondition.class);
 		addCondition(ClientBrandNameCondition.class);
+		addCondition(AttributeCondition.class);
+		addCondition(AttributeBaseCondition.class);
+		addCondition(AttributeDefaultCondition.class);
+		addCondition(PulserActiveCondition.class);
+		addCondition(TotemActiveCondition.class);
 	}
 
 }

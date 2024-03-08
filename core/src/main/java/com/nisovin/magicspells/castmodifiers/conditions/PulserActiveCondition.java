@@ -1,32 +1,35 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
-
-import org.jetbrains.annotations.NotNull;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.spells.targeted.LoopSpell;
+import com.nisovin.magicspells.spells.targeted.PulserSpell;
+import com.nisovin.magicspells.spells.targeted.PulserSpell.Pulser;
 import com.nisovin.magicspells.castmodifiers.conditions.util.OperatorCondition;
 
-@Name("loopactive")
-public class LoopActiveCondition extends OperatorCondition {
+@Name("pulseractive")
+public class PulserActiveCondition extends OperatorCondition {
 
 	private static final Pattern OPERATORS = Pattern.compile("[:=<>]");
 
-	protected LoopSpell loop;
+	protected PulserSpell pulser;
 	protected int value;
 
 	@Override
 	public boolean initialize(@NotNull String var) {
 		Spell spell = MagicSpells.getSpellByInternalName(var);
-		if (spell instanceof LoopSpell loopSpell) {
-			loop = loopSpell;
+		if (spell instanceof PulserSpell pulserSpell) {
+			pulser = pulserSpell;
 			moreThan = true;
 			value = 0;
 
@@ -36,7 +39,7 @@ public class LoopActiveCondition extends OperatorCondition {
 		Matcher matcher = OPERATORS.matcher(var);
 		while (matcher.find()) {
 			spell = MagicSpells.getSpellByInternalName(var.substring(0, matcher.start()));
-			if (!(spell instanceof LoopSpell loopSpell)) continue;
+			if (!(spell instanceof PulserSpell pulserSpell)) continue;
 
 			String number = var.substring(matcher.start());
 			if (number.length() < 2 || !super.initialize(number)) continue;
@@ -47,17 +50,23 @@ public class LoopActiveCondition extends OperatorCondition {
 				continue;
 			}
 
-			loop = loopSpell;
+			pulser = pulserSpell;
 
 			return true;
 		}
 
-		return loop != null;
+		return pulser != null;
 	}
 
 	@Override
 	public boolean check(LivingEntity caster) {
-		int count = loop.getActiveLoops().get(caster.getUniqueId()).size();
+		int count = 0;
+
+		Map<Block, Pulser> pulsers = pulser.getPulsers();
+		for (Pulser pulser : pulsers.values())
+			if (caster.equals(pulser.getCaster()))
+				count++;
+
 		return compare(count, value);
 	}
 
