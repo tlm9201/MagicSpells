@@ -282,7 +282,7 @@ public class PassiveSpell extends Spell {
 
 		if (data.hasTarget()) {
 			SpellTargetEvent targetEvent = new SpellTargetEvent(this, data);
-			if (!targetEvent.callEvent()) {
+			if (!validTargetList.canTarget(data.caster(), data.target()) || !targetEvent.callEvent()) {
 				MagicSpells.debug(3, "    Target cancelled (TE)");
 
 				disabled = false;

@@ -23,6 +23,7 @@ public class SpellTargetEvent extends SpellEvent implements Cancellable {
 
 		this.spellData = spellData;
 	}
+
 	public SpellTargetEvent(Spell spell, SpellData spellData, LivingEntity target) {
 		this(spell, spellData.target(target));
 	}

@@ -1,15 +1,12 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Map;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.Map.Entry;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
@@ -73,8 +70,8 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 	public void turnOff() {
 		super.turnOff();
 
-		for (Block block : blocks.keySet()) {
-			block.setType(Material.AIR);
+		for (Entry<Block, CarpetData> entry : blocks.entrySet()) {
+			entry.getKey().setType(entry.getValue().air());
 		}
 		blocks.clear();
 		if (checker != null) checker.stop();
@@ -151,9 +148,9 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 
 				if (!b.getType().isAir() && !b.getRelative(0, -1, 0).getType().isSolid()) continue;
 
+				blocks.put(b, new CarpetData(data, material, b.getType(), removeOnTouch));
 				b.setType(material, false);
 				blockList.add(b);
-				blocks.put(b, new CarpetData(data, material, b.getType(), removeOnTouch));
 
 				Location subLoc = b.getLocation().add(0.5, 0, 0.5);
 				playSpellEffects(EffectPosition.TARGET, subLoc, data.location(subLoc));
@@ -190,26 +187,24 @@ public class CarpetSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		@Override
 		public void run() {
-			if (blocks.isEmpty()) return;
-			for (Player player : Bukkit.getOnlinePlayers()) {
+			for (Entry<Block, CarpetData> entry : new HashSet<>(blocks.entrySet())) {
+				Block block = entry.getKey();
+				CarpetData carpetData = entry.getValue();
+				for (LivingEntity target : block.getLocation().add(0.5, 1.5, 0.5).getNearbyLivingEntities(0.5)) {
+					if (!carpetData.material.equals(block.getType())) continue;
+					if (!validTargetList.canTarget(carpetData.data.caster(), target)) continue;
 
-				Block b = player.getLocation().getBlock();
-				CarpetData data = blocks.get(b);
+					if (carpetData.removeOnTouch) {
+						block.setType(carpetData.air);
+						blocks.remove(block);
+					}
 
-				if (data == null) continue;
-				if (player.equals(data.data.caster())) continue;
-				if (!data.material.equals(b.getType())) continue;
+					if (spellOnTouch != null) {
+						SpellTargetEvent event = new SpellTargetEvent(CarpetSpell.this, carpetData.data, target);
+						if (!event.callEvent()) continue;
 
-				if (data.removeOnTouch) {
-					b.setType(data.air);
-					blocks.remove(b);
-				}
-
-				if (spellOnTouch != null) {
-					SpellTargetEvent event = new SpellTargetEvent(CarpetSpell.this, data.data, player);
-					if (!event.callEvent()) continue;
-
-					spellOnTouch.subcast(event.getSpellData());
+						spellOnTouch.subcast(event.getSpellData());
+					}
 				}
 			}
 		}

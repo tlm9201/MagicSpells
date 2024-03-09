@@ -18,6 +18,8 @@ import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.events.PortalEnterEvent;
+import com.nisovin.magicspells.events.PortalLeaveEvent;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 
@@ -318,14 +320,22 @@ public class PortalSpell extends InstantSpell {
 			// Enters start portal
 			if (checkHitbox(event.getTo(), startPortal)) {
 				if (!checkTeleport(pl, startPortal)) return;
-				teleport(endPortal.portalLocation().clone(), pl, event);
+
+				PortalEnterEvent portalEvent = new PortalEnterEvent(pl, endPortal.portalLocation(), PortalSpell.this);
+				if (!portalEvent.callEvent()) return;
+
+				teleport(portalEvent.getDestination(), pl, event);
 				return;
 			}
 
 			// Enters end portal
 			if (allowReturn && checkHitbox(event.getTo(), endPortal)) {
 				if (!checkTeleport(pl, endPortal)) return;
-				teleport(startPortal.portalLocation().clone(), pl, event);
+
+				PortalLeaveEvent portalEvent = new PortalLeaveEvent(pl, startPortal.portalLocation(), PortalSpell.this);
+				if (!portalEvent.callEvent()) return;
+
+				teleport(portalEvent.getDestination(), pl, event);
 			}
 		}
 
