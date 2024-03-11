@@ -389,9 +389,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				Effect effect;
 				Location effectLoc;
 				for (EffectlibSpellEffect spellEffect : effectSet) {
-					if (spellEffect == null) continue;
 					effect = spellEffect.getEffect();
-					if (effect == null) continue;
 
 					effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone(), data);
 					effect.setLocation(effectLoc);
@@ -455,8 +453,6 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			MagicSpells.cancelTask(taskId);
 			if (effectSet != null) {
 				for (EffectlibSpellEffect spellEffect : effectSet) {
-					if (spellEffect == null) continue;
-					if (spellEffect.getEffect() == null) continue;
 					spellEffect.getEffect().cancel();
 				}
 				effectSet.clear();
