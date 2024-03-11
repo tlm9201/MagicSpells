@@ -49,7 +49,6 @@ public class EntityData {
 
 	private ConfigData<EntityType> entityType;
 
-	private final ConfigData<Material> dropItemMaterial;
 	private final ConfigData<Vector> relativeOffset;
 
 	// Legacy support for DisguiseSpell section format
@@ -75,6 +74,9 @@ public class EntityData {
 	// Horse
 	private final ConfigData<Horse.Color> horseColor;
 	private final ConfigData<Horse.Style> horseStyle;
+
+	// Item
+	private final ConfigData<Material> dropItemMaterial;
 
 	// Llama
 	private final ConfigData<Llama.Color> llamaColor;
@@ -106,7 +108,7 @@ public class EntityData {
 	}
 
 	public EntityData(ConfigurationSection config, boolean forceOptional) {
-		entityType = ConfigDataUtil.getEnum(config, "entity", EntityType.class, null);
+		entityType = ConfigDataUtil.getEntityType(config, "entity", null);
 
 		relativeOffset = ConfigDataUtil.getVector(config, "relative-offset", new Vector(0, 0, 0));
 
@@ -174,9 +176,6 @@ public class EntityData {
 		// Creeper
 		powered = addBoolean(transformers, config, "powered", false, Creeper.class, Creeper::setPowered, forceOptional);
 
-		// Dropped Item
-		dropItemMaterial = ConfigDataUtil.getMaterial(config, "material", null);
-
 		// Enderman
 		carriedBlockData = addBlockData(transformers, config, "material", null, Enderman.class, Enderman::setCarriedBlock, forceOptional);
 
@@ -192,6 +191,11 @@ public class EntityData {
 		// Horse
 		horseColor = addOptEnum(transformers, config, "color", Horse.class, Horse.Color.class, Horse::setColor);
 		horseStyle = addOptEnum(transformers, config, "style", Horse.class, Horse.Style.class, Horse::setStyle);
+
+		// Item
+		dropItemMaterial = addOptMaterial(transformers, config, "material", Item.class, (item, material) -> {
+			item.setItemStack(new ItemStack(material));
+		});
 
 		// Llama
 		llamaColor = addOptEnum(transformers, config, "color", Llama.class, Llama.Color.class, Llama::setColor);
@@ -385,7 +389,10 @@ public class EntityData {
 		if (type == null || (!type.isSpawnable() && type != EntityType.FALLING_BLOCK && type != EntityType.DROPPED_ITEM))
 			return null;
 
-		Consumer<Entity> spawnConsumer = entity -> {
+		Class<? extends Entity> entityClass = type.getEntityClass();
+		if (entityClass == null) return null;
+
+		return startLoc.getWorld().spawn(startLoc, entityClass, entity -> {
 			apply(entity, data);
 
 			if (consumer != null) consumer.accept(entity);
@@ -434,19 +441,7 @@ public class EntityData {
 					);
 				}
 			}
-		};
-
-		if (type == EntityType.DROPPED_ITEM) {
-			Material material = dropItemMaterial.get(data);
-			if (material == null) return null;
-
-			return startLoc.getWorld().dropItem(startLoc, new ItemStack(material), spawnConsumer);
-		}
-
-		Class<? extends Entity> entityClass = type.getEntityClass();
-		if (entityClass == null) return null;
-
-		return startLoc.getWorld().spawn(startLoc, entityClass, spawnConsumer);
+		});
 	}
 
 	public void apply(@NotNull Entity entity, @NotNull SpellData data) {
@@ -533,9 +528,11 @@ public class EntityData {
 		return supplier;
 	}
 
-	private <T> void addOptMaterial(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Material> setter) {
+	private <T> ConfigData<Material> addOptMaterial(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Material> setter) {
 		ConfigData<Material> supplier = ConfigDataUtil.getMaterial(config, name, null);
 		transformers.put(type, new Transformer<>(supplier, setter, true));
+
+		return supplier;
 	}
 
 	private <T> void addOptARGBColor(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
