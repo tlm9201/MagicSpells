@@ -115,7 +115,9 @@ public class EntityData {
 		Multimap<Class<?>, Transformer<?, ?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
 		// Entity
+		addOptBoolean(transformers, config, "silent", Entity.class, Entity::setSilent);
 		addOptBoolean(transformers, config, "glowing", Entity.class, Entity::setGlowing);
+		addOptBoolean(transformers, config, "gravity", Entity.class, Entity::setGravity);
 		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
 
 		// Ageable
@@ -127,6 +129,7 @@ public class EntityData {
 		addOptInteger(transformers, config, "age", Ageable.class, Ageable::setAge);
 
 		// LivingEntity
+		addOptBoolean(transformers, config, "ai", LivingEntity.class, LivingEntity::setAI);
 		addOptEquipment(transformers, config, "equipment.main-hand", EquipmentSlot.HAND);
 		addOptEquipment(transformers, config, "equipment.off-hand", EquipmentSlot.OFF_HAND);
 		addOptEquipment(transformers, config, "equipment.helmet", EquipmentSlot.HEAD);
