@@ -1820,7 +1820,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		Set<EffectlibSpellEffect> spellEffects = new HashSet<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof EffectLibEffect)) continue;
-			spellEffects.add(new EffectlibSpellEffect(effect.playEffectLib(location, data), (EffectLibEffect) effect));
+			Effect effectLibEffect = effect.playEffectLib(location, data);
+			if (effectLibEffect == null) continue;
+			spellEffects.add(new EffectlibSpellEffect(effectLibEffect, (EffectLibEffect) effect));
 		}
 		return spellEffects;
 	}
@@ -1837,7 +1839,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		Map<SpellEffect, Entity> values = new HashMap<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof EntityEffect)) continue;
-			values.put(effect, effect.playEntityEffect(location, data));
+			Entity entity = effect.playEntityEffect(location, data);
+			if (entity == null) continue;
+			values.put(effect, entity);
 		}
 		return values;
 	}
@@ -1854,7 +1858,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		Set<ArmorStand> armorStands = new HashSet<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof ArmorStandEffect)) continue;
-			armorStands.add(effect.playArmorStandEffect(location, data));
+			ArmorStand stand = effect.playArmorStandEffect(location, data);
+			if (stand == null) continue;
+			armorStands.add(stand);
 		}
 		return armorStands;
 	}
