@@ -119,6 +119,7 @@ public class EntityData {
 		addOptBoolean(transformers, config, "glowing", Entity.class, Entity::setGlowing);
 		addOptBoolean(transformers, config, "gravity", Entity.class, Entity::setGravity);
 		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
+		addOptVector(transformers, config, "velocity", Entity.class, Entity::setVelocity);
 
 		// Ageable
 		baby = addBoolean(transformers, config, "baby", false, Ageable.class, (ageable, baby) -> {
@@ -542,6 +543,11 @@ public class EntityData {
 
 	private <T> void addOptARGBColor(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
 		ConfigData<Color> supplier = ConfigDataUtil.getARGBColor(config, name, null);
+		transformers.put(type, new Transformer<>(supplier, setter, true));
+	}
+
+	private <T> void addOptVector(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Vector> setter) {
+		ConfigData<Vector> supplier = ConfigDataUtil.getVector(config, name, null);
 		transformers.put(type, new Transformer<>(supplier, setter, true));
 	}
 
