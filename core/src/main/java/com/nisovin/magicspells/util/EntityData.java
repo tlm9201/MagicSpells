@@ -43,7 +43,6 @@ public class EntityData {
 
 	private ConfigData<EntityType> entityType;
 
-	private final ConfigData<BlockData> fallingBlockData;
 	private final ConfigData<Material> dropItemMaterial;
 	private final ConfigData<Vector> relativeOffset;
 
@@ -63,6 +62,9 @@ public class EntityData {
 
 	// Enderman
 	private final ConfigData<BlockData> carriedBlockData;
+
+	// Falling Block
+	private final ConfigData<BlockData> fallingBlockData;
 
 	// Horse
 	private final ConfigData<Horse.Color> horseColor;
@@ -100,6 +102,7 @@ public class EntityData {
 
 		Multimap<Class<?>, Transformer<?, ?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
+		// Entity
 		addOptBoolean(transformers, config, "glowing", Entity.class, Entity::setGlowing);
 		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
 
@@ -168,7 +171,7 @@ public class EntityData {
 		carriedBlockData = addBlockData(transformers, config, "material", null, Enderman.class, Enderman::setCarriedBlock);
 
 		// Falling Block
-		fallingBlockData = ConfigDataUtil.getBlockData(config, "material", null);
+		fallingBlockData = addOptBlockData(transformers, config, "material", FallingBlock.class, FallingBlock::setBlockData);
 
 		// Fox
 		addOptEnum(transformers, config, "type", Fox.class, Fox.Type.class, Fox::setFoxType);
@@ -330,16 +333,16 @@ public class EntityData {
 
 	@Nullable
 	public Entity spawn(@NotNull Location location) {
-		return spawn(location, null, null);
+		return spawn(location, SpellData.NULL, null);
 	}
 
 	@Nullable
 	public Entity spawn(@NotNull Location location, @Nullable Consumer<Entity> consumer) {
-		return spawn(location, null, consumer);
+		return spawn(location, SpellData.NULL, consumer);
 	}
 
 	@Nullable
-	public Entity spawn(@NotNull Location location, @Nullable SpellData data, @Nullable Consumer<Entity> consumer) {
+	public Entity spawn(@NotNull Location location, @NotNull SpellData data, @Nullable Consumer<Entity> consumer) {
 		Location startLoc = location.clone();
 		Vector dir = startLoc.getDirection().normalize();
 		Vector relativeOffset = this.relativeOffset.get(data);
@@ -349,44 +352,31 @@ public class EntityData {
 		startLoc.add(startLoc.getDirection().clone().multiply(relativeOffset.getX()));
 		startLoc.setY(startLoc.getY() + relativeOffset.getY());
 
-		EntityType entityType = this.entityType.get(data);
-		if (entityType == null || (!entityType.isSpawnable() && entityType != EntityType.FALLING_BLOCK && entityType != EntityType.DROPPED_ITEM))
+		EntityType type = this.entityType.get(data);
+		if (type == null || (!type.isSpawnable() && type != EntityType.FALLING_BLOCK && type != EntityType.DROPPED_ITEM))
 			return null;
 
-		return switch (entityType) {
-			case FALLING_BLOCK -> {
-				BlockData blockData = fallingBlockData.get(data);
-				if (blockData == null) yield null;
+		Consumer<Entity> spawnConsumer = e -> {
+			Collection<Transformer<?, ?>> transformers = options.get(type);
+			//noinspection rawtypes
+			for (Transformer transformer : transformers)
+				//noinspection unchecked
+				transformer.apply(e, data);
 
-				Entity e = startLoc.getWorld().spawn(startLoc, FallingBlock.class, fb -> fb.setBlockData(blockData));
-				if (consumer != null) consumer.accept(e);
-
-				yield e;
-			}
-			case DROPPED_ITEM -> {
-				Material material = dropItemMaterial.get(data);
-				if (material == null) yield null;
-
-				Entity e = startLoc.getWorld().dropItem(startLoc, new ItemStack(material));
-				if (consumer != null) consumer.accept(e);
-
-				yield e;
-			}
-			default -> {
-				Class<? extends Entity> entityClass = entityType.getEntityClass();
-				if (entityClass == null) yield null;
-
-				yield startLoc.getWorld().spawn(startLoc, entityClass, e -> {
-					Collection<Transformer<?, ?>> transformers = options.get(entityType);
-					//noinspection rawtypes
-					for (Transformer transformer : transformers)
-						//noinspection unchecked
-						transformer.apply(e, data);
-
-					if (consumer != null) consumer.accept(e);
-				});
-			}
+			if (consumer != null) consumer.accept(e);
 		};
+
+		if (type == EntityType.DROPPED_ITEM) {
+			Material material = dropItemMaterial.get(data);
+			if (material == null) return null;
+
+			return startLoc.getWorld().dropItem(startLoc, new ItemStack(material), spawnConsumer);
+		}
+
+		Class<? extends Entity> entityClass = type.getEntityClass();
+		if (entityClass == null) return null;
+
+		return startLoc.getWorld().spawn(startLoc, entityClass, spawnConsumer);
 	}
 
 	private <T> ConfigData<Boolean> addBoolean(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, boolean def, Class<T> type, BiConsumer<T, Boolean> setter) {
@@ -457,9 +447,11 @@ public class EntityData {
 		transformers.put(type, new Transformer<>(supplier, setter, true));
 	}
 
-	private <T> void addOptBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, BlockData> setter) {
+	private <T> ConfigData<BlockData> addOptBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, BlockData> setter) {
 		ConfigData<BlockData> supplier = ConfigDataUtil.getBlockData(config, name, null);
 		transformers.put(type, new Transformer<>(supplier, setter, true));
+
+		return supplier;
 	}
 
 	private <T> void addOptMagicItem(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, ItemStack> setter) {
@@ -829,7 +821,7 @@ public class EntityData {
 		return profession;
 	}
 
-	public record Transformer<T, C>(ConfigData<C> supplier, BiConsumer<T, C> setter, boolean optional) {
+	private record Transformer<T, C>(ConfigData<C> supplier, BiConsumer<T, C> setter, boolean optional) {
 
 		public Transformer(ConfigData<C> supplier, BiConsumer<T, C> setter) {
 			this(supplier, setter, false);
