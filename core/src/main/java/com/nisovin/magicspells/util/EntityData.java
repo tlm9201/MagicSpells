@@ -196,9 +196,11 @@ public class EntityData {
 		horseStyle = addOptEnum(transformers, config, "style", Horse.class, Horse.Style.class, Horse::setStyle);
 
 		// Item
-		dropItemMaterial = addOptMaterial(transformers, config, "material", Item.class, (item, material) -> {
-			item.setItemStack(new ItemStack(material));
-		});
+		dropItemMaterial = addOptMaterial(transformers, config, "material", Item.class, (item, material) -> item.setItemStack(new ItemStack(material)));
+		addOptBoolean(transformers, config, "will-age", Item.class, Item::setWillAge);
+		addOptInteger(transformers, config, "pickup-delay", Item.class, Item::setPickupDelay);
+		addOptBoolean(transformers, config, "can-mob-pickup", Item.class, Item::setCanMobPickup);
+		addOptBoolean(transformers, config, "can-player-pickup", Item.class, Item::setCanPlayerPickup);
 
 		// Llama
 		llamaColor = addOptEnum(transformers, config, "color", Llama.class, Llama.Color.class, Llama::setColor);
