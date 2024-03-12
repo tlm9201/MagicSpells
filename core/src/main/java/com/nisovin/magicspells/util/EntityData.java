@@ -44,7 +44,7 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class EntityData {
 
-	private final Multimap<EntityType, Transformer<?, ?>> options = MultimapBuilder.enumKeys(EntityType.class).arrayListValues().build();
+	private final Multimap<EntityType, Transformer<?>> options = MultimapBuilder.enumKeys(EntityType.class).arrayListValues().build();
 	private final List<DelayedEntityData> delayedEntityData = new ArrayList<>();
 
 	private ConfigData<EntityType> entityType;
@@ -112,7 +112,7 @@ public class EntityData {
 
 		relativeOffset = ConfigDataUtil.getVector(config, "relative-offset", new Vector(0, 0, 0));
 
-		Multimap<Class<?>, Transformer<?, ?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
+		Multimap<Class<?>, Transformer<?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
 		// Entity
 		addOptBoolean(transformers, config, "silent", Entity.class, Entity::setSilent);
@@ -120,6 +120,18 @@ public class EntityData {
 		addOptBoolean(transformers, config, "gravity", Entity.class, Entity::setGravity);
 		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
 		addOptVector(transformers, config, "velocity", Entity.class, Entity::setVelocity);
+
+		if (config.isList("scoreboard-tags")) {
+			List<String> tagStrings = config.getStringList("scoreboard-tags");
+			if (!tagStrings.isEmpty()) {
+				List<ConfigData<String>> tags = new ArrayList<>();
+				for (String tagString : tagStrings) tags.add(ConfigDataUtil.getString(tagString));
+
+				transformers.put(Entity.class, (Entity entity, SpellData data) -> {
+					for (ConfigData<String> tag : tags) entity.addScoreboardTag(tag.get(data));
+				});
+			}
+		}
 
 		// Ageable
 		baby = addBoolean(transformers, config, "baby", false, Ageable.class, (ageable, baby) -> {
@@ -284,7 +296,7 @@ public class EntityData {
 				};
 			}
 		}
-		transformers.put(Display.class, new Transformer<>(transformation, Display::setTransformation, true));
+		transformers.put(Display.class, new TransformerImpl<>(transformation, Display::setTransformation, true));
 
 		addOptInteger(transformers, config, "teleport-duration", Display.class, Display::setTeleportDuration);
 		addOptInteger(transformers, config, "interpolation-duration", Display.class, Display::setInterpolationDuration);
@@ -321,7 +333,7 @@ public class EntityData {
 				};
 			}
 		}
-		transformers.put(Display.class, new Transformer<>(brightness, Display::setBrightness, true));
+		transformers.put(Display.class, new TransformerImpl<>(brightness, Display::setBrightness, true));
 
 		// BlockDisplay
 		addOptBlockData(transformers, config, "block", BlockDisplay.class, BlockDisplay::setBlock);
@@ -451,127 +463,127 @@ public class EntityData {
 	}
 
 	public void apply(@NotNull Entity entity, @NotNull SpellData data) {
-		Collection<Transformer<?, ?>> transformers = options.get(entity.getType());
+		Collection<Transformer<?>> transformers = options.get(entity.getType());
 		//noinspection rawtypes
 		for (Transformer transformer : transformers)
 			//noinspection unchecked
 			transformer.apply(entity, data);
 	}
 
-	private <T> ConfigData<Boolean> addBoolean(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, boolean def, Class<T> type, BiConsumer<T, Boolean> setter, boolean forceOptional) {
+	private <T> ConfigData<Boolean> addBoolean(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, boolean def, Class<T> type, BiConsumer<T, Boolean> setter, boolean forceOptional) {
 		ConfigData<Boolean> supplier;
 		if (forceOptional) {
 			supplier = ConfigDataUtil.getBoolean(config, name);
-			transformers.put(type, new Transformer<>(supplier, setter, true));
+			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 		} else {
 			supplier = ConfigDataUtil.getBoolean(config, name, def);
-			transformers.put(type, new Transformer<>(supplier, setter));
+			transformers.put(type, new TransformerImpl<>(supplier, setter));
 		}
 
 		return supplier;
 	}
 
-	private <T> ConfigData<Integer> addInteger(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, int def, Class<T> type, BiConsumer<T, Integer> setter, boolean forceOptional) {
+	private <T> ConfigData<Integer> addInteger(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, int def, Class<T> type, BiConsumer<T, Integer> setter, boolean forceOptional) {
 		ConfigData<Integer> supplier;
 		if (forceOptional) {
 			supplier = ConfigDataUtil.getInteger(config, name);
-			transformers.put(type, new Transformer<>(supplier, setter, true));
+			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 		} else {
 			supplier = ConfigDataUtil.getInteger(config, name, def);
-			transformers.put(type, new Transformer<>(supplier, setter));
+			transformers.put(type, new TransformerImpl<>(supplier, setter));
 		}
 
 		return supplier;
 	}
 
-	private <T> ConfigData<BlockData> addBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, BlockData def, Class<T> type, BiConsumer<T, BlockData> setter, boolean forceOptional) {
+	private <T> ConfigData<BlockData> addBlockData(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, BlockData def, Class<T> type, BiConsumer<T, BlockData> setter, boolean forceOptional) {
 		ConfigData<BlockData> supplier;
 		if (forceOptional) {
 			supplier = ConfigDataUtil.getBlockData(config, name, null);
-			transformers.put(type, new Transformer<>(supplier, setter, true));
+			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 		} else {
 			supplier = ConfigDataUtil.getBlockData(config, name, def);
-			transformers.put(type, new Transformer<>(supplier, setter));
+			transformers.put(type, new TransformerImpl<>(supplier, setter));
 		}
 
 		return supplier;
 	}
 
-	private <T> void addEulerAngle(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EulerAngle def, Class<T> type, BiConsumer<T, EulerAngle> setter, boolean forceOptional) {
+	private <T> void addEulerAngle(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EulerAngle def, Class<T> type, BiConsumer<T, EulerAngle> setter, boolean forceOptional) {
 		if (forceOptional) {
 			ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, null);
-			transformers.put(type, new Transformer<>(supplier, setter, true));
+			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 		} else {
 			ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, def);
-			transformers.put(type, new Transformer<>(supplier, setter));
+			transformers.put(type, new TransformerImpl<>(supplier, setter));
 		}
 	}
 
-	private <T> void addOptBoolean(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Boolean> setter) {
+	private <T> void addOptBoolean(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Boolean> setter) {
 		ConfigData<Boolean> supplier = ConfigDataUtil.getBoolean(config, name);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptByte(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Byte> setter) {
+	private <T> void addOptByte(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Byte> setter) {
 		ConfigData<Byte> supplier = ConfigDataUtil.getByte(config, name);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptInteger(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Integer> setter) {
+	private <T> void addOptInteger(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Integer> setter) {
 		ConfigData<Integer> supplier = ConfigDataUtil.getInteger(config, name);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptFloat(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Float> setter) {
+	private <T> void addOptFloat(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Float> setter) {
 		ConfigData<Float> supplier = ConfigDataUtil.getFloat(config, name);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T, E extends Enum<E>> ConfigData<E> addOptEnum(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, Class<E> enumType, BiConsumer<T, E> setter) {
+	private <T, E extends Enum<E>> ConfigData<E> addOptEnum(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, Class<E> enumType, BiConsumer<T, E> setter) {
 		ConfigData<E> supplier = ConfigDataUtil.getEnum(config, name, enumType, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 
 		return supplier;
 	}
 
-	private <T> ConfigData<Material> addOptMaterial(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Material> setter) {
+	private <T> ConfigData<Material> addOptMaterial(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Material> setter) {
 		ConfigData<Material> supplier = ConfigDataUtil.getMaterial(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 
 		return supplier;
 	}
 
-	private <T> void addOptARGBColor(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
+	private <T> void addOptARGBColor(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
 		ConfigData<Color> supplier = ConfigDataUtil.getARGBColor(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptVector(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Vector> setter) {
+	private <T> void addOptVector(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Vector> setter) {
 		ConfigData<Vector> supplier = ConfigDataUtil.getVector(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptComponent(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Component> setter) {
+	private <T> void addOptComponent(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Component> setter) {
 		ConfigData<Component> supplier = ConfigDataUtil.getComponent(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> ConfigData<BlockData> addOptBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, BlockData> setter) {
+	private <T> ConfigData<BlockData> addOptBlockData(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, BlockData> setter) {
 		ConfigData<BlockData> supplier = ConfigDataUtil.getBlockData(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 
 		return supplier;
 	}
 
-	private <T> void addOptMagicItem(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, ItemStack> setter) {
+	private <T> void addOptMagicItem(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, ItemStack> setter) {
 		MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString(name));
 		if (magicItem == null) return;
 
 		ItemStack item = magicItem.getItemStack();
-		transformers.put(type, new Transformer<>(data -> item, setter, true));
+		transformers.put(type, new TransformerImpl<>(data -> item, setter, true));
 	}
 
-	private <T> void addOptEquipment(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
+	private <T> void addOptEquipment(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
 		addOptMagicItem(transformers, config, name, LivingEntity.class, (entity, item) -> {
 			EntityEquipment equipment = entity.getEquipment();
 			if (equipment == null) return;
@@ -580,7 +592,7 @@ public class EntityData {
 		});
 	}
 
-	private <T> void addOptEquipmentDropChance(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
+	private <T> void addOptEquipmentDropChance(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
 		addOptFloat(transformers, config, name, Mob.class, (entity, chance) -> {
 			EntityEquipment equipment = entity.getEquipment();
 			equipment.setDropChance(slot, chance);
@@ -824,10 +836,6 @@ public class EntityData {
 		return !data.isConstant() || data.get() != null;
 	}
 
-	public Multimap<EntityType, Transformer<?, ?>> getOptions() {
-		return options;
-	}
-
 	public ConfigData<EntityType> getEntityType() {
 		return entityType;
 	}
@@ -934,9 +942,15 @@ public class EntityData {
 
 	}
 
-	private record Transformer<T, C>(ConfigData<C> supplier, BiConsumer<T, C> setter, boolean optional) {
+	private interface Transformer<T> {
 
-		public Transformer(ConfigData<C> supplier, BiConsumer<T, C> setter) {
+		void apply(T entity, SpellData data);
+
+	}
+
+	private record TransformerImpl<T, C>(ConfigData<C> supplier, BiConsumer<T, C> setter, boolean optional) implements Transformer<T> {
+
+		public TransformerImpl(ConfigData<C> supplier, BiConsumer<T, C> setter) {
 			this(supplier, setter, false);
 		}
 
