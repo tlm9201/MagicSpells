@@ -4,7 +4,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.function.BiConsumer;
@@ -31,6 +33,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.configuration.ConfigurationSection;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.config.FunctionData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
@@ -39,12 +44,11 @@ import com.nisovin.magicspells.util.magicitems.MagicItems;
 
 public class EntityData {
 
-	private final Multimap<EntityType, Transformer<?, ?>> options = MultimapBuilder.enumKeys(EntityType.class).arrayListValues().build();
+	private final Multimap<EntityType, Transformer<?>> options = MultimapBuilder.enumKeys(EntityType.class).arrayListValues().build();
+	private final List<DelayedEntityData> delayedEntityData = new ArrayList<>();
 
 	private ConfigData<EntityType> entityType;
 
-	private final ConfigData<BlockData> fallingBlockData;
-	private final ConfigData<Material> dropItemMaterial;
 	private final ConfigData<Vector> relativeOffset;
 
 	// Legacy support for DisguiseSpell section format
@@ -64,9 +68,15 @@ public class EntityData {
 	// Enderman
 	private final ConfigData<BlockData> carriedBlockData;
 
+	// Falling Block
+	private final ConfigData<BlockData> fallingBlockData;
+
 	// Horse
 	private final ConfigData<Horse.Color> horseColor;
 	private final ConfigData<Horse.Style> horseStyle;
+
+	// Item
+	private final ConfigData<Material> dropItemMaterial;
 
 	// Llama
 	private final ConfigData<Llama.Color> llamaColor;
@@ -94,24 +104,45 @@ public class EntityData {
 	private final ConfigData<Villager.Profession> profession;
 
 	public EntityData(ConfigurationSection config) {
-		entityType = ConfigDataUtil.getEnum(config, "entity", EntityType.class, null);
+		this(config, false);
+	}
+
+	public EntityData(ConfigurationSection config, boolean forceOptional) {
+		entityType = ConfigDataUtil.getEntityType(config, "entity", null);
 
 		relativeOffset = ConfigDataUtil.getVector(config, "relative-offset", new Vector(0, 0, 0));
 
-		Multimap<Class<?>, Transformer<?, ?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
+		Multimap<Class<?>, Transformer<?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
+		// Entity
+		addOptBoolean(transformers, config, "silent", Entity.class, Entity::setSilent);
 		addOptBoolean(transformers, config, "glowing", Entity.class, Entity::setGlowing);
+		addOptBoolean(transformers, config, "gravity", Entity.class, Entity::setGravity);
 		addOptBoolean(transformers, config, "visible-by-default", Entity.class, Entity::setVisibleByDefault);
+		addOptVector(transformers, config, "velocity", Entity.class, Entity::setVelocity);
+
+		if (config.isList("scoreboard-tags")) {
+			List<String> tagStrings = config.getStringList("scoreboard-tags");
+			if (!tagStrings.isEmpty()) {
+				List<ConfigData<String>> tags = new ArrayList<>();
+				for (String tagString : tagStrings) tags.add(ConfigDataUtil.getString(tagString));
+
+				transformers.put(Entity.class, (Entity entity, SpellData data) -> {
+					for (ConfigData<String> tag : tags) entity.addScoreboardTag(tag.get(data));
+				});
+			}
+		}
 
 		// Ageable
 		baby = addBoolean(transformers, config, "baby", false, Ageable.class, (ageable, baby) -> {
 			if (baby) ageable.setBaby();
 			else ageable.setAdult();
-		});
+		}, forceOptional);
 
 		addOptInteger(transformers, config, "age", Ageable.class, Ageable::setAge);
 
 		// LivingEntity
+		addOptBoolean(transformers, config, "ai", LivingEntity.class, LivingEntity::setAI);
 		addOptEquipment(transformers, config, "equipment.main-hand", EquipmentSlot.HAND);
 		addOptEquipment(transformers, config, "equipment.off-hand", EquipmentSlot.OFF_HAND);
 		addOptEquipment(transformers, config, "equipment.helmet", EquipmentSlot.HEAD);
@@ -128,26 +159,26 @@ public class EntityData {
 		addOptEquipmentDropChance(transformers, config, "equipment.boots-drop-chance", EquipmentSlot.FEET);
 
 		// Tameable
-		tamed = addBoolean(transformers, config, "tamed", false, Tameable.class, Tameable::setTamed);
+		tamed = addBoolean(transformers, config, "tamed", false, Tameable.class, Tameable::setTamed, forceOptional);
 
 		// AbstractHorse
 		saddled = addBoolean(transformers, config, "saddled", false, AbstractHorse.class, (horse, saddled) -> {
 			if (saddled) horse.getInventory().setSaddle(new ItemStack(Material.SADDLE));
-		});
+		}, forceOptional);
 
 		// Armor Stand
-		addBoolean(transformers, config, "small", false, ArmorStand.class, ArmorStand::setSmall);
-		addBoolean(transformers, config, "marker", false, ArmorStand.class, ArmorStand::setMarker);
-		addBoolean(transformers, config, "visible", true, ArmorStand.class, ArmorStand::setVisible);
-		addBoolean(transformers, config, "has-arms", true, ArmorStand.class, ArmorStand::setArms);
-		addBoolean(transformers, config, "has-base-plate", true, ArmorStand.class, ArmorStand::setBasePlate);
+		addBoolean(transformers, config, "small", false, ArmorStand.class, ArmorStand::setSmall, forceOptional);
+		addBoolean(transformers, config, "marker", false, ArmorStand.class, ArmorStand::setMarker, forceOptional);
+		addBoolean(transformers, config, "visible", true, ArmorStand.class, ArmorStand::setVisible, forceOptional);
+		addBoolean(transformers, config, "has-arms", true, ArmorStand.class, ArmorStand::setArms, forceOptional);
+		addBoolean(transformers, config, "has-base-plate", true, ArmorStand.class, ArmorStand::setBasePlate, forceOptional);
 
-		addEulerAngle(transformers, config, "head-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setHeadPose);
-		addEulerAngle(transformers, config, "body-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setBodyPose);
-		addEulerAngle(transformers, config, "left-arm-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setLeftArmPose);
-		addEulerAngle(transformers, config, "right-arm-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightArmPose);
-		addEulerAngle(transformers, config, "left-leg-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setLeftLegPose);
-		addEulerAngle(transformers, config, "right-leg-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightLegPose);
+		addEulerAngle(transformers, config, "head-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setHeadPose, forceOptional);
+		addEulerAngle(transformers, config, "body-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setBodyPose, forceOptional);
+		addEulerAngle(transformers, config, "left-arm-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setLeftArmPose, forceOptional);
+		addEulerAngle(transformers, config, "right-arm-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightArmPose, forceOptional);
+		addEulerAngle(transformers, config, "left-leg-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setLeftLegPose, forceOptional);
+		addEulerAngle(transformers, config, "right-leg-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightLegPose, forceOptional);
 
 		// Axolotl
 		addOptEnum(transformers, config, "type", Axolotl.class, Axolotl.Variant.class, Axolotl::setVariant);
@@ -156,19 +187,16 @@ public class EntityData {
 		addOptEnum(transformers, config, "type", Cat.class, Cat.Type.class, Cat::setCatType);
 
 		// ChestedHorse
-		chested = addBoolean(transformers, config, "chested", false, ChestedHorse.class, ChestedHorse::setCarryingChest);
+		chested = addBoolean(transformers, config, "chested", false, ChestedHorse.class, ChestedHorse::setCarryingChest, forceOptional);
 
 		// Creeper
-		powered = addBoolean(transformers, config, "powered", false, Creeper.class, Creeper::setPowered);
-
-		// Dropped Item
-		dropItemMaterial = ConfigDataUtil.getMaterial(config, "material", null);
+		powered = addBoolean(transformers, config, "powered", false, Creeper.class, Creeper::setPowered, forceOptional);
 
 		// Enderman
-		carriedBlockData = addBlockData(transformers, config, "material", null, Enderman.class, Enderman::setCarriedBlock);
+		carriedBlockData = addBlockData(transformers, config, "material", null, Enderman.class, Enderman::setCarriedBlock, forceOptional);
 
 		// Falling Block
-		fallingBlockData = ConfigDataUtil.getBlockData(config, "material", null);
+		fallingBlockData = addOptBlockData(transformers, config, "material", FallingBlock.class, FallingBlock::setBlockData);
 
 		// Fox
 		addOptEnum(transformers, config, "type", Fox.class, Fox.Type.class, Fox::setFoxType);
@@ -179,6 +207,13 @@ public class EntityData {
 		// Horse
 		horseColor = addOptEnum(transformers, config, "color", Horse.class, Horse.Color.class, Horse::setColor);
 		horseStyle = addOptEnum(transformers, config, "style", Horse.class, Horse.Style.class, Horse::setStyle);
+
+		// Item
+		dropItemMaterial = addOptMaterial(transformers, config, "material", Item.class, (item, material) -> item.setItemStack(new ItemStack(material)));
+		addOptBoolean(transformers, config, "will-age", Item.class, Item::setWillAge);
+		addOptInteger(transformers, config, "pickup-delay", Item.class, Item::setPickupDelay);
+		addOptBoolean(transformers, config, "can-mob-pickup", Item.class, Item::setCanMobPickup);
+		addOptBoolean(transformers, config, "can-player-pickup", Item.class, Item::setCanPlayerPickup);
 
 		// Llama
 		llamaColor = addOptEnum(transformers, config, "color", Llama.class, Llama.Color.class, Llama::setColor);
@@ -195,26 +230,26 @@ public class EntityData {
 		parrotVariant = addOptEnum(transformers, config, "type", Parrot.class, Parrot.Variant.class, Parrot::setVariant);
 
 		// Phantom
-		addInteger(transformers, config, "size", 0, Phantom.class, Phantom::setSize);
+		addInteger(transformers, config, "size", 0, Phantom.class, Phantom::setSize, forceOptional);
 
 		// Puffer Fish
-		size = addInteger(transformers, config, "size", 0, PufferFish.class, PufferFish::setPuffState);
+		size = addInteger(transformers, config, "size", 0, PufferFish.class, PufferFish::setPuffState, forceOptional);
 
 		// Rabbit
 		addOptEnum(transformers, config, "type", Rabbit.class, Rabbit.Type.class, Rabbit::setRabbitType);
 
 		// Sheep
-		sheared = addBoolean(transformers, config, "sheared", false, Sheep.class, Sheep::setSheared);
+		sheared = addBoolean(transformers, config, "sheared", false, Sheep.class, Sheep::setSheared, forceOptional);
 		color = addOptEnum(transformers, config, "color", Sheep.class, DyeColor.class, Sheep::setColor);
 
 		// Shulker
 		addOptEnum(transformers, config, "color", Shulker.class, DyeColor.class, Shulker::setColor);
 
 		// Slime
-		addInteger(transformers, config, "size", 0, Slime.class, Slime::setSize);
+		addInteger(transformers, config, "size", 0, Slime.class, Slime::setSize, forceOptional);
 
 		// Steerable
-		addBoolean(transformers, config, "saddled", false, Steerable.class, Steerable::setSaddle);
+		addBoolean(transformers, config, "saddled", false, Steerable.class, Steerable::setSaddle, forceOptional);
 
 		// Tropical Fish
 		addOptEnum(transformers, config, "color", TropicalFish.class, DyeColor.class, TropicalFish::setBodyColor);
@@ -225,7 +260,7 @@ public class EntityData {
 		profession = addOptEnum(transformers, config, "type", Villager.class, Villager.Profession.class, Villager::setProfession);
 
 		// Wolf
-		addBoolean(transformers, config, "angry", false, Wolf.class, Wolf::setAngry);
+		addBoolean(transformers, config, "angry", false, Wolf.class, Wolf::setAngry, forceOptional);
 		addOptEnum(transformers, config, "color", Wolf.class, DyeColor.class, Wolf::setCollarColor);
 
 		// Display
@@ -261,7 +296,7 @@ public class EntityData {
 				};
 			}
 		}
-		transformers.put(Display.class, new Transformer<>(transformation, Display::setTransformation, true));
+		transformers.put(Display.class, new TransformerImpl<>(transformation, Display::setTransformation, true));
 
 		addOptInteger(transformers, config, "teleport-duration", Display.class, Display::setTeleportDuration);
 		addOptInteger(transformers, config, "interpolation-duration", Display.class, Display::setInterpolationDuration);
@@ -298,7 +333,7 @@ public class EntityData {
 				};
 			}
 		}
-		transformers.put(Display.class, new Transformer<>(brightness, Display::setBrightness, true));
+		transformers.put(Display.class, new TransformerImpl<>(brightness, Display::setBrightness, true));
 
 		// BlockDisplay
 		addOptBlockData(transformers, config, "block", BlockDisplay.class, BlockDisplay::setBlock);
@@ -326,20 +361,39 @@ public class EntityData {
 				if (transformerType.isAssignableFrom(entityClass))
 					options.putAll(entityType, transformers.get(transformerType));
 		}
+
+		List<?> delayedDataEntries = config.getList("delayed-entity-data");
+		if (delayedDataEntries == null || delayedDataEntries.isEmpty()) return;
+
+		for (Object object : delayedDataEntries) {
+			if (!(object instanceof Map<?,?> map)) continue;
+
+			ConfigurationSection section = ConfigReaderUtil.mapToSection(map);
+
+			ConfigurationSection dataSection = section.getConfigurationSection("entity-data");
+			if (dataSection == null) continue;
+
+			ConfigData<Long> delay = ConfigDataUtil.getLong(section, "delay", 1);
+			ConfigData<Long> interval = ConfigDataUtil.getLong(section, "interval", 0);
+			ConfigData<Long> iterations = ConfigDataUtil.getLong(section, "iterations", 0);
+
+			EntityData entityData = new EntityData(dataSection);
+			delayedEntityData.add(new DelayedEntityData(entityData, delay, interval, iterations));
+		}
 	}
 
 	@Nullable
 	public Entity spawn(@NotNull Location location) {
-		return spawn(location, null, null);
+		return spawn(location, SpellData.NULL, null);
 	}
 
 	@Nullable
 	public Entity spawn(@NotNull Location location, @Nullable Consumer<Entity> consumer) {
-		return spawn(location, null, consumer);
+		return spawn(location, SpellData.NULL, consumer);
 	}
 
 	@Nullable
-	public Entity spawn(@NotNull Location location, @Nullable SpellData data, @Nullable Consumer<Entity> consumer) {
+	public Entity spawn(@NotNull Location location, @NotNull SpellData data, @Nullable Consumer<Entity> consumer) {
 		Location startLoc = location.clone();
 		Vector dir = startLoc.getDirection().normalize();
 		Vector relativeOffset = this.relativeOffset.get(data);
@@ -349,128 +403,187 @@ public class EntityData {
 		startLoc.add(startLoc.getDirection().clone().multiply(relativeOffset.getX()));
 		startLoc.setY(startLoc.getY() + relativeOffset.getY());
 
-		EntityType entityType = this.entityType.get(data);
-		if (entityType == null || (!entityType.isSpawnable() && entityType != EntityType.FALLING_BLOCK && entityType != EntityType.DROPPED_ITEM))
+		EntityType type = this.entityType.get(data);
+		if (type == null || (!type.isSpawnable() && type != EntityType.FALLING_BLOCK && type != EntityType.DROPPED_ITEM))
 			return null;
 
-		return switch (entityType) {
-			case FALLING_BLOCK -> {
-				BlockData blockData = fallingBlockData.get(data);
-				if (blockData == null) yield null;
+		Class<? extends Entity> entityClass = type.getEntityClass();
+		if (entityClass == null) return null;
 
-				Entity e = startLoc.getWorld().spawn(startLoc, FallingBlock.class, fb -> fb.setBlockData(blockData));
-				if (consumer != null) consumer.accept(e);
+		return startLoc.getWorld().spawn(startLoc, entityClass, entity -> {
+			apply(entity, data);
 
-				yield e;
+			if (consumer != null) consumer.accept(entity);
+
+			for (DelayedEntityData delayedData : delayedEntityData) {
+				EntityData entityData = delayedData.data;
+
+				long delay = Math.max(delayedData.delay.get(data), 1);
+				long interval = delayedData.interval.get(data);
+				long iterations = delayedData.iterations.get(data);
+
+				if (interval > 0) {
+					if (iterations > 0) {
+						entity.getScheduler().runAtFixedRate(
+							MagicSpells.getInstance(),
+							new Consumer<>() {
+
+								private long count = 0;
+
+								@Override
+								public void accept(ScheduledTask task) {
+									entityData.apply(entity, data);
+									if (++count > iterations) task.cancel();
+								}
+
+							},
+							() -> {},
+							delay,
+							interval
+						);
+					} else {
+						entity.getScheduler().runAtFixedRate(
+							MagicSpells.getInstance(),
+							task -> entityData.apply(entity, data),
+							() -> {},
+							delay,
+							interval
+						);
+					}
+				} else {
+					entity.getScheduler().runDelayed(
+						MagicSpells.getInstance(),
+						task -> entityData.apply(entity, data),
+						() -> {},
+						delay
+					);
+				}
 			}
-			case DROPPED_ITEM -> {
-				Material material = dropItemMaterial.get(data);
-				if (material == null) yield null;
-
-				Entity e = startLoc.getWorld().dropItem(startLoc, new ItemStack(material));
-				if (consumer != null) consumer.accept(e);
-
-				yield e;
-			}
-			default -> {
-				Class<? extends Entity> entityClass = entityType.getEntityClass();
-				if (entityClass == null) yield null;
-
-				yield startLoc.getWorld().spawn(startLoc, entityClass, e -> {
-					Collection<Transformer<?, ?>> transformers = options.get(entityType);
-					//noinspection rawtypes
-					for (Transformer transformer : transformers)
-						//noinspection unchecked
-						transformer.apply(e, data);
-
-					if (consumer != null) consumer.accept(e);
-				});
-			}
-		};
+		});
 	}
 
-	private <T> ConfigData<Boolean> addBoolean(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, boolean def, Class<T> type, BiConsumer<T, Boolean> setter) {
-		ConfigData<Boolean> supplier = ConfigDataUtil.getBoolean(config, name, def);
-		transformers.put(type, new Transformer<>(supplier, setter));
+	public void apply(@NotNull Entity entity, @NotNull SpellData data) {
+		Collection<Transformer<?>> transformers = options.get(entity.getType());
+		//noinspection rawtypes
+		for (Transformer transformer : transformers)
+			//noinspection unchecked
+			transformer.apply(entity, data);
+	}
+
+	private <T> ConfigData<Boolean> addBoolean(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, boolean def, Class<T> type, BiConsumer<T, Boolean> setter, boolean forceOptional) {
+		ConfigData<Boolean> supplier;
+		if (forceOptional) {
+			supplier = ConfigDataUtil.getBoolean(config, name);
+			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+		} else {
+			supplier = ConfigDataUtil.getBoolean(config, name, def);
+			transformers.put(type, new TransformerImpl<>(supplier, setter));
+		}
 
 		return supplier;
 	}
 
-	private <T> ConfigData<Integer> addInteger(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, int def, Class<T> type, BiConsumer<T, Integer> setter) {
-		ConfigData<Integer> supplier = ConfigDataUtil.getInteger(config, name, def);
-		transformers.put(type, new Transformer<>(supplier, setter));
+	private <T> ConfigData<Integer> addInteger(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, int def, Class<T> type, BiConsumer<T, Integer> setter, boolean forceOptional) {
+		ConfigData<Integer> supplier;
+		if (forceOptional) {
+			supplier = ConfigDataUtil.getInteger(config, name);
+			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+		} else {
+			supplier = ConfigDataUtil.getInteger(config, name, def);
+			transformers.put(type, new TransformerImpl<>(supplier, setter));
+		}
 
 		return supplier;
 	}
 
-	private <T> ConfigData<BlockData> addBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, BlockData def, Class<T> type, BiConsumer<T, BlockData> setter) {
-		ConfigData<BlockData> supplier = ConfigDataUtil.getBlockData(config, name, def);
-		transformers.put(type, new Transformer<>(supplier, setter));
+	private <T> ConfigData<BlockData> addBlockData(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, BlockData def, Class<T> type, BiConsumer<T, BlockData> setter, boolean forceOptional) {
+		ConfigData<BlockData> supplier;
+		if (forceOptional) {
+			supplier = ConfigDataUtil.getBlockData(config, name, null);
+			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+		} else {
+			supplier = ConfigDataUtil.getBlockData(config, name, def);
+			transformers.put(type, new TransformerImpl<>(supplier, setter));
+		}
 
 		return supplier;
 	}
 
-	private <T> void addEulerAngle(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EulerAngle def, Class<T> type, BiConsumer<T, EulerAngle> setter) {
-		ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, def);
-		transformers.put(type, new Transformer<>(supplier, setter));
+	private <T> void addEulerAngle(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EulerAngle def, Class<T> type, BiConsumer<T, EulerAngle> setter, boolean forceOptional) {
+		if (forceOptional) {
+			ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, null);
+			transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+		} else {
+			ConfigData<EulerAngle> supplier = ConfigDataUtil.getEulerAngle(config, name, def);
+			transformers.put(type, new TransformerImpl<>(supplier, setter));
+		}
 	}
 
-	private <T> void addOptBoolean(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Boolean> setter) {
+	private <T> void addOptBoolean(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Boolean> setter) {
 		ConfigData<Boolean> supplier = ConfigDataUtil.getBoolean(config, name);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptByte(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Byte> setter) {
+	private <T> void addOptByte(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Byte> setter) {
 		ConfigData<Byte> supplier = ConfigDataUtil.getByte(config, name);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptInteger(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Integer> setter) {
+	private <T> void addOptInteger(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Integer> setter) {
 		ConfigData<Integer> supplier = ConfigDataUtil.getInteger(config, name);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptFloat(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Float> setter) {
+	private <T> void addOptFloat(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Float> setter) {
 		ConfigData<Float> supplier = ConfigDataUtil.getFloat(config, name);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T, E extends Enum<E>> ConfigData<E> addOptEnum(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, Class<E> enumType, BiConsumer<T, E> setter) {
+	private <T, E extends Enum<E>> ConfigData<E> addOptEnum(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, Class<E> enumType, BiConsumer<T, E> setter) {
 		ConfigData<E> supplier = ConfigDataUtil.getEnum(config, name, enumType, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 
 		return supplier;
 	}
 
-	private <T> void addOptMaterial(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Material> setter) {
+	private <T> ConfigData<Material> addOptMaterial(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Material> setter) {
 		ConfigData<Material> supplier = ConfigDataUtil.getMaterial(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+
+		return supplier;
 	}
 
-	private <T> void addOptARGBColor(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
+	private <T> void addOptARGBColor(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Color> setter) {
 		ConfigData<Color> supplier = ConfigDataUtil.getARGBColor(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptComponent(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Component> setter) {
+	private <T> void addOptVector(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Vector> setter) {
+		ConfigData<Vector> supplier = ConfigDataUtil.getVector(config, name, null);
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+	}
+
+	private <T> void addOptComponent(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, Component> setter) {
 		ConfigData<Component> supplier = ConfigDataUtil.getComponent(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
 	}
 
-	private <T> void addOptBlockData(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, BlockData> setter) {
+	private <T> ConfigData<BlockData> addOptBlockData(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, BlockData> setter) {
 		ConfigData<BlockData> supplier = ConfigDataUtil.getBlockData(config, name, null);
-		transformers.put(type, new Transformer<>(supplier, setter, true));
+		transformers.put(type, new TransformerImpl<>(supplier, setter, true));
+
+		return supplier;
 	}
 
-	private <T> void addOptMagicItem(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, ItemStack> setter) {
+	private <T> void addOptMagicItem(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, BiConsumer<T, ItemStack> setter) {
 		MagicItem magicItem = MagicItems.getMagicItemFromString(config.getString(name));
 		if (magicItem == null) return;
 
 		ItemStack item = magicItem.getItemStack();
-		transformers.put(type, new Transformer<>(data -> item, setter, true));
+		transformers.put(type, new TransformerImpl<>(data -> item, setter, true));
 	}
 
-	private <T> void addOptEquipment(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
+	private <T> void addOptEquipment(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
 		addOptMagicItem(transformers, config, name, LivingEntity.class, (entity, item) -> {
 			EntityEquipment equipment = entity.getEquipment();
 			if (equipment == null) return;
@@ -479,7 +592,7 @@ public class EntityData {
 		});
 	}
 
-	private <T> void addOptEquipmentDropChance(Multimap<Class<?>, Transformer<?, ?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
+	private <T> void addOptEquipmentDropChance(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
 		addOptFloat(transformers, config, name, Mob.class, (entity, chance) -> {
 			EntityEquipment equipment = entity.getEquipment();
 			equipment.setDropChance(slot, chance);
@@ -723,10 +836,6 @@ public class EntityData {
 		return !data.isConstant() || data.get() != null;
 	}
 
-	public Multimap<EntityType, Transformer<?, ?>> getOptions() {
-		return options;
-	}
-
 	public ConfigData<EntityType> getEntityType() {
 		return entityType;
 	}
@@ -829,9 +938,19 @@ public class EntityData {
 		return profession;
 	}
 
-	public record Transformer<T, C>(ConfigData<C> supplier, BiConsumer<T, C> setter, boolean optional) {
+	private record DelayedEntityData(EntityData data, ConfigData<Long> delay, ConfigData<Long> interval, ConfigData<Long> iterations) {
 
-		public Transformer(ConfigData<C> supplier, BiConsumer<T, C> setter) {
+	}
+
+	private interface Transformer<T> {
+
+		void apply(T entity, SpellData data);
+
+	}
+
+	private record TransformerImpl<T, C>(ConfigData<C> supplier, BiConsumer<T, C> setter, boolean optional) implements Transformer<T> {
+
+		public TransformerImpl(ConfigData<C> supplier, BiConsumer<T, C> setter) {
 			this(supplier, setter, false);
 		}
 
