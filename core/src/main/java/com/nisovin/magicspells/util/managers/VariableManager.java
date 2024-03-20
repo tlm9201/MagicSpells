@@ -156,6 +156,10 @@ public class VariableManager {
 		addMetaVariableType("max_fire_ticks", new MaxFireTicksVariable());
 		addMetaVariableType("forwards_movement", new ForwardsMovementVariable());
 		addMetaVariableType("sideways_movement", new SidewaysMovementVariable());
+		addMetaVariableType("exhaustion", new ExhaustionVariable());
+		addMetaVariableType("starvation_rate", new StarvationRateVariable());
+		addMetaVariableType("saturated_regen_rate", new SaturatedRegenRateVariable());
+		addMetaVariableType("unsaturated_regen_rate", new UnsaturatedRegenRateVariable());
 
 		// meta variable attribute types
 		for (Attribute attribute : Attribute.values()) {
