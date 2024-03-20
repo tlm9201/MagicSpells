@@ -21,7 +21,7 @@ public class VariableStringEqualsCondition extends Condition {
 
 	@Override
 	public boolean initialize(@NotNull String var) {
-		String[] split = var.split(":",2);
+		String[] split = var.split("[:=]",2);
 
 		//Were two parts of this modifier created?
 		if (split.length != 2) return false;
