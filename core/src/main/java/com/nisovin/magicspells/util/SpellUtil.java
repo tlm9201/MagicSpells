@@ -173,7 +173,7 @@ public class SpellUtil {
 				MoneyHandler handler = MagicSpells.getMoneyHandler();
 				if (handler != null) {
 					if (moneyCost > 0) handler.removeMoney(player, moneyCost);
-					else handler.addMoney(player, moneyCost);
+					else handler.addMoney(player, -moneyCost);
 				}
 			}
 
