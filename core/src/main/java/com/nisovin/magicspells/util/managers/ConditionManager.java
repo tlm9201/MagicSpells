@@ -211,6 +211,7 @@ public class ConditionManager {
 		addCondition(PulserActiveCondition.class);
 		addCondition(TotemActiveCondition.class);
 		addCondition(BlockTagCondition.class);
+		addCondition(CastCondition.class);
 		addCondition(ClimbingCondition.class);
 		addCondition(EntityTypeTagCondition.class);
 		addCondition(LeashedCondition.class);
