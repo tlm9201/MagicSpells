@@ -94,7 +94,7 @@ public class ModifierSet {
 			boolean cont = modifier.apply(event);
 			if (cont) continue;
 
-			if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), event.getCaster(), MagicSpells.NULL_ARGS);
+			if (modifier.getStrModifierFailed() != null) MagicSpells.sendMessage(modifier.getStrModifierFailed(), event.getCaster(), event.getSpellData());
 			break;
 		}
 	}

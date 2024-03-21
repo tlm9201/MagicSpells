@@ -13,13 +13,8 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 
 	public static final SpellData NULL = new SpellData(null, null, null, null, 1f, null);
 
-	public SpellData(LivingEntity caster, LivingEntity target, Location location, LivingEntity recipient, float power, String[] args) {
-		this.caster = caster;
-		this.target = target;
-		this.location = location == null ? null : location.clone();
-		this.recipient = recipient;
-		this.power = power;
-		this.args = args;
+	public SpellData {
+		location = location == null ? null : location.clone();
 	}
 
 	public SpellData(LivingEntity caster, LivingEntity target, Location location, float power, String[] args) {
@@ -44,6 +39,10 @@ public record SpellData(LivingEntity caster, LivingEntity target, Location locat
 
 	public SpellData(LivingEntity caster, LivingEntity target) {
 		this(caster, target, null, null, 1f, null);
+	}
+
+	public SpellData(LivingEntity caster, Location location) {
+		this(caster, null, location, null, 1f, null);
 	}
 
 	public SpellData(LivingEntity caster, float power, String[] args) {

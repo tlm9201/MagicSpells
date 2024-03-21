@@ -210,6 +210,13 @@ public class ConditionManager {
 		addCondition(AttributeDefaultCondition.class);
 		addCondition(PulserActiveCondition.class);
 		addCondition(TotemActiveCondition.class);
+		addCondition(BlockTagCondition.class);
+		addCondition(CastCondition.class);
+		addCondition(ClimbingCondition.class);
+		addCondition(EntityTypeTagCondition.class);
+		addCondition(LeashedCondition.class);
+		addCondition(SleepingCondition.class);
+		addCondition(UnderWaterCondition.class);
 	}
 
 }
