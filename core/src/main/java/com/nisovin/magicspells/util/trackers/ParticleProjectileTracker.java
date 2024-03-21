@@ -440,11 +440,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 				continue;
 			}
 
-			double x = (currentLocation.getX() + collisionTracker.currentLocation.getX()) / 2D;
-			double y = (currentLocation.getY() + collisionTracker.currentLocation.getY()) / 2D;
-			double z = (currentLocation.getZ() + collisionTracker.currentLocation.getZ()) / 2D;
-
-			Location middleLoc = new Location(currentLocation.getWorld(), x, y, z);
+			Location middleLoc = currentLocation.clone().add(collisionTracker.currentLocation).multiply(0.5);
 			collisionSpell.subcast(data.location(middleLoc));
 			toRemove.add(collisionTracker);
 			toRemove.add(this);
