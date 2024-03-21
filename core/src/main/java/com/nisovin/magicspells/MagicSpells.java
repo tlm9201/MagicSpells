@@ -874,7 +874,7 @@ public class MagicSpells extends JavaPlugin {
 
 		finalElapsed = System.currentTimeMillis() - startTimePre;
 		if (lastReloadTime != 0) getLogger().warning("Loaded in " + finalElapsed + "ms (previously " + lastReloadTime + " ms)");
-		getLogger().warning("Need help? Check out our discord: discord.gg/6bYqnNy");
+		getLogger().warning("Need help? Check out our discord: https://discord.magicspells.dev/");
 		lastReloadTime = finalElapsed;
 	}
 
