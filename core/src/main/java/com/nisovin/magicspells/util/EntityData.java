@@ -377,7 +377,7 @@ public class EntityData {
 			ConfigData<Long> interval = ConfigDataUtil.getLong(section, "interval", 0);
 			ConfigData<Long> iterations = ConfigDataUtil.getLong(section, "iterations", 0);
 
-			EntityData entityData = new EntityData(dataSection);
+			EntityData entityData = new EntityData(dataSection, true);
 			delayedEntityData.add(new DelayedEntityData(entityData, delay, interval, iterations));
 		}
 	}
