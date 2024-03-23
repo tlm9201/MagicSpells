@@ -1,5 +1,8 @@
 package com.nisovin.magicspells;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.concurrent.ThreadLocalRandom;
@@ -348,13 +351,10 @@ public class Subspell {
 			case DIRECT -> wrapResult(spell.cast(data));
 			case PARTIAL -> {
 				SpellCastEvent castEvent = new SpellCastEvent(spell, SpellCastState.NORMAL, data, 0, null, 0);
-				if (!castEvent.callEvent())
-					yield new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.HANDLE_NORMALLY, castEvent.getSpellData());
+				if (!castEvent.callEvent()) yield postCast(castEvent, null, true);
 
 				CastResult result = spell.cast(castEvent.getSpellCastState(), castEvent.getSpellData());
-				new SpellCastedEvent(spell, castEvent.getSpellCastState(), result, 0, null).callEvent();
-
-				yield wrapResult(result);
+				yield postCast(castEvent, result, true);
 			}
 		};
 	}
@@ -406,49 +406,41 @@ public class Subspell {
 			}
 			case PARTIAL -> {
 				SpellCastEvent castEvent = new SpellCastEvent(spell, SpellCastState.NORMAL, data, 0, null, 0);
-				if (!castEvent.callEvent())
-					new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.HANDLE_NORMALLY, castEvent.getSpellData());
+				castEvent.callEvent();
 
-				SpellCastState state = castEvent.getSpellCastState();
-				if (state != SpellCastState.NORMAL)
-					yield new SpellCastResult(state, PostCastAction.HANDLE_NORMALLY, data);
+				if (castEvent.getSpellCastState() != SpellCastState.NORMAL)
+					yield postCast(castEvent, null, true);
 
 				data = castEvent.getSpellData();
 
 				SpellTargetEvent targetEvent = new SpellTargetEvent(spell, data);
-				if (!targetEvent.callEvent()) yield wrapResult(spell.noTarget(targetEvent));
+				if (!targetEvent.callEvent())
+					yield postCast(castEvent, spell.noTarget(targetEvent), true);
 
 				data = targetEvent.getSpellData();
 
 				TargetedEntitySpell targetedSpell = (TargetedEntitySpell) spell;
 				CastResult result = targetedSpell.castAtEntity(data);
 
-				new SpellCastedEvent(spell, SpellCastState.NORMAL, result, 0, null).callEvent();
-
-				yield wrapResult(result);
+				yield postCast(castEvent, result, true);
 			}
 			case FULL -> {
 				SpellCastEvent castEvent = spell.preCast(data);
-				if (castEvent == null)
-					yield new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.HANDLE_NORMALLY, data);
+				if (castEvent.getSpellCastState() != SpellCastState.NORMAL)
+					yield postCast(castEvent, null, false);
 
 				data = castEvent.getSpellData();
 
-				SpellCastState state = castEvent.getSpellCastState();
-				if (state != SpellCastState.NORMAL)
-					yield new SpellCastResult(state, PostCastAction.HANDLE_NORMALLY, data);
-
 				SpellTargetEvent targetEvent = new SpellTargetEvent(spell, data);
-				if (!targetEvent.callEvent()) yield wrapResult(spell.noTarget(targetEvent));
+				if (!targetEvent.callEvent())
+					yield postCast(castEvent, spell.noTarget(targetEvent), false);
 
 				data = targetEvent.getSpellData();
 
 				TargetedEntitySpell targetedSpell = (TargetedEntitySpell) spell;
 				CastResult result = targetedSpell.castAtEntity(data);
 
-				spell.postCast(castEvent, result);
-
-				yield wrapResult(result);
+				yield postCast(castEvent, result, false);
 			}
 		};
 	}
@@ -487,49 +479,41 @@ public class Subspell {
 			}
 			case PARTIAL -> {
 				SpellCastEvent castEvent = new SpellCastEvent(spell, SpellCastState.NORMAL, data, 0, null, 0);
-				if (!castEvent.callEvent())
-					yield new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.HANDLE_NORMALLY, castEvent.getSpellData());
+				castEvent.callEvent();
+
+				if (castEvent.getSpellCastState() != SpellCastState.NORMAL)
+					yield postCast(castEvent, null, true);
 
 				data = castEvent.getSpellData();
 
-				SpellCastState state = castEvent.getSpellCastState();
-				if (state != SpellCastState.NORMAL)
-					yield new SpellCastResult(state, PostCastAction.HANDLE_NORMALLY, data);
-
 				SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(spell, data);
-				if (!targetEvent.callEvent()) yield wrapResult(spell.noTarget(targetEvent));
+				if (!targetEvent.callEvent())
+					yield postCast(castEvent, spell.noTarget(targetEvent), true);
 
 				data = targetEvent.getSpellData();
 
 				TargetedLocationSpell targetedSpell = (TargetedLocationSpell) spell;
 				CastResult result = targetedSpell.castAtLocation(data);
 
-				new SpellCastedEvent(spell, SpellCastState.NORMAL, result, 0, null).callEvent();
-
-				yield wrapResult(result);
+				yield postCast(castEvent, result, true);
 			}
 			case FULL -> {
 				SpellCastEvent castEvent = spell.preCast(data);
-				if (castEvent == null)
-					yield new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.HANDLE_NORMALLY, data);
+				if (castEvent.getSpellCastState() != SpellCastState.NORMAL)
+					yield postCast(castEvent, null, false);
 
 				data = castEvent.getSpellData();
 
-				SpellCastState state = castEvent.getSpellCastState();
-				if (state != SpellCastState.NORMAL)
-					yield new SpellCastResult(state, PostCastAction.HANDLE_NORMALLY, data);
-
 				SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(spell, data);
-				if (!targetEvent.callEvent()) yield wrapResult(spell.noTarget(targetEvent));
+				if (!targetEvent.callEvent())
+					yield postCast(castEvent, spell.noTarget(targetEvent), false);
 
 				data = targetEvent.getSpellData();
 
 				TargetedLocationSpell targetedSpell = (TargetedLocationSpell) spell;
 				CastResult result = targetedSpell.castAtLocation(data);
 
-				spell.postCast(castEvent, result);
-
-				yield wrapResult(result);
+				yield postCast(castEvent, result, false);
 			}
 		};
 	}
@@ -578,59 +562,53 @@ public class Subspell {
 			}
 			case PARTIAL -> {
 				SpellCastEvent castEvent = new SpellCastEvent(spell, SpellCastState.NORMAL, data, 0, null, 0);
-				if (!castEvent.callEvent())
-					yield new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.ALREADY_HANDLED, castEvent.getSpellData());
+				castEvent.callEvent();
+
+				if (castEvent.getSpellCastState() != SpellCastState.NORMAL)
+					yield postCast(castEvent, null, true);
 
 				data = castEvent.getSpellData();
 
-				SpellCastState state = castEvent.getSpellCastState();
-				if (state != SpellCastState.NORMAL)
-					yield new SpellCastResult(state, PostCastAction.HANDLE_NORMALLY, data);
-
 				SpellTargetEvent targetEntityEvent = new SpellTargetEvent(spell, data);
-				if (!targetEntityEvent.callEvent()) yield wrapResult(spell.noTarget(targetEntityEvent));
+				if (!targetEntityEvent.callEvent())
+					yield postCast(castEvent, spell.noTarget(targetEntityEvent), true);
 
 				data = targetEntityEvent.getSpellData();
 
 				SpellTargetLocationEvent targetLocationEvent = new SpellTargetLocationEvent(spell, data);
-				if (!targetLocationEvent.callEvent()) yield wrapResult(spell.noTarget(targetLocationEvent));
+				if (!targetLocationEvent.callEvent())
+					yield postCast(castEvent, spell.noTarget(targetLocationEvent), true);
 
 				data = targetLocationEvent.getSpellData();
 
 				TargetedEntityFromLocationSpell targetedSpell = (TargetedEntityFromLocationSpell) spell;
 				CastResult result = targetedSpell.castAtEntityFromLocation(data);
 
-				new SpellCastedEvent(spell, SpellCastState.NORMAL, result, 0, null).callEvent();
-
-				yield wrapResult(result);
+				yield postCast(castEvent, result, true);
 			}
 			case FULL -> {
 				SpellCastEvent castEvent = spell.preCast(data);
-				if (castEvent == null)
-					yield new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.ALREADY_HANDLED, data);
+				if (castEvent.getSpellCastState() != SpellCastState.NORMAL)
+					yield postCast(castEvent, null, false);
 
 				data = castEvent.getSpellData();
 
-				SpellCastState state = castEvent.getSpellCastState();
-				if (state != SpellCastState.NORMAL)
-					yield new SpellCastResult(state, PostCastAction.HANDLE_NORMALLY, data);
-
 				SpellTargetEvent targetEntityEvent = new SpellTargetEvent(spell, data);
-				if (!targetEntityEvent.callEvent()) yield wrapResult(spell.noTarget(targetEntityEvent));
+				if (!targetEntityEvent.callEvent())
+					yield postCast(castEvent, spell.noTarget(targetEntityEvent), false);
 
 				data = targetEntityEvent.getSpellData();
 
 				SpellTargetLocationEvent targetLocationEvent = new SpellTargetLocationEvent(spell, data);
-				if (!targetLocationEvent.callEvent()) yield wrapResult(spell.noTarget(targetLocationEvent));
+				if (!targetLocationEvent.callEvent())
+					yield postCast(castEvent, spell.noTarget(targetLocationEvent), false);
 
 				data = targetLocationEvent.getSpellData();
 
 				TargetedEntityFromLocationSpell targetedSpell = (TargetedEntityFromLocationSpell) spell;
 				CastResult result = targetedSpell.castAtEntityFromLocation(data);
 
-				spell.postCast(castEvent, result);
-
-				yield wrapResult(result);
+				yield postCast(castEvent, result, false);
 			}
 		};
 	}
@@ -641,6 +619,20 @@ public class Subspell {
 
 	private SpellCastResult fail(SpellData data) {
 		return new SpellCastResult(SpellCastState.NORMAL, PostCastAction.ALREADY_HANDLED, data);
+	}
+
+	private SpellCastResult postCast(@NotNull SpellCastEvent castEvent, @Nullable CastResult result, boolean partial) {
+		PostCastAction action = result == null ? PostCastAction.HANDLE_NORMALLY : result.action();
+		SpellCastState state = castEvent.getSpellCastState();
+		SpellData data = result == null ? castEvent.getSpellData() : result.data();
+
+		if (partial) {
+			new SpellCastedEvent(spell, state, action, data, 0, null).callEvent();
+			return new SpellCastResult(state, action, data);
+		}
+
+		spell.postCast(castEvent, action, data);
+		return new SpellCastResult(state, action, data);
 	}
 
 	public enum CastMode {

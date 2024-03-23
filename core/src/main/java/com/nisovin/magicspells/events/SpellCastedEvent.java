@@ -33,18 +33,22 @@ public class SpellCastedEvent extends SpellEvent {
 		this.spellData = new SpellData(caster, power, args);
 	}
 
-	public SpellCastedEvent(Spell spell, SpellCastState state, CastResult result, float cooldown, SpellReagents reagents) {
-		super(spell, result.data().caster());
+	public SpellCastedEvent(Spell spell, SpellCastState state, PostCastAction action, SpellData data, float cooldown, SpellReagents reagents) {
+		super(spell, data.caster());
 
 		this.state = state;
 		this.cooldown = cooldown;
 		this.reagents = reagents;
-		this.action = result.action();
-		this.spellData = result.data();
+		this.action = action;
+		this.spellData = data;
+	}
+
+	public SpellCastedEvent(SpellCastEvent castEvent, PostCastAction action, SpellData data) {
+		this(castEvent.getSpell(), castEvent.getSpellCastState(), action, data, castEvent.getCooldown(), castEvent.getReagents());
 	}
 
 	public SpellCastedEvent(SpellCastEvent castEvent, CastResult result) {
-		this(castEvent.getSpell(), castEvent.getSpellCastState(), result, castEvent.getCooldown(), castEvent.getReagents());
+		this(castEvent.getSpell(), castEvent.getSpellCastState(), result.action(), result.data(), castEvent.getCooldown(), castEvent.getReagents());
 	}
 
 	/**

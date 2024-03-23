@@ -59,7 +59,7 @@ public class SpellCastEvent extends SpellEvent implements Cancellable {
 	 * @return the spell cast state
 	 */
 	public SpellCastState getSpellCastState() {
-		return state;
+		return cancelled ? SpellCastState.CANCELLED : state;
 	}
 
 	/**
@@ -78,7 +78,7 @@ public class SpellCastEvent extends SpellEvent implements Cancellable {
 	 * @return true if it has been changed
 	 */
 	public boolean hasSpellCastStateChanged() {
-		return stateChanged;
+		return cancelled || stateChanged;
 	}
 
 	/**

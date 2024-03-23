@@ -1,5 +1,7 @@
 package com.nisovin.magicspells;
 
+import org.jetbrains.annotations.NotNull;
+
 import de.slikey.effectlib.Effect;
 
 import net.kyori.adventure.text.Component;
@@ -988,12 +990,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return onCast(spellCast).action();
 	}
 
-	// DEBUG INFO: level 3, post cast action actionName
-	@Deprecated
-	protected void postCast(SpellCastEvent spellCast, PostCastAction action) {
-		postCast(spellCast, new CastResult(action, spellCast.getSpellData()));
-	}
-
 	/**
 	 * This method is called when a player casts a spell, either by command, with a wand item, or otherwise.
 	 *
@@ -1020,11 +1016,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return SpellCastState.NORMAL;
 	}
 
-	public SpellCastResult hardCast(SpellData data) {
+	@NotNull
+	public SpellCastResult hardCast(@NotNull SpellData data) {
 		data = data.noTargeting();
 
 		SpellCastEvent castEvent = preCast(data);
-		if (castEvent == null) return new SpellCastResult(SpellCastState.CANT_CAST, PostCastAction.HANDLE_NORMALLY, data);
+		if (castEvent.isCancelled()) {
+			postCast(castEvent, PostCastAction.HANDLE_NORMALLY);
+			return new SpellCastResult(castEvent.getSpellCastState(), PostCastAction.HANDLE_NORMALLY, data);
+		}
 
 		SpellCastState state = castEvent.getSpellCastState();
 		int castTime = castEvent.getCastTime();
@@ -1035,8 +1035,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			return new SpellCastResult(state, result.action(), result.data());
 		}
 
-		if (!preCastTimeCheck(data.caster(), data.args()))
+		if (!preCastTimeCheck(data.caster(), data.args())) {
+			postCast(castEvent, PostCastAction.ALREADY_HANDLED);
 			return new SpellCastResult(SpellCastState.NORMAL, PostCastAction.ALREADY_HANDLED, data);
+		}
 
 		if (MagicSpells.useExpBarAsCastTimeBar()) new DelayedSpellCastWithBar(castEvent);
 		else new DelayedSpellCast(castEvent);
@@ -1047,16 +1049,15 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return new SpellCastResult(SpellCastState.NORMAL, PostCastAction.DELAYED, data);
 	}
 
-	public SpellCastEvent preCast(SpellData data) {
-		if (!data.hasCaster()) return null;
-
+	@NotNull
+	public SpellCastEvent preCast(@NotNull SpellData data) {
 		SpellCastState state = getCastState(data.caster());
 		debug(2, "    Spell cast state: " + state);
 
 		SpellCastEvent castEvent = new SpellCastEvent(this, state, data, cooldown, reagents.clone(), castTime.get(data));
 		if (!castEvent.callEvent()) {
 			debug(2, "    Spell cancelled");
-			return null;
+			return castEvent;
 		}
 
 		if (castEvent.haveReagentsChanged()) {
@@ -1076,7 +1077,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return castEvent;
 	}
 
-	public CastResult onCast(SpellCastEvent castEvent) {
+	@NotNull
+	public CastResult onCast(@NotNull SpellCastEvent castEvent) {
 		SpellData data = castEvent.getSpellData();
 		long start = System.nanoTime();
 
@@ -1098,16 +1100,22 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return result;
 	}
 
-	public void postCast(SpellCastEvent castEvent, CastResult result) {
-		debug(3, "    Post-cast action: " + result.action());
+	public void postCast(SpellCastEvent spellCast, PostCastAction action) {
+		postCast(spellCast, action, spellCast.getSpellData());
+	}
 
-		if (result.action() != PostCastAction.ALREADY_HANDLED) {
-			SpellData data = result.data();
+	public void postCast(@NotNull SpellCastEvent castEvent, @NotNull CastResult result) {
+		postCast(castEvent, result.action(), result.data());
+	}
+
+	public void postCast(@NotNull SpellCastEvent castEvent, @NotNull PostCastAction action, @NotNull SpellData data) {
+		debug(3, "    Post-cast action: " + action);
+
+		if (action != PostCastAction.ALREADY_HANDLED) {
 			LivingEntity caster = data.caster();
 
 			switch (castEvent.getSpellCastState()) {
 				case NORMAL -> {
-					PostCastAction action = result.action();
 					if (action.setCooldown()) setCooldown(caster, castEvent.getCooldown());
 					if (action.chargeReagents()) removeReagents(caster, castEvent.getReagents());
 					if (action.sendMessages()) sendMessages(data);
@@ -1140,7 +1148,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			}
 		}
 
-		new SpellCastedEvent(castEvent, result).callEvent();
+		new SpellCastedEvent(castEvent, action, data).callEvent();
 	}
 
 	public CastResult cast(SpellCastState state, SpellData data) {
@@ -2481,7 +2489,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		MISSING_REAGENTS,
 		CANT_CAST,
 		NO_MAGIC_ZONE,
-		WRONG_WORLD
+		WRONG_WORLD,
+		CANCELLED
 
 	}
 
