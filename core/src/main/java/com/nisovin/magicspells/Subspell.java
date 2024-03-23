@@ -278,6 +278,8 @@ public class Subspell {
 		boolean hasTarget = data.target() != null;
 		boolean hasLocation = data.location() != null;
 
+		if (!hasCaster && (mode == CastMode.FULL || mode == CastMode.HARD)) return fail(data);
+
 		CastTargeting targeting = this.targeting;
 		if (targeting == CastTargeting.NORMAL) {
 			targeting = null;
@@ -288,7 +290,7 @@ public class Subspell {
 					case ENTITY_FROM_LOCATION -> isTargetedEntityFromLocation && hasTarget && hasLocation;
 					case ENTITY -> isTargetedEntity && hasTarget;
 					case LOCATION -> isTargetedLocation && (hasLocation || hasTarget && useTargetForLocation);
-					case NONE -> true;
+					case NONE -> hasCaster;
 				};
 
 				if (valid) {
@@ -334,8 +336,6 @@ public class Subspell {
 
 	@NotNull
 	private SpellCastResult cast(@NotNull SpellData data) {
-		if (!data.hasCaster()) return fail(data);
-
 		data = data.builder().recipient(null).power((passPower ? data.power() : 1) * subPower.get(data)).args(args.get(data)).build();
 
 		double chance = this.chance.get(data);
@@ -404,10 +404,7 @@ public class Subspell {
 	@NotNull
 	private SpellCastResult castAtEntityReal(@NotNull SpellData data) {
 		return switch (mode) {
-			case HARD -> {
-				if (!data.hasCaster()) yield fail(data);
-				yield spell.hardCast(data);
-			}
+			case HARD -> spell.hardCast(data);
 			case DIRECT -> {
 				TargetedEntitySpell targetedSpell = (TargetedEntitySpell) spell;
 				yield wrapResult(targetedSpell.castAtEntity(data));
@@ -479,10 +476,7 @@ public class Subspell {
 	@NotNull
 	private SpellCastResult castAtLocationReal(@NotNull SpellData data) {
 		return switch (mode) {
-			case HARD -> {
-				if (!data.hasCaster()) yield fail(data);
-				yield spell.hardCast(data);
-			}
+			case HARD -> spell.hardCast(data);
 			case DIRECT -> {
 				TargetedLocationSpell targetedSpell = (TargetedLocationSpell) spell;
 				yield wrapResult(targetedSpell.castAtLocation(data));
@@ -564,10 +558,7 @@ public class Subspell {
 	@NotNull
 	private SpellCastResult castAtEntityFromLocationReal(@NotNull SpellData data) {
 		return switch (mode) {
-			case HARD -> {
-				if (!data.hasCaster()) yield new SpellCastResult(SpellCastState.NORMAL, PostCastAction.ALREADY_HANDLED, data);
-				yield spell.hardCast(data);
-			}
+			case HARD -> spell.hardCast(data);
 			case DIRECT -> {
 				TargetedEntityFromLocationSpell targetedSpell = (TargetedEntityFromLocationSpell) spell;
 				yield wrapResult(targetedSpell.castAtEntityFromLocation(data));
