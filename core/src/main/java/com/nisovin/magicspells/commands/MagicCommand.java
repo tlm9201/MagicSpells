@@ -356,7 +356,7 @@ public class MagicCommand extends BaseCommand {
 			if (player == null) s.getCooldowns().clear();
 			else s.setCooldown(player, 0, false);
 		}
-		issuer.sendMessage(MagicSpells.getTextColor() + "Cooldowns reset" + (player == null ? "" : " for " + player.getName()) + (spell == null ? "" : " for spell " + Util.getMiniMessage(spell.getName())) + ".");
+		issuer.sendMessage(MagicSpells.getTextColor() + "Cooldowns reset" + (player == null ? "" : " for " + player.getName()) + (spell == null ? "" : " for spell " + Util.getLegacyFromMiniMessage(spell.getName())));
 	}
 
 	@Subcommand("mana")
