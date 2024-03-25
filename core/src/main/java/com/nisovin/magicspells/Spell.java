@@ -145,6 +145,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected String strCantBind;
 	protected String strCastStart;
 	protected String strCastOthers;
+	protected String strCastCancelled;
 	protected String strOnTeach;
 	protected String strOnCooldown;
 	protected String strWrongWorld;
@@ -407,6 +408,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		strCastSelf = config.getString(internalKey + "str-cast-self", null);
 		strCastStart = config.getString(internalKey + "str-cast-start", null);
 		strCastOthers = config.getString(internalKey + "str-cast-others", null);
+		strCastCancelled = config.getString(internalKey + "str-cast-cancelled", null);
 		strOnTeach = config.getString(internalKey + "str-on-teach", null);
 		strOnCooldown = config.getString(internalKey + "str-on-cooldown", MagicSpells.getOnCooldownMessage());
 		strWrongWorld = config.getString(internalKey + "str-wrong-world", MagicSpells.getWrongWorldMessage());
@@ -1145,6 +1147,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				case CANT_CAST -> MagicSpells.sendMessage(strCantCast, caster, data);
 				case NO_MAGIC_ZONE -> MagicSpells.getNoMagicZoneManager().sendNoMagicMessage(this, data);
 				case WRONG_WORLD -> MagicSpells.sendMessage(strWrongWorld, caster, data);
+				case CANCELLED -> MagicSpells.sendMessage(strCastCancelled, caster, data);
 			}
 		}
 
