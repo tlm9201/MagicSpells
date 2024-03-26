@@ -147,7 +147,7 @@ public class ValidTargetList {
 		if (target.equals(caster)) return targetSelf;
 		if (targetIsPlayer && !gameModes.contains(((Player) target).getGameMode())) return false;
 
-		if (!targetInvisibles && targetIsPlayer && caster instanceof Player player && !player.canSee((Player) target)) return false;
+		if (!targetInvisibles && caster instanceof Player player && !player.canSee(target)) return false;
 		if (targetPlayers && targetIsPlayer) return true;
 		if (targetNonPlayers && !targetIsPlayer) return true;
 
