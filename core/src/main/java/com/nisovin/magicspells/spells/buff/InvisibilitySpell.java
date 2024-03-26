@@ -2,13 +2,16 @@ package com.nisovin.magicspells.spells.buff;
 
 import java.util.*;
 
-import org.bukkit.Bukkit;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
+
 import org.bukkit.entity.*;
+import org.bukkit.event.Listener;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
@@ -17,9 +20,11 @@ import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.util.config.ConfigData;
 
+import io.papermc.paper.event.player.PlayerTrackEntityEvent;
+
 public class InvisibilitySpell extends BuffSpell {
 
-	private final Map<UUID, Boolean> entities;
+	private static InvisibilityManager manager;
 
 	private final ConfigData<Double> mobRadius;
 
@@ -32,14 +37,12 @@ public class InvisibilitySpell extends BuffSpell {
 
 		preventPickups = getConfigDataBoolean("prevent-pickups", true);
 
-		entities = new HashMap<>();
+		if (manager == null) manager = new InvisibilityManager();
 	}
-	
+
 	@Override
 	public boolean castBuff(SpellData data) {
-		if (!(data.target() instanceof Player target)) return false;
-		makeInvisible(target, data);
-		entities.put(target.getUniqueId(), preventPickups.get(data));
+		manager.castBuff(this, data.target(), mobRadius.get(data), preventPickups.get(data));
 		return true;
 	}
 
@@ -51,67 +54,116 @@ public class InvisibilitySpell extends BuffSpell {
 
 	@Override
 	public boolean isActive(LivingEntity entity) {
-		return entities.containsKey(entity.getUniqueId());
+		return manager.isActive(this, entity);
 	}
 
 	@Override
 	public void turnOffBuff(LivingEntity entity) {
-		entities.remove(entity.getUniqueId());
-		if (!(entity instanceof Player player)) return;
-		Util.forEachPlayerOnline(p -> p.showPlayer(MagicSpells.getInstance(), player));
+		manager.turnOffBuff(this, entity);
 	}
 
 	@Override
 	protected void turnOff() {
-		entities.clear();
-	}
-
-	private void makeInvisible(Player player, SpellData data) {
-		Util.forEachPlayerOnline(p -> p.hidePlayer(MagicSpells.getInstance(), player));
-
-		double radius = Math.min(mobRadius.get(data), MagicSpells.getGlobalRadius());
-		for (Entity entity : player.getNearbyEntities(radius, radius, radius)) {
-			if (!(entity instanceof Mob mob)) continue;
-
-			LivingEntity target = mob.getTarget();
-			if (target == null || !target.equals(player)) continue;
-
-			mob.setTarget(null);
+		if (manager != null) {
+			manager.stop();
+			manager = null;
 		}
 	}
-	
-	@EventHandler
-	public void onEntityItemPickup(EntityPickupItemEvent event) {
-		Boolean preventPickups = entities.get(event.getEntity().getUniqueId());
-		if (preventPickups == null || !preventPickups) return;
 
-		event.setCancelled(true);
-	}
-	
-	@EventHandler(ignoreCancelled = true)
-	public void onEntityTarget(EntityTargetEvent event) {
-		Entity target = event.getTarget();
-		if (!(target instanceof LivingEntity) || !isActive((LivingEntity) target)) return;
+	private static class InvisibilityManager implements Listener {
 
-		event.setCancelled(true);
-	}
-	
-	@EventHandler(priority=EventPriority.MONITOR)
-	public void onPlayerJoin(PlayerJoinEvent event) {
-		Player player = event.getPlayer();
+		private final Object2ObjectArrayMap<UUID, InvisibilityData> entities = new Object2ObjectArrayMap<>();
 
-		for (UUID id : entities.keySet()) {
-			Entity entity = Bukkit.getEntity(id);
-			if (!(entity instanceof Player p)) continue;
-
-			player.hidePlayer(MagicSpells.getInstance(), p);
+		public InvisibilityManager() {
+			MagicSpells.registerEvents(this);
 		}
 
-		if (isActive(player)) Util.forEachPlayerOnline(p -> p.hidePlayer(MagicSpells.getInstance(), player));
+		public void castBuff(InvisibilitySpell spell, LivingEntity caster, double radius, boolean preventPickups) {
+			InvisibilityData data = entities.computeIfAbsent(caster.getUniqueId(), uuid -> {
+				Util.forEachPlayerOnline(player -> player.hideEntity(MagicSpells.getInstance(), caster));
+				return new InvisibilityData();
+			});
+
+			data.spells.put(spell.internalName, preventPickups);
+			data.preventPickups |= preventPickups;
+
+			radius = Math.min(radius, MagicSpells.getGlobalRadius());
+			for (Entity entity : caster.getNearbyEntities(radius, radius, radius)) {
+				if (!(entity instanceof Mob mob)) continue;
+
+				LivingEntity target = mob.getTarget();
+				if (target == null || !target.equals(caster)) continue;
+
+				mob.setTarget(null);
+			}
+		}
+
+		public boolean isActive(InvisibilitySpell spell, LivingEntity entity) {
+			InvisibilityData data = entities.get(entity.getUniqueId());
+			return data != null && data.spells.containsKey(spell.internalName);
+		}
+
+		public void turnOffBuff(InvisibilitySpell spell, LivingEntity entity) {
+			UUID uuid = entity.getUniqueId();
+			InvisibilityData data = entities.get(uuid);
+
+			boolean preventPickups = data.spells.removeBoolean(spell.internalName);
+			if (data.spells.isEmpty()) {
+				entities.remove(uuid);
+				Util.forEachPlayerOnline(player -> player.showEntity(MagicSpells.getInstance(), entity));
+				return;
+			}
+
+			if (preventPickups && data.preventPickups) {
+				data.preventPickups = false;
+
+				var it = data.spells.values().iterator();
+				while (it.hasNext()) {
+					if (it.nextBoolean()) {
+						data.preventPickups = true;
+						break;
+					}
+				}
+			}
+		}
+
+		public void stop() {
+			entities.clear();
+			HandlerList.unregisterAll(this);
+		}
+
+		@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+		public void onEntityItemPickup(EntityPickupItemEvent event) {
+			InvisibilityData data = entities.get(event.getEntity().getUniqueId());
+			if (data == null || !data.preventPickups) return;
+
+			event.setCancelled(true);
+		}
+
+		@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+		public void onEntityTarget(EntityTargetLivingEntityEvent event) {
+			LivingEntity target = event.getTarget();
+			if (target == null || !entities.containsKey(target.getUniqueId())) return;
+
+			event.setCancelled(true);
+		}
+
+		@EventHandler(priority = EventPriority.LOWEST)
+		public void onTrack(PlayerTrackEntityEvent event) {
+			Entity entity = event.getEntity();
+			if (!(entity instanceof LivingEntity caster) || !entities.containsKey(caster.getUniqueId())) return;
+
+			event.setCancelled(true);
+			event.getPlayer().hideEntity(MagicSpells.getInstance(), caster);
+		}
+
 	}
 
-	public Map<UUID, Boolean> getEntities() {
-		return entities;
+	private static class InvisibilityData {
+
+		private final Object2BooleanArrayMap<String> spells = new Object2BooleanArrayMap<>();
+		private boolean preventPickups;
+
 	}
 
 }

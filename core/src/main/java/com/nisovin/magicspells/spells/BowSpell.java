@@ -235,7 +235,7 @@ public class BowSpell extends Spell {
 		if (disallowedAmmoItems != null && check(ammo, disallowedAmmoItems)) return;
 
 		SpellCastEvent castEvent = preCast(data);
-		if (castEvent == null) {
+		if (castEvent.isCancelled()) {
 			if (cancelShotOnFail.get(data)) event.setCancelled(true);
 			return;
 		}
