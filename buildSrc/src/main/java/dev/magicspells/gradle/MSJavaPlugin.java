@@ -22,7 +22,6 @@ public class MSJavaPlugin implements Plugin<Project> {
         });
         RepositoryHandler repositories = target.getRepositories();
         repositories.mavenCentral();
-        repositories.mavenLocal();
 
         String[] mavenUrls = new String[] {
                 "https://repo.dmulloy2.net/nexus/repository/public/",
