@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.FluidCollisionMode;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
@@ -87,7 +88,10 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private final ConfigData<Boolean> stopOnHitGround;
 	private final ConfigData<Boolean> stopOnModifierFail;
 	private final ConfigData<Boolean> allowCasterInteract;
+	private final ConfigData<Boolean> ignorePassableBlocks;
 	private final ConfigData<Boolean> powerAffectsVelocity;
+
+	private final ConfigData<FluidCollisionMode> fluidCollisionMode;
 
 	private ModifierSet projModifiers;
 	private List<String> projModifiersStrings;
@@ -161,28 +165,25 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", hitRadius);
 		groundHitRadius = getConfigDataFloat("ground-hit-radius", 0);
 		groundVerticalHitRadius = getConfigDataFloat("ground-vertical-hit-radius", groundHitRadius);
+
 		groundMaterials = new HashSet<>();
 		List<String> groundMaterialNames = getConfigStringList("ground-materials", null);
 		if (groundMaterialNames != null) {
 			for (String str : groundMaterialNames) {
 				Material material = Util.getMaterial(str);
-				if (material == null) continue;
-				if (!material.isBlock()) continue;
-				groundMaterials.add(material);
-			}
-		} else {
-			for (Material material : Material.values()) {
-				if (BlockUtils.isPathable(material)) continue;
+				if (material == null || !material.isBlock()) continue;
+
 				groundMaterials.add(material);
 			}
 		}
+
 		disallowedGroundMaterials = new HashSet<>();
 		List<String> disallowedGroundMaterialNames = getConfigStringList("disallowed-ground-materials", null);
 		if (disallowedGroundMaterialNames != null) {
 			for (String str : disallowedGroundMaterialNames) {
 				Material material = Util.getMaterial(str);
-				if (material == null) continue;
-				if (!material.isBlock()) continue;
+				if (material == null || !material.isBlock()) continue;
+
 				disallowedGroundMaterials.add(material);
 			}
 		}
@@ -201,7 +202,10 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		stopOnHitEntity = getConfigDataBoolean("stop-on-hit-entity", true);
 		stopOnModifierFail = getConfigDataBoolean("stop-on-modifier-fail", true);
 		allowCasterInteract = getConfigDataBoolean("allow-caster-interact", true);
+		ignorePassableBlocks = getConfigDataBoolean("ignore-passable-blocks", true);
 		powerAffectsVelocity = getConfigDataBoolean("power-affects-velocity", true);
+
+		fluidCollisionMode = getConfigDataEnum("fluid-collision-mode", FluidCollisionMode.class, FluidCollisionMode.NEVER);
 
 		// Target List
 		boolean hitSelf = getConfigBoolean("hit-self", false);
@@ -490,7 +494,10 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		tracker.setStopOnHitGround(stopOnHitGround.get(data));
 		tracker.setStopOnModifierFail(stopOnModifierFail.get(data));
 		tracker.setAllowCasterInteract(allowCasterInteract.get(data));
+		tracker.setIgnorePassableBlocks(ignorePassableBlocks.get(data));
 		tracker.setPowerAffectsVelocity(powerAffectsVelocity.get(data));
+
+		tracker.setFluidCollisionMode(fluidCollisionMode.get(data));
 
 		tracker.setTargetList(validTargetList);
 		tracker.setProjectileModifiers(projModifiers);

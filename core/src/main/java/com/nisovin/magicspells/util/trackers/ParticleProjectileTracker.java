@@ -14,6 +14,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.entity.LivingEntity;
 
 import de.slikey.effectlib.Effect;
@@ -84,6 +85,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private boolean stopOnHitGround;
 	private boolean stopOnModifierFail;
 	private boolean allowCasterInteract;
+	private boolean ignorePassableBlocks;
 	private boolean powerAffectsVelocity;
 
 	private boolean hitGround;
@@ -125,6 +127,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private int intermediateEffects;
 	private int intermediateHitboxes;
 	private int specialEffectInterval;
+
+	private FluidCollisionMode fluidCollisionMode;
 
 	private Subspell airSpell;
 	private Subspell tickSpell;
@@ -508,9 +512,9 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 				currentLoc.getZ() + groundHorizontalHitRadius
 			);
 
-			if (Util.hasCollisionsIn(currentLoc.getWorld(), groundHitBox, block -> {
+			if (Util.hasCollisionsIn(currentLoc.getWorld(), groundHitBox, ignorePassableBlocks, fluidCollisionMode, block -> {
 				Material type = block.getType();
-				return groundMaterials.contains(type) && !disallowedGroundMaterials.contains(type);
+				return !disallowedGroundMaterials.contains(type) && (groundMaterials.isEmpty() || groundMaterials.contains(type));
 			})) {
 				if (hitGround && groundSpell != null) {
 					groundSpell.subcast(data.location(currentLoc));
@@ -1264,6 +1268,22 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	public SpellData getSpellData() {
 		return data;
+	}
+
+	public boolean isIgnorePassableBlocks() {
+		return ignorePassableBlocks;
+	}
+
+	public void setIgnorePassableBlocks(boolean ignorePassableBlocks) {
+		this.ignorePassableBlocks = ignorePassableBlocks;
+	}
+
+	public FluidCollisionMode getFluidCollisionMode() {
+		return fluidCollisionMode;
+	}
+
+	public void setFluidCollisionMode(FluidCollisionMode fluidCollisionMode) {
+		this.fluidCollisionMode = fluidCollisionMode;
 	}
 
 }

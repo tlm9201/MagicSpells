@@ -741,7 +741,7 @@ public class Util {
 		return nearestEntity;
 	}
 
-	public static boolean hasCollisionsIn(@NotNull World world, @NotNull BoundingBox box, @NotNull Predicate<Block> predicate) {
+	public static boolean hasCollisionsIn(@NotNull World world, @NotNull BoundingBox box, boolean ignorePassableBlocks, @NotNull FluidCollisionMode fluidCollisionMode, @NotNull Predicate<Block> predicate) {
 		int minX = (int) Math.floor(box.getMinX() - 1.0E-7D) - 1;
 		int minY = (int) Math.floor(box.getMinY() - 1.0E-7D) - 1;
 		int minZ = (int) Math.floor(box.getMinZ() - 1.0E-7D) - 1;
@@ -759,7 +759,9 @@ public class Util {
 						continue;
 
 					Block block = world.getBlockAt(x, y, z);
-					if (!predicate.test(block)) continue;
+
+					Material type = block.getType();
+					if (type.isAir() || !predicate.test(block)) continue;
 
 					VoxelShape shape = block.getCollisionShape();
 
@@ -769,13 +771,16 @@ public class Util {
 							boundingBox.shift(x, y, z);
 							if (boundingBox.overlaps(box)) return true;
 						}
-					} else {
+					} else if (!ignorePassableBlocks) {
 						BoundingBox boundingBox = block.getBoundingBox();
 						if (boundingBox.overlaps(box)) return true;
 					}
 
+					if (fluidCollisionMode == FluidCollisionMode.NEVER) continue;
+
 					FluidData data = world.getFluidData(x, y, z);
-					if (data.getFluidType() == Fluid.EMPTY) continue;
+					if (data.getFluidType() == Fluid.EMPTY || !data.isSource() && fluidCollisionMode == FluidCollisionMode.SOURCE_ONLY)
+						continue;
 
 					if (location != null) location.set(x, y, z);
 					else {
