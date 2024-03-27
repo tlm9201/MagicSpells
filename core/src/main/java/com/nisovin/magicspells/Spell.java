@@ -19,6 +19,7 @@ import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.VoxelShape;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
@@ -35,6 +36,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+
+import io.papermc.paper.block.fluid.FluidData;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.events.*;
@@ -1678,12 +1681,39 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		return location -> {
 			Block block = location.getBlock();
-			if (losTransparentBlocks.contains(block.getType())) return true;
 
-			// FIXME: Cannot check if block is a source block or not.
-			if (block.isLiquid()) return losFluidCollisionMode == FluidCollisionMode.NEVER;
+			Material type = block.getType();
+			if (type.isAir() || losTransparentBlocks.contains(type)) return true;
 
-			return losIgnorePassableBlocks && block.isPassable();
+			int bx = block.getX();
+			int by = block.getY();
+			int bz = block.getZ();
+
+			double x = location.getX();
+			double y = location.getY();
+			double z = location.getZ();
+
+			VoxelShape shape = block.getCollisionShape();
+
+			Collection<BoundingBox> boxes = shape.getBoundingBoxes();
+			if (!boxes.isEmpty()) {
+				for (BoundingBox boundingBox : boxes) {
+					boundingBox.shift(bx, by, bz);
+					if (boundingBox.contains(x, y, z)) return false;
+				}
+			} else if (!losIgnorePassableBlocks) {
+				BoundingBox boundingBox = block.getBoundingBox();
+				if (boundingBox.contains(x, y, z)) return false;
+			}
+
+			if (losFluidCollisionMode == FluidCollisionMode.NEVER) return true;
+
+			FluidData fluidData = location.getWorld().getFluidData(bx, by, bz);
+			if (fluidData.getFluidType() == Fluid.EMPTY || !fluidData.isSource() && losFluidCollisionMode == FluidCollisionMode.SOURCE_ONLY)
+				return true;
+
+			float height = fluidData.computeHeight(location);
+			return new BoundingBox(bx, by, bz, bx + 1, by + height, bz).contains(x, y, z);
 		};
 	}
 
