@@ -65,8 +65,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private final ConfigData<Integer> startHeightCheck;
 	private final ConfigData<Float> hitRadius;
 	private final ConfigData<Float> verticalHitRadius;
-	private final ConfigData<Integer> groundHitRadius;
-	private final ConfigData<Integer> groundVerticalHitRadius;
+	private final ConfigData<Float> groundHitRadius;
+	private final ConfigData<Float> groundVerticalHitRadius;
 	private final Set<Material> groundMaterials;
 	private final Set<Material> disallowedGroundMaterials;
 
@@ -159,8 +159,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		startHeightCheck = getConfigDataInt("start-height-check", 10);
 		hitRadius = getConfigDataFloat("hit-radius", 1.5F);
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", hitRadius);
-		groundHitRadius = getConfigDataInt("ground-hit-radius", 0);
-		groundVerticalHitRadius = getConfigDataInt("ground-vertical-hit-radius", groundHitRadius);
+		groundHitRadius = getConfigDataFloat("ground-hit-radius", 0);
+		groundVerticalHitRadius = getConfigDataFloat("ground-vertical-hit-radius", groundHitRadius);
 		groundMaterials = new HashSet<>();
 		List<String> groundMaterialNames = getConfigStringList("ground-materials", null);
 		if (groundMaterialNames != null) {
