@@ -12,7 +12,9 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.EulerAngle;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.entity.LivingEntity;
 
 import de.slikey.effectlib.Effect;
@@ -59,11 +61,10 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private int counter;
 	private int taskId;
 	private BoundingBox hitBox;
-	private List<Block> nearBlocks;
+	private BoundingBox groundHitBox;
 	private Set<LivingEntity> immune;
 	private int maxHitLimit;
 	private ValidTargetChecker entitySpellChecker;
-	private ParticleProjectileTracker tracker;
 	private ParticleProjectileSpell spell;
 	private Set<Material> groundMaterials;
 	private Set<Material> disallowedGroundMaterials;
@@ -84,6 +85,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private boolean stopOnHitGround;
 	private boolean stopOnModifierFail;
 	private boolean allowCasterInteract;
+	private boolean ignorePassableBlocks;
 	private boolean powerAffectsVelocity;
 
 	private boolean hitGround;
@@ -100,6 +102,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private float heightFromSurface;
 	private float verticalHitRadius;
 	private float horizontalHitRadius;
+	private float groundVerticalHitRadius;
+	private float groundHorizontalHitRadius;
 
 	private float projectileTurn;
 	private float projectileVelocity;
@@ -123,8 +127,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private int intermediateEffects;
 	private int intermediateHitboxes;
 	private int specialEffectInterval;
-	private int groundVerticalHitRadius;
-	private int groundHorizontalHitRadius;
+
+	private FluidCollisionMode fluidCollisionMode;
 
 	private Subspell airSpell;
 	private Subspell tickSpell;
@@ -183,7 +187,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 		previousLocation = startLocation.clone();
 		currentLocation = startLocation.clone();
-		currentVelocity = dir.isZero() ? dir.setY(-1) : dir.normalize();
+		currentVelocity = dir.isZero() ? currentLocation.getDirection() : dir.normalize();
 
 		initialize();
 	}
@@ -193,12 +197,11 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 		counter = 0;
 
-		Vector dir = currentVelocity.clone().normalize();
-		Vector dirNormalized = dir.clone().normalize();
+		Vector direction = currentLocation.getDirection();
 
-		Vector angleZ = Util.makeFinite(new Vector(-dirNormalized.getZ(), 0D, dirNormalized.getX()).normalize());
-		Vector angleY = Util.makeFinite(dir.clone().rotateAroundAxis(angleZ, ANGLE_Y).normalize());
-		Vector angleX = Util.makeFinite(dir.clone());
+		Vector angleZ = Util.makeFinite(new Vector(-direction.getZ(), 0D, direction.getX()).normalize());
+		Vector angleY = Util.makeFinite(direction.clone().rotateAroundAxis(angleZ, ANGLE_Y).normalize());
+		Vector angleX = Util.makeFinite(direction);
 
 		if (verticalRotation != 0) currentVelocity.rotateAroundAxis(angleZ, verticalRotation);
 		if (horizontalRotation != 0) currentVelocity.rotateAroundAxis(angleY, horizontalRotation);
@@ -213,8 +216,9 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			currentVelocity.add(new Vector(rx * projectileHorizSpread, ry * projectileVertSpread, rz * projectileHorizSpread));
 		}
 
+		if (!currentVelocity.isZero()) currentLocation.setDirection(currentVelocity);
+
 		if (hugSurface) {
-			currentVelocity.setY(0).normalize();
 			currentLocation.setPitch(0);
 
 			if (!checkGround(startHeightCheck)) {
@@ -227,23 +231,23 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			currentZ = currentLocation.getBlockZ();
 		}
 
+		currentVelocity = currentLocation.getDirection();
+
 		if (powerAffectsVelocity) currentVelocity.multiply(data.power());
 		currentVelocity.multiply(projectileVelocity / ticksPerSecond);
 
-		nearBlocks = new ArrayList<>();
 		immune = new HashSet<>();
 
 		maxHitLimit = 0;
-		hitBox = new BoundingBox(currentLocation, horizontalHitRadius, verticalHitRadius);
-		LocationUtil.setDirection(currentLocation, currentVelocity);
+		hitBox = BoundingBox.of(currentLocation, horizontalHitRadius, verticalHitRadius, horizontalHitRadius);
+		groundHitBox = BoundingBox.of(currentLocation, groundHorizontalHitRadius, groundVerticalHitRadius, groundHorizontalHitRadius);
 		data = data.retarget(null, currentLocation);
-		tracker = this;
 
 		if (spell != null) {
 			effectSet = spell.playEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, data);
 			entityMap = spell.playEntityEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, data);
 			armorStandSet = spell.playArmorStandEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, data);
-			ParticleProjectileSpell.getProjectileTrackers().add(tracker);
+			ParticleProjectileSpell.getProjectileTrackers().add(this);
 		}
 
 		taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
@@ -286,10 +290,12 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		}
 
 		if (controllable && data.hasCaster()) {
-			currentVelocity = data.caster().getLocation().getDirection();
-			if (hugSurface) currentVelocity.setY(0).normalize();
-			currentVelocity.multiply(projectileVelocity / ticksPerSecond);
-			LocationUtil.setDirection(currentLocation, currentVelocity);
+			Location location = data.caster().getLocation();
+			if (hugSurface) location.setPitch(0);
+
+			Vector direction = location.getDirection();
+			currentLocation.setDirection(direction);
+			currentVelocity = direction.multiply(projectileVelocity / ticksPerSecond);
 		}
 
 		currentVelocity = Util.makeFinite(currentVelocity);
@@ -332,7 +338,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			Util.rotateVector(currentVelocity, (projectileHorizGravity / ticksPerSecond) * counter);
 
 		// Rotate effects properly
-		LocationUtil.setDirection(currentLocation, currentVelocity);
+		if (!currentVelocity.isZero()) currentLocation.setDirection(currentVelocity);
 
 		if (effectSet != null) {
 			Effect effect;
@@ -354,7 +360,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			// Changing the effect location
 			EulerAngle angle;
 
-			Vector dir = currentLocation.getDirection().normalize();
+			Vector dir = currentLocation.getDirection();
 			Vector horizOffset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
 			Location effectLoc = currentLocation.clone();
 			effectLoc.add(horizOffset.multiply(effectOffset.getZ()));
@@ -407,25 +413,6 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			}
 		}
 
-		if (groundHorizontalHitRadius == 0 || groundVerticalHitRadius == 0) {
-			nearBlocks = new ArrayList<>();
-			nearBlocks.add(currentLocation.getBlock());
-		} else
-			nearBlocks = BlockUtils.getNearbyBlocks(currentLocation, groundHorizontalHitRadius, groundVerticalHitRadius);
-
-		for (Block b : nearBlocks) {
-			if (!groundMaterials.contains(b.getType()) || disallowedGroundMaterials.contains(b.getType())) continue;
-			if (hitGround && groundSpell != null) {
-				previousLocation.setDirection(currentVelocity);
-				groundSpell.subcast(data.location(previousLocation));
-				if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLocation, data);
-			}
-			if (stopOnHitGround) {
-				stop();
-				return;
-			}
-		}
-
 		if (currentLocation.distanceSquared(startLocation) >= maxDistanceSquared) {
 			if (hitAirAtEnd && airSpell != null) {
 				airSpell.subcast(data);
@@ -447,22 +434,22 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			Subspell collisionSpell = interactionSpells.get(collisionTracker.spell.getInternalName());
 			if (collisionSpell == null) {
 				toRemove.add(collisionTracker);
-				toRemove.add(tracker);
+				toRemove.add(this);
 				collisionTracker.stop(false);
-				tracker.stop(false);
+				stop(false);
 				continue;
 			}
 
-			double x = (tracker.currentLocation.getX() + collisionTracker.currentLocation.getX()) / 2D;
-			double y = (tracker.currentLocation.getY() + collisionTracker.currentLocation.getY()) / 2D;
-			double z = (tracker.currentLocation.getZ() + collisionTracker.currentLocation.getZ()) / 2D;
+			double x = (currentLocation.getX() + collisionTracker.currentLocation.getX()) / 2D;
+			double y = (currentLocation.getY() + collisionTracker.currentLocation.getY()) / 2D;
+			double z = (currentLocation.getZ() + collisionTracker.currentLocation.getZ()) / 2D;
 
-			Location middleLoc = new Location(tracker.currentLocation.getWorld(), x, y, z);
+			Location middleLoc = new Location(currentLocation.getWorld(), x, y, z);
 			collisionSpell.subcast(data.location(middleLoc));
 			toRemove.add(collisionTracker);
-			toRemove.add(tracker);
+			toRemove.add(this);
 			collisionTracker.stop(false);
-			tracker.stop(false);
+			stop(false);
 		}
 
 		ParticleProjectileSpell.getProjectileTrackers().removeAll(toRemove);
@@ -473,15 +460,13 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private boolean canInteractWith(ParticleProjectileTracker collisionTracker) {
 		if (collisionTracker == null) return false;
 		if (collisionTracker.currentLocation == null) return false;
-		if (tracker == null) return false;
-		if (!tracker.data.hasCaster()) return false;
+		if (!data.hasCaster()) return false;
 		if (!collisionTracker.data.hasCaster()) return false;
-		if (collisionTracker.equals(tracker)) return false;
+		if (collisionTracker.equals(this)) return false;
 		if (!interactionSpells.containsKey(collisionTracker.spell.getInternalName())) return false;
-		if (!collisionTracker.currentLocation.getWorld().equals(tracker.currentLocation.getWorld())) return false;
-		if (!collisionTracker.hitBox.contains(tracker.currentLocation) && !tracker.hitBox.contains(collisionTracker.currentLocation))
-			return false;
-		return allowCasterInteract || !Objects.equals(collisionTracker.data.caster(), tracker.data.caster());
+		if (!collisionTracker.currentLocation.getWorld().equals(currentLocation.getWorld())) return false;
+		if (!hitBox.overlaps(collisionTracker.hitBox)) return false;
+		return allowCasterInteract || !Objects.equals(data.caster(), collisionTracker.data.caster());
 	}
 
 	private void playIntermediateEffects(Location old, Vector movement) {
@@ -493,7 +478,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		v.setZ(v.getZ() / divideFactor);
 
 		for (int i = 0; i < intermediateEffects; i++) {
-			old = LocationUtil.setDirection(old.add(v), v);
+			old = old.add(v).setDirection(v);
 			if (spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0)
 				spell.playEffects(EffectPosition.SPECIAL, old, data);
 		}
@@ -508,7 +493,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		v.setZ(v.getZ() / divideFactor);
 
 		for (int i = 0; i < intermediateHitboxes; i++) {
-			old = LocationUtil.setDirection(old.add(v), v);
+			old.add(v).setDirection(v);
 			checkHitbox(old);
 			if (stopped) return;
 		}
@@ -517,12 +502,45 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private void checkHitbox(Location currentLoc) {
 		if (currentLoc == null || currentLoc.getWorld() == null) return;
 
-		hitBox.setCenter(currentLoc);
+		if (hitGround && groundSpell != null || stopOnHitGround) {
+			groundHitBox.resize(
+				currentLoc.getX() - groundHorizontalHitRadius,
+				currentLoc.getY() - groundVerticalHitRadius,
+				currentLoc.getZ() - groundHorizontalHitRadius,
+				currentLoc.getX() + groundHorizontalHitRadius,
+				currentLoc.getY() + groundVerticalHitRadius,
+				currentLoc.getZ() + groundHorizontalHitRadius
+			);
+
+			if (Util.hasCollisionsIn(currentLoc.getWorld(), groundHitBox, ignorePassableBlocks, fluidCollisionMode, block -> {
+				Material type = block.getType();
+				return !disallowedGroundMaterials.contains(type) && (groundMaterials.isEmpty() || groundMaterials.contains(type));
+			})) {
+				if (hitGround && groundSpell != null) {
+					groundSpell.subcast(data.location(currentLoc));
+					if (spell != null) spell.playEffects(EffectPosition.TARGET, currentLoc, data);
+				}
+
+				if (stopOnHitGround) {
+					stop(currentLoc);
+					return;
+				}
+			}
+		}
+
+		hitBox.resize(
+			currentLoc.getX() - horizontalHitRadius,
+			currentLoc.getY() - verticalHitRadius,
+			currentLoc.getZ() - horizontalHitRadius,
+			currentLoc.getX() + horizontalHitRadius,
+			currentLoc.getY() + verticalHitRadius,
+			currentLoc.getZ() + horizontalHitRadius
+		);
 
 		for (LivingEntity target : currentLoc.getNearbyLivingEntities(horizontalHitRadius, verticalHitRadius)) {
 			if (!target.isValid() || immune.contains(target) || !targetList.canTarget(data.caster(), target)) continue;
 
-			ParticleProjectileHitEvent hitEvent = new ParticleProjectileHitEvent(data.caster(), target, tracker, spell, data.power());
+			ParticleProjectileHitEvent hitEvent = new ParticleProjectileHitEvent(data.caster(), target, this, spell, data.power());
 			hitEvent.callEvent();
 
 			if (stopped) return;
@@ -531,7 +549,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			target = hitEvent.getTarget();
 			SpellData subData = data.builder().target(target).location(currentLoc).power(hitEvent.getPower()).build();
 
-			SpellTargetEvent targetEvent = new SpellTargetEvent(spell, subData, target);
+			SpellTargetEvent targetEvent = new SpellTargetEvent(spell, subData);
 			if (!targetEvent.callEvent()) continue;
 
 			subData = targetEvent.getSpellData();
@@ -546,7 +564,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			immune.add(target);
 			maxHitLimit++;
 
-			if (maxEntitiesHit > 0 && maxHitLimit >= maxEntitiesHit) stop();
+			if (maxEntitiesHit > 0 && maxHitLimit >= maxEntitiesHit) stop(currentLoc);
 			break;
 		}
 	}
@@ -580,12 +598,20 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	@Override
 	public void stop() {
-		stop(true);
+		stop(currentLocation, true);
 	}
 
 	public void stop(boolean removeTracker) {
-		if (removeTracker && spell != null) ParticleProjectileSpell.getProjectileTrackers().remove(tracker);
-		if (spell != null) spell.playEffects(EffectPosition.DELAYED, currentLocation, data);
+		stop(currentLocation, removeTracker);
+	}
+
+	public void stop(Location location) {
+		stop(location, true);
+	}
+
+	public void stop(Location location, boolean removeTracker) {
+		if (removeTracker && spell != null) ParticleProjectileSpell.getProjectileTrackers().remove(this);
+		if (spell != null) spell.playEffects(EffectPosition.DELAYED, location, data.location(location));
 		MagicSpells.cancelTask(taskId);
 		if (effectSet != null) {
 			for (EffectlibSpellEffect spellEffect : effectSet) {
@@ -738,14 +764,6 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	public void setEntitySpellChecker(ValidTargetChecker entitySpellChecker) {
 		this.entitySpellChecker = entitySpellChecker;
-	}
-
-	public ParticleProjectileTracker getTracker() {
-		return tracker;
-	}
-
-	public void setTracker(ParticleProjectileTracker tracker) {
-		this.tracker = tracker;
 	}
 
 	public ParticleProjectileSpell getSpell() {
@@ -1092,19 +1110,19 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		this.specialEffectInterval = specialEffectInterval;
 	}
 
-	public int getGroundVerticalHitRadius() {
+	public float getGroundVerticalHitRadius() {
 		return groundVerticalHitRadius;
 	}
 
-	public void setGroundVerticalHitRadius(int groundVerticalHitRadius) {
+	public void setGroundVerticalHitRadius(float groundVerticalHitRadius) {
 		this.groundVerticalHitRadius = groundVerticalHitRadius;
 	}
 
-	public int getGroundHorizontalHitRadius() {
+	public float getGroundHorizontalHitRadius() {
 		return groundHorizontalHitRadius;
 	}
 
-	public void setGroundHorizontalHitRadius(int groundHorizontalHitRadius) {
+	public void setGroundHorizontalHitRadius(float groundHorizontalHitRadius) {
 		this.groundHorizontalHitRadius = groundHorizontalHitRadius;
 	}
 
@@ -1250,6 +1268,22 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	public SpellData getSpellData() {
 		return data;
+	}
+
+	public boolean isIgnorePassableBlocks() {
+		return ignorePassableBlocks;
+	}
+
+	public void setIgnorePassableBlocks(boolean ignorePassableBlocks) {
+		this.ignorePassableBlocks = ignorePassableBlocks;
+	}
+
+	public FluidCollisionMode getFluidCollisionMode() {
+		return fluidCollisionMode;
+	}
+
+	public void setFluidCollisionMode(FluidCollisionMode fluidCollisionMode) {
+		this.fluidCollisionMode = fluidCollisionMode;
 	}
 
 }
