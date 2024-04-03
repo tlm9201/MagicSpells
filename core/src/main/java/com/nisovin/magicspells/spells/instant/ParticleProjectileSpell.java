@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.HashSet;
-import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,6 +18,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.trackers.Interaction;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
@@ -94,9 +94,9 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private final ConfigData<FluidCollisionMode> fluidCollisionMode;
 
 	private ModifierSet projModifiers;
+	private final List<?> interactionData;
+	private List<Interaction> interactions;
 	private List<String> projModifiersStrings;
-	private final List<String> interactions;
-	private final Map<String, Subspell> interactionSpells;
 
 	private Subspell airSpell;
 	private Subspell selfSpell;
@@ -218,8 +218,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		validTargetList.enforce(ValidTargetList.TargetingElement.TARGET_NONPLAYERS, hitNonPlayers);
 
 		projModifiersStrings = getConfigStringList("projectile-modifiers", null);
-		interactions = getConfigStringList("interactions", null);
-		interactionSpells = new HashMap<>();
+		interactionData = getConfigList("interactions", null);
 
 		// Compatibility
 		defaultSpellName = getConfigString("spell", "");
@@ -311,31 +310,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 		defaultSpellName = null;
 
-		if (interactions != null && !interactions.isEmpty()) {
-			for (String str : interactions) {
-				String[] params = str.split(" ");
-				if (params[0] == null) continue;
-
-				Subspell projectile = new Subspell(params[0]);
-				if (!projectile.process() || !(projectile.getSpell() instanceof ParticleProjectileSpell)) {
-					MagicSpells.error(prefix + " has an interaction with '" + params[0] + "' but that's not a valid particle projectile!");
-					continue;
-				}
-
-				if (params.length == 1) {
-					interactionSpells.put(params[0], null);
-					continue;
-				}
-
-				if (params[1] == null) continue;
-				Subspell collisionSpell = new Subspell(params[1]);
-				if (!collisionSpell.process()) {
-					MagicSpells.error(prefix + " has an interaction with '" + params[0] + "' and their spell on collision '" + params[1] + "' is not a valid spell!");
-					continue;
-				}
-				interactionSpells.put(params[0], collisionSpell);
-			}
-		}
+		if (interactionData == null || interactionData.isEmpty()) return;
+		interactions = Interaction.read(this, interactionData);
 	}
 
 	@Override
@@ -501,7 +477,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 		tracker.setTargetList(validTargetList);
 		tracker.setProjectileModifiers(projModifiers);
-		tracker.setInteractionSpells(interactionSpells);
+		tracker.setInteractions(interactions);
 
 		tracker.setAirSpell(airSpell);
 		tracker.setTickSpell(tickSpell);
@@ -525,8 +501,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		return projModifiers;
 	}
 
-	public Map<String, Subspell> getInteractionSpells() {
-		return interactionSpells;
+	public List<Interaction> getInteractions() {
+		return interactions;
 	}
 
 	public Subspell getAirSpell() {

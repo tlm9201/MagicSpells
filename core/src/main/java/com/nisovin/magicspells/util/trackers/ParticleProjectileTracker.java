@@ -70,7 +70,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private Set<Material> disallowedGroundMaterials;
 	private ValidTargetList targetList;
 	private ModifierSet projectileModifiers;
-	private Map<String, Subspell> interactionSpells;
+	private List<Interaction> interactions;
 
 	private boolean stopped = false;
 
@@ -425,27 +425,35 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		checkHitbox(currentLocation);
 		if (stopped) return;
 
-		if (spell == null || interactionSpells == null || interactionSpells.isEmpty()) return;
+		if (spell == null || interactions == null || interactions.isEmpty()) return;
 		Set<ParticleProjectileTracker> toRemove = new HashSet<>();
 		Set<ParticleProjectileTracker> trackers = new HashSet<>(ParticleProjectileSpell.getProjectileTrackers());
 		for (ParticleProjectileTracker collisionTracker : trackers) {
-			if (!canInteractWith(collisionTracker)) continue;
+			boolean isCaster = Objects.equals(data.caster(), collisionTracker.data.caster());
 
-			Subspell collisionSpell = interactionSpells.get(collisionTracker.spell.getInternalName());
-			if (collisionSpell == null) {
-				toRemove.add(collisionTracker);
-				toRemove.add(this);
-				collisionTracker.stop(false);
-				stop(false);
-				continue;
+			for (Interaction interaction : interactions) {
+				if (!canInteractWith(collisionTracker)) continue;
+				if (!interaction.interactsWith().check(collisionTracker.spell)) continue;
+
+				if (interaction.canInteractList() == null && isCaster && !allowCasterInteract) continue;
+				if (interaction.canInteractList() != null && !interaction.canInteractList().canTarget(data.caster(), collisionTracker.data.caster()))
+					continue;
+
+				if (interaction.collisionSpell() != null) {
+					Location middleLoc = currentLocation.clone().add(collisionTracker.currentLocation).multiply(0.5);
+					interaction.collisionSpell().subcast(data.location(middleLoc));
+				}
+
+				if (interaction.stopCausing()) {
+					toRemove.add(collisionTracker);
+					collisionTracker.stop(false);
+				}
+
+				if (interaction.stopWith()) {
+					toRemove.add(this);
+					stop(false);
+				}
 			}
-
-			Location middleLoc = currentLocation.clone().add(collisionTracker.currentLocation).multiply(0.5);
-			collisionSpell.subcast(data.location(middleLoc));
-			toRemove.add(collisionTracker);
-			toRemove.add(this);
-			collisionTracker.stop(false);
-			stop(false);
 		}
 
 		ParticleProjectileSpell.getProjectileTrackers().removeAll(toRemove);
@@ -455,14 +463,11 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	private boolean canInteractWith(ParticleProjectileTracker collisionTracker) {
 		if (collisionTracker == null) return false;
-		if (collisionTracker.currentLocation == null) return false;
-		if (!data.hasCaster()) return false;
-		if (!collisionTracker.data.hasCaster()) return false;
+		if (isStopped() || collisionTracker.isStopped()) return false;
+		if (!data.hasCaster() || !collisionTracker.data.hasCaster()) return false;
 		if (collisionTracker.equals(this)) return false;
-		if (!interactionSpells.containsKey(collisionTracker.spell.getInternalName())) return false;
 		if (!collisionTracker.currentLocation.getWorld().equals(currentLocation.getWorld())) return false;
-		if (!hitBox.overlaps(collisionTracker.hitBox)) return false;
-		return allowCasterInteract || !Objects.equals(data.caster(), collisionTracker.data.caster());
+		return hitBox.overlaps(collisionTracker.hitBox);
 	}
 
 	private void playIntermediateEffects(Location old, Vector movement) {
@@ -802,12 +807,12 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		this.projectileModifiers = projectileModifiers;
 	}
 
-	public Map<String, Subspell> getInteractionSpells() {
-		return interactionSpells;
+	public List<Interaction> getInteractions() {
+		return interactions;
 	}
 
-	public void setInteractionSpells(Map<String, Subspell> interactionSpells) {
-		this.interactionSpells = interactionSpells;
+	public void setInteractions(List<Interaction> interactions) {
+		this.interactions = interactions;
 	}
 
 	public int getCounter() {
