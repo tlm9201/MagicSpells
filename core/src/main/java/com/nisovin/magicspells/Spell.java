@@ -353,7 +353,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		ignoreGlobalCooldown = config.getBoolean(internalKey + "ignore-global-cooldown", false);
 		charges = config.getInt(internalKey + "charges", 0);
 		rechargeSound = config.getString(internalKey + "recharge-sound", "");
-		nextCast = new WeakHashMap<>();
+		nextCast = new HashMap<>();
 		chargesConsumed = new IntMap<>();
 		nextCastServer = 0;
 

@@ -547,26 +547,6 @@ public class MagicSpells extends JavaPlugin {
 			log("...xp system loaded");
 		}
 
-		// Load in-game spell names, incantations, and initialize spells
-		log("Initializing spells...");
-		for (Spell spell : spells.values()) {
-			spellNames.put(Util.getPlainString(Util.getMiniMessage(spell.getName().toLowerCase())), spell);
-			String[] aliases = spell.getAliases();
-			if (aliases != null) {
-				for (String alias : aliases) {
-					if (!spellNames.containsKey(alias.toLowerCase())) spellNames.put(alias.toLowerCase(), spell);
-				}
-			}
-			List<String> incs = spell.getIncantations();
-			if (incs != null && !incs.isEmpty()) {
-				for (String s : incs) {
-					incantations.put(s.toLowerCase(), spell);
-				}
-			}
-			spell.initialize();
-		}
-		log("...done");
-
 		// Load player data using a storage handler
 		log("Initializing storage handler...");
 		storageHandler = new TXTFileStorage(plugin);
@@ -667,9 +647,40 @@ public class MagicSpells extends JavaPlugin {
 		Bukkit.getScheduler().runTaskLater(this, this::loadExternalData, 1);
 	}
 
+	private void initializeSpells() {
+		log("Initializing spells...");
+		for (Spell spell : new ArrayList<>(spells.values())) {
+			DependsOn dependsOn = spell.getClass().getAnnotation(DependsOn.class);
+			if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) {
+				spells.remove(spell.getInternalName().toLowerCase());
+				spellsOrdered.remove(spell);
+
+				MagicSpells.error(spell.getClass().getSimpleName() + " '" + spell.internalName + "' could not be loaded.");
+				continue;
+			}
+
+			spellNames.put(Util.getPlainString(Util.getMiniMessage(spell.getName().toLowerCase())), spell);
+			String[] aliases = spell.getAliases();
+			if (aliases != null) {
+				for (String alias : aliases) {
+					if (!spellNames.containsKey(alias.toLowerCase())) spellNames.put(alias.toLowerCase(), spell);
+				}
+			}
+			List<String> incs = spell.getIncantations();
+			if (incs != null && !incs.isEmpty()) {
+				for (String s : incs) {
+					incantations.put(s.toLowerCase(), spell);
+				}
+			}
+			spell.initialize();
+		}
+		log("...done");
+	}
+
 	private void loadExternalData() {
 		log("Loading external data...");
 
+		initializeSpells();
 		loadVariables();
 		loadSpellEffects();
 		loadConditions();
@@ -817,9 +828,6 @@ public class MagicSpells extends JavaPlugin {
 						continue;
 					}
 
-					DependsOn dependsOn = spellClass.getAnnotation(DependsOn.class);
-					if (dependsOn != null && !Util.checkPluginsEnabled(dependsOn.value())) continue;
-
 					try {
 						constructor = spellClass.getConstructor(MagicConfig.class, String.class);
 					} catch (NoSuchMethodException e) {
@@ -874,7 +882,7 @@ public class MagicSpells extends JavaPlugin {
 
 		finalElapsed = System.currentTimeMillis() - startTimePre;
 		if (lastReloadTime != 0) getLogger().warning("Loaded in " + finalElapsed + "ms (previously " + lastReloadTime + " ms)");
-		getLogger().warning("Need help? Check out our discord: discord.gg/6bYqnNy");
+		getLogger().warning("Need help? Check out our discord: https://discord.magicspells.dev/");
 		lastReloadTime = finalElapsed;
 	}
 

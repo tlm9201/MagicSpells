@@ -1,8 +1,6 @@
 package com.nisovin.magicspells.spells.targeted;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.*;
 import java.util.function.Predicate;
 
 import org.bukkit.Location;
@@ -11,15 +9,16 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 
+import com.nisovin.magicspells.util.*;
 import io.papermc.paper.entity.TeleportFlag;
 
-import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
+import com.nisovin.magicspells.util.trackers.Interaction;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
@@ -59,6 +58,9 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	private final String groundSpellName;
 	private final String entitySpellName;
 
+	private final List<?> interactionData;
+	private List<Interaction> interactions;
+
 	private Subspell orbitSpell;
 	private Subspell groundSpell;
 	private Subspell entitySpell;
@@ -94,6 +96,8 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		orbitSpellName = getConfigString("spell", "");
 		groundSpellName = getConfigString("spell-on-hit-ground", "");
 		entitySpellName = getConfigString("spell-on-hit-entity", "");
+
+		interactionData = getConfigList("interactions", null);
 	}
 
 	@Override
@@ -110,6 +114,9 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		entitySpell = initSubspell(entitySpellName,
 				error.formatted("spell-on-hit-entity"),
 				true);
+
+		if (interactionData == null || interactionData.isEmpty()) return;
+		interactions = Interaction.read(this, interactionData);
 	}
 
 	@Override
@@ -177,6 +184,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	private class OrbitTracker implements Runnable {
 
 		private SpellData data;
+		private boolean stopped = false;
 
 		private final BoundingBox box;
 		private final Vector currentDirection;
@@ -270,10 +278,10 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				return;
 			}
 
-			Location loc = getLocation();
-			data = data.location(loc);
+			move();
+			data = data.location(currentLocation);
 
-			if (!transparent.test(loc)) {
+			if (!transparent.test(currentLocation)) {
 				if (groundSpell != null) groundSpell.subcast(data.noTarget());
 				if (stopOnHitGround) {
 					stop(true);
@@ -281,7 +289,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 			}
 
-			playSpellEffects(EffectPosition.SPECIAL, loc, data);
+			playSpellEffects(EffectPosition.SPECIAL, currentLocation, data);
 
 			if (effectSet != null) {
 				Effect effect;
@@ -289,7 +297,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				for (EffectlibSpellEffect spellEffect : effectSet) {
 					effect = spellEffect.getEffect();
 
-					effectLoc = spellEffect.getSpellEffect().applyOffsets(loc.clone(), data);
+					effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone(), data);
 					effect.setLocation(effectLoc);
 
 					if (effect instanceof ModifiedEffect) {
@@ -301,19 +309,19 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
-					armorStand.teleport(loc, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
+					armorStand.teleport(currentLocation, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 				}
 			}
 
 			if (entityMap != null) {
 				for (var entry : entityMap.entrySet()) {
-					entry.getValue().teleport(entry.getKey().applyOffsets(loc.clone()), TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
+					entry.getValue().teleport(entry.getKey().applyOffsets(currentLocation.clone()), TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 				}
 			}
 
 			if (orbitSpell != null) orbitSpell.subcast(data.noTarget());
 
-			box.setCenter(loc);
+			box.setCenter(currentLocation);
 
 			for (LivingEntity e : data.caster().getWorld().getLivingEntities()) {
 				if (!e.isValid() || immune.contains(e) || !box.contains(e)) continue;
@@ -328,20 +336,61 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				if (entitySpell != null) entitySpell.subcast(subData.noLocation());
 
 				playSpellEffects(EffectPosition.TARGET, event.getTarget(), subData);
-				playSpellEffectsTrail(loc, event.getTarget().getLocation(), subData);
+				playSpellEffectsTrail(currentLocation, event.getTarget().getLocation(), subData);
 
 				if (stopOnHitEntity) {
 					stop(true);
 					return;
 				}
 			}
+
+			if (interactions == null || interactions.isEmpty()) return;
+			Set<OrbitTracker> toRemove = new HashSet<>();
+			Set<OrbitTracker> trackers = new HashSet<>(trackerSet);
+			for (OrbitTracker collisionTracker : trackers) {
+				for (Interaction interaction : interactions) {
+					if (!canInteractWith(collisionTracker)) continue;
+					if (!interaction.interactsWith().check(collisionTracker.getOrbitSpell())) continue;
+
+					if (interaction.canInteractList() != null && !interaction.canInteractList().canTarget(data.caster(), collisionTracker.data.caster()))
+						continue;
+
+					if (interaction.collisionSpell() != null) {
+						Location middleLoc = currentLocation.clone().add(collisionTracker.currentLocation).multiply(0.5);
+						interaction.collisionSpell().subcast(data.retarget(null, middleLoc));
+					}
+
+					if (interaction.stopCausing()) {
+						toRemove.add(collisionTracker);
+						collisionTracker.stop(false);
+					}
+
+					if (interaction.stopWith()) {
+						toRemove.add(this);
+						stop(false);
+					}
+				}
+			}
+
+			trackerSet.removeAll(toRemove);
+			toRemove.clear();
+			trackers.clear();
+		}
+
+		private boolean canInteractWith(OrbitTracker collisionTracker) {
+			if (collisionTracker == null) return false;
+			if (stopped || collisionTracker.stopped) return false;
+			if (!data.hasCaster() || !collisionTracker.data.hasCaster()) return false;
+			if (collisionTracker.equals(this)) return false;
+			if (!collisionTracker.currentLocation.getWorld().equals(currentLocation.getWorld())) return false;
+			return collisionTracker.box.contains(currentLocation) || box.contains(collisionTracker.currentLocation);
 		}
 
 		private OrbitSpell getOrbitSpell() {
 			return OrbitSpell.this;
 		}
 
-		private Location getLocation() {
+		private void move() {
 			if (data.hasTarget()) {
 				data.target().getLocation(currentLocation);
 
@@ -360,12 +409,12 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			else perp = new Vector(-currentDirection.getZ(), 0, currentDirection.getX());
 
 			currentDirection.add(perp.multiply(distancePerTick)).normalize();
-
-			return currentLocation.clone().add(0, yOffset, 0).add(currentDirection.clone().multiply(orbitRadius)).setDirection(perp);
+			currentLocation.add(0, yOffset, 0).add(currentDirection.clone().multiply(orbitRadius)).setDirection(perp);
 		}
 
 		private void stop(boolean removeTracker) {
-			playSpellEffects(EffectPosition.DELAYED, getLocation(), data);
+			stopped = true;
+			playSpellEffects(EffectPosition.DELAYED, currentLocation, data);
 
 			MagicSpells.cancelTask(taskId);
 			MagicSpells.cancelTask(repeatingHorizTaskId);
