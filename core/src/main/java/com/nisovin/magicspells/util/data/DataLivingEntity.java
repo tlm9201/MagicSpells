@@ -9,9 +9,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
 
 public class DataLivingEntity {
-	
+
 	private static final Map<String, Function<LivingEntity, String>> dataElements = new HashMap<>();
-	
+
 	static {
 		dataElements.put("eyeheight", livingEntity -> livingEntity.getEyeHeight() + "");
 		dataElements.put("maxair", livingEntity -> livingEntity.getMaximumAir() + "");
@@ -53,5 +53,5 @@ public class DataLivingEntity {
 		ret = DataEntity.getDataFunction(elementId);
 		return ret;
 	}
-	
+
 }
