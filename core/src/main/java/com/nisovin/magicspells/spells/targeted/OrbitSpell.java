@@ -188,7 +188,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 		private final BoundingBox box;
 		private final Vector currentDirection;
-		private final Location currentLocation;
+		private final Location center;
 		private final Predicate<Location> transparent;
 
 		private final Set<LivingEntity> immune;
@@ -217,11 +217,11 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		private OrbitTracker(SpellData data) {
 			startTime = System.currentTimeMillis();
 
-			currentLocation = data.location();
-			previousYaw = currentLocation.getYaw();
-			box = new BoundingBox(currentLocation, hitRadius.get(data), verticalHitRadius.get(data));
+			center = data.location();
+			previousYaw = center.getYaw();
+			box = new BoundingBox(center, hitRadius.get(data), verticalHitRadius.get(data));
 
-			currentDirection = currentLocation.getDirection().setY(0).normalize();
+			currentDirection = center.getDirection().setY(0).normalize();
 			Util.rotateVector(currentDirection, horizOffset.get(data));
 
 			followYaw = OrbitSpell.this.followYaw.get(data);
@@ -256,12 +256,12 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			immune = new HashSet<>();
 
-			entityMap = playSpellEntityEffects(EffectPosition.PROJECTILE, currentLocation, data);
-			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, currentLocation, data);
-			armorStandSet = playSpellArmorStandEffects(EffectPosition.PROJECTILE, currentLocation, data);
+			entityMap = playSpellEntityEffects(EffectPosition.PROJECTILE, center, data);
+			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, center, data);
+			armorStandSet = playSpellArmorStandEffects(EffectPosition.PROJECTILE, center, data);
 
 			if (data.hasTarget()) playSpellEffects(data.caster(), data.target(), data);
-			else playSpellEffects(data.caster(), currentLocation, data);
+			else playSpellEffects(data.caster(), center, data);
 
 			trackerSet.add(this);
 		}
@@ -278,10 +278,10 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				return;
 			}
 
-			Location center = getCenter();
-			data = data.location(center);
+			Location currentLocation = getCurrentLocation();
+			data = data.location(currentLocation);
 
-			if (!transparent.test(center)) {
+			if (!transparent.test(currentLocation)) {
 				if (groundSpell != null) groundSpell.subcast(data.noTarget());
 				if (stopOnHitGround) {
 					stop(true);
@@ -289,7 +289,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 			}
 
-			playSpellEffects(EffectPosition.SPECIAL, center, data);
+			playSpellEffects(EffectPosition.SPECIAL, currentLocation, data);
 
 			if (effectSet != null) {
 				Effect effect;
@@ -297,7 +297,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				for (EffectlibSpellEffect spellEffect : effectSet) {
 					effect = spellEffect.getEffect();
 
-					effectLoc = spellEffect.getSpellEffect().applyOffsets(center.clone(), data);
+					effectLoc = spellEffect.getSpellEffect().applyOffsets(currentLocation.clone(), data);
 					effect.setLocation(effectLoc);
 
 					if (effect instanceof ModifiedEffect) {
@@ -309,19 +309,19 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
-					armorStand.teleport(center, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
+					armorStand.teleport(currentLocation, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 				}
 			}
 
 			if (entityMap != null) {
 				for (var entry : entityMap.entrySet()) {
-					entry.getValue().teleport(entry.getKey().applyOffsets(center.clone()), TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
+					entry.getValue().teleport(entry.getKey().applyOffsets(currentLocation.clone()), TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 				}
 			}
 
 			if (orbitSpell != null) orbitSpell.subcast(data.noTarget());
 
-			box.setCenter(center);
+			box.setCenter(currentLocation);
 
 			for (LivingEntity e : data.caster().getWorld().getLivingEntities()) {
 				if (!e.isValid() || immune.contains(e) || !box.contains(e)) continue;
@@ -336,7 +336,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				if (entitySpell != null) entitySpell.subcast(subData.noLocation());
 
 				playSpellEffects(EffectPosition.TARGET, event.getTarget(), subData);
-				playSpellEffectsTrail(center, event.getTarget().getLocation(), subData);
+				playSpellEffectsTrail(currentLocation, event.getTarget().getLocation(), subData);
 
 				if (stopOnHitEntity) {
 					stop(true);
@@ -356,7 +356,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 						continue;
 
 					if (interaction.collisionSpell() != null) {
-						Location middleLoc = currentLocation.clone().add(collisionTracker.currentLocation).multiply(0.5);
+						Location middleLoc = this.center.clone().add(collisionTracker.center).multiply(0.5);
 						interaction.collisionSpell().subcast(data.retarget(null, middleLoc));
 					}
 
@@ -382,20 +382,20 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			if (stopped || collisionTracker.stopped) return false;
 			if (!data.hasCaster() || !collisionTracker.data.hasCaster()) return false;
 			if (collisionTracker.equals(this)) return false;
-			if (!collisionTracker.currentLocation.getWorld().equals(currentLocation.getWorld())) return false;
-			return collisionTracker.box.contains(currentLocation) || box.contains(collisionTracker.currentLocation);
+			if (!collisionTracker.center.getWorld().equals(center.getWorld())) return false;
+			return collisionTracker.box.contains(center) || box.contains(collisionTracker.center);
 		}
 
 		private OrbitSpell getOrbitSpell() {
 			return OrbitSpell.this;
 		}
 
-		private Location getCenter() {
+		private Location getCurrentLocation() {
 			if (data.hasTarget()) {
-				data.target().getLocation(currentLocation);
+				data.target().getLocation(center);
 
 				if (followYaw) {
-					float currentYaw = currentLocation.getYaw();
+					float currentYaw = center.getYaw();
 
 					if (previousYaw != currentYaw) {
 						Util.rotateVector(currentDirection, currentYaw - previousYaw);
@@ -409,12 +409,12 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			else perp = new Vector(-currentDirection.getZ(), 0, currentDirection.getX());
 
 			currentDirection.add(perp.multiply(distancePerTick)).normalize();
-			return currentLocation.clone().add(0, yOffset, 0).add(currentDirection.clone().multiply(orbitRadius)).setDirection(perp);
+			return center.clone().add(0, yOffset, 0).add(currentDirection.clone().multiply(orbitRadius)).setDirection(perp);
 		}
 
 		private void stop(boolean removeTracker) {
 			stopped = true;
-			playSpellEffects(EffectPosition.DELAYED, getCenter(), data);
+			playSpellEffects(EffectPosition.DELAYED, getCurrentLocation(), data);
 
 			MagicSpells.cancelTask(taskId);
 			MagicSpells.cancelTask(repeatingHorizTaskId);
