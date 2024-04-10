@@ -14,16 +14,16 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 
 public class DataEntity {
-	
+
 	private static final Map<String, Function<Entity, String>> dataElements = new HashMap<>();
-	
+
 	static {
 		try {
 			dataElements.put("name", CommandSender::getName);
 			dataElements.put("customname", entity -> Util.getStringFromComponent(entity.customName()));
 			dataElements.put("portalcooldown", entity -> entity.getPortalCooldown() + "");
 		} catch (Throwable ignored) {}
-		
+
 		dataElements.put("uuid", entity -> entity.getUniqueId().toString());
 		dataElements.put("entitytype", entity -> entity.getType().name());
 		dataElements.put("maxfireticks", entity -> entity.getMaxFireTicks() + "");
@@ -80,10 +80,13 @@ public class DataEntity {
 		dataElements.put("location.blockz", entity -> entity.getLocation().getBlockZ() + "");
 		dataElements.put("location.pitch", entity -> entity.getLocation().getPitch() + "");
 		dataElements.put("location.yaw", entity -> entity.getLocation().getYaw() + "");
+		dataElements.put("location.light", entity -> entity.getLocation().getBlock().getLightLevel() + "");
+		dataElements.put("location.light.blocks", entity -> entity.getLocation().getBlock().getLightFromBlocks() + "");
+		dataElements.put("location.light.sky", entity -> entity.getLocation().getBlock().getLightFromSky() + "");
 	}
-	
+
 	public static Function<Entity, String> getDataFunction(String elementId) {
 		return dataElements.get(elementId);
 	}
-	
+
 }
