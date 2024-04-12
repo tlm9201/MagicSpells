@@ -3,8 +3,12 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.*;
 import java.util.function.Predicate;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
@@ -35,20 +39,21 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 	private final ValidTargetList entityTargetList;
 
+	private final ConfigData<Double> hitRadius;
 	private final ConfigData<Double> maxDuration;
+	private final ConfigData<Double> verticalHitRadius;
 
+	private final ConfigData<Integer> immuneTicks;
 	private final ConfigData<Integer> tickInterval;
 	private final ConfigData<Integer> vertExpandDelay;
 	private final ConfigData<Integer> horizExpandDelay;
 
 	private final ConfigData<Float> yOffset;
-	private final ConfigData<Float> hitRadius;
 	private final ConfigData<Float> yawOffset;
 	private final ConfigData<Float> angleOffset;
 	private final ConfigData<Float> orbitRadius;
 	private final ConfigData<Float> pitchOffset;
 	private final ConfigData<Float> vertExpandRadius;
-	private final ConfigData<Float> verticalHitRadius;
 	private final ConfigData<Float> horizExpandRadius;
 	private final ConfigData<Float> secondsPerRevolution;
 
@@ -59,6 +64,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 	private final ConfigData<Boolean> stopOnHitEntity;
 	private final ConfigData<Boolean> stopOnHitGround;
 	private final ConfigData<Boolean> counterClockwise;
+	private final ConfigData<Boolean> constantImmuneTicks;
 	private final ConfigData<Boolean> requireEntityTarget;
 
 	private final String orbitSpellName;
@@ -77,22 +83,26 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 		trackerSet = new HashSet<>();
 
-		entityTargetList = new ValidTargetList(this, getConfigStringList("can-hit", null));
+		if (config.isList(internalKey + "can-hit"))
+			entityTargetList = new ValidTargetList(this, getConfigStringList("can-hit", null));
+		else
+			entityTargetList = new ValidTargetList(this, getConfigString("can-hit", null));
 
+		hitRadius = getConfigDataDouble("hit-radius", 1D);
 		maxDuration = getConfigDataDouble("max-duration", 20);
+		verticalHitRadius = getConfigDataDouble("vertical-hit-radius", 1D);
 
+		immuneTicks = getConfigDataInt("immune-ticks", -1);
 		tickInterval = getConfigDataInt("tick-interval", 2);
 		vertExpandDelay = getConfigDataInt("vert-expand-delay", 0);
 		horizExpandDelay = getConfigDataInt("horiz-expand-delay", 0);
 
 		yOffset = getConfigDataFloat("y-offset", 0.6F);
-		hitRadius = getConfigDataFloat("hit-radius", 1F);
 		yawOffset = getConfigDataFloat("start-yaw-offset", getConfigDataFloat("start-horiz-offset", 0));
 		angleOffset = getConfigDataFloat("start-angle-offset", 0);
 		orbitRadius = getConfigDataFloat("orbit-radius", 1F);
 		pitchOffset = getConfigDataFloat("start-pitch-offset", 0);
 		vertExpandRadius = getConfigDataFloat("vert-expand-radius", 0);
-		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", 1F);
 		horizExpandRadius = getConfigDataFloat("horiz-expand-radius", 0);
 		secondsPerRevolution = getConfigDataFloat("seconds-per-revolution", 3F);
 
@@ -103,6 +113,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		stopOnHitEntity = getConfigDataBoolean("stop-on-hit-entity", false);
 		stopOnHitGround = getConfigDataBoolean("stop-on-hit-ground", false);
 		counterClockwise = getConfigDataBoolean("counter-clockwise", false);
+		constantImmuneTicks = getConfigDataBoolean("constant-immune-ticks", true);
 		requireEntityTarget = getConfigDataBoolean("require-entity-target", true);
 
 		orbitSpellName = getConfigString("spell", "");
@@ -206,7 +217,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		private final Vector direction;
 		private final Vector perpendicular;
 
-		private final Set<LivingEntity> immune;
+		private final Object2IntMap<UUID> immune;
 		private final Set<ArmorStand> armorStandSet;
 		private final Predicate<Location> transparent;
 		private final Map<SpellEffect, Entity> entityMap;
@@ -219,9 +230,11 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		private final boolean stopOnHitEntity;
 		private final boolean stopOnHitGround;
 		private final boolean counterClockwise;
+		private final boolean constantImmuneTicks;
 
 		private int tickCount;
 		private final int taskId;
+		private final int immuneTicks;
 		private final int ticksPerRevolution;
 		private final int repeatingVertTaskId;
 		private final int repeatingHorizTaskId;
@@ -237,8 +250,10 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		private final float startPitch;
 		private final float pitchOffset;
 
+		private final double hitRadius;
 		private final double angleOffset;
 		private final double maxDuration;
+		private final double verticalHitRadius;
 
 		private OrbitTracker(SpellData data) {
 			startTime = System.currentTimeMillis();
@@ -246,7 +261,10 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			center = data.location();
 			startYaw = previousYaw = center.getYaw();
 			startPitch = previousPitch = center.getPitch();
-			box = new BoundingBox(center, hitRadius.get(data), verticalHitRadius.get(data));
+
+			hitRadius = OrbitSpell.this.hitRadius.get(data);
+			verticalHitRadius = OrbitSpell.this.verticalHitRadius.get(data);
+			box = new BoundingBox(center, hitRadius, verticalHitRadius);
 
 			yawOffset = OrbitSpell.this.yawOffset.get(data);
 			angleOffset = AccurateMath.toRadians(OrbitSpell.this.angleOffset.get(data));
@@ -293,7 +311,11 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			transparent = isTransparent(data);
 
-			immune = new HashSet<>();
+			immune = new Object2IntArrayMap<>();
+			immune.defaultReturnValue(-1);
+
+			constantImmuneTicks = OrbitSpell.this.constantImmuneTicks.get(data);
+			immuneTicks = constantImmuneTicks ? OrbitSpell.this.immuneTicks.get(data) : 0;
 
 			entityMap = playSpellEntityEffects(EffectPosition.PROJECTILE, center, data);
 			effectSet = playSpellEffectLibEffects(EffectPosition.PROJECTILE, center, data);
@@ -362,20 +384,26 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			box.setCenter(currentLocation);
 
-			for (LivingEntity e : data.caster().getWorld().getLivingEntities()) {
-				if (!e.isValid() || immune.contains(e) || !box.contains(e)) continue;
-				if (entityTargetList != null && !entityTargetList.canTarget(data.caster(), e)) continue;
+			for (LivingEntity target : data.caster().getWorld().getNearbyLivingEntities(currentLocation, hitRadius, verticalHitRadius)) {
+				if (entityTargetList != null && !entityTargetList.canTarget(data.caster(), target)) continue;
 
-				SpellTargetEvent event = new SpellTargetEvent(OrbitSpell.this, data, e);
+				int immuneTime = immune.getInt(target.getUniqueId());
+				int currentTick = Bukkit.getCurrentTick();
+				if (immuneTime >= 0 && immuneTime >= currentTick) continue;
+
+				SpellTargetEvent event = new SpellTargetEvent(OrbitSpell.this, data, target);
 				if (!event.callEvent()) continue;
 
 				SpellData subData = event.getSpellData();
-				immune.add(event.getTarget());
+				target = event.getTarget();
+
+				int immuneTicks = constantImmuneTicks ? this.immuneTicks : OrbitSpell.this.immuneTicks.get(subData);
+				immune.put(target.getUniqueId(), immuneTicks >= 0 ? currentTick + immuneTicks : Integer.MAX_VALUE);
 
 				if (entitySpell != null) entitySpell.subcast(subData.noLocation());
 
-				playSpellEffects(EffectPosition.TARGET, event.getTarget(), subData);
-				playSpellEffectsTrail(currentLocation, event.getTarget().getLocation(), subData);
+				playSpellEffects(EffectPosition.TARGET, target, subData);
+				playSpellEffectsTrail(currentLocation, target.getLocation(), subData);
 
 				if (stopOnHitEntity) {
 					stop(true);
