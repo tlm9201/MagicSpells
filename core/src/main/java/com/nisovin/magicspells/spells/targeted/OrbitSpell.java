@@ -3,15 +3,20 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.*;
 import java.util.function.Predicate;
 
+import org.apache.commons.math4.core.jdkmath.AccurateMath;
+
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 
-import com.nisovin.magicspells.util.*;
 import io.papermc.paper.entity.TeleportFlag;
 
+import de.slikey.effectlib.Effect;
+import de.slikey.effectlib.effect.ModifiedEffect;
+
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
@@ -23,9 +28,6 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
-
-import de.slikey.effectlib.Effect;
-import de.slikey.effectlib.effect.ModifiedEffect;
 
 public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, TargetedLocationSpell {
 
@@ -41,14 +43,19 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 	private final ConfigData<Float> yOffset;
 	private final ConfigData<Float> hitRadius;
+	private final ConfigData<Float> yawOffset;
+	private final ConfigData<Float> angleOffset;
 	private final ConfigData<Float> orbitRadius;
-	private final ConfigData<Float> horizOffset;
+	private final ConfigData<Float> pitchOffset;
 	private final ConfigData<Float> vertExpandRadius;
 	private final ConfigData<Float> verticalHitRadius;
 	private final ConfigData<Float> horizExpandRadius;
 	private final ConfigData<Float> secondsPerRevolution;
 
 	private final ConfigData<Boolean> followYaw;
+	private final ConfigData<Boolean> followPitch;
+	private final ConfigData<Boolean> lockStartYaw;
+	private final ConfigData<Boolean> lockStartPitch;
 	private final ConfigData<Boolean> stopOnHitEntity;
 	private final ConfigData<Boolean> stopOnHitGround;
 	private final ConfigData<Boolean> counterClockwise;
@@ -80,14 +87,19 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 		yOffset = getConfigDataFloat("y-offset", 0.6F);
 		hitRadius = getConfigDataFloat("hit-radius", 1F);
+		yawOffset = getConfigDataFloat("start-yaw-offset", getConfigDataFloat("start-horiz-offset", 0));
+		angleOffset = getConfigDataFloat("start-angle-offset", 0);
 		orbitRadius = getConfigDataFloat("orbit-radius", 1F);
-		horizOffset = getConfigDataFloat("start-horiz-offset", 0);
+		pitchOffset = getConfigDataFloat("start-pitch-offset", 0);
 		vertExpandRadius = getConfigDataFloat("vert-expand-radius", 0);
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", 1F);
 		horizExpandRadius = getConfigDataFloat("horiz-expand-radius", 0);
 		secondsPerRevolution = getConfigDataFloat("seconds-per-revolution", 3F);
 
 		followYaw = getConfigDataBoolean("follow-yaw", false);
+		followPitch = getConfigDataBoolean("follow-pitch", false);
+		lockStartYaw = getConfigDataBoolean("lock-start-yaw", false);
+		lockStartPitch = getConfigDataBoolean("lock-start-pitch", true);
 		stopOnHitEntity = getConfigDataBoolean("stop-on-hit-entity", false);
 		stopOnHitGround = getConfigDataBoolean("stop-on-hit-ground", false);
 		counterClockwise = getConfigDataBoolean("counter-clockwise", false);
@@ -187,47 +199,74 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		private boolean stopped = false;
 
 		private final BoundingBox box;
-		private final Vector currentDirection;
 		private final Location center;
-		private final Predicate<Location> transparent;
+
+		private final Vector axis;
+		private final Vector offset;
+		private final Vector direction;
+		private final Vector perpendicular;
 
 		private final Set<LivingEntity> immune;
 		private final Set<ArmorStand> armorStandSet;
+		private final Predicate<Location> transparent;
 		private final Map<SpellEffect, Entity> entityMap;
 		private final Set<EffectlibSpellEffect> effectSet;
 
 		private final boolean followYaw;
+		private final boolean followPitch;
+		private final boolean lockStartYaw;
+		private final boolean lockStartPitch;
 		private final boolean stopOnHitEntity;
 		private final boolean stopOnHitGround;
 		private final boolean counterClockwise;
 
+		private int tickCount;
 		private final int taskId;
+		private final int ticksPerRevolution;
 		private final int repeatingVertTaskId;
 		private final int repeatingHorizTaskId;
 
 		private final long startTime;
 
 		private float yOffset;
-		private float previousYaw;
 		private float orbitRadius;
-		private final float distancePerTick;
+		private float previousYaw;
+		private float previousPitch;
+		private final float startYaw;
+		private final float yawOffset;
+		private final float startPitch;
+		private final float pitchOffset;
 
+		private final double angleOffset;
 		private final double maxDuration;
 
 		private OrbitTracker(SpellData data) {
 			startTime = System.currentTimeMillis();
 
 			center = data.location();
-			previousYaw = center.getYaw();
+			startYaw = previousYaw = center.getYaw();
+			startPitch = previousPitch = center.getPitch();
 			box = new BoundingBox(center, hitRadius.get(data), verticalHitRadius.get(data));
 
-			currentDirection = center.getDirection().setY(0).normalize();
-			Util.rotateVector(currentDirection, horizOffset.get(data));
+			yawOffset = OrbitSpell.this.yawOffset.get(data);
+			angleOffset = AccurateMath.toRadians(OrbitSpell.this.angleOffset.get(data));
+			pitchOffset = OrbitSpell.this.pitchOffset.get(data);
+			lockStartYaw = OrbitSpell.this.lockStartYaw.get(data);
+			lockStartPitch = OrbitSpell.this.lockStartPitch.get(data);
+			counterClockwise = OrbitSpell.this.counterClockwise.get(data);
+
+			double yaw = (lockStartYaw ? 0 : startYaw) + yawOffset;
+			double pitch = (lockStartPitch ? 0 : startPitch) + pitchOffset;
+
+			axis = Util.getDirection(yaw, pitch + (counterClockwise ? -90 : 90));
+			offset = new Vector();
+			direction = Util.getDirection(yaw, pitch);
+			perpendicular = axis.clone().crossProduct(direction);
 
 			followYaw = OrbitSpell.this.followYaw.get(data);
+			followPitch = OrbitSpell.this.followPitch.get(data);
 			stopOnHitEntity = OrbitSpell.this.stopOnHitEntity.get(data);
 			stopOnHitGround = OrbitSpell.this.stopOnHitGround.get(data);
-			counterClockwise = OrbitSpell.this.counterClockwise.get(data);
 
 			int tickInterval = OrbitSpell.this.tickInterval.get(data);
 			taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
@@ -246,7 +285,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				repeatingVertTaskId = MagicSpells.scheduleRepeatingTask(() -> yOffset += vertExpandRadius, vertExpandDelay, vertExpandDelay);
 			} else repeatingVertTaskId = -1;
 
-			distancePerTick = 6.28f * tickInterval / secondsPerRevolution.get(data) / 20;
+			ticksPerRevolution = (int) (secondsPerRevolution.get(data) * 20 / tickInterval);
 
 			maxDuration = OrbitSpell.this.maxDuration.get(data) * TimeUtil.MILLISECONDS_PER_SECOND;
 
@@ -344,6 +383,8 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 				}
 			}
 
+			if (ticksPerRevolution > 0) tickCount = (tickCount + 1) % ticksPerRevolution;
+
 			if (interactions == null || interactions.isEmpty()) return;
 			Set<OrbitTracker> toRemove = new HashSet<>();
 			Set<OrbitTracker> trackers = new HashSet<>(trackerSet);
@@ -394,22 +435,33 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			if (data.hasTarget()) {
 				data.target().getLocation(center);
 
-				if (followYaw) {
-					float currentYaw = center.getYaw();
+				float currentYaw = followYaw ? center.getYaw() : startYaw;
+				float currentPitch = followPitch ? center.getPitch() : startPitch;
+				if ((followYaw && previousYaw != currentYaw) || (followPitch && previousPitch != currentPitch)) {
+					float yaw = (lockStartYaw ? currentYaw - startYaw : currentYaw) + yawOffset;
+					float pitch = (lockStartPitch ? currentPitch - startPitch : currentPitch) + pitchOffset;
 
-					if (previousYaw != currentYaw) {
-						Util.rotateVector(currentDirection, currentYaw - previousYaw);
-						previousYaw = currentYaw;
-					}
+					Util.getDirection(axis, yaw, pitch + (counterClockwise ? -90 : 90));
+					Util.getDirection(direction, yaw, pitch);
+					perpendicular.copy(axis).crossProduct(direction);
+
+					previousYaw = currentYaw;
+					previousPitch = currentPitch;
 				}
 			}
 
-			Vector perp;
-			if (counterClockwise) perp = new Vector(currentDirection.getZ(), 0, -currentDirection.getX());
-			else perp = new Vector(-currentDirection.getZ(), 0, currentDirection.getX());
+			double angle = ticksPerRevolution > 0 ? 2 * tickCount * Math.PI / ticksPerRevolution : 0;
+			angle += angleOffset;
 
-			currentDirection.add(perp.multiply(distancePerTick)).normalize();
-			return center.clone().add(0, yOffset, 0).add(currentDirection.clone().multiply(orbitRadius)).setDirection(perp);
+			double cos = orbitRadius * Math.cos(angle);
+			double sin = orbitRadius * Math.sin(angle);
+
+			offset
+				.setX(cos * direction.getX() + sin * perpendicular.getX())
+				.setY(cos * direction.getY() + sin * perpendicular.getY())
+				.setZ(cos * direction.getZ() + sin * perpendicular.getZ());
+
+			return center.clone().add(offset).add(0, yOffset, 0).setDirection(offset.crossProduct(axis).multiply(-1));
 		}
 
 		private void stop(boolean removeTracker) {
