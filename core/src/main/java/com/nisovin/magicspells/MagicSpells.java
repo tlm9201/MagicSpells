@@ -610,7 +610,6 @@ public class MagicSpells extends JavaPlugin {
 		registerEvents(new MagicPlayerListener());
 		registerEvents(new MagicSpellListener());
 		registerEvents(new CastListener());
-		if (!incantations.isEmpty()) registerEvents(new MagicChatListener());
 
 		LeftClickListener leftClickListener = new LeftClickListener();
 		if (leftClickListener.hasLeftClickCastItems()) registerEvents(leftClickListener);
@@ -686,6 +685,7 @@ public class MagicSpells extends JavaPlugin {
 		loadConditions();
 		loadPassiveListeners();
 
+		if (!incantations.isEmpty()) registerEvents(new MagicChatListener());
 		log("...done");
 
 		// Call loaded event
