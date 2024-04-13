@@ -403,6 +403,23 @@ public class Util {
 		return new Vector(x, y, z);
 	}
 
+	public static Vector getDirection(double yaw, double pitch) {
+		return getDirection(new Vector(), yaw, pitch);
+	}
+
+	public static Vector getDirection(Vector vector, double yaw, double pitch) {
+		yaw = AccurateMath.toRadians(yaw);
+		pitch = AccurateMath.toRadians(pitch);
+
+		vector.setY(-Math.sin(pitch));
+
+		double xz = Math.cos(pitch);
+		vector.setX(-xz * Math.sin(yaw));
+		vector.setZ(xz * Math.cos(yaw));
+
+		return vector;
+	}
+
 	public static Location applyAbsoluteOffset(Location loc, Vector offset) {
 		return loc.add(offset);
 	}
