@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 
@@ -264,7 +265,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			hitRadius = OrbitSpell.this.hitRadius.get(data);
 			verticalHitRadius = OrbitSpell.this.verticalHitRadius.get(data);
-			box = new BoundingBox(center, hitRadius, verticalHitRadius);
+			box = BoundingBox.of(center, hitRadius, verticalHitRadius, hitRadius);
 
 			yawOffset = OrbitSpell.this.yawOffset.get(data);
 			angleOffset = AccurateMath.toRadians(OrbitSpell.this.angleOffset.get(data));
@@ -382,9 +383,16 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 
 			if (orbitSpell != null) orbitSpell.subcast(data.noTarget());
 
-			box.setCenter(currentLocation);
+			box.resize(
+				currentLocation.getX() - hitRadius,
+				currentLocation.getY() - verticalHitRadius,
+				currentLocation.getZ() - hitRadius,
+				currentLocation.getX() + hitRadius,
+				currentLocation.getY() + verticalHitRadius,
+				currentLocation.getZ() + hitRadius
+			);
 
-			for (LivingEntity target : data.caster().getWorld().getNearbyLivingEntities(currentLocation, hitRadius, verticalHitRadius)) {
+			for (LivingEntity target : currentLocation.getNearbyLivingEntities(hitRadius, verticalHitRadius)) {
 				if (entityTargetList != null && !entityTargetList.canTarget(data.caster(), target)) continue;
 
 				int immuneTime = immune.getInt(target.getUniqueId());
@@ -452,7 +460,7 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			if (!data.hasCaster() || !collisionTracker.data.hasCaster()) return false;
 			if (collisionTracker.equals(this)) return false;
 			if (!collisionTracker.center.getWorld().equals(center.getWorld())) return false;
-			return collisionTracker.box.contains(center) || box.contains(collisionTracker.center);
+			return box.overlaps(collisionTracker.box);
 		}
 
 		private OrbitSpell getOrbitSpell() {
