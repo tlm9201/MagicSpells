@@ -30,17 +30,24 @@ public class ResistSpell extends BuffSpell {
 
 	private final Set<DamageCause> normalDamageTypes;
 
+	private final ConfigData<Double> bonus;
+
 	private final ConfigData<Float> multiplier;
 
+	private final ConfigData<Boolean> constantBonus;
 	private final ConfigData<Boolean> constantMultiplier;
+	private final ConfigData<Boolean> powerAffectsBonus;
 	private final ConfigData<Boolean> powerAffectsMultiplier;
 
 	public ResistSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
+		bonus = getConfigDataDouble("bonus", 0D);
 		multiplier = getConfigDataFloat("multiplier", 0.5F);
 
+		constantBonus = getConfigDataBoolean("constant-bonus", true);
 		constantMultiplier = getConfigDataBoolean("constant-multiplier", true);
+		powerAffectsBonus = getConfigDataBoolean("power-affects-bonus", true);
 		powerAffectsMultiplier = getConfigDataBoolean("power-affects-multiplier", true);
 
 		normalDamageTypes = new HashSet<>();
@@ -75,8 +82,18 @@ public class ResistSpell extends BuffSpell {
 				else if (multiplier > 1) multiplier *= data.power();
 			}
 		}
+		boolean constantBonus = this.constantBonus.get(data);
 
-		entities.put(data.target().getUniqueId(), new ResistData(data, multiplier, constantMultiplier));
+		double bonus = 0;
+		if (constantBonus) {
+			bonus = this.bonus.get(data);
+			if (powerAffectsBonus.get(data)) {
+				if (bonus < 1) bonus /= data.power();
+				else if (bonus > 1) bonus *= data.power();
+			}
+		}
+
+		entities.put(data.target().getUniqueId(), new ResistData(data, multiplier, constantMultiplier, bonus, constantBonus));
 		return true;
 	}
 
@@ -124,7 +141,19 @@ public class ResistSpell extends BuffSpell {
 			}
 		}
 
+		double bonus = data.bonus;
+		if (!data.constantBonus) {
+			SpellData subData = data.spellData.target(event.getCaster());
+
+			bonus = this.bonus.get(subData);
+			if (powerAffectsBonus.get(subData)) {
+				if (bonus < 1) bonus /= subData.power();
+				else if (bonus > 1) bonus *= subData.power();
+			}
+		}
+
 		addUseAndChargeCost(caster);
+		event.applyDamageBonus(bonus);
 		event.applyDamageModifier(multiplier);
 	}
 
@@ -138,9 +167,8 @@ public class ResistSpell extends BuffSpell {
 		if (!isActive(caster)) return;
 
 		LivingEntity target = null;
-		if (event instanceof EntityDamageByEntityEvent e)
-			if (e.getDamager() instanceof LivingEntity damager)
-				target = damager;
+		if (event instanceof EntityDamageByEntityEvent e && e.getDamager() instanceof LivingEntity damager)
+			target = damager;
 
 		ResistData data = entities.get(caster.getUniqueId());
 
@@ -155,8 +183,19 @@ public class ResistSpell extends BuffSpell {
 			}
 		}
 
+		double bonus = data.bonus;
+		if (!data.constantBonus) {
+			SpellData subData = data.spellData.target(target);
+
+			bonus = this.bonus.get(subData);
+			if (powerAffectsBonus.get(subData)) {
+				if (bonus < 1) bonus /= subData.power();
+				else if (bonus > 1) bonus *= subData.power();
+			}
+		}
+
 		addUseAndChargeCost(caster);
-		event.setDamage(event.getDamage() * multiplier);
+		event.setDamage((event.getDamage() * multiplier) - bonus);
 	}
 
 	public Map<UUID, ResistData> getEntities() {
@@ -171,7 +210,6 @@ public class ResistSpell extends BuffSpell {
 		return normalDamageTypes;
 	}
 
-	public record ResistData(SpellData spellData, float multiplier, boolean constantMultiplier) {
-	}
+	public record ResistData(SpellData spellData, float multiplier, boolean constantMultiplier, double bonus, boolean constantBonus) {}
 
 }
