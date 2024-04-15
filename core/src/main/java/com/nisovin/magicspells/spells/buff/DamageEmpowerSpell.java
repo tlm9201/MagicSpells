@@ -16,18 +16,24 @@ import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 
 public class DamageEmpowerSpell extends BuffSpell {
 
-	private final Map<UUID, Supplier<Float>> entities;
+	private final Map<UUID, DamageSuppliers> entities;
 
 	private SpellFilter filter;
 
-	private final ConfigData<Boolean> constantDamageMultiplier;
+	private final ConfigData<Double> flatModifier;
 
 	private final ConfigData<Float> damageMultiplier;
+
+	private final ConfigData<Boolean> constantFlatModifier;
+	private final ConfigData<Boolean> constantDamageMultiplier;
+
 
 	public DamageEmpowerSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
+		flatModifier = getConfigDataDouble("flat-modifier", 0D);
 		damageMultiplier = getConfigDataFloat("damage-multiplier", 1.5F);
+		constantFlatModifier = getConfigDataBoolean("constant-flat-modifier", true);
 		constantDamageMultiplier = getConfigDataBoolean("constant-damage-multiplier", true);
 		filter = getConfigSpellFilter();
 
@@ -36,13 +42,21 @@ public class DamageEmpowerSpell extends BuffSpell {
 
 	@Override
 	public boolean castBuff(SpellData data) {
-		Supplier<Float> supplier;
+		Supplier<Float> multiplierSupplier;
 		if (constantDamageMultiplier.get(data)) {
 			float damageMultiplier = this.damageMultiplier.get(data);
-			supplier = () -> damageMultiplier;
-		} else supplier = () -> damageMultiplier.get(data);
+			multiplierSupplier = () -> damageMultiplier;
+		} else multiplierSupplier = () -> damageMultiplier.get(data);
 
-		entities.put(data.target().getUniqueId(), supplier);
+		Supplier<Double> flatModifierSupplier;
+		if (constantFlatModifier.get(data)) {
+			double flatModifier = this.flatModifier.get(data);
+			flatModifierSupplier = () -> flatModifier;
+		} else flatModifierSupplier = () -> flatModifier.get(data);
+
+		DamageSuppliers record = new DamageSuppliers(multiplierSupplier, flatModifierSupplier);
+
+		entities.put(data.target().getUniqueId(), record);
 
 		return true;
 	}
@@ -74,13 +88,17 @@ public class DamageEmpowerSpell extends BuffSpell {
 		if (!isActive(caster)) return;
 		if (!filter.check(event.getSpell())) return;
 
-		float damageMultiplier = entities.get(caster.getUniqueId()).get();
+		DamageSuppliers suppliers = entities.get(caster.getUniqueId());
+
+		double flatModifier = suppliers.flatModifier().get();
+		float damageMultiplier = suppliers.damageMultiplier().get();
+		event.applyFlatDamageModifier(flatModifier);
 		event.applyDamageModifier(damageMultiplier);
 
 		addUseAndChargeCost(caster);
 	}
 
-	public Map<UUID, Supplier<Float>> getEntities() {
+	public Map<UUID, DamageSuppliers> getEntities() {
 		return entities;
 	}
 
@@ -91,5 +109,7 @@ public class DamageEmpowerSpell extends BuffSpell {
 	public void setFilter(SpellFilter filter) {
 		this.filter = filter;
 	}
+
+	public record DamageSuppliers(Supplier<Float> damageMultiplier, Supplier<Double> flatModifier) {}
 
 }

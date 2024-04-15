@@ -30,18 +30,25 @@ public class ResistSpell extends BuffSpell {
 
 	private final Set<DamageCause> normalDamageTypes;
 
+	private final ConfigData<Double> flatModifier;
+
 	private final ConfigData<Float> multiplier;
 
 	private final ConfigData<Boolean> constantMultiplier;
+	private final ConfigData<Boolean> constantFlatModifier;
 	private final ConfigData<Boolean> powerAffectsMultiplier;
+	private final ConfigData<Boolean> powerAffectsFlatModifier;
 
 	public ResistSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
+		flatModifier = getConfigDataDouble("flat-modifier", 0D);
 		multiplier = getConfigDataFloat("multiplier", 0.5F);
 
 		constantMultiplier = getConfigDataBoolean("constant-multiplier", true);
+		constantFlatModifier = getConfigDataBoolean("constant-flat-modifier", true);
 		powerAffectsMultiplier = getConfigDataBoolean("power-affects-multiplier", true);
+		powerAffectsFlatModifier = getConfigDataBoolean("power-affects-flat-modifier", true);
 
 		normalDamageTypes = new HashSet<>();
 		List<String> causes = getConfigStringList("normal-damage-types", null);
@@ -71,12 +78,22 @@ public class ResistSpell extends BuffSpell {
 		if (constantMultiplier) {
 			multiplier = this.multiplier.get(data);
 			if (powerAffectsMultiplier.get(data)) {
-				if (multiplier < 1) multiplier /= data.power();
-				else if (multiplier > 1) multiplier *= data.power();
+				if (Math.abs(multiplier) < 1) multiplier /= data.power();
+				else if (Math.abs(multiplier) > 1) multiplier *= data.power();
+			}
+		}
+		boolean constantFlatDamage = this.constantFlatModifier.get(data);
+
+		double flatModifier = 0;
+		if (constantFlatDamage) {
+			flatModifier = this.flatModifier.get(data);
+			if (powerAffectsFlatModifier.get(data)) {
+				if (Math.abs(flatModifier) < 1) flatModifier /= data.power();
+				else if (Math.abs(flatModifier) > 1) flatModifier *= data.power();
 			}
 		}
 
-		entities.put(data.target().getUniqueId(), new ResistData(data, multiplier, constantMultiplier));
+		entities.put(data.target().getUniqueId(), new ResistData(data, multiplier, constantMultiplier, flatModifier, constantFlatDamage));
 		return true;
 	}
 
@@ -119,13 +136,25 @@ public class ResistSpell extends BuffSpell {
 
 			multiplier = this.multiplier.get(subData);
 			if (powerAffectsMultiplier.get(subData)) {
-				if (multiplier < 1) multiplier /= subData.power();
-				else if (multiplier > 1) multiplier *= subData.power();
+				if (Math.abs(multiplier) < 1) multiplier /= subData.power();
+				else if (Math.abs(multiplier) > 1) multiplier *= subData.power();
+			}
+		}
+
+		double flatModifier = data.flatModifier;
+		if (!data.constantFlatModifier) {
+			SpellData subData = data.spellData.target(event.getCaster());
+
+			flatModifier = this.flatModifier.get(subData);
+			if (powerAffectsFlatModifier.get(subData)) {
+				if (Math.abs(flatModifier) < 1) flatModifier /= subData.power();
+				else if (Math.abs(flatModifier) > 1) flatModifier *= subData.power();
 			}
 		}
 
 		addUseAndChargeCost(caster);
 		event.applyDamageModifier(multiplier);
+		event.applyFlatDamageModifier(flatModifier);
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -138,9 +167,8 @@ public class ResistSpell extends BuffSpell {
 		if (!isActive(caster)) return;
 
 		LivingEntity target = null;
-		if (event instanceof EntityDamageByEntityEvent e)
-			if (e.getDamager() instanceof LivingEntity damager)
-				target = damager;
+		if (event instanceof EntityDamageByEntityEvent e && e.getDamager() instanceof LivingEntity damager)
+			target = damager;
 
 		ResistData data = entities.get(caster.getUniqueId());
 
@@ -150,13 +178,27 @@ public class ResistSpell extends BuffSpell {
 
 			multiplier = this.multiplier.get(subData);
 			if (powerAffectsMultiplier.get(subData)) {
-				if (multiplier < 1) multiplier /= subData.power();
-				else if (multiplier > 1) multiplier *= subData.power();
+				if (Math.abs(multiplier) < 1) multiplier /= subData.power();
+				else if (Math.abs(multiplier) > 1) multiplier *= subData.power();
+			}
+		}
+
+		double flatModifier = data.flatModifier;
+		if (!data.constantFlatModifier) {
+			SpellData subData = data.spellData.target(target);
+
+			flatModifier = this.flatModifier.get(subData);
+			if (powerAffectsFlatModifier.get(subData)) {
+				if (Math.abs(flatModifier) < 1) flatModifier /= subData.power();
+				else if (Math.abs(flatModifier) > 1) flatModifier *= subData.power();
 			}
 		}
 
 		addUseAndChargeCost(caster);
-		event.setDamage(event.getDamage() * multiplier);
+
+		double finalDamage = (event.getDamage() * multiplier) - flatModifier;
+		if (finalDamage < 0D) finalDamage = 0D;
+		event.setDamage(finalDamage);
 	}
 
 	public Map<UUID, ResistData> getEntities() {
@@ -171,7 +213,6 @@ public class ResistSpell extends BuffSpell {
 		return normalDamageTypes;
 	}
 
-	public record ResistData(SpellData spellData, float multiplier, boolean constantMultiplier) {
-	}
+	public record ResistData(SpellData spellData, float multiplier, boolean constantMultiplier, double flatModifier, boolean constantFlatModifier) {}
 
 }
