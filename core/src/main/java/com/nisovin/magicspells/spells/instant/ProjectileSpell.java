@@ -11,13 +11,11 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import net.kyori.adventure.text.Component;
 
@@ -248,42 +246,15 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	@EventHandler
 	public void onEntityExplode(EntityExplodeEvent event) {
 		Entity entity = event.getEntity();
-		if (!(entity instanceof WitherSkull)) return;
-		Projectile projectile = (Projectile) entity;
+		if (!(entity instanceof WitherSkull projectile)) return;
 
-		Iterator<ProjectileTracker> iterator = trackerSet.iterator();
+        Iterator<ProjectileTracker> iterator = trackerSet.iterator();
 		while (iterator.hasNext()) {
 			ProjectileTracker tracker = iterator.next();
 			if (tracker.getProjectile() == null) continue;
 			if (!tracker.getProjectile().equals(projectile)) continue;
 
 			event.setCancelled(true);
-			tracker.stop(false);
-			iterator.remove();
-			break;
-		}
-	}
-
-	@EventHandler
-	public void onProjectileHit(EntityDamageByEntityEvent event) {
-		if (event.getCause() != EntityDamageEvent.DamageCause.PROJECTILE) return;
-		if (!(event.getEntity() instanceof LivingEntity entity)) return;
-
-		Entity damagerEntity = event.getDamager();
-		if (!(damagerEntity instanceof Projectile projectile)) return;
-
-		Iterator<ProjectileTracker> iterator = trackerSet.iterator();
-		while (iterator.hasNext()) {
-			ProjectileTracker tracker = iterator.next();
-			if (tracker.getProjectile() == null) continue;
-			if (!tracker.getProjectile().equals(projectile)) continue;
-
-			SpellData subData = tracker.getSpellData().target(entity);
-			if (tracker.getHitSpell() != null) tracker.getHitSpell().subcast(subData);
-
-			playSpellEffects(EffectPosition.TARGET, entity, subData);
-			event.setCancelled(true);
-			event.setDamage(0);
 			tracker.stop(false);
 			iterator.remove();
 			break;
@@ -323,20 +294,42 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 	}
 
 	@EventHandler
-	public void onProjectileBlockHit(ProjectileHitEvent e) {
+	public void onProjectileHit(ProjectileHitEvent e) {
 		Projectile projectile = e.getEntity();
 		Block block = e.getHitBlock();
-		if (block == null) return;
-		Iterator<ProjectileTracker> iterator = trackerSet.iterator();
-		while (iterator.hasNext()) {
-			ProjectileTracker tracker = iterator.next();
-			if (tracker.getProjectile() == null) continue;
-			if (!tracker.getProjectile().equals(projectile)) continue;
+		Entity entity = e.getHitEntity();
 
-			SpellData subData = tracker.getSpellData().location(projectile.getLocation());
-			if (tracker.getGroundSpell() != null) tracker.getGroundSpell().subcast(subData);
-			tracker.stop(false);
-			iterator.remove();
+		Iterator<ProjectileTracker> iterator = trackerSet.iterator();
+
+		if (block != null) {
+			while (iterator.hasNext()) {
+				ProjectileTracker tracker = iterator.next();
+				if (tracker.getProjectile() == null) continue;
+				if (!tracker.getProjectile().equals(projectile)) continue;
+
+				SpellData subData = tracker.getSpellData().location(projectile.getLocation());
+				if (tracker.getGroundSpell() != null) tracker.getGroundSpell().subcast(subData);
+				tracker.stop(false);
+				iterator.remove();
+				break;
+			}
+		}
+
+		if (entity instanceof LivingEntity livingEntity) {
+			while (iterator.hasNext()) {
+				ProjectileTracker tracker = iterator.next();
+				if (tracker.getProjectile() == null) continue;
+				if (!tracker.getProjectile().equals(projectile)) continue;
+
+				SpellData subData = tracker.getSpellData().target(livingEntity);
+				if (tracker.getHitSpell() != null) tracker.getHitSpell().subcast(subData);
+
+				playSpellEffects(EffectPosition.TARGET, livingEntity, subData);
+				e.setCancelled(true);
+				tracker.stop(false);
+				iterator.remove();
+				break;
+			}
 		}
 	}
 
