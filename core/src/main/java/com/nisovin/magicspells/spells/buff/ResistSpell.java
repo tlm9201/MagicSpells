@@ -30,24 +30,24 @@ public class ResistSpell extends BuffSpell {
 
 	private final Set<DamageCause> normalDamageTypes;
 
-	private final ConfigData<Double> bonus;
+	private final ConfigData<Double> flatDamage;
 
 	private final ConfigData<Float> multiplier;
 
-	private final ConfigData<Boolean> constantBonus;
+	private final ConfigData<Boolean> constantFlatDamage;
 	private final ConfigData<Boolean> constantMultiplier;
-	private final ConfigData<Boolean> powerAffectsBonus;
+	private final ConfigData<Boolean> powerAffectsFlatDamage;
 	private final ConfigData<Boolean> powerAffectsMultiplier;
 
 	public ResistSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		bonus = getConfigDataDouble("bonus", 0D);
+		flatDamage = getConfigDataDouble("flat-damage", 0D);
 		multiplier = getConfigDataFloat("multiplier", 0.5F);
 
-		constantBonus = getConfigDataBoolean("constant-bonus", true);
+		constantFlatDamage = getConfigDataBoolean("constant-flat-damage", true);
 		constantMultiplier = getConfigDataBoolean("constant-multiplier", true);
-		powerAffectsBonus = getConfigDataBoolean("power-affects-bonus", true);
+		powerAffectsFlatDamage = getConfigDataBoolean("power-affects-flat-damage", true);
 		powerAffectsMultiplier = getConfigDataBoolean("power-affects-multiplier", true);
 
 		normalDamageTypes = new HashSet<>();
@@ -82,18 +82,18 @@ public class ResistSpell extends BuffSpell {
 				else if (multiplier > 1) multiplier *= data.power();
 			}
 		}
-		boolean constantBonus = this.constantBonus.get(data);
+		boolean constantFlatDamage = this.constantFlatDamage.get(data);
 
-		double bonus = 0;
-		if (constantBonus) {
-			bonus = this.bonus.get(data);
-			if (powerAffectsBonus.get(data)) {
-				if (bonus < 1) bonus /= data.power();
-				else if (bonus > 1) bonus *= data.power();
+		double flatDamage = 0;
+		if (constantFlatDamage) {
+			flatDamage = this.flatDamage.get(data);
+			if (powerAffectsFlatDamage.get(data)) {
+				if (flatDamage < 1) flatDamage /= data.power();
+				else if (flatDamage > 1) flatDamage *= data.power();
 			}
 		}
 
-		entities.put(data.target().getUniqueId(), new ResistData(data, multiplier, constantMultiplier, bonus, constantBonus));
+		entities.put(data.target().getUniqueId(), new ResistData(data, multiplier, constantMultiplier, flatDamage, constantFlatDamage));
 		return true;
 	}
 
@@ -141,19 +141,19 @@ public class ResistSpell extends BuffSpell {
 			}
 		}
 
-		double bonus = data.bonus;
-		if (!data.constantBonus) {
+		double flatDamage = data.flatDamage;
+		if (!data.constantFlatDamage) {
 			SpellData subData = data.spellData.target(event.getCaster());
 
-			bonus = this.bonus.get(subData);
-			if (powerAffectsBonus.get(subData)) {
-				if (bonus < 1) bonus /= subData.power();
-				else if (bonus > 1) bonus *= subData.power();
+			flatDamage = this.flatDamage.get(subData);
+			if (powerAffectsFlatDamage.get(subData)) {
+				if (flatDamage < 1) flatDamage /= subData.power();
+				else if (flatDamage > 1) flatDamage *= subData.power();
 			}
 		}
 
 		addUseAndChargeCost(caster);
-		event.applyDamageBonus(bonus);
+		event.applyFlatDamage(flatDamage);
 		event.applyDamageModifier(multiplier);
 	}
 
@@ -183,19 +183,19 @@ public class ResistSpell extends BuffSpell {
 			}
 		}
 
-		double bonus = data.bonus;
-		if (!data.constantBonus) {
+		double flatDamage = data.flatDamage;
+		if (!data.constantFlatDamage) {
 			SpellData subData = data.spellData.target(target);
 
-			bonus = this.bonus.get(subData);
-			if (powerAffectsBonus.get(subData)) {
-				if (bonus < 1) bonus /= subData.power();
-				else if (bonus > 1) bonus *= subData.power();
+			flatDamage = this.flatDamage.get(subData);
+			if (powerAffectsFlatDamage.get(subData)) {
+				if (flatDamage < 1) flatDamage /= subData.power();
+				else if (flatDamage > 1) flatDamage *= subData.power();
 			}
 		}
 
 		addUseAndChargeCost(caster);
-		event.setDamage((event.getDamage() * multiplier) - bonus);
+		event.setDamage((event.getDamage() * multiplier) - flatDamage);
 	}
 
 	public Map<UUID, ResistData> getEntities() {
@@ -210,6 +210,6 @@ public class ResistSpell extends BuffSpell {
 		return normalDamageTypes;
 	}
 
-	public record ResistData(SpellData spellData, float multiplier, boolean constantMultiplier, double bonus, boolean constantBonus) {}
+	public record ResistData(SpellData spellData, float multiplier, boolean constantMultiplier, double flatDamage, boolean constantFlatDamage) {}
 
 }

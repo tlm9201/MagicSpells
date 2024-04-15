@@ -13,7 +13,7 @@ public class SpellApplyDamageEvent extends SpellEvent {
 	private final DamageCause cause;
 	private final long timestamp;
 	private float modifier;
-	private double bonus;
+	private double flat;
 
 	public SpellApplyDamageEvent(Spell spell, LivingEntity caster, LivingEntity target, double damage, DamageCause cause, String spellDamageType) {
 		super(spell, caster);
@@ -26,15 +26,15 @@ public class SpellApplyDamageEvent extends SpellEvent {
 		timestamp = System.currentTimeMillis();
 
 		modifier = 1.0F;
-		bonus = 0.0D;
+		flat = 0.0D;
 	}
 
 	public void applyDamageModifier(float modifier) {
 		this.modifier *= modifier;
 	}
 
-	public void applyDamageBonus(double bonus) {
-		this.bonus = bonus;
+	public void applyFlatDamage(double flat) {
+		this.flat = flat;
 	}
 
 	public LivingEntity getTarget() {
@@ -57,12 +57,12 @@ public class SpellApplyDamageEvent extends SpellEvent {
 		return modifier;
 	}
 
-	public double getDamageBonus() {
-		return bonus;
+	public double getFlatDamage() {
+		return flat;
 	}
 
 	public double getFinalDamage() {
-		return (damage * modifier) + bonus;
+		return (damage * modifier) + flat;
 	}
 
 	public String getSpellDamageType() {

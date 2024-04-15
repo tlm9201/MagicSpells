@@ -20,20 +20,20 @@ public class DamageEmpowerSpell extends BuffSpell {
 
 	private SpellFilter filter;
 
-	private final ConfigData<Double> damageBonus;
+	private final ConfigData<Double> flatDamage;
 
 	private final ConfigData<Float> damageMultiplier;
 
-	private final ConfigData<Boolean> constantDamageBonus;
+	private final ConfigData<Boolean> constantFlatDamage;
 	private final ConfigData<Boolean> constantDamageMultiplier;
 
 
 	public DamageEmpowerSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		damageBonus = getConfigDataDouble("damage-bonus", 0D);
+		flatDamage = getConfigDataDouble("flat-damage", 0D);
 		damageMultiplier = getConfigDataFloat("damage-multiplier", 1.5F);
-		constantDamageBonus = getConfigDataBoolean("constant-damage-bonus", true);
+		constantFlatDamage = getConfigDataBoolean("constant-flat-damage", true);
 		constantDamageMultiplier = getConfigDataBoolean("constant-damage-multiplier", true);
 		filter = getConfigSpellFilter();
 
@@ -48,13 +48,13 @@ public class DamageEmpowerSpell extends BuffSpell {
 			multiplierSupplier = () -> damageMultiplier;
 		} else multiplierSupplier = () -> damageMultiplier.get(data);
 
-		Supplier<Double> bonusSupplier;
-		if (constantDamageBonus.get(data)) {
-			double damageBonus = this.damageBonus.get(data);
-			bonusSupplier = () -> damageBonus;
-		} else bonusSupplier = () -> damageBonus.get(data);
+		Supplier<Double> flatDamageSupplier;
+		if (constantFlatDamage.get(data)) {
+			double flatDamage = this.flatDamage.get(data);
+			flatDamageSupplier = () -> flatDamage;
+		} else flatDamageSupplier = () -> flatDamage.get(data);
 
-		DamageSuppliers record = new DamageSuppliers(multiplierSupplier, bonusSupplier);
+		DamageSuppliers record = new DamageSuppliers(multiplierSupplier, flatDamageSupplier);
 
 		entities.put(data.target().getUniqueId(), record);
 
@@ -90,9 +90,9 @@ public class DamageEmpowerSpell extends BuffSpell {
 
 		DamageSuppliers suppliers = entities.get(caster.getUniqueId());
 
-		double damageBonus = suppliers.damageBonus().get();
+		double flatDamage = suppliers.flatDamage().get();
 		float damageMultiplier = suppliers.damageMultiplier().get();
-		event.applyDamageBonus(damageBonus);
+		event.applyFlatDamage(flatDamage);
 		event.applyDamageModifier(damageMultiplier);
 
 		addUseAndChargeCost(caster);
@@ -110,6 +110,6 @@ public class DamageEmpowerSpell extends BuffSpell {
 		this.filter = filter;
 	}
 
-	public record DamageSuppliers(Supplier<Float> damageMultiplier, Supplier<Double> damageBonus) {}
+	public record DamageSuppliers(Supplier<Float> damageMultiplier, Supplier<Double> flatDamage) {}
 
 }
