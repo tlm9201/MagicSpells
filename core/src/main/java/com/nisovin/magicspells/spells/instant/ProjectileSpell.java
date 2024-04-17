@@ -248,7 +248,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		Entity entity = event.getEntity();
 		if (!(entity instanceof WitherSkull projectile)) return;
 
-        Iterator<ProjectileTracker> iterator = trackerSet.iterator();
+		Iterator<ProjectileTracker> iterator = trackerSet.iterator();
 		while (iterator.hasNext()) {
 			ProjectileTracker tracker = iterator.next();
 			if (tracker.getProjectile() == null) continue;
