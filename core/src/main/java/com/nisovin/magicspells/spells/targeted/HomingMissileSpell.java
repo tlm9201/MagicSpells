@@ -366,7 +366,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 				if (entityMap != null) {
 					for (var entry : entityMap.entrySet()) {
-						entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone()));
+						entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone(), data));
 					}
 				}
 			}

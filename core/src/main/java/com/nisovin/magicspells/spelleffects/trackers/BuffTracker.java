@@ -10,10 +10,12 @@ import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker
 
 public class BuffTracker extends EffectTracker implements Runnable {
 
-	private ModifierResult result;
+	private final boolean dragEntity;
 
 	public BuffTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
 		super(entity, checker, effect, data);
+
+		dragEntity = effect.isDraggingEntity().get(data);
 	}
 
 	@Override
@@ -24,7 +26,7 @@ public class BuffTracker extends EffectTracker implements Runnable {
 		}
 
 		if (entity instanceof LivingEntity livingEntity && effect.getModifiers() != null) {
-			result = effect.getModifiers().apply(livingEntity, data);
+			ModifierResult result = effect.getModifiers().apply(livingEntity, data);
 			data = result.data();
 
 			if (!result.check()) return;
@@ -39,7 +41,7 @@ public class BuffTracker extends EffectTracker implements Runnable {
 			return;
 		}
 
-		if (!effect.isDraggingEntity().get(data)) {
+		if (!dragEntity) {
 			effect.playEffect(entity, data);
 			return;
 		}
@@ -49,7 +51,7 @@ public class BuffTracker extends EffectTracker implements Runnable {
 			return;
 		}
 
-		effectEntity.teleport(effect.applyOffsets(entity.getLocation()));
+		effectEntity.teleport(effect.applyOffsets(entity.getLocation(), data));
 	}
 
 	@Override

@@ -33,11 +33,8 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 	private final float orbitZAxis;
 	private final float distancePerTick;
 
+	private final boolean dragEntity;
 	private final boolean counterClockwise;
-
-	private Location location;
-
-	private ModifierResult result;
 
 	public OrbitTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
 		super(entity, checker, effect, data);
@@ -53,6 +50,7 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 		orbitZAxis = effect.getOrbitZAxis().get(data);
 		distancePerTick = 6.28f * effect.getEffectInterval().get(data) / effect.getSecondsPerRevolution().get(data) / 20f;
 
+		dragEntity = effect.isDraggingEntity().get(data);
 		counterClockwise = effect.isCounterClockwise().get(data);
 
 		float horizRadius = effect.getHorizExpandRadius().get(data);
@@ -77,10 +75,10 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 		yAxis += orbitYAxis;
 		zAxis += orbitZAxis;
 
-		location = getLocation();
+		Location location = getLocation();
 
 		if (entity instanceof LivingEntity livingEntity && effect.getModifiers() != null) {
-			result = effect.getModifiers().apply(livingEntity, data);
+			ModifierResult result = effect.getModifiers().apply(livingEntity, data);
 			data = result.data();
 
 			if (!result.check()) return;
@@ -96,7 +94,7 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 			return;
 		}
 
-		if (!effect.isDraggingEntity().get(data)) {
+		if (!dragEntity) {
 			effect.playEffect(location, data);
 			return;
 		}
