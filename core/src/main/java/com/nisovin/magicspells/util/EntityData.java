@@ -414,51 +414,6 @@ public class EntityData {
 			apply(entity, data);
 
 			if (consumer != null) consumer.accept(entity);
-
-			for (DelayedEntityData delayedData : delayedEntityData) {
-				EntityData entityData = delayedData.data;
-
-				long delay = Math.max(delayedData.delay.get(data), 1);
-				long interval = delayedData.interval.get(data);
-				long iterations = delayedData.iterations.get(data);
-
-				if (interval > 0) {
-					if (iterations > 0) {
-						entity.getScheduler().runAtFixedRate(
-							MagicSpells.getInstance(),
-							new Consumer<>() {
-
-								private long count = 0;
-
-								@Override
-								public void accept(ScheduledTask task) {
-									entityData.apply(entity, data);
-									if (++count > iterations) task.cancel();
-								}
-
-							},
-							() -> {},
-							delay,
-							interval
-						);
-					} else {
-						entity.getScheduler().runAtFixedRate(
-							MagicSpells.getInstance(),
-							task -> entityData.apply(entity, data),
-							() -> {},
-							delay,
-							interval
-						);
-					}
-				} else {
-					entity.getScheduler().runDelayed(
-						MagicSpells.getInstance(),
-						task -> entityData.apply(entity, data),
-						() -> {},
-						delay
-					);
-				}
-			}
 		});
 	}
 
@@ -468,6 +423,51 @@ public class EntityData {
 		for (Transformer transformer : transformers)
 			//noinspection unchecked
 			transformer.apply(entity, data);
+
+		for (DelayedEntityData delayedData : delayedEntityData) {
+			EntityData entityData = delayedData.data;
+
+			long delay = Math.max(delayedData.delay.get(data), 1);
+			long interval = delayedData.interval.get(data);
+			long iterations = delayedData.iterations.get(data);
+
+			if (interval > 0) {
+				if (iterations > 0) {
+					entity.getScheduler().runAtFixedRate(
+						MagicSpells.getInstance(),
+						new Consumer<>() {
+
+							private long count = 0;
+
+							@Override
+							public void accept(ScheduledTask task) {
+								entityData.apply(entity, data);
+								if (++count > iterations) task.cancel();
+							}
+
+						},
+						() -> {},
+						delay,
+						interval
+					);
+				} else {
+					entity.getScheduler().runAtFixedRate(
+						MagicSpells.getInstance(),
+						task -> entityData.apply(entity, data),
+						() -> {},
+						delay,
+						interval
+					);
+				}
+			} else {
+				entity.getScheduler().runDelayed(
+					MagicSpells.getInstance(),
+					task -> entityData.apply(entity, data),
+					() -> {},
+					delay
+				);
+			}
+		}
 	}
 
 	private <T> ConfigData<Boolean> addBoolean(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, boolean def, Class<T> type, BiConsumer<T, Boolean> setter, boolean forceOptional) {
