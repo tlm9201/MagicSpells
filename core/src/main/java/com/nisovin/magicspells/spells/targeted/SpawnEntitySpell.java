@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
+import org.bukkit.damage.DamageSource;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -21,9 +22,9 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.meta.BlockDataMeta;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 
 import net.kyori.adventure.text.Component;
 
@@ -46,7 +47,7 @@ import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationSpell, TargetedEntityFromLocationSpell {
 
-	private final List<Entity> entities;
+	private final Map<UUID, SpellData> entities;
 
 	private EntityData entityData;
 
@@ -106,7 +107,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	public SpawnEntitySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		entities = new ArrayList<>();
+		entities = new HashMap<>();
 
 		ConfigurationSection entitySection = getConfigSection("entity");
 		if (entitySection != null) entityData = new EntityData(entitySection);
@@ -253,12 +254,14 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 
 	@Override
 	public void turnOff() {
-		Iterator<Entity> it = entities.iterator();
-		while (it.hasNext()) {
-			Entity entity = it.next();
+		if (!removeMob) {
+			entities.clear();
+			return;
+		}
 
-			it.remove();
-			if (removeMob) entity.remove();
+		for (UUID uuid : entities.keySet()) {
+		    Entity entity = Bukkit.getEntity(uuid);
+			if (entity != null) entity.remove();
 		}
 	}
 
@@ -436,15 +439,21 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		Entity entity = entityData.spawn(loc, data, mob -> prepMob(mob, finalData));
 		if (entity == null) return noTarget(data);
 
-		entities.add(entity);
+		UUID uuid = entity.getUniqueId();
+		entities.put(uuid, data);
 
 		int duration = this.duration.get(data);
 
 		if (duration > 0) {
-			MagicSpells.scheduleDelayedTask(() -> {
-				entity.remove();
-				entities.remove(entity);
-			}, duration);
+			entity.getScheduler().runDelayed(
+				MagicSpells.getInstance(),
+				task -> {
+					entity.remove();
+					entities.remove(uuid);
+				},
+				() -> entities.remove(uuid),
+				duration
+			);
 		}
 
 		if (spellOnSpawn != null) {
@@ -452,14 +461,16 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			else spellOnSpawn.subcast(data.retarget(null, entity.getLocation()));
 		}
 
-		int targetInterval = this.targetInterval.get(data);
-		if (targetInterval > 0 && entity instanceof Mob mob) new Targeter(mob, data, targetInterval);
+		if (entity instanceof Mob mob) {
+			int targetInterval = this.targetInterval.get(data);
+			if (targetInterval > 0) new Targeter(mob, data, targetInterval);
 
-		if (attackSpell != null && entity instanceof LivingEntity livingEntity) {
-			AttackMonitor monitor = new AttackMonitor(livingEntity, data);
-			MagicSpells.registerEvents(monitor);
+			if (attackSpell != null) {
+				AttackMonitor monitor = new AttackMonitor(mob, data);
+				MagicSpells.registerEvents(monitor);
 
-			if (duration > 0) MagicSpells.scheduleDelayedTask(() -> HandlerList.unregisterAll(monitor), duration);
+				if (duration > 0) MagicSpells.scheduleDelayedTask(() -> HandlerList.unregisterAll(monitor), duration);
+			}
 		}
 
 		if (data.hasCaster()) playSpellEffects(data.caster(), source, entity, data);
@@ -469,6 +480,8 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	private void prepMob(Entity entity, SpellData data) {
+		if (removeMob) entity.setPersistent(false);
+
 		entity.setGravity(gravity.get(data));
 		entity.setInvulnerable(invulnerable.get(data));
 
@@ -535,106 +548,110 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	}
 
 	@EventHandler
-	private void onEntityRemove(EntityRemoveFromWorldEvent event) {
-		Entity entity = event.getEntity();
-		if (!entity.isValid()) entities.remove(entity);
+	private void onEntityDeath(EntityDeathEvent event) {
+		LivingEntity entity = event.getEntity();
+
+		SpellData data = entities.remove(entity.getUniqueId());
+		if (data == null) return;
+
+		if (spellOnDeath != null) spellOnDeath.subcast(data.retarget(entity, null));
+	}
+
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	private void onEntityTarget(EntityTargetLivingEntityEvent event) {
+		LivingEntity target = event.getTarget();
+		if (target == null || !(event.getEntity() instanceof Mob mob)) return;
+
+		SpellData data = entities.get(mob.getUniqueId());
+		if (data == null) return;
+
+		if (spellOnTarget != null && !target.equals(mob.getTarget()))
+			spellOnTarget.subcast(data.retarget(target, mob.getLocation()));
 	}
 
 	private class AttackMonitor implements Listener {
 
-		private final LivingEntity monster;
+		private final Mob mob;
 		private final SpellData data;
-
 		private final boolean cancelAttack;
 
-		private LivingEntity target;
-
-		private AttackMonitor(LivingEntity monster, SpellData data) {
-			this.monster = monster;
-			this.target = data.target();
-
-			this.cancelAttack = SpawnEntitySpell.this.cancelAttack.get(data);
-
+		private AttackMonitor(Mob mob, SpellData data) {
+			this.mob = mob;
 			this.data = data.noTargeting();
+			this.cancelAttack = SpawnEntitySpell.this.cancelAttack.get(data);
 		}
 
 		@EventHandler(ignoreCancelled = true)
 		private void onDamage(EntityDamageByEntityEvent event) {
-			Entity damager = event.getDamager();
-			if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Entity entity)
-				damager = entity;
-
-			if (damager != monster) return;
 			if (!(event.getEntity() instanceof LivingEntity damaged)) return;
-			if (attackSpell == null) return;
 
-			attackSpell.subcast(data.retarget(damaged, monster.getLocation()));
+			DamageSource source = event.getDamageSource();
+			if (!mob.equals(source.getCausingEntity()) && !mob.equals(source.getDirectEntity())) return;
+
+			attackSpell.subcast(data.retarget(damaged, mob.getLocation()));
 			event.setCancelled(cancelAttack);
 		}
 
-		@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-		private void onTarget(EntityTargetEvent event) {
-			if (event.getEntity() != monster) return;
+		@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+		private void onTarget(EntityTargetLivingEntityEvent event) {
+			if (!mob.equals(event.getEntity())) return;
 
-			Entity newTarget = event.getTarget();
-			if (!validTargetList.canTarget(data.caster(), newTarget)) {
-				if (target == null) retarget(null);
+			LivingEntity target = event.getTarget();
+			if (target == null || !validTargetList.canTarget(data.caster(), target)) {
+				// No need to cast spell-on-target here as the SpawnEntitySpell#onEntityTarget takes care of it.
+				target = findTarget(target);
 				event.setTarget(target);
-			}
-			if (spellOnTarget != null) {
-				if (newTarget instanceof LivingEntity le) spellOnTarget.subcast(data.retarget(le, null));
-				else spellOnTarget.subcast(data.retarget(null, newTarget.getLocation()));
 			}
 		}
 
 		@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 		private void onDeath(EntityDeathEvent event) {
 			LivingEntity entity = event.getEntity();
-			if (entity == monster) {
+			if (mob.equals(entity)) {
 				HandlerList.unregisterAll(this);
 				return;
 			}
 
-			if (entity != target) return;
+			if (entity.equals(mob.getTarget())) {
+				LivingEntity target = findTarget(entity);
 
-			retarget(entity);
-			if (target != null) MobUtil.setTarget(monster, target);
+				if (spellOnTarget != null && target != null)
+					spellOnTarget.subcast(data.retarget(target, mob.getLocation()));
 
-			if (spellOnDeath != null) spellOnDeath.subcast(data.retarget(entity, null));
+				mob.setTarget(target);
+			}
 		}
 
-		@EventHandler(ignoreCancelled = true)
+		@EventHandler
 		public void onRemove(EntityRemoveFromWorldEvent event) {
 			Entity entity = event.getEntity();
 			if (entity.isValid()) return;
 
-			if (entity == monster) {
-				HandlerList.unregisterAll(this);
-				return;
+			if (entity.equals(mob.getTarget())) {
+				LivingEntity target = findTarget(entity);
+
+				if (spellOnTarget != null && target != null)
+					spellOnTarget.subcast(data.retarget(target, mob.getLocation()));
+
+				mob.setTarget(target);
 			}
-
-			if (entity != target) return;
-
-			retarget(target);
-			if (target != null) MobUtil.setTarget(monster, target);
 		}
 
-		private void retarget(LivingEntity ignore) {
+		private LivingEntity findTarget(Entity ignore) {
 			double range = retargetRange.get(data);
 			double rangeSquared = range * range;
-			double distanceSquared;
 
-			for (LivingEntity entity : monster.getLocation().getNearbyLivingEntities(range)) {
-				if (!entity.isValid()) continue;
-				if (entity.equals(ignore)) continue;
-				if (!validTargetList.canTarget(data.caster(), entity)) continue;
+			for (LivingEntity target : mob.getLocation().getNearbyLivingEntities(range)) {
+				if (!target.isValid()|| mob.equals(target) || target.equals(ignore) || !validTargetList.canTarget(data.caster(), target))
+					continue;
 
-				distanceSquared = monster.getLocation().distanceSquared(entity.getLocation());
+				double distanceSquared = mob.getLocation().distanceSquared(target.getLocation());
 				if (distanceSquared > rangeSquared) continue;
 
-				target = entity;
-				break;
+				return target;
 			}
+
+			return null;
 		}
 
 	}
@@ -663,16 +680,14 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			double range = targetRange.get(data);
 
 			List<LivingEntity> targets = new ArrayList<>(mob.getLocation().getNearbyLivingEntities(range));
-			Iterator<LivingEntity> iterator = targets.iterator();
-			while (iterator.hasNext()) {
-				if (validTargetList.canTarget(data.caster(), iterator.next())) continue;
-				iterator.remove();
-			}
-
+			targets.removeIf(target -> mob.equals(target) || !validTargetList.canTarget(data.caster(), target));
 			if (targets.isEmpty()) return;
 
 			LivingEntity target = targets.get(random.nextInt(targets.size()));
-			mob.setTarget(target);
+			if (!target.equals(mob.getTarget())) {
+				if (spellOnTarget != null) spellOnTarget.subcast(data.retarget(target, mob.getLocation()));
+				mob.setTarget(target);
+			}
 		}
 
 	}
