@@ -183,7 +183,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		InventoryView view;
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			view = player.getOpenInventory();
-			if (view.getTopInventory().getHolder() instanceof MenuInventory menu && menu.getSpell() == this)
+			if (view.getTopInventory().getHolder(false) instanceof MenuInventory menu && menu.getSpell() == this)
 				view.close();
 		}
 	}
@@ -332,7 +332,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		InventoryView view = event.getView();
 
 		Inventory inventory = view.getTopInventory();
-		if (!(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+		if (!(inventory.getHolder(false) instanceof MenuInventory menu) || menu.getSpell() != this) return;
 
 		event.setCancelled(true);
 		if (event.getClickedInventory() != inventory) return;
@@ -357,7 +357,7 @@ public class MenuSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 		InventoryView view = event.getView();
 
 		Inventory inventory = view.getTopInventory();
-		if (!(inventory.getHolder() instanceof MenuInventory menu) || menu.getSpell() != this) return;
+		if (!(inventory.getHolder(false) instanceof MenuInventory menu) || menu.getSpell() != this) return;
 
 		event.setCancelled(true);
 	}

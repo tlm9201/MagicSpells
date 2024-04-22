@@ -238,7 +238,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 			effectLoc = Util.makeFinite(effectLoc);
 
 			for (var entry : entityMap.entrySet()) {
-				entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone()));
+				entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone(), data));
 			}
 		}
 

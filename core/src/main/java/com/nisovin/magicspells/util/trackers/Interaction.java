@@ -70,8 +70,11 @@ public record Interaction(
 
 			boolean stopCausing = config.getBoolean("stop-causing", true);
 			boolean stopWith = config.getBoolean("stop-with", true);
-			String canInteractString = config.getString("can-interact");
-			ValidTargetList canInteractList = canInteractString == null ? null : new ValidTargetList(causing, canInteractString);
+
+			ValidTargetList canInteractList;
+			if (config.isString("can-interact")) canInteractList = new ValidTargetList(causing, config.getString("can-interact"));
+			else if (config.isList("can-interact")) canInteractList = new ValidTargetList(causing, config.getStringList("can-interact"));
+			else canInteractList = null;
 
 			interactions.add(new Interaction(interactsWith, collisionSpell, stopCausing, stopWith, canInteractList));
 		}
