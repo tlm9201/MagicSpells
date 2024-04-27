@@ -99,7 +99,14 @@ public class VelocitySpell extends InstantSpell implements TargetedEntitySpell, 
 	}
 
 	public boolean isJumping(LivingEntity livingEntity) {
-		return velocityMonitor.jumping.containsKey(livingEntity);
+		Collection<VelocityData> data = velocityMonitor.jumping.get(livingEntity);
+		if (data.isEmpty()) return false;
+
+		for (VelocityData velocityData : data)
+			if (velocityData.velocitySpell == this)
+				return true;
+
+		return false;
 	}
 
 	public static Multimap<LivingEntity, VelocityData> getJumping() {
