@@ -84,6 +84,10 @@ public class SpellFilter {
 		return defaultReturn;
 	}
 
+	public boolean isEmpty() {
+		return emptyFilter;
+	}
+
 	/**
 	 * Create a {@link SpellFilter} instance out of a configuration section.
 	 * @param config Reads from the following keys: "spells", "denied-spells", "spell-tags", and "denied-spell-tags".

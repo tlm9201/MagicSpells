@@ -104,7 +104,14 @@ public class LeapSpell extends InstantSpell {
 	}
 
 	public boolean isJumping(LivingEntity livingEntity) {
-		return leapMonitor.jumping.containsKey(livingEntity);
+		Collection<LeapData> data = leapMonitor.jumping.get(livingEntity);
+		if (data.isEmpty()) return false;
+
+		for (LeapData leapData : data)
+			if (leapData.leapSpell == this)
+				return true;
+
+		return false;
 	}
 
 	public Subspell getLandSpell() {
