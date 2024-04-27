@@ -516,7 +516,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 			LivingEntity entity = getWhoToCancel(event.getCaster());
 			if (entity == null) return;
-			if (filter.check(event.getSpell())) return;
+			if (!filter.isEmpty() && filter.check(event.getSpell())) return;
 			turnOff(entity);
 		}
 
