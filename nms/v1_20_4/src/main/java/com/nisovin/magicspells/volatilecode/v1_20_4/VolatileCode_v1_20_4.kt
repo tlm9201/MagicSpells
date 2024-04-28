@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.volatilecode.v1_20_R3
+package com.nisovin.magicspells.volatilecode.v1_20_4
 
 import java.util.*
 
@@ -42,7 +42,7 @@ import net.minecraft.network.protocol.common.custom.GameTestClearMarkersDebugPay
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 import com.nisovin.magicspells.volatilecode.VolatileCodeHelper
 
-class VolatileCode1_20_R3(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
+class VolatileCode_v1_20_4(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
 
     private var entityLivingPotionEffectColor: EntityDataAccessor<Int>? = null
 
