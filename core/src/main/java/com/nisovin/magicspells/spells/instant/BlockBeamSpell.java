@@ -188,36 +188,40 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 			data = data.location(loc);
 		}
 
-		Vector startDir = data.hasTarget() ? data.target().getLocation().subtract(loc).toVector().normalize() : loc.getDirection();
+		Vector direction;
+		if (!data.hasTarget()) direction = loc.getDirection();
+		else {
+			direction = data.target().getLocation().subtract(loc).toVector();
+			direction = direction.isZero() ? loc.getDirection() : direction.normalize();
+		}
 
 		//apply relative offset
 		Vector relativeOffset = this.relativeOffset.get(data);
-		double yOffset = this.yOffset.get(data);
-		if (yOffset != 0) relativeOffset = relativeOffset.clone().setY(yOffset);
 
-		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
-		loc.add(horizOffset.multiply(relativeOffset.getZ()));
-		loc.add(loc.getDirection().multiply(relativeOffset.getX()));
-		loc.setY(loc.getY() + relativeOffset.getY());
+		double yOffset = this.yOffset.get(data);
+		if (yOffset == 0) yOffset = relativeOffset.getY();
+
+		Util.applyRelativeOffset(loc, relativeOffset.setY(0));
+		loc.add(0, yOffset, 0);
 
 		float interval = this.interval.get(data);
 		if (interval < 0.01) interval = 0.01f;
 
-		Vector dir;
-		if (!data.hasTarget()) dir = loc.getDirection().multiply(interval);
-		else {
-			//apply target relative offset
+		if (data.hasTarget()) {
 			Vector targetRelativeOffset = this.targetRelativeOffset.get(data);
+			double targetYOffset = targetRelativeOffset.getY();
 			Location targetLoc = data.target().getLocation();
-			Vector targetDir = targetLoc.getDirection();
 
-			Vector targetHorizOffset = new Vector(-targetDir.getZ(), 0, targetDir.getX()).normalize();
-			targetLoc.add(targetHorizOffset.multiply(targetRelativeOffset.getZ()));
-			targetLoc.add(targetLoc.getDirection().multiply(targetRelativeOffset.getX()));
-			targetLoc.setY(data.target().getLocation().getY() + targetRelativeOffset.getY());
+			Util.applyRelativeOffset(targetLoc, targetRelativeOffset.setY(0));
+			targetLoc.add(0, targetYOffset, 0);
 
-			dir = targetLoc.toVector().subtract(loc.toVector()).normalize().multiply(interval);
+			direction = targetLoc.subtract(loc).toVector();
+			direction = direction.isZero() ? loc.getDirection() : direction.normalize();
 		}
+
+		loc.setDirection(direction);
+
+		Vector step = direction.clone().multiply(interval);
 
 		float beamVerticalSpread = this.beamVerticalSpread.get(data);
 		float beamHorizontalSpread = this.beamHorizontalSpread.get(data);
@@ -225,7 +229,8 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 			float rx = -1 + random.nextFloat() * 2;
 			float ry = -1 + random.nextFloat() * 2;
 			float rz = -1 + random.nextFloat() * 2;
-			dir.add(new Vector(rx * beamHorizontalSpread, ry * beamVerticalSpread, rz * beamHorizontalSpread));
+
+			step.add(new Vector(rx * beamHorizontalSpread, ry * beamVerticalSpread, rz * beamHorizontalSpread));
 		}
 
 		double verticalHitRadius = this.verticalHitRadius.get(data);
@@ -255,11 +260,14 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 		mainLoop:
 		while (d < maxDistance) {
 			d += interval;
-			loc.add(dir);
+			loc.add(step);
 
-			if (rotation != 0) Util.rotateVector(dir, rotation);
-			if (gravity != 0) dir.add(new Vector(0, gravity, 0));
-			if (rotation != 0 || gravity != 0) loc.setDirection(dir);
+			if (rotation != 0 || gravity != 0) {
+				if (rotation != 0) Util.rotateVector(step, rotation);
+				if (gravity != 0) step.add(new Vector(0, gravity, 0));
+
+				loc.setDirection(step);
+			}
 
 			if (zoneManager.willFizzle(loc, this)) break;
 
