@@ -9,13 +9,14 @@ import java.util.function.Predicate;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.NamespacedKey;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataType;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
@@ -32,6 +33,8 @@ import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpell, TargetedEntitySpell, TargetedEntityFromLocationSpell {
+
+	private static final NamespacedKey MS_BLOCK_BEAM = new NamespacedKey(MagicSpells.getInstance(), "block_beam");
 
 	private final Set<List<LivingEntity>> entities;
 
@@ -282,25 +285,25 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 
 			double pitch = loc.getPitch() * Math.PI / 180;
 
-			ArmorStand armorStand;
-			if (!small) armorStand = loc.getWorld().spawn(loc.clone().subtract(0, 1.7, 0), ArmorStand.class);
-			else armorStand = loc.getWorld().spawn(loc.clone().subtract(0, 0.9, 0), ArmorStand.class);
+			loc.getWorld().spawn(loc.clone().subtract(0, small ? 0.9 : 1.7, 0), ArmorStand.class, stand -> {
+				stand.getEquipment().setHelmet(headItem);
+				stand.setSmall(small);
+				stand.setGravity(false);
+				stand.setVisible(false);
+				stand.setCollidable(false);
+				stand.setPersistent(false);
+				stand.setInvulnerable(true);
+				stand.setRemoveWhenFarAway(true);
+				stand.setHeadPose(new EulerAngle(pitch + rotationX, rotationY, rotationZ));
+				stand.getPersistentDataContainer().set(MS_BLOCK_BEAM, PersistentDataType.BOOLEAN, true);
 
-			armorStand.getEquipment().setHelmet(headItem);
-			armorStand.setGravity(false);
-			armorStand.setVisible(false);
-			armorStand.setCollidable(false);
-			armorStand.setInvulnerable(true);
-			armorStand.setRemoveWhenFarAway(true);
-			armorStand.setHeadPose(new EulerAngle(pitch + rotationX, rotationY, rotationZ));
-			armorStand.setMetadata("MSBlockBeam", new FixedMetadataValue(MagicSpells.getInstance(), "MSBlockBeam"));
+				if (hpFix) {
+					stand.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(health);
+					stand.setHealth(health);
+				}
 
-			if (hpFix) {
-				armorStand.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(health);
-				armorStand.setHealth(health);
-			}
-			armorStand.setSmall(small);
-			armorStandList.add(armorStand);
+				armorStandList.add(stand);
+			});
 
 			playSpellEffects(EffectPosition.SPECIAL, loc, locData);
 
@@ -345,7 +348,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 	@EventHandler(ignoreCancelled = true)
 	public void onSpellTarget(SpellTargetEvent e) {
 		LivingEntity target = e.getTarget();
-		if (target.hasMetadata("MSBlockBeam")) e.setCancelled(true);
+		if (target.getPersistentDataContainer().has(MS_BLOCK_BEAM)) e.setCancelled(true);
 	}
 
 	public Subspell getHitSpell() {
