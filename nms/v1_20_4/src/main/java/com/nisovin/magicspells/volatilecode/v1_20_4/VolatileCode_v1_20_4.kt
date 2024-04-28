@@ -44,6 +44,8 @@ import com.nisovin.magicspells.volatilecode.VolatileCodeHelper
 
 class VolatileCode_v1_20_4(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
 
+    private val toastKey = ResourceLocation("magicspells", "toast_effect")
+
     private var entityLivingPotionEffectColor: EntityDataAccessor<Int>? = null
 
     init {
@@ -156,27 +158,25 @@ class VolatileCode_v1_20_4(helper: VolatileCodeHelper) : VolatileCodeHandle(help
             AdvancementType.TASK
         }
 
-        val id = ResourceLocation("magicspells", "toast_effect")
-        val criterionName = "impossible";
         val advancement = Advancement.Builder.advancement()
             .display(iconNms, textNms, description, null, frame, true, false, true)
-            .addCriterion(criterionName, Criterion(ImpossibleTrigger(), ImpossibleTrigger.TriggerInstance()))
-            .build(id)
+            .addCriterion("impossible", Criterion(ImpossibleTrigger(), ImpossibleTrigger.TriggerInstance()))
+            .build(toastKey)
         val progress = AdvancementProgress()
-        progress.update(AdvancementRequirements(listOf(listOf(criterionName))))
-        progress.grantProgress(criterionName)
+        progress.update(AdvancementRequirements(listOf(listOf("impossible"))))
+        progress.grantProgress("impossible")
 
         val player = (receiver as CraftPlayer).handle
         player.connection.send(ClientboundUpdateAdvancementsPacket(
             false,
             Collections.singleton(advancement),
             Collections.emptySet(),
-            Collections.singletonMap(id, progress)
+            Collections.singletonMap(toastKey, progress)
         ))
         player.connection.send(ClientboundUpdateAdvancementsPacket(
             false,
             Collections.emptySet(),
-            Collections.singleton(id),
+            Collections.singleton(toastKey),
             Collections.emptyMap()
         ))
     }

@@ -1,6 +1,7 @@
 package com.nisovin.magicspells.handlers;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.HashMap;
 
 import org.bukkit.entity.Player;
@@ -17,46 +18,52 @@ import com.nisovin.magicspells.util.TimeUtil;
 
 public class LifeLengthTracker implements Listener {
 
-	private final Map<String, Long> lastSpawn = new HashMap<>();
-	private final Map<String, Integer> lastLifeLength = new HashMap<>();
-	
+	private final Map<UUID, Long> lastSpawnMillis = new HashMap<>();
+	private final Map<UUID, Integer> lastLifeLength = new HashMap<>();
+
 	public LifeLengthTracker() {
-		Util.forEachPlayerOnline(player -> lastSpawn.put(player.getName(), System.currentTimeMillis()));
+		Util.forEachPlayerOnline(player -> lastSpawnMillis.put(player.getUniqueId(), System.currentTimeMillis()));
 		MagicSpells.registerEvents(this);
 	}
-	
-	public int getCurrentLifeLength(Player player) {
-		if (!lastSpawn.containsKey(player.getName())) return 0;
 
-		long spawn = lastSpawn.get(player.getName());
-		return (int) ((System.currentTimeMillis() - spawn) / TimeUtil.MILLISECONDS_PER_SECOND);
+	public int getCurrentLifeLength(Player player) {
+		UUID uuid = player.getUniqueId();
+		if (!lastLifeLength.containsKey(uuid)) return 0;
+		return durationSeconds(lastSpawnMillis.get(uuid));
 	}
-	
+
 	public int getLastLifeLength(Player player) {
-		if (lastLifeLength.containsKey(player.getName())) return lastLifeLength.get(player.getName());
-		return 0;
+		return lastLifeLength.getOrDefault(player.getUniqueId(), 0);
 	}
-	
+
+	private static int durationSeconds(long spawnTime) {
+		return (int) ((System.currentTimeMillis() - spawnTime) / TimeUtil.MILLISECONDS_PER_SECOND);
+	}
+
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
-		lastSpawn.put(event.getPlayer().getName(), System.currentTimeMillis());
+		lastSpawnMillis.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
 	}
-	
-	@EventHandler
-	public void onQuit(PlayerQuitEvent event) {
-		Long spawn = lastSpawn.remove(event.getPlayer().getName());
-		if (spawn != null) lastLifeLength.put(event.getPlayer().getName(), (int) ((System.currentTimeMillis() - spawn) / TimeUtil.MILLISECONDS_PER_SECOND));
-	}
-	
-	@EventHandler
-	public void onDeath(PlayerDeathEvent event) {
-		Long spawn = lastSpawn.remove(event.getEntity().getName());
-		if (spawn != null) lastLifeLength.put(event.getEntity().getName(), (int) ((System.currentTimeMillis() - spawn) / TimeUtil.MILLISECONDS_PER_SECOND));
-	}
-	
+
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
-		lastSpawn.put(event.getPlayer().getName(), System.currentTimeMillis());
+		lastSpawnMillis.put(event.getPlayer().getUniqueId(), System.currentTimeMillis());
 	}
-	
+
+	@EventHandler
+	public void onQuit(PlayerQuitEvent event) {
+		UUID uuid = event.getPlayer().getUniqueId();
+		Long spawn = lastSpawnMillis.remove(uuid);
+		if (spawn == null) return;
+		lastLifeLength.put(uuid, durationSeconds(spawn));
+	}
+
+	@EventHandler
+	public void onDeath(PlayerDeathEvent event) {
+		UUID uuid = event.getPlayer().getUniqueId();
+		Long spawn = lastSpawnMillis.remove(uuid);
+		if (spawn == null) return;
+		lastLifeLength.put(uuid, durationSeconds(spawn));
+	}
+
 }

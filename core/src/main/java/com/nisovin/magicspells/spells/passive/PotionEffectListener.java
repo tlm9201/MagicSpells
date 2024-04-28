@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.spells.passive;
 
 import java.util.List;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.ArrayList;
 
@@ -16,32 +15,26 @@ import org.bukkit.event.entity.EntityPotionEffectEvent.*;
 
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
+import com.nisovin.magicspells.handlers.PotionEffectHandler;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 @Name("potioneffect")
 public class PotionEffectListener extends PassiveListener {
 
-	private List<PotionEffectType> types;
-	private EnumSet<Action> actions;
-	private EnumSet<Cause> causes;
+	private boolean isAnyType = false;
+	private EnumSet<Cause> causes = EnumSet.allOf(Cause.class);
+	private EnumSet<Action> actions = EnumSet.allOf(Action.class);
+	private final List<PotionEffectType> types = new ArrayList<>();
 
 	@Override
 	public void initialize(@NotNull String var) {
 		if (var.isEmpty()) return;
 
-		types = new ArrayList<>();
-		actions = EnumSet.noneOf(Action.class);
-		causes = EnumSet.noneOf(Cause.class);
-
 		String[] splits = var.toUpperCase().split(" ");
-		//Asterisks are wildcards, for when you want the parameter to pass on *any* value
-		if (splits[0].equals("*")) {
-			//It's dirty, but it works. If a wildcard is used, dump every value into the list.
-			types = Arrays.asList(PotionEffectType.values());
-		} else {
-			//Each parameter can accept a list of options, separated by commas
+		if (splits[0].equals("*")) isAnyType = true;
+		else {
 			for (String s : splits[0].split(",")) {
-				PotionEffectType type = PotionEffectType.getByName(s);
+				PotionEffectType type = PotionEffectHandler.getPotionEffectType(s);
 
 				if (type == null) {
 					MagicSpells.error("Invalid effect '" + s + "' in potioneffect trigger on passive spell '" + passiveSpell.getInternalName() + "'");
@@ -79,24 +72,24 @@ public class PotionEffectListener extends PassiveListener {
 		if (!isCancelStateOk(event.isCancelled())) return;
 
 		if (!actions.contains(event.getAction()) || !causes.contains(event.getCause())) return;
-
 		if (!canTrigger(entity)) return;
 
-		PotionEffectType type = null;
-		PotionEffect effect;
-		switch (event.getAction()) { //The effect used by the event is referenced differently based on the action, so unfortunately this is needed
-			case ADDED -> {
-				effect = event.getNewEffect();
-				if (effect != null) type = effect.getType();
-			}
-			case CHANGED -> type = event.getModifiedType();
-			case REMOVED, CLEARED -> {
-				effect = event.getOldEffect();
-				if (effect != null) type = effect.getType();
-			}
-		}
+		if (!isAnyType) {
+			// The effect used by the event is referenced differently based on the action, so unfortunately this is needed.
+			PotionEffectType type = switch (event.getAction()) {
+				case ADDED -> {
+					PotionEffect effect = event.getNewEffect();
+					yield effect == null ? null : effect.getType();
+				}
+				case CHANGED -> event.getModifiedType();
+				case REMOVED, CLEARED -> {
+					PotionEffect effect = event.getOldEffect();
+					yield effect == null ? null : effect.getType();
+				}
+			};
 
-		if (type == null || !types.contains(type)) return;
+			if (type == null || !types.contains(type)) return;
+		}
 
 		boolean casted = passiveSpell.activate(entity);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);

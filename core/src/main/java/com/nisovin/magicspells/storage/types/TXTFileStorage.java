@@ -153,7 +153,7 @@ public class TXTFileStorage extends StorageHandler {
 			writer.close();
 			MagicSpells.debug("Saved spellbook for player '" + pl.getName() + "'.");
 		} catch (Exception e) {
-			plugin.getServer().getLogger().severe("Error saving spellbook for player '" + pl.getName() + "'.");
+			plugin.getLogger().severe("Error saving spellbook for player '" + pl.getName() + "'.");
 			e.printStackTrace();
 		}
 	}

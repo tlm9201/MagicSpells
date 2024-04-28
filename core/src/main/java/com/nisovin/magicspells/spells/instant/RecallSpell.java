@@ -18,7 +18,7 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
 	private final ConfigData<Double> maxRange;
 
-	private final ConfigData<Boolean> useBedLocation;
+	private final ConfigData<Boolean> useRespawnLocation;
 	private final ConfigData<Boolean> allowCrossWorld;
 
 	private String strNoMark;
@@ -34,7 +34,7 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 
 		maxRange = getConfigDataDouble("max-range", 0);
 
-		useBedLocation = getConfigDataBoolean("use-bed-location", false);
+		useRespawnLocation = getConfigDataBoolean("use-respawn-location", getConfigDataBoolean("use-bed-location", false));
 		allowCrossWorld = getConfigDataBoolean("allow-cross-world", true);
 
 		strNoMark = getConfigString("str-no-mark", "You have no mark to recall to.");
@@ -107,7 +107,11 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	}
 
 	private Location getRecallLocation(LivingEntity entity, SpellData data) {
-		if (useBedLocation.get(data)) return entity instanceof Player player ? player.getBedSpawnLocation() : null;
+		if (useRespawnLocation.get(data)) {
+			if (!(entity instanceof Player player)) return null;
+			Location location = player.getRespawnLocation();
+			return location == null ? player.getWorld().getSpawnLocation() : location;
+		}
 		return markSpell == null ? null : markSpell.getEffectiveMark(entity);
 	}
 
