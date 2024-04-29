@@ -95,11 +95,8 @@ public class ItemProjectileTracker implements Runnable, Tracker {
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 
 		//relativeOffset
-		Vector startDirection = startLocation.getDirection().normalize();
-		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-		startLocation.add(horizOffset.multiply(relativeOffset.getZ()));
-		startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
-		startLocation.setY(startLocation.getY() + relativeOffset.getY());
+		startLocation.add(0, relativeOffset.getY(), 0);
+		Util.applyRelativeOffset(startLocation, relativeOffset.setY(0));
 
 		previousLocation = startLocation.clone();
 		currentLocation = startLocation.clone();

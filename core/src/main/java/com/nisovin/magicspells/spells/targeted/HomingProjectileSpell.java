@@ -245,6 +245,7 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 		private final float velocity;
 
 		private final double maxDuration;
+		private final double targetYOffset;
 
 		private final Vector targetRelativeOffset;
 
@@ -254,13 +255,11 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			startTime = System.currentTimeMillis();
 
 			currentLocation = data.location();
-			Vector relativeOffset = HomingProjectileSpell.this.relativeOffset.get(data);
 
-			Vector startDir = currentLocation.getDirection();
-			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-			currentLocation.add(horizOffset.multiply(relativeOffset.getZ()));
-			currentLocation.add(startDir.multiply(relativeOffset.getX()));
-			currentLocation.setY(currentLocation.getY() + relativeOffset.getY());
+			Vector relativeOffset = HomingProjectileSpell.this.relativeOffset.get(data);
+			currentLocation.add(0, relativeOffset.getY(), 0);
+			Util.applyRelativeOffset(currentLocation, relativeOffset.setY(0));
+
 			data = data.location(currentLocation);
 			this.data = data;
 
@@ -301,6 +300,8 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			maxDuration = HomingProjectileSpell.this.maxDuration.get(data) * TimeUtil.MILLISECONDS_PER_SECOND;
 
 			targetRelativeOffset = HomingProjectileSpell.this.targetRelativeOffset.get(data);
+			targetYOffset = targetRelativeOffset.getY();
+			targetRelativeOffset.setY(0);
 
 			currentVelocity = data.target().getLocation().add(0, 0.75, 0).subtract(projectile.getLocation()).toVector().normalize();
 			currentVelocity.multiply(velocity);
@@ -362,11 +363,8 @@ public class HomingProjectileSpell extends TargetedSpell implements TargetedEnti
 			Vector oldVelocity = new Vector(currentVelocity.getX(), currentVelocity.getY(), currentVelocity.getZ());
 
 			Location targetLoc = data.target().getLocation();
-			Vector startDir = targetLoc.getDirection();
-			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-			targetLoc.add(horizOffset.multiply(targetRelativeOffset.getZ()));
-			targetLoc.add(startDir.multiply(targetRelativeOffset.getX()));
-			targetLoc.setY(targetLoc.getY() + targetRelativeOffset.getY());
+			Util.applyRelativeOffset(targetLoc, targetRelativeOffset);
+			targetLoc.add(0, targetYOffset, 0);
 
 			currentVelocity = targetLoc.toVector().subtract(projectile.getLocation().toVector()).normalize();
 			currentVelocity.multiply(velocity);

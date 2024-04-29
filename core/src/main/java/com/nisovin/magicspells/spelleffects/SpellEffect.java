@@ -12,12 +12,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.TimeUtil;
-import com.nisovin.magicspells.util.DependsOn;
-import com.nisovin.magicspells.util.SpellData;
-import com.nisovin.magicspells.util.ModifierResult;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.util.config.ConfigDataUtil;
@@ -199,16 +195,17 @@ public abstract class SpellEffect {
 	}
 
 	public Location applyOffsets(Location loc, Vector offset, Vector relativeOffset, double zOffset, double heightOffset, double forwardOffset) {
-		if (offset.getX() != 0 || offset.getY() != 0 || offset.getZ() != 0) loc.add(offset);
-		if (relativeOffset.getX() != 0 || relativeOffset.getY() != 0 || relativeOffset.getZ() != 0)
-			loc.add(VectorUtils.rotateVector(relativeOffset, loc));
-		if (zOffset != 0) {
-			Vector locDirection = loc.getDirection().normalize();
-			Vector horizOffset = new Vector(-locDirection.getZ(), 0.0, locDirection.getX()).normalize();
-			loc.add(horizOffset.multiply(zOffset));
+		loc.add(offset);
+		loc.add(0, heightOffset, 0);
+
+		relativeOffset.setZ(relativeOffset.getZ() + zOffset);
+		if (!relativeOffset.isZero()) Util.applyRelativeOffset(loc, relativeOffset);
+
+		if (forwardOffset != 0) {
+			Vector forward = Util.getDirection(loc.getYaw(), 0);
+			loc.add(forward.multiply(forwardOffset));
 		}
-		if (heightOffset != 0) loc.setY(loc.getY() + heightOffset);
-		if (forwardOffset != 0) loc.add(loc.getDirection().setY(0).normalize().multiply(forwardOffset));
+
 		return loc;
 	}
 

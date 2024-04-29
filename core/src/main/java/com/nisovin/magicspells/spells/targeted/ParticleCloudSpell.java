@@ -161,14 +161,12 @@ public class ParticleCloudSpell extends TargetedSpell implements TargetedLocatio
 
 	private void spawnCloud(SpellData data) {
 		Location location = data.location();
-		Vector startDir = location.getDirection();
-		Vector relativeOffset = this.relativeOffset.get(data);
 
 		//apply relative offset
-		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
-		location.add(horizOffset.multiply(relativeOffset.getZ()));
-		location.add(startDir.multiply(relativeOffset.getX()));
-		location.setY(location.getY() + relativeOffset.getY());
+		Vector relativeOffset = this.relativeOffset.get(data);
+		location.add(0, relativeOffset.getY(), 0);
+		Util.applyRelativeOffset(location, relativeOffset.setY(0));
+
 		data = data.location(location);
 
 		SpellData finalData = data;

@@ -51,20 +51,17 @@ public class GripSpell extends TargetedSpell implements TargetedEntitySpell, Tar
 	public CastResult castAtEntityFromLocation(SpellData data) {
 		Location loc = data.location();
 
-		Vector startDir = loc.clone().getDirection().normalize();
-		Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-
 		Vector relativeOffset = this.relativeOffset.get(data);
 
 		double yOffset = this.yOffset.get(data);
-		if (yOffset != 0) relativeOffset.setY(yOffset);
+		if (yOffset == 0) yOffset = relativeOffset.getY();
 
 		double locationOffset = this.locationOffset.get(data);
 		if (locationOffset != 0) relativeOffset.setX(locationOffset);
 
-		loc.add(horizOffset.multiply(relativeOffset.getZ()));
-		loc.add(loc.getDirection().clone().multiply(relativeOffset.getX()));
-		loc.setY(loc.getY() + relativeOffset.getY());
+		Util.applyRelativeOffset(loc, relativeOffset.setY(0));
+		loc.add(0, yOffset, 0);
+
 		data = data.location(loc);
 
 		if (checkGround.get(data) && !loc.getBlock().isPassable()) return noTarget(strCantGrip, data);
