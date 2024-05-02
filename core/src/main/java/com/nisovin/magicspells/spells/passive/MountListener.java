@@ -5,10 +5,9 @@ import java.util.EnumSet;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.entity.EntityMountEvent;
 
 import org.jetbrains.annotations.NotNull;
-
-import org.spigotmc.event.entity.EntityMountEvent;
 
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;

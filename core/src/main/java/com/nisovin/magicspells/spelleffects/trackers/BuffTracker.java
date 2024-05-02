@@ -54,9 +54,4 @@ public class BuffTracker extends EffectTracker implements Runnable {
 		effectEntity.teleport(effect.applyOffsets(entity.getLocation(), data));
 	}
 
-	@Override
-	public void stop() {
-		super.stop();
-	}
-
 }

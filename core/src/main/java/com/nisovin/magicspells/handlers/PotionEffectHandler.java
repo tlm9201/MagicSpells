@@ -3,6 +3,7 @@ package com.nisovin.magicspells.handlers;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.bukkit.Registry;
 import org.bukkit.potion.PotionEffectType;
 
 public class PotionEffectHandler {
@@ -11,9 +12,10 @@ public class PotionEffectHandler {
 
 	static {
 		// Add bukkit and minecraft potion effect names
-		for (PotionEffectType potionEffect : PotionEffectType.values()) {
+		for (PotionEffectType potionEffect : Registry.EFFECT) {
+			//noinspection deprecation
 			potionEffects.put(potionEffect.getName().toLowerCase(), potionEffect);
-			potionEffects.put(potionEffect.getKey().value().toLowerCase(), potionEffect);
+			potionEffects.put(potionEffect.key().value(), potionEffect);
 		}
 	}
 

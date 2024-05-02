@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.volatilecode.v1_20_R3
+package com.nisovin.magicspells.volatilecode.v1_20_4
 
 import java.util.*
 
@@ -42,7 +42,9 @@ import net.minecraft.network.protocol.common.custom.GameTestClearMarkersDebugPay
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 import com.nisovin.magicspells.volatilecode.VolatileCodeHelper
 
-class VolatileCode1_20_R3(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
+class VolatileCode_v1_20_4(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
+
+    private val toastKey = ResourceLocation("magicspells", "toast_effect")
 
     private var entityLivingPotionEffectColor: EntityDataAccessor<Int>? = null
 
@@ -156,27 +158,25 @@ class VolatileCode1_20_R3(helper: VolatileCodeHelper) : VolatileCodeHandle(helpe
             AdvancementType.TASK
         }
 
-        val id = ResourceLocation("magicspells", "toast_effect")
-        val criterionName = "impossible";
         val advancement = Advancement.Builder.advancement()
             .display(iconNms, textNms, description, null, frame, true, false, true)
-            .addCriterion(criterionName, Criterion(ImpossibleTrigger(), ImpossibleTrigger.TriggerInstance()))
-            .build(id)
+            .addCriterion("impossible", Criterion(ImpossibleTrigger(), ImpossibleTrigger.TriggerInstance()))
+            .build(toastKey)
         val progress = AdvancementProgress()
-        progress.update(AdvancementRequirements(listOf(listOf(criterionName))))
-        progress.grantProgress(criterionName)
+        progress.update(AdvancementRequirements(listOf(listOf("impossible"))))
+        progress.grantProgress("impossible")
 
         val player = (receiver as CraftPlayer).handle
         player.connection.send(ClientboundUpdateAdvancementsPacket(
             false,
             Collections.singleton(advancement),
             Collections.emptySet(),
-            Collections.singletonMap(id, progress)
+            Collections.singletonMap(toastKey, progress)
         ))
         player.connection.send(ClientboundUpdateAdvancementsPacket(
             false,
             Collections.emptySet(),
-            Collections.singleton(id),
+            Collections.singleton(toastKey),
             Collections.emptyMap()
         ))
     }

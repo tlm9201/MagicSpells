@@ -6,7 +6,7 @@ import org.bukkit.command.CommandSender;
 
 public class TeamInfoSubCommand implements TeamsSubCommand {
 
-	private MagicSpellsTeams plugin;
+	private final MagicSpellsTeams plugin;
 	
 	public TeamInfoSubCommand(MagicSpellsTeams plugin) {
 		this.plugin = plugin;
@@ -28,13 +28,13 @@ public class TeamInfoSubCommand implements TeamsSubCommand {
 	}
 	
 	private void sendTeamInfo(CommandSender sender, Team team) {
-		sender.sendMessage(new String[] {
+		sender.sendMessage(
 			"Name: " + team.getName(),
 			"Permission: " + team.getPermission(),
 			"Friendly fire: " + team.allowFriendlyFire(),
 			"Can target: " + Arrays.toString(team.getCanTarget().toArray()),
 			"Can't target: " + Arrays.toString(team.getCantTarget().toArray())
-		});
+		);
 	}
 
 }

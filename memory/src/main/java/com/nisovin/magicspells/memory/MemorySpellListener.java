@@ -27,7 +27,7 @@ public class MemorySpellListener implements Listener {
 			MagicSpells.debug("Memory check: " + req + " required, " + mem + " remaining");
 			if (mem < req) {
 				event.setCancelled(true);
-				MagicSpells.sendMessage(MagicSpells.formatMessage(this.plugin.strOutOfMemory, "%spell", spell.getName()), learner, (String[])null);
+				MagicSpells.sendMessage(MagicSpells.formatMessage(this.plugin.strOutOfMemory, "%spell", spell.getName()), learner, null);
 			}
 		}
 	}

@@ -18,6 +18,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.nisovin.magicspells.MagicSpells;
@@ -96,11 +97,11 @@ public class MagicSpellsShop extends JavaPlugin implements Listener {
 		// Check for right-click on sign
 		if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 		Block block = event.getClickedBlock();
-		if (!(block.getBlockData() instanceof WallSign)) return;
+		if (block == null || !(block.getBlockData() instanceof WallSign)) return;
 
 		// Get shop sign
 		Sign sign = (Sign)block.getState();
-		String[] lines = sign.getLines();		
+		String[] lines = sign.getLines();
 		if (lines[0].equals(this.firstLine)) {
 			processSpellShopSign(event.getPlayer(), lines);
 		} else if (lines[0].equals(this.firstLineScroll)) {
@@ -171,9 +172,10 @@ public class MagicSpellsShop extends JavaPlugin implements Listener {
 		this.currency.remove(player, cost.amount, cost.currency);
 		
 		// Give to player
-		int slot = player.getInventory().firstEmpty();
-		if (player.getItemInHand() == null) {
-			player.setItemInHand(scroll);
+		PlayerInventory inventory = player.getInventory();
+		int slot = inventory.firstEmpty();
+		if (inventory.getItemInMainHand().isEmpty()) {
+			inventory.setItemInMainHand(scroll);
 			player.updateInventory();
 		} else if (slot >= 0) {
 			player.getInventory().setItem(slot, scroll);
@@ -211,7 +213,7 @@ public class MagicSpellsShop extends JavaPlugin implements Listener {
 		
 		boolean isSpellShop;
 		
-		String lines[] = event.getLines();
+		String[] lines = event.getLines();
 		if (lines[0].equals(this.firstLine)) {
 			isSpellShop = true;
 		} else if (lines[0].equals(this.firstLineScroll)) {
@@ -272,11 +274,6 @@ public class MagicSpellsShop extends JavaPlugin implements Listener {
 		if (!Perm.CREATESIGNSHOP.has(event.getPlayer())) event.setCancelled(true);
 	}
 
-	@Override
-	public void onDisable() {
-		
-	}
-	
 	private static class Cost {
 		
 		double amount = 0;

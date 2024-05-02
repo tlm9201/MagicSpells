@@ -1,7 +1,6 @@
 package com.nisovin.magicspells.variables.meta;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.nisovin.magicspells.variables.variabletypes.MetaVariable;
@@ -11,22 +10,8 @@ public class BedCoordYVariable extends MetaVariable {
 	@Override
 	public double getValue(String player) {
 		Player p = Bukkit.getPlayerExact(player);
-		if (p == null) return 0D;
-
-		Location bedSpawnLocation = p.getBedSpawnLocation();
-		if (bedSpawnLocation != null) return bedSpawnLocation.getY();
-		return p.getWorld().getSpawnLocation().getY();
-	}
-	
-	@Override
-	public void set(String player, double amount) {
-		Player p = Bukkit.getPlayerExact(player);
-		if (p == null) return;
-
-		Location to = p.getBedSpawnLocation();
-		if (to == null) return;
-		to.setY(amount);
-		p.setBedSpawnLocation(to, true);
+		if (p == null || !p.isSleeping()) return 0D;
+		return p.getBedLocation().getY();
 	}
 
 }

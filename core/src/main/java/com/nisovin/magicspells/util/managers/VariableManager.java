@@ -141,6 +141,9 @@ public class VariableManager {
 		addMetaVariableType("bed_location_x", new BedCoordXVariable());
 		addMetaVariableType("bed_location_y", new BedCoordYVariable());
 		addMetaVariableType("bed_location_z", new BedCoordZVariable());
+		addMetaVariableType("respawn_location_x", new RespawnCoordXVariable());
+		addMetaVariableType("respawn_location_y", new RespawnCoordYVariable());
+		addMetaVariableType("respawn_location_z", new RespawnCoordZVariable());
 		addMetaVariableType("altitude", new AltitudeVariable());
 		addMetaVariableType("absorption", new AbsorptionVariable());
 		addMetaVariableType("timestamp_days", new TimestampDaysVariable());
