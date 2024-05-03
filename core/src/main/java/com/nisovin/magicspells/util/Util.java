@@ -370,14 +370,6 @@ public class Util {
 		v.setZ(z);
 	}
 
-	public static Location applyRelativeOffset(Location location, Vector direction, float x, float y, float z) {
-		location.add(new Vector(-direction.getZ(), 0.0, direction.getX()).normalize().multiply(z));
-		location.add(location.getDirection().multiply(x));
-		location.setY(location.getY() + y);
-
-		return location;
-	}
-
 	public static Location applyRelativeOffset(Location loc, Vector relativeOffset) {
 		return loc.add(rotateVector(relativeOffset, loc));
 	}

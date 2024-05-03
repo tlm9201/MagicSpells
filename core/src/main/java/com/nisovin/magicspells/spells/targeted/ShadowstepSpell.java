@@ -50,17 +50,12 @@ public class ShadowstepSpell extends TargetedSpell implements TargetedEntitySpel
 		Location targetLoc = data.target().getLocation();
 		targetLoc.setPitch(0);
 
-		Vector startDir = targetLoc.getDirection().setY(0).normalize();
-		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
-
 		Vector relativeOffset = this.relativeOffset.get(data);
 
 		double distance = this.distance.get(data);
 		if (distance != -1) relativeOffset = relativeOffset.setX(distance);
 
-		targetLoc.add(horizOffset.multiply(relativeOffset.getZ()));
-		targetLoc.add(startDir.multiply(relativeOffset.getX()));
-		targetLoc.setY(targetLoc.getY() + relativeOffset.getY());
+		Util.applyRelativeOffset(targetLoc, relativeOffset);
 
 		targetLoc.setPitch(pitch.get(data));
 		targetLoc.setYaw(targetLoc.getYaw() + yaw.get(data));

@@ -54,7 +54,6 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private Location previousLocation;
 	private Location currentLocation;
 	private Vector currentVelocity;
-	private Vector startDirection;
 	private Vector effectOffset;
 	private int currentX;
 	private int currentZ;
@@ -153,7 +152,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		if (!changePitch) startLocation.setPitch(0F);
 
 		// Changing the start location
-		Util.applyRelativeOffset(startLocation, startLocation.getDirection(), startXOffset, startYOffset, startZOffset);
+		Util.applyRelativeOffset(startLocation, new Vector(startXOffset, 0, startZOffset));
+		startLocation.add(0, startYOffset, 0);
 
 		previousLocation = startLocation.clone();
 		currentLocation = startLocation.clone();
@@ -174,20 +174,18 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		// Changing the target location
 		Location targetLoc = target.clone();
 		targetLoc.add(0, targetYOffset, 0);
-		Vector dir = targetLoc.clone().subtract(startLocation).toVector();
 
-		// Changing the start location
-		startDirection = dir.clone().normalize();
-		Vector horizOffset = new Vector(-startDirection.getZ(), 0.0, startDirection.getX()).normalize();
-		startLocation.add(horizOffset.multiply(startZOffset));
-		startLocation.add(startLocation.getDirection().multiply(startXOffset));
-		startLocation.setY(startLocation.getY() + startYOffset);
+		Vector direction = targetLoc.clone().subtract(startLocation).toVector();
+		if (!direction.isZero()) startLocation.setDirection(direction);
 
-		dir = targetLoc.clone().subtract(startLocation.clone()).toVector();
+		Util.applyRelativeOffset(startLocation, new Vector(startXOffset, 0, startZOffset));
+		startLocation.add(0, startYOffset, 0);
+
+		direction = targetLoc.clone().subtract(startLocation).toVector();
 
 		previousLocation = startLocation.clone();
 		currentLocation = startLocation.clone();
-		currentVelocity = dir.isZero() ? currentLocation.getDirection() : dir.normalize();
+		currentVelocity = direction.isZero() ? startLocation.getDirection() : direction.normalize();
 
 		initialize();
 	}
@@ -197,15 +195,22 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 		counter = 0;
 
-		Vector direction = currentLocation.getDirection();
+		float yaw = currentLocation.getYaw(), pitch = currentLocation.getPitch();
 
-		Vector angleZ = Util.makeFinite(new Vector(-direction.getZ(), 0D, direction.getX()).normalize());
-		Vector angleY = Util.makeFinite(direction.clone().rotateAroundAxis(angleZ, ANGLE_Y).normalize());
-		Vector angleX = Util.makeFinite(direction);
+		if (verticalRotation != 0) {
+			Vector angleZ = Util.rotateVector(new Vector(0, 0, 1), yaw, pitch);
+			currentVelocity.rotateAroundAxis(angleZ, verticalRotation);
+		}
 
-		if (verticalRotation != 0) currentVelocity.rotateAroundAxis(angleZ, verticalRotation);
-		if (horizontalRotation != 0) currentVelocity.rotateAroundAxis(angleY, horizontalRotation);
-		if (xRotation != 0) currentVelocity.rotateAroundAxis(angleX, xRotation);
+		if (horizontalRotation != 0) {
+			Vector angleY = Util.rotateVector(new Vector(0, -1, 0), yaw, pitch);
+			currentVelocity.rotateAroundAxis(angleY, horizontalRotation);
+		}
+
+		if (xRotation != 0) {
+			Vector angleX = Util.rotateVector(new Vector(1, 0, 0), yaw, pitch);
+			currentVelocity.rotateAroundAxis(angleX, xRotation);
+		}
 
 		if (projectileHorizOffset != 0) Util.rotateVector(currentVelocity, projectileHorizOffset);
 		if (projectileVertOffset != 0) currentVelocity.add(new Vector(0, projectileVertOffset, 0)).normalize();
@@ -358,18 +363,11 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 		if (armorStandSet != null || entityMap != null) {
 			// Changing the effect location
-			EulerAngle angle;
-
-			Vector dir = currentLocation.getDirection();
-			Vector horizOffset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
 			Location effectLoc = currentLocation.clone();
-			effectLoc.add(horizOffset.multiply(effectOffset.getZ()));
-			effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
-			effectLoc.setY(effectLoc.getY() + effectOffset.getY());
+			Util.applyRelativeOffset(effectLoc, effectOffset.clone().setY(0));
+			effectLoc.add(0, effectOffset.getY(), 0);
 
-			effectLoc = Util.makeFinite(effectLoc);
-
-			angle = EulerAngle.ZERO.setX(AccurateMath.toRadians(effectLoc.getPitch()));
+			EulerAngle angle = EulerAngle.ZERO.setX(AccurateMath.toRadians(effectLoc.getPitch()));
 
 			if (armorStandSet != null) {
 				for (ArmorStand armorStand : armorStandSet) {
@@ -701,14 +699,6 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	public void setCurrentVelocity(Vector currentVelocity) {
 		this.currentVelocity = currentVelocity;
-	}
-
-	public Vector getStartDirection() {
-		return startDirection;
-	}
-
-	public void setStartDirection(Vector startDirection) {
-		this.startDirection = startDirection;
 	}
 
 	public int getCurrentX() {

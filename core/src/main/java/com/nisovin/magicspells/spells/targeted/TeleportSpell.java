@@ -45,22 +45,20 @@ public class TeleportSpell extends TargetedSpell implements TargetedEntitySpell 
 		Location targetLoc = data.target().getLocation();
 		Location startLoc = data.caster().getLocation();
 
-		Vector startDir = startLoc.getDirection();
-		Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
 		Vector relativeOffset = this.relativeOffset.get(data);
+		targetLoc.add(0, relativeOffset.getY(), 0);
+		Util.applyRelativeOffset(targetLoc, relativeOffset.setY(0));
 
-		targetLoc.add(horizOffset.multiply(relativeOffset.getZ()));
-		targetLoc.add(startDir.multiply(relativeOffset.getX()));
-		targetLoc.setY(targetLoc.getY() + relativeOffset.getY());
 		targetLoc.setPitch(startLoc.getPitch() - pitch.get(data));
 		targetLoc.setYaw(startLoc.getYaw() + yaw.get(data));
+
 		if (!targetLoc.getBlock().isPassable()) return noTarget(strCantTeleport, data);
 
-		data.caster().teleportAsync(targetLoc);
 		playSpellEffects(EffectPosition.CASTER, data.caster(), data);
 		playSpellEffects(EffectPosition.TARGET, data.target(), data);
 		playSpellEffectsTrail(startLoc, targetLoc, data);
 
+		data.caster().teleportAsync(targetLoc);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 

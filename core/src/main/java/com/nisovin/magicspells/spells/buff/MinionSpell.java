@@ -244,12 +244,11 @@ public class MinionSpell extends BuffSpell {
 
 		// Spawn location
 		Location loc = target.getLocation().clone();
+		loc.setPitch(0);
+
 		Vector spawnOffset = this.spawnOffset.get(data);
-		Vector startDir = loc.clone().getDirection().setY(0).normalize();
-		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
-		loc.add(horizOffset.multiply(spawnOffset.getZ()));
-		loc.add(startDir.clone().multiply(spawnOffset.getX()));
-		loc.setY(loc.getY() + spawnOffset.getY());
+		loc.add(0, spawnOffset.getY(), 0);
+		Util.applyRelativeOffset(loc, spawnOffset.setY(0));
 
 		// Spawn creature
 		LivingEntity minion = (LivingEntity) target.getWorld().spawnEntity(loc, creatureType);

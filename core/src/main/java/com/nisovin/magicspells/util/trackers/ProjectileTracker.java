@@ -113,11 +113,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 		startTime = System.currentTimeMillis();
 		taskId = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval);
 
-		Vector startDir = startLocation.clone().getDirection().normalize();
-		Vector horizOffset = new Vector(-startDir.getZ(), 0D, startDir.getX()).normalize();
-		startLocation.add(horizOffset.multiply(relativeOffset.getZ()));
-		startLocation.add(startLocation.getDirection().multiply(relativeOffset.getX()));
-		startLocation.setY(startLocation.getY() + relativeOffset.getY());
+		startLocation.add(0, relativeOffset.getY(), 0);
+		Util.applyRelativeOffset(startLocation, relativeOffset.setY(0));
 
 		currentLocation = startLocation.clone();
 		currentVelocity = startLocation.getDirection();
@@ -228,14 +225,9 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		if (entityMap != null) {
 			// Changing the effect location
-			Vector dir = currentLocation.getDirection().normalize();
-			Vector horizOffset = new Vector(-dir.getZ(), 0.0, dir.getX()).normalize();
 			Location effectLoc = currentLocation.clone();
-			effectLoc.add(horizOffset.multiply(effectOffset.getZ()));
-			effectLoc.add(effectLoc.getDirection().multiply(effectOffset.getX()));
-			effectLoc.setY(effectLoc.getY() + effectOffset.getY());
-
-			effectLoc = Util.makeFinite(effectLoc);
+			Util.applyRelativeOffset(effectLoc, effectOffset.clone().setY(0));
+			effectLoc.add(0, effectOffset.getY(), 0);
 
 			for (var entry : entityMap.entrySet()) {
 				entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone(), data));

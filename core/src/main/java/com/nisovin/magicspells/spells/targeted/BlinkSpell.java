@@ -45,6 +45,9 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 		}
 		if (loc == null) return noTarget(strCantBlink, data);
 
+		loc.setPitch(data.caster().getPitch());
+		loc.setYaw(data.caster().getYaw());
+
 		SpellTargetLocationEvent targetEvent = new SpellTargetLocationEvent(this, data, loc);
 		if (!targetEvent.callEvent()) return noTarget(strCantBlink, targetEvent);
 
@@ -57,16 +60,14 @@ public class BlinkSpell extends TargetedSpell implements TargetedLocationSpell {
 	}
 
 	public CastResult blink(SpellData data) {
-		Location origin = data.caster().getLocation();
 		Location target = data.location();
 
-		target.setPitch(origin.getPitch());
-		target.setYaw(origin.getYaw());
-
-		data.caster().teleportAsync(target);
-
+		target.setPitch(data.caster().getPitch());
+		target.setYaw(data.caster().getYaw());
 		data = data.location(target);
+
 		playSpellEffects(data);
+		data.caster().teleportAsync(target);
 
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}

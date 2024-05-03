@@ -150,14 +150,12 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 		protected int count;
 
 		public NovaTracker(SpellData data) {
-			Vector relativeOffset = NovaSpell.this.relativeOffset.get(data);
-
 			center = data.location();
-			Vector startDir = center.getDirection();
-			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-			center.add(horizOffset.multiply(relativeOffset.getZ()));
-			center.add(startDir.multiply(relativeOffset.getX()));
+
+			Vector relativeOffset = NovaSpell.this.relativeOffset.get(data);
 			center.add(0, relativeOffset.getY(), 0);
+			Util.applyRelativeOffset(center, relativeOffset.setY(0));
+
 			data = data.location(center);
 
 			removePreviousBlocks = NovaSpell.this.removePreviousBlocks.get(data);

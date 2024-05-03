@@ -162,47 +162,53 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			data = data.location(loc);
 		}
 
-		Vector startDir = data.hasTarget() ? data.target().getLocation().subtract(loc).toVector().normalize() : loc.getDirection();
+		Vector direction;
+		if (!data.hasTarget()) direction = loc.getDirection();
+		else {
+			direction = data.target().getLocation().subtract(loc).toVector();
+			direction = direction.isZero() ? loc.getDirection() : direction.normalize();
+		}
 
 		//apply relative offset
 		Vector relativeOffset = this.relativeOffset.get(data);
-		double yOffset = this.yOffset.get(data);
-		if (yOffset != 0) relativeOffset = relativeOffset.clone().setY(yOffset);
 
-		Vector horizOffset = new Vector(-startDir.getZ(), 0, startDir.getX()).normalize();
-		loc.add(horizOffset.multiply(relativeOffset.getZ()));
-		loc.add(loc.getDirection().multiply(relativeOffset.getX()));
-		loc.setY(loc.getY() + relativeOffset.getY());
+		double yOffset = this.yOffset.get(data);
+		if (yOffset == 0) yOffset = relativeOffset.getY();
+
+		Util.applyRelativeOffset(loc, relativeOffset.setY(0));
+		loc.add(0, yOffset, 0);
 
 		float interval = this.interval.get(data);
 		if (interval < 0.01) interval = 0.01f;
 
-		Vector dir;
-		if (!data.hasTarget()) dir = loc.getDirection().multiply(interval);
-		else {
-			//apply target relative offset
+		if (data.hasTarget()) {
 			Vector targetRelativeOffset = this.targetRelativeOffset.get(data);
+			double targetYOffset = targetRelativeOffset.getY();
 			Location targetLoc = data.target().getLocation();
-			Vector targetDir = targetLoc.getDirection();
 
-			Vector targetHorizOffset = new Vector(-targetDir.getZ(), 0, targetDir.getX()).normalize();
-			targetLoc.add(targetHorizOffset.multiply(targetRelativeOffset.getZ()));
-			targetLoc.add(targetLoc.getDirection().multiply(targetRelativeOffset.getX()));
-			targetLoc.setY(data.target().getLocation().getY() + targetRelativeOffset.getY());
+			Util.applyRelativeOffset(targetLoc, targetRelativeOffset.setY(0));
+			targetLoc.add(0, targetYOffset, 0);
 
-			dir = targetLoc.toVector().subtract(loc.toVector()).normalize().multiply(interval);
+			direction = targetLoc.subtract(loc).toVector();
+			direction = direction.isZero() ? loc.getDirection() : direction.normalize();
 		}
 
-		Vector dirNormalized = dir.clone().normalize();
-
-		Vector angleZ = Util.makeFinite(new Vector(-dirNormalized.getZ(), 0D, dirNormalized.getX()).normalize());
-		Vector angleY = Util.makeFinite(dirNormalized.rotateAroundAxis(angleZ, ANGLE_Y).normalize());
+		loc.setDirection(direction);
+		float yaw = loc.getYaw(), pitch = loc.getPitch();
 
 		double verticalRotation = this.verticalRotation.get(data);
-		double horizontalRotation = this.horizontalRotation.get(data);
+		if (verticalRotation != 0) {
+			Vector angleZ = Util.rotateVector(new Vector(0, 0, 1), yaw, pitch);
+			direction.rotateAroundAxis(angleZ, AccurateMath.toRadians(verticalRotation));
+		}
 
-		if (verticalRotation != 0) dir.rotateAroundAxis(angleZ, AccurateMath.toRadians(verticalRotation));
-		if (horizontalRotation != 0) dir.rotateAroundAxis(angleY, AccurateMath.toRadians(horizontalRotation));
+		double horizontalRotation = this.horizontalRotation.get(data);
+		if (horizontalRotation != 0) {
+			Vector angleY = Util.rotateVector(new Vector(0, -1, 0), yaw, pitch);
+			direction.rotateAroundAxis(angleY, AccurateMath.toRadians(horizontalRotation));
+		}
+
+		Vector step = direction.clone().multiply(interval);
 
 		float beamVerticalSpread = this.beamVerticalSpread.get(data);
 		float beamHorizontalSpread = this.beamHorizontalSpread.get(data);
@@ -210,7 +216,8 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 			float rx = -1 + random.nextFloat() * 2;
 			float ry = -1 + random.nextFloat() * 2;
 			float rz = -1 + random.nextFloat() * 2;
-			dir.add(new Vector(rx * beamHorizontalSpread, ry * beamVerticalSpread, rz * beamHorizontalSpread));
+
+			step.add(new Vector(rx * beamHorizontalSpread, ry * beamVerticalSpread, rz * beamHorizontalSpread));
 		}
 
 		double verticalHitRadius = this.verticalHitRadius.get(data);
@@ -233,11 +240,14 @@ public class BeamSpell extends InstantSpell implements TargetedLocationSpell, Ta
 		mainLoop:
 		while (d < maxDistance) {
 			d += interval;
-			loc.add(dir);
+			loc.add(step);
 
-			if (rotation != 0) Util.rotateVector(dir, rotation);
-			if (gravity != 0) dir.add(new Vector(0, gravity, 0));
-			if (rotation != 0 || gravity != 0) loc.setDirection(dir);
+			if (rotation != 0 || gravity != 0) {
+				if (rotation != 0) Util.rotateVector(step, rotation);
+				if (gravity != 0) step.setY(step.getY() + gravity);
+
+				loc.setDirection(step);
+			}
 
 			loc = Util.makeFinite(loc);
 			locData = locData.location(loc);

@@ -60,9 +60,9 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 	private Subspell durationSpell;
 	private Subspell entityLocationSpell;
 
+	private final ConfigData<Double> yOffset;
 	private final ConfigData<Double> maxDuration;
 
-	private final ConfigData<Float> yOffset;
 	private final ConfigData<Float> hitRadius;
 	private final ConfigData<Float> verticalHitRadius;
 	private final ConfigData<Float> projectileInertia;
@@ -102,9 +102,9 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		durationSpellName = getConfigString("spell-after-duration", "");
 		entityLocationSpellName = getConfigString("spell-on-entity-location", "");
 
+		yOffset = getConfigDataDouble("y-offset", 0.6D);
 		maxDuration = getConfigDataDouble("max-duration", 20);
 
-		yOffset = getConfigDataFloat("y-offset", 0.6F);
 		hitRadius = getConfigDataFloat("hit-radius", 1.5F);
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", hitRadius);
 		projectileInertia = getConfigDataFloat("projectile-inertia", 1.5F);
@@ -225,16 +225,13 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 
 			currentLocation = data.location();
 
-			float yOffset = HomingMissileSpell.this.yOffset.get(data);
-
 			Vector relativeOffset = HomingMissileSpell.this.relativeOffset.get(data);
-			if (yOffset != 0.6f) relativeOffset = relativeOffset.clone().setY(yOffset);
 
-			Vector startDir = currentLocation.getDirection();
-			Vector horizOffset = new Vector(-startDir.getZ(), 0.0, startDir.getX()).normalize();
-			currentLocation.add(horizOffset.multiply(relativeOffset.getZ()));
-			currentLocation.add(startDir.multiply(relativeOffset.getX()));
-			currentLocation.setY(currentLocation.getY() + relativeOffset.getY());
+			double yOffset = HomingMissileSpell.this.yOffset.get(data);
+			if (yOffset == 0.6D) yOffset = relativeOffset.getY();
+
+			Util.applyRelativeOffset(currentLocation, relativeOffset.setY(0));
+			currentLocation.add(0, yOffset, 0);
 
 			float projectileHorizOffset = HomingMissileSpell.this.projectileHorizOffset.get(data);
 			float projectileVertOffset = HomingMissileSpell.this.projectileVertOffset.get(data);

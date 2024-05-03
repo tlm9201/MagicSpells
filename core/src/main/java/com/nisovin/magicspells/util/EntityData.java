@@ -394,14 +394,11 @@ public class EntityData {
 
 	@Nullable
 	public Entity spawn(@NotNull Location location, @NotNull SpellData data, @Nullable Consumer<Entity> consumer) {
-		Location startLoc = location.clone();
-		Vector dir = startLoc.getDirection().normalize();
-		Vector relativeOffset = this.relativeOffset.get(data);
+		Location spawnLocation = location.clone();
 
-		Vector horizOffset = new Vector(-dir.getZ(), 0, dir.getX()).normalize();
-		startLoc.add(horizOffset.multiply(relativeOffset.getZ()));
-		startLoc.add(startLoc.getDirection().clone().multiply(relativeOffset.getX()));
-		startLoc.setY(startLoc.getY() + relativeOffset.getY());
+		Vector relativeOffset = this.relativeOffset.get(data);
+		spawnLocation.add(0, relativeOffset.getY(), 0);
+		Util.applyRelativeOffset(spawnLocation, relativeOffset.setY(0));
 
 		EntityType type = this.entityType.get(data);
 		if (type == null || (!type.isSpawnable() && type != EntityType.FALLING_BLOCK && type != EntityType.DROPPED_ITEM))
@@ -410,7 +407,7 @@ public class EntityData {
 		Class<? extends Entity> entityClass = type.getEntityClass();
 		if (entityClass == null) return null;
 
-		return startLoc.getWorld().spawn(startLoc, entityClass, entity -> {
+		return spawnLocation.getWorld().spawn(spawnLocation, entityClass, entity -> {
 			apply(entity, data);
 
 			if (consumer != null) consumer.accept(entity);
