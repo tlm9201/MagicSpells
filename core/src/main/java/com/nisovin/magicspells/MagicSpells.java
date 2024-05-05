@@ -1737,6 +1737,8 @@ public class MagicSpells extends JavaPlugin {
 		return formatMessage(message, SpellData.NULL, replacements);
 	}
 
+	private static final Pattern TARGET_NAME_PATTERN = Pattern.compile("%[art]");
+
 	/**
 	 * Formats a string by performing the specified replacements.
 	 *
@@ -1784,6 +1786,9 @@ public class MagicSpells extends JavaPlugin {
 		if (matcher.find()) return true;
 
 		matcher = PLACEHOLDER_PATTERN.matcher(message);
+		if (matcher.find()) return true;
+
+		matcher = TARGET_NAME_PATTERN.matcher(message);
 		return matcher.find();
 	}
 

@@ -287,9 +287,9 @@ public class AreaScanSpell extends TargetedSpell implements TargetedLocationSpel
 							if (zVariable != null) manager.set(zVariable, playerCaster, target.getZ());
 						}
 
-						SpellData subData = data;
+						SpellData subData = data.location(target);
 						if (scanModifiers != null) {
-							ModifierResult result = scanModifiers.apply(data.caster(), target, data);
+							ModifierResult result = scanModifiers.apply(subData.caster(), target, subData);
 							if (!result.check()) continue;
 
 							subData = result.data();

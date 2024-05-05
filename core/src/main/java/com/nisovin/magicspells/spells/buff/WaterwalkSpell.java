@@ -4,10 +4,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 
+import org.bukkit.Fluid;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.block.BlockFace;
@@ -107,6 +107,11 @@ public class WaterwalkSpell extends BuffSpell {
 			taskId = MagicSpells.scheduleRepeatingTask(this, 5, 5);
 		}
 
+		private boolean isWater(Location location) {
+			Fluid fluid = location.getWorld().getFluidData(location).getFluidType();
+			return fluid == Fluid.WATER || fluid == Fluid.FLOWING_WATER;
+		}
+
 		@Override
 		public void run() {
 			count++;
@@ -126,18 +131,18 @@ public class WaterwalkSpell extends BuffSpell {
 				feet = loc.getBlock();
 				underfeet = feet.getRelative(BlockFace.DOWN);
 
-				if (feet.getType() == Material.WATER) {
-					loc.setY(Math.floor(loc.getY() + 1) + 0.1);
+				if (isWater(feet.getLocation())) {
+					loc.setY(Math.floor(loc.getY() + 1) + 0.01);
 					pl.teleport(loc, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 				} else if (pl.isFlying() && underfeet.getType().isAir()) {
-					loc.setY(Math.floor(loc.getY() - 1) + 0.1);
+					loc.setY(Math.floor(loc.getY() - 1) + 0.01);
 					pl.teleport(loc, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
 				}
 
 				feet = pl.getLocation().getBlock();
 				underfeet = feet.getRelative(BlockFace.DOWN);
 
-				if (feet.getType().isAir() && underfeet.getType() == Material.WATER) {
+				if (feet.getType().isAir() && isWater(underfeet.getLocation())) {
 					if (!pl.isFlying()) {
 						pl.setAllowFlight(true);
 						pl.setFlying(true);
