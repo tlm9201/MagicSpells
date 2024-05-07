@@ -215,6 +215,11 @@ public class EntityData {
 		addOptBoolean(transformers, config, "can-mob-pickup", Item.class, Item::setCanMobPickup);
 		addOptBoolean(transformers, config, "can-player-pickup", Item.class, Item::setCanPlayerPickup);
 
+		// Interaction
+		addOptFloat(transformers, config, "interaction-height", Interaction.class, Interaction::setInteractionHeight);
+		addOptFloat(transformers, config, "interaction-width", Interaction.class, Interaction::setInteractionWidth);
+		addOptBoolean(transformers, config, "responsive", Interaction.class, Interaction::setResponsive);
+
 		// Llama
 		llamaColor = addOptEnum(transformers, config, "color", Llama.class, Llama.Color.class, Llama::setColor);
 		addOptMaterial(transformers, config, "material", Llama.class, (llama, material) -> llama.getInventory().setDecor(new ItemStack(material)));
