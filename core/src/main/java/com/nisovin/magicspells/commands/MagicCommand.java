@@ -824,6 +824,7 @@ public class MagicCommand extends BaseCommand {
 		public void onCastAt(CommandIssuer issuer, String[] args) {
 			if (!MagicSpells.isLoaded()) return;
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_AT)) return;
+
 			args = Util.splitParams(args);
 			if (args.length < 4) throw new InvalidCommandArgument();
 			Spell spell = getSpell(issuer, args[0]);
@@ -833,7 +834,7 @@ public class MagicCommand extends BaseCommand {
 			}
 
 			World world = null;
-			float pitch = 0, yaw = 0;
+			float yaw = 0, pitch = 0;
 			int i = 0;
 			// Has world parameter.
 			if (!ACFUtil.isDouble(args[1])) {
@@ -847,8 +848,8 @@ public class MagicCommand extends BaseCommand {
 				world = location.getWorld();
 				// If only coordinates were specified.
 				if (args.length < 5) {
-					pitch = location.getPitch();
 					yaw = location.getYaw();
+					pitch = location.getPitch();
 				}
 			}
 			// This fails if the world wasn't specified and the issuer is console, or if the world was invalid.
@@ -863,13 +864,13 @@ public class MagicCommand extends BaseCommand {
 			double z = ACFUtil.parseDouble(args[3 + i]);
 			if (args.length > 4 + i) {
 				if (!ACFUtil.isFloat(args[4 + i])) throw new InvalidCommandArgument();
-				pitch = ACFUtil.parseFloat(args[4 + i]);
+				yaw = ACFUtil.parseFloat(args[4 + i]);
 			}
 			if (args.length > 5 + i) {
 				if (!ACFUtil.isFloat(args[5 + i])) throw new InvalidCommandArgument();
-				yaw = ACFUtil.parseFloat(args[5 + i]);
+				pitch = ACFUtil.parseFloat(args[5 + i]);
 			}
-			Location location = new Location(world, x, y, z, pitch, yaw);
+			Location location = new Location(world, x, y, z, yaw, pitch);
 
 			// Handle with or without caster.
 			SpellData data = new SpellData(issuer.getIssuer() instanceof LivingEntity le ? le : null, location, 1f, null);

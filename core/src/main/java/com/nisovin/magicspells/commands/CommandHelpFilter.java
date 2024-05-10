@@ -1,9 +1,8 @@
 package com.nisovin.magicspells.commands;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Iterator;
 
 import co.aikar.commands.HelpEntry;
 import co.aikar.commands.RootCommand;
@@ -20,9 +19,8 @@ public class CommandHelpFilter {
 
 	public static void mapPerms() {
 		for (RootCommand rootCommand : MagicSpells.getCommandManager().getRegisteredRootCommands()) {
-			//noinspection rawtypes
-			for (RegisteredCommand command : rootCommand.getSubCommands().values()) {
-				HelpPermission annotation = (HelpPermission) command.getAnnotation(HelpPermission.class);
+			for (RegisteredCommand<?> command : rootCommand.getSubCommands().values()) {
+				HelpPermission annotation = command.getAnnotation(HelpPermission.class);
 				if (annotation == null) continue;
 				magicPerms.put(command.getCommand(), annotation.permission().getNode());
 			}
@@ -31,15 +29,12 @@ public class CommandHelpFilter {
 
 	public static void filter(CommandSender sender, CommandHelp help) {
 		// Filter help entries by permissions.
-		Set<HelpEntry> toRemove = new HashSet<>();
-		for (HelpEntry entry : help.getHelpEntries()) {
-			String perm = magicPerms.get(entry.getCommand());
+		Iterator<HelpEntry> iterator = help.getHelpEntries().iterator();
+		while (iterator.hasNext()) {
+			String perm = magicPerms.get(iterator.next().getCommand());
 			if (perm == null) continue;
 			if (sender.hasPermission(perm)) continue;
-			toRemove.add(entry);
-		}
-		for (HelpEntry entry : toRemove) {
-			help.getHelpEntries().remove(entry);
+			iterator.remove();
 		}
 	}
 
