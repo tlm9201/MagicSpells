@@ -103,14 +103,8 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	@Override
 	public CastResult cast(SpellData data) {
-		if (capPerPlayer > 0) {
-			int count = 0;
-			for (Pulser pulser : pulsers.values()) {
-				if (!Objects.equals(pulser.data.caster(), data.caster())) continue;
-
-				count++;
-				if (count >= capPerPlayer) return noTarget(strAtCap, data);
-			}
+		if (capPerPlayer > 0 && hasReachedCap(data)) {
+			return noTarget(strAtCap, data);
 		}
 
 		RayTraceResult result = rayTraceBlocks(data);
@@ -126,7 +120,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		if (!block.canPlace(blockType) || !block.isReplaceable()) {
 			if (checkFace.get(data)) {
 				Block upper = block.getRelative(BlockFace.UP);
-				if (!upper.canPlace(blockType) || !block.isReplaceable()) return noTarget(data);
+				if (!upper.canPlace(blockType) || !upper.isReplaceable()) return noTarget(data);
 				block = upper;
 			} else return noTarget(data);
 		}
@@ -150,12 +144,8 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	@Override
 	public CastResult castAtLocation(SpellData data) {
-		if (capPerPlayer > 0 && data.hasCaster()) {
-			int count = 0;
-			for (Pulser pulser : pulsers.values()) {
-				if (!Objects.equals(pulser.data.caster(), data.caster())) continue;
-				if (++count >= capPerPlayer) return noTarget(strAtCap, data);
-			}
+		if (capPerPlayer > 0 && data.hasCaster() && hasReachedCap(data)) {
+			return noTarget(strAtCap, data);
 		}
 
 		Location location = data.location();
@@ -169,7 +159,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		if (!block.canPlace(blockType) || !block.isReplaceable()) {
 			if (checkFace.get(data)) {
 				Block upper = block.getRelative(BlockFace.UP);
-				if (!upper.canPlace(blockType) || !block.isReplaceable()) return noTarget(data);
+				if (!upper.canPlace(blockType) || !upper.isReplaceable()) return noTarget(data);
 				block = upper;
 			} else return noTarget(data);
 		}
@@ -185,6 +175,16 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 		playSpellEffects(data);
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+	}
+
+	private boolean hasReachedCap(SpellData data) {
+		int count = 0;
+		for (Pulser pulser : pulsers.values()) {
+			if (!Objects.equals(pulser.data.caster(), data.caster())) continue;
+			count++;
+			if (count >= capPerPlayer) return true;
+		}
+		return false;
 	}
 
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
