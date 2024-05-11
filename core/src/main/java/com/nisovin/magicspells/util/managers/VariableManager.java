@@ -255,8 +255,9 @@ public class VariableManager {
 						}
 					}
 					bossBarNamespaceKey = bossBar.getString("namespace-key");
-					if (!MagicSpells.getBossBarManager().isNamespaceKey(bossBarNamespaceKey)) {
+					if (bossBarNamespaceKey != null && !MagicSpells.getBossBarManager().isNamespaceKey(bossBarNamespaceKey)) {
 						MagicSpells.error("Variable '" + var + "' has an invalid bossBar namespace-key defined: '" + bossBarNamespaceKey + "'");
+						bossBarNamespaceKey = null;
 					}
 				}
 			}
