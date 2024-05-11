@@ -112,9 +112,12 @@ public class UnbindSpell extends CommandSpell {
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		if (sender instanceof Player && !partial.contains(" ")) return tabCompleteSpellName(sender, partial);
-		return null;
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (!(sender instanceof Player) || args.length != 1) return null;
+		List<String> ret = new ArrayList<>();
+		ret.add("*");
+		ret.addAll(TxtUtil.tabCompleteSpellName(sender));
+		return ret;
 	}
 
 	public Set<Spell> getAllowedSpells() {

@@ -146,6 +146,14 @@ public class ImbueSpell extends CommandSpell {
 		return false;
 	}
 
+	@Override
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (!(sender instanceof Player)) return null;
+		if (args.length == 1) return TxtUtil.tabCompleteSpellName(sender);
+		if (args.length == 2) return List.of("1");
+		return null;
+	}
+
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onInteract(PlayerInteractEvent event) {
 		if (event.useItemInHand() == Result.DENY) return;
@@ -211,15 +219,6 @@ public class ImbueSpell extends CommandSpell {
 			meta.lore(Collections.singletonList(Util.getMiniMessage(lore)));
 		}
 		item.setItemMeta(meta);
-	}
-
-	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		return null;
-	}
-
-	public static Pattern getCastArgUsesPattern() {
-		return CAST_ARG_USES_PATTERN;
 	}
 
 	public Set<Material> getAllowedItemTypes() {

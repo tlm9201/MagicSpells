@@ -1180,25 +1180,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return true;
 	}
 
-	public List<String> tabComplete(CommandSender sender, String partial) {
+	public List<String> tabComplete(CommandSender sender, String[] args) {
 		return null;
-	}
-
-	protected List<String> tabCompletePlayerName(CommandSender sender, String partial) {
-		List<String> matches = new ArrayList<>();
-		partial = partial.toLowerCase();
-		// TODO stream this
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			String name = p.getName();
-			if (!name.toLowerCase().startsWith(partial)) continue;
-			if (sender.isOp() || !(sender instanceof Player player) || player.canSee(p)) matches.add(name);
-		}
-		if (!matches.isEmpty()) return matches;
-		return null;
-	}
-
-	protected List<String> tabCompleteSpellName(CommandSender sender, String partial) {
-		return TxtUtil.tabCompleteSpellName(sender, partial);
 	}
 
 	// TODO can this safely be made varargs?

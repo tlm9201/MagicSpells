@@ -117,10 +117,14 @@ public class ListSpell extends CommandSpell {
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		if (sender instanceof ConsoleCommandSender && !partial.contains(" "))
-			return tabCompletePlayerName(sender, partial);
-		return null;
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (args.length != 1) return null;
+
+		if (sender instanceof Player player) {
+			if (!MagicSpells.getSpellbook(player).hasAdvancedPerm("list")) return null;
+		} else if (!(sender instanceof ConsoleCommandSender)) return null;
+
+		return TxtUtil.tabCompletePlayerName(sender);
 	}
 
 	private boolean shouldListSpell(Spell spell, Spellbook spellbook, boolean onlyShowCastableSpells) {

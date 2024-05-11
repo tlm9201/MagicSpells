@@ -168,9 +168,8 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		if (partial.contains(" ")) return null;
-		return tabCompletePlayerName(sender, partial);
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		return args.length == 1 ? TxtUtil.tabCompletePlayerName(sender) : null;
 	}
 
 	private record SummonData(Location location, long time, int maxAcceptDelay, SpellData spellData) {

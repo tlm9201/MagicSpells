@@ -27,6 +27,6 @@ public abstract class CommandSpell extends Spell {
 	public abstract boolean castFromConsole(CommandSender sender, String[] args);
 
 	@Override
-	public abstract List<String> tabComplete(CommandSender sender, String partial);
-	
+	public abstract List<String> tabComplete(CommandSender sender, String[] args);
+
 }

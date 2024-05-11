@@ -86,7 +86,7 @@ public class ItemSerializeSpell extends CommandSpell {
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
+	public List<String> tabComplete(CommandSender sender, String[] args) {
 		return null;
 	}
 

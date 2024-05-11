@@ -16,6 +16,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -229,9 +230,16 @@ public class ScrollSpell extends CommandSpell {
 	}
 	
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		String[] args = Util.splitParams(partial);
-		if (args.length == 1) return tabCompleteSpellName(sender, args[0]);
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (sender instanceof ConsoleCommandSender) {
+			if (args.length == 1) return TxtUtil.tabCompletePlayerName(sender);
+			if (args.length == 2) return TxtUtil.tabCompleteSpellName(sender);
+			if (args.length == 3) return List.of("1");
+		}
+		else if (sender instanceof Player) {
+			if (args.length == 1) return TxtUtil.tabCompleteSpellName(sender);
+			if (args.length == 2) return List.of("1");
+		}
 		return null;
 	}
 	

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -137,6 +138,14 @@ public class KeybindSpell extends CommandSpell {
 		return false;
 	}
 
+	@Override
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (!(sender instanceof Player) || args.length != 1) return null;
+		List<String> ret = new ArrayList<>(List.of("clear", "clearall"));
+		ret.addAll(TxtUtil.tabCompleteSpellName(sender));
+		return ret;
+	}
+
 	@EventHandler
 	public void onItemHeldChange(PlayerItemHeldEvent event) {
 		Keybinds keybinds = playerKeybinds.get(event.getPlayer().getName());
@@ -166,11 +175,6 @@ public class KeybindSpell extends CommandSpell {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		loadKeybinds(event.getPlayer());
-	}
-
-	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		return null;
 	}
 
 	public ItemStack getWandItem() {

@@ -146,10 +146,9 @@ public class TeachSpell extends CommandSpell {
 	}
 	
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		String[] args = Util.splitParams(partial);
-		if (args.length == 1) return tabCompletePlayerName(sender, args[0]);
-		if (args.length == 2) return tabCompleteSpellName(sender, args[1]);
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (args.length == 1) return TxtUtil.tabCompletePlayerName(sender);
+		if (args.length == 2) return TxtUtil.tabCompleteSpellName(sender);
 		return null;
 	}
 	

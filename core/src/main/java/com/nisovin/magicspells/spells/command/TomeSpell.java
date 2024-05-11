@@ -114,9 +114,11 @@ public class TomeSpell extends CommandSpell {
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		return false;
 	}
-	
+
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (args.length == 1) return TxtUtil.tabCompleteSpellName(sender);
+		if (args.length == 2) return List.of("1");
 		return null;
 	}
 

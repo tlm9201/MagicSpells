@@ -64,10 +64,8 @@ public class HelpSpell extends CommandSpell {
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		String[] args = Util.splitParams(partial);
-		if (sender instanceof Player && args.length == 1) return tabCompleteSpellName(sender, partial);
-		return null;
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		return sender instanceof Player && args.length == 1 ? TxtUtil.tabCompleteSpellName(sender) : null;
 	}
 
 	public String getStrUsage() {

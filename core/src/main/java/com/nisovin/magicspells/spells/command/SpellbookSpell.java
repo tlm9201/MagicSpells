@@ -21,6 +21,7 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.nisovin.magicspells.Perm;
@@ -236,9 +237,15 @@ public class SpellbookSpell extends CommandSpell {
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		if (sender instanceof Player && !partial.contains(" ")) return tabCompleteSpellName(sender, partial);
-		return null;
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (args.length == 1) {
+			List<String> ret = new ArrayList<>();
+			ret.add("reload");
+			if (sender instanceof Player) ret.addAll(TxtUtil.tabCompleteSpellName(sender));
+			return ret;
+		}
+		if (args.length != 2 || args[0].equals("reload") || sender instanceof ConsoleCommandSender) return null;
+		return List.of("1");
 	}
 
 	private void loadSpellbooks() {

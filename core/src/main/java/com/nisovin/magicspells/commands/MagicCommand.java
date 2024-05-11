@@ -33,7 +33,6 @@ import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.variables.Variable;
-import com.nisovin.magicspells.spells.PassiveSpell;
 import com.nisovin.magicspells.Spell.PostCastAction;
 import com.nisovin.magicspells.mana.ManaChangeReason;
 import com.nisovin.magicspells.handlers.MagicXpHandler;
@@ -62,22 +61,8 @@ public class MagicCommand extends BaseCommand {
 
 		// Create command completions.
 		commandManager.getCommandCompletions().registerAsyncCompletion("spells", context ->
-			getSpellNames(MagicSpells.spells())
+			TxtUtil.tabCompleteSpellName(context.getSender())
 		);
-		commandManager.getCommandCompletions().registerAsyncCompletion("owned_spells", context -> {
-			Player player = context.getPlayer();
-			if (player == null) return getSpellNames(MagicSpells.spells());
-
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			Set<Spell> spells = new HashSet<>();
-			for (Spell spell : MagicSpells.getSpellsOrdered()) {
-				if (spell.isHelperSpell()) continue;
-				if (spell instanceof PassiveSpell) continue;
-				if (!spellbook.hasSpell(spell)) continue;
-				spells.add(spell);
-			}
-			return getSpellNames(spells);
-		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("variables", context ->
 			MagicSpells.getVariableManager().getVariables().keySet()
 		);
@@ -108,8 +93,9 @@ public class MagicCommand extends BaseCommand {
 			return Set.of(value);
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("spell_target", context -> {
+			CommandSender sender = context.getSender();
 			Player player = context.getPlayer();
-			if (player == null) return getPlayers();
+			if (player == null) return TxtUtil.tabCompletePlayerName(sender);
 			RayTraceResult result = player.rayTraceEntities(6);
 
 			Set<String> targets = new HashSet<>();
@@ -117,7 +103,7 @@ public class MagicCommand extends BaseCommand {
 			if (result != null && result.getHitEntity() instanceof LivingEntity entity) {
 				targets.add(entity instanceof Player pl ? pl.getName() : entity.getUniqueId().toString());
 			}
-			targets.addAll(getPlayers());
+			targets.addAll(TxtUtil.tabCompletePlayerName(sender));
 			return targets;
 		});
 		commandManager.getCommandCompletions().registerAsyncCompletion("target_uuid", context -> {
@@ -129,47 +115,25 @@ public class MagicCommand extends BaseCommand {
 				return Collections.emptySet();
 			return Set.of(entity.getUniqueId().toString());
 		});
-		commandManager.getCommandCompletions().registerAsyncCompletion("power", context -> {
-			Player player = context.getPlayer();
-			if (player != null && !Perm.COMMAND_CAST_POWER.has(player)) return Collections.emptyList();
-			return Collections.singleton("-p:");
+		commandManager.getCommandCompletions().registerAsyncCompletion("cast_data", context -> {
+			String[] args = (String[]) context.getContextValue(String.class.arrayType());
+			CommandSender sender = context.getSender();
+			if (args.length == 1) return TxtUtil.tabCompleteSpellName(sender);
+
+			Spell spell = getSpell(args[0]);
+			if (spell == null) return null;
+			if (sender instanceof Player player) {
+				if (!MagicSpells.getSpellbook(player).hasSpell(spell) || !spell.canCastByCommand()) {
+					return null;
+				}
+			} else if (!(sender instanceof ConsoleCommandSender)) return null;
+
+			List<String> ret = new ArrayList<>();
+			if (args.length == 2 && Perm.COMMAND_CAST_POWER.has(sender)) ret.add("-p:");
+			List<String> completion = spell.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length));
+			if (completion != null) ret.addAll(completion);
+			return ret;
 		});
-	}
-
-	private static Set<String> getPlayers() {
-		Set<String> players = new HashSet<>();
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			players.add(player.getName());
-		}
-		return players;
-	}
-
-	private static Set<String> getSpellNames(Collection<Spell> spells) {
-		Set<String> spellNames = new HashSet<>();
-		boolean added;
-		for (Spell spell : spells) {
-			if (!spell.canCastByCommand()) continue;
-
-			added = false;
-			if (MagicSpells.tabCompleteInternalNames()) {
-				spellNames.add(spell.getInternalName());
-				added = true;
-			}
-
-			// Add spell name
-			String name = spell.getName();
-			if (name != null && !name.equals(spell.getInternalName())) {
-				spellNames.add("\"" + Util.getPlainString(Util.getMiniMessage(spell.getName())) + "\"");
-				added = true;
-			}
-
-			if (!added) spellNames.add(spell.getInternalName());
-
-			// Add aliases
-			String[] aliases = spell.getAliases();
-			if (aliases != null && aliases.length > 0) Collections.addAll(spellNames, aliases);
-		}
-		return spellNames;
 	}
 
 	private static Spell getSpell(String name) {
@@ -205,19 +169,19 @@ public class MagicCommand extends BaseCommand {
 		return player != null && player.isOnline() ? player : null;
 	}
 
-	private static String[] getCustomArgs(String[] args, int lastParameter) {
-		if (args.length <= lastParameter) return null;
+	private static String[] getCustomArgs(String[] args, int fromIndex) {
+		if (args.length <= fromIndex) return null;
 		List<String> spellArgs = new ArrayList<>();
-		for (String string : Arrays.copyOfRange(args, lastParameter, args.length)) {
-			// Skip custom parameters.
+		for (String string : Arrays.copyOfRange(args, fromIndex, args.length)) {
+			// Skip custom flags.
 			if (string.startsWith("-p:")) continue;
-
 			spellArgs.add(string);
 		}
 		return spellArgs.toArray(new String[0]);
 	}
 
-	private static boolean hasPowerArg(String[] args) {
+	private static boolean hasPowerArg(String[] args, int fromIndex) {
+		if (args.length <= fromIndex) return false;
 		for (String string : args) {
 			if (!string.startsWith("-p:")) continue;
 			return true;
@@ -225,7 +189,8 @@ public class MagicCommand extends BaseCommand {
 		return false;
 	}
 
-	private static float getPowerFromArgs(String[] args) {
+	private static float getPowerFromArgs(String[] args, int fromIndex) {
+		if (args.length <= fromIndex) return 1F;
 		for (String string : args) {
 			if (!string.startsWith("-p:")) continue;
 			return ACFUtil.parseFloat(string.substring(3), 1F);
@@ -737,7 +702,7 @@ public class MagicCommand extends BaseCommand {
 
 		@Subcommand("self")
 		@CommandAlias("c|cast")
-		@CommandCompletion("@owned_spells @power @nothing")
+		@CommandCompletion("@cast_data")
 		@Syntax("<spell> [-p:(power)] [spellArgs]")
 		@Description("Cast a spell. (You can optionally define power: -p:1.0)")
 		@HelpPermission(permission = Perm.COMMAND_CAST_SELF)
@@ -748,8 +713,8 @@ public class MagicCommand extends BaseCommand {
 			if (args[0].isEmpty()) throw new InvalidCommandArgument();
 
 			// This is an abstract way to preserve an old command alias for the "ms cast as" command. ("c forcecast")
-			if (args[0].equals("forcecast")) {
-				onCastAs(issuer, Arrays.copyOfRange(args, 1, args.length));
+			if (args[0].equals("forcecast") && args.length > 2) {
+				onCastAs(issuer, args[1], Arrays.copyOfRange(args, 2, args.length));
 				return;
 			}
 
@@ -757,11 +722,11 @@ public class MagicCommand extends BaseCommand {
 			if (spell == null) return;
 
 			// Get spell power if the user has permission.
-			if (hasPowerArg(args)) {
+			if (hasPowerArg(args, 1)) {
 				boolean noPowerPerm = noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_POWER,"You do not have permission to use the power parameter.");
 				if (noPowerPerm) return;
 			}
-			float power = getPowerFromArgs(args);
+			float power = getPowerFromArgs(args, 1);
 			String[] spellArgs = getCustomArgs(args, 1);
 
 			CommandSender sender = issuer.getIssuer();
@@ -802,27 +767,28 @@ public class MagicCommand extends BaseCommand {
 		}
 
 		@Subcommand("as")
-		@CommandCompletion("@spell_target @spells @power @nothing")
+		@CommandCompletion("@spell_target @cast_data")
 		@Syntax("<player/UUID> <spell> (-p:[power]) [spellArgs]")
 		@Description("Force a player to cast a spell. (You can optionally define power: -p:1.0)")
 		@HelpPermission(permission = Perm.COMMAND_CAST_AS)
-		public void onCastAs(CommandIssuer issuer, String[] args) {
+		public void onCastAs(CommandIssuer issuer, String targetName, String[] args) {
 			if (!MagicSpells.isLoaded()) return;
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_AS)) return;
-			args = Util.splitParams(args);
-			if (args.length < 2) throw new InvalidCommandArgument();
-			LivingEntity target = getEntity(args[0]);
+
+			LivingEntity target = getEntity(targetName);
 			if (target == null) throw new ConditionFailedException("Entity not found.");
-			Spell spell = getSpell(issuer, args[1]);
+
+			args = Util.splitParams(args);
+			Spell spell = getSpell(issuer, args[0]);
 			if (spell == null) return;
 
 			// Get spell power if the user has permission.
-			if (hasPowerArg(args)) {
+			if (hasPowerArg(args, 1)) {
 				boolean noPowerPerm = noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_POWER,"You do not have permission to use the power parameter.");
 				if (noPowerPerm) return;
 			}
-			float power = getPowerFromArgs(args);
-			String[] spellArgs = getCustomArgs(args, 2);
+			float power = getPowerFromArgs(args, 1);
+			String[] spellArgs = getCustomArgs(args, 1);
 			spell.hardCast(new SpellData(target, power, spellArgs));
 		}
 
@@ -831,14 +797,14 @@ public class MagicCommand extends BaseCommand {
 		@Syntax("<player/UUID> <spell>")
 		@Description("Cast a spell on an entity.")
 		@HelpPermission(permission = Perm.COMMAND_CAST_ON)
-		public void onCastOn(CommandIssuer issuer, String[] args) {
+		public void onCastOn(CommandIssuer issuer, String targetName, String spellName) {
 			if (!MagicSpells.isLoaded()) return;
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_ON)) return;
-			args = Util.splitParams(args);
-			if (args.length < 2) throw new InvalidCommandArgument();
-			LivingEntity target = getEntity(args[0]);
+
+			LivingEntity target = getEntity(targetName);
 			if (target == null) throw new ConditionFailedException("Entity not found.");
-			Spell spell = getSpell(issuer, args[1]);
+
+			Spell spell = getSpell(spellName);
 			if (spell == null) return;
 			if (!(spell instanceof TargetedEntitySpell newSpell)) {
 				throw new ConditionFailedException("Spell is not a targeted entity spell.");
