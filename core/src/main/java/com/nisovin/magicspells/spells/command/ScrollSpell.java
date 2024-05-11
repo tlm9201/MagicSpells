@@ -135,7 +135,7 @@ public class ScrollSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
+		Spell spell = MagicSpells.getSpellByName(data.args()[0]);
 		Spellbook spellbook = MagicSpells.getSpellbook(caster);
 		if (spell == null || !spellbook.hasSpell(spell)) {
 			sendMessage(strNoSpell, caster, data);
@@ -180,7 +180,7 @@ public class ScrollSpell extends CommandSpell {
 			return false;
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(args[1]);
+		Spell spell = MagicSpells.getSpellByName(args[1]);
 		if (spell == null) {
 			sender.sendMessage(strNoSpell);
 			return false;

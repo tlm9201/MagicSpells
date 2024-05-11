@@ -179,12 +179,6 @@ public class Spellbook {
 		return player.hasPermission(Perm.ADVANCED.getNode() + spell);
 	}
 
-	public Spell getSpellByName(String spellName) {
-		Spell spell = MagicSpells.getSpellByInGameName(spellName);
-		if (spell != null && hasSpell(spell)) return spell;
-		return null;
-	}
-
 	public void addSpell(Spell spell) {
 		addSpell(spell, (CastItem[]) null);
 	}

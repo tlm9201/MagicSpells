@@ -77,7 +77,7 @@ public class UnbindSpell extends CommandSpell {
 			return new CastResult(PostCastAction.NO_MESSAGES, data);
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(Util.arrayJoin(data.args(), ' '));
+		Spell spell = MagicSpells.getSpellByName(Util.arrayJoin(data.args(), ' '));
 		if (spell == null) {
 			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);

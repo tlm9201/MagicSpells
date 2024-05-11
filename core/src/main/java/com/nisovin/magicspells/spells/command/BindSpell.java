@@ -71,7 +71,7 @@ public class BindSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(Util.arrayJoin(data.args(), ' '));
+		Spell spell = MagicSpells.getSpellByName(Util.arrayJoin(data.args(), ' '));
 		Spellbook spellbook = MagicSpells.getSpellbook(caster);
 
 		if (spell == null) {

@@ -44,8 +44,7 @@ public class MagicSpellsTowny extends JavaPlugin implements Listener {
 		if (config.contains("disallowed-in-towns")) {
 			List<String> list = config.getStringList("disallowed-in-towns");
 			for (String s : list) {
-				Spell spell = MagicSpells.getSpellByInternalName(s);
-				if (spell == null) spell = MagicSpells.getSpellByInGameName(s);
+				Spell spell = MagicSpells.getSpellByName(s);
 				if (spell != null) disallowedInTowns.add(spell);
 				else getLogger().warning("Could not find spell: '" + s + "'.");
 			}

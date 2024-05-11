@@ -986,19 +986,30 @@ public class MagicSpells extends JavaPlugin {
 	/**
 	 * Gets a spell by its internal name (the key name in the config file)
 	 * @param spellName the internal name of the spell to find
-	 * @return the Spell found, or null if no spell with that name was found
+	 * @return {@link Spell} found, or null if no spell with that name was found
 	 */
 	public static Spell getSpellByInternalName(String spellName) {
 		return plugin.spells.get(spellName.toLowerCase());
 	}
 
 	/**
-	 * Gets a spell by its in-game name (the name specified with the 'name' config option)
+	 * Gets a spell by its in-game name (<code>aliases</code>, the name specified with the <code>name</code>
+	 * config option, or the internal spell name if <code>name</code> was not specified).
 	 * @param spellName the in-game name of the spell to find
-	 * @return the Spell found, or null if no spell with that name was found
+	 * @return {@link Spell} found, or null if no spell with that name was found
 	 */
 	public static Spell getSpellByInGameName(String spellName) {
 		return plugin.spellNames.get(spellName.toLowerCase());
+	}
+
+	/**
+	 * Gets a spell by its internal name, <code>aliases</code> or <code>name</code>).
+	 * @param spellName the name of the spell to find
+	 * @return {@link Spell} found, or null
+	 */
+	public static Spell getSpellByName(String spellName) {
+		Spell spell = getSpellByInternalName(spellName);
+		return spell == null ? getSpellByInGameName(spellName) : spell;
 	}
 
 	/**

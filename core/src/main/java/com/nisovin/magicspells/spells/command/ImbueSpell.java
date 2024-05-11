@@ -105,7 +105,7 @@ public class ImbueSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
+		Spell spell = MagicSpells.getSpellByName(data.args()[0]);
 		if (spell == null || !MagicSpells.getSpellbook(caster).hasSpell(spell)) {
 			sendMessage(strCantImbueSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);

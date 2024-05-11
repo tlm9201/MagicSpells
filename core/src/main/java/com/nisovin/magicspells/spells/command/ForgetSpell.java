@@ -76,7 +76,7 @@ public class ForgetSpell extends CommandSpell {
 		boolean all = false;
 		Spell spell = null;
 		if (spellName.equals("*")) all = true;
-		else spell = MagicSpells.getSpellByInGameName(spellName);
+		else spell = MagicSpells.getSpellByName(spellName);
 
 		if (spell == null && !all) {
 			sendMessage(strNoSpell, caster, data);
@@ -137,7 +137,7 @@ public class ForgetSpell extends CommandSpell {
 		Spell spell = null;
 		boolean all = false;
 		if (args[1].equals("*")) all = true;
-		else spell = MagicSpells.getSpellByInGameName(args[1]);
+		else spell = MagicSpells.getSpellByName(args[1]);
 
 		if (spell == null && !all) {
 			sender.sendMessage(strNoSpell);

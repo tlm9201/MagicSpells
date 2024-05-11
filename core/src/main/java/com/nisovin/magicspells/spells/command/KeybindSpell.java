@@ -118,8 +118,8 @@ public class KeybindSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Spell spell = MagicSpells.getSpellbook(caster).getSpellByName(data.args()[0]);
-		if (spell == null) {
+		Spell spell = MagicSpells.getSpellByName(data.args()[0]);
+		if (spell == null || !MagicSpells.getSpellbook(caster).hasSpell(spell)) {
 			caster.sendMessage("No spell.");
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}

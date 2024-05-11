@@ -172,16 +172,13 @@ public class MagicCommand extends BaseCommand {
 		return spellNames;
 	}
 
+	private static Spell getSpell(String name) {
+		return MagicSpells.getSpellByName(QUOTATIONS_PATTERN.matcher(name).replaceAll(""));
+	}
+
 	private static Spell getSpell(CommandIssuer issuer, String name) {
-		Spell spell = MagicSpells.getSpellByInternalName(name);
-		if (spell == null) {
-			// Remove quotations for ingame name - previous handling.
-			name = QUOTATIONS_PATTERN.matcher(name).replaceAll("");
-			spell = MagicSpells.getSpellByInGameName(name);
-		}
-		if (spell == null) {
-			issuer.sendMessage(MagicSpells.getTextColor() + "No matching spell found: '" + name + "'");
-		}
+		Spell spell = getSpell(name);
+		if (spell == null) issuer.sendMessage(MagicSpells.getTextColor() + "No matching spell found: '" + name + "'");
 		return spell;
 	}
 
@@ -229,13 +226,11 @@ public class MagicCommand extends BaseCommand {
 	}
 
 	private static float getPowerFromArgs(String[] args) {
-		float power = 1F;
 		for (String string : args) {
 			if (!string.startsWith("-p:")) continue;
-			power = ACFUtil.parseFloat(string.substring(3), 1F);
-			break;
+			return ACFUtil.parseFloat(string.substring(3), 1F);
 		}
-		return power;
+		return 1F;
 	}
 
 	private static boolean noPermission(CommandSender sender, Perm perm) {

@@ -80,7 +80,7 @@ public class TomeSpell extends CommandSpell {
 		}
 
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
+		Spell spell = MagicSpells.getSpellByName(data.args()[0]);
 		if (spell == null || !spellbook.hasSpell(spell)) {
 			sendMessage(strNoSpell, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
