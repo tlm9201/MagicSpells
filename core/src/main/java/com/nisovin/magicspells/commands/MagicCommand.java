@@ -793,25 +793,34 @@ public class MagicCommand extends BaseCommand {
 		}
 
 		@Subcommand("on")
-		@CommandCompletion("@spell_target @spells @nothing")
-		@Syntax("<player/UUID> <spell>")
-		@Description("Cast a spell on an entity.")
+		@CommandCompletion("@spell_target @cast_data")
+		@Syntax("<player/UUID> <spell> (-p:[power]) [spellArgs]")
+		@Description("Cast a spell on an entity. (You can optionally define power: -p:1.0)")
 		@HelpPermission(permission = Perm.COMMAND_CAST_ON)
-		public void onCastOn(CommandIssuer issuer, String targetName, String spellName) {
+		public void onCastOn(CommandIssuer issuer, String targetName, String[] args) {
 			if (!MagicSpells.isLoaded()) return;
 			if (noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_ON)) return;
 
 			LivingEntity target = getEntity(targetName);
 			if (target == null) throw new ConditionFailedException("Entity not found.");
 
-			Spell spell = getSpell(spellName);
+			args = Util.splitParams(args);
+			Spell spell = getSpell(issuer, args[0]);
 			if (spell == null) return;
 			if (!(spell instanceof TargetedEntitySpell newSpell)) {
 				throw new ConditionFailedException("Spell is not a targeted entity spell.");
 			}
 
+			// Get spell power if the user has permission.
+			if (hasPowerArg(args, 1)) {
+				boolean noPowerPerm = noPermission(issuer.getIssuer(), Perm.COMMAND_CAST_POWER,"You do not have permission to use the power parameter.");
+				if (noPowerPerm) return;
+			}
+			float power = getPowerFromArgs(args, 1);
+			String[] spellArgs = getCustomArgs(args, 1);
+
 			LivingEntity caster = issuer.getIssuer() instanceof LivingEntity ? issuer.getIssuer() : null;
-			CastResult result = newSpell.castAtEntity(new SpellData(caster, target));
+			CastResult result = newSpell.castAtEntity(new SpellData(caster, target, power, spellArgs));
 			if (result.action() == PostCastAction.ALREADY_HANDLED)
 				throw new ConditionFailedException("Spell probably cannot be cast from console.");
 		}
