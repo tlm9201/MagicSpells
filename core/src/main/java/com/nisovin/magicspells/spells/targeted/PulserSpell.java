@@ -103,9 +103,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	@Override
 	public CastResult cast(SpellData data) {
-		if (capPerPlayer > 0 && hasReachedCap(data)) {
-			return noTarget(strAtCap, data);
-		}
+		if (capPerPlayer > 0 && hasReachedCap(data)) return noTarget(strAtCap, data);
 
 		RayTraceResult result = rayTraceBlocks(data);
 		if (result == null) return noTarget(data);
@@ -144,9 +142,7 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 
 	@Override
 	public CastResult castAtLocation(SpellData data) {
-		if (capPerPlayer > 0 && data.hasCaster() && hasReachedCap(data)) {
-			return noTarget(strAtCap, data);
-		}
+		if (capPerPlayer > 0 && data.hasCaster() && hasReachedCap(data)) return noTarget(strAtCap, data);
 
 		Location location = data.location();
 		Block block = location.getBlock();
@@ -181,9 +177,9 @@ public class PulserSpell extends TargetedSpell implements TargetedLocationSpell 
 		int count = 0;
 		for (Pulser pulser : pulsers.values()) {
 			if (!Objects.equals(pulser.data.caster(), data.caster())) continue;
-			count++;
-			if (count >= capPerPlayer) return true;
+			if (++count >= capPerPlayer) return true;
 		}
+
 		return false;
 	}
 
