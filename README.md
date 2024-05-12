@@ -12,7 +12,6 @@
 
 [//]: # (These links are here for easier hyperlink referencing and less clutter in the actual text below.)
 [Discord server]: https://discord.magicspells.dev
-[showcase channel]: https://canary.discord.com/channels/335237931633606656/468537255925907466
 [Releases]: https://github.com/TheComputerGeek2/MagicSpells/releases
 [Wiki]: https://github.com/TheComputerGeek2/MagicSpells/wiki
 [SpellRepo]: https://github.com/niblexis/ms-examples
@@ -28,7 +27,7 @@
 
 MagicSpells is a [PaperMC] plugin which gives its users the ability to modify their Minecraft servers by configuring existing features without writing Java code. It provides you with the tools for playing with blocks of logic, bringing other plugins together, playing fantastic special effects, making your own new mechanics, and more.
 
-Check out more examples of what this plugin can do in our [Discord server] (in the [showcase channel]).
+Check out more examples of what this plugin can do in our [Discord server].
 
 ---
 ## Resources 📝

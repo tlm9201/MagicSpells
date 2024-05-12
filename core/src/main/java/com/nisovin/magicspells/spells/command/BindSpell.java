@@ -71,7 +71,7 @@ public class BindSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(Util.arrayJoin(data.args(), ' '));
+		Spell spell = MagicSpells.getSpellByName(Util.arrayJoin(data.args(), ' '));
 		Spellbook spellbook = MagicSpells.getSpellbook(caster);
 
 		if (spell == null) {
@@ -137,9 +137,8 @@ public class BindSpell extends CommandSpell {
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		if (sender instanceof Player && !partial.contains(" ")) return tabCompleteSpellName(sender, partial);
-		return null;
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		return sender instanceof Player && args.length == 1 ? TxtUtil.tabCompleteSpellName(sender) : null;
 	}
 
 	public Set<CastItem> getBindableItems() {

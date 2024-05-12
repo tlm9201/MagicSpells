@@ -80,7 +80,7 @@ public class TomeSpell extends CommandSpell {
 		}
 
 		Spellbook spellbook = MagicSpells.getSpellbook(player);
-		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
+		Spell spell = MagicSpells.getSpellByName(data.args()[0]);
 		if (spell == null || !spellbook.hasSpell(spell)) {
 			sendMessage(strNoSpell, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -114,9 +114,11 @@ public class TomeSpell extends CommandSpell {
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		return false;
 	}
-	
+
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (args.length == 1) return TxtUtil.tabCompleteSpellName(sender);
+		if (args.length == 2) return List.of("1");
 		return null;
 	}
 

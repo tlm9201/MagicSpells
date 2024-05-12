@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.*;
@@ -76,7 +77,7 @@ public class ForgetSpell extends CommandSpell {
 		boolean all = false;
 		Spell spell = null;
 		if (spellName.equals("*")) all = true;
-		else spell = MagicSpells.getSpellByInGameName(spellName);
+		else spell = MagicSpells.getSpellByName(spellName);
 
 		if (spell == null && !all) {
 			sendMessage(strNoSpell, caster, data);
@@ -137,7 +138,7 @@ public class ForgetSpell extends CommandSpell {
 		Spell spell = null;
 		boolean all = false;
 		if (args[1].equals("*")) all = true;
-		else spell = MagicSpells.getSpellByInGameName(args[1]);
+		else spell = MagicSpells.getSpellByName(args[1]);
 
 		if (spell == null && !all) {
 			sender.sendMessage(strNoSpell);
@@ -169,19 +170,32 @@ public class ForgetSpell extends CommandSpell {
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		String[] args = Util.splitParams(partial);
-		if (args.length == 1) {
-			// Matching player name or spell name
-			List<String> options = new ArrayList<>();
-			List<String> players = tabCompletePlayerName(sender, args[0]);
-			List<String> spells = tabCompleteSpellName(sender, args[0]);
-			if (players != null) options.addAll(players);
-			if (spells != null) options.addAll(spells);
-			if (!options.isEmpty()) return options;
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (sender instanceof ConsoleCommandSender) {
+			if (args.length == 1) return TxtUtil.tabCompletePlayerName(sender);
+			if (args.length == 2) {
+				List<String> ret = new ArrayList<>();
+				ret.add("*");
+				ret.addAll(TxtUtil.tabCompleteSpellName(sender));
+				return ret;
+			}
+		} else if (sender instanceof Player player) {
+			if (args.length == 1) {
+				List<String> ret = new ArrayList<>();
+				if (MagicSpells.getSpellbook(player).hasAdvancedPerm("forget")) {
+					ret.addAll(TxtUtil.tabCompletePlayerName(sender));
+				}
+				ret.add("*");
+				ret.addAll(TxtUtil.tabCompleteSpellName(sender));
+				return ret;
+			}
+			if (args.length == 2 && Bukkit.getPlayer(args[0]) != null) {
+				List<String> ret = new ArrayList<>();
+				ret.add("*");
+				ret.addAll(TxtUtil.tabCompleteSpellName(sender));
+				return ret;
+			}
 		}
-
-		if (args.length == 2) return tabCompleteSpellName(sender, args[1]);
 		return null;
 	}
 

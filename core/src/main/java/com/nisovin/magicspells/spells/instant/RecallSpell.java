@@ -1,10 +1,14 @@
 package com.nisovin.magicspells.spells.instant;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.*;
@@ -57,7 +61,8 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	public CastResult cast(SpellData data) {
 		Location markLocation;
 
-		if (data.hasArgs() && data.args().length == 1 && data.caster().hasPermission("magicspells.advanced." + internalName)) {
+		boolean hasPerm = data.caster() instanceof Player caster && MagicSpells.getSpellbook(caster).hasAdvancedPerm(internalName);
+		if (data.hasArgs() && data.args().length == 1 && hasPerm) {
 			Player target = Bukkit.getPlayer(data.args()[0]);
 			markLocation = getRecallLocation(target, data);
 		} else markLocation = getRecallLocation(data.caster(), data);
@@ -69,6 +74,17 @@ public class RecallSpell extends InstantSpell implements TargetedEntitySpell {
 	public CastResult castAtEntity(SpellData data) {
 		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		return recall(data, data.target(), getRecallLocation(data.caster(), data));
+	}
+
+	@Override
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (args.length != 1) return null;
+
+		if (sender instanceof Player player) {
+			if (!MagicSpells.getSpellbook(player).hasAdvancedPerm(internalName)) return null;
+		} else if (!(sender instanceof ConsoleCommandSender)) return null;
+
+		return TxtUtil.tabCompletePlayerName(sender);
 	}
 
 	private CastResult recall(SpellData data, LivingEntity entity, Location markLocation) {

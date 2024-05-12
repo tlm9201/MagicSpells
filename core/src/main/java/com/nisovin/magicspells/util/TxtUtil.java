@@ -2,13 +2,15 @@ package com.nisovin.magicspells.util;
 
 import java.util.List;
 import java.util.ArrayList;
-
-import org.bukkit.entity.Player;
-import org.bukkit.command.CommandSender;
+import java.util.Collections;
 
 import com.nisovin.magicspells.Spell;
-import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.MagicSpells;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 
 public class TxtUtil {
 	
@@ -29,41 +31,48 @@ public class TxtUtil {
 		return ret;
 	}
 
-	public static String escapeJSON(String str) {
-		return str.replaceAll("[\"\\\\]", "\\\\$0");
-	}
-	
-	public static List<String> tabCompleteSpellName(CommandSender sender, String partial) {
-		List<String> matches = new ArrayList<>();
-		if (sender instanceof Player player) {
-			Spellbook spellbook = MagicSpells.getSpellbook(player);
-			for (Spell spell : spellbook.getSpells()) {
-				if (!spellbook.canTeach(spell)) continue;
-				if (spell.getName().toLowerCase().startsWith(partial)) {
-					matches.add(spell.getName());
-					continue;
-				}
-				String[] aliases = spell.getAliases();
-				if (aliases == null) continue;
-				for (String alias : aliases) {
-					if (alias.toLowerCase().startsWith(partial)) matches.add(alias);
-				}
+	public static List<String> tabCompleteSpellName(CommandSender sender) {
+		List<Spell> spells;
+		if (sender instanceof ConsoleCommandSender) {
+			spells = MagicSpells.getSpellsOrdered();
+		} else if (sender instanceof Player player) {
+			spells = new ArrayList<>(MagicSpells.getSpellbook(player).getSpells());
+		} else return null;
+
+		boolean added;
+		List<String> options = new ArrayList<>();
+		for (Spell spell : spells) {
+			if (spell.isHelperSpell()) continue;
+			if (!spell.canCastByCommand()) continue;
+
+			added = false;
+			if (MagicSpells.tabCompleteInternalNames()) {
+				options.add(spell.getInternalName());
+				added = true;
 			}
-		} else if (sender.isOp()) {
-			for (Spell spell : MagicSpells.spells()) {
-				if (spell.getName().toLowerCase().startsWith(partial)) {
-					matches.add(spell.getName());
-					continue;
-				}
-				String[] aliases = spell.getAliases();
-				if (aliases == null) continue;
-				for (String alias : aliases) {
-					if (alias.toLowerCase().startsWith(partial)) matches.add(alias);
-				}
+
+			// Add spell name
+			String name = spell.getName();
+			if (!name.equals(spell.getInternalName())) {
+				options.add('"' + Util.getPlainString(Util.getMiniMessage(spell.getName())) + '"');
+				added = true;
 			}
+
+			if (!added) options.add(spell.getInternalName());
+
+			String[] aliases = spell.getAliases();
+			if (aliases != null) Collections.addAll(options, aliases);
 		}
-		if (!matches.isEmpty()) return matches;
-		return null;
+		return options;
+	}
+
+	public static List<String> tabCompletePlayerName(CommandSender sender) {
+		List<String> matches = new ArrayList<>();
+		for (Player p : Bukkit.getOnlinePlayers()) {
+			if (!sender.isOp() && sender instanceof Player player && !player.canSee(p)) continue;
+			matches.add(p.getName());
+		}
+		return matches;
 	}
 
 	public static String getPossessiveName(String name) {

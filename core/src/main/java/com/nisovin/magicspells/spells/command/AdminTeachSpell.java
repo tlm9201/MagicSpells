@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.command.CommandSender;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.command.ConsoleCommandSender;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.*;
@@ -52,8 +53,9 @@ public class AdminTeachSpell extends CommandSpell {
 	}
 	
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		return null;
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (!(sender instanceof ConsoleCommandSender) || args.length != 1) return null;
+		return TxtUtil.tabCompleteSpellName(sender);
 	}
 	
 	private static class AdminTeachTask extends BukkitRunnable {

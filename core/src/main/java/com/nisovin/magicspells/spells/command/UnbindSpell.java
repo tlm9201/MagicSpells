@@ -77,7 +77,7 @@ public class UnbindSpell extends CommandSpell {
 			return new CastResult(PostCastAction.NO_MESSAGES, data);
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(Util.arrayJoin(data.args(), ' '));
+		Spell spell = MagicSpells.getSpellByName(Util.arrayJoin(data.args(), ' '));
 		if (spell == null) {
 			sendMessage(strNoSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -112,9 +112,12 @@ public class UnbindSpell extends CommandSpell {
 	}
 
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		if (sender instanceof Player && !partial.contains(" ")) return tabCompleteSpellName(sender, partial);
-		return null;
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (!(sender instanceof Player) || args.length != 1) return null;
+		List<String> ret = new ArrayList<>();
+		ret.add("*");
+		ret.addAll(TxtUtil.tabCompleteSpellName(sender));
+		return ret;
 	}
 
 	public Set<Spell> getAllowedSpells() {

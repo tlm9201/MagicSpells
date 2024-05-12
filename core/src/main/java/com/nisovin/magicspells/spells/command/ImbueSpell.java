@@ -105,7 +105,7 @@ public class ImbueSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Spell spell = MagicSpells.getSpellByInGameName(data.args()[0]);
+		Spell spell = MagicSpells.getSpellByName(data.args()[0]);
 		if (spell == null || !MagicSpells.getSpellbook(caster).hasSpell(spell)) {
 			sendMessage(strCantImbueSpell, caster, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -144,6 +144,14 @@ public class ImbueSpell extends CommandSpell {
 	@Override
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		return false;
+	}
+
+	@Override
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (!(sender instanceof Player)) return null;
+		if (args.length == 1) return TxtUtil.tabCompleteSpellName(sender);
+		if (args.length == 2) return List.of("1");
+		return null;
 	}
 
 	@EventHandler(priority = EventPriority.HIGHEST)
@@ -211,15 +219,6 @@ public class ImbueSpell extends CommandSpell {
 			meta.lore(Collections.singletonList(Util.getMiniMessage(lore)));
 		}
 		item.setItemMeta(meta);
-	}
-
-	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		return null;
-	}
-
-	public static Pattern getCastArgUsesPattern() {
-		return CAST_ARG_USES_PATTERN;
 	}
 
 	public Set<Material> getAllowedItemTypes() {

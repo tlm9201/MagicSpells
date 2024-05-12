@@ -60,7 +60,7 @@ public class TeachSpell extends CommandSpell {
 		Player target = players.get(0);
 		data = data.target(target);
 
-		Spell spell = MagicSpells.getSpellByInGameName(data.args()[1]);
+		Spell spell = MagicSpells.getSpellByName(data.args()[1]);
 		if (spell == null) {
 			sendMessage(strNoSpell, player, data);
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
@@ -115,7 +115,7 @@ public class TeachSpell extends CommandSpell {
 			sender.sendMessage(strNoTarget);
 			return true;
 		}
-		Spell spell = MagicSpells.getSpellByInGameName(args[1]);
+		Spell spell = MagicSpells.getSpellByName(args[1]);
 		if (spell == null) {
 			sender.sendMessage(strNoSpell);
 			return true;
@@ -146,10 +146,9 @@ public class TeachSpell extends CommandSpell {
 	}
 	
 	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		String[] args = Util.splitParams(partial);
-		if (args.length == 1) return tabCompletePlayerName(sender, args[0]);
-		if (args.length == 2) return tabCompleteSpellName(sender, args[1]);
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (args.length == 1) return TxtUtil.tabCompletePlayerName(sender);
+		if (args.length == 2) return TxtUtil.tabCompleteSpellName(sender);
 		return null;
 	}
 	

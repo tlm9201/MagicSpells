@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -118,8 +119,8 @@ public class KeybindSpell extends CommandSpell {
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
 
-		Spell spell = MagicSpells.getSpellbook(caster).getSpellByName(data.args()[0]);
-		if (spell == null) {
+		Spell spell = MagicSpells.getSpellByName(data.args()[0]);
+		if (spell == null || !MagicSpells.getSpellbook(caster).hasSpell(spell)) {
 			caster.sendMessage("No spell.");
 			return new CastResult(PostCastAction.ALREADY_HANDLED, data);
 		}
@@ -135,6 +136,14 @@ public class KeybindSpell extends CommandSpell {
 	@Override
 	public boolean castFromConsole(CommandSender sender, String[] args) {
 		return false;
+	}
+
+	@Override
+	public List<String> tabComplete(CommandSender sender, String[] args) {
+		if (!(sender instanceof Player) || args.length != 1) return null;
+		List<String> ret = new ArrayList<>(List.of("clear", "clearall"));
+		ret.addAll(TxtUtil.tabCompleteSpellName(sender));
+		return ret;
 	}
 
 	@EventHandler
@@ -166,11 +175,6 @@ public class KeybindSpell extends CommandSpell {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		loadKeybinds(event.getPlayer());
-	}
-
-	@Override
-	public List<String> tabComplete(CommandSender sender, String partial) {
-		return null;
 	}
 
 	public ItemStack getWandItem() {
