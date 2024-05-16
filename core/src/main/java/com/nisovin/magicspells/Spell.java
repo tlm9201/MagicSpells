@@ -162,6 +162,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected ModifierSet targetModifiers;
 	protected ModifierSet locationModifiers;
 
+	private final SpellFilter interruptFilter;
+
 	protected Subspell spellOnFail;
 	protected Subspell spellOnInterrupt;
 
@@ -277,6 +279,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		// Cast time
 		castTime = getConfigDataInt("cast-time", 0);
+		interruptFilter = getConfigSpellFilter("interrupt-filter");
 		interruptOnMove = getConfigDataBoolean("interrupt-on-move", true);
 		interruptOnCast = getConfigDataBoolean("interrupt-on-cast", true);
 		interruptOnDamage = getConfigDataBoolean("interrupt-on-damage", false);
@@ -2645,6 +2648,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			if (!interruptOnCast) return;
 			if (event.getSpell() instanceof PassiveSpell) return;
 			if (!event.getCaster().equals(caster)) return;
+			if (!interruptFilter.isEmpty() && interruptFilter.check(event.getSpell())) return;
 
 			interrupt();
 		}
@@ -2757,6 +2761,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			if (!interruptOnCast) return;
 			if (event.getSpell() instanceof PassiveSpell) return;
 			if (!caster.equals(event.getCaster())) return;
+			if (!interruptFilter.isEmpty() && interruptFilter.check(event.getSpell())) return;
 
 			interrupt();
 		}
