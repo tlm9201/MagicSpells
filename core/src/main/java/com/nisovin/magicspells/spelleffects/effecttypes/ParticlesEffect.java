@@ -28,6 +28,7 @@ public class ParticlesEffect extends SpellEffect {
 
 	protected ConfigData<Particle> particle;
 
+	protected ConfigData<Color> color;
 	protected ConfigData<Material> material;
 	protected ConfigData<BlockData> blockData;
 	protected ConfigData<DustOptions> dustOptions;
@@ -57,6 +58,7 @@ public class ParticlesEffect extends SpellEffect {
 	public void loadFromConfig(ConfigurationSection config) {
 		particle = ConfigDataUtil.getParticle(config, "particle-name", Particle.POOF);
 
+		color = ConfigDataUtil.getARGBColor(config, "color", null);
 		material = ConfigDataUtil.getMaterial(config, "material", null);
 		blockData = ConfigDataUtil.getBlockData(config, "material", null);
 		dustOptions = ConfigDataUtil.getDustOptions(config, "color", "size", new DustOptions(Color.RED, 1));
@@ -161,6 +163,7 @@ public class ParticlesEffect extends SpellEffect {
 		if (type == DustTransition.class) return dustTransition.get(data);
 		if (type == Float.class) return sculkChargeRotation.get(data);
 		if (type == Integer.class) return shriekDelay.get(data);
+		if (type == Color.class) return color.get(data);
 
 		return null;
 	}
@@ -191,6 +194,7 @@ public class ParticlesEffect extends SpellEffect {
 		if (type == DustTransition.class) return dustTransition.get(data);
 		if (type == Float.class) return sculkChargeRotation.get(data);
 		if (type == Integer.class) return shriekDelay.get(data);
+		if (type == Color.class) return color.get(data);
 
 		return null;
 	}
