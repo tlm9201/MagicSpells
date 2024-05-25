@@ -149,6 +149,7 @@ public class EntityData {
 		addOptEquipment(transformers, config, "equipment.chestplate", EquipmentSlot.CHEST);
 		addOptEquipment(transformers, config, "equipment.leggings", EquipmentSlot.LEGS);
 		addOptEquipment(transformers, config, "equipment.boots", EquipmentSlot.FEET);
+		addOptEquipment(transformers, config, "equipment.body", EquipmentSlot.BODY);
 
 		// Mob
 		addOptEquipmentDropChance(transformers, config, "equipment.main-hand-drop-chance", EquipmentSlot.HAND);
@@ -157,6 +158,7 @@ public class EntityData {
 		addOptEquipmentDropChance(transformers, config, "equipment.chestplate-drop-chance", EquipmentSlot.CHEST);
 		addOptEquipmentDropChance(transformers, config, "equipment.leggings-drop-chance", EquipmentSlot.LEGS);
 		addOptEquipmentDropChance(transformers, config, "equipment.boots-drop-chance", EquipmentSlot.FEET);
+		addOptEquipmentDropChance(transformers, config, "equipment.body-drop-chance", EquipmentSlot.BODY);
 
 		// Tameable
 		tamed = addBoolean(transformers, config, "tamed", false, Tameable.class, Tameable::setTamed, forceOptional);
