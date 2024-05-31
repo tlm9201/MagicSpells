@@ -11,6 +11,8 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.configuration.ConfigurationSection;
 
+import de.slikey.effectlib.Effect;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
@@ -21,9 +23,6 @@ import com.nisovin.magicspells.spelleffects.trackers.BuffTracker;
 import com.nisovin.magicspells.spelleffects.trackers.OrbitTracker;
 import com.nisovin.magicspells.spelleffects.trackers.BuffEffectlibTracker;
 import com.nisovin.magicspells.spelleffects.trackers.OrbitEffectlibTracker;
-
-import de.slikey.effectlib.Effect;
-import de.slikey.effectlib.util.VectorUtils;
 
 /**
  * Annotations:
@@ -45,6 +44,9 @@ public abstract class SpellEffect {
 
 	private ConfigData<Vector> offset;
 	private ConfigData<Vector> relativeOffset;
+
+	private ConfigData<Angle> yaw;
+	private ConfigData<Angle> pitch;
 
 	// for line
 	private ConfigData<Double> maxDistance;
@@ -90,6 +92,9 @@ public abstract class SpellEffect {
 
 		offset = ConfigDataUtil.getVector(config, "offset", new Vector());
 		relativeOffset = ConfigDataUtil.getVector(config, "relative-offset", new Vector());
+
+		yaw = ConfigDataUtil.getAngle(config, "yaw", Angle.DEFAULT);
+		pitch = ConfigDataUtil.getAngle(config, "pitch", Angle.DEFAULT);
 
 		maxDistance = ConfigDataUtil.getDouble(config, "max-distance", 100);
 		distanceBetween = ConfigDataUtil.getDouble(config, "distance-between", 1);
@@ -191,10 +196,10 @@ public abstract class SpellEffect {
 	}
 
 	public Location applyOffsets(Location loc, SpellData data) {
-		return applyOffsets(loc, offset.get(data), relativeOffset.get(data), zOffset.get(data), heightOffset.get(data), forwardOffset.get(data));
+		return applyOffsets(loc, offset.get(data), relativeOffset.get(data), zOffset.get(data), heightOffset.get(data), forwardOffset.get(data), yaw.get(data), pitch.get(data));
 	}
 
-	public Location applyOffsets(Location loc, Vector offset, Vector relativeOffset, double zOffset, double heightOffset, double forwardOffset) {
+	public Location applyOffsets(Location loc, Vector offset, Vector relativeOffset, double zOffset, double heightOffset, double forwardOffset, Angle yaw, Angle pitch) {
 		loc.add(offset);
 		loc.add(0, heightOffset, 0);
 
@@ -205,6 +210,9 @@ public abstract class SpellEffect {
 			Vector forward = Util.getDirection(loc.getYaw(), 0);
 			loc.add(forward.multiply(forwardOffset));
 		}
+
+		loc.setYaw(yaw.apply(loc.getYaw()));
+		loc.setPitch(pitch.apply(loc.getPitch()));
 
 		return loc;
 	}
