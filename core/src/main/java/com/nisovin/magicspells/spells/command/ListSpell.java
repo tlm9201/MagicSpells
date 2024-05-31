@@ -72,7 +72,7 @@ public class ListSpell extends CommandSpell {
 
 		Component message = Util.getMiniMessage(MagicSpells.getTextColor() + strPrefix + " " + extra);
 
-		for (Spell spell : spellbook.getSpells()) {
+		for (Spell spell : MagicSpells.getSpellsOrdered()) {
 			if (shouldListSpell(spell, spellbook, onlyShowCastableSpells)) {
 				if (prev) message = message.append(Component.text(", "));
 
@@ -129,6 +129,7 @@ public class ListSpell extends CommandSpell {
 
 	private boolean shouldListSpell(Spell spell, Spellbook spellbook, boolean onlyShowCastableSpells) {
 		if (spell.isHelperSpell()) return false;
+		if (!spellbook.hasSpell(spell)) return false;
 		if (onlyShowCastableSpells && (!spellbook.canCast(spell) || spell instanceof PassiveSpell)) return false;
 		if (spellsToHide != null && spellsToHide.contains(spell.getInternalName())) return false;
 		return filter.check(spell);
