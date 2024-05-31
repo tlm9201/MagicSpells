@@ -42,7 +42,7 @@ public class UnbindSpell extends CommandSpell {
 		strNoSpell = getConfigString("str-no-spell", "You do not know a spell by that name.");
 		strNotBound = getConfigString("str-not-bound", "That spell is not bound to that item.");
 		strUnbindAll = getConfigString("str-unbind-all", "All spells from your item were cleared.");
-		strCantUnbind = getConfigString("str-cant-unbind", "You cannot unbind this spell");
+		strCantUnbind = getConfigString("str-cant-unbind", "You cannot unbind this spell.");
 	}
 
 	@Override
