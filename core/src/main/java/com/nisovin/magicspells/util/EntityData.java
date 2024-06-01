@@ -49,6 +49,8 @@ public class EntityData {
 
 	private ConfigData<EntityType> entityType;
 
+	private final ConfigData<Angle> yaw;
+	private final ConfigData<Angle> pitch;
 	private final ConfigData<Vector> relativeOffset;
 
 	// Legacy support for DisguiseSpell section format
@@ -110,6 +112,8 @@ public class EntityData {
 	public EntityData(ConfigurationSection config, boolean forceOptional) {
 		entityType = ConfigDataUtil.getEntityType(config, "entity", null);
 
+		yaw = ConfigDataUtil.getAngle(config, "yaw", Angle.DEFAULT);
+		pitch = ConfigDataUtil.getAngle(config, "pitch", Angle.DEFAULT);
 		relativeOffset = ConfigDataUtil.getVector(config, "relative-offset", new Vector(0, 0, 0));
 
 		Multimap<Class<?>, Transformer<?>> transformers = MultimapBuilder.linkedHashKeys().arrayListValues().build();
@@ -406,6 +410,9 @@ public class EntityData {
 		Vector relativeOffset = this.relativeOffset.get(data);
 		spawnLocation.add(0, relativeOffset.getY(), 0);
 		Util.applyRelativeOffset(spawnLocation, relativeOffset.setY(0));
+
+		spawnLocation.setYaw(yaw.get(data).apply(spawnLocation.getYaw()));
+		spawnLocation.setPitch(pitch.get(data).apply(spawnLocation.getPitch()));
 
 		EntityType type = this.entityType.get(data);
 		if (type == null || (!type.isSpawnable() && type != EntityType.FALLING_BLOCK && type != EntityType.ITEM))
