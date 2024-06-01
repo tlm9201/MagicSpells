@@ -16,6 +16,7 @@ import org.bukkit.Particle.DustTransition;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Name;
+import com.nisovin.magicspells.util.Angle;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
@@ -141,17 +142,17 @@ public class ParticlesEffect extends SpellEffect {
 					if (caster == null) yield null;
 
 					yield staticDestination ? new BlockDestination(applyOffsets(caster.getLocation(), vibrationOffset,
-						vibrationRelativeOffset, 0, 0, 0)) : new EntityDestination(caster);
+						vibrationRelativeOffset, 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT)) : new EntityDestination(caster);
 				}
 				case TARGET -> {
 					LivingEntity target = data.target();
 					if (target == null) yield null;
 
 					yield staticDestination ? new BlockDestination(applyOffsets(target.getLocation(), vibrationOffset,
-						vibrationRelativeOffset, 0, 0, 0)) : new EntityDestination(target);
+						vibrationRelativeOffset, 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT)) : new EntityDestination(target);
 				}
 				case POSITION -> staticDestination ? new BlockDestination(applyOffsets(location, vibrationOffset,
-					vibrationRelativeOffset, 0, 0, 0)) : new EntityDestination(entity);
+					vibrationRelativeOffset, 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT)) : new EntityDestination(entity);
 			};
 			if (destination == null) return null;
 
@@ -184,7 +185,7 @@ public class ParticlesEffect extends SpellEffect {
 			if (targetLocation == null) return null;
 
 			Destination destination = new BlockDestination(applyOffsets(targetLocation, vibrationOffset.get(data),
-				vibrationRelativeOffset.get(data), 0, 0, 0));
+				vibrationRelativeOffset.get(data), 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT));
 
 			return new Vibration(destination, arrivalTime.get(data));
 		}

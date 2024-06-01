@@ -678,6 +678,39 @@ public class ConfigDataUtil {
 		}
 	}
 
+	public static ConfigData<Angle> getAngle(@NotNull ConfigurationSection config, @NotNull String path, @Nullable Angle def) {
+		if (config.isInt(path) || config.isLong(path) || config.isDouble(path)) {
+			float value = (float) config.getDouble(path);
+			Angle angle = new Angle(value, false);
+
+			return data -> angle;
+		}
+
+		if (config.isString(path)) {
+			String string = config.getString(path);
+
+			boolean relative = string.startsWith("~");
+			if (relative) {
+				string = string.substring(1);
+
+				try {
+					float value = Float.parseFloat(string);
+					Angle angle = new Angle(value, true);
+
+					return data -> angle;
+				} catch (NumberFormatException ignored) {
+				}
+			}
+
+			FunctionData<Float> function = FunctionData.build(string, Double::floatValue);
+			if (function == null) return data -> def;
+
+			return data -> new Angle(function.get(data), relative);
+		}
+
+		return data -> def;
+	}
+
 	@NotNull
 	public static ConfigData<Vector> getVector(@NotNull ConfigurationSection config, @NotNull String path, @Nullable Vector def) {
 		if (config.isString(path)) {

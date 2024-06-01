@@ -11,6 +11,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.block.sign.Side;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.command.CommandSender;
@@ -19,6 +20,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
@@ -89,17 +91,14 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 		}
 
 		// Get player
-		Player target = null;
-		if (requireExactName.get(data)) {
-			target = Bukkit.getPlayer(targetName);
-			if (target != null && !target.getName().equalsIgnoreCase(targetName)) target = null;
-		} else {
-			List<Player> players = Bukkit.matchPlayer(targetName);
-			if (players.size() == 1) target = players.get(0);
-		}
-		if (target == null) return noTarget(data);
+		LivingEntity target = requireExactName.get(data) ? Bukkit.getPlayerExact(targetName) : Bukkit.getPlayer(targetName);
+		if (target == null || !validTargetList.canTarget(caster, target)) return noTarget(data);
 
-		data = data.target(target);
+		SpellTargetEvent targetEvent = new SpellTargetEvent(this, data, target);
+		if (!targetEvent.callEvent()) return noTarget(targetEvent);
+
+		data = targetEvent.getSpellData();
+		target = data.target();
 
 		// Teleport player
 		if (requireAcceptance.get(data)) {
@@ -132,8 +131,6 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public CastResult castAtEntityFromLocation(SpellData data) {
-		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-
 		if (requireAcceptance.get(data) && data.target() instanceof Player target) {
 			pending.put(target.getUniqueId(), new SummonData(data.location(), System.currentTimeMillis(), maxAcceptDelay.get(data), data));
 			sendMessage(strSummonPending, target, data);
