@@ -60,17 +60,24 @@ public class SublistSpell extends CommandSpell {
 
 		if (reloadGrantedSpells.get(data)) spellbook.addGrantedSpells();
 
-		if (spellbook.getSpells().isEmpty()) {
+		boolean onlyShowCastableSpells = this.onlyShowCastableSpells.get(data);
+		Spellbook finalSpellbook = spellbook;
+
+		List<Spell> spells = MagicSpells.getSpellsOrdered()
+			.stream()
+			.filter(spell -> shouldListSpell(spell, finalSpellbook, onlyShowCastableSpells))
+			.sorted()
+			.toList();
+
+		if (spells.isEmpty()) {
 			sendMessage(strNoSpells, caster, data);
 			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 		}
 
-		boolean onlyShowCastableSpells = this.onlyShowCastableSpells.get(data);
-		boolean prev = false;
-
 		Component message = Util.getMiniMessage(MagicSpells.getTextColor() + strPrefix + " " + extra);
 
-		for (Spell spell : MagicSpells.getSpellsOrdered()) {
+		boolean prev = false;
+		for (Spell spell : spells) {
 			if (shouldListSpell(spell, spellbook, onlyShowCastableSpells)) {
 				if (prev) message = message.append(Component.text(", "));
 
@@ -121,7 +128,7 @@ public class SublistSpell extends CommandSpell {
 
 	private boolean shouldListSpell(Spell spell, Spellbook spellbook, boolean onlyShowCastableSpells) {
 		if (spell.isHelperSpell()) return false;
-		if (!spellbook.hasSpell(spell)) return false;
+		if (!spellbook.hasSpell(spell, false)) return false;
 		if (onlyShowCastableSpells && (!spellbook.canCast(spell) || spell instanceof PassiveSpell)) return false;
 		if (spellsToHide != null && spellsToHide.contains(spell.getInternalName())) return false;
 		return spellsToShow == null || spellsToShow.contains(spell.getInternalName());
