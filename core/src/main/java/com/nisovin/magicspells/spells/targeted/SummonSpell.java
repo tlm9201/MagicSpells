@@ -131,8 +131,6 @@ public class SummonSpell extends TargetedSpell implements TargetedEntitySpell, T
 
 	@Override
 	public CastResult castAtEntityFromLocation(SpellData data) {
-		if (!data.hasCaster()) return new CastResult(PostCastAction.ALREADY_HANDLED, data);
-
 		if (requireAcceptance.get(data) && data.target() instanceof Player target) {
 			pending.put(target.getUniqueId(), new SummonData(data.location(), System.currentTimeMillis(), maxAcceptDelay.get(data), data));
 			sendMessage(strSummonPending, target, data);
