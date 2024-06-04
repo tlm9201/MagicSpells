@@ -1732,7 +1732,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (caster != null && location != null) {
 			playSpellEffects(EffectPosition.START_POSITION, caster, data);
 			playSpellEffects(EffectPosition.END_POSITION, location, data);
-			playSpellEffectsTrail(caster.getLocation(), location);
+			playSpellEffectsTrail(caster.getLocation(), location, data);
 		}
 	}
 
