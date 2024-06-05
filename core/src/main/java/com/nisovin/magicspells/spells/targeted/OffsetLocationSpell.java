@@ -15,6 +15,9 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 	private final ConfigData<Vector> relativeOffset;
 	private final ConfigData<Vector> absoluteOffset;
 
+	private final ConfigData<Angle> yaw;
+	private final ConfigData<Angle> pitch;
+
 	private Subspell spellToCast;
 	private String spellToCastName;
 
@@ -23,6 +26,9 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 
 		relativeOffset = getConfigDataVector("relative-offset", new Vector());
 		absoluteOffset = getConfigDataVector("absolute-offset", new Vector());
+
+		yaw = getConfigDataAngle("yaw", Angle.DEFAULT);
+		pitch = getConfigDataAngle("pitch", Angle.DEFAULT);
 
 		spellToCastName = getConfigString("spell", "");
 	}
@@ -55,12 +61,16 @@ public class OffsetLocationSpell extends TargetedSpell implements TargetedLocati
 	public CastResult castAtLocation(SpellData data) {
 		Location location = data.location();
 
-		Vector relativeOffset = this.relativeOffset.get(data);
-		Util.applyRelativeOffset(location, relativeOffset);
-		data = data.location(location);
-
 		Vector absoluteOffset = this.absoluteOffset.get(data);
+		Vector relativeOffset = this.relativeOffset.get(data);
+		Angle pitch = this.pitch.get(data);
+		Angle yaw = this.yaw.get(data);
+
+		Util.applyRelativeOffset(location, relativeOffset);
 		location.add(absoluteOffset);
+		location.setYaw(yaw.apply(location.getYaw()));
+		location.setPitch(pitch.apply(location.getPitch()));
+
 		data = data.location(location);
 
 		playSpellEffects(data);

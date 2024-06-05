@@ -829,6 +829,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return ConfigDataUtil.getVector(config.getMainConfig(), internalKey + key, def);
 	}
 
+	protected ConfigData<Angle> getConfigDataAngle(String key, Angle def) {
+		return ConfigDataUtil.getAngle(config.getMainConfig(), internalKey + key, def);
+	}
+
 	public ConfigData<Material> getConfigDataMaterial(String key, Material def) {
 		return ConfigDataUtil.getMaterial(config.getMainConfig(), internalKey + key, getDefaultEnum(key, Material.class, def));
 	}
