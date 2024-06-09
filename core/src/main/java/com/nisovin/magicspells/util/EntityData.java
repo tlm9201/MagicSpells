@@ -153,7 +153,7 @@ public class EntityData {
 		addOptEquipment(transformers, config, "equipment.chestplate", EquipmentSlot.CHEST);
 		addOptEquipment(transformers, config, "equipment.leggings", EquipmentSlot.LEGS);
 		addOptEquipment(transformers, config, "equipment.boots", EquipmentSlot.FEET);
-		addOptEquipment(transformers, config, "equipment.body", EquipmentSlot.BODY);
+		addOptEquipment(transformers, config, "equipment.body", Mob.class, EquipmentSlot.BODY);
 
 		// Mob
 		addOptEquipmentDropChance(transformers, config, "equipment.main-hand-drop-chance", EquipmentSlot.HAND);
@@ -594,8 +594,12 @@ public class EntityData {
 		transformers.put(type, new TransformerImpl<>(data -> item, setter, true));
 	}
 
-	private <T> void addOptEquipment(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
-		addOptMagicItem(transformers, config, name, LivingEntity.class, (entity, item) -> {
+	private void addOptEquipment(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, EquipmentSlot slot) {
+		addOptEquipment(transformers, config, name, LivingEntity.class, slot);
+	}
+
+	private <T extends LivingEntity> void addOptEquipment(Multimap<Class<?>, Transformer<?>> transformers, ConfigurationSection config, String name, Class<T> type, EquipmentSlot slot) {
+		addOptMagicItem(transformers, config, name, type, (entity, item) -> {
 			EntityEquipment equipment = entity.getEquipment();
 			if (equipment == null) return;
 
