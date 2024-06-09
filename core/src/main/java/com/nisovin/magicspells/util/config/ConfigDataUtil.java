@@ -694,7 +694,7 @@ public class ConfigDataUtil {
 				string = string.substring(1);
 
 				try {
-					float value = Float.parseFloat(string);
+					float value = string.isEmpty() ? 0 : Float.parseFloat(string);
 					Angle angle = new Angle(value, true);
 
 					return data -> angle;
