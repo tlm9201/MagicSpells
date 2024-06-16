@@ -15,23 +15,19 @@ public class DayCondition extends Condition {
 	public boolean initialize(@NotNull String var) {
 		return true;
 	}
-	
+
 	@Override
 	public boolean check(LivingEntity caster) {
-		return checkTime(caster.getLocation());
-	}
-	
-	@Override
-	public boolean check(LivingEntity caster, LivingEntity target) {
-		return checkTime(target.getLocation());
-	}
-	
-	@Override
-	public boolean check(LivingEntity caster, Location location) {
-		return checkTime(location);
+		return caster.getWorld().isDayTime();
 	}
 
-	private boolean checkTime(Location location) {
+	@Override
+	public boolean check(LivingEntity caster, LivingEntity target) {
+		return target.getWorld().isDayTime();
+	}
+
+	@Override
+	public boolean check(LivingEntity caster, Location location) {
 		return location.getWorld().isDayTime();
 	}
 

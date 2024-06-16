@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
+import org.bukkit.World;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
@@ -18,21 +19,21 @@ public class NightCondition extends Condition {
 
 	@Override
 	public boolean check(LivingEntity caster) {
-		return night(caster.getLocation());
+		return night(caster.getWorld());
 	}
 	
 	@Override
 	public boolean check(LivingEntity caster, LivingEntity target) {
-		return night(target.getLocation());
+		return night(target.getWorld());
 	}
 	
 	@Override
 	public boolean check(LivingEntity caster, Location location) {
-		return night(location);
+		return night(location.getWorld());
 	}
 
-	private boolean night(Location location) {
-		return !location.getWorld().isDayTime();
+	private boolean night(World world) {
+		return !world.isFixedTime() && !world.isDayTime();
 	}
-	
+
 }
