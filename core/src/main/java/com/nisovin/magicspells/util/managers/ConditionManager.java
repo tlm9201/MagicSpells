@@ -217,6 +217,7 @@ public class ConditionManager {
 		addCondition(LeashedCondition.class);
 		addCondition(SleepingCondition.class);
 		addCondition(UnderWaterCondition.class);
+		addCondition(FixedTimeCondition.class);
 	}
 
 }
