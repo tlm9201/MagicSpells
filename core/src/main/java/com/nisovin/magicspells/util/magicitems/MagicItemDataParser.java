@@ -19,11 +19,7 @@ import com.google.common.collect.HashMultimap;
 
 import net.kyori.adventure.text.Component;
 
-import org.bukkit.Color;
-import org.bukkit.Bukkit;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
-import org.bukkit.FireworkEffect;
+import org.bukkit.*;
 import org.bukkit.potion.PotionType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.attribute.Attribute;
@@ -289,7 +285,8 @@ public class MagicItemDataParser {
 									} catch (Exception ignored) {}
 								}
 
-								AttributeModifier modifier = new AttributeModifier(java.util.UUID.randomUUID(), attributeArgs[0], val, operation, slot);
+								AttributeModifier modifier = new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(),
+										attributeArgs[0]), val, operation, slot.getGroup());
 								itemAttributes.put(attribute, modifier);
 							}
 
