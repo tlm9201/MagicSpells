@@ -8,6 +8,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.HashMultimap;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemStack;
@@ -512,7 +513,8 @@ public class MagicItems {
 						} catch (Exception ignored) {}
 					}
 
-					AttributeModifier modifier = new AttributeModifier(java.util.UUID.randomUUID(), args[0], value, operation, slot);
+					AttributeModifier modifier = new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(),
+							args[0]), value, operation, slot.getGroup());
 					attributeManager.addItemAttribute(item, attribute, modifier);
 					itemAttributes.put(attribute, modifier);
 				}

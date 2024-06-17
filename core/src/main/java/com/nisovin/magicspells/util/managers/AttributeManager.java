@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.HashSet;
 import java.util.Collection;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.inventory.EquipmentSlotGroup;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.AttributeUtil;
@@ -112,7 +114,8 @@ public class AttributeManager {
 			return null;
 		}
 
-		return new AttributeInfo(attribute, new AttributeModifier("MagicSpells " + attributeName, number, operation));
+		return new AttributeInfo(attribute, new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(), attributeName),
+				number, operation, EquipmentSlotGroup.ANY));
 	}
 
 	// get attribute info from string list
