@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.volatilecode.v1_20_6
+package com.nisovin.magicspells.volatilecode.v1_21
 
 import java.util.*
 
@@ -39,6 +39,7 @@ import net.minecraft.network.protocol.common.custom.GameTestClearMarkersDebugPay
 
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle
 import com.nisovin.magicspells.volatilecode.VolatileCodeHelper
+import net.minecraft.core.BlockPos
 import net.minecraft.core.particles.ColorParticleOption
 import net.minecraft.core.particles.ParticleOptions
 import net.minecraft.core.particles.ParticleTypes
@@ -46,9 +47,9 @@ import net.minecraft.network.syncher.EntityDataAccessor
 import net.minecraft.util.FastColor
 import java.lang.reflect.Method
 
-class VolatileCode_v1_20_6(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
+class VolatileCode_v1_21(helper: VolatileCodeHelper) : VolatileCodeHandle(helper) {
 
-    private val toastKey = ResourceLocation("magicspells", "toast_effect")
+    private val toastKey = ResourceLocation.fromNamespaceAndPath("magicspells", "toast_effect")
 
     private var DATA_EFFECT_PARTICLES: EntityDataAccessor<List<ParticleOptions>>? = null
     private var DATA_EFFECT_AMBIENCE_ID: EntityDataAccessor<Boolean>? = null
@@ -69,7 +70,7 @@ class VolatileCode_v1_20_6(helper: VolatileCodeHelper) : VolatileCodeHandle(help
             UPDATE_EFFECT_PARTICLES = net.minecraft.world.entity.LivingEntity::class.java.getDeclaredMethod("updateSynchronizedMobEffectParticles")
             UPDATE_EFFECT_PARTICLES!!.isAccessible = true
         } catch (e: Exception) {
-            helper.error("Encountered an error while creating the volatile code handler for 1.20.6.")
+            helper.error("Encountered an error while creating the volatile code handler for 1.21")
             e.printStackTrace()
         }
     }
@@ -110,7 +111,7 @@ class VolatileCode_v1_20_6(helper: VolatileCodeHelper) : VolatileCodeHandle(help
         val dragon = EnderDragon(EntityType.ENDER_DRAGON, (location.world as CraftWorld).handle)
         dragon.setPos(location.x, location.y, location.z)
 
-        val addMobPacket = ClientboundAddEntityPacket(dragon)
+        val addMobPacket = ClientboundAddEntityPacket(dragon, 0, BlockPos(location.blockX, location.blockY, location.blockZ))
         val entityEventPacket = ClientboundEntityEventPacket(dragon, 3)
         val removeEntityPacket = ClientboundRemoveEntitiesPacket(dragon.id)
 
@@ -138,7 +139,7 @@ class VolatileCode_v1_20_6(helper: VolatileCodeHelper) : VolatileCodeHandle(help
 
     override fun startAutoSpinAttack(player: Player?, ticks: Int) {
         val entityPlayer = (player as CraftPlayer).handle
-        entityPlayer.startAutoSpinAttack(ticks)
+        entityPlayer.startAutoSpinAttack(ticks, 0f, net.minecraft.world.item.ItemStack.EMPTY)
     }
 
     override fun playHurtAnimation(entity: LivingEntity, yaw: Float) {
