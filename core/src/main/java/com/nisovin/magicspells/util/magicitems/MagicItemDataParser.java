@@ -286,7 +286,7 @@ public class MagicItemDataParser {
 								}
 
 								AttributeModifier modifier = new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(),
-										attributeArgs[0]), val, operation, slot.getGroup());
+										attributeArgs[0].toLowerCase()), val, operation, slot.getGroup());
 								itemAttributes.put(attribute, modifier);
 							}
 

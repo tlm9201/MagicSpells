@@ -514,7 +514,7 @@ public class MagicItems {
 					}
 
 					AttributeModifier modifier = new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(),
-							args[0]), value, operation, slot.getGroup());
+							args[0].toLowerCase()), value, operation, slot.getGroup());
 					attributeManager.addItemAttribute(item, attribute, modifier);
 					itemAttributes.put(attribute, modifier);
 				}

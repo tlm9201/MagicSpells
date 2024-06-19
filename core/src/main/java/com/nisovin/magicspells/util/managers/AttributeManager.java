@@ -114,7 +114,7 @@ public class AttributeManager {
 			return null;
 		}
 
-		return new AttributeInfo(attribute, new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(), attributeName),
+		return new AttributeInfo(attribute, new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(), attributeName.toLowerCase()),
 				number, operation, EquipmentSlotGroup.ANY));
 	}
 
