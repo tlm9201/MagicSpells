@@ -3,7 +3,6 @@ package com.nisovin.magicspells.util.itemreader;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.nisovin.magicspells.MagicSpells;
 import org.bukkit.DyeColor;
 import org.bukkit.Registry;
 import org.bukkit.NamespacedKey;
@@ -13,6 +12,7 @@ import org.bukkit.block.banner.PatternType;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.PATTERNS;
