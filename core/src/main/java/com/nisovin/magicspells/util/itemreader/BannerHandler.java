@@ -12,6 +12,7 @@ import org.bukkit.block.banner.PatternType;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.configuration.ConfigurationSection;
 
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.PATTERNS;
@@ -31,11 +32,15 @@ public class BannerHandler {
 			String[] args = str.split(" ");
 			if (args.length < 2) continue;
 
-			PatternType patternType = fromLegacyIdentifier(args[0]);
-			try {
-				if (patternType == null) patternType = Registry.BANNER_PATTERN.get(NamespacedKey.minecraft(args[0].toLowerCase()));
-			} catch (IllegalArgumentException e) {
-				DebugHandler.debugBadEnumValue(PatternType.class, args[0].toUpperCase());
+			String patternTypeString = args[0].toLowerCase();
+
+			PatternType patternType = fromLegacyIdentifier(patternTypeString);
+			if (patternType == null) {
+				NamespacedKey key = NamespacedKey.fromString(patternTypeString);
+				if (key != null) patternType = Registry.BANNER_PATTERN.get(key);
+			}
+			if (patternType == null) {
+				MagicSpells.error("Invalid banner pattern type '" + args[0] + "' when parsing magic item.");
 				continue;
 			}
 
@@ -43,7 +48,7 @@ public class BannerHandler {
 			try {
 				dyeColor = DyeColor.valueOf(args[1].toUpperCase());
 			} catch (IllegalArgumentException e) {
-				DebugHandler.debugBadEnumValue(DyeColor.class, args[1].toUpperCase());
+				DebugHandler.debugBadEnumValue(DyeColor.class, args[1]);
 				continue;
 			}
 
@@ -69,7 +74,7 @@ public class BannerHandler {
 	}
 
 	private static PatternType fromLegacyIdentifier(String identifier) {
-		return switch (identifier.toLowerCase()) {
+		return switch (identifier) {
 			case "b" -> PatternType.BASE;
 			case "bl" -> PatternType.SQUARE_BOTTOM_LEFT;
 			case "br" -> PatternType.SQUARE_BOTTOM_RIGHT;
