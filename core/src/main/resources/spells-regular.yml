@@ -150,7 +150,7 @@ cleanse:
 
 combust:
     spell-class: ".targeted.CombustSpell"
-    spell-icon: fire
+    spell-icon: orange_dye
     description: Set a target on fire.
     cast-item: blaze_rod
     cooldown: 10
