@@ -3,7 +3,7 @@ package com.nisovin.magicspells.spells.buff;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.papermc.paper.entity.TeleportFlag;
+import com.google.common.collect.Multimap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.*;
@@ -11,12 +11,17 @@ import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+
+import io.papermc.paper.entity.TeleportFlag;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
@@ -27,7 +32,7 @@ import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
-import com.nisovin.magicspells.util.managers.AttributeManager;
+import com.nisovin.magicspells.util.itemreader.AttributeHandler;
 
 public class MinionSpell extends BuffSpell {
 
@@ -80,7 +85,7 @@ public class MinionSpell extends BuffSpell {
 
 	private List<PotionEffect> potionEffects;
 
-	private Set<AttributeManager.AttributeInfo> attributes;
+	private Multimap<Attribute, AttributeModifier> attributes;
 
 	public MinionSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -131,10 +136,9 @@ public class MinionSpell extends BuffSpell {
 			}
 		}
 
-		// Attributes
-		// - [AttributeName] [Number] [Operation]
-		List<String> attributeList = getConfigStringList("attributes", null);
-		if (attributeList != null && !attributeList.isEmpty()) attributes = MagicSpells.getAttributeManager().getAttributes(attributeList);
+		List<?> attributeList = getConfigList("attributes", null);
+		if (attributeList != null && !attributeList.isEmpty())
+			attributes = AttributeHandler.getAttributeModifiers(attributeList, internalName);
 
 		// Equipment
 		MagicItem magicMainHandItem = MagicItems.getMagicItemFromString(getConfigString("main-hand", ""));
@@ -287,7 +291,14 @@ public class MinionSpell extends BuffSpell {
 		if (potionEffects != null) minion.addPotionEffects(potionEffects);
 
 		// Apply attributes
-		if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(minion, attributes);
+		if (attributes != null) {
+			attributes.asMap().forEach((attribute, modifiers) -> {
+				AttributeInstance attributeInstance = minion.getAttribute(attribute);
+				if (attributeInstance == null) return;
+
+				modifiers.forEach(attributeInstance::addModifier);
+			});
+		}
 
 		// Equip the minion
 		final EntityEquipment eq = minion.getEquipment();
@@ -574,7 +585,7 @@ public class MinionSpell extends BuffSpell {
 		return potionEffects;
 	}
 
-	public Set<AttributeManager.AttributeInfo> getAttributes() {
+	public Multimap<Attribute, AttributeModifier> getAttributes() {
 		return attributes;
 	}
 

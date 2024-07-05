@@ -4,18 +4,11 @@ import java.util.*;
 
 import net.kyori.adventure.text.Component;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.HashMultimap;
-
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemFlag;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
@@ -23,10 +16,8 @@ import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ItemUtil;
 import com.nisovin.magicspells.util.itemreader.*;
-import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
-import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 import com.nisovin.magicspells.util.itemreader.alternative.AlternativeReaderManager;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
@@ -146,10 +137,7 @@ public class MagicItems {
 		if (!enchants.isEmpty()) data.setAttribute(ENCHANTS, enchants);
 
 		// attributes
-		if (meta.hasAttributeModifiers()) {
-			Multimap<Attribute, AttributeModifier> modifiers = meta.getAttributeModifiers();
-			if (modifiers != null && !modifiers.isEmpty()) data.setAttribute(ATTRIBUTES, meta.getAttributeModifiers());
-		}
+		AttributeHandler.processMagicItemData(meta, data);
 
 		// lore
 		if (meta.hasLore()) {
@@ -265,6 +253,9 @@ public class MagicItems {
 		// Block Data
 		BlockDataHandler.processItemMeta(meta, data);
 
+		// Attributes
+		AttributeHandler.processItemMeta(meta, data);
+
 		// Unbreakable
 		if (data.hasAttribute(UNBREAKABLE))
 			meta.setUnbreakable((boolean) data.getAttribute(UNBREAKABLE));
@@ -275,18 +266,6 @@ public class MagicItems {
 
 		// Set meta
 		item.setItemMeta(meta);
-
-		// Attributes
-		AttributeManager attributeManager = MagicSpells.getAttributeManager();
-		Multimap<Attribute, AttributeModifier> attributes = (Multimap<Attribute, AttributeModifier>) data.getAttribute(ATTRIBUTES);
-		if (attributes != null) {
-			for (Attribute attribute : attributes.keySet()) {
-				Collection<AttributeModifier> attributeModifiers = attributes.get(attribute);
-				for (AttributeModifier modifier : attributeModifiers) {
-					attributeManager.addItemAttribute(item, attribute, modifier);
-				}
-			}
-		}
 
 		return new MagicItem(item, data);
 	}
@@ -487,40 +466,11 @@ public class MagicItems {
 				itemData.setAttribute(HIDE_TOOLTIP, hideTooltip);
 			}
 
+			// Attributes
+			AttributeHandler.process(section, meta, itemData);
+
 			// Set meta
 			item.setItemMeta(meta);
-
-			// Attributes
-			//<attribute name> <value> (operation) (slot)
-			AttributeManager attributeManager = MagicSpells.getAttributeManager();
-			if (section.isList("attributes")) {
-				List<String> attributes = section.getStringList("attributes");
-				Multimap<Attribute, AttributeModifier> itemAttributes = HashMultimap.create();
-				for (String str : attributes) {
-					String[] args = str.split(" ");
-					if (args.length < 2) continue;
-
-					Attribute attribute = AttributeUtil.getAttribute(args[0]);
-					double value = Double.parseDouble(args[1]);
-
-					AttributeModifier.Operation operation = AttributeModifier.Operation.ADD_NUMBER;
-					if (args.length >= 3) operation = AttributeUtil.getOperation(args[2]);
-
-					EquipmentSlot slot = null;
-					if (args.length >= 4) {
-						try {
-							slot = EquipmentSlot.valueOf(args[3].toUpperCase());
-						} catch (Exception ignored) {}
-					}
-
-					AttributeModifier modifier = new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(),
-							args[0].toLowerCase()), value, operation, slot.getGroup());
-					attributeManager.addItemAttribute(item, attribute, modifier);
-					itemAttributes.put(attribute, modifier);
-				}
-
-				if (!itemAttributes.isEmpty()) itemData.setAttribute(ATTRIBUTES, itemAttributes);
-			}
 
 			if (section.isList("ignored-attributes")) {
 				List<String> ignoredAttributeStrings = section.getStringList("ignored-attributes");

@@ -15,27 +15,25 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.JsonSyntaxException;
 
 import com.google.common.collect.Multimap;
-import com.google.common.collect.HashMultimap;
 
 import net.kyori.adventure.text.Component;
 
 import org.bukkit.*;
 import org.bukkit.potion.PotionType;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.attribute.AttributeModifier;
 
 import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.AttributeUtil;
 import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.handlers.EnchantmentHandler;
 import com.nisovin.magicspells.util.itemreader.PotionHandler;
+import com.nisovin.magicspells.util.itemreader.AttributeHandler;
 import com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute;
 import static com.nisovin.magicspells.util.magicitems.MagicItemData.MagicItemAttribute.*;
 
@@ -227,7 +225,7 @@ public class MagicItemDataParser {
 
 							Map<String, Integer> objectMap;
 							try {
-								objectMap = gson.fromJson(value.getAsJsonObject().toString(), new TypeToken<HashMap<String, Integer>>(){}.getType());
+								objectMap = gson.fromJson(value, new TypeToken<HashMap<String, Integer>>() {}.getType());
 
 								Map<Enchantment, Integer> enchantments = new HashMap<>();
 								for (String enchantString : objectMap.keySet()) {
@@ -266,31 +264,9 @@ public class MagicItemDataParser {
 						case "attributes":
 							if (!value.isJsonArray()) continue;
 
-							Multimap<Attribute, AttributeModifier> itemAttributes = HashMultimap.create();
-							JsonArray attributeArray = value.getAsJsonArray();
-							for (JsonElement element : attributeArray) {
-								String[] attributeArgs = element.getAsString().split(" ");
-								if (attributeArgs.length < 2) continue;
+							Multimap<Attribute, AttributeModifier> attributes = AttributeHandler.getAttributeModifiers(gson.fromJson(value, List.class));
+							if (!attributes.isEmpty()) data.setAttribute(ATTRIBUTES, attributes);
 
-								Attribute attribute = AttributeUtil.getAttribute(attributeArgs[0]);
-								double val = Double.parseDouble(attributeArgs[1]);
-
-								AttributeModifier.Operation operation = AttributeModifier.Operation.ADD_NUMBER;
-								if (attributeArgs.length >= 3) operation = AttributeUtil.getOperation(attributeArgs[2]);
-
-								EquipmentSlot slot = null;
-								if (attributeArgs.length >= 4) {
-									try {
-										slot = EquipmentSlot.valueOf(attributeArgs[3].toUpperCase());
-									} catch (Exception ignored) {}
-								}
-
-								AttributeModifier modifier = new AttributeModifier(new NamespacedKey(MagicSpells.getInstance(),
-										attributeArgs[0].toLowerCase()), val, operation, slot.getGroup());
-								itemAttributes.put(attribute, modifier);
-							}
-
-							if (!itemAttributes.isEmpty()) data.setAttribute(ATTRIBUTES, itemAttributes);
 							break;
 						case "lore":
 							if (!value.isJsonArray()) continue;

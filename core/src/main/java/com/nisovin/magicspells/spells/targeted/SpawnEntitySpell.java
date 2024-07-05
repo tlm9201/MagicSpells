@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.*;
 
+import com.google.common.collect.Multimap;
+
 import org.bukkit.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -12,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.event.EventPriority;
 import org.bukkit.inventory.ItemStack;
@@ -20,6 +23,8 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.inventory.meta.BlockDataMeta;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,8 +45,8 @@ import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.handlers.PotionEffectHandler;
-import com.nisovin.magicspells.util.managers.AttributeManager;
 import com.nisovin.magicspells.events.SpellTargetLocationEvent;
+import com.nisovin.magicspells.util.itemreader.AttributeHandler;
 import com.nisovin.magicspells.util.ai.goals.LookAtEntityTypeGoal;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
@@ -101,7 +106,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 	private final String spellOnTargetName;
 
 	private List<PotionEffect> potionEffects;
-	private Set<AttributeManager.AttributeInfo> attributes;
+	private Multimap<Attribute, AttributeModifier> attributes;
 
 	// DEBUG INFO: level 2, invalid potion effect on internalName spell data
 	public SpawnEntitySpell(MagicConfig config, String spellName) {
@@ -191,11 +196,9 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 		spellOnDeathName = getConfigString("spell-on-death", "");
 		spellOnTargetName = getConfigString("spell-on-target", "");
 
-		// Attributes
-		// - [AttributeName] [Number] [Operation]
-		List<String> attributeList = getConfigStringList("attributes", null);
+		List<?> attributeList = getConfigList("attributes", null);
 		if (attributeList != null && !attributeList.isEmpty())
-			attributes = MagicSpells.getAttributeManager().getAttributes(attributeList);
+			attributes = AttributeHandler.getAttributeModifiers(attributeList, internalName);
 
 		List<String> list = getConfigStringList("potion-effects", null);
 		if (list != null && !list.isEmpty()) {
@@ -531,7 +534,14 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			}
 
 			if (potionEffects != null) livingEntity.addPotionEffects(potionEffects);
-			if (attributes != null) MagicSpells.getAttributeManager().addEntityAttributes(livingEntity, attributes);
+			if (attributes != null) {
+				attributes.asMap().forEach((attribute, modifiers) -> {
+					AttributeInstance attributeInstance = livingEntity.getAttribute(attribute);
+					if (attributeInstance == null) return;
+
+					modifiers.forEach(attributeInstance::addModifier);
+				});
+			}
 
 			if (removeAI.get(data)) {
 				if (addLookAtPlayerAI.get(data) && livingEntity instanceof Mob mob) {
