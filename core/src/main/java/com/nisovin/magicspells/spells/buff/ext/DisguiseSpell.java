@@ -27,7 +27,7 @@ import me.libraryaddict.disguise.disguisetypes.*;
 import me.libraryaddict.disguise.disguisetypes.watchers.*;
 import me.libraryaddict.disguise.utilities.parser.DisguiseParser;
 
-@DependsOn({"ProtocolLib", "LibsDisguises"})
+@DependsOn({"packetevents", "LibsDisguises"})
 public class DisguiseSpell extends BuffSpell {
 
 	private final Set<UUID> entities;

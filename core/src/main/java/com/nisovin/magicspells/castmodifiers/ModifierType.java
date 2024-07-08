@@ -929,6 +929,99 @@ public enum ModifierType {
 			return data;
 		}
 
+	},
+
+	MESSAGE(true, "message") {
+
+		static class MessageData extends CustomData {
+
+			public final String message;
+
+			MessageData(String message) {
+				this.message = message;
+			}
+
+			@Override
+			public boolean isValid() {
+				return message != null && !message.isEmpty();
+			}
+
+			@Override
+			public String getInvalidText() {
+				return "No message specified.";
+			}
+
+		}
+
+		@Override
+		public boolean apply(SpellCastEvent event, boolean check, CustomData customData) {
+			if (check && customData.isValid())
+				MagicSpells.sendMessage(((MessageData) customData).message, event.getCaster(), event.getSpellData());
+
+			return true;
+		}
+
+		@Override
+		public boolean apply(ManaChangeEvent event, boolean check, CustomData customData) {
+			if (check && customData.isValid())
+				MagicSpells.sendMessage(event.getPlayer(), ((MessageData) customData).message);
+
+			return true;
+		}
+
+		@Override
+		public boolean apply(SpellTargetEvent event, boolean check, CustomData customData) {
+			if (check && customData.isValid())
+				MagicSpells.sendMessage(((MessageData) customData).message, event.getCaster(), event.getSpellData());
+
+			return true;
+		}
+
+		@Override
+		public boolean apply(SpellTargetLocationEvent event, boolean check, CustomData customData) {
+			if (check && customData.isValid())
+				MagicSpells.sendMessage(((MessageData) customData).message, event.getCaster(), event.getSpellData());
+
+			return true;
+		}
+
+		@Override
+		public boolean apply(MagicSpellsGenericPlayerEvent event, boolean check, CustomData customData) {
+			if (check && customData.isValid())
+				MagicSpells.sendMessage(event.getPlayer(), ((MessageData) customData).message);
+
+			return true;
+		}
+
+		@Override
+		public ModifierResult apply(LivingEntity caster, ModifierResult result, CustomData customData) {
+			if (result.check() && customData.isValid())
+				MagicSpells.sendMessage(((MessageData) customData).message, caster, result.data());
+
+			return new ModifierResult(result.data(), true);
+		}
+
+		@Override
+		public ModifierResult apply(LivingEntity caster, LivingEntity target, ModifierResult result, CustomData customData) {
+			if (result.check() && customData.isValid())
+				MagicSpells.sendMessage(((MessageData) customData).message, caster, result.data());
+
+			return new ModifierResult(result.data(), true);
+		}
+
+		@Override
+		public ModifierResult apply(LivingEntity caster, Location target, ModifierResult result, CustomData customData) {
+			if (result.check() && customData.isValid())
+				MagicSpells.sendMessage(((MessageData) customData).message, caster, result.data());
+
+			return new ModifierResult(result.data(), true);
+		}
+
+		@Override
+		public CustomData buildCustomActionData(String text) {
+			return new MessageData(text);
+		}
+
 	}
 
 	;

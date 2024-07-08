@@ -124,7 +124,6 @@ public class MagicSpells extends JavaPlugin {
 	private EffectManager effectManager;
 	private BossBarManager bossBarManager;
 	private VariableManager variableManager;
-	private AttributeManager attributeManager;
 	private PassiveManager passiveManager;
 	private SpellEffectManager spellEffectManager;
 	private ConditionManager conditionManager;
@@ -409,7 +408,6 @@ public class MagicSpells extends JavaPlugin {
 		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 100));
 		expBarManager = new ExperienceBarManager();
 		bossBarManager = new BossBarManager();
-		attributeManager = new AttributeManager();
 		if (CompatBasics.pluginEnabled("Vault")) moneyHandler = new MoneyHandler();
 		lifeLengthTracker = new LifeLengthTracker();
 
@@ -1357,10 +1355,6 @@ public class MagicSpells extends JavaPlugin {
 
 	public static BossBarManager getBossBarManager() {
 		return plugin.bossBarManager;
-	}
-
-	public static AttributeManager getAttributeManager() {
-		return plugin.attributeManager;
 	}
 
 	public static ConditionManager getConditionManager() {
