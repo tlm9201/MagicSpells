@@ -738,7 +738,7 @@ public class EntityData {
 				float ang = angle.get();
 
 				Quaternionf rot = new Quaternionf();
-				rot.setAngleAxis(ang, ax.x, ax.y, ax.z);
+				rot.rotationAxis(ang, ax.x, ax.y, ax.z);
 
 				return data -> rot;
 			}
@@ -753,7 +753,7 @@ public class EntityData {
 					Vector3f ax = axis.get(data);
 					if (ax == null) return null;
 
-					return new Quaternionf().setAngleAxis(ang, ax.x, ax.y, ax.z);
+					return new Quaternionf().rotationAxis(ang, ax.x, ax.y, ax.z);
 				}
 
 				@Override
