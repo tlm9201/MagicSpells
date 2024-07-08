@@ -23,6 +23,7 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 	private Multimap<Attribute, AttributeModifier> attributes;
 
 	private final ConfigData<Boolean> force;
+	private final ConfigData<Boolean> remove;
 	private final ConfigData<Boolean> toggle;
 	private final ConfigData<Boolean> permanent;
 
@@ -34,6 +35,7 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 			attributes = AttributeHandler.getAttributeModifiers(attributeList, internalName);
 
 		force = getConfigDataBoolean("force", false);
+		remove = getConfigDataBoolean("remove", false);
 		toggle = getConfigDataBoolean("toggle", false);
 		permanent = getConfigDataBoolean("permanent", true);
 	}
@@ -52,6 +54,18 @@ public class EntityEditSpell extends TargetedSpell implements TargetedEntitySpel
 
 		Set<Map.Entry<Attribute, Collection<AttributeModifier>>> entries = attributes.asMap().entrySet();
 		LivingEntity target = data.target();
+
+		if (remove.get(data)) {
+			entries.forEach(entry -> {
+				AttributeInstance attributeInstance = target.getAttribute(entry.getKey());
+				if (attributeInstance == null) return;
+
+				entry.getValue().forEach(modifier -> attributeInstance.removeModifier(modifier.key()));
+			});
+
+			playSpellEffects(data);
+			return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
+		}
 
 		if (toggle.get(data)) {
 			boolean apply = entries.stream().noneMatch(entry -> {
