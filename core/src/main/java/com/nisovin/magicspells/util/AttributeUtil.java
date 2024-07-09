@@ -54,4 +54,12 @@ public class AttributeUtil {
 		return operationNameMap.get(operation.toLowerCase());
 	}
 
+	public static String getOperationName(Operation operation) {
+		return switch (operation) {
+			case ADD_NUMBER -> "add_value";
+			case ADD_SCALAR -> "add_multiplied_base";
+			case MULTIPLY_SCALAR_1 -> "add_multiplied_total";
+		};
+	}
+
 }

@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Objects;
-import java.util.Collection;
 
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Iterables;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -22,11 +21,11 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.attribute.AttributeModifier;
 
 import com.nisovin.magicspells.util.Util;
+import com.nisovin.magicspells.util.AttributeUtil;
 
 public class MagicItemData {
 
@@ -98,49 +97,6 @@ public class MagicItemData {
 		this.strictEnchants = strictEnchants;
 	}
 
-	private boolean hasEqualAttributes(MagicItemData other) {
-		Multimap<Attribute, AttributeModifier> attrSelf = (Multimap<Attribute, AttributeModifier>) itemAttributes.get(MagicItemAttribute.ATTRIBUTES);
-		Multimap<Attribute, AttributeModifier> attrOther = (Multimap<Attribute, AttributeModifier>) other.itemAttributes.get(MagicItemAttribute.ATTRIBUTES);
-
-		Set<Attribute> keysSelf = attrSelf.keySet();
-		Set<Attribute> keysOther = attrOther.keySet();
-		if (!keysSelf.equals(keysOther)) return false;
-
-		record AttributeModifierData(String name, double amt, AttributeModifier.Operation op, EquipmentSlot slot) {
-
-			public AttributeModifierData(AttributeModifier mod) {
-				this(mod.getName(), mod.getAmount(), mod.getOperation(), mod.getSlot());
-			}
-
-		}
-
-		for (Attribute attr : keysSelf) {
-			Collection<AttributeModifier> modsSelf = attrSelf.get(attr);
-			Collection<AttributeModifier> modsOther = attrOther.get(attr);
-			if (modsSelf.size() != modsOther.size()) return false;
-
-			HashMap<AttributeModifierData, Integer> freq = new HashMap<>();
-			for (AttributeModifier mod : modsSelf) {
-				AttributeModifierData data = new AttributeModifierData(mod);
-				Integer count = freq.get(data);
-
-				if (count == null) count = 0;
-				freq.put(data, count + 1);
-			}
-
-			for (AttributeModifier mod : modsOther) {
-				AttributeModifierData data = new AttributeModifierData(mod);
-				Integer count = freq.get(data);
-
-				if (count == null) return false;
-				if (count == 1) freq.remove(data);
-				else freq.put(data, count - 1);
-			}
-		}
-
-		return true;
-	}
-
 	public boolean matches(MagicItemData data) {
 		if (this == data) return true;
 
@@ -161,7 +117,10 @@ public class MagicItemData {
 
 			switch (attr) {
 				case ATTRIBUTES -> {
-					if (!hasEqualAttributes(data)) return false;
+					Multimap<Attribute, AttributeModifier> self = (Multimap<Attribute, AttributeModifier>) itemAttributes.get(attr);
+					Multimap<Attribute, AttributeModifier> other = (Multimap<Attribute, AttributeModifier>) data.itemAttributes.get(attr);
+
+					if (!Iterables.elementsEqual(self.entries(), other.entries())) return false;
 				}
 				case AUTHOR, NAME, TITLE -> {
 					String legacySelf = Util.getLegacyFromComponent((Component) itemAttributes.get(attr));
@@ -417,28 +376,18 @@ public class MagicItemData {
 		if (hasAttribute(MagicItemAttribute.ATTRIBUTES)) {
 			Multimap<Attribute, AttributeModifier> attributes = (Multimap<Attribute, AttributeModifier>) getAttribute(MagicItemAttribute.ATTRIBUTES);
 
-			StringBuilder modifierBuilder = new StringBuilder();
 			JsonArray attributesArray = new JsonArray();
 			for (Map.Entry<Attribute, AttributeModifier> entry : attributes.entries()) {
 				AttributeModifier modifier = entry.getValue();
-				modifierBuilder.setLength(0);
 
-				modifierBuilder
-					.append('"')
-					.append(entry.getKey().getKey())
-					.append(' ')
-					.append(modifier.getAmount())
-					.append(' ')
-					.append(modifier.getOperation().name().toLowerCase());
+				JsonObject modifierObject = new JsonObject();
+				modifierObject.addProperty("id", modifier.getKey().asString());
+				modifierObject.addProperty("type", entry.getKey().getKey().asString());
+				modifierObject.addProperty("operation", AttributeUtil.getOperationName(modifier.getOperation()));
+				modifierObject.addProperty("amount", modifier.getAmount());
+				modifierObject.addProperty("slot", modifier.getSlotGroup().toString());
 
-				EquipmentSlot slot = modifier.getSlot();
-				if (slot != null) {
-					modifierBuilder
-						.append(' ')
-						.append(slot.name().toLowerCase());
-				}
-
-				attributesArray.add(modifierBuilder.toString());
+				attributesArray.add(modifierObject);
 			}
 
 			magicItem.add("attributes", attributesArray);
