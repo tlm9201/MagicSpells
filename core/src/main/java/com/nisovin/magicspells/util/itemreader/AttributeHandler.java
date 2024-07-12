@@ -113,7 +113,7 @@ public class AttributeHandler {
 						key = NamespacedKey.fromString(args[4], MagicSpells.getInstance());
 
 						if (key == null) {
-							MagicSpells.error("Invalid namespaced key '" + args[3] + "' on attribute modifier '" + string + "'.");
+							MagicSpells.error("Invalid namespaced key '" + args[4] + "' on attribute modifier '" + string + "'.");
 							continue;
 						}
 					} else {

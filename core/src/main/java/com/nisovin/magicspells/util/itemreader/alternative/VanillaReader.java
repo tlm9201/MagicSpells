@@ -31,7 +31,7 @@ public class VanillaReader implements ItemConfigTransformer {
 		YamlConfiguration configuration = new YamlConfiguration();
 
 		String data = itemStack.getType().getKey().toString();
-		if (itemStack.hasItemMeta()) data += itemStack.getItemMeta().getAsString();
+		if (itemStack.hasItemMeta()) data += itemStack.getItemMeta().getAsComponentString();
 
 		configuration.set("data", data);
 		configuration.set("amount", itemStack.getAmount());

@@ -3,6 +3,8 @@ package com.nisovin.magicspells.util;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.bukkit.Registry;
+import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 
 import static org.bukkit.attribute.AttributeModifier.Operation;
@@ -42,16 +44,30 @@ public class AttributeUtil {
 			attributeNameMap.put(key.substring(key.indexOf('.') + 1), attribute);
 
 			attributeNameMap.put(rep, attribute);
-			attributeNameMap.put(rep.substring(key.indexOf('.') + 1), attribute);
+			attributeNameMap.put(rep.substring(rep.indexOf('.') + 1), attribute);
 		}
 	}
 
 	public static Attribute getAttribute(String attribute) {
-		return attributeNameMap.get(attribute.toLowerCase());
+		Attribute attr = attributeNameMap.get(attribute.toLowerCase());
+		if (attr != null) return attr;
+
+		NamespacedKey key = NamespacedKey.fromString(attribute);
+		if (key == null) return null;
+
+		return Registry.ATTRIBUTE.get(key);
 	}
 
 	public static Operation getOperation(String operation) {
 		return operationNameMap.get(operation.toLowerCase());
+	}
+
+	public static String getOperationName(Operation operation) {
+		return switch (operation) {
+			case ADD_NUMBER -> "add_value";
+			case ADD_SCALAR -> "add_multiplied_base";
+			case MULTIPLY_SCALAR_1 -> "add_multiplied_total";
+		};
 	}
 
 }
