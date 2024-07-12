@@ -38,10 +38,11 @@ public class BannerHandler {
 			if (patternType == null) {
 				NamespacedKey key = NamespacedKey.fromString(patternTypeString);
 				if (key != null) patternType = Registry.BANNER_PATTERN.get(key);
-			}
-			if (patternType == null) {
-				MagicSpells.error("Invalid banner pattern type '" + args[0] + "' when parsing magic item.");
-				continue;
+
+				if (patternType == null) {
+					MagicSpells.error("Invalid banner pattern type '" + args[0] + "' when parsing magic item.");
+					continue;
+				}
 			}
 
 			DyeColor dyeColor;
