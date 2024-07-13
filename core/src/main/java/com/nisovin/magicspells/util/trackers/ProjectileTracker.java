@@ -204,7 +204,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		if (spell != null) {
 			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, currentLocation, data);
-			if (intermediateEffects > 0) playIntermediateEffects(previousLocation, currentVelocity);
+			if (intermediateEffects > 0) playIntermediateEffects();
 		}
 
 		if (effectSet != null) {
@@ -236,37 +236,46 @@ public class ProjectileTracker implements Runnable, Tracker {
 
 		counter++;
 
-		if (intermediateHitboxes > 0) checkIntermediateHitboxes(previousLocation, currentVelocity);
-		checkHitbox(currentLocation);
+		if (intermediateHitboxes > 0) checkIntermediateHitboxes();
+		if (!stopped) checkHitbox(currentLocation);
 	}
 
-	public void playIntermediateEffects(Location old, Vector movement) {
-		if (old == null) return;
-		int divideFactor = intermediateEffects + 1;
-		Vector v = movement.clone();
+	public void playIntermediateEffects() {
+		if (!(specialEffectInterval > 0 && counter % specialEffectInterval == 0))
+			return;
 
-		v.setX(v.getX() / divideFactor);
-		v.setY(v.getY() / divideFactor);
-		v.setZ(v.getZ() / divideFactor);
-
-		for (int i = 0; i < intermediateEffects; i++) {
-			old = old.add(v).setDirection(v);
-			if (specialEffectInterval > 0 && counter % specialEffectInterval == 0) spell.playEffects(EffectPosition.SPECIAL, old, data);
-		}
-	}
-
-	public void checkIntermediateHitboxes(Location old, Vector movement) {
-		if (old == null) return;
 		int divideFactor = intermediateHitboxes + 1;
-		Vector v = movement.clone();
 
-		v.setX(v.getX() / divideFactor);
-		v.setY(v.getY() / divideFactor);
-		v.setZ(v.getZ() / divideFactor);
+		Vector v = new Vector(
+			(currentLocation.getX() - previousLocation.getX()) / divideFactor,
+			(currentLocation.getY() - previousLocation.getY()) / divideFactor,
+			(currentLocation.getZ() - previousLocation.getZ()) / divideFactor
+		);
+		if (v.isZero()) return;
+
+		Location old = previousLocation.clone();
+		old.setDirection(v);
+
+		for (int i = 0; i < intermediateEffects; i++)
+			spell.playEffects(EffectPosition.SPECIAL, old.add(v), data.location(old));
+	}
+
+	public void checkIntermediateHitboxes() {
+		int divideFactor = intermediateHitboxes + 1;
+
+		Vector v = new Vector(
+			(currentLocation.getX() - previousLocation.getX()) / divideFactor,
+			(currentLocation.getY() - previousLocation.getY()) / divideFactor,
+			(currentLocation.getZ() - previousLocation.getZ()) / divideFactor
+		);
+		if (v.isZero()) return;
+
+		Location old = previousLocation.clone();
+		old.setDirection(v);
 
 		for (int i = 0; i < intermediateHitboxes; i++) {
-			old = old.add(v).setDirection(v);
-			checkHitbox(old);
+			checkHitbox(old.add(v));
+			if (stopped) return;
 		}
 	}
 

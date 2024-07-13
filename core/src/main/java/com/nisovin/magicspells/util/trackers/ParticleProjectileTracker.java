@@ -394,10 +394,10 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			currentVelocity.multiply(acceleration);
 
 		// Intermediate effects
-		if (intermediateEffects > 0) playIntermediateEffects(previousLocation, currentVelocity);
+		if (intermediateEffects > 0) playIntermediateEffects();
 
 		// Intermediate hitboxes
-		if (intermediateHitboxes > 0) checkIntermediateHitboxes(previousLocation, currentVelocity);
+		if (intermediateHitboxes > 0) checkIntermediateHitboxes();
 
 		if (stopped) return;
 
@@ -468,32 +468,41 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		return hitBox.overlaps(collisionTracker.hitBox);
 	}
 
-	private void playIntermediateEffects(Location old, Vector movement) {
-		int divideFactor = intermediateEffects + 1;
-		Vector v = movement.clone();
+	private void playIntermediateEffects() {
+		if (!(spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0))
+			return;
 
-		v.setX(v.getX() / divideFactor);
-		v.setY(v.getY() / divideFactor);
-		v.setZ(v.getZ() / divideFactor);
+		int divideFactor = intermediateHitboxes + 1;
 
-		for (int i = 0; i < intermediateEffects; i++) {
-			old = old.add(v).setDirection(v);
-			if (spell != null && specialEffectInterval > 0 && counter % specialEffectInterval == 0)
-				spell.playEffects(EffectPosition.SPECIAL, old, data);
-		}
+		Vector v = new Vector(
+			(currentLocation.getX() - previousLocation.getX()) / divideFactor,
+			(currentLocation.getY() - previousLocation.getY()) / divideFactor,
+			(currentLocation.getZ() - previousLocation.getZ()) / divideFactor
+		);
+		if (v.isZero()) return;
+
+		Location old = previousLocation.clone();
+		old.setDirection(v);
+
+		for (int i = 0; i < intermediateEffects; i++)
+			spell.playEffects(EffectPosition.SPECIAL, old.add(v), data.location(old));
 	}
 
-	private void checkIntermediateHitboxes(Location old, Vector movement) {
+	private void checkIntermediateHitboxes() {
 		int divideFactor = intermediateHitboxes + 1;
-		Vector v = movement.clone();
 
-		v.setX(v.getX() / divideFactor);
-		v.setY(v.getY() / divideFactor);
-		v.setZ(v.getZ() / divideFactor);
+		Vector v = new Vector(
+			(currentLocation.getX() - previousLocation.getX()) / divideFactor,
+			(currentLocation.getY() - previousLocation.getY()) / divideFactor,
+			(currentLocation.getZ() - previousLocation.getZ()) / divideFactor
+		);
+		if (v.isZero()) return;
+
+		Location old = previousLocation.clone();
+		old.setDirection(v);
 
 		for (int i = 0; i < intermediateHitboxes; i++) {
-			old.add(v).setDirection(v);
-			checkHitbox(old);
+			checkHitbox(old.add(v));
 			if (stopped) return;
 		}
 	}
