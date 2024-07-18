@@ -32,6 +32,7 @@ import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.configuration.ConfigurationSection;
 
 import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.entity.CollarColorable;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
@@ -187,10 +188,22 @@ public class EntityData {
 		addEulerAngle(transformers, config, "right-leg-angle", EulerAngle.ZERO, ArmorStand.class, ArmorStand::setRightLegPose, forceOptional);
 
 		// Axolotl
-		addOptEnum(transformers, config, "type", Axolotl.class, Axolotl.Variant.class, Axolotl::setVariant);
+		fallback(
+			key -> addOptEnum(transformers, config, key, Axolotl.class, Axolotl.Variant.class, Axolotl::setVariant),
+			"axolotl-variant", "type"
+		);
 
 		// Cat
-		addOptRegistryEntry(transformers, config, "type", Cat.class, Registry.CAT_VARIANT, Cat::setCatType);
+		fallback(
+			key -> addOptRegistryEntry(transformers, config, key, Cat.class, Registry.CAT_VARIANT, Cat::setCatType),
+			"cat-variant", "type"
+		);
+
+		// CollarColorable
+		fallback(
+			key -> addOptEnum(transformers, config, key, CollarColorable.class, DyeColor.class, CollarColorable::setCollarColor),
+			"collar-color", "color"
+		);
 
 		// ChestedHorse
 		chested = addBoolean(transformers, config, "chested", false, ChestedHorse.class, ChestedHorse::setCarryingChest, forceOptional);
@@ -199,20 +212,38 @@ public class EntityData {
 		powered = addBoolean(transformers, config, "powered", false, Creeper.class, Creeper::setPowered, forceOptional);
 
 		// Enderman
-		carriedBlockData = addBlockData(transformers, config, "material", null, Enderman.class, Enderman::setCarriedBlock, forceOptional);
+		carriedBlockData = fallback(
+			key -> addBlockData(transformers, config, key, null, Enderman.class, Enderman::setCarriedBlock, forceOptional),
+			"carried-block", "material"
+		);
 
 		// Falling Block
-		fallingBlockData = addOptBlockData(transformers, config, "material", FallingBlock.class, FallingBlock::setBlockData);
+		fallingBlockData = fallback(
+			key -> addOptBlockData(transformers, config, key, FallingBlock.class, FallingBlock::setBlockData),
+			"falling-block", "material"
+		);
 
 		// Fox
-		addOptEnum(transformers, config, "type", Fox.class, Fox.Type.class, Fox::setFoxType);
+		fallback(
+			key -> addOptEnum(transformers, config, key, Fox.class, Fox.Type.class, Fox::setFoxType),
+			"fox-type", "type"
+		);
 
 		// Frog
-		addOptRegistryEntry(transformers, config, "type", Frog.class, Registry.FROG_VARIANT, Frog::setVariant);
+		fallback(
+			key -> addOptRegistryEntry(transformers, config, key, Frog.class, Registry.FROG_VARIANT, Frog::setVariant),
+			"frog-variant", "type"
+		);
 
 		// Horse
-		horseColor = addOptEnum(transformers, config, "color", Horse.class, Horse.Color.class, Horse::setColor);
-		horseStyle = addOptEnum(transformers, config, "style", Horse.class, Horse.Style.class, Horse::setStyle);
+		horseColor = fallback(
+			key -> addOptEnum(transformers, config, key, Horse.class, Horse.Color.class, Horse::setColor),
+			"horse-color", "color"
+		);
+		horseStyle = fallback(
+			key -> addOptEnum(transformers, config, key, Horse.class, Horse.Style.class, Horse::setStyle),
+			"horse-style", "style"
+		);
 
 		// Item
 		dropItemMaterial = addOptMaterial(transformers, config, "material", Item.class, (item, material) -> item.setItemStack(new ItemStack(material)));
@@ -227,18 +258,30 @@ public class EntityData {
 		addOptBoolean(transformers, config, "responsive", Interaction.class, Interaction::setResponsive);
 
 		// Llama
-		llamaColor = addOptEnum(transformers, config, "color", Llama.class, Llama.Color.class, Llama::setColor);
-		addOptMaterial(transformers, config, "material", Llama.class, (llama, material) -> llama.getInventory().setDecor(new ItemStack(material)));
+		llamaColor = fallback(
+			key -> addOptEnum(transformers, config, key, Llama.class, Llama.Color.class, Llama::setColor),
+			"llama-variant", "color"
+		);
+		fallback(
+			key -> addOptMaterial(transformers, config, key, Llama.class, (llama, material) -> llama.getInventory().setDecor(new ItemStack(material))),
+			"llama-decor", "material"
+		);
 
 		// Mushroom Cow
-		addOptEnum(transformers, config, "type", MushroomCow.class, MushroomCow.Variant.class, MushroomCow::setVariant);
+		fallback(
+			key -> addOptEnum(transformers, config, key, MushroomCow.class, MushroomCow.Variant.class, MushroomCow::setVariant),
+			"mooshroom-type", "type"
+		);
 
 		// Panda
 		addOptEnum(transformers, config, "main-gene", Panda.class, Panda.Gene.class, Panda::setMainGene);
 		addOptEnum(transformers, config, "hidden-gene", Panda.class, Panda.Gene.class, Panda::setHiddenGene);
 
 		// Parrot
-		parrotVariant = addOptEnum(transformers, config, "type", Parrot.class, Parrot.Variant.class, Parrot::setVariant);
+		parrotVariant = fallback(
+			key -> addOptEnum(transformers, config, key, Parrot.class, Parrot.Variant.class, Parrot::setVariant),
+			"parrot-variant", "type"
+		);
 
 		// Phantom
 		addInteger(transformers, config, "size", 0, Phantom.class, Phantom::setSize, forceOptional);
@@ -248,14 +291,23 @@ public class EntityData {
 		size = addInteger(transformers, config, "size", 0, PufferFish.class, PufferFish::setPuffState, forceOptional);
 
 		// Rabbit
-		addOptEnum(transformers, config, "type", Rabbit.class, Rabbit.Type.class, Rabbit::setRabbitType);
+		fallback(
+			key -> addOptEnum(transformers, config, key, Rabbit.class, Rabbit.Type.class, Rabbit::setRabbitType),
+			"rabbit-type", "type"
+		);
 
 		// Sheep
 		sheared = addBoolean(transformers, config, "sheared", false, Sheep.class, Sheep::setSheared, forceOptional);
-		color = addOptEnum(transformers, config, "color", Sheep.class, DyeColor.class, Sheep::setColor);
+		color = fallback(
+			key -> addOptEnum(transformers, config, key, Sheep.class, DyeColor.class, Sheep::setColor),
+			"sheep-color", "color"
+		);
 
 		// Shulker
-		addOptEnum(transformers, config, "color", Shulker.class, DyeColor.class, Shulker::setColor);
+		fallback(
+			key -> addOptEnum(transformers, config, key, Shulker.class, DyeColor.class, Shulker::setColor),
+			"shulker-color", "color"
+		);
 
 		// Skeleton
 		addOptBoolean(transformers, config, "should-burn-in-day", Skeleton.class, Skeleton::setShouldBurnInDay);
@@ -267,9 +319,18 @@ public class EntityData {
 		addBoolean(transformers, config, "saddled", false, Steerable.class, Steerable::setSaddle, forceOptional);
 
 		// Tropical Fish
-		addOptEnum(transformers, config, "color", TropicalFish.class, DyeColor.class, TropicalFish::setBodyColor);
-		tropicalFishPatternColor = addOptEnum(transformers, config, "pattern-color", TropicalFish.class, DyeColor.class, TropicalFish::setPatternColor);
-		tropicalFishPattern = addOptEnum(transformers, config, "type", TropicalFish.class, TropicalFish.Pattern.class, TropicalFish::setPattern);
+		fallback(
+			key -> addOptEnum(transformers, config, key, TropicalFish.class, DyeColor.class, TropicalFish::setBodyColor),
+			"tropical-fish.body-color", "color"
+		);
+		tropicalFishPatternColor = fallback(
+			key -> addOptEnum(transformers, config, key, TropicalFish.class, DyeColor.class, TropicalFish::setPatternColor),
+			"tropical-fish.pattern-color", "pattern-color"
+		);
+		tropicalFishPattern = fallback(
+			key -> addOptEnum(transformers, config, key, TropicalFish.class, TropicalFish.Pattern.class, TropicalFish::setPattern),
+			"tropical-fish.pattern", "type"
+		);
 
 		// Villager
 		profession = fallback(
@@ -280,7 +341,6 @@ public class EntityData {
 
 		// Wolf
 		addBoolean(transformers, config, "angry", false, Wolf.class, Wolf::setAngry, forceOptional);
-		addOptEnum(transformers, config, "color", Wolf.class, DyeColor.class, Wolf::setCollarColor);
 		addOptRegistryEntry(transformers, config, "wolf-variant", Wolf.class, RegistryKey.WOLF_VARIANT, Wolf::setVariant);
 
 		// Zombie
@@ -389,7 +449,7 @@ public class EntityData {
 		if (delayedDataEntries == null || delayedDataEntries.isEmpty()) return;
 
 		for (Object object : delayedDataEntries) {
-			if (!(object instanceof Map<?,?> map)) continue;
+			if (!(object instanceof Map<?, ?> map)) continue;
 
 			ConfigurationSection section = ConfigReaderUtil.mapToSection(map);
 
@@ -639,7 +699,7 @@ public class EntityData {
 
 	private <T> ConfigData<T> fallback(Function<String, ConfigData<T>> function, String... keys) {
 		for (String key : keys) {
-		    ConfigData<T> data = function.apply(key);
+			ConfigData<T> data = function.apply(key);
 			if (checkNull(data)) return data;
 		}
 
