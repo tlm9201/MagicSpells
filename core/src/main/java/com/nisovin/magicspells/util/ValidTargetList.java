@@ -23,7 +23,8 @@ public class ValidTargetList {
 		TARGET_PASSENGERS,
 		TARGET_CASTER_MOUNT,
 		TARGET_CASTER_PASSENGER,
-		TARGET_ENTITY_TARGET
+		TARGET_ENTITY_TARGET,
+		TARGET_MARKER_ARMOR_STANDS
 		
 	}
 
@@ -46,6 +47,7 @@ public class ValidTargetList {
 	private boolean targetCasterMount = false;
 	private boolean targetCasterPassenger = false;
 	private boolean targetEntityTarget = false;
+	private boolean targetMarkerArmorStands = false;
 
 	public ValidTargetList(Spell spell, String list) {
 		this.spell = spell;
@@ -78,6 +80,7 @@ public class ValidTargetList {
 			case TARGET_CASTER_MOUNT -> targetCasterMount = value;
 			case TARGET_CASTER_PASSENGER -> targetCasterPassenger = value;
 			case TARGET_ENTITY_TARGET -> targetEntityTarget = value;
+			case TARGET_MARKER_ARMOR_STANDS -> targetMarkerArmorStands = value;
 		}
 	}
 	
@@ -102,6 +105,7 @@ public class ValidTargetList {
 				case "castermount", "selfmount" -> targetCasterMount = true;
 				case "casterpassenger", "selfpassenger" -> targetCasterPassenger = true;
 				case "entitytarget", "mobtarget" -> targetEntityTarget = true;
+				case "markerstand", "markerstands", "markerarmorstand", "markerarmorstands" -> targetMarkerArmorStands = true;
 				case "player", "players" -> {
 					gameModes.add(GameMode.SURVIVAL);
 					gameModes.add(GameMode.ADVENTURE);
@@ -149,6 +153,7 @@ public class ValidTargetList {
 
 		if (!targetInvisibles && caster instanceof Player player && !player.canSee(target)) return false;
 		if (targetPlayers && targetIsPlayer) return true;
+		if (target instanceof ArmorStand stand && stand.isMarker()) return targetMarkerArmorStands;
 		if (targetNonPlayers && !targetIsPlayer) return true;
 
 		if (targetMonsters && target instanceof Monster) return true;
@@ -171,6 +176,7 @@ public class ValidTargetList {
 		if (targetIsPlayer && !gameModes.contains(((Player) target).getGameMode())) return false;
 
 		if (targetPlayers && targetIsPlayer) return true;
+		if (target instanceof ArmorStand stand && stand.isMarker()) return targetMarkerArmorStands;
 		if (targetNonPlayers && !targetIsPlayer) return true;
 
 		if (targetMonsters && target instanceof Monster) return true;
@@ -190,6 +196,7 @@ public class ValidTargetList {
 		if (!ignoreGameMode && targetIsPlayer && !gameModes.contains(((Player) target).getGameMode())) return false;
 
 		if (targetPlayers && targetIsPlayer) return true;
+		if (target instanceof ArmorStand stand && stand.isMarker()) return targetMarkerArmorStands;
 		if (targetNonPlayers && !targetIsPlayer) return true;
 
 		if (targetMonsters && target instanceof Monster) return true;
