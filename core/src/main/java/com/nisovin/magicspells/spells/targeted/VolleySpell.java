@@ -1,11 +1,20 @@
 package com.nisovin.magicspells.spells.targeted;
 
+import java.util.List;
+import java.util.ArrayList;
+
+import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.Registry;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.potion.PotionType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.entity.AbstractArrow;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -16,7 +25,9 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.magicitems.MagicItem;
 import com.nisovin.magicspells.events.SpellPreImpactEvent;
+import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spells.TargetedLocationSpell;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
@@ -27,9 +38,9 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 	private final ConfigData<Integer> fire;
 	private final ConfigData<Integer> arrows;
+	private final ConfigData<Integer> pierceLevel;
 	private final ConfigData<Integer> removeDelay;
 	private final ConfigData<Integer> shootInterval;
-	private final ConfigData<Integer> knockbackStrength;
 
 	private final ConfigData<Float> speed;
 	private final ConfigData<Float> spread;
@@ -44,14 +55,20 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 	private final ConfigData<Boolean> powerAffectsArrowCount;
 	private final ConfigData<Boolean> resolveOptionsPerArrow;
 
+	private final ItemStack weapon;
+	private final ItemStack arrowItem;
+	private final ConfigData<Color> color;
+	private final ConfigData<PotionType> potionType;
+	private final List<ConfigData<PotionEffect>> potionEffects;
+
 	public VolleySpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
 		fire = getConfigDataInt("fire", 0);
 		arrows = getConfigDataInt("arrows", 10);
+		pierceLevel = getConfigDataInt("pierce-level", 0);
 		removeDelay = getConfigDataInt("remove-delay", 0);
 		shootInterval = getConfigDataInt("shoot-interval", 0);
-		knockbackStrength = getConfigDataInt("knockback-strength", 0);
 
 		speed = getConfigDataFloat("speed", 20);
 		spread = getConfigDataFloat("spread", 150);
@@ -65,6 +82,16 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 		powerAffectsSpeed = getConfigDataBoolean("power-affects-speed", false);
 		powerAffectsArrowCount = getConfigDataBoolean("power-affects-arrow-count", true);
 		resolveOptionsPerArrow = getConfigDataBoolean("resolve-options-per-arrow", false);
+
+		MagicItem magicItem = MagicItems.getMagicItemFromString(getConfigString("weapon", null));
+		weapon = magicItem == null ? null : magicItem.getItemStack().clone();
+
+		magicItem = MagicItems.getMagicItemFromString(getConfigString("arrow-item", null));
+		arrowItem = magicItem == null ? null : magicItem.getItemStack().clone();
+
+		color = getConfigDataColor("color", null);
+		potionType = getConfigDataRegistryEntry("potion-type", Registry.POTION, null);
+		potionEffects = Util.getPotionEffects(getConfigList("potion-effects", null), internalName, false, false);
 	}
 
 	@Override
@@ -137,13 +164,17 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 
 		private int fire;
 		private int count;
+		private int pierceLevel;
 		private int removeDelay;
-		private int knockbackStrength;
 
 		private float speed;
 		private float spread;
 
 		private double damage;
+
+		private Color color;
+		private PotionType potionType;
+		private List<PotionEffect> potionEffects;
 
 		private Vector dir;
 		private Location spawn;
@@ -182,8 +213,18 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 			critical = VolleySpell.this.critical.get(subData);
 
 			fire = VolleySpell.this.fire.get(subData);
+			pierceLevel = VolleySpell.this.pierceLevel.get(subData);
 			removeDelay = VolleySpell.this.removeDelay.get(subData);
-			knockbackStrength = VolleySpell.this.knockbackStrength.get(subData);
+
+			color = VolleySpell.this.color.get(subData);
+			potionType = VolleySpell.this.potionType.get(subData);
+
+			if (VolleySpell.this.potionEffects != null) {
+				potionEffects = new ArrayList<>();
+
+				for (ConfigData<PotionEffect> effectData : VolleySpell.this.potionEffects)
+					potionEffects.add(effectData.get(subData));
+			}
 
 			speed = VolleySpell.this.speed.get(subData) / 10;
 			if (powerAffectsSpeed.get(subData)) speed *= subData.power();
@@ -197,16 +238,26 @@ public class VolleySpell extends TargetedSpell implements TargetedLocationSpell,
 			if (resolveOptionsPerArrow) resolveOptions();
 
 			Arrow arrow = spawn.getWorld().spawnArrow(spawn, dir, speed, spread);
-			arrow.setKnockbackStrength(knockbackStrength);
+			if (arrowItem != null) arrow.setItemStack(arrowItem);
+			if (weapon != null) arrow.setWeapon(weapon);
+			arrow.setPierceLevel(pierceLevel);
 			arrow.setCritical(critical);
 			arrow.setGravity(gravity);
+
+			if (color != null) arrow.setColor(color);
+			if (potionType != null) arrow.setBasePotionType(potionType);
+			if (potionEffects != null)
+				for (PotionEffect potionEffectData : potionEffects)
+					arrow.addCustomEffect(potionEffectData, false);
 
 			arrow.setDamage(damage);
 			arrow.setMetadata(METADATA_KEY, new FixedMetadataValue(MagicSpells.plugin, new VolleyData("VolleySpell" + internalName, damage)));
 
 			if (fire > 0) arrow.setFireTicks(fire);
-			if (data.hasCaster()) arrow.setShooter(data.caster());
+			if (data.hasCaster()) arrow.setShooter(data.caster(), false);
 			if (removeDelay > 0) MagicSpells.scheduleDelayedTask(arrow::remove, removeDelay);
+
+			arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
 
 			playSpellEffects(EffectPosition.PROJECTILE, arrow, data);
 			playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, from, arrow.getLocation(), data.caster(), arrow, data);
