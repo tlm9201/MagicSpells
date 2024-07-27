@@ -37,7 +37,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.block.fluid.FluidData;
+import io.papermc.paper.registry.RegistryAccess;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.events.*;
@@ -829,6 +831,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return ConfigDataUtil.getVector(config.getMainConfig(), internalKey + key, def);
 	}
 
+	protected ConfigData<Color> getConfigDataColor(String key, Color def) {
+		return ConfigDataUtil.getColor(config.getMainConfig(), internalKey + key, def);
+	}
+
 	protected ConfigData<Angle> getConfigDataAngle(String key, Angle def) {
 		return ConfigDataUtil.getAngle(config.getMainConfig(), internalKey + key, def);
 	}
@@ -847,6 +853,14 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected ConfigData<BlockData> getConfigDataBlockData(String key, BlockData def) {
 		return ConfigDataUtil.getBlockData(config.getMainConfig(), internalKey + key, getDefaultBlockData(key, def));
+	}
+
+	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(String key, RegistryKey<T> registryKey, T def) {
+		return ConfigDataUtil.getRegistryEntry(config.getMainConfig(), internalKey + key, RegistryAccess.registryAccess().getRegistry(registryKey), def);
+	}
+
+	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(String key, Registry<T> registry, T def) {
+		return ConfigDataUtil.getRegistryEntry(config.getMainConfig(), internalKey + key, registry, def);
 	}
 
 	/**

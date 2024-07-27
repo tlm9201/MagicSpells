@@ -32,7 +32,6 @@ public class MagicSpellListener implements Listener {
 		if (Perm.NO_TARGET.has(target)) event.setCancelled(true);
 		if (spell != null && noMagicZoneManager != null && noMagicZoneManager.willFizzle(target, spell)) event.setCancelled(true);
 		if (isMSEntity(target)) event.setCancelled(true);
-		if (target instanceof ArmorStand && target.isInvisible() && ((ArmorStand) target).isMarker()) event.setCancelled(true);
 	}
 
 	@EventHandler
