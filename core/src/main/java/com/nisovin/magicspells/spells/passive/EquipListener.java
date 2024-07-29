@@ -17,6 +17,7 @@ import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
+import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
 @Name("equip")
 public class EquipListener extends PassiveListener {
@@ -27,7 +28,7 @@ public class EquipListener extends PassiveListener {
 	public void initialize(@NotNull String var) {
 		if (var.isEmpty()) return;
 
-		for (String s : var.split("\\|")) {
+		for (String s : var.split(MagicItemDataParser.DATA_REGEX)) {
 			s = s.trim();
 
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(s);

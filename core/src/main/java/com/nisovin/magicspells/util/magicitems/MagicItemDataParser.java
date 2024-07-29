@@ -45,7 +45,7 @@ public class MagicItemDataParser {
 	/* splits the saved magicItemData string by the "|" char
 		itemType{data}|itemType{data}...
 	*/
-	public static final String DATA_REGEX = "(?=(?:(?:[^\"]*\"){2})*[^\"]*$)(?![^{]*})(?![^\\[]*\\])\\|+";
+	public static final String DATA_REGEX = "(?=(?:(?:[^\"]*\"){2})*[^\"]*$)(?![^{]*})(?![^\\[]*])\\|+";
 
 	public static MagicItemData parseMagicItemData(String str) {
 		String[] args = str.split("\\{", 2);
