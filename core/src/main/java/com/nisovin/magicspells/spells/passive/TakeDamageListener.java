@@ -21,6 +21,7 @@ import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
+import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
 // Optional trigger variable of a pipe separated list that can contain
 // damage causes or damaging magic items to accept
@@ -33,7 +34,7 @@ public class TakeDamageListener extends PassiveListener {
 	@Override
 	public void initialize(@NotNull String var) {
 		if (var.isEmpty()) return;
-		for (String s : var.split("\\|")) {
+		for (String s : var.split(MagicItemDataParser.DATA_REGEX)) {
 			s = s.trim();
 
 			boolean isDamCause = false;

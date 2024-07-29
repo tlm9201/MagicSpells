@@ -22,6 +22,7 @@ import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.castmodifiers.Condition;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
+import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
 @Name("wearinginslot")
 public class WearingInSlotCondition extends Condition {
@@ -80,8 +81,8 @@ public class WearingInSlotCondition extends Condition {
 			slots.add(slot);
 		}
 
-		for (String magicItemString : data[1].split("\\|")) {
-			if (magicItemString.equals("0") || magicItemString.equals("air") || magicItemString.equals("empty")) {
+		for (String magicItemString : data[1].split(MagicItemDataParser.DATA_REGEX)) {
+			if (List.of("0", "air", "empty").contains(magicItemString)) {
 				emptyCheck = true;
 				continue;
 			}

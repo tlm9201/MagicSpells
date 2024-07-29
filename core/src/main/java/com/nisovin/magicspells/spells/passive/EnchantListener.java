@@ -17,6 +17,7 @@ import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
+import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
 @Name("enchant")
 public class EnchantListener extends PassiveListener {
@@ -28,7 +29,7 @@ public class EnchantListener extends PassiveListener {
 		if (var.isEmpty()) return;
 
 		items = new HashSet<>();
-		for (String item : var.split("\\|")) {
+		for (String item : var.split(MagicItemDataParser.DATA_REGEX)) {
 			MagicItemData itemData = MagicItems.getMagicItemDataFromString(item);
 			if (itemData == null) {
 				MagicSpells.error("Invalid magic item '" + item + "' in enchant trigger on passive spell '" + passiveSpell.getInternalName() + "'.");

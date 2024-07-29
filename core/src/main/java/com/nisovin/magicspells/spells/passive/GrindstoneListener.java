@@ -20,6 +20,7 @@ import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.magicitems.MagicItemData;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
+import com.nisovin.magicspells.util.magicitems.MagicItemDataParser;
 
 @Name("grindstone")
 public class GrindstoneListener extends PassiveListener {
@@ -35,7 +36,7 @@ public class GrindstoneListener extends PassiveListener {
 
 		if (split.length > 0) {
 			if (!split[0].equals("any")) {
-				String[] items = split[0].split("\\|");
+				String[] items = split[0].split(MagicItemDataParser.DATA_REGEX);
 				upperItem = new HashSet<>();
 
 				for (String item : items) {
@@ -52,7 +53,7 @@ public class GrindstoneListener extends PassiveListener {
 
 		if (split.length > 1) {
 			if (!split[1].equals("any")) {
-				String[] items = split[1].split("\\|");
+				String[] items = split[1].split(MagicItemDataParser.DATA_REGEX);
 				lowerItem = new HashSet<>();
 
 				for (String item : items) {
@@ -69,7 +70,7 @@ public class GrindstoneListener extends PassiveListener {
 
 		if (split.length > 2) {
 			if (!split[2].equals("any")) {
-				String[] items = split[2].split("\\|");
+				String[] items = split[2].split(MagicItemDataParser.DATA_REGEX);
 				resultItem = new HashSet<>();
 
 				for (String item : items) {
