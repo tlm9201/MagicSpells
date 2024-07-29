@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 
 import java.net.URL;
+import java.net.URI;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
@@ -526,7 +527,7 @@ public class Util {
 
 	public static boolean downloadFile(String url, File file) {
 		try {
-			URL website = new URL(url);
+			URL website = URI.create(url).toURL();
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
 			FileOutputStream fos = new FileOutputStream(file);
 

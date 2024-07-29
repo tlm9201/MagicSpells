@@ -2,7 +2,6 @@ package com.nisovin.magicspells.listeners;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Listener;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.world.ChunkLoadEvent;
