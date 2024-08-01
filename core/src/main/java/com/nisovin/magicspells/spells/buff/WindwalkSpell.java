@@ -191,7 +191,6 @@ public class WindwalkSpell extends BuffSpell {
 		@EventHandler(priority = EventPriority.MONITOR)
 		public void onPlayerToggleSneak(PlayerToggleSneakEvent event) {
 			Player player = event.getPlayer();
-			if (!isActive(player)) return;
 			if (!isActive(player) || player.getLocation().subtract(0, 1, 0).getBlock().getType().isAir()) return;
 
 			if (alwaysFly) {
