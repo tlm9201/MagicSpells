@@ -84,7 +84,6 @@ public class OrbitTracker extends EffectTracker implements Runnable {
 			if (!result.check()) return;
 		}
 
-		effect.playEffect(location, data);
 		playEffects(location, data);
 	}
 
