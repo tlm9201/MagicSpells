@@ -1,0 +1,13 @@
+name: Wiki Alert
+
+on:
+  gollum
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "oznu/gh-wiki-edit-discord-notification@v1.0.0"
+        with:
+          discord-webhook-url: ${{ secrets.WIKI_WEBHOOK }}
+          ignore-collaborators: false
