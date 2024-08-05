@@ -1,6 +1,5 @@
 package com.nisovin.magicspells.util;
 
-import java.math.BigInteger;
 import java.util.regex.Pattern;
 
 import org.bukkit.Color;
@@ -34,33 +33,12 @@ public class ColorUtil {
 		if (hex.startsWith("#")) hex = hex.substring(1);
 
 		try {
-			int value = new BigInteger(hex, 16).intValue();
+			int value = Integer.parseUnsignedInt(hex, 16);
 			return Color.fromARGB(value);
 		} catch (IllegalArgumentException e) {
 			if (debug) DebugHandler.debugIllegalArgumentException(e);
 			return null;
 		}
-	}
-
-	public static Color getColorFromRGBString(String value) {
-		if (value == null) return null;
-		String[] splits = value.split(",");
-		if (splits.length < 3) return null;
-
-		int red;
-		int green;
-		int blue;
-		try {
-			red = Integer.parseInt(splits[0]);
-			green = Integer.parseInt(splits[1]);
-			blue = Integer.parseInt(splits[2]);
-			return Color.fromRGB(red, green, blue);
-		} catch (IllegalArgumentException e) {
-			DebugHandler.debugIllegalArgumentException(e);
-			//TODO determine an appropriate means of logging this
-			return null;
-		}
-
 	}
 
 }
