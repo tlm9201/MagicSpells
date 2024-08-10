@@ -3,8 +3,10 @@ package com.nisovin.magicspells.util.itemreader;
 import java.util.List;
 import java.util.ArrayList;
 
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.RegistryAccess;
+
 import org.bukkit.DyeColor;
-import org.bukkit.Registry;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -37,7 +39,7 @@ public class BannerHandler {
 			PatternType patternType = fromLegacyIdentifier(patternTypeString);
 			if (patternType == null) {
 				NamespacedKey key = NamespacedKey.fromString(patternTypeString);
-				if (key != null) patternType = Registry.BANNER_PATTERN.get(key);
+				if (key != null) patternType = RegistryAccess.registryAccess().getRegistry(RegistryKey.BANNER_PATTERN).get(key);
 
 				if (patternType == null) {
 					MagicSpells.error("Invalid banner pattern type '" + args[0] + "' when parsing magic item.");
@@ -120,5 +122,5 @@ public class BannerHandler {
 			default -> null;
 		};
 	}
-	
+
 }
