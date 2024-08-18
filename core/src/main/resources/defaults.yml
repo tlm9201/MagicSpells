@@ -1,8 +1,27 @@
-".instant.LeapSpell":
-    rotation: 0
-    upward-velocity: 15
-    forward-velocity: 40
-    client-only: false
-    cancel-damage: true
-    add-velocity-instead: false
-    power-affects-velocity: true
+# # You an specify default values for spell classes here.
+# # Create a configuration section with a spell class for key. The nodes of the
+# # section determine the default values for unspecified options for that spell.
+# # Example:
+#
+# # Defaults for all leap spells.
+# ".instant.LeapSpell":
+#     rotation: 0
+#     upward-velocity: 15
+#     forward-velocity: 40
+#     client-only: false
+#     cancel-damage: true
+#     add-velocity-instead: false
+#     power-affects-velocity: true
+#
+# # You can also specify parent spell classes to apply options more broadly.
+# # Examples:
+#
+# # Defaults for all spells.
+# "com.nisovin.magicspells.Spell":
+#     cooldown: 5
+#     range: 6
+#
+# # Defaults for all buff spells.
+# ".BuffSpell":
+#     duration: 20
+#     toggle: false

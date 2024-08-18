@@ -201,18 +201,29 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected final String internalKey;
 
-	private final ConfigurationSection defaultSection;
-
 	public Spell(MagicConfig config, String spellName) {
 		this.config = config;
 		this.internalName = spellName;
 
 		internalKey = "spells." + internalName + '.';
 
-		Set<String> zoneNodes = config.getKeys("defaults");
-		String className = getClass().getCanonicalName().replace("com.nisovin.magicspells.spells", "");
-		if (zoneNodes != null) defaultSection = config.getSection("defaults." + className);
-		else defaultSection = null;
+		List<Class<?>> classes = new ArrayList<>();
+
+		Class<?> currentClass = getClass();
+		do {
+			classes.add(currentClass);
+			currentClass = currentClass.getSuperclass();
+		} while (Spell.class.isAssignableFrom(currentClass));
+
+		for (Class<?> clazz : classes.reversed()) {
+			ConfigurationSection defaults = config.getDefaults(clazz);
+			if (defaults == null) continue;
+
+			for (String key : defaults.getKeys(true)) {
+				if (defaults.isConfigurationSection(key)) continue;
+				config.getMainConfig().addDefault(internalKey + key, defaults.get(key));
+			}
+		}
 
 		callbacks = new HashMap<>();
 
@@ -685,7 +696,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The config value, or defaultValue if it does not exist
 	 */
 	protected int getConfigInt(String key, int def) {
-		return config.getInt(internalKey + key, getDefaultInt(key, def));
+		return config.getInt(internalKey + key, def);
 	}
 
 	/**
@@ -696,7 +707,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The config value, or defaultValue if it does not exist
 	 */
 	protected long getConfigLong(String key, long def) {
-		return config.getLong(internalKey + key, getDefaultLong(key, def));
+		return config.getLong(internalKey + key, def);
 	}
 
 	/**
@@ -707,7 +718,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The config value, or defaultValue if it does not exist
 	 */
 	protected boolean getConfigBoolean(String key, boolean def) {
-		return config.getBoolean(internalKey + key, getDefaultBoolean(key, def));
+		return config.getBoolean(internalKey + key, def);
 	}
 
 	/**
@@ -718,7 +729,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The config value, or defaultValue if it does not exist
 	 */
 	protected String getConfigString(String key, String def) {
-		return config.getString(internalKey + key, getDefaultString(key, def));
+		return config.getString(internalKey + key, def);
 	}
 
 	/**
@@ -729,7 +740,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The config value, or defaultValue if it does not exist
 	 */
 	protected Vector getConfigVector(String key, String def) {
-		String[] vecStrings = getConfigString(key, getDefaultString(key, def)).split(",");
+		String[] vecStrings = getConfigString(key, def).split(",");
 		return new Vector(Double.parseDouble(vecStrings[0]), Double.parseDouble(vecStrings[1]), Double.parseDouble(vecStrings[2]));
 	}
 
@@ -741,7 +752,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The config value, or defaultValue if it does not exist
 	 */
 	protected float getConfigFloat(String key, float def) {
-		return (float) config.getDouble(internalKey + key, getDefaultFloat(key, def));
+		return (float) config.getDouble(internalKey + key, def);
 	}
 
 	/**
@@ -752,19 +763,19 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * @return The config value, or defaultValue if it does not exist
 	 */
 	protected double getConfigDouble(String key, double def) {
-		return config.getDouble(internalKey + key, getDefaultDouble(key, def));
+		return config.getDouble(internalKey + key, def);
 	}
 
 	protected List<?> getConfigList(String key, List<?> def) {
-		return config.getList(internalKey + key, getDefaultList(key, def));
+		return config.getList(internalKey + key, def);
 	}
 
 	protected List<Integer> getConfigIntList(String key, List<Integer> def) {
-		return config.getIntList(internalKey + key, getDefaultIntList(key, def));
+		return config.getIntList(internalKey + key, def);
 	}
 
 	protected List<String> getConfigStringList(String key, List<String> def) {
-		return config.getStringList(internalKey + key, getDefaultStringList(key, def));
+		return config.getStringList(internalKey + key, def);
 	}
 
 	protected Set<String> getConfigKeys(String key) {
@@ -776,47 +787,47 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected ConfigData<Boolean> getConfigDataBoolean(String key, boolean def) {
-		return ConfigDataUtil.getBoolean(config.getMainConfig(), internalKey + key, getDefaultBoolean(key, def));
+		return ConfigDataUtil.getBoolean(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Boolean> getConfigDataBoolean(String key, ConfigData<Boolean> def) {
-		return ConfigDataUtil.getBoolean(config.getMainConfig(), internalKey + key, getDefaultBoolean(key, def));
+		return ConfigDataUtil.getBoolean(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Integer> getConfigDataInt(String key, int def) {
-		return ConfigDataUtil.getInteger(config.getMainConfig(), internalKey + key, getDefaultInt(key, def));
+		return ConfigDataUtil.getInteger(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Integer> getConfigDataInt(String key, ConfigData<Integer> def) {
-		return ConfigDataUtil.getInteger(config.getMainConfig(), internalKey + key, getDefaultInt(key, def));
+		return ConfigDataUtil.getInteger(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Double> getConfigDataDouble(String key, double def) {
-		return ConfigDataUtil.getDouble(config.getMainConfig(), internalKey + key, getDefaultDouble(key, def));
+		return ConfigDataUtil.getDouble(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Double> getConfigDataDouble(String key, ConfigData<Double> def) {
-		return ConfigDataUtil.getDouble(config.getMainConfig(), internalKey + key, getDefaultDouble(key, def));
+		return ConfigDataUtil.getDouble(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Float> getConfigDataFloat(String key, float def) {
-		return ConfigDataUtil.getFloat(config.getMainConfig(), internalKey + key, getDefaultFloat(key, def));
+		return ConfigDataUtil.getFloat(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Float> getConfigDataFloat(String key, ConfigData<Float> def) {
-		return ConfigDataUtil.getFloat(config.getMainConfig(), internalKey + key, getDefaultFloat(key, def));
+		return ConfigDataUtil.getFloat(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Long> getConfigDataLong(String key, long def) {
-		return ConfigDataUtil.getLong(config.getMainConfig(), internalKey + key, getDefaultLong(key, def));
+		return ConfigDataUtil.getLong(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Long> getConfigDataLong(String key, ConfigData<Long> def) {
-		return ConfigDataUtil.getLong(config.getMainConfig(), internalKey + key, getDefaultLong(key, def));
+		return ConfigDataUtil.getLong(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<String> getConfigDataString(String key, String def) {
-		return ConfigDataUtil.getString(config.getMainConfig(), internalKey + key, getDefaultString(key, def));
+		return ConfigDataUtil.getString(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<Component> getConfigDataComponent(String key, Component def) {
@@ -824,7 +835,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	protected <T extends Enum<T>> ConfigData<T> getConfigDataEnum(String key, Class<T> type, T def) {
-		return ConfigDataUtil.getEnum(config.getMainConfig(), internalKey + key, type, getDefaultEnum(key, type, def));
+		return ConfigDataUtil.getEnum(config.getMainConfig(), internalKey + key, type, def);
 	}
 
 	protected ConfigData<Vector> getConfigDataVector(String key, Vector def) {
@@ -840,19 +851,19 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	}
 
 	public ConfigData<Material> getConfigDataMaterial(String key, Material def) {
-		return ConfigDataUtil.getMaterial(config.getMainConfig(), internalKey + key, getDefaultEnum(key, Material.class, def));
+		return ConfigDataUtil.getMaterial(config.getMainConfig(), internalKey + key, def);
 	}
 
 	public ConfigData<TargetBooleanState> getConfigDataTargetBooleanState(String key, TargetBooleanState def) {
-		return ConfigDataUtil.getTargetBooleanState(config.getMainConfig(), internalKey + key, getDefaultEnum(key, TargetBooleanState.class, def));
+		return ConfigDataUtil.getTargetBooleanState(config.getMainConfig(), internalKey + key, def);
 	}
 
 	public ConfigData<EntityType> getConfigDataEntityType(String key, EntityType def) {
-		return ConfigDataUtil.getEntityType(config.getMainConfig(), internalKey + key, getDefaultEnum(key, EntityType.class, def));
+		return ConfigDataUtil.getEntityType(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected ConfigData<BlockData> getConfigDataBlockData(String key, BlockData def) {
-		return ConfigDataUtil.getBlockData(config.getMainConfig(), internalKey + key, getDefaultBlockData(key, def));
+		return ConfigDataUtil.getBlockData(config.getMainConfig(), internalKey + key, def);
 	}
 
 	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(String key, RegistryKey<T> registryKey, T def) {
@@ -884,105 +895,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	protected boolean isConfigSection(String key) {
 		return config.isSection(internalKey + key);
-	}
-
-	private int getDefaultInt(String key, int def) {
-		if (defaultSection == null) return def;
-		return defaultSection.getInt(key, def);
-	}
-
-	private long getDefaultLong(String key, long def) {
-		if (defaultSection == null) return def;
-		return defaultSection.getLong(key, def);
-	}
-
-	private boolean getDefaultBoolean(String key, boolean def) {
-		if (defaultSection == null) return def;
-		return defaultSection.getBoolean(key, def);
-	}
-
-	private String getDefaultString(String key, String def) {
-		if (defaultSection == null) return def;
-		return defaultSection.getString(key, def);
-	}
-
-	private float getDefaultFloat(String key, float def) {
-		if (defaultSection == null) return def;
-		return (float) defaultSection.getDouble(key, def);
-	}
-
-	private double getDefaultDouble(String key, double def) {
-		if (defaultSection == null) return def;
-		return defaultSection.getDouble(key, def);
-	}
-
-	private ConfigData<Boolean> getDefaultBoolean(String key, ConfigData<Boolean> def) {
-		if (defaultSection == null) return def;
-		return ConfigDataUtil.getBoolean(defaultSection, key, def);
-	}
-
-	private ConfigData<Integer> getDefaultInt(String key, ConfigData<Integer> def) {
-		if (defaultSection == null) return def;
-		return ConfigDataUtil.getInteger(defaultSection, key, def);
-	}
-
-	private ConfigData<Double> getDefaultDouble(String key, ConfigData<Double> def) {
-		if (defaultSection == null) return def;
-		return ConfigDataUtil.getDouble(defaultSection, key, def);
-	}
-
-	private ConfigData<Float> getDefaultFloat(String key, ConfigData<Float> def) {
-		if (defaultSection == null) return def;
-		return ConfigDataUtil.getFloat(defaultSection, key, def);
-	}
-
-	private ConfigData<Long> getDefaultLong(String key, ConfigData<Long> def) {
-		if (defaultSection == null) return def;
-		return ConfigDataUtil.getLong(defaultSection, key, def);
-	}
-
-	private <T extends Enum<T>> T getDefaultEnum(String key, Class<T> type, T def) {
-		if (defaultSection == null) return def;
-		String value = defaultSection.getString(key);
-		if (value == null) return def;
-
-		try {
-			return Enum.valueOf(type, value.toUpperCase());
-		} catch (IllegalArgumentException e) {
-			return def;
-		}
-	}
-
-	private BlockData getDefaultBlockData(String key, BlockData def) {
-		if (defaultSection == null) return def;
-		String value = defaultSection.getString(key);
-		if (value == null) return def;
-
-		try {
-			return Bukkit.createBlockData(value.trim().toLowerCase());
-		} catch (IllegalArgumentException e) {
-			return def;
-		}
-	}
-
-	private List<?> getDefaultList(String key, List<?> def) {
-		if (defaultSection == null) return def;
-		return defaultSection.getList(key, def);
-	}
-
-	private List<Integer> getDefaultIntList(String key, List<Integer> def) {
-		if (defaultSection == null || !defaultSection.contains(key, true)) return def;
-		return defaultSection.getIntegerList(key);
-	}
-
-	private List<String> getDefaultStringList(String key, List<String> def) {
-		if (defaultSection == null || !defaultSection.contains(key, true)) return def;
-		return defaultSection.getStringList(key);
-	}
-
-	private ConfigurationSection getDefaultConfigSection(String key, ConfigurationSection def) {
-		if (defaultSection == null || !defaultSection.contains(key, true)) return def;
-		return defaultSection.getConfigurationSection(key);
 	}
 
 	@Deprecated

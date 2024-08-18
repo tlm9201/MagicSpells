@@ -16,6 +16,7 @@ public class MagicConfig {
 	private static final FilenameFilter DIRECTORY_FILTER = (File dir, String name) -> name.startsWith("spells");
 
 	private YamlConfiguration mainConfig;
+	private YamlConfiguration defaultSpellConfig;
 
 	public MagicConfig() {
 		try {
@@ -78,13 +79,10 @@ public class MagicConfig {
 			// Load default spell values
 			File defaultsConfigFile = new File(folder, "defaults.yml");
 			if (defaultsConfigFile.exists()) {
-				YamlConfiguration defaultsConfig = new YamlConfiguration();
+				defaultSpellConfig = new YamlConfiguration();
+
 				try {
-					defaultsConfig.load(defaultsConfigFile);
-					Set<String> keys = defaultsConfig.getKeys(true);
-					for (String key : keys) {
-						mainConfig.set("defaults." + key, defaultsConfig.get(key));
-					}
+					defaultSpellConfig.load(defaultsConfigFile);
 				} catch (Exception e) {
 					MagicSpells.error("Error loading config file defaults.yml");
 					MagicSpells.handleException(e);
@@ -275,6 +273,14 @@ public class MagicConfig {
 		if (!mainConfig.contains("spells")) return null;
 		if (!mainConfig.isConfigurationSection("spells")) return null;
 		return mainConfig.getConfigurationSection("spells").getKeys(false);
+	}
+
+	public ConfigurationSection getDefaults(Class<?> type) {
+		String spellClass = type.getCanonicalName();
+		if (spellClass.startsWith("com.nisovin.magicspells.spells"))
+			spellClass = spellClass.substring(30);
+
+		return defaultSpellConfig.getConfigurationSection(spellClass);
 	}
 
 }
