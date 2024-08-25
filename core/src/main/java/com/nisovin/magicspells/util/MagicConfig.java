@@ -276,11 +276,16 @@ public class MagicConfig {
 	}
 
 	public ConfigurationSection getDefaults(Class<?> type) {
-		String spellClass = type.getCanonicalName();
-		if (spellClass.startsWith("com.nisovin.magicspells.spells"))
-			spellClass = spellClass.substring(30);
+		if (defaultSpellConfig == null) return null;
 
-		return defaultSpellConfig.getConfigurationSection(spellClass);
+		String spellClass = type.getCanonicalName();
+
+		ConfigurationSection defaults = defaultSpellConfig.getConfigurationSection(spellClass);
+		if (defaults != null || !spellClass.startsWith("com.nisovin.magicspells.spells"))
+			return defaults;
+
+		// Check shortened spell class.
+		return defaultSpellConfig.getConfigurationSection(spellClass.substring(30));
 	}
 
 }
