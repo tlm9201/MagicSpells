@@ -606,8 +606,12 @@ public class MagicCommand extends BaseCommand {
 			if (player == null) player = getPlayerFromIssuer(issuer);
 			if (player == null) return;
 
-			List<ProfileProperty> skins = player.getPlayerProfile().getProperties().stream().filter(prop -> prop.getName().equals("textures")).toList();
-			ProfileProperty latestSkin = skins.get(0);
+			ProfileProperty latestSkin = player.getPlayerProfile()
+					.getProperties()
+					.stream()
+					.filter(prop -> prop.getName().equals("textures"))
+					.toList()
+					.getFirst();
 
 			YamlConfiguration data = new YamlConfiguration();
 			data.set("skin", latestSkin.getValue());
@@ -826,8 +830,8 @@ public class MagicCommand extends BaseCommand {
 		}
 
 		@Subcommand("at")
-		@CommandCompletion("@spells @worlds @looking_at:X @looking_at:Y @looking_at:Z @looking_at:pitch @looking_at:yaw @nothing")
-		@Syntax("<spell> [world] <x> <y> <z> [pitch] [yaw]")
+		@CommandCompletion("@spells @worlds @looking_at:X @looking_at:Y @looking_at:Z @looking_at:yaw @looking_at:pitch @nothing")
+		@Syntax("<spell> [world] <x> <y> <z> [yaw] [pitch]")
 		@Description("Cast a spell at a location.")
 		@HelpPermission(permission = Perm.COMMAND_CAST_AT)
 		public void onCastAt(CommandIssuer issuer, String[] args) {
@@ -882,7 +886,7 @@ public class MagicCommand extends BaseCommand {
 			Location location = new Location(world, x, y, z, yaw, pitch);
 
 			// Handle with or without caster.
-			SpellData data = new SpellData(issuer.getIssuer() instanceof LivingEntity le ? le : null, location, 1f, null);
+			SpellData data = new SpellData(issuer.getIssuer() instanceof LivingEntity le ? le : null, location);
 			CastResult result = newSpell.castAtLocation(data);
 
 			if (result.action() == PostCastAction.ALREADY_HANDLED)
