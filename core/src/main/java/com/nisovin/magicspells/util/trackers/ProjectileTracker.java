@@ -244,7 +244,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 		if (!(specialEffectInterval > 0 && counter % specialEffectInterval == 0))
 			return;
 
-		int divideFactor = intermediateHitboxes + 1;
+		int divideFactor = intermediateEffects + 1;
 
 		Vector v = new Vector(
 			(currentLocation.getX() - previousLocation.getX()) / divideFactor,
