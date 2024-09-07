@@ -8,8 +8,7 @@ include("teams")
 include("towny")
 
 include(":nms:shared")
-include(":nms:v1_21")
-include(":nms:v1_21_1")
+include(":nms:latest")
 
 startParameter.isParallelProjectExecutionEnabled = true
 
