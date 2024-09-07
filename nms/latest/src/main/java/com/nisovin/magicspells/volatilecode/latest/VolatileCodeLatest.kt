@@ -7,13 +7,9 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.*
 import org.bukkit.Location
 import org.bukkit.util.Vector
-import org.bukkit.NamespacedKey
-import org.bukkit.inventory.Recipe
 import org.bukkit.attribute.Attribute
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.RecipeChoice
 import org.bukkit.event.entity.ExplosionPrimeEvent
-import org.bukkit.inventory.SmithingTransformRecipe
 
 import org.bukkit.craftbukkit.entity.*
 import org.bukkit.craftbukkit.CraftWorld
@@ -119,7 +115,6 @@ class VolatileCodeLatest(helper: VolatileCodeHelper) : VolatileCodeHandle(helper
         for (player in location.getNearbyPlayers(64.0)) {
             players.add(player)
             (player as CraftPlayer).handle.connection.send(addMobPacket)
-            player.handle.connection.send(addMobPacket)
             player.handle.connection.send(entityEventPacket)
         }
 
@@ -128,8 +123,7 @@ class VolatileCodeLatest(helper: VolatileCodeHelper) : VolatileCodeHandle(helper
                 if (!player.isValid) continue
                 (player as CraftPlayer).handle.connection.send(removeEntityPacket)
             }
-        }, 250)
-
+        }, 200)
     }
 
     override fun setClientVelocity(player: Player, velocity: Vector) {
@@ -152,17 +146,6 @@ class VolatileCodeLatest(helper: VolatileCodeHelper) : VolatileCodeHandle(helper
         if (e.isSilent) return
         val sound = e.getHurtSound0(e.damageSources().generic())
         e.level().playSound(null, e.x, e.y, e.z, sound, e.soundSource, e.soundVolume, e.voicePitch)
-    }
-
-    override fun createSmithingRecipe(
-        namespacedKey: NamespacedKey,
-        result: ItemStack,
-        template: RecipeChoice,
-        base: RecipeChoice,
-        addition: RecipeChoice,
-        copyNbt: Boolean
-    ): Recipe {
-        return SmithingTransformRecipe(namespacedKey, result, template, base, addition, copyNbt)
     }
 
     override fun sendToastEffect(receiver: Player, icon: ItemStack, frameType: AdvancementDisplay.Frame, text: Component) {
