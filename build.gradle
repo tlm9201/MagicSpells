@@ -1,5 +1,4 @@
 plugins {
-  id("org.jetbrains.kotlin.jvm") version "2.0.0"
   id("dev.magicspells.msjava")
 }
 
@@ -10,7 +9,6 @@ wrapper {
 
 subprojects {
   apply plugin: "dev.magicspells.msjava"
-  apply plugin: "org.jetbrains.kotlin.jvm"
 
   dependencies {
     implementation(group: "io.papermc.paper", name: "paper-api", version: "1.21-R0.1-SNAPSHOT")
