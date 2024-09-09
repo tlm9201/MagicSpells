@@ -1,5 +1,6 @@
 package com.nisovin.magicspells.volatilecode;
 
+import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -46,8 +47,10 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 	}
 
 	@Override
-	public void playHurtAnimation(LivingEntity entity, float yaw) {
-		entity.playHurtAnimation(yaw);
+	public void playHurtSound(LivingEntity entity) {
+		Sound sound = entity.getHurtSound();
+		if (sound == null) return;
+		entity.getWorld().playSound(entity.getLocation(), sound, 1, 1);
 	}
 
 	@Override

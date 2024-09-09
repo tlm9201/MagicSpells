@@ -29,7 +29,7 @@ public abstract class VolatileCodeHandle {
 
 	public abstract void startAutoSpinAttack(Player player, int ticks);
 
-	public abstract void playHurtAnimation(LivingEntity entity, float yaw);
+	public abstract void playHurtSound(LivingEntity entity);
 
 	public abstract void sendToastEffect(Player receiver, ItemStack icon, Frame frameType, Component text);
 

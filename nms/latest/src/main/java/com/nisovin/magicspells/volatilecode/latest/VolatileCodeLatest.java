@@ -163,13 +163,8 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 	}
 
 	@Override
-	public void playHurtAnimation(LivingEntity entity, float yaw) {
+	public void playHurtSound(LivingEntity entity) {
 		var nmsEntity = ((CraftLivingEntity) entity).getHandle();
-
-		for (Player player : entity.getLocation().getNearbyPlayers((entity.getServer().getSimulationDistance() * 16))) {
-			var packet = new ClientboundHurtAnimationPacket(nmsEntity.getId(), 90 + yaw);
-			((CraftPlayer) player).getHandle().connection.send(packet);
-		}
 
 		if (nmsEntity.isSilent()) return;
 		nmsEntity.level().playSound(

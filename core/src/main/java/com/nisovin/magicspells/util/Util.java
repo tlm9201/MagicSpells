@@ -244,15 +244,18 @@ public class Util {
 
 	public static void playHurtEffect(@NotNull LivingEntity receiver, @Nullable LivingEntity source) {
 		float angle = 0;
+
+		// Get horizontal directed angle between the receiver's direction and the source.
 		if (source != null && !receiver.equals(source)) {
-			// Get horizontal directed angle between the receiver's direction and the source.
 			Vector first = receiver.getLocation().getDirection();
 			Vector second = source.getLocation().toVector().subtract(receiver.getLocation().toVector());
 			double angrad = AccurateMath.atan2(second.getZ(), second.getX()) - AccurateMath.atan2(first.getZ(), first.getX());
 			angle = (float) AccurateMath.toDegrees(angrad);
 			if (angle < 0) angle += 360;
 		}
-		MagicSpells.getVolatileCodeHandler().playHurtAnimation(receiver, angle);
+
+		receiver.playHurtAnimation(angle);
+		MagicSpells.getVolatileCodeHandler().playHurtSound(receiver);
 	}
 
 	public static String arrayJoin(String[] array, char with) {
