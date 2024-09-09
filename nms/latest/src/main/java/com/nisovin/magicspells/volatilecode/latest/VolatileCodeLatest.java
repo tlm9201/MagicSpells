@@ -36,6 +36,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.core.particles.ParticleTypes;
@@ -108,7 +109,7 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 	@Override
 	public void sendFakeSlotUpdate(Player player, int slot, ItemStack item) {
 		var nmsItem = CraftItemStack.asNMSCopy(item);
-		var packet = new ClientboundContainerSetSlotPacket(0, 0, slot + 36, nmsItem);
+		ClientboundContainerSetSlotPacket packet = new ClientboundContainerSetSlotPacket(0, 0, slot + 36, nmsItem);
 
 		((CraftPlayer) player).getHandle().connection.send(packet);
 	}
@@ -126,18 +127,18 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 
 	@Override
 	public void playDragonDeathEffect(Location location) {
-		var dragon = new EnderDragon(EntityType.ENDER_DRAGON, ((CraftWorld) location.getWorld()).getHandle());
+		EnderDragon dragon = new EnderDragon(EntityType.ENDER_DRAGON, ((CraftWorld) location.getWorld()).getHandle());
 		dragon.setPos(location.x(), location.y(), location.z());
 
 		BlockPos pos = new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-		var addMobPacket = new ClientboundAddEntityPacket(dragon, 0, pos);
-		var entityEventPacket = new ClientboundEntityEventPacket(dragon, (byte) 3);
-		var removeEntityPacket = new ClientboundRemoveEntitiesPacket(dragon.getId());
+		ClientboundAddEntityPacket addMobPacket = new ClientboundAddEntityPacket(dragon, 0, pos);
+		ClientboundEntityEventPacket entityEventPacket = new ClientboundEntityEventPacket(dragon, (byte) 3);
+		ClientboundRemoveEntitiesPacket removeEntityPacket = new ClientboundRemoveEntitiesPacket(dragon.getId());
 
 		List<Player> players = new ArrayList<>();
 		for (Player player : location.getNearbyPlayers(64.0)) {
 			players.add(player);
-			var nmsPlayer = ((CraftPlayer) player).getHandle();
+			ServerPlayer nmsPlayer = ((CraftPlayer) player).getHandle();
 			nmsPlayer.connection.send(addMobPacket);
 			nmsPlayer.connection.send(entityEventPacket);
 		}
@@ -153,7 +154,7 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 	@Override
 	public void setClientVelocity(Player player, Vector velocity) {
 		Vec3 pos = new Vec3(velocity.getX(), velocity.getY(), velocity.getZ());
-		var packet = new ClientboundSetEntityMotionPacket(player.getEntityId(), pos);
+		ClientboundSetEntityMotionPacket packet = new ClientboundSetEntityMotionPacket(player.getEntityId(), pos);
 		((CraftPlayer) player).getHandle().connection.send(packet);
 	}
 
@@ -197,7 +198,7 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 		progress.update(new AdvancementRequirements(List.of(List.of("impossible"))));
 		progress.grantProgress("impossible");
 
-		var player = ((CraftPlayer) receiver).getHandle();
+		ServerPlayer player = ((CraftPlayer) receiver).getHandle();
 		player.connection.send(new ClientboundUpdateAdvancementsPacket(
 				false,
 				Collections.singleton(advancement),
@@ -224,13 +225,13 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 
 	@Override
 	public void addGameTestMarker(Player player, Location location, int color, String name, int lifetime) {
-		var payload = new GameTestAddMarkerDebugPayload(MCUtil.toBlockPosition(location), color, name, lifetime);
+		GameTestAddMarkerDebugPayload payload = new GameTestAddMarkerDebugPayload(MCUtil.toBlockPosition(location), color, name, lifetime);
 		((CraftPlayer) player).getHandle().connection.send(new ClientboundCustomPayloadPacket(payload));
 	}
 
 	@Override
 	public void clearGameTestMarkers(Player player) {
-		var payload = new GameTestClearMarkersDebugPayload();
+		GameTestClearMarkersDebugPayload payload = new GameTestClearMarkersDebugPayload();
 		((CraftPlayer) player).getHandle().connection.send(new ClientboundCustomPayloadPacket(payload));
 	}
 }
