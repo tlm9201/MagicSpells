@@ -8,14 +8,13 @@ import org.apache.commons.math4.core.jdkmath.AccurateMath;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.block.BlockFace;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.util.RayTraceResult;
 
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
@@ -55,8 +54,6 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private Location currentLocation;
 	private Vector currentVelocity;
 	private Vector effectOffset;
-	private int currentX;
-	private int currentZ;
 	private int counter;
 	private int taskId;
 	private BoundingBox hitBox;
@@ -120,8 +117,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private int spellInterval;
 	private int tickSpellLimit;
 	private int maxEntitiesHit;
-	private int maxHeightCheck;
-	private int startHeightCheck;
+	private double maxHeightCheck;
+	private double startHeightCheck;
 	private int accelerationDelay;
 	private int intermediateEffects;
 	private int intermediateHitboxes;
@@ -231,9 +228,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 				return;
 			}
 
-			currentLocation.setY((int) currentLocation.getY() + heightFromSurface);
-			currentX = currentLocation.getBlockX();
-			currentZ = currentLocation.getBlockZ();
+			currentLocation.setY(currentLocation.getY() + heightFromSurface);
 		}
 
 		currentVelocity = currentLocation.getDirection();
@@ -321,16 +316,13 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			}
 		}
 
-		if (hugSurface && (currentLocation.getBlockX() != currentX || currentLocation.getBlockZ() != currentZ)) {
+		if (hugSurface) {
 			if (!checkGround(maxHeightCheck)) {
 				stop();
 				return;
 			}
 
-			currentLocation.setY((int) currentLocation.getY() + heightFromSurface);
-			currentX = currentLocation.getBlockX();
-			currentZ = currentLocation.getBlockZ();
-
+			currentLocation.setY(currentLocation.getY() + heightFromSurface);
 			// Apply vertical gravity
 		} else if (projectileVertGravity != 0)
 			currentVelocity.setY(currentVelocity.getY() - (projectileVertGravity / ticksPerSecond));
@@ -577,31 +569,21 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		}
 	}
 
-	private boolean checkGround(int maxAttempts) {
-		Block b = currentLocation.subtract(0, heightFromSurface, 0).getBlock();
-
-		int attempts = 0;
-		boolean ok = false;
-		while (attempts++ < maxAttempts) {
-			if (b.isPassable()) {
-				b = b.getRelative(BlockFace.DOWN);
-				if (b.isPassable()) currentLocation.add(0, -1, 0);
-				else {
-					ok = true;
-					break;
-				}
-				continue;
+	private boolean checkGround(double maxHeight) {
+		RayTraceResult result = currentLocation.getWorld().rayTraceBlocks(
+			currentLocation, new Vector(0, -1, 0), maxHeight, fluidCollisionMode, ignorePassableBlocks,
+			block -> {
+				Material type = block.getType();
+				return !disallowedGroundMaterials.contains(type) && (groundMaterials.isEmpty() || groundMaterials.contains(type));
 			}
+		);
 
-			b = b.getRelative(BlockFace.UP);
-			currentLocation.add(0, 1, 0);
-			if (b.isPassable()) {
-				ok = true;
-				break;
-			}
+		if (result != null) {
+			currentLocation.setY(result.getHitPosition().getY());
+			return true;
 		}
 
-		return ok;
+		return false;
 	}
 
 	@Override
@@ -708,22 +690,6 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 
 	public void setCurrentVelocity(Vector currentVelocity) {
 		this.currentVelocity = currentVelocity;
-	}
-
-	public int getCurrentX() {
-		return currentX;
-	}
-
-	public void setCurrentX(int currentX) {
-		this.currentX = currentX;
-	}
-
-	public int getCurrentZ() {
-		return currentZ;
-	}
-
-	public void setCurrentZ(int currentZ) {
-		this.currentZ = currentZ;
 	}
 
 	public int getTaskId() {
@@ -1062,19 +1028,19 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		this.maxEntitiesHit = maxEntitiesHit;
 	}
 
-	public int getMaxHeightCheck() {
+	public double getMaxHeightCheck() {
 		return maxHeightCheck;
 	}
 
-	public void setMaxHeightCheck(int maxHeightCheck) {
+	public void setMaxHeightCheck(double maxHeightCheck) {
 		this.maxHeightCheck = maxHeightCheck;
 	}
 
-	public int getStartHeightCheck() {
+	public double getStartHeightCheck() {
 		return startHeightCheck;
 	}
 
-	public void setStartHeightCheck(int startHeightCheck) {
+	public void setStartHeightCheck(double startHeightCheck) {
 		this.startHeightCheck = startHeightCheck;
 	}
 
