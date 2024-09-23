@@ -52,40 +52,32 @@ import net.minecraft.network.protocol.common.custom.GameTestClearMarkersDebugPay
 
 public class VolatileCodeLatest extends VolatileCodeHandle {
 
-	private static final ResourceLocation TOAST_KEY = ResourceLocation.fromNamespaceAndPath("magicspells", "toast_effect");
+	private final ResourceLocation TOAST_KEY = ResourceLocation.fromNamespaceAndPath("magicspells", "toast_effect");
 
-	private EntityDataAccessor<List<ParticleOptions>> DATA_EFFECT_PARTICLES = null;
-	private EntityDataAccessor<Boolean> DATA_EFFECT_AMBIENCE_ID = null;
-	private Method UPDATE_EFFECT_PARTICLES = null;
+	private final EntityDataAccessor<List<ParticleOptions>> DATA_EFFECT_PARTICLES;
+	private final EntityDataAccessor<Boolean> DATA_EFFECT_AMBIENCE_ID;
+	private final Method UPDATE_EFFECT_PARTICLES;
 
 	@SuppressWarnings("unchecked")
-	public VolatileCodeLatest(VolatileCodeHelper helper) {
+	public VolatileCodeLatest(VolatileCodeHelper helper) throws Exception {
 		super(helper);
 
-		try {
-			Class<?> nmsEntityClass = net.minecraft.world.entity.LivingEntity.class;
+		Class<?> nmsEntityClass = net.minecraft.world.entity.LivingEntity.class;
 
-			Field dataEffectParticlesField = nmsEntityClass.getDeclaredField("DATA_EFFECT_PARTICLES");
-			dataEffectParticlesField.setAccessible(true);
-			DATA_EFFECT_PARTICLES = (EntityDataAccessor<List<ParticleOptions>>) dataEffectParticlesField.get(null);
+		Field dataEffectParticlesField = nmsEntityClass.getDeclaredField("DATA_EFFECT_PARTICLES");
+		dataEffectParticlesField.setAccessible(true);
+		DATA_EFFECT_PARTICLES = (EntityDataAccessor<List<ParticleOptions>>) dataEffectParticlesField.get(null);
 
-			Field dataEffectAmbienceIdField = nmsEntityClass.getDeclaredField("DATA_EFFECT_AMBIENCE_ID");
-			dataEffectAmbienceIdField.setAccessible(true);
-			DATA_EFFECT_AMBIENCE_ID = (EntityDataAccessor<Boolean>) dataEffectAmbienceIdField.get(null);
+		Field dataEffectAmbienceIdField = nmsEntityClass.getDeclaredField("DATA_EFFECT_AMBIENCE_ID");
+		dataEffectAmbienceIdField.setAccessible(true);
+		DATA_EFFECT_AMBIENCE_ID = (EntityDataAccessor<Boolean>) dataEffectAmbienceIdField.get(null);
 
-			UPDATE_EFFECT_PARTICLES = nmsEntityClass.getDeclaredMethod("updateSynchronizedMobEffectParticles");
-			UPDATE_EFFECT_PARTICLES.setAccessible(true);
-		} catch (Exception e) {
-			helper.error("Encountered an error while creating the volatile code handler for " + Bukkit.getMinecraftVersion());
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
-		}
+		UPDATE_EFFECT_PARTICLES = nmsEntityClass.getDeclaredMethod("updateSynchronizedMobEffectParticles");
+		UPDATE_EFFECT_PARTICLES.setAccessible(true);
 	}
 
 	@Override
 	public void addPotionGraphicalEffect(LivingEntity entity, int color, long duration) {
-		if (DATA_EFFECT_PARTICLES == null || DATA_EFFECT_AMBIENCE_ID == null || UPDATE_EFFECT_PARTICLES == null) return;
-
 		var nmsEntity = (((CraftLivingEntity) entity)).getHandle();
 		SynchedEntityData entityData = nmsEntity.getEntityData();
 
