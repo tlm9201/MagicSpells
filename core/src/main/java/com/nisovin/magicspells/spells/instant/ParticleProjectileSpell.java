@@ -62,8 +62,6 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	private final ConfigData<Integer> tickSpellLimit;
 	private final ConfigData<Integer> intermediateHitboxes;
 	private final ConfigData<Integer> maxEntitiesHit;
-	private final ConfigData<Integer> maxHeightCheck;
-	private final ConfigData<Integer> startHeightCheck;
 	private final ConfigData<Float> hitRadius;
 	private final ConfigData<Float> verticalHitRadius;
 	private final ConfigData<Float> groundHitRadius;
@@ -73,6 +71,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 	private final ConfigData<Double> maxDuration;
 	private final ConfigData<Double> maxDistance;
+	private final ConfigData<Double> maxHeightCheck;
+	private final ConfigData<Double> startHeightCheck;
 
 	private final ConfigData<Boolean> hugSurface;
 	private final ConfigData<Float> heightFromSurface;
@@ -159,8 +159,6 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 		tickSpellLimit = getConfigDataInt("tick-spell-limit", 0);
 		intermediateHitboxes = getConfigDataInt("intermediate-hitboxes", 0);
 		maxEntitiesHit = getConfigDataInt("max-entities-hit", 0);
-		maxHeightCheck = getConfigDataInt("max-height-check", 10);
-		startHeightCheck = getConfigDataInt("start-height-check", 10);
 		hitRadius = getConfigDataFloat("hit-radius", 1.5F);
 		verticalHitRadius = getConfigDataFloat("vertical-hit-radius", hitRadius);
 		groundHitRadius = getConfigDataFloat("ground-hit-radius", 0);
@@ -190,6 +188,8 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 
 		hugSurface = getConfigDataBoolean("hug-surface", false);
 		heightFromSurface = getConfigDataFloat("height-from-surface", 0.6F);
+		maxHeightCheck = getConfigDataDouble("max-height-check", 10);
+		startHeightCheck = getConfigDataDouble("start-height-check", 10);
 
 		controllable = getConfigDataBoolean("controllable", false);
 		checkPlugins = getConfigDataBoolean("check-plugins", true);
