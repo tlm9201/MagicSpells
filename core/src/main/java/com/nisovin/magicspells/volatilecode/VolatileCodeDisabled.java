@@ -1,14 +1,10 @@
 package com.nisovin.magicspells.volatilecode;
 
+import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-
-import org.jetbrains.annotations.NotNull;
 
 import net.kyori.adventure.text.Component;
 
@@ -51,13 +47,10 @@ public class VolatileCodeDisabled extends VolatileCodeHandle {
 	}
 
 	@Override
-	public void playHurtAnimation(LivingEntity entity, float yaw) {
-		entity.playHurtAnimation(yaw);
-	}
-
-	@Override
-	public Recipe createSmithingRecipe(@NotNull NamespacedKey namespacedKey, @NotNull ItemStack result, @NotNull RecipeChoice template, @NotNull RecipeChoice base, @NotNull RecipeChoice addition, boolean copyNbt) {
-		return null;
+	public void playHurtSound(LivingEntity entity) {
+		Sound sound = entity.getHurtSound();
+		if (sound == null) return;
+		entity.getWorld().playSound(entity.getLocation(), sound, 1, 1);
 	}
 
 	@Override

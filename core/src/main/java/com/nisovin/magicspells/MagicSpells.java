@@ -298,7 +298,7 @@ public class MagicSpells extends JavaPlugin {
 		}
 
 		// Construct volatile handler
-		volatileCodeHandle = ManagerVolatile.INSTANCE.constructVolatileCodeHandler();
+		volatileCodeHandle = ManagerVolatile.constructVolatileCodeHandler();
 
 		String path = "general.";
 		String manaPath = "mana.";
