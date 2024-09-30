@@ -1,18 +1,21 @@
 package com.nisovin.magicspells.util.trackers;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.concurrent.ThreadLocalRandom;
+
+import it.unimi.dsi.fastutil.doubles.DoubleArrays;
+import it.unimi.dsi.fastutil.doubles.DoubleArraySet;
 
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.entity.ArmorStand;
-import org.bukkit.FluidCollisionMode;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.RayTraceResult;
 
@@ -569,19 +572,63 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		}
 	}
 
+	@SuppressWarnings("UnstableApiUsage")
 	private boolean checkGround(double maxHeight) {
-		RayTraceResult result = currentLocation.getWorld().rayTraceBlocks(
-			currentLocation, new Vector(0, -1, 0), maxHeight, fluidCollisionMode, ignorePassableBlocks,
-			block -> {
-				Material type = block.getType();
-				return !disallowedGroundMaterials.contains(type) && (groundMaterials.isEmpty() || groundMaterials.contains(type));
-			}
-		);
+		final double tolerance = 0.015625;
 
-		if (result != null) {
-			currentLocation.setY(result.getHitPosition().getY());
-			return true;
+		Predicate<Block> canCollide = block -> {
+			Material type = block.getType();
+			return !disallowedGroundMaterials.contains(type) && (groundMaterials.isEmpty() || groundMaterials.contains(type));
+		};
+
+		Location offsetLocation = currentLocation.clone().add(0, tolerance, 0);
+		World world = currentLocation.getWorld();
+
+		BoundingBox box = BoundingBox.of(offsetLocation, 0, 0, 0);
+		if (!Util.hasCollisionsIn(world, box, ignorePassableBlocks, fluidCollisionMode, canCollide)) {
+			RayTraceResult result = world.rayTraceBlocks(
+				currentLocation, new Vector(0, -1, 0), maxHeight + heightFromSurface + tolerance, fluidCollisionMode, ignorePassableBlocks, canCollide
+			);
+
+			if (result != null) {
+				currentLocation.setY(result.getHitPosition().getY());
+				return true;
+			}
+
+			return false;
 		}
+
+		double x = currentLocation.getX(), y = currentLocation.getY(), z = currentLocation.getZ();
+		BoundingBox collisionBox = new BoundingBox(x, y, z, x, y + maxHeight - heightFromSurface + tolerance, z);
+
+		List<BoundingBox> boxes = Util.getCollidingBoxes(world, collisionBox, ignorePassableBlocks, fluidCollisionMode, canCollide);
+
+		DoubleArraySet stepHeights = new DoubleArraySet();
+		for (BoundingBox b : boxes) {
+			double maxY = b.getMaxY();
+			if (maxY - y + heightFromSurface - tolerance <= maxHeight) stepHeights.add(maxY);
+		}
+
+		double[] heights = stepHeights.toDoubleArray();
+		DoubleArrays.unstableSort(heights);
+
+		Vector vector = currentLocation.toVector();
+		for (double height : heights) {
+			vector.setY(height + tolerance);
+
+			if (!collides(vector, boxes)) {
+				currentLocation.setY(height);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean collides(Vector vector, List<BoundingBox> boxes) {
+		for (BoundingBox box : boxes)
+			if (box.contains(vector))
+				return true;
 
 		return false;
 	}
