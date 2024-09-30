@@ -908,4 +908,64 @@ public class Util {
 		return false;
 	}
 
+	public static List<BoundingBox> getCollidingBoxes(@NotNull World world, @NotNull BoundingBox box, boolean ignorePassableBlocks, @NotNull FluidCollisionMode fluidCollisionMode, @NotNull Predicate<Block> predicate) {
+		List<BoundingBox> collidingBoxes = new ArrayList<>();
+
+		int minX = (int) Math.floor(box.getMinX() - 1.0E-7D) - 1;
+		int minY = (int) Math.floor(box.getMinY() - 1.0E-7D) - 1;
+		int minZ = (int) Math.floor(box.getMinZ() - 1.0E-7D) - 1;
+		int maxX = (int) Math.floor(box.getMaxX() + 1.0E-7D) + 1;
+		int maxY = (int) Math.floor(box.getMaxY() + 1.0E-7D) + 1;
+		int maxZ = (int) Math.floor(box.getMaxZ() + 1.0E-7D) + 1;
+
+		BoundingBox fluidShape = null;
+		Location location = null;
+
+		for (int x = minX; x <= maxX; x++) {
+			for (int y = minY; y <= maxY; y++) {
+				for (int z = minZ; z <= maxZ; z++) {
+					if ((x == minX || x == maxX) && (y == minY || y == maxY) && (z == minZ || z == maxZ))
+						continue;
+
+					Block block = world.getBlockAt(x, y, z);
+
+					Material type = block.getType();
+					if (type.isAir() || !predicate.test(block)) continue;
+
+					VoxelShape shape = block.getCollisionShape();
+
+					Collection<BoundingBox> boxes = shape.getBoundingBoxes();
+					if (!boxes.isEmpty()) {
+						for (BoundingBox boundingBox : boxes) {
+							boundingBox.shift(x, y, z);
+							if (boundingBox.overlaps(box)) collidingBoxes.add(boundingBox);
+						}
+					} else if (!ignorePassableBlocks) {
+						BoundingBox boundingBox = block.getBoundingBox();
+						if (boundingBox.overlaps(box)) collidingBoxes.add(boundingBox);
+					}
+
+					if (fluidCollisionMode == FluidCollisionMode.NEVER) continue;
+
+					FluidData data = world.getFluidData(x, y, z);
+					if (data.getFluidType() == Fluid.EMPTY || !data.isSource() && fluidCollisionMode == FluidCollisionMode.SOURCE_ONLY)
+						continue;
+
+					if (location != null) location.set(x, y, z);
+					else {
+						location = new Location(world, x, y, z);
+						fluidShape = new BoundingBox();
+					}
+
+					float height = data.computeHeight(location);
+					fluidShape.resize(x, y, z, x + 1, y + height, z + 1);
+
+					if (fluidShape.overlaps(box)) collidingBoxes.add(fluidShape);
+				}
+			}
+		}
+
+		return collidingBoxes;
+	}
+
 }
