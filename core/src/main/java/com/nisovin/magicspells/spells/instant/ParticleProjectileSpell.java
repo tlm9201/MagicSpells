@@ -246,8 +246,7 @@ public class ParticleProjectileSpell extends InstantSpell implements TargetedLoc
 	public void initialize() {
 		super.initialize();
 
-		String prefix = "ParticleProjectileSpell '" + internalName + "' ";
-		String subSpellError = prefix + " has an invalid '%s' defined!";
+		String subSpellError = "ParticleProjectileSpell '" + internalName + "' has an invalid '%s' defined!";
 
 		Subspell defaultSpell = new Subspell(defaultSpellName);
 		if (!defaultSpell.process() && !defaultSpellName.isEmpty()) MagicSpells.error(subSpellError.formatted("spell"));
