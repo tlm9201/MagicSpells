@@ -269,18 +269,15 @@ public class MagicCommand extends BaseCommand {
 		if (!MagicSpells.isLoaded()) return;
 		if (noPermission(issuer.getIssuer(), Perm.COMMAND_TASKINFO)) return;
 
-		List<BukkitTask> tasks = Bukkit.getScheduler().getPendingTasks();
 		List<BukkitTask> msTasks = new ArrayList<>();
-		for (BukkitTask task : tasks) {
+		for (BukkitTask task : Bukkit.getScheduler().getPendingTasks()) {
 			if (task == null) continue;
 			if (!task.getOwner().equals(MagicSpells.getInstance())) continue;
 			msTasks.add(task);
 		}
 
-		issuer.sendMessage(MagicSpells.getTextColor() + "EffectLib effects - " + MagicSpells.getEffectManager().getEffects().size());
-		issuer.sendMessage(MagicSpells.getTextColor() + "MagicSpells: \n" +
-				MagicSpells.getTextColor() + " * All tasks - " + msTasks.size() + "\n" +
-				MagicSpells.getTextColor() + " * Non effectlib tasks - " + (msTasks.size() - MagicSpells.getEffectManager().getEffects().size()));
+		issuer.sendMessage(MagicSpells.getTextColor() + "EffectLib effect instances - " + MagicSpells.getEffectManager().getEffects().size());
+		issuer.sendMessage(MagicSpells.getTextColor() + "MagicSpells tasks - " + msTasks.size());
 	}
 
 	@Subcommand("resetcd")
