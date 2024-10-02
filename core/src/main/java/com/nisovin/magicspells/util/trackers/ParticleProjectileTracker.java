@@ -17,7 +17,6 @@ import org.bukkit.util.EulerAngle;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.util.RayTraceResult;
 
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
@@ -226,7 +225,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		if (hugSurface) {
 			currentLocation.setPitch(0);
 
-			if (!checkGround(startHeightCheck)) {
+			if (!checkGround(true)) {
 				stop();
 				return;
 			}
@@ -320,7 +319,7 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		}
 
 		if (hugSurface) {
-			if (!checkGround(maxHeightCheck)) {
+			if (!checkGround(false)) {
 				stop();
 				return;
 			}
@@ -572,62 +571,52 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 		}
 	}
 
-	@SuppressWarnings("UnstableApiUsage")
-	private boolean checkGround(double maxHeight) {
-		final double tolerance = 0.015625;
+	private boolean checkGround(boolean start) {
+		double heightOffset = start ? 0 : heightFromSurface;
+		double maxHeight = start ? startHeightCheck : maxHeightCheck;
+		double tolerance = 1e-7;
 
 		Predicate<Block> canCollide = block -> {
 			Material type = block.getType();
 			return !disallowedGroundMaterials.contains(type) && (groundMaterials.isEmpty() || groundMaterials.contains(type));
 		};
 
-		Location offsetLocation = currentLocation.clone().add(0, tolerance, 0);
-		World world = currentLocation.getWorld();
-
-		BoundingBox box = BoundingBox.of(offsetLocation, 0, 0, 0);
-		if (!Util.hasCollisionsIn(world, box, ignorePassableBlocks, fluidCollisionMode, canCollide)) {
-			RayTraceResult result = world.rayTraceBlocks(
-				currentLocation, new Vector(0, -1, 0), maxHeight + heightFromSurface + tolerance, fluidCollisionMode, ignorePassableBlocks, canCollide
-			);
-
-			if (result != null) {
-				currentLocation.setY(result.getHitPosition().getY());
-				return true;
-			}
-
-			return false;
-		}
-
 		double x = currentLocation.getX(), y = currentLocation.getY(), z = currentLocation.getZ();
-		BoundingBox collisionBox = new BoundingBox(x, y, z, x, y + maxHeight - heightFromSurface + tolerance, z);
+		BoundingBox collisionBox = new BoundingBox(
+			x, y - maxHeight - tolerance - heightOffset, z,
+			x, y + maxHeight + tolerance - heightOffset, z
+		);
 
-		List<BoundingBox> boxes = Util.getCollidingBoxes(world, collisionBox, ignorePassableBlocks, fluidCollisionMode, canCollide);
+		List<BoundingBox> boxes = Util.getCollidingBoxes(currentLocation.getWorld(), collisionBox, ignorePassableBlocks, fluidCollisionMode, canCollide);
 
 		DoubleArraySet stepHeights = new DoubleArraySet();
 		for (BoundingBox b : boxes) {
 			double maxY = b.getMaxY();
-			if (maxY - y + heightFromSurface - tolerance <= maxHeight) stepHeights.add(maxY);
+			if (Math.abs(y - heightOffset - maxY) - tolerance <= maxHeight)
+				stepHeights.add(maxY);
+
+			stepHeights.remove(b.getMinY());
 		}
 
 		double[] heights = stepHeights.toDoubleArray();
-		DoubleArrays.unstableSort(heights);
+		double bound = start ? Math.ceil(y) : y - heightOffset;
+		DoubleArrays.unstableSort(heights, (first, second) -> {
+			int compare = Double.compare(first, second);
+			return first <= bound && second <= bound ? -compare : compare;
+		});
 
-		Vector vector = currentLocation.toVector();
 		for (double height : heights) {
-			vector.setY(height + tolerance);
-
-			if (!collides(vector, boxes)) {
-				currentLocation.setY(height);
-				return true;
-			}
+			if (collides(x, height, z, boxes)) continue;
+			currentLocation.setY(height);
+			return true;
 		}
 
 		return false;
 	}
 
-	private boolean collides(Vector vector, List<BoundingBox> boxes) {
+	private boolean collides(double x, double y, double z, List<BoundingBox> boxes) {
 		for (BoundingBox box : boxes)
-			if (box.contains(vector))
+			if (box.contains(x, y, z))
 				return true;
 
 		return false;
