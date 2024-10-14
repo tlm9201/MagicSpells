@@ -4,6 +4,13 @@ import java.util.*;
 
 import org.bukkit.entity.*;
 import org.bukkit.GameMode;
+import org.bukkit.Registry;
+import org.bukkit.NamespacedKey;
+
+import io.papermc.paper.registry.tag.Tag;
+import io.papermc.paper.registry.tag.TagKey;
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.RegistryAccess;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
@@ -90,6 +97,7 @@ public class ValidTargetList {
 		}
 	}
 	
+	@SuppressWarnings("UnstableApiUsage")
 	private void init(Spell spell, List<String> list) {
 		for (String s : list) {
 			s = s.trim();
@@ -119,8 +127,27 @@ public class ValidTargetList {
 					} catch (IllegalArgumentException ignored) {}
 
 					EntityType type = MobUtil.getEntityType(s);
-					if (type != null) types.add(type);
-					else MagicSpells.error("Spell '" + spell.getInternalName() + "' has an invalid target type defined: " + s);
+					if (type != null) {
+						types.add(type);
+						continue;
+					}
+
+					if (s.startsWith("#")) {
+						NamespacedKey key = NamespacedKey.fromString(s.substring(1).toLowerCase());
+
+						if (key != null) {
+							TagKey<EntityType> tagKey = TagKey.create(RegistryKey.ENTITY_TYPE, key);
+
+							if (Registry.ENTITY_TYPE.hasTag(tagKey)) {
+								Tag<EntityType> tag = Registry.ENTITY_TYPE.getTag(tagKey);
+								types.addAll(tag.resolve(Registry.ENTITY_TYPE));
+
+								continue;
+							}
+						}
+					}
+
+					MagicSpells.error("Spell '" + spell.getInternalName() + "' has an invalid target type defined: " + s);
 				}
 			}
 
