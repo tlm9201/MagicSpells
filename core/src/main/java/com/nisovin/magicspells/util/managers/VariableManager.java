@@ -7,6 +7,7 @@ import java.io.BufferedWriter;
 import java.nio.charset.StandardCharsets;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Registry;
 import org.bukkit.entity.Player;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
@@ -165,7 +166,7 @@ public class VariableManager {
 		addMetaVariableType("unsaturated_regen_rate", new UnsaturatedRegenRateVariable());
 
 		// meta variable attribute types
-		for (Attribute attribute : Attribute.values()) {
+		for (Attribute attribute : Registry.ATTRIBUTE) {
 			String name = attribute.name().toLowerCase();
 			addMetaVariableType("attribute_" + name, new AttributeVariable(attribute));
 			addMetaVariableType("attribute_" + name + "_base", new AttributeBaseValueVariable(attribute));
