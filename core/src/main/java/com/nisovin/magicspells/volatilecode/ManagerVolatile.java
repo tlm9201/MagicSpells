@@ -1,11 +1,17 @@
 package com.nisovin.magicspells.volatilecode;
 
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.volatilecode.latest.VolatileCodeLatest;
 
 public class ManagerVolatile {
+
+	private static final Map<String, String> COMPATIBLE_VERSIONS = Map.of(
+		"1.21.1", "1.21"
+	);
 
 	private static final VolatileCodeHelper helper = new VolatileCodeHelper() {
 
@@ -25,7 +31,8 @@ public class ManagerVolatile {
 		VolatileCodeHandle handle;
 		try {
 			String mcVersion = Bukkit.getMinecraftVersion();
-			String version = "v" + mcVersion.replace(".", "_");
+			String convertedVersion = COMPATIBLE_VERSIONS.getOrDefault(mcVersion, mcVersion);
+			String version = "v" + convertedVersion.replace(".", "_");
 			Class<?> volatileCode = Class.forName("com.nisovin.magicspells.volatilecode." + version + ".VolatileCode_" + version);
 
 			handle = (VolatileCodeHandle) volatileCode.getConstructor(VolatileCodeHelper.class).newInstance(helper);
