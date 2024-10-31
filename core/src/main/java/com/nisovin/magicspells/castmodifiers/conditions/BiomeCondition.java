@@ -1,35 +1,43 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import java.util.EnumSet;
-
-import org.bukkit.Location;
-import org.bukkit.block.Biome;
-import org.bukkit.entity.LivingEntity;
-
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Set;
+import java.util.HashSet;
+
+import org.bukkit.Location;
+import org.bukkit.Registry;
+import org.bukkit.block.Biome;
+import org.bukkit.NamespacedKey;
+import org.bukkit.entity.LivingEntity;
+
+import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.RegistryAccess;
+
 import com.nisovin.magicspells.util.Name;
-import com.nisovin.magicspells.util.Util;
-import com.nisovin.magicspells.handlers.DebugHandler;
 import com.nisovin.magicspells.castmodifiers.Condition;
 
 @Name("biome")
 public class BiomeCondition extends Condition {
-	
-	private final EnumSet<Biome> biomes = EnumSet.noneOf(Biome.class);
+
+	private final Set<Biome> biomes = new HashSet<>();
 
 	@Override
 	public boolean initialize(@NotNull String var) {
-		String[] s = var.split(",");
+		if (var.isEmpty()) return false;
 
-		for (String value : s) {
-			Biome biome = Util.enumValueSafe(Biome.class, value.toUpperCase());
-			if (biome == null) {
-				DebugHandler.debugBadEnumValue(Biome.class, value.toUpperCase());
-				continue;
-			}
+		Registry<Biome> registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME);
+
+		for (String value : var.split(",")) {
+			NamespacedKey key = NamespacedKey.fromString(value);
+			if (key == null) return false;
+
+			Biome biome = registry.get(key);
+			if (biome == null) return false;
+
 			biomes.add(biome);
 		}
+
 		return true;
 	}
 
