@@ -505,7 +505,7 @@ earth-nova:
 
 flamewalk:
     spell-class: ".buff.FlamewalkSpell"
-    spell-icon: fire
+    spell-icon: flint_and_steel
     description: Burn your enemies around you as you walk.
     cast-item: book
     cooldown: 30
@@ -657,7 +657,7 @@ gate:
 
 geyser:
     spell-class: ".targeted.GeyserSpell"
-    spell-icon: water
+    spell-icon: water_bucket
     description: Create a geyser of water at your enemy's feet.
     cast-item: blaze_rod
     range: 20
