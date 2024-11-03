@@ -1,4 +1,4 @@
-package com.nisovin.magicspells.volatilecode.latest;
+package com.nisovin.magicspells.volatilecode.v1_21;
 
 import java.util.*;
 import java.lang.reflect.Field;
@@ -29,9 +29,9 @@ import io.papermc.paper.advancement.AdvancementDisplay;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHandle;
 import com.nisovin.magicspells.volatilecode.VolatileCodeHelper;
 
-import net.minecraft.util.ARGB;
 import net.minecraft.core.BlockPos;
 import net.minecraft.advancements.*;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.network.protocol.game.*;
@@ -50,7 +50,7 @@ import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.GameTestAddMarkerDebugPayload;
 import net.minecraft.network.protocol.common.custom.GameTestClearMarkersDebugPayload;
 
-public class VolatileCodeLatest extends VolatileCodeHandle {
+public class VolatileCode_v1_21 extends VolatileCodeHandle {
 
 	private final ResourceLocation TOAST_KEY = ResourceLocation.fromNamespaceAndPath("magicspells", "toast_effect");
 
@@ -59,7 +59,7 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 	private final Method UPDATE_EFFECT_PARTICLES;
 
 	@SuppressWarnings("unchecked")
-	public VolatileCodeLatest(VolatileCodeHelper helper) throws Exception {
+	public VolatileCode_v1_21(VolatileCodeHelper helper) throws Exception {
 		super(helper);
 
 		Class<?> nmsEntityClass = net.minecraft.world.entity.LivingEntity.class;
@@ -82,8 +82,8 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 		SynchedEntityData entityData = nmsEntity.getEntityData();
 
 		entityData.set(
-				DATA_EFFECT_PARTICLES,
-				List.of(ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, ARGB.opaque(color)))
+			DATA_EFFECT_PARTICLES,
+			List.of(ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, FastColor.ARGB32.color(255, color)))
 		);
 
 		entityData.set(DATA_EFFECT_AMBIENCE_ID, false);
@@ -161,12 +161,12 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 
 		if (nmsEntity.isSilent()) return;
 		nmsEntity.level().playSound(
-				null,
-				nmsEntity.blockPosition(),
-				nmsEntity.getHurtSound0(nmsEntity.damageSources().generic()),
-				nmsEntity.getSoundSource(),
-				nmsEntity.getSoundVolume(),
-				nmsEntity.getVoicePitch()
+			null,
+			nmsEntity.blockPosition(),
+			nmsEntity.getHurtSound0(nmsEntity.damageSources().generic()),
+			nmsEntity.getSoundSource(),
+			nmsEntity.getSoundVolume(),
+			nmsEntity.getVoicePitch()
 		);
 	}
 
@@ -183,25 +183,25 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 		}
 
 		AdvancementHolder advancement = Advancement.Builder.advancement()
-				.display(iconNms, textNms, description, null, frame, true, false, true)
-				.addCriterion("impossible", new Criterion<>(new ImpossibleTrigger(), new ImpossibleTrigger.TriggerInstance()))
-				.build(TOAST_KEY);
+			.display(iconNms, textNms, description, null, frame, true, false, true)
+			.addCriterion("impossible", new Criterion<>(new ImpossibleTrigger(), new ImpossibleTrigger.TriggerInstance()))
+			.build(TOAST_KEY);
 		AdvancementProgress progress = new AdvancementProgress();
 		progress.update(new AdvancementRequirements(List.of(List.of("impossible"))));
 		progress.grantProgress("impossible");
 
 		ServerPlayer player = ((CraftPlayer) receiver).getHandle();
 		player.connection.send(new ClientboundUpdateAdvancementsPacket(
-				false,
-				Collections.singleton(advancement),
-				Collections.emptySet(),
-				Collections.singletonMap(TOAST_KEY, progress)
+			false,
+			Collections.singleton(advancement),
+			Collections.emptySet(),
+			Collections.singletonMap(TOAST_KEY, progress)
 		));
 		player.connection.send(new ClientboundUpdateAdvancementsPacket(
-				false,
-				Collections.emptySet(),
-				Collections.singleton(TOAST_KEY),
-				Collections.emptyMap()
+			false,
+			Collections.emptySet(),
+			Collections.singleton(TOAST_KEY),
+			Collections.emptyMap()
 		));
 	}
 
@@ -209,7 +209,7 @@ public class VolatileCodeLatest extends VolatileCodeHandle {
 	public void sendStatusUpdate(Player player, double health, int food, float saturation) {
 		double displayedHealth = (float) health;
 		if (player.isHealthScaled()) {
-			displayedHealth = player.getHealth() / player.getAttribute(Attribute.MAX_HEALTH).getValue() * player.getHealthScale();
+			displayedHealth = player.getHealth() / player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * player.getHealthScale();
 		}
 
 		((CraftPlayer) player).getHandle().connection.send(new ClientboundSetHealthPacket((float) displayedHealth, food, saturation));
