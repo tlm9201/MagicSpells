@@ -170,6 +170,7 @@ public class MagicSpells extends JavaPlugin {
 	private boolean allowCastWithFist;
 	private boolean castWithLeftClick;
 	private boolean castWithRightClick;
+	private boolean respectItemCooldowns;
 	private boolean reverseBowCycleButtons;
 	private boolean bowCycleSpellsSneaking;
 	private boolean castBoundBowSpellsFromOffhand;
@@ -342,6 +343,7 @@ public class MagicSpells extends JavaPlugin {
 		allowCastWithFist = config.getBoolean(path + "allow-cast-with-fist", false);
 		castWithLeftClick = config.getBoolean(path + "cast-with-left-click", true);
 		castWithRightClick = config.getBoolean(path + "cast-with-right-click", false);
+		respectItemCooldowns = config.getBoolean(path + "respect-item-cooldowns", false);
 		cycleSpellsOnOffhandAction = config.getBoolean(path + "cycle-spells-with-offhand-action", false);
 
 		ignoreDefaultBindings = config.getBoolean(path + "ignore-default-bindings", false);
@@ -1243,6 +1245,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static boolean canCastWithRightClick() {
 		return plugin.castWithRightClick;
+	}
+
+	public static boolean isRespectingItemCooldowns() {
+		return plugin.respectItemCooldowns;
 	}
 
 	public static boolean profilingEnabled() {

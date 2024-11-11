@@ -49,8 +49,9 @@ public class RightClickListener implements Listener {
 		if (spell == null) return;
 
 		Player player = event.getPlayer();
-		Spellbook spellbook = MagicSpells.getSpellbook(player);
+		if (MagicSpells.isRespectingItemCooldowns() && player.hasCooldown(item)) return;
 
+		Spellbook spellbook = MagicSpells.getSpellbook(player);
 		if (!spellbook.hasSpell(spell) || !spellbook.canCast(spell)) return;
 
 		if (!spell.isIgnoringGlobalCooldown()) {
