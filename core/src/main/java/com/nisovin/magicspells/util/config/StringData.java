@@ -27,7 +27,7 @@ public class StringData implements ConfigData<String> {
 		%(?:\
 		((var|castervar|targetvar):(\\w+)(?::(\\d+))?)|\
 		(playervar:(\\w{3,16}):(\\w+)(?::(\\d+))?)|\
-		(arg:(\\d+):(\\w+))|\
+		(arg:(\\d+):([^%]+))|\
 		((papi|casterpapi|targetpapi):([^%]+))|\
 		(playerpapi:(\\w{3,16}):([^%]+))\
 		)%|\

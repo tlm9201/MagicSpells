@@ -1637,7 +1637,7 @@ public class MagicSpells extends JavaPlugin {
 		return message;
 	}
 
-	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("%arg:(\\d+):(\\w+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("%arg:(\\d+):([^%]+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doArgumentSubstitution(String string, String[] args) {
 		if (string == null || string.isEmpty()) return string;
 
