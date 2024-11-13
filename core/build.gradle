@@ -10,9 +10,8 @@ dependencies {
 
     shadow(project(path: ":nms:shared", configuration: "apiElements"))
     shadow(project(path: ":nms:latest")) { transitive = false }
-    shadow(project(path: ":nms:v1_21")) { transitive = false }
 
-    implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.1.0") { transitive = false }
+    implementation(group: "com.comphenix.protocol", name: "ProtocolLib", version: "5.3.0") { transitive = false }
     implementation(group: "com.github.libraryaddict", name: "LibsDisguises", version: "v10.0.25") { transitive = false }
     implementation(group: "com.github.MilkBowl", name: "VaultAPI", version: "master-SNAPSHOT") { transitive = false }
     implementation(group: "me.clip", name: "placeholderapi", version: "2.11.6") { transitive = false }

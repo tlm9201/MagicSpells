@@ -2,6 +2,8 @@ package com.nisovin.magicspells.spells.targeted;
 
 import java.util.*;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Mob;
 import org.bukkit.NamespacedKey;
@@ -23,7 +25,7 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 public class MobGoalEditSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final List<GoalData> add;
-	private final List<GoalKey<Mob>> remove;
+	private final List<GoalKey<@NotNull Mob>> remove;
 	private final EnumSet<GoalType> removeTypes;
 	private final List<GoalKey<?>> removeVanilla;
 
@@ -115,14 +117,14 @@ public class MobGoalEditSpell extends TargetedSpell implements TargetedEntitySpe
 			Bukkit.getMobGoals().removeAllGoals(mob, type);
 		}
 
-		for (GoalKey<Mob> key : remove) {
+		for (GoalKey<@NotNull Mob> key : remove) {
 			Bukkit.getMobGoals().removeGoal(mob, key);
 		}
 
 		for (GoalKey<?> key : removeVanilla) {
 			// We have to loop through because casting to parameter types is tricky.
 			// It loops through on each MobGoals#removeGoal call anyway.
-			for (Goal<Mob> goal : Bukkit.getMobGoals().getAllGoals(mob)) {
+			for (Goal<@NotNull Mob> goal : Bukkit.getMobGoals().getAllGoals(mob)) {
 				if (!goal.getKey().equals(key)) continue;
 				Bukkit.getMobGoals().removeGoal(mob, goal);
 			}

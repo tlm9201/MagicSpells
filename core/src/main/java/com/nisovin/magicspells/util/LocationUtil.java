@@ -126,46 +126,26 @@ public class LocationUtil {
 	
 	// This should redirect to other internal methods depending on what the type of object is
 	public static Location getLocation(Object object) {
-		if (object == null) return null;
-		
-		// Handle as Location
-		if (object instanceof Location) return (Location) object;
-		
-		// Handle as Entity
-		if (object instanceof Entity) return ((Entity) object).getLocation();
-		
-		// Handle as Block
-		if (object instanceof Block) return ((Block) object).getLocation();
-		
-		// Handle as BlockCommandSender
-		if (object instanceof BlockCommandSender) return getLocation(((BlockCommandSender) object).getBlock());
-		
-		return null;
+		return switch (object) {
+			case Location location -> location;
+			case Entity entity -> entity.getLocation();
+			case Block block -> block.getLocation();
+			case BlockCommandSender blockCommandSender -> getLocation(blockCommandSender.getBlock());
+			case null, default -> null;
+		};
 	}
 	
 	// This should redirect to other internal methods depending on what the type of object is
 	public static World getWorld(Object object) {
-		if (object == null) return null;
-		
-		// Handle as World
-		if (object instanceof World) return (World) object;
-		
-		// Handle as Location
-		if (object instanceof Location) return ((Location) object).getWorld();
-		
-		// Handle as String
-		if (object instanceof String) return Bukkit.getWorld((String) object);
-		
-		// Handle as Entity
-		if (object instanceof Entity) return ((Entity) object).getWorld();
-		
-		// Handle as Block
-		if (object instanceof Block) return ((Block) object).getWorld();
-		
-		// Handle as BlockCommandSender
-		if (object instanceof BlockCommandSender) return getWorld(((BlockCommandSender) object).getBlock());
-		
-		return null;
+		return switch (object) {
+			case World world -> world;
+			case Location location -> location.getWorld();
+			case String s -> Bukkit.getWorld(s);
+			case Entity entity -> entity.getWorld();
+			case Block block -> block.getWorld();
+			case BlockCommandSender blockCommandSender -> getWorld(blockCommandSender.getBlock());
+			case null, default -> null;
+		};
 	}
 
 	// setDirection function with fast math

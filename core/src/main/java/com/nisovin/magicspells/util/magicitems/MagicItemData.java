@@ -416,7 +416,7 @@ public class MagicItemData {
 
 			JsonArray patternsArray = new JsonArray(patterns.size());
 			for (Pattern pattern : patterns) {
-				String patternString = pattern.getPattern().name().toLowerCase() + " " + pattern.getColor().name().toLowerCase();
+				String patternString = pattern.getPattern().key().asMinimalString().toLowerCase() + " " + pattern.getColor().name().toLowerCase();
 				patternsArray.add(patternString);
 			}
 
