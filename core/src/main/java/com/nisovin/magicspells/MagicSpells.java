@@ -250,7 +250,7 @@ public class MagicSpells extends JavaPlugin {
 			if (spells == null) return map;
 
 			for (Spell spell : spells.values()) {
-				if (!spell.getName().startsWith("com.nisovin.magicspells.spells")) continue;
+				if (!spell.getClass().getName().startsWith("com.nisovin.magicspells.spells")) continue;
 				if (!(spell instanceof PassiveSpell passiveSpell)) continue;
 
 				for (PassiveListener listener : passiveSpell.getPassiveListeners()) {
