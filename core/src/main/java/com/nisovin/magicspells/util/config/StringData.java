@@ -25,13 +25,13 @@ public class StringData implements ConfigData<String> {
 
 	private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("""
 		%(?:\
-		((var|castervar|targetvar):(\\w+)(?::(\\d+))?)|\
-		(playervar:([^:]+):(\\w+)(?::(\\d+))?)|\
-		(arg:(\\d+):([^%]+))|\
-		((papi|casterpapi|targetpapi):([^%]+))|\
-		(playerpapi:([^:]+):([^%]+))\
+		(?<var>(?<varOwner>var|castervar|targetvar):(?<varName>\\w+)(?::(?<varPrecision>\\d+))?)|\
+		(?<pVar>playervar:(?<pVarUser>[^:]+):(?<pVarName>\\w+)(?::(?<pVarPrecision>\\d+))?)|\
+		(?<arg>arg:(?<argValue>\\d+):(?<argDefault>[^%]+))|\
+		(?<papi>(?<papiOwner>papi|casterpapi|targetpapi):(?<papiValue>[^%]+))|\
+		(?<playerPapi>playerpapi:(?<playerPapiUser>[^:]+):(?<playerPapiValue>[^%]+))\
 		)%|\
-		(%[art])""", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+		(?<entityName>%[art])""", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	private final List<ConfigData<String>> values;
 	private final List<String> fragments;
@@ -59,10 +59,10 @@ public class StringData implements ConfigData<String> {
 	}
 
 	private static ConfigData<String> createData(Matcher matcher) {
-		if (matcher.group(1) != null) {
-			String owner = matcher.group(2);
-			String variable = matcher.group(3);
-			String placesString = matcher.group(4);
+		if (matcher.group("var") != null) {
+			String owner = matcher.group("varOwner");
+			String variable = matcher.group("varName");
+			String placesString = matcher.group("varPrecision");
 
 			int places = -1;
 			if (placesString != null) {
@@ -80,10 +80,10 @@ public class StringData implements ConfigData<String> {
 			};
 		}
 
-		if (matcher.group(5) != null) {
-			String player = matcher.group(6);
-			String variable = matcher.group(7);
-			String placesString = matcher.group(8);
+		if (matcher.group("pVar") != null) {
+			String player = matcher.group("pVarUser");
+			String variable = matcher.group("pVarName");
+			String placesString = matcher.group("pVarPrecision");
 
 			int places = -1;
 			if (placesString != null) {
@@ -97,12 +97,12 @@ public class StringData implements ConfigData<String> {
 			return new PlayerVariableData(matcher.group(), variable, player, places);
 		}
 
-		if (matcher.group(9) != null) {
-			String def = matcher.group(11);
+		if (matcher.group("arg") != null) {
+			String def = matcher.group("argDefault");
 
 			int index;
 			try {
-				index = Integer.parseInt(matcher.group(10));
+				index = Integer.parseInt(matcher.group("argValue"));
 			} catch (NumberFormatException e) {
 				return null;
 			}
@@ -111,9 +111,9 @@ public class StringData implements ConfigData<String> {
 			return new ArgumentData(index - 1, def);
 		}
 
-		if (matcher.group(12) != null) {
-			String owner = matcher.group(13);
-			String papiPlaceholder = '%' + matcher.group(14) + '%';
+		if (matcher.group("papi") != null) {
+			String owner = matcher.group("papiOwner");
+			String papiPlaceholder = '%' + matcher.group("papiValue") + '%';
 
 			return switch (owner.toLowerCase()) {
 				case "casterpapi" -> new CasterPAPIData(matcher.group(), papiPlaceholder);
@@ -122,14 +122,14 @@ public class StringData implements ConfigData<String> {
 			};
 		}
 
-		if (matcher.group(15) != null) {
-			String player = matcher.group(16);
-			String papiPlaceholder = '%' + matcher.group(17) + '%';
+		if (matcher.group("playerPapi") != null) {
+			String player = matcher.group("playerPapiUser");
+			String papiPlaceholder = '%' + matcher.group("playerPapiValue") + '%';
 
 			return new PlayerPAPIData(matcher.group(), papiPlaceholder, player);
 		}
 
-		return switch (matcher.group(18)) {
+		return switch (matcher.group("entityName")) {
 			case "%r" -> new DefaultNameData();
 			case "%a" -> new CasterNameData();
 			case "%t" -> new TargetNameData();
