@@ -260,7 +260,7 @@ public class MagicSpells extends JavaPlugin {
 			}
 			return map;
 		}));
-		metrics.addCustomChart(new SimplePie("reload_time", () -> (lastReloadTime - lastReloadTime % 20) + " ms"));
+		metrics.addCustomChart(new SimplePie("reload_time", () -> "<" + (lastReloadTime - lastReloadTime % 500 + 500) + " ms"));
 	}
 
 	public void load() {
