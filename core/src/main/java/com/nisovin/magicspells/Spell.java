@@ -441,6 +441,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		tags = new HashSet<>(config.getStringList(internalKey + "tags", new ArrayList<>()));
 		tags.add("spell-class:" + getClass().getCanonicalName());
 		tags.add("spell-package:" + getClass().getPackage().getName());
+		if (beneficial) tags.add("magicspells:beneficial");
+		if (helperSpell) tags.add("magicspells:helper-spell");
 	}
 
 	public Set<String> getTags() {
