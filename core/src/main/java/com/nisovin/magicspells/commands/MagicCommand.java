@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.bukkit.*;
 import org.bukkit.entity.Mob;
 import org.bukkit.block.Block;
@@ -643,14 +645,14 @@ public class MagicCommand extends BaseCommand {
 			if (!(Bukkit.getEntity(uuid) instanceof Mob mob))
 				throw new ConditionFailedException("UUID did not match an entity of Mob type.");
 
-			Collection<Goal<Mob>> goals = Bukkit.getMobGoals().getAllGoals(mob);
+			Collection<Goal<@NotNull Mob>> goals = Bukkit.getMobGoals().getAllGoals(mob);
 			if (goals.isEmpty()) {
 				issuer.sendMessage(MagicSpells.getTextColor() + "Entity '" + uuid + "' has no mob goals.");
 				return;
 			}
 
 			issuer.sendMessage(MagicSpells.getTextColor() + "Mob goals of entity '" + uuid + "':");
-			for (Goal<Mob> goal : goals) {
+			for (Goal<@NotNull Mob> goal : goals) {
 				String entity = goal.getKey().getEntityClass().getSimpleName();
 				String key = goal.getKey().getNamespacedKey().toString();
 				issuer.sendMessage(MagicSpells.getTextColor() + "  - " + entity + ": " + key + " " + goal.getTypes());

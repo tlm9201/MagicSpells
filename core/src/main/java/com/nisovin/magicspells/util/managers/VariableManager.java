@@ -167,7 +167,7 @@ public class VariableManager {
 
 		// meta variable attribute types
 		for (Attribute attribute : Registry.ATTRIBUTE) {
-			String name = attribute.name().toLowerCase();
+			String name = attribute.key().asMinimalString().toLowerCase();
 			addMetaVariableType("attribute_" + name, new AttributeVariable(attribute));
 			addMetaVariableType("attribute_" + name + "_base", new AttributeBaseValueVariable(attribute));
 		}

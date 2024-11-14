@@ -20,7 +20,7 @@ import com.nisovin.magicspells.util.SpellData;
 /**
  * Annotate this class with {@link Name} which will hold the configuration name of the goal.
  */
-public abstract class CustomGoal implements Goal<Mob> {
+public abstract class CustomGoal implements Goal<@NotNull Mob> {
 
 	protected final Mob mob;
 	protected final SpellData data;
@@ -36,7 +36,7 @@ public abstract class CustomGoal implements Goal<Mob> {
 
 	@NotNull
 	@Override
-	public final GoalKey<Mob> getKey() {
+	public final GoalKey<@NotNull Mob> getKey() {
 		Name name = getClass().getAnnotation(Name.class);
 		if (name == null) throw new IllegalStateException("Missing 'Name' annotation on Goal class: " + getClass().getName());
 		return GoalKey.of(Mob.class, new NamespacedKey(MagicSpells.getInstance(), name.value()));

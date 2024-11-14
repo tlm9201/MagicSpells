@@ -10,7 +10,6 @@ import com.nisovin.magicspells.volatilecode.latest.VolatileCodeLatest;
 public class ManagerVolatile {
 
 	private static final Map<String, String> COMPATIBLE_VERSIONS = Map.of(
-		"1.21.1", "1.21"
 	);
 
 	private static final VolatileCodeHelper helper = new VolatileCodeHelper() {

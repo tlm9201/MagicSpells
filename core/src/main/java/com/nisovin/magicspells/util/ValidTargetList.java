@@ -7,10 +7,11 @@ import org.bukkit.GameMode;
 import org.bukkit.Registry;
 import org.bukkit.NamespacedKey;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.papermc.paper.registry.tag.Tag;
 import io.papermc.paper.registry.tag.TagKey;
 import io.papermc.paper.registry.RegistryKey;
-import io.papermc.paper.registry.RegistryAccess;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
@@ -139,7 +140,7 @@ public class ValidTargetList {
 							TagKey<EntityType> tagKey = TagKey.create(RegistryKey.ENTITY_TYPE, key);
 
 							if (Registry.ENTITY_TYPE.hasTag(tagKey)) {
-								Tag<EntityType> tag = Registry.ENTITY_TYPE.getTag(tagKey);
+								Tag<@NotNull EntityType> tag = Registry.ENTITY_TYPE.getTag(tagKey);
 								types.addAll(tag.resolve(Registry.ENTITY_TYPE));
 
 								continue;
@@ -335,7 +336,7 @@ public class ValidTargetList {
 		if (targetEntityTarget) return false;
 		return targetSelf;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "ValidTargetList:["
@@ -350,8 +351,10 @@ public class ValidTargetList {
 			+ ",targetCasterMount=" + targetCasterMount
 			+ ",targetCasterPassenger=" + targetCasterPassenger
 			+ ",targetEntityTarget=" + targetEntityTarget
-			+ ",types=" + types
 			+ ",targetNonLivingEntities=" + targetNonLivingEntities
+			+ ",targetMarkerArmorStands=" + targetMarkerArmorStands
+			+ ",types=" + types
+			+ ",gameModes=" + gameModes
 			+ ']';
 	}
 

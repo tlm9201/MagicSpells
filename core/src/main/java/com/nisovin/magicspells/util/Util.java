@@ -591,11 +591,11 @@ public class Util {
 	}
 
 	public static double getMaxHealth(LivingEntity entity) {
-		return entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+		return entity.getAttribute(Attribute.MAX_HEALTH).getValue();
 	}
 
 	public static void setMaxHealth(LivingEntity entity, double maxHealth) {
-		entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
+		entity.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHealth);
 	}
 
 	public static Vector makeFinite(Vector vector) {

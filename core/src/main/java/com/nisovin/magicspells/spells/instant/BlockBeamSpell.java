@@ -298,7 +298,7 @@ public class BlockBeamSpell extends InstantSpell implements TargetedLocationSpel
 				stand.getPersistentDataContainer().set(MS_BLOCK_BEAM, PersistentDataType.BOOLEAN, true);
 
 				if (hpFix) {
-					stand.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(health);
+					stand.getAttribute(Attribute.MAX_HEALTH).setBaseValue(health);
 					stand.setHealth(health);
 				}
 
