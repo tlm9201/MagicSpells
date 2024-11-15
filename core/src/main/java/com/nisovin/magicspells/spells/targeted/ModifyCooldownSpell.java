@@ -48,7 +48,7 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 		if (powerAffectsMultiplier.get(data)) mult /= data.power();
 
 		for (Spell spell : MagicSpells.spells()) {
-			if (!spell.onCooldown(data.target()) || !filter.check(spell)) continue;
+			if (!filter.check(spell)) continue;
 
 			float cd = spell.getCooldown(data.target()) - sec;
 			if (mult > 0) cd *= mult;
