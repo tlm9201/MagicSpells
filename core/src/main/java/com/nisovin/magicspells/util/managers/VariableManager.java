@@ -164,6 +164,7 @@ public class VariableManager {
 		addMetaVariableType("starvation_rate", new StarvationRateVariable());
 		addMetaVariableType("saturated_regen_rate", new SaturatedRegenRateVariable());
 		addMetaVariableType("unsaturated_regen_rate", new UnsaturatedRegenRateVariable());
+		addMetaVariableType("attack_cooldown", new AttackCooldownVariable());
 
 		// meta variable attribute types
 		for (Attribute attribute : Registry.ATTRIBUTE) {
