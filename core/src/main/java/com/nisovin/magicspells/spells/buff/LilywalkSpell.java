@@ -11,11 +11,11 @@ import java.util.Iterator;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventPriority;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -123,8 +123,8 @@ public class LilywalkSpell extends BuffSpell {
 		private void setToLily(Block block) {
 			if (!block.getType().isAir()) return;
 
-			BlockState state = block.getRelative(BlockFace.DOWN).getState();
-			if (state.getType() != Material.WATER || ((Levelled) state).getLevel() != 0) return;
+			BlockData data = block.getRelative(BlockFace.DOWN).getBlockData();
+			if (data.getMaterial() != Material.WATER || ((Levelled) data).getLevel() != 0) return;
 			block.setType(Material.LILY_PAD);
 			blocks.add(block);
 		}
