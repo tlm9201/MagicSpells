@@ -254,7 +254,7 @@ public class MagicSpells extends JavaPlugin {
 			if (spells == null) return map;
 
 			for (Spell spell : spells.values()) {
-				if (!spell.getName().startsWith("com.nisovin.magicspells.spells")) continue;
+				if (!spell.getClass().getName().startsWith("com.nisovin.magicspells.spells")) continue;
 				if (!(spell instanceof PassiveSpell passiveSpell)) continue;
 
 				for (PassiveListener listener : passiveSpell.getPassiveListeners()) {
@@ -264,7 +264,7 @@ public class MagicSpells extends JavaPlugin {
 			}
 			return map;
 		}));
-		metrics.addCustomChart(new SimplePie("reload_time", () -> (lastReloadTime - lastReloadTime % 20) + " ms"));
+		metrics.addCustomChart(new SimplePie("reload_time", () -> "<" + (lastReloadTime - lastReloadTime % 500 + 500) + " ms"));
 	}
 
 	public void load() {
@@ -1657,7 +1657,7 @@ public class MagicSpells extends JavaPlugin {
 		return message;
 	}
 
-	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("%arg:(\\d+):(\\w+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	private static final Pattern ARGUMENT_PATTERN = Pattern.compile("%arg:(\\d+):([^%]+)%", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 	public static String doArgumentSubstitution(String string, String[] args) {
 		if (string == null || string.isEmpty()) return string;
 
