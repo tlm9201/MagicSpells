@@ -7,10 +7,12 @@ import org.bukkit.entity.LivingEntity;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.nisovin.magicspells.Spellbook;
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.DependsOn;
 import com.nisovin.magicspells.spells.PassiveSpell;
+import com.nisovin.magicspells.util.ValidTargetList;
 
 /**
  * Annotations:
@@ -41,13 +43,20 @@ public abstract class PassiveListener implements Listener {
 		this.priority = priority;
 	}
 
-	public boolean canTrigger(LivingEntity livingEntity) {
-		return canTrigger(livingEntity, true);
+	public boolean canTrigger(LivingEntity caster) {
+		return canTrigger(caster, true);
 	}
 
-	public boolean canTrigger(LivingEntity livingEntity, boolean ignoreGameMode) {
-		if (livingEntity instanceof Player player && !MagicSpells.getSpellbook(player).hasSpell(passiveSpell)) return false;
-		return passiveSpell.getTriggerList().canTarget(livingEntity, ignoreGameMode);
+	public boolean canTrigger(LivingEntity caster, boolean ignoreGameMode) {
+		ValidTargetList triggerList = passiveSpell.getTriggerList();
+		if (!triggerList.canTarget(caster, ignoreGameMode)) return false;
+
+		if (caster instanceof Player player && !passiveSpell.isHelperSpell()) {
+			Spellbook spellbook = MagicSpells.getSpellbook(player);
+			return spellbook.hasSpell(passiveSpell, true);
+		}
+
+		return true;
 	}
 		
 	public boolean cancelDefaultAction(boolean casted) {
