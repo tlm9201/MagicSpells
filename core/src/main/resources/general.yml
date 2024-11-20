@@ -104,6 +104,7 @@ los-fluid-collision-mode: always
 global-radius: 500
 global-cooldown: 500
 cast-on-animate: false
+respect-item-cooldowns: false
 use-exp-bar-as-cast-time-bar: true
 cooldowns-persist-through-reload: true
 sound-on-cooldown: ""

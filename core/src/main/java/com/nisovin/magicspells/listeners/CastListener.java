@@ -81,6 +81,7 @@ public class CastListener implements Listener {
 		if (MagicSpells.isCastingOnAnimate() && action.isLeftClick()) return;
 
 		ItemStack item = player.getInventory().getItemInMainHand();
+		if (MagicSpells.isRespectingItemCooldowns() && player.hasCooldown(item)) return;
 
 		Material type = item.getType();
 		if (!MagicSpells.canCastWithFist() && type.isAir()) return;
@@ -104,6 +105,7 @@ public class CastListener implements Listener {
 		if (inventoryType != InventoryType.CRAFTING && inventoryType != InventoryType.CREATIVE) return;
 
 		ItemStack item = player.getInventory().getItemInMainHand();
+		if (MagicSpells.isRespectingItemCooldowns() && player.hasCooldown(item)) return;
 
 		Material type = item.getType();
 		if (!MagicSpells.canCastWithFist() && type.isAir()) return;
