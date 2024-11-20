@@ -58,7 +58,7 @@ public record Interaction(
 
 			SpellFilter interactsWith;
 			if (config.isConfigurationSection("with"))
-				interactsWith = SpellFilter.fromConfig(config, "with");
+				interactsWith = SpellFilter.fromSection(config, "with");
 			else interactsWith = SpellFilter.fromLegacyString(config.getString("with", ""));
 
 			String collisionName = config.getString("collision-spell", "");

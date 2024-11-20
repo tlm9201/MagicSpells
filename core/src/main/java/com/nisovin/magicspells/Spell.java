@@ -71,7 +71,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected Map<UUID, Long> nextCast;
 	protected Map<String, Integer> xpGranted;
 	protected Map<String, Integer> xpRequired;
-	protected Map<Spell, Float> sharedCooldowns;
+	protected List<SharedCooldown> sharedCooldowns;
 	protected Map<String, Map<EffectPosition, List<Runnable>>> callbacks;
 
 	protected Multimap<String, VariableMod> variableModsCast;
@@ -94,7 +94,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	protected List<String> prerequisites;
 	protected List<String> modifierStrings;
 	protected List<String> worldRestrictions;
-	protected List<String> rawSharedCooldowns;
 	protected List<String> targetModifierStrings;
 	protected List<String> locationModifierStrings;
 
@@ -357,7 +356,6 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		if (cooldown == null) cooldown = getConfigDataFloat("cooldown", 0);
 
 		serverCooldown = (float) config.getDouble(internalKey + "server-cooldown", 0);
-		rawSharedCooldowns = config.getStringList(internalKey + "shared-cooldowns", null);
 		ignoreGlobalCooldown = config.getBoolean(internalKey + "ignore-global-cooldown", false);
 		charges = config.getInt(internalKey + "charges", 0);
 		rechargeSound = config.getString(internalKey + "recharge-sound", "");
@@ -653,16 +651,58 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	protected void initialize() {
 		// Process shared cooldowns
+		List<?> rawSharedCooldowns = config.getList(internalKey + "shared-cooldowns", null);
 		if (rawSharedCooldowns != null) {
-			sharedCooldowns = new HashMap<>();
-			for (String s : rawSharedCooldowns) {
-				String[] data = s.split(" ");
-				Spell spell = MagicSpells.getSpellByInternalName(data[0]);
-				float cd = Float.parseFloat(data[1]);
-				if (spell != null) sharedCooldowns.put(spell, cd);
+			sharedCooldowns = new ArrayList<>();
+
+			for (Object object : rawSharedCooldowns) {
+				if (object instanceof String s) {
+					String[] data = s.split(" ");
+					if (data.length != 2) {
+						MagicSpells.error("Invalid shared cooldown '" + s + "' on spell '" + internalName + "'.");
+						continue;
+					}
+
+					Spell spell = MagicSpells.getSpellByInternalName(data[0]);
+					if (spell == null) {
+						MagicSpells.error("Invalid spell '" + data[0] + "' in shared cooldown '" + s + "' on spell '" + internalName + "'.");
+						continue;
+					}
+
+					float cooldown;
+					try {
+						cooldown = Float.parseFloat(data[1]);
+					} catch (NumberFormatException e) {
+						MagicSpells.error("Invalid cooldown '" + data[1] + "' in shared cooldown '" + s + "' on spell '" + internalName + "'.");
+						continue;
+					}
+
+					sharedCooldowns.add(new SharedCooldown(Set.of(spell), spellData -> cooldown));
+					continue;
+				}
+
+				if (object instanceof Map<?, ?> map) {
+					ConfigurationSection section = ConfigReaderUtil.mapToSection(map);
+
+					if (!section.isString("filter") && !section.isConfigurationSection("filter")) {
+						MagicSpells.error("No 'filter' specified in shared cooldown on spell '" + internalName + "'.");
+						continue;
+					}
+
+					SpellFilter filter = SpellFilter.fromConfig(section, "filter");
+
+					ConfigData<Float> cooldown = ConfigDataUtil.getFloat(section, "cooldown");
+					if (cooldown.isNull()) {
+						MagicSpells.error("Invalid or no 'cooldown' specified in shared cooldown on spell '" + internalName + "'.");
+						continue;
+					}
+
+					sharedCooldowns.add(new SharedCooldown(filter.getMatchingSpells(), cooldown));
+					continue;
+				}
+
+				MagicSpells.error("Invalid shared cooldown '" + object + "' on spell '" + internalName + "'.");
 			}
-			rawSharedCooldowns.clear();
-			rawSharedCooldowns = null;
 		}
 
 		// Register events
@@ -882,7 +922,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * Gets the config spell filter under the base path of the spell config.
 	 */
 	protected SpellFilter getConfigSpellFilter() {
-		return getConfigSpellFilter("");
+		return SpellFilter.fromSection(config.getMainConfig(), internalKey);
 	}
 
 	protected boolean isConfigString(String key) {
@@ -1050,7 +1090,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 			switch (castEvent.getSpellCastState()) {
 				case NORMAL -> {
-					if (action.setCooldown()) setCooldown(caster, castEvent.getCooldown());
+					if (action.setCooldown()) setCooldown(caster, castEvent.getCooldown(), castEvent.getSpellData(), true);
 					if (action.chargeReagents()) removeReagents(caster, castEvent.getReagents());
 					if (action.sendMessages()) sendMessages(data);
 
@@ -1214,17 +1254,42 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 * Begins the cooldown for the spell for the specified player
 	 *
 	 * @param livingEntity The living entity to set the cooldown for
+	 * @param cooldown The cooldown to use
 	 */
 	public void setCooldown(LivingEntity livingEntity, float cooldown) {
-		setCooldown(livingEntity, cooldown, true);
+		setCooldown(livingEntity, cooldown, SpellData.NULL, true);
 	}
 
 	/**
 	 * Begins the cooldown for the spell for the specified player
 	 *
 	 * @param livingEntity The living entity to set the cooldown for
+	 * @param cooldown The cooldown to use
+	 * @param activateSharedCooldowns Whether shared cooldowns should be activated
 	 */
-	public void setCooldown(final LivingEntity livingEntity, float cooldown, boolean activateSharedCooldowns) {
+	public void setCooldown(LivingEntity livingEntity, float cooldown, boolean activateSharedCooldowns) {
+		setCooldown(livingEntity, cooldown, SpellData.NULL, activateSharedCooldowns);
+	}
+
+	/**
+	 * Begins the cooldown for the spell for the specified player
+	 *
+	 * @param livingEntity The living entity to set the cooldown for
+	 * @param data The associated spell data
+	 */
+	public void setCooldown(LivingEntity livingEntity, SpellData data) {
+		setCooldown(livingEntity, cooldown.get(data), data, true);
+	}
+
+	/**
+	 * Begins the cooldown for the spell for the specified player
+	 *
+	 * @param livingEntity The living entity to set the cooldown for
+	 * @param cooldown The cooldown to use
+	 * @param data The associated spell data
+	 * @param activateSharedCooldowns Whether shared cooldowns should be activated
+	 */
+	public void setCooldown(LivingEntity livingEntity, float cooldown, SpellData data, boolean activateSharedCooldowns) {
 		final UUID uuid = livingEntity.getUniqueId();
 
 		if (cooldown > 0) {
@@ -1247,11 +1312,17 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			nextCast.remove(uuid);
 			chargesConsumed.remove(uuid);
 		}
+
 		if (serverCooldown > 0)
 			nextCastServer = System.currentTimeMillis() + (long) (serverCooldown * TimeUtil.MILLISECONDS_PER_SECOND);
+
 		if (activateSharedCooldowns && sharedCooldowns != null) {
-			for (Map.Entry<Spell, Float> scd : sharedCooldowns.entrySet()) {
-				scd.getKey().setCooldown(livingEntity, scd.getValue(), false);
+			for (SharedCooldown sharedCooldown : sharedCooldowns) {
+				Float cd = sharedCooldown.cooldown().get(data);
+				if (cd == null) continue;
+
+				for (Spell spell : sharedCooldown.spells)
+					spell.setCooldown(livingEntity, cd, data, false);
 			}
 		}
 	}
@@ -2713,6 +2784,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 				if (mana != null) mana.showMana(pl);
 			}
 		}
+
+	}
+
+	protected record SharedCooldown(Collection<Spell> spells, ConfigData<Float> cooldown) {
 
 	}
 

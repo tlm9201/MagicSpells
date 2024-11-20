@@ -83,7 +83,7 @@ public class SpellFilter {
 
 		if (hasBlacklistedSpells) {
 			for (String spellName : blacklistedSpells) {
-			    Spell spell = MagicSpells.getSpellByInternalName(spellName);
+				Spell spell = MagicSpells.getSpellByInternalName(spellName);
 				if (spell == null) {
 					MagicSpells.error("Invalid spell '" + spellName + "' found in spell filter.");
 					continue;
@@ -116,8 +116,15 @@ public class SpellFilter {
 		return spells == null;
 	}
 
-	public Set<Spell> getMatchingSpells() {
-		return spells;
+	public Collection<Spell> getMatchingSpells() {
+		return spells != null ? spells : MagicSpells.getSpellsOrdered();
+	}
+
+	public static SpellFilter fromConfig(ConfigurationSection config, String path) {
+		if (!path.isEmpty() && config.isString(path))
+			return fromString(config.getString(path));
+
+		return fromSection(config, path);
 	}
 
 	/**
@@ -126,7 +133,7 @@ public class SpellFilter {
 	 * @param path Path for the keys to be read from. If the path is set to something like "filter", the keys will
 	 *             be read from the passed config section under the "filter" section.
 	 */
-	public static SpellFilter fromConfig(ConfigurationSection config, String path) {
+	public static SpellFilter fromSection(ConfigurationSection config, String path) {
 		if (!path.isEmpty() && !path.endsWith(".")) path += ".";
 
 		List<String> spells = config.getStringList(path + "spells");
@@ -144,7 +151,7 @@ public class SpellFilter {
 	 * @param path Path for the keys to be read from. If the path is set to something like "filter", the keys will
 	 *             be read from the passed config section under the "filter" section.
 	 */
-	public static SpellFilter fromLegacyConfig(ConfigurationSection config, String path) {
+	public static SpellFilter fromLegacySection(ConfigurationSection config, String path) {
 		if (!path.isEmpty() && !path.endsWith(".")) path += ".";
 
 		List<String> spells = mergeLists(config, path, "spells", "allowed-spells");

@@ -22,4 +22,8 @@ public interface ConfigData<T> {
 		return true;
 	}
 
+	default boolean isNull() {
+		return isConstant() && get() == null;
+	}
+
 }

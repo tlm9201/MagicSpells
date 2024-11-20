@@ -66,7 +66,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		preventChatSpellName = getConfigString("spell-on-denied-chat", "");
 		preventCommandSpellName = getConfigString("spell-on-denied-command", "");
 
-		filter = SpellFilter.fromLegacyConfig(config.getMainConfig(), internalKey);
+		filter = SpellFilter.fromLegacySection(config.getMainConfig(), internalKey);
 
 		if (preventChat) silenced = new ConcurrentHashMap<>();
 		else silenced = new HashMap<>();
