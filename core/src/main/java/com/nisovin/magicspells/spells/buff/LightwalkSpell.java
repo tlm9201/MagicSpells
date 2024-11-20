@@ -83,7 +83,7 @@ public class LightwalkSpell extends BuffSpell {
 		if (!(entity instanceof Player player)) return;
 
 		LightWalkData data = players.remove(player.getUniqueId());
-		player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
+		if (data.current != null) player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class LightwalkSpell extends BuffSpell {
 			if (player == null) continue;
 
 			LightWalkData data = players.get(id);
-			player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
+			if (data.current != null) player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
 		}
 
 		players.clear();
@@ -114,11 +114,16 @@ public class LightwalkSpell extends BuffSpell {
 		}
 
 		Block newBlock = event.getTo().clone().add(0, data.yOffset, 0).getBlock();
-		if (newBlock.equals(data.current) || !allowedTypes.contains(newBlock.getType())) return;
+		if (newBlock.equals(data.current)) return;
 
-		if (data.current != null) player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
+		if (data.current != null) {
+			player.sendBlockChange(data.current.getLocation(), data.current.getBlockData());
+			data.current = null;
+		}
+
+		if (!allowedTypes.contains(newBlock.getType())) return;
+
 		player.sendBlockChange(newBlock.getLocation(), data.blockType);
-
 		addUseAndChargeCost(player);
 		data.current = newBlock;
 	}

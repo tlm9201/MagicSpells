@@ -49,7 +49,7 @@ blind:
     cast-item: blaze_rod
     description: Blind your target.
     range: 20
-    type: 15
+    type: blindness
     strength: 0
     duration: 200
     targeted: true
@@ -881,8 +881,8 @@ lightwalk:
     spell-class: ".buff.LightwalkSpell"
     cast-item: golden_boots
     description: Light your path.
-    material: glowstone
-    allowed-types: [grass_block]
+    block-type: light[light=15]
+    allowed-types: [air, cave_air, short_grass]
     cost:
         - mana 25
         - torch 3
