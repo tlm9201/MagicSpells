@@ -1173,6 +1173,10 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return strCost;
 	}
 
+	public ConfigData<Float> getCooldown() {
+		return cooldown;
+	}
+
 	/**
 	 * Check whether this spell is currently on cooldown for the specified player
 	 *
