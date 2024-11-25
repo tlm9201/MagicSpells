@@ -36,7 +36,7 @@ public abstract class NoMagicZone implements Comparable<NoMagicZone> {
 
 		allowAll = config.getBoolean("allow-all", false);
 		disallowAll = config.getBoolean("disallow-all", true);
-		spellFilter = SpellFilter.fromLegacyConfig(config, "");
+		spellFilter = SpellFilter.fromLegacySection(config, "");
 
 		initialize(config);
 	}

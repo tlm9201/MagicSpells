@@ -58,7 +58,7 @@ public class ModifyCooldownSpell extends TargetedSpell implements TargetedEntity
 			float cd = spell.getCooldown(data.target()) - sec;
 			if (mult > 0) cd *= mult;
 			if (cd < 0) cd = 0;
-			spell.setCooldown(data.target(), cd, false);
+			spell.setCooldown(data.target(), cd, data, false);
 		}
 
 		playSpellEffects(data);
