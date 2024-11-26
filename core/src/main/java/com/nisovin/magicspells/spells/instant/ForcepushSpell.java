@@ -38,7 +38,7 @@ public class ForcepushSpell extends InstantSpell {
 		double radius = Math.min(this.radius.get(data), MagicSpells.getGlobalRadius());
 
 		Vector casterLoc = data.caster().getLocation().toVector();
-		for (Entity entity :  data.caster().getNearbyEntities(radius, radius, radius)) {
+		for (Entity entity : data.caster().getNearbyEntities(radius, radius, radius)) {
 			if (!(entity instanceof LivingEntity target)) continue;
 			if (!validTargetList.canTarget(data.caster(), target)) continue;
 

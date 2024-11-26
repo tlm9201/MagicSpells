@@ -28,8 +28,7 @@ public class SpellFilterVisitorImpl extends SpellFilterBaseVisitor<Predicate<Spe
 
 	@Override
 	public Predicate<Spell> visitNot(SpellFilterParser.NotContext ctx) {
-		Predicate<Spell> expr = ctx.expr.accept(this);
-		return spell -> !expr.test(spell);
+		return ctx.expr.accept(this).negate();
 	}
 
 	@Override

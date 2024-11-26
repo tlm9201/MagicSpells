@@ -74,7 +74,7 @@ public class DataCondition extends OperatorCondition {
 		String data = dataElement.apply(target);
 		try {
 			double dataDouble = Double.parseDouble(data);
-			double localDouble = constantValue ?  value : Double.parseDouble(localCompare);
+			double localDouble = constantValue ? value : Double.parseDouble(localCompare);
 			return compare(dataDouble, localDouble);
 		} catch (NumberFormatException e) {
 			if (equals) return Objects.equals(data, localCompare);
