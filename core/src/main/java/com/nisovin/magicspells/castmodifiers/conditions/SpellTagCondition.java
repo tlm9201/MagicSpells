@@ -1,7 +1,5 @@
 package com.nisovin.magicspells.castmodifiers.conditions;
 
-import java.util.Set;
-
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
@@ -72,13 +70,7 @@ public class SpellTagCondition extends Condition implements IModifier {
 	}
 
 	private boolean checkSpell(Spell spell) {
-		if (spell == null) return false;
-		Set<String> tags = spell.getTags();
-		return checkWithTags(tags);
-	}
-	
-	private boolean checkWithTags(Set<String> tags) {
-		return tag != null && tags.contains(tag);
+		return spell != null && spell.getTags().contains(tag);
 	}
 
 	@Override

@@ -8,8 +8,6 @@ import java.util.EnumSet;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 
-import com.google.common.base.Predicates;
-
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -71,8 +69,8 @@ public class WearingInSlotCondition extends Condition {
 			}
 		}
 
-		if (validSlots == null) validSlots = Predicates.alwaysTrue();
-		if (invalidSlots == null) invalidSlots = Predicates.alwaysTrue();
+		if (validSlots == null) validSlots = s -> true;
+		if (invalidSlots == null) invalidSlots = s -> true;
 
 		Predicate<EquipmentSlot> slotPredicate = validSlots.and(invalidSlots);
 

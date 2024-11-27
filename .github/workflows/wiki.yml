@@ -7,7 +7,13 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - uses: "oznu/gh-wiki-edit-discord-notification@v1.0.0"
+      - name: Secret Check
+        id: secret
+        run: echo "empty=${{secrets.WIKI_WEBHOOK == ''}}" >> $GITHUB_OUTPUT
+
+      - name: Send Webhook
+        if: steps.secret.outputs.empty == 'false'
+        uses: "oznu/gh-wiki-edit-discord-notification@v1.0.0"
         with:
           discord-webhook-url: ${{ secrets.WIKI_WEBHOOK }}
           ignore-collaborators: false

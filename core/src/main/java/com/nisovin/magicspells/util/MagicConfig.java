@@ -235,7 +235,7 @@ public class MagicConfig {
 
 	public List<Integer> getIntList(String path, List<Integer> def) {
 		if (!mainConfig.contains(path)) return def;
-		return  mainConfig.getIntegerList(path);
+		return mainConfig.getIntegerList(path);
 	}
 
 	public List<Byte> getByteList(String path, List<Byte> def) {
