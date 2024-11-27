@@ -604,12 +604,6 @@ public class MagicSpells extends JavaPlugin {
 			log("...done");
 		}
 
-		// Load no-magic zones
-		zoneManager.load(config);
-
-		// Initialize BuffManager
-		buffManager.initialize();
-
 		// Load listeners
 		log("Loading cast listeners...");
 		registerEvents(new MagicPlayerListener());
@@ -689,6 +683,10 @@ public class MagicSpells extends JavaPlugin {
 
 		spells.values().forEach(Spell::initialize);
 
+		zoneManager.load(config);
+		buffManager.initialize();
+		if (!incantations.isEmpty()) registerEvents(new MagicChatListener());
+
 		log("...done");
 	}
 
@@ -701,7 +699,6 @@ public class MagicSpells extends JavaPlugin {
 		loadConditions();
 		loadPassiveListeners();
 
-		if (!incantations.isEmpty()) registerEvents(new MagicChatListener());
 		log("...done");
 
 		// Call loaded event
