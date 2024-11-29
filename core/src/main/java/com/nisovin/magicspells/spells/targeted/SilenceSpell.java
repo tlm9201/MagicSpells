@@ -27,8 +27,6 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	private final Map<UUID, Unsilencer> silenced;
 
-	private final SpellFilter filter;
-
 	private final String strSilenced;
 
 	private final ConfigData<Integer> duration;
@@ -43,6 +41,8 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 	private final String preventCastSpellName;
 	private final String preventChatSpellName;
 	private final String preventCommandSpellName;
+
+	private SpellFilter filter;
 
 	private Subspell preventCastSpell;
 	private Subspell preventChatSpell;
@@ -65,8 +65,6 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 		preventCastSpellName = getConfigString("spell-on-denied-cast", "");
 		preventChatSpellName = getConfigString("spell-on-denied-chat", "");
 		preventCommandSpellName = getConfigString("spell-on-denied-command", "");
-
-		filter = SpellFilter.fromLegacySection(config.getMainConfig(), internalKey);
 
 		if (preventChat) silenced = new ConcurrentHashMap<>();
 		else silenced = new HashMap<>();
@@ -95,6 +93,8 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 					true);
 			registerEvents(new CommandListener());
 		}
+
+		filter = getConfigSpellFilter();
 	}
 
 	@Override
