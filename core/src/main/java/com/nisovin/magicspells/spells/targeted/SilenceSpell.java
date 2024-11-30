@@ -94,7 +94,7 @@ public class SilenceSpell extends TargetedSpell implements TargetedEntitySpell {
 			registerEvents(new CommandListener());
 		}
 
-		filter = getConfigSpellFilter();
+		filter = SpellFilter.fromLegacySection(config.getMainConfig(), internalKey);
 	}
 
 	@Override
