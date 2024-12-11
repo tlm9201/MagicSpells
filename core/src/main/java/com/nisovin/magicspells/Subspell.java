@@ -183,7 +183,7 @@ public class Subspell {
 					}
 					case "chance" -> {
 						try {
-							double chance = Double.parseDouble(value);
+							double chance = Double.parseDouble(value) / 100;
 							this.chance = data -> chance;
 						} catch (NumberFormatException e) {
 							FunctionData<Double> chanceData = FunctionData.build(value, Function.identity(), true);
@@ -192,7 +192,7 @@ public class Subspell {
 								continue;
 							}
 
-							chance = chanceData;
+							chance = data -> chanceData.get(data) / 100;
 						}
 					}
 					default ->
