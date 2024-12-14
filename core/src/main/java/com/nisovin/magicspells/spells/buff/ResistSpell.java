@@ -21,6 +21,7 @@ import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
+import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class ResistSpell extends BuffSpell {
 
@@ -159,6 +160,11 @@ public class ResistSpell extends BuffSpell {
 		double finalDamage = (event.getDamage() * calculation.multiplier) - calculation.flatModifier;
 		if (finalDamage < 0D) finalDamage = 0D;
 		event.setDamage(finalDamage);
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onLegacyDamage(MagicSpellsEntityDamageByEntityEvent event) {
+		onEntityDamage(event);
 	}
 
 	private ResistCalculation calculateResist(ResistData data, LivingEntity caster, LivingEntity target, float multiplier, double flatModifier) {
