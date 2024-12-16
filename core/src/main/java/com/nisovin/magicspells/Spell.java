@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import de.slikey.effectlib.Effect;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 
 import java.util.*;
@@ -38,6 +39,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import io.papermc.paper.registry.tag.Tag;
+import io.papermc.paper.registry.tag.TagKey;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.block.fluid.FluidData;
 import io.papermc.paper.registry.RegistryAccess;
@@ -923,6 +926,45 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	protected SpellFilter getConfigSpellFilter() {
 		return SpellFilter.fromSection(config.getMainConfig(), internalKey);
+	}
+
+	@SuppressWarnings("UnstableApiUsage")
+	protected <T extends Keyed> Set<Key> getConfigRegistryKeys(String path, RegistryKey<T> registryKey) {
+		List<String> keyStrings = config.getStringList(internalKey + path, null);
+		if (keyStrings == null) return null;
+
+		Set<Key> keys = new HashSet<>();
+
+		Registry<T> registry = RegistryAccess.registryAccess().getRegistry(registryKey);
+		for (String keyString : keyStrings) {
+			if (!keyString.startsWith("#")) {
+				NamespacedKey key = NamespacedKey.fromString(keyString);
+				if (key == null || registry.get(key) == null) {
+					MagicSpells.error("Invalid registry entry '" + keyString + "' found on spell '" + internalName + "'.");
+					continue;
+				}
+
+				keys.add(key);
+				continue;
+			}
+
+			NamespacedKey key = NamespacedKey.fromString(keyString.substring(1));
+			if (key == null) {
+				MagicSpells.error("Invalid tag '" + keyString + "' found on spell '" + internalName + "'.");
+				continue;
+			}
+
+			TagKey<T> tagKey = TagKey.create(registryKey, key);
+			if (!registry.hasTag(tagKey)) {
+				MagicSpells.error("Invalid tag '" + keyString + "' found on spell '" + internalName + "'.");
+				continue;
+			}
+
+			Tag<@NotNull T> tag = registry.getTag(tagKey);
+			tag.values().forEach(typedKey -> keys.add(typedKey.key()));
+		}
+
+		return keys;
 	}
 
 	protected boolean isConfigString(String key) {
