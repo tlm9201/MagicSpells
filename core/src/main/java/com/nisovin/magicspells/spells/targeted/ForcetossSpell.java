@@ -2,13 +2,11 @@ package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.util.Vector;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
-import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class ForcetossSpell extends TargetedSpell implements TargetedEntitySpell {
 
@@ -18,11 +16,9 @@ public class ForcetossSpell extends TargetedSpell implements TargetedEntitySpell
 	private ConfigData<Double> hForce;
 	private ConfigData<Double> rotation;
 
-	private ConfigData<Boolean> checkPlugins;
 	private ConfigData<Boolean> powerAffectsForce;
 	private ConfigData<Boolean> powerAffectsDamage;
 	private ConfigData<Boolean> addVelocityInstead;
-	private ConfigData<Boolean> avoidDamageModification;
 
 	public ForcetossSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -33,11 +29,9 @@ public class ForcetossSpell extends TargetedSpell implements TargetedEntitySpell
 		hForce = getConfigDataDouble("horizontal-force", 20);
 		rotation = getConfigDataDouble("rotation", 0);
 
-		checkPlugins = getConfigDataBoolean("check-plugins", true);
 		powerAffectsForce = getConfigDataBoolean("power-affects-force", true);
 		powerAffectsDamage = getConfigDataBoolean("power-affects-damage", true);
 		addVelocityInstead = getConfigDataBoolean("add-velocity-instead", false);
-		avoidDamageModification = getConfigDataBoolean("avoid-damage-modification", true);
 	}
 
 	@Override
@@ -59,16 +53,7 @@ public class ForcetossSpell extends TargetedSpell implements TargetedEntitySpell
 		double damage = this.damage.get(data);
 		if (powerAffectsDamage.get(data)) damage *= data.power();
 
-		if (damage > 0) {
-			if (checkPlugins.get(data)) {
-				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, DamageCause.ENTITY_ATTACK, damage, this);
-				if (!event.callEvent()) return noTarget(data);
-
-				if (!avoidDamageModification.get(data)) damage = event.getDamage();
-			}
-
-			target.damage(damage, caster);
-		}
+		if (damage > 0) target.damage(damage, caster);
 
 		Vector v;
 		if (caster.equals(target)) v = caster.getLocation().getDirection();

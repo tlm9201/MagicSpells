@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.damage.DamageType;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
@@ -20,7 +21,6 @@ import com.nisovin.magicspells.spells.TargetedEntitySpell;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityRegainHealthEvent;
-import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 import io.papermc.paper.registry.RegistryKey;
 
@@ -117,8 +117,9 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 				DamageCause damageType = this.damageType.get(data);
 
 				if (checkPlugins) {
-					MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(caster, target, damageType, take, this);
+					EntityDamageEvent event = createFakeDamageEvent(data.caster(), target, damageType, take);
 					if (!event.callEvent()) return false;
+
 					if (!avoidDamageModification.get(data)) take = event.getDamage();
 					target.setLastDamageCause(event);
 				}
@@ -126,17 +127,21 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 				SpellApplyDamageEvent event = new SpellApplyDamageEvent(this, caster, target, take, damageType, spellDamageType.get(data));
 				event.callEvent();
 				take = event.getFinalDamage();
-				if (ignoreArmor.get(data)) {
-					double maxHealth = Util.getMaxHealth(target);
-					double health = Math.min(target.getHealth(), maxHealth);
 
-					health = Math.clamp(health - take, 0, maxHealth);
-					if (health == 0 && caster instanceof Player playerCaster) target.setKiller(playerCaster);
+				if (!ignoreArmor.get(data)) {
+					target.damage(take, caster);
+					break;
+				}
 
-					target.setHealth(health);
-					target.setLastDamage(take);
-					Util.playHurtEffect(target, caster);
-				} else target.damage(take, caster);
+				double maxHealth = Util.getMaxHealth(target);
+				double health = Math.min(target.getHealth(), maxHealth);
+
+				health = Math.clamp(health - take, 0, maxHealth);
+				if (health == 0 && caster instanceof Player playerCaster) target.setKiller(playerCaster);
+
+				target.setHealth(health);
+				target.setLastDamage(take);
+				Util.playHurtEffect(target, caster);
 			}
 			case HEALTH_POINTS -> {
 				DamageType type = drainDamageType.get(data);
