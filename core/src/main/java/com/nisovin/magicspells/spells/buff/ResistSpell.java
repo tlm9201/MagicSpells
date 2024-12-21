@@ -23,10 +23,17 @@ import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.DeprecationNotice;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class ResistSpell extends BuffSpell {
+
+	private static final DeprecationNotice DEPRECATION_NOTICE = new DeprecationNotice(
+		"The 'normal-damage-types' option does not function properly.",
+		"Use the 'damage-types' option.",
+		"https://github.com/TheComputerGeek2/MagicSpells/wiki/Deprecations#buffresistspell-normal-damage-types"
+	);
 
 	private final Map<UUID, ResistData> entities;
 
@@ -75,6 +82,8 @@ public class ResistSpell extends BuffSpell {
 					MagicSpells.error("ResistSpell '" + internalName + "' has an invalid damage cause defined '" + cause + "'!");
 				}
 			}
+
+			MagicSpells.getDeprecationManager().addDeprecation(this, DEPRECATION_NOTICE);
 		} else normalDamageTypes = null;
 
 		spellDamageTypes = new HashSet<>();

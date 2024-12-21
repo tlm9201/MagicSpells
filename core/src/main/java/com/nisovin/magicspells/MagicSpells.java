@@ -74,6 +74,7 @@ import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.commands.CommandHelpFilter;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.recipes.CustomRecipes;
+import com.nisovin.magicspells.handlers.DeprecationHandler;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.storage.types.TXTFileStorage;
 import com.nisovin.magicspells.volatilecode.ManagerVolatile;
@@ -122,6 +123,7 @@ public class MagicSpells extends JavaPlugin {
 	private MoneyHandler moneyHandler;
 	private MagicXpHandler magicXpHandler;
 	private StorageHandler storageHandler;
+	private DeprecationHandler deprecationHandler;
 	private VolatileCodeHandle volatileCodeHandle;
 
 	private BuffManager buffManager;
@@ -270,6 +272,8 @@ public class MagicSpells extends JavaPlugin {
 
 	public void load() {
 		plugin = this;
+
+		deprecationHandler = new DeprecationHandler();
 
 		effectManager = new EffectManager(this);
 		effectManager.enableDebug(debug);
@@ -704,6 +708,8 @@ public class MagicSpells extends JavaPlugin {
 		// Call loaded event
 		Bukkit.getPluginManager().callEvent(new MagicSpellsLoadedEvent(this));
 		loaded = true;
+
+		deprecationHandler.printDeprecationNotices();
 
 		log("MagicSpells loading complete!");
 	}
@@ -1406,6 +1412,10 @@ public class MagicSpells extends JavaPlugin {
 
 	public static LifeLengthTracker getLifeLengthTracker() {
 		return plugin.lifeLengthTracker;
+	}
+
+	public static DeprecationHandler getDeprecationManager() {
+		return plugin.deprecationHandler;
 	}
 
 	public static Map<String, Spellbook> getSpellbooks() {
@@ -2219,6 +2229,7 @@ public class MagicSpells extends JavaPlugin {
 		strUnknownSpell = null;
 		strXpAutoLearned = null;
 		lifeLengthTracker = null;
+		deprecationHandler = null;
 		strMissingReagents = null;
 		strSpellChangeEmpty = null;
 		soundFailOnCooldown = null;
