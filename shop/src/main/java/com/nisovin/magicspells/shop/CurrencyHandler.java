@@ -15,8 +15,6 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-import com.nisovin.magicspells.util.ExperienceUtils;
-
 public class CurrencyHandler {
 	
 	private static final Pattern PATTERN_CURRENCY_ITEM_BASIC = Pattern.compile("^[0-9]+$");
@@ -61,7 +59,7 @@ public class CurrencyHandler {
 		if (c == null) return false;
 		if (c.equalsIgnoreCase("vault") && this.economy != null) return this.economy.has(player.getName(), amount);
 		if (c.equalsIgnoreCase("levels")) return player.getLevel() >= (int)amount;
-		if (c.equalsIgnoreCase("experience") || c.equalsIgnoreCase("xp")) return ExperienceUtils.hasExp(player, (int) amount);
+		if (c.equalsIgnoreCase("experience") || c.equalsIgnoreCase("xp")) return player.calculateTotalExperiencePoints() >= amount;
 		if (PATTERN_CURRENCY_ITEM_BASIC.asMatchPredicate().test(c)) return inventoryContains(player.getInventory(), new ItemStack(Util.getMaterial(c), (int) amount));
 		if (PATTERN_CURRENCY_ITEM_ADVANCED.asMatchPredicate().test(c)) {
 			String[] s = c.split(":");
@@ -85,7 +83,7 @@ public class CurrencyHandler {
 		} else if (c.equalsIgnoreCase("levels")) {
 			player.setLevel(player.getLevel() - (int)amount);
 		} else if (c.equalsIgnoreCase("experience") || c.equalsIgnoreCase("xp")) {
-			ExperienceUtils.changeExp(player, -(int)amount);
+			Util.addExperience(player, (int) -amount);
 		} else if (PATTERN_CURRENCY_ITEM_BASIC.asMatchPredicate().test(c)) {
 			removeFromInventory(player.getInventory(), new ItemStack(Util.getMaterial(c), (int) amount));
 			player.updateInventory();

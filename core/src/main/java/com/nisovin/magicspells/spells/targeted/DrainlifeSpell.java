@@ -157,9 +157,9 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 			}
 			case STR_EXPERIENCE -> {
 				if (playerTarget == null) break;
-				int exp = ExperienceUtils.getExperience(playerTarget);
+				int exp = playerTarget.calculateTotalExperiencePoints();
 				if (give > exp) give = exp;
-				ExperienceUtils.changeExp(playerTarget, (int) Math.round(-take));
+				Util.addExperience(playerTarget, (int) Math.round(-take));
 			}
 		}
 
@@ -204,7 +204,7 @@ public class DrainlifeSpell extends TargetedSpell implements TargetedEntitySpell
 				}
 			}
 			case STR_EXPERIENCE -> {
-				if (caster instanceof Player) ExperienceUtils.changeExp((Player) caster, (int) give);
+				if (caster instanceof Player) Util.addExperience((Player) caster, (int) give);
 			}
 		}
 	}
