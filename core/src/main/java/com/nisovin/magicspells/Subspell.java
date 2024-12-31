@@ -10,7 +10,6 @@ import java.util.concurrent.ThreadLocalRandom;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonSyntaxException;
 
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
@@ -148,7 +147,7 @@ public class Subspell {
 
 								return ret;
 							};
-						} catch (IllegalStateException | JsonSyntaxException e) {
+						} catch (Exception e) {
 							MagicSpells.error("Invalid spell arguments '" + value + "' on subspell '" + subspell + "'.");
 							DebugHandler.debug(e);
 						}

@@ -590,6 +590,10 @@ public class Util {
 		}
 	}
 
+	public static void addExperience(Player player, int amount) {
+		player.setExperienceLevelAndProgress(Math.max(player.calculateTotalExperiencePoints() + amount, 0));
+	}
+
 	public static double getMaxHealth(LivingEntity entity) {
 		return entity.getAttribute(Attribute.MAX_HEALTH).getValue();
 	}

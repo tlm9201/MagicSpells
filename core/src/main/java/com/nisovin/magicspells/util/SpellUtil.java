@@ -75,7 +75,7 @@ public class SpellUtil {
 			if (hungerCost > 0 && player.getFoodLevel() < hungerCost) return false;
 
 			// Experience costs
-			if (experienceCost > 0 && !ExperienceUtils.hasExp(player, experienceCost)) return false;
+			if (experienceCost > 0 && experienceCost > player.calculateTotalExperiencePoints()) return false;
 
 			// Level costs
 			if (levelsCost > 0 && player.getLevel() < levelsCost) return false;
@@ -167,7 +167,7 @@ public class SpellUtil {
 				player.setFoodLevel(f);
 			}
 
-			if (experienceCost != 0) ExperienceUtils.changeExp(player, -experienceCost);
+			if (experienceCost != 0) Util.addExperience(player, -experienceCost);
 
 			if (moneyCost != 0) {
 				MoneyHandler handler = MagicSpells.getMoneyHandler();

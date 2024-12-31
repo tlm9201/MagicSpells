@@ -262,7 +262,7 @@ public class SpawnEntitySpell extends TargetedSpell implements TargetedLocationS
 			return;
 		}
 
-		for (UUID uuid : entities.keySet()) {
+		for (UUID uuid : new HashSet<>(entities.keySet())) {
 			Entity entity = Bukkit.getEntity(uuid);
 			if (entity != null) entity.remove();
 		}
