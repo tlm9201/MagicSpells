@@ -51,6 +51,17 @@ shadowJar {
     relocate("co.aikar.commands", "com.nisovin.magicspells.shaded.acf")
     relocate("co.aikar.locales", "com.nisovin.magicspells.shaded.locales")
     relocate("org.bstats", "com.nisovin.magicspells.shaded.bstats")
+
+    // Included by apache/commons-math, copied by this project.
+    exclude("META-INF/LICENSE")
+    exclude("META-INF/NOTICE")
+    // Include our own copies of attributions.
+    from("$rootDir/3rd_party_licenses") {
+        into "META-INF/3rd_party_licenses"
+    }
+    from("$rootDir/NOTICE.md") {into "META-INF"}
+    from("$rootDir/LICENSE") {into "META-INF"}
+
     archiveClassifier.set("")
 }
 
