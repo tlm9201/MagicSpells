@@ -1,15 +1,18 @@
 package com.nisovin.magicspells;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import de.slikey.effectlib.Effect;
 
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.google.common.base.Functions;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.LinkedListMultimap;
 
@@ -21,8 +24,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.VoxelShape;
 import org.bukkit.util.BoundingBox;
+import org.bukkit.damage.DamageType;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.EventHandler;
+import org.bukkit.damage.DamageSource;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.event.EventPriority;
@@ -37,6 +42,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
+import io.papermc.paper.registry.tag.Tag;
+import io.papermc.paper.registry.tag.TagKey;
 import io.papermc.paper.registry.RegistryKey;
 import io.papermc.paper.block.fluid.FluidData;
 import io.papermc.paper.registry.RegistryAccess;
@@ -902,11 +909,11 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		return ConfigDataUtil.getBlockData(config.getMainConfig(), internalKey + key, def);
 	}
 
-	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(String key, RegistryKey<T> registryKey, T def) {
+	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(@NotNull String key, @NotNull RegistryKey<T> registryKey, @Nullable T def) {
 		return ConfigDataUtil.getRegistryEntry(config.getMainConfig(), internalKey + key, RegistryAccess.registryAccess().getRegistry(registryKey), def);
 	}
 
-	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(String key, Registry<T> registry, T def) {
+	protected <T extends Keyed> ConfigData<T> getConfigDataRegistryEntry(@NotNull String key, @NotNull Registry<T> registry, @Nullable T def) {
 		return ConfigDataUtil.getRegistryEntry(config.getMainConfig(), internalKey + key, registry, def);
 	}
 
@@ -922,6 +929,45 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 	 */
 	protected SpellFilter getConfigSpellFilter() {
 		return SpellFilter.fromSection(config.getMainConfig(), internalKey);
+	}
+
+	@SuppressWarnings("UnstableApiUsage")
+	protected <T extends Keyed> Set<Key> getConfigRegistryKeys(String path, RegistryKey<T> registryKey) {
+		List<String> keyStrings = config.getStringList(internalKey + path, null);
+		if (keyStrings == null) return null;
+
+		Set<Key> keys = new HashSet<>();
+
+		Registry<T> registry = RegistryAccess.registryAccess().getRegistry(registryKey);
+		for (String keyString : keyStrings) {
+			if (!keyString.startsWith("#")) {
+				NamespacedKey key = NamespacedKey.fromString(keyString);
+				if (key == null || registry.get(key) == null) {
+					MagicSpells.error("Invalid registry entry '" + keyString + "' found on spell '" + internalName + "'.");
+					continue;
+				}
+
+				keys.add(key);
+				continue;
+			}
+
+			NamespacedKey key = NamespacedKey.fromString(keyString.substring(1));
+			if (key == null) {
+				MagicSpells.error("Invalid tag '" + keyString + "' found on spell '" + internalName + "'.");
+				continue;
+			}
+
+			TagKey<T> tagKey = TagKey.create(registryKey, key);
+			if (!registry.hasTag(tagKey)) {
+				MagicSpells.error("Invalid tag '" + keyString + "' found on spell '" + internalName + "'.");
+				continue;
+			}
+
+			Tag<@NotNull T> tag = registry.getTag(tagKey);
+			tag.values().forEach(typedKey -> keys.add(typedKey.key()));
+		}
+
+		return keys;
 	}
 
 	protected boolean isConfigString(String key) {
@@ -1539,15 +1585,36 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 			target = targetEvent.getTarget();
 
-			if (targetDamageCause != null) {
-				EntityDamageByEntityEvent entityDamageEvent = new MagicSpellsEntityDamageByEntityEvent(caster, target, targetDamageCause, targetDamageAmount, this);
-				if (!entityDamageEvent.callEvent()) continue;
-			}
+			if (targetDamageCause != null && checkFakeDamageEvent(caster, target, targetDamageCause, targetDamageAmount))
+				continue;
 
 			return new TargetInfo<>(target, targetEvent.getSpellData(), false);
 		}
 
 		return new TargetInfo<>(null, data, false);
+	}
+
+	protected boolean checkFakeDamageEvent(@NotNull LivingEntity caster, @NotNull LivingEntity target) {
+		return !createFakeDamageEvent(caster, target, DamageCause.ENTITY_ATTACK, 1).callEvent();
+	}
+
+	protected boolean checkFakeDamageEvent(@NotNull LivingEntity caster, @NotNull LivingEntity target, @NotNull DamageCause cause, double damage) {
+		return !createFakeDamageEvent(caster, target, cause, damage).callEvent();
+	}
+
+	@SuppressWarnings({"UnstableApiUsage", "deprecation"})
+	protected EntityDamageByEntityEvent createFakeDamageEvent(@NotNull LivingEntity caster, @NotNull LivingEntity target, @NotNull DamageCause cause, double damage) {
+		DamageType damageType = caster instanceof Player ? DamageType.PLAYER_ATTACK : DamageType.MOB_ATTACK;
+		DamageSource source = DamageSource.builder(damageType).withDirectEntity(caster).build();
+
+		EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(
+			caster, target, cause, source,
+			Map.of(EntityDamageEvent.DamageModifier.BASE, damage),
+			Map.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0)),
+			false
+		);
+
+		return event;
 	}
 
 	protected Block getTargetedBlock(LivingEntity entity, float power) {

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
@@ -21,6 +22,12 @@ import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class DotSpell extends TargetedSpell implements TargetedEntitySpell {
+
+	private static final DeprecationNotice DAMAGE_TYPE_DEPRECATION_NOTICE = new DeprecationNotice(
+		"The 'damage-type' option of '.targeted.DotSpell' does not function properly",
+		"Use '.targeted.DamageSpell', in combination with '.targeted.LoopSpell'.",
+		"https://github.com/TheComputerGeek2/MagicSpells/wiki/Deprecations#targeteddotspell-damage-type"
+	);
 
 	private final Map<UUID, Dot> activeDots;
 
@@ -58,6 +65,10 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell {
 		damageType = getConfigDataEnum("damage-type", DamageCause.class, DamageCause.ENTITY_ATTACK);
 
 		activeDots = new HashMap<>();
+
+		MagicSpells.getDeprecationManager().addDeprecation(this, DAMAGE_TYPE_DEPRECATION_NOTICE,
+			!damage.isConstant() || damage.get() > 0
+		);
 	}
 
 	@Override
@@ -161,7 +172,7 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell {
 			double localDamage = damage.get(data);
 			if (powerAffectsDamage) localDamage *= data.power();
 
-			if (checkPlugins && data.hasCaster()) {
+			if (checkPlugins && data.hasCaster() && damageType != DamageCause.ENTITY_ATTACK) {
 				MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(data.caster(), data.target(), damageType, localDamage, DotSpell.this);
 				if (!event.callEvent()) return;
 
@@ -174,6 +185,13 @@ public class DotSpell extends TargetedSpell implements TargetedEntitySpell {
 			localDamage = event.getFinalDamage();
 
 			if (ignoreArmor) {
+				if (checkPlugins && data.hasCaster()) {
+					EntityDamageEvent damageEvent = createFakeDamageEvent(data.caster(), data.target(), DamageCause.ENTITY_ATTACK, localDamage);
+					if (!damageEvent.callEvent()) return;
+
+					if (!avoidDamageModification) localDamage = event.getDamage();
+				}
+
 				double maxHealth = Util.getMaxHealth(data.target());
 				double health = data.target().getHealth();
 

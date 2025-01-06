@@ -12,10 +12,18 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.OverridePriority;
+import com.nisovin.magicspells.util.DeprecationNotice;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
+import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 @Name("fataldamage")
 public class FatalDamageListener extends PassiveListener {
+
+	private static final DeprecationNotice DEPRECATION_NOTICE = new DeprecationNotice(
+		"The 'fataldamage' trigger does not function properly.",
+		"Use the 'damage' trigger.",
+		"https://github.com/TheComputerGeek2/MagicSpells/wiki/Deprecations#passivespell-passive-triggers-fatal-damage"
+	);
 
 	private final EnumSet<DamageCause> damageCauses = EnumSet.noneOf(DamageCause.class);
 
@@ -33,11 +41,13 @@ public class FatalDamageListener extends PassiveListener {
 			}
 			damageCauses.add(cause);
 		}
+
+		MagicSpells.getDeprecationManager().addDeprecation(passiveSpell, DEPRECATION_NOTICE);
 	}
 
 	@OverridePriority
 	@EventHandler
-	void onDamage(EntityDamageEvent event) {
+	public void onDamage(EntityDamageEvent event) {
 		if (!(event.getEntity() instanceof LivingEntity caster)) return;
 		if (!isCancelStateOk(event.isCancelled())) return;
 		if (event.getFinalDamage() < caster.getHealth()) return;
@@ -46,6 +56,12 @@ public class FatalDamageListener extends PassiveListener {
 
 		boolean casted = passiveSpell.activate(caster);
 		if (cancelDefaultAction(casted)) event.setCancelled(true);
+	}
+
+	@OverridePriority
+	@EventHandler
+	public void onLegacyDamage(MagicSpellsEntityDamageByEntityEvent event) {
+		onDamage(event);
 	}
 
 }

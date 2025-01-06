@@ -7,27 +7,38 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import net.kyori.adventure.key.Key;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
-
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+
+import io.papermc.paper.registry.RegistryKey;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.MagicConfig;
 import com.nisovin.magicspells.spells.BuffSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
+import com.nisovin.magicspells.util.DeprecationNotice;
 import com.nisovin.magicspells.events.SpellApplyDamageEvent;
+import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class ResistSpell extends BuffSpell {
 
+	private static final DeprecationNotice DEPRECATION_NOTICE = new DeprecationNotice(
+		"The 'normal-damage-types' option does not function properly.",
+		"Use the 'damage-types' option.",
+		"https://github.com/TheComputerGeek2/MagicSpells/wiki/Deprecations#buffresistspell-normal-damage-types"
+	);
+
 	private final Map<UUID, ResistData> entities;
 
+	private final Set<Key> damageTypes;
 	private final Set<String> spellDamageTypes;
-
 	private final Set<DamageCause> normalDamageTypes;
 
 	private final ConfigData<Double> flatModifier;
@@ -39,7 +50,7 @@ public class ResistSpell extends BuffSpell {
 	private final ConfigData<Boolean> powerAffectsMultiplier;
 	private final ConfigData<Boolean> powerAffectsFlatModifier;
 
-	private boolean normalDamageWildcard = false;
+	private boolean damageWildcard;
 
 	public ResistSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
@@ -52,12 +63,16 @@ public class ResistSpell extends BuffSpell {
 		powerAffectsMultiplier = getConfigDataBoolean("power-affects-multiplier", true);
 		powerAffectsFlatModifier = getConfigDataBoolean("power-affects-flat-modifier", true);
 
-		normalDamageTypes = new HashSet<>();
+		damageTypes = getConfigRegistryKeys("damage-types", RegistryKey.DAMAGE_TYPE);
+		damageWildcard = getConfigBoolean("damage-types", false);
+
 		List<String> causes = getConfigStringList("normal-damage-types", null);
 		if (causes != null) {
+			normalDamageTypes = new HashSet<>();
+
 			for (String cause : causes) {
 				if (cause.equalsIgnoreCase("*")) {
-					normalDamageWildcard = true;
+					damageWildcard = true;
 					break;
 				}
 				try {
@@ -67,7 +82,9 @@ public class ResistSpell extends BuffSpell {
 					MagicSpells.error("ResistSpell '" + internalName + "' has an invalid damage cause defined '" + cause + "'!");
 				}
 			}
-		}
+
+			MagicSpells.getDeprecationManager().addDeprecation(this, DEPRECATION_NOTICE);
+		} else normalDamageTypes = null;
 
 		spellDamageTypes = new HashSet<>();
 		causes = getConfigStringList("spell-damage-types", null);
@@ -143,7 +160,13 @@ public class ResistSpell extends BuffSpell {
 
 	@EventHandler(ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageEvent event) {
-		if (!normalDamageWildcard && !normalDamageTypes.contains(event.getCause())) return;
+		if (!damageWildcard) {
+			if (damageTypes == null && normalDamageTypes == null) return;
+
+			if (damageTypes != null) {
+				if (!damageTypes.contains(event.getDamageSource().getDamageType())) return;
+			} else if (!normalDamageTypes.contains(event.getCause())) return;
+		}
 
 		Entity entity = event.getEntity();
 		if (!(entity instanceof LivingEntity caster)) return;
@@ -159,6 +182,11 @@ public class ResistSpell extends BuffSpell {
 		double finalDamage = (event.getDamage() * calculation.multiplier) - calculation.flatModifier;
 		if (finalDamage < 0D) finalDamage = 0D;
 		event.setDamage(finalDamage);
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	public void onLegacyDamage(MagicSpellsEntityDamageByEntityEvent event) {
+		onEntityDamage(event);
 	}
 
 	private ResistCalculation calculateResist(ResistData data, LivingEntity caster, LivingEntity target, float multiplier, double flatModifier) {

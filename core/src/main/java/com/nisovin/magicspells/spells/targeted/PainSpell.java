@@ -2,9 +2,11 @@ package com.nisovin.magicspells.spells.targeted;
 
 import org.bukkit.entity.Player;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.nisovin.magicspells.util.*;
+import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.compat.CompatBasics;
@@ -13,6 +15,12 @@ import com.nisovin.magicspells.events.SpellApplyDamageEvent;
 import com.nisovin.magicspells.events.MagicSpellsEntityDamageByEntityEvent;
 
 public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
+
+	private static final DeprecationNotice DAMAGE_TYPE_DEPRECATION_NOTICE = new DeprecationNotice(
+		"The 'damage-type' option of '.targeted.PainSpell' does not function properly.",
+		"Use '.targeted.DamageSpell', which has proper damage type support.",
+		"https://github.com/TheComputerGeek2/MagicSpells/wiki/Deprecations#targetedpainspell-damage-type"
+	);
 
 	private final ConfigData<String> spellDamageType;
 	private final ConfigData<DamageCause> damageType;
@@ -39,6 +47,10 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 		powerAffectsDamage = getConfigDataBoolean("power-affects-damage", true);
 		avoidDamageModification = getConfigDataBoolean("avoid-damage-modification", true);
 		tryAvoidingAntiCheatPlugins = getConfigDataBoolean("try-avoiding-anticheat-plugins", false);
+
+		MagicSpells.getDeprecationManager().addDeprecation(this, DAMAGE_TYPE_DEPRECATION_NOTICE,
+			!damageType.isConstant() || damageType.get() != DamageCause.ENTITY_ATTACK
+		);
 	}
 
 	@Override
@@ -62,11 +74,14 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 		DamageCause damageType = this.damageType.get(data);
 		String spellDamageType = this.spellDamageType.get(data);
 
-		if (checkPlugins.get(data)) {
+		boolean checkPlugins = this.checkPlugins.get(data);
+		boolean avoidDamageModification = this.avoidDamageModification.get(data);
+
+		if (checkPlugins && data.hasCaster() && damageType != DamageCause.ENTITY_ATTACK) {
 			MagicSpellsEntityDamageByEntityEvent event = new MagicSpellsEntityDamageByEntityEvent(data.caster(), data.target(), damageType, damage, this);
 			if (!event.callEvent()) return noTarget(data);
 
-			if (!avoidDamageModification.get(data)) damage = event.getDamage();
+			if (!avoidDamageModification) damage = event.getDamage();
 			data.target().setLastDamageCause(event);
 		}
 
@@ -75,6 +90,13 @@ public class PainSpell extends TargetedSpell implements TargetedEntitySpell {
 		damage = event.getFinalDamage();
 
 		if (ignoreArmor.get(data)) {
+			if (checkPlugins && data.hasCaster()) {
+				EntityDamageEvent damageEvent = createFakeDamageEvent(data.caster(), data.target(), DamageCause.ENTITY_ATTACK, damage);
+				if (!damageEvent.callEvent()) return noTarget(data);
+
+				if (!avoidDamageModification) damage = event.getDamage();
+			}
+
 			double maxHealth = Util.getMaxHealth(data.target());
 
 			double health = Math.min(data.target().getHealth(), maxHealth);
