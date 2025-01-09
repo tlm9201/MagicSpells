@@ -12,7 +12,7 @@ import com.nisovin.magicspells.castmodifiers.conditions.*;
 
 public class ConditionManager {
 
-	private static final Map<String, Class<? extends Condition>> conditions = new HashMap<>();
+	private final Map<String, Class<? extends Condition>> conditions = new HashMap<>();
 
 	public ConditionManager() {
 		initialize();

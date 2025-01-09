@@ -173,11 +173,11 @@ public class PortalSpell extends InstantSpell {
 	}
 
 	public ConfigData<Integer> getMinDistance() {
-		return duration;
+		return minDistance;
 	}
 
 	public ConfigData<Integer> getMaxDistance() {
-		return duration;
+		return maxDistance;
 	}
 
 	public ConfigData<Double> getTeleportCooldown() {
