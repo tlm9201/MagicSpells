@@ -74,7 +74,7 @@ sourceSets {
 }
 
 generateGrammarSource {
-    arguments += ["-package", "com.nisovin.magicspells.util.spellfilter", "-visitor", "-no-listener"]
+    arguments += ["-package", "com.nisovin.magicspells.util.grammars", "-visitor", "-no-listener"]
 }
 
 artifacts {

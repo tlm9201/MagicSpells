@@ -219,6 +219,7 @@ public class ConditionManager {
 		addCondition(UnderWaterCondition.class);
 		addCondition(FixedTimeCondition.class);
 		addCondition(UsingItemCondition.class);
+		addCondition(InputCondition.class);
 	}
 
 }
