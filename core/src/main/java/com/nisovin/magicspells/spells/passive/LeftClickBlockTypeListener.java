@@ -31,7 +31,7 @@ public class LeftClickBlockTypeListener extends PassiveListener {
 			s = s.trim();
 			Material m = Util.getMaterial(s);
 			if (m == null) {
-				MagicSpells.error("Invalid block type on leftclickblocktype trigger '" + var + "' on passive spell '" + passiveSpell.getInternalName() + "'");
+				MagicSpells.error("Invalid block type on leftclickblocktype trigger '" + s + "' on passive spell '" + passiveSpell.getInternalName() + "'");
 				continue;
 			}
 
