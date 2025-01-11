@@ -70,8 +70,16 @@ The move to Gradle has made building much easier. After cloning and navigating t
 ```
 ./gradlew build
 ```
-Simple right?
+The plugin jar will be in the `core/build/libs` directory.
 
+
+
+---
+## License 📜
+
+MagicSpells is licensed under **GNU General Public License v3**. For details, see `LICENSE` file in the root directory.
+- If your software is distributed and links to MagicSpells API, it must be licensed by a [GPL compatible license](https://www.gnu.org/licenses/license-list.html#GPLCompatibleLicenses).
+- If your software modifies MagicSpells, you must also include the licenses of our dependencies linked in our `NOTICE` file.
 
 
 ---
