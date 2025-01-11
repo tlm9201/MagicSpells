@@ -74,6 +74,7 @@ import com.nisovin.magicspells.castmodifiers.ModifierSet;
 import com.nisovin.magicspells.commands.CommandHelpFilter;
 import com.nisovin.magicspells.util.magicitems.MagicItems;
 import com.nisovin.magicspells.util.recipes.CustomRecipes;
+import com.nisovin.magicspells.util.ai.CustomGoalsManager;
 import com.nisovin.magicspells.handlers.DeprecationHandler;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.storage.types.TXTFileStorage;
@@ -87,6 +88,7 @@ import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 import com.nisovin.magicspells.spelleffects.effecttypes.EffectLibEffect;
 import com.nisovin.magicspells.variables.variabletypes.GlobalStringVariable;
 import com.nisovin.magicspells.variables.variabletypes.PlayerStringVariable;
+import com.nisovin.magicspells.spells.targeted.cleanse.util.CleanserManager;
 
 public class MagicSpells extends JavaPlugin {
 
@@ -134,6 +136,8 @@ public class MagicSpells extends JavaPlugin {
 	private SpellEffectManager spellEffectManager;
 	private ConditionManager conditionManager;
 	private NoMagicZoneManager zoneManager;
+	private CleanserManager cleanserManager;
+	private CustomGoalsManager customGoalsManager;
 	private PaperCommandManager commandManager;
 	private ExperienceBarManager expBarManager;
 
@@ -416,6 +420,8 @@ public class MagicSpells extends JavaPlugin {
 
 		// Create handling objects
 		zoneManager = new NoMagicZoneManager();
+		cleanserManager = new CleanserManager();
+		customGoalsManager = new CustomGoalsManager();
 		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 100));
 		expBarManager = new ExperienceBarManager();
 		bossBarManager = new BossBarManager();
@@ -1358,6 +1364,22 @@ public class MagicSpells extends JavaPlugin {
 		return plugin.zoneManager;
 	}
 
+	/**
+	 * Gets the handler for CleanseSpell cleansers.
+	 * @return the CleanseSpell cleanser handler
+	 */
+	public static CleanserManager getCleanserManager() {
+		return plugin.cleanserManager;
+	}
+
+	/**
+	 * Gets the handler for mob goals.
+	 * @return the mob goals handler
+	 */
+	public static CustomGoalsManager getCustomGoalsManager() {
+		return plugin.customGoalsManager;
+	}
+
 	public static BuffManager getBuffManager() {
 		return plugin.buffManager;
 	}
@@ -2227,9 +2249,11 @@ public class MagicSpells extends JavaPlugin {
 		strWrongWorld = null;
 		strSpellChange = null;
 		strUnknownSpell = null;
+		cleanserManager = null;
 		strXpAutoLearned = null;
 		lifeLengthTracker = null;
 		deprecationHandler = null;
+		customGoalsManager = null;
 		strMissingReagents = null;
 		strSpellChangeEmpty = null;
 		soundFailOnCooldown = null;

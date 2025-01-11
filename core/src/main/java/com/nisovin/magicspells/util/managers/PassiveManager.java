@@ -14,9 +14,9 @@ import com.nisovin.magicspells.spells.passive.util.PassiveListener;
 
 public class PassiveManager {
 
-	private static final Map<String, EventPriority> eventPriorities = new HashMap<>();
+	private final Map<String, EventPriority> eventPriorities = new HashMap<>();
 
-	private static final Map<String, Class<? extends PassiveListener>> listeners = new HashMap<>();
+	private final Map<String, Class<? extends PassiveListener>> listeners = new HashMap<>();
 
 	public PassiveManager() {
 		initialize();
@@ -101,10 +101,10 @@ public class PassiveManager {
 		addListener(CraftListener.class);
 		addListener(DamageListener.class);
 		addListener(DeathListener.class);
-		addListener(DropItemListener.class);
-		addListener(EnterBedListener.class);
 		addListener(DismountListener.class);
+		addListener(DropItemListener.class);
 		addListener(EnchantListener.class);
+		addListener(EnterBedListener.class);
 		addListener(EntityTargetListener.class);
 		addListener(EquipListener.class);
 		addListener(FatalDamageListener.class);

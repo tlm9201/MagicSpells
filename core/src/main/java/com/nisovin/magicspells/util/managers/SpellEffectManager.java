@@ -12,7 +12,7 @@ import com.nisovin.magicspells.spelleffects.effecttypes.*;
 
 public class SpellEffectManager {
 
-	private static final Map<String, Class<? extends SpellEffect>> spellEffects = new HashMap<>();
+	private final Map<String, Class<? extends SpellEffect>> spellEffects = new HashMap<>();
 
 	public SpellEffectManager() {
 		initialize();

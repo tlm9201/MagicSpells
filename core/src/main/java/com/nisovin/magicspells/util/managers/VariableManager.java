@@ -27,15 +27,19 @@ import com.nisovin.magicspells.variables.variabletypes.*;
 
 public class VariableManager {
 
-	private static final Map<String, Class<? extends Variable>> variableTypes = new HashMap<>();
-	private static final Map<String, Variable> metaVariables = new HashMap<>();
-	private static final Map<String, Variable> variables = new HashMap<>();
-	private static final Set<String> dirtyPlayerVars = new HashSet<>();
+	private final Map<String, Variable> metaVariables = new HashMap<>();
+	private final Map<String, Class<? extends Variable>> variableTypes = new HashMap<>();
 
+	private static final Map<String, Variable> variables = new HashMap<>();
+
+	private static final Set<String> dirtyPlayerVars = new HashSet<>();
 	private static boolean dirtyGlobalVars = false;
+
 	private static File folder;
 
 	public VariableManager() {
+		folder = new File(MagicSpells.getInstance().getDataFolder(), "vars");
+
 		initialize();
 	}
 
@@ -181,8 +185,6 @@ public class VariableManager {
 			variables.putAll(getMetaVariables());
 
 			// Load vars
-			folder = new File(MagicSpells.getInstance().getDataFolder(), "vars");
-			if (!folder.exists()) folder.mkdir();
 			loadGlobalVariables();
 			for (Player player : Bukkit.getOnlinePlayers()) {
 				loadPlayerVariables(player.getName(), Util.getUniqueId(player));
@@ -278,9 +280,6 @@ public class VariableManager {
 		variables.putAll(getMetaVariables());
 
 		// Load vars
-		folder = new File(MagicSpells.getInstance().getDataFolder(), "vars");
-		if (!folder.exists()) folder.mkdir();
-
 		loadGlobalVariables();
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			loadPlayerVariables(player.getName(), Util.getUniqueId(player));
@@ -438,6 +437,7 @@ public class VariableManager {
 	}
 
 	public void loadGlobalVariables() {
+		if (!folder.exists()) folder.mkdir();
 		File file = new File(folder, "GLOBAL.txt");
 		if (!file.exists()) {
 			dirtyGlobalVars = false;
@@ -465,6 +465,7 @@ public class VariableManager {
 	}
 
 	public void saveGlobalVariables() {
+		if (!folder.exists()) folder.mkdir();
 		File file = new File(folder, "GLOBAL.txt");
 		if (file.exists()) file.delete();
 
@@ -507,6 +508,7 @@ public class VariableManager {
 	}
 
 	public void loadPlayerVariables(String player, String uniqueId) {
+		if (!folder.exists()) folder.mkdir();
 		File file = new File(folder, "PLAYER_" + uniqueId + ".txt");
 		if (!file.exists()) {
 			File file2 = new File(folder, "PLAYER_" + player + ".txt");
@@ -537,6 +539,7 @@ public class VariableManager {
 	}
 
 	public void savePlayerVariables(String player, String uniqueId) {
+		if (!folder.exists()) folder.mkdir();
 		File file = new File(folder, "PLAYER_" + player + ".txt");
 		if (file.exists()) file.delete();
 		file = new File(folder, "PLAYER_" + uniqueId + ".txt");

@@ -17,17 +17,16 @@ import com.destroystokyo.paper.entity.ai.GoalType;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.ai.CustomGoal;
-import com.nisovin.magicspells.util.ai.CustomGoals;
 import com.nisovin.magicspells.spells.TargetedSpell;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spells.TargetedEntitySpell;
 
 public class MobGoalEditSpell extends TargetedSpell implements TargetedEntitySpell {
 
-	private final List<GoalData> add;
-	private final List<GoalKey<@NotNull Mob>> remove;
-	private final EnumSet<GoalType> removeTypes;
-	private final List<GoalKey<?>> removeVanilla;
+	private final List<GoalData> add = new ArrayList<>();
+	private final List<GoalKey<@NotNull Mob>> remove = new ArrayList<>();
+	private final EnumSet<GoalType> removeTypes = EnumSet.noneOf(GoalType.class);
+	private final List<GoalKey<?>> removeVanilla = new ArrayList<>();
 
 	private final ConfigData<Boolean> removeAll;
 
@@ -36,7 +35,6 @@ public class MobGoalEditSpell extends TargetedSpell implements TargetedEntitySpe
 
 		removeAll = getConfigDataBoolean("remove-all", false);
 
-		removeTypes = EnumSet.noneOf(GoalType.class);
 		List<String> removeTypeStrings = getConfigStringList("remove-types", null);
 		if (removeTypeStrings != null) {
 			for (String string : removeTypeStrings) {
@@ -49,20 +47,6 @@ public class MobGoalEditSpell extends TargetedSpell implements TargetedEntitySpe
 			}
 		}
 
-		removeVanilla = new ArrayList<>();
-		List<String> removeVanillaStrings = getConfigStringList("remove-vanilla", null);
-		if (removeVanillaStrings != null) {
-			for (String string : removeVanillaStrings) {
-				GoalKey<?> vanillaGoal = CustomGoals.getVanillaGoal(string);
-				if (vanillaGoal == null) {
-					MagicSpells.error("MobGoalEditSpell '" + internalName + "' lists an invalid vanilla goal in 'remove-vanilla': " + string);
-					continue;
-				}
-				removeVanilla.add(vanillaGoal);
-			}
-		}
-
-		remove = new ArrayList<>();
 		List<String> removeStrings = getConfigStringList("remove", null);
 		if (removeStrings != null) {
 			for (String string : removeStrings) {
@@ -77,9 +61,25 @@ public class MobGoalEditSpell extends TargetedSpell implements TargetedEntitySpe
 				remove.add(GoalKey.of(Mob.class, key));
 			}
 		}
+	}
 
-		add = new ArrayList<>();
-		List<?> addList = getConfigList("add", new ArrayList<>());
+	@Override
+	protected void initialize() {
+		super.initialize();
+
+		List<String> removeVanillaStrings = getConfigStringList("remove-vanilla", null);
+		if (removeVanillaStrings != null) {
+			for (String string : removeVanillaStrings) {
+				GoalKey<?> vanillaGoal = MagicSpells.getCustomGoalsManager().getVanillaGoal(string);
+				if (vanillaGoal == null) {
+					MagicSpells.error("MobGoalEditSpell '" + internalName + "' lists an invalid vanilla goal in 'remove-vanilla': " + string);
+					continue;
+				}
+				removeVanilla.add(vanillaGoal);
+			}
+		}
+
+		List<?> addList = getConfigList("add", null);
 		if (addList != null) {
 			for (Object object : addList) {
 				if (!(object instanceof Map<?, ?> map)) continue;
@@ -89,7 +89,7 @@ public class MobGoalEditSpell extends TargetedSpell implements TargetedEntitySpe
 				String goalName = section.getString("goal", "").toLowerCase();
 				ConfigurationSection goalSection = section.getConfigurationSection("data");
 
-				if (!CustomGoals.getGoals().containsKey(goalName)) {
+				if (!MagicSpells.getCustomGoalsManager().getGoals().containsKey(goalName)) {
 					MagicSpells.error("MobGoalEditSpell '" + internalName + "' lists an invalid goal name: '" + goalName + "'");
 					continue;
 				}
@@ -131,7 +131,7 @@ public class MobGoalEditSpell extends TargetedSpell implements TargetedEntitySpe
 		}
 
 		for (GoalData goalData : add) {
-			CustomGoal goal = CustomGoals.getGoal(goalData.goalName(), mob, data);
+			CustomGoal goal = MagicSpells.getCustomGoalsManager().getGoal(goalData.goalName(), mob, data);
 			if (goal == null) {
 				MagicSpells.error("MobGoalEditSpell '" + internalName + "' lists an invalid goal name on 'add': '" + goalData.goalName() + "'");
 				continue;

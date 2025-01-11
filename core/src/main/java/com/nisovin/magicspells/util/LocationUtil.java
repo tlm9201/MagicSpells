@@ -11,7 +11,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.command.BlockCommandSender;
 
-import org.apache.commons.math4.core.jdkmath.JdkMath;
 import org.apache.commons.math4.core.jdkmath.AccurateMath;
 
 public class LocationUtil {
@@ -164,7 +163,7 @@ public class LocationUtil {
 
 		double x2 = NumberConversions.square(x);
 		double z2 = NumberConversions.square(z);
-		double xz = JdkMath.sqrt(x2 + z2);
+		double xz = Math.sqrt(x2 + z2);
 		loc.setPitch((float) AccurateMath.toDegrees(AccurateMath.atan(-v.getY() / xz)));
 
 		return loc;
