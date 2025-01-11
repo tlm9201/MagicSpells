@@ -1607,14 +1607,12 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		DamageType damageType = caster instanceof Player ? DamageType.PLAYER_ATTACK : DamageType.MOB_ATTACK;
 		DamageSource source = DamageSource.builder(damageType).withDirectEntity(caster).build();
 
-		EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(
+		return new EntityDamageByEntityEvent(
 			caster, target, cause, source,
-			Map.of(EntityDamageEvent.DamageModifier.BASE, damage),
-			Map.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0)),
+			Collections.singletonMap(EntityDamageEvent.DamageModifier.BASE, damage),
+			Collections.singletonMap(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0)),
 			false
 		);
-
-		return event;
 	}
 
 	protected Block getTargetedBlock(LivingEntity entity, float power) {
