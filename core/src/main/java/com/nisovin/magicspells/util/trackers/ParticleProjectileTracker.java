@@ -46,8 +46,8 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private NoMagicZoneManager zoneManager;
 
 	private Set<EffectlibSpellEffect> effectSet;
-	private Map<SpellEffect, Entity> entityMap;
-	private Set<ArmorStand> armorStandSet;
+	private Map<SpellEffect, DelayableEntity<Entity>> entityMap;
+	private Set<DelayableEntity<ArmorStand>> armorStandSet;
 
 	private SpellData data;
 	private long startTime;
@@ -138,8 +138,6 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 	private Subspell entityLocationSpell;
 
 	private int ticks = 0;
-
-	private static final double ANGLE_Y = AccurateMath.toRadians(-90);
 
 	public ParticleProjectileTracker(SpellData data) {
 		this.data = data;
@@ -364,17 +362,19 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			EulerAngle angle = EulerAngle.ZERO.setX(AccurateMath.toRadians(effectLoc.getPitch()));
 
 			if (armorStandSet != null) {
-				for (ArmorStand armorStand : armorStandSet) {
-					armorStand.teleportAsync(effectLoc);
-					armorStand.setHeadPose(angle);
-					armorStand.setLeftArmPose(angle);
-					armorStand.setRightArmPose(angle);
+				for (DelayableEntity<ArmorStand> armorStand : armorStandSet) {
+					armorStand.teleport(effectLoc);
+					armorStand.accept(stand -> {
+						stand.setHeadPose(angle);
+						stand.setLeftArmPose(angle);
+						stand.setRightArmPose(angle);
+					});
 				}
 			}
 
 			if (entityMap != null) {
 				for (var entry : entityMap.entrySet()) {
-					entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone(), data));
+					entry.getValue().teleport(entry.getKey().applyOffsets(effectLoc.clone(), data));
 				}
 			}
 		}
@@ -646,15 +646,11 @@ public class ParticleProjectileTracker implements Runnable, Tracker {
 			effectSet.clear();
 		}
 		if (armorStandSet != null) {
-			for (ArmorStand armorStand : armorStandSet) {
-				armorStand.remove();
-			}
+			armorStandSet.forEach(DelayableEntity::remove);
 			armorStandSet.clear();
 		}
 		if (entityMap != null) {
-			for (Entity entity : entityMap.values()) {
-				entity.remove();
-			}
+			entityMap.values().forEach(DelayableEntity::remove);
 			entityMap.clear();
 		}
 		startLocation = null;

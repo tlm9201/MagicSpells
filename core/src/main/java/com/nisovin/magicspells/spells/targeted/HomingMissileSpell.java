@@ -192,8 +192,8 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		private SpellData data;
 
 		private final Set<EffectlibSpellEffect> effectSet;
-		private final Map<SpellEffect, Entity> entityMap;
-		private final Set<ArmorStand> armorStandSet;
+		private final Map<SpellEffect, DelayableEntity<Entity>> entityMap;
+		private final Set<DelayableEntity<ArmorStand>> armorStandSet;
 
 		private final BoundingBox hitBox;
 		private final long startTime;
@@ -356,14 +356,14 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				effectLoc = Util.makeFinite(effectLoc);
 
 				if (armorStandSet != null) {
-					for (ArmorStand armorStand : armorStandSet) {
-						armorStand.teleportAsync(effectLoc);
+					for (DelayableEntity<ArmorStand> armorStand : armorStandSet) {
+						armorStand.teleport(effectLoc);
 					}
 				}
 
 				if (entityMap != null) {
 					for (var entry : entityMap.entrySet()) {
-						entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone(), data));
+						entry.getValue().teleport(entry.getKey().applyOffsets(effectLoc.clone(), data));
 					}
 				}
 			}
@@ -455,15 +455,11 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 				effectSet.clear();
 			}
 			if (armorStandSet != null) {
-				for (ArmorStand armorStand : armorStandSet) {
-					armorStand.remove();
-				}
+				armorStandSet.forEach(DelayableEntity::remove);
 				armorStandSet.clear();
 			}
 			if (entityMap != null) {
-				for (Entity entity : entityMap.values()) {
-					entity.remove();
-				}
+				entityMap.values().forEach(DelayableEntity::remove);
 				entityMap.clear();
 			}
 			currentLocation = null;

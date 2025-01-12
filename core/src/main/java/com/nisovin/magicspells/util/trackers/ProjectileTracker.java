@@ -15,13 +15,10 @@ import net.kyori.adventure.text.Component;
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.projectile.*;
-import com.nisovin.magicspells.util.ModifierResult;
-import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.events.TrackerMoveEvent;
@@ -37,7 +34,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 	private final Random rand = ThreadLocalRandom.current();
 
 	private Set<EffectlibSpellEffect> effectSet;
-	private Map<SpellEffect, Entity> entityMap;
+	private Map<SpellEffect, DelayableEntity<Entity>> entityMap;
 
 	private ProjectileSpell spell;
 
@@ -230,7 +227,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 			effectLoc.add(0, effectOffset.getY(), 0);
 
 			for (var entry : entityMap.entrySet()) {
-				entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone(), data));
+				entry.getValue().teleport(entry.getKey().applyOffsets(effectLoc.clone(), data));
 			}
 		}
 
@@ -318,9 +315,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 			effectSet.clear();
 		}
 		if (entityMap != null) {
-			for (Entity entity : entityMap.values()) {
-				entity.remove();
-			}
+			entityMap.values().forEach(DelayableEntity::remove);
 			entityMap.clear();
 		}
 		currentLocation = null;

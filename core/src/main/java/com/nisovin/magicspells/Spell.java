@@ -1912,36 +1912,50 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 	@Deprecated
 	protected Map<SpellEffect, Entity> playSpellEntityEffects(EffectPosition pos, Location location) {
-		return playSpellEntityEffects(pos, location, SpellData.NULL);
+		Map<SpellEffect, DelayableEntity<Entity>> values = playSpellEntityEffects(pos, location, SpellData.NULL);
+		if (values == null) return null;
+
+		Map<SpellEffect, Entity> map = new HashMap<>();
+		values.forEach((key, value) -> value.ifPresent(entity -> map.put(key, entity)));
+
+		return map;
 	}
 
-	protected Map<SpellEffect, Entity> playSpellEntityEffects(EffectPosition pos, Location location, SpellData data) {
+	protected Map<SpellEffect, DelayableEntity<Entity>> playSpellEntityEffects(EffectPosition pos, Location location, SpellData data) {
 		if (effects == null) return null;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return null;
-		Map<SpellEffect, Entity> values = new HashMap<>();
+
+		Map<SpellEffect, DelayableEntity<Entity>> values = new HashMap<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof EntityEffect)) continue;
-			Entity entity = effect.playEntityEffect(location, data);
+			DelayableEntity<Entity> entity = effect.playEntityEffect(location, data);
 			if (entity == null) continue;
 			values.put(effect, entity);
 		}
+
 		return values;
 	}
 
 	@Deprecated
 	protected Set<ArmorStand> playSpellArmorStandEffects(EffectPosition pos, Location location) {
-		return playSpellArmorStandEffects(pos, location, SpellData.NULL);
+		Set<DelayableEntity<ArmorStand>> values = playSpellArmorStandEffects(pos, location, SpellData.NULL);
+		if (values == null) return null;
+
+		Set<ArmorStand> set = new HashSet<>();
+		values.forEach(stand -> stand.ifPresent(set::add));
+
+		return set;
 	}
 
-	protected Set<ArmorStand> playSpellArmorStandEffects(EffectPosition pos, Location location, SpellData data) {
+	protected Set<DelayableEntity<ArmorStand>> playSpellArmorStandEffects(EffectPosition pos, Location location, SpellData data) {
 		if (effects == null) return null;
 		List<SpellEffect> effectsList = effects.get(pos);
 		if (effectsList == null) return null;
-		Set<ArmorStand> armorStands = new HashSet<>();
+		Set<DelayableEntity<ArmorStand>> armorStands = new HashSet<>();
 		for (SpellEffect effect : effectsList) {
 			if (!(effect instanceof ArmorStandEffect)) continue;
-			ArmorStand stand = effect.playArmorStandEffect(location, data);
+			DelayableEntity<ArmorStand> stand = effect.playArmorStandEffect(location, data);
 			if (stand == null) continue;
 			armorStands.add(stand);
 		}

@@ -351,7 +351,7 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 		return playSpellEffectLibEffects(position, location, data);
 	}
 
-	public Map<SpellEffect, Entity> playEntityEffectsProjectile(EffectPosition position, Location location, SpellData data) {
+	public Map<SpellEffect, DelayableEntity<Entity>> playEntityEffectsProjectile(EffectPosition position, Location location, SpellData data) {
 		return playSpellEntityEffects(position, location, data);
 	}
 

@@ -5,6 +5,7 @@ import org.bukkit.entity.Entity;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.spells.BuffSpell;
+import com.nisovin.magicspells.util.DelayableEntity;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
 import com.nisovin.magicspells.spelleffects.effecttypes.EntityEffect;
 import com.nisovin.magicspells.spelleffects.SpellEffect.SpellEffectActiveChecker;
@@ -22,7 +23,7 @@ public class EffectTracker implements Runnable {
 
 	protected boolean isEntityEffect;
 
-	protected Entity effectEntity;
+	protected DelayableEntity<Entity> effectEntity;
 
 	public EffectTracker(Entity entity, SpellEffectActiveChecker checker, SpellEffect effect, SpellData data) {
 		this.entity = entity;
