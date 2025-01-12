@@ -4,13 +4,10 @@ import java.util.*;
 
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.entity.*;
 import org.bukkit.util.Vector;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Projectile;
-import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.EventHandler;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -353,6 +350,10 @@ public class ProjectileSpell extends InstantSpell implements TargetedLocationSpe
 
 	public Map<SpellEffect, DelayableEntity<Entity>> playEntityEffectsProjectile(EffectPosition position, Location location, SpellData data) {
 		return playSpellEntityEffects(position, location, data);
+	}
+
+	public Set<DelayableEntity<ArmorStand>> playArmorStandEffectsProjectile(EffectPosition position, Location location, SpellData data) {
+		return playSpellArmorStandEffects(position, location, data);
 	}
 
 	public static Set<ProjectileTracker> getProjectileTrackers() {
