@@ -3,6 +3,7 @@ package com.nisovin.magicspells.spells.targeted;
 import java.util.Map;
 import java.util.Set;
 import java.util.List;
+import java.util.HashSet;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -29,6 +30,8 @@ import com.nisovin.magicspells.spelleffects.util.EffectlibSpellEffect;
 import com.nisovin.magicspells.spells.TargetedEntityFromLocationSpell;
 
 public class HomingMissileSpell extends TargetedSpell implements TargetedEntitySpell, TargetedEntityFromLocationSpell {
+
+	private static final Set<MissileTracker> trackers = new HashSet<>();
 
 	private NoMagicZoneManager zoneManager;
 
@@ -185,6 +188,12 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		return new CastResult(PostCastAction.HANDLE_NORMALLY, data);
 	}
 
+	@Override
+	protected void turnOff() {
+		trackers.forEach(tracker -> tracker.stop(false));
+		trackers.clear();
+	}
+
 	private class MissileTracker implements Runnable {
 
 		private Location currentLocation;
@@ -221,6 +230,7 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 		private int counter = 0;
 
 		private MissileTracker(SpellData data) {
+			trackers.add(this);
 			startTime = System.currentTimeMillis();
 
 			currentLocation = data.location();
@@ -445,7 +455,13 @@ public class HomingMissileSpell extends TargetedSpell implements TargetedEntityS
 			playSpellEffects(EffectPosition.SPECIAL, loc, data);
 		}
 
-		private void stop() {
+		public void stop() {
+			stop(true);
+		}
+
+		public void stop(boolean removeTracker) {
+			if (removeTracker) trackers.remove(this);
+
 			playSpellEffects(EffectPosition.DELAYED, currentLocation, data);
 			MagicSpells.cancelTask(taskId);
 			if (effectSet != null) {
