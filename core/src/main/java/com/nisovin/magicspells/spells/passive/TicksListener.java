@@ -11,19 +11,19 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.world.EntitiesUnloadEvent;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.PassiveSpell;
-import com.nisovin.magicspells.util.OverridePriority;
 import com.nisovin.magicspells.events.SpellLearnEvent;
 import com.nisovin.magicspells.events.SpellForgetEvent;
 import com.nisovin.magicspells.spells.passive.util.PassiveListener;
@@ -62,30 +62,27 @@ public class TicksListener extends PassiveListener {
 		if (ticker != null) ticker.turnOff();
 	}
 
-	@OverridePriority
 	@EventHandler
-	public void onChunkLoad(ChunkLoadEvent event) {
+	public void onEntitiesLoad(EntitiesLoadEvent event) {
 		if (ticker == null) return;
 
-		for (Entity entity : event.getChunk().getEntities()) {
+		for (Entity entity : event.getEntities()) {
 			if (!(entity instanceof LivingEntity le) || !canTrigger(le)) continue;
 			ticker.add(le);
 		}
 	}
 
-	@OverridePriority
 	@EventHandler
-	public void onChunkUnload(ChunkUnloadEvent event) {
+	public void onEntitiesUnload(EntitiesUnloadEvent event) {
 		if (ticker == null) return;
 
-		for (Entity entity : event.getChunk().getEntities()) {
+		for (Entity entity : event.getEntities()) {
 			if (!(entity instanceof LivingEntity le) || !canTrigger(le)) continue;
 			ticker.remove(le);
 		}
 	}
 
-	@OverridePriority
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onEntitySpawn(EntitySpawnEvent event) {
 		if (ticker == null) return;
 
@@ -95,7 +92,6 @@ public class TicksListener extends PassiveListener {
 		ticker.add(le);
 	}
 
-	@OverridePriority
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
 		if (ticker == null) return;
@@ -106,7 +102,6 @@ public class TicksListener extends PassiveListener {
 		ticker.add(player);
 	}
 
-	@OverridePriority
 	@EventHandler
 	public void onQuit(PlayerQuitEvent event) {
 		if (ticker == null) return;
@@ -117,8 +112,7 @@ public class TicksListener extends PassiveListener {
 		ticker.remove(player);
 	}
 
-	@OverridePriority
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onDeath(PlayerDeathEvent event) {
 		if (ticker == null) return;
 
@@ -128,7 +122,6 @@ public class TicksListener extends PassiveListener {
 		ticker.remove(player);
 	}
 
-	@OverridePriority
 	@EventHandler
 	public void onRespawn(PlayerRespawnEvent event) {
 		if (ticker == null) return;
@@ -139,8 +132,7 @@ public class TicksListener extends PassiveListener {
 		ticker.add(player);
 	}
 
-	@OverridePriority
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onLearn(SpellLearnEvent event) {
 		if (ticker == null) return;
 
@@ -150,8 +142,7 @@ public class TicksListener extends PassiveListener {
 		ticker.add(event.getLearner());
 	}
 
-	@OverridePriority
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onForget(SpellForgetEvent event) {
 		if (ticker == null) return;
 
