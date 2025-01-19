@@ -1,20 +1,16 @@
 plugins {
-  id("dev.magicspells.msjava")
-}
-
-wrapper {
-  gradleVersion = "8.11.1"
-  setDistributionType(Wrapper.DistributionType.ALL)
+    id("dev.magicspells.msjava")
 }
 
 subprojects {
-  apply plugin: "dev.magicspells.msjava"
+    apply plugin: "dev.magicspells.msjava"
 
-  dependencies {
-    implementation(group: "io.papermc.paper", name: "paper-api", version: "1.21.4-R0.1-SNAPSHOT")
-  }
+    dependencies {
+        implementation(group: "io.papermc.paper", name: "paper-api", version: "1.21.4-R0.1-SNAPSHOT")
+    }
 
-  processResources {
-    expand(["version": version])
-  }
+    processResources {
+        expand(["version": version])
+    }
+
 }

@@ -1,5 +1,8 @@
 package com.nisovin.magicspells.spelleffects.effecttypes;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -7,6 +10,7 @@ import org.bukkit.Particle;
 import org.bukkit.Vibration;
 import org.bukkit.util.Vector;
 import org.bukkit.entity.Entity;
+import org.bukkit.Particle.Trail;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.data.BlockData;
@@ -16,7 +20,6 @@ import org.bukkit.Particle.DustTransition;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.util.Name;
-import com.nisovin.magicspells.util.Angle;
 import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.spelleffects.SpellEffect;
@@ -35,11 +38,17 @@ public class ParticlesEffect extends SpellEffect {
 	protected ConfigData<DustOptions> dustOptions;
 	protected ConfigData<DustTransition> dustTransition;
 
+	protected ConfigData<Vector> vibrationOffset;
+	protected ConfigData<Vector> vibrationRelativeOffset;
 	protected ConfigData<ParticlePosition> vibrationOrigin;
 	protected ConfigData<ParticlePosition> vibrationDestination;
 
-	protected ConfigData<Vector> vibrationOffset;
-	protected ConfigData<Vector> vibrationRelativeOffset;
+	protected ConfigData<Color> trailColor;
+	protected ConfigData<Integer> trailDuration;
+	protected ConfigData<Vector> trailTargetOffset;
+	protected ConfigData<ParticlePosition> trailOrigin;
+	protected ConfigData<ParticlePosition> trailTarget;
+	protected ConfigData<Vector> trailTargetRelativeOffset;
 
 	protected ConfigData<Integer> count;
 	protected ConfigData<Integer> radius;
@@ -65,11 +74,17 @@ public class ParticlesEffect extends SpellEffect {
 		dustOptions = ConfigDataUtil.getDustOptions(config, "color", "size", new DustOptions(Color.RED, 1));
 		dustTransition = ConfigDataUtil.getDustTransition(config, "color", "to-color", "size", new DustTransition(Color.RED, Color.BLACK, 1));
 
+		vibrationOffset = ConfigDataUtil.getVector(config, "vibration-offset", new Vector());
 		vibrationOrigin = ConfigDataUtil.getEnum(config, "vibration-origin", ParticlePosition.class, ParticlePosition.POSITION);
 		vibrationDestination = ConfigDataUtil.getEnum(config, "vibration-destination", ParticlePosition.class, ParticlePosition.POSITION);
-
-		vibrationOffset = ConfigDataUtil.getVector(config, "vibration-offset", new Vector());
 		vibrationRelativeOffset = ConfigDataUtil.getVector(config, "vibration-relative-offset", new Vector());
+
+		trailColor = ConfigDataUtil.getColor(config, "trail.color", null);
+		trailOrigin = ConfigDataUtil.getEnum(config, "trail.origin", ParticlePosition.class, ParticlePosition.POSITION);
+		trailTarget = ConfigDataUtil.getEnum(config, "trail.target", ParticlePosition.class, null);
+		trailDuration = ConfigDataUtil.getInteger(config, "trail.duration");
+		trailTargetOffset = ConfigDataUtil.getVector(config, "trail.target-offset", new Vector());
+		trailTargetRelativeOffset = ConfigDataUtil.getVector(config, "trail.target-relative-offset", new Vector());
 
 		count = ConfigDataUtil.getInteger(config, "count", 5);
 		radius = ConfigDataUtil.getInteger(config, "radius", 50);
@@ -93,11 +108,20 @@ public class ParticlesEffect extends SpellEffect {
 	@Override
 	protected Runnable playEffectEntity(Entity entity, SpellData data) {
 		Location location = applyOffsets(entity.getLocation(), data);
-
 		Particle particle = this.particle.get(data);
-		Object particleData = getParticleData(particle, entity, location, data);
 
-		location.getWorld().spawnParticle(particle, location, count.get(data), xSpread.get(data), ySpread.get(data), zSpread.get(data), speed.get(data), particleData, force.get(data));
+		Location spawnLocation = getSpawnLocation(particle, location, data);
+		if (spawnLocation == null) return null;
+
+		particle.builder()
+			.location(spawnLocation)
+			.count(count.get(data))
+			.offset(xSpread.get(data), ySpread.get(data), zSpread.get(data))
+			.extra(speed.get(data))
+			.data(getParticleData(particle, entity, location, data))
+			.force(force.get(data))
+			.receivers(radius.get(data), true)
+			.spawn();
 
 		return null;
 	}
@@ -106,20 +130,23 @@ public class ParticlesEffect extends SpellEffect {
 	public Runnable playEffectLocation(Location location, SpellData data) {
 		Particle particle = this.particle.get(data);
 
+		Location spawnLocation = getSpawnLocation(particle, location, data);
+		if (spawnLocation == null) return null;
+
 		particle.builder()
-				.location(location)
-				.count(count.get(data))
-				.offset(xSpread.get(data), ySpread.get(data), zSpread.get(data))
-				.extra(speed.get(data))
-				.data(getParticleData(particle, location, data))
-				.force(force.get(data))
-				.receivers(radius.get(data), true)
-				.spawn();
+			.location(spawnLocation)
+			.count(count.get(data))
+			.offset(xSpread.get(data), ySpread.get(data), zSpread.get(data))
+			.extra(speed.get(data))
+			.data(getParticleData(particle, null, location, data))
+			.force(force.get(data))
+			.receivers(radius.get(data), true)
+			.spawn();
 
 		return null;
 	}
 
-	protected Object getParticleData(Particle particle, Entity entity, Location location, SpellData data) {
+	protected Object getParticleData(@NotNull Particle particle, @Nullable Entity entity, @NotNull Location location, @NotNull SpellData data) {
 		Class<?> type = particle.getDataType();
 
 		if (type == ItemStack.class) {
@@ -128,11 +155,8 @@ public class ParticlesEffect extends SpellEffect {
 		}
 
 		if (type == Vibration.class) {
-			Location originLocation = getLocation(location, data, vibrationOrigin);
-			if (originLocation == null) return null;
-
-			Vector vibrationRelativeOffset = this.vibrationRelativeOffset.get(data);
-			Vector vibrationOffset = this.vibrationOffset.get(data);
+			Vector relativeOffset = vibrationRelativeOffset.get(data);
+			Vector offset = vibrationOffset.get(data);
 
 			boolean staticDestination = this.staticDestination.get(data);
 
@@ -141,22 +165,46 @@ public class ParticlesEffect extends SpellEffect {
 					LivingEntity caster = data.caster();
 					if (caster == null) yield null;
 
-					yield staticDestination ? new BlockDestination(applyOffsets(caster.getLocation(), vibrationOffset,
-						vibrationRelativeOffset, 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT)) : new EntityDestination(caster);
+					yield staticDestination ?
+						new BlockDestination(applyOffsets(caster.getLocation(), offset, relativeOffset)) :
+						new EntityDestination(caster);
 				}
 				case TARGET -> {
 					LivingEntity target = data.target();
 					if (target == null) yield null;
 
-					yield staticDestination ? new BlockDestination(applyOffsets(target.getLocation(), vibrationOffset,
-						vibrationRelativeOffset, 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT)) : new EntityDestination(target);
+					yield staticDestination ?
+						new BlockDestination(applyOffsets(target.getLocation(), offset, relativeOffset)) :
+						new EntityDestination(target);
 				}
-				case POSITION -> staticDestination ? new BlockDestination(applyOffsets(location, vibrationOffset,
-					vibrationRelativeOffset, 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT)) : new EntityDestination(entity);
+				case POSITION -> entity == null || staticDestination ?
+					new BlockDestination(applyOffsets(location, offset, relativeOffset)) :
+					new EntityDestination(entity);
 			};
 			if (destination == null) return null;
 
 			return new Vibration(destination, arrivalTime.get(data));
+		}
+
+		if (type == Trail.class) {
+			Color color = trailColor.get(data);
+			if (color == null) return null;
+
+			Integer duration = trailDuration.get(data);
+			if (duration == null) return null;
+
+			Vector relativeOffset = trailTargetRelativeOffset.get(data);
+			Vector offset = trailTargetOffset.get(data);
+
+			Location target = switch (trailTarget.get(data)) {
+				case CASTER -> data.hasCaster() ? data.caster().getLocation() : null;
+				case TARGET -> data.hasTarget() ? data.target().getLocation() : null;
+				case POSITION -> location.clone();
+				case null -> null;
+			};
+			if (target == null) return null;
+
+			return new Trail(applyOffsets(target, offset, relativeOffset), color, duration);
 		}
 
 		if (type == BlockData.class) return blockData.get(data);
@@ -169,35 +217,12 @@ public class ParticlesEffect extends SpellEffect {
 		return null;
 	}
 
-	protected Object getParticleData(Particle particle, Location location, SpellData data) {
-		Class<?> type = particle.getDataType();
-
-		if (type == ItemStack.class) {
-			Material material = this.material.get(data);
-			return material == null ? null : new ItemStack(material);
-		}
-
-		if (type == Vibration.class) {
-			Location originLocation = getLocation(location, data, vibrationOrigin);
-			if (originLocation == null) return null;
-
-			Location targetLocation = getLocation(location, data, vibrationDestination);
-			if (targetLocation == null) return null;
-
-			Destination destination = new BlockDestination(applyOffsets(targetLocation, vibrationOffset.get(data),
-				vibrationRelativeOffset.get(data), 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT));
-
-			return new Vibration(destination, arrivalTime.get(data));
-		}
-
-		if (type == BlockData.class) return blockData.get(data);
-		if (type == DustOptions.class) return dustOptions.get(data);
-		if (type == DustTransition.class) return dustTransition.get(data);
-		if (type == Float.class) return sculkChargeRotation.get(data);
-		if (type == Integer.class) return shriekDelay.get(data);
-		if (type == Color.class) return argbColor.get(data);
-
-		return null;
+	protected Location getSpawnLocation(@NotNull Particle particle, @NotNull Location position, @NotNull SpellData data) {
+		return switch (particle) {
+			case TRAIL -> getLocation(position, data, trailOrigin);
+			case VIBRATION -> getLocation(position, data, vibrationOrigin);
+			default -> position;
+		};
 	}
 
 	protected Location getLocation(Location location, SpellData data, ConfigData<ParticlePosition> position) {
@@ -210,7 +235,7 @@ public class ParticlesEffect extends SpellEffect {
 				LivingEntity target = data.target();
 				yield target == null ? null : target.getLocation();
 			}
-			case POSITION -> location.clone();
+			case POSITION -> location;
 		};
 	}
 

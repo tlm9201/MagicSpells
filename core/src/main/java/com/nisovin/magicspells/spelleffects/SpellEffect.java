@@ -199,6 +199,10 @@ public abstract class SpellEffect {
 		return applyOffsets(loc, offset.get(data), relativeOffset.get(data), zOffset.get(data), heightOffset.get(data), forwardOffset.get(data), yaw.get(data), pitch.get(data));
 	}
 
+	public Location applyOffsets(Location loc, Vector offset, Vector relativeOffset) {
+		return applyOffsets(loc, offset, relativeOffset, 0, 0, 0, Angle.DEFAULT, Angle.DEFAULT);
+	}
+
 	public Location applyOffsets(Location loc, Vector offset, Vector relativeOffset, double zOffset, double heightOffset, double forwardOffset, Angle yaw, Angle pitch) {
 		loc.add(offset);
 		loc.add(0, heightOffset, 0);
