@@ -44,7 +44,7 @@ public class ParticleCloudEffect extends ParticlesEffect {
 		cloud.setDuration(duration.get(data));
 		cloud.setRadiusPerTick(radiusPerTick.get(data));
 
-		cloud.setParticle(particle, getParticleData(particle, location, data));
+		cloud.setParticle(particle, getParticleData(particle, null, location, data));
 
 		return null;
 	}
