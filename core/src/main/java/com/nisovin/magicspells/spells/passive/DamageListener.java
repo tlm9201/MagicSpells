@@ -148,6 +148,8 @@ public class DamageListener extends PassiveListener {
 	@OverridePriority
 	@EventHandler
 	public void onDamage(EntityDamageEvent event) {
+		if (!isCancelStateOk(event.isCancelled())) return;
+
 		DamageSource source = event.getDamageSource();
 		if (damageTypes != null && !damageTypes.contains(source.getDamageType().key())) return;
 

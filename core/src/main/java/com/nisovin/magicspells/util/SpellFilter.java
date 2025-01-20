@@ -12,27 +12,9 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.spellfilter.*;
+import com.nisovin.magicspells.util.grammars.*;
 
 public class SpellFilter {
-
-	private static final ANTLRErrorListener LEXER_LISTENER = new BaseErrorListener() {
-
-		@Override
-		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-			throw new RuntimeException("Lexer error on line " + line + " position " + charPositionInLine + ": " + msg, e);
-		}
-
-	};
-
-	private static final ANTLRErrorListener PARSER_LISTENER = new BaseErrorListener() {
-
-		@Override
-		public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-			throw new RuntimeException("Parser error on line " + line + " position " + charPositionInLine + ": " + msg, e);
-		}
-
-	};
 
 	private final Set<Spell> spells;
 
@@ -217,11 +199,11 @@ public class SpellFilter {
 		try {
 			SpellFilterLexer lexer = new SpellFilterLexer(CharStreams.fromString(string));
 			lexer.removeErrorListeners();
-			lexer.addErrorListener(LEXER_LISTENER);
+			lexer.addErrorListener(GrammarUtils.LEXER_LISTENER);
 
 			SpellFilterParser parser = new SpellFilterParser(new CommonTokenStream(lexer));
 			parser.removeErrorListeners();
-			parser.addErrorListener(PARSER_LISTENER);
+			parser.addErrorListener(GrammarUtils.PARSER_LISTENER);
 
 			SpellFilterVisitorImpl visitor = new SpellFilterVisitorImpl(string);
 			Predicate<Spell> predicate = visitor.visit(parser.parse());
