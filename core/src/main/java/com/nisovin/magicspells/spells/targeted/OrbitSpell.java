@@ -16,8 +16,6 @@ import org.bukkit.util.BoundingBox;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 
-import io.papermc.paper.entity.TeleportFlag;
-
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
 
@@ -219,9 +217,9 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 		private final Vector perpendicular;
 
 		private final Object2IntMap<UUID> immune;
-		private final Set<ArmorStand> armorStandSet;
+		private final Set<DelayableEntity<ArmorStand>> armorStandSet;
 		private final Predicate<Location> transparent;
-		private final Map<SpellEffect, Entity> entityMap;
+		private final Map<SpellEffect, DelayableEntity<Entity>> entityMap;
 		private final Set<EffectlibSpellEffect> effectSet;
 
 		private final boolean followYaw;
@@ -370,14 +368,14 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			}
 
 			if (armorStandSet != null) {
-				for (ArmorStand armorStand : armorStandSet) {
-					armorStand.teleport(currentLocation, TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
+				for (DelayableEntity<ArmorStand> armorStand : armorStandSet) {
+					armorStand.teleport(currentLocation);
 				}
 			}
 
 			if (entityMap != null) {
 				for (var entry : entityMap.entrySet()) {
-					entry.getValue().teleport(entry.getKey().applyOffsets(currentLocation.clone(), data), TeleportFlag.EntityState.RETAIN_PASSENGERS, TeleportFlag.EntityState.RETAIN_VEHICLE);
+					entry.getValue().teleport(entry.getKey().applyOffsets(currentLocation.clone(), data));
 				}
 			}
 
@@ -516,15 +514,13 @@ public class OrbitSpell extends TargetedSpell implements TargetedEntitySpell, Ta
 			}
 
 			if (armorStandSet != null) {
-				for (ArmorStand armorStand : armorStandSet) {
-					armorStand.remove();
-				}
+				armorStandSet.forEach(DelayableEntity::remove);
+				armorStandSet.clear();
 			}
 
 			if (entityMap != null) {
-				for (Entity entity : entityMap.values()) {
-					entity.remove();
-				}
+				entityMap.values().forEach(DelayableEntity::remove);
+				entityMap.clear();
 			}
 
 			if (removeTracker) trackerSet.remove(this);

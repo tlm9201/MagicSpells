@@ -15,13 +15,10 @@ import net.kyori.adventure.text.Component;
 import de.slikey.effectlib.Effect;
 import de.slikey.effectlib.effect.ModifiedEffect;
 
+import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
-import com.nisovin.magicspells.util.Util;
 import com.nisovin.magicspells.MagicSpells;
-import com.nisovin.magicspells.util.SpellData;
 import com.nisovin.magicspells.util.projectile.*;
-import com.nisovin.magicspells.util.ModifierResult;
-import com.nisovin.magicspells.util.ValidTargetList;
 import com.nisovin.magicspells.util.compat.EventUtil;
 import com.nisovin.magicspells.events.SpellTargetEvent;
 import com.nisovin.magicspells.events.TrackerMoveEvent;
@@ -37,7 +34,8 @@ public class ProjectileTracker implements Runnable, Tracker {
 	private final Random rand = ThreadLocalRandom.current();
 
 	private Set<EffectlibSpellEffect> effectSet;
-	private Map<SpellEffect, Entity> entityMap;
+	private Map<SpellEffect, DelayableEntity<Entity>> entityMap;
+	private Set<DelayableEntity<ArmorStand>> armorStandSet;
 
 	private ProjectileSpell spell;
 
@@ -148,6 +146,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 			spell.playEffects(EffectPosition.CASTER, startLocation, data);
 			effectSet = spell.playEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, data);
 			entityMap = spell.playEntityEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, data);
+			armorStandSet = spell.playArmorStandEffectsProjectile(EffectPosition.PROJECTILE, currentLocation, data);
 			spell.playTrackingLinePatterns(EffectPosition.DYNAMIC_CASTER_PROJECTILE_LINE, startLocation, projectile.getLocation(), data.caster(), projectile, data);
 		}
 
@@ -223,14 +222,20 @@ public class ProjectileTracker implements Runnable, Tracker {
 			}
 		}
 
-		if (entityMap != null) {
+		if (entityMap != null || armorStandSet != null) {
 			// Changing the effect location
 			Location effectLoc = currentLocation.clone();
 			Util.applyRelativeOffset(effectLoc, effectOffset.clone().setY(0));
 			effectLoc.add(0, effectOffset.getY(), 0);
 
-			for (var entry : entityMap.entrySet()) {
-				entry.getValue().teleportAsync(entry.getKey().applyOffsets(effectLoc.clone(), data));
+			if (entityMap != null) {
+				for (var entry : entityMap.entrySet()) {
+					entry.getValue().teleport(entry.getKey().applyOffsets(effectLoc.clone(), data));
+				}
+			}
+
+			if (armorStandSet != null) {
+				armorStandSet.forEach(stand -> stand.teleport(effectLoc));
 			}
 		}
 
@@ -318,10 +323,12 @@ public class ProjectileTracker implements Runnable, Tracker {
 			effectSet.clear();
 		}
 		if (entityMap != null) {
-			for (Entity entity : entityMap.values()) {
-				entity.remove();
-			}
+			entityMap.values().forEach(DelayableEntity::remove);
 			entityMap.clear();
+		}
+		if (armorStandSet != null) {
+			armorStandSet.forEach(DelayableEntity::remove);
+			armorStandSet.clear();
 		}
 		currentLocation = null;
 		if (projectile != null) projectile.remove();

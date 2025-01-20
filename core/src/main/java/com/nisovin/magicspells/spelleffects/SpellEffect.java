@@ -13,6 +13,8 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import de.slikey.effectlib.Effect;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.MagicSpells;
@@ -320,48 +322,42 @@ public abstract class SpellEffect {
 		return null;
 	}
 
+	@Nullable
 	@Deprecated
 	public final Entity playEntityEffect(final Location location) {
-		return playEntityEffect(location, SpellData.NULL);
+		DelayableEntity<Entity> entity = playEntityEffect(location, SpellData.NULL);
+		return entity == null ? null : entity.now();
 	}
 
-	public final Entity playEntityEffect(final Location location, SpellData data) {
+	@Nullable
+	public final DelayableEntity<Entity> playEntityEffect(final Location location, SpellData data) {
 		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
 
 		ModifierResult result = checkModifiers(data, location);
 		if (!result.check()) return null;
-		data = result.data();
 
-		int delay = this.delay.get(data);
-		if (delay <= 0) return playEntityEffectLocationReal(location, data);
-
-		SpellData finalData = data;
-		MagicSpells.scheduleDelayedTask(() -> playEntityEffectLocationReal(location, finalData), delay);
-
-		return null;
+		SpellData finalData = result.data();
+		return new DelayableEntity<>(loc -> playEntityEffectLocationReal(loc, finalData), location, delay.get(finalData));
 	}
 
+	@Nullable
 	@Deprecated
 	public final ArmorStand playArmorStandEffect(final Location location) {
-		return playArmorStandEffect(location, SpellData.NULL);
+		DelayableEntity<ArmorStand> armorStand = playArmorStandEffect(location, SpellData.NULL);
+		return armorStand == null ? null : armorStand.now();
 	}
 
-	public final ArmorStand playArmorStandEffect(final Location location, SpellData data) {
+	@Nullable
+	public final DelayableEntity<ArmorStand> playArmorStandEffect(final Location location, SpellData data) {
 		double chance = this.chance.get(data);
 		if (chance > 0 && chance < 1 && random.nextDouble() > chance) return null;
 
 		ModifierResult result = checkModifiers(data, location);
 		if (!result.check()) return null;
-		data = result.data();
 
-		int delay = this.delay.get(data);
-		if (delay <= 0) return playArmorStandEffectLocationReal(location, data);
-
-		SpellData finalData = data;
-		MagicSpells.scheduleDelayedTask(() -> playArmorStandEffectLocationReal(location, finalData), delay);
-
-		return null;
+		SpellData finalData = result.data();
+		return new DelayableEntity<>(loc -> playArmorStandEffectLocationReal(loc, finalData), location, delay.get(finalData));
 	}
 
 	private Runnable playEffectLocationReal(Location location, SpellData data) {

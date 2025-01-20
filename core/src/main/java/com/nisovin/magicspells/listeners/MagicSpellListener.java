@@ -41,10 +41,8 @@ public class MagicSpellListener implements Listener {
 	}
 
 	/**
-	 * Remove entities in unloaded chunks.
-	 * @implNote If you don't need any other listener handling done aside from this one that
-	 *           {@link Entity#setPersistent(boolean)} exists. This code is only here due to
-	 *           backwards compatibility for removing old entities.
+	 * This is for backwards compatibility for removing entities in unloaded chunks.
+	 * @see Entity#setPersistent(boolean)
 	 */
 	@EventHandler
 	public void onChunkLoad(ChunkLoadEvent event) {
