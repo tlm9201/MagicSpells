@@ -98,15 +98,16 @@ public class BuffManager {
 
 				while (buffIterator.hasNext()) {
 					buff = buffIterator.next();
-					if (!buff.isExpired(entity) && !zoneManager.willFizzle(entity, buff)) continue;
-
-					buff.turnOff(entity, false);
-					EventUtil.call(new BuffEndEvent(entity, buff));
-					buffIterator.remove();
-					if (!buffIterator.hasNext()) entityIterator.remove();
+					if (buff.isExpired(entity) || zoneManager.willFizzle(entity, buff)) {
+						buff.turnOff(entity, false);
+						EventUtil.call(new BuffEndEvent(entity, buff));
+						buffIterator.remove();
+						if (!buffIterator.hasNext()) entityIterator.remove();
+					}
 				}
 			}
 		}
+
 	}
 
 }
