@@ -1609,8 +1609,8 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 
 		return new EntityDamageByEntityEvent(
 			caster, target, cause, source,
-			Collections.singletonMap(EntityDamageEvent.DamageModifier.BASE, damage),
-			Collections.singletonMap(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0)),
+			new HashMap<>(Map.of(EntityDamageEvent.DamageModifier.BASE, damage)),
+			new HashMap<>(Map.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0))),
 			false
 		);
 	}
