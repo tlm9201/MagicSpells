@@ -694,7 +694,6 @@ public class MagicSpells extends JavaPlugin {
 		spells.values().forEach(Spell::initialize);
 
 		zoneManager.load(config);
-		buffManager.initialize();
 		if (!incantations.isEmpty()) registerEvents(new MagicChatListener());
 
 		log("...done");
