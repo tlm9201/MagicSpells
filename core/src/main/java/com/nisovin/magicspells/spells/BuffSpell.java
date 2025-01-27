@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -212,14 +213,18 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 */
 	private void startSpellDuration(SpellData data) {
 		if (duration > 0 && durationEndTime != null) {
+			float duration = this.duration;
+			if (powerAffectsDuration) duration *= data.power();
 
-			float dur = duration;
-			if (powerAffectsDuration) dur *= data.power();
-			setDuration(data.target(), dur);
+			setDuration(data.target(), duration);
 
-			MagicSpells.scheduleDelayedTask(() -> {
-				if (isExpired(data.target())) turnOff(data.target());
-			}, Math.round(dur * TimeUtil.TICKS_PER_SECOND) + 1); // overestimate ticks, since the duration is real-time ms based
+			MagicSpells instance = MagicSpells.getInstance();
+			Bukkit.getAsyncScheduler().runDelayed(
+				instance,
+				task -> Bukkit.getScheduler().runTask(instance, () -> turnOff(data.target())),
+				Math.round(duration * TimeUtil.MILLISECONDS_PER_SECOND),
+				TimeUnit.MILLISECONDS
+			);
 		}
 
 		playSpellEffectsBuff(data.target(), entity -> isActiveAndNotExpired((LivingEntity) entity), data);
