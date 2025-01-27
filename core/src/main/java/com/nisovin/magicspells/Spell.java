@@ -1,5 +1,6 @@
 package com.nisovin.magicspells;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1354,7 +1355,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 					if (rechargeSound.isEmpty()) return;
 					if (livingEntity instanceof Player player)
 						player.playSound(livingEntity.getLocation(), rechargeSound, 1.0F, 1.0F);
-				}, Math.round(TimeUtil.TICKS_PER_SECOND * cooldown));
+				}, Math.round(TimeUtil.TICKS_PER_SECOND * cooldown), livingEntity);
 			}
 			if (charges <= 0 || chargesConsumed.get(uuid) >= charges) {
 				nextCast.put(uuid, System.currentTimeMillis() + (long) (cooldown * TimeUtil.MILLISECONDS_PER_SECOND));
@@ -2104,12 +2105,20 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		HandlerList.unregisterAll(listener);
 	}
 
-	protected int scheduleDelayedTask(Runnable task, int delay) {
-		return MagicSpells.scheduleDelayedTask(task, delay);
+	protected ScheduledTask scheduleDelayedTask(Runnable task, int delay, Location ctx) {
+		return MagicSpells.scheduleDelayedTask(task, delay, ctx);
 	}
 
-	protected int scheduleRepeatingTask(Runnable task, int delay, int interval) {
-		return MagicSpells.scheduleRepeatingTask(task, delay, interval);
+	protected ScheduledTask scheduleDelayedTask(Runnable task, int delay, Entity ent) {
+		return this.scheduleDelayedTask(task, delay, ent.getLocation());
+	}
+
+	protected ScheduledTask scheduleRepeatingTask(Runnable task, int delay, int interval, Location ctx) {
+		return MagicSpells.scheduleRepeatingTask(task, delay, interval, ctx);
+	}
+
+	protected ScheduledTask scheduleRepeatingTask(Runnable task, int delay, int interval, Entity ent) {
+		return MagicSpells.scheduleRepeatingTask(task, delay, interval, ent);
 	}
 
 	protected CastItem[] setupCastItems(String stringKey, String listKey, String errorOptionName) {
@@ -2656,7 +2665,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		private final SpellCastEvent spellCast;
 		private final LivingEntity caster;
 		private final Location from;
-		private final int taskId;
+		private final ScheduledTask task;
 
 		private final boolean interruptOnCast;
 		private final boolean interruptOnMove;
@@ -2666,9 +2675,9 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		public DelayedSpellCast(SpellCastEvent spellCast) {
 			this.spellCast = spellCast;
 
-			taskId = scheduleDelayedTask(this, spellCast.getCastTime());
 			caster = spellCast.getCaster();
 			from = caster.getLocation();
+			task = scheduleDelayedTask(this, spellCast.getCastTime(), from);
 
 			SpellData data = spellCast.getSpellData();
 			interruptOnCast = Spell.this.interruptOnCast.get(data);
@@ -2739,7 +2748,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 
 		private void interrupt() {
-			MagicSpells.cancelTask(taskId);
+			MagicSpells.cancelTask(task);
 			unregisterEvents(this);
 
 			sendMessage(strInterrupted, caster, spellCast.getSpellData());
@@ -2758,7 +2767,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		private final LivingEntity caster;
 		private final Location from;
 		private final int castTime;
-		private final int taskId;
+		private final ScheduledTask task;
 
 		private final boolean interruptOnCast;
 		private final boolean interruptOnMove;
@@ -2781,7 +2790,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			interruptOnTeleport = Spell.this.interruptOnTeleport.get(data);
 
 			if (caster instanceof Player pl) MagicSpells.getExpBarManager().lock(pl, this);
-			taskId = scheduleRepeatingTask(this, interval, interval);
+			task = scheduleRepeatingTask(this, interval, interval, from);
 			registerEvents(this);
 		}
 
@@ -2859,7 +2868,7 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 		}
 
 		private void end() {
-			MagicSpells.cancelTask(taskId);
+			MagicSpells.cancelTask(task);
 			unregisterEvents(this);
 
 			if (caster instanceof Player pl) {
