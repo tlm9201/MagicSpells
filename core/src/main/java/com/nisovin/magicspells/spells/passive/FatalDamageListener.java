@@ -29,7 +29,9 @@ public class FatalDamageListener extends PassiveListener {
 
 	@Override
 	public void initialize(@NotNull String var) {
+		MagicSpells.getDeprecationManager().addDeprecation(passiveSpell, DEPRECATION_NOTICE);
 		if (var.isEmpty()) return;
+
 		for (String causeName : var.split("\\|")) {
 			DamageCause cause = null;
 			try {
@@ -41,8 +43,6 @@ public class FatalDamageListener extends PassiveListener {
 			}
 			damageCauses.add(cause);
 		}
-
-		MagicSpells.getDeprecationManager().addDeprecation(passiveSpell, DEPRECATION_NOTICE);
 	}
 
 	@OverridePriority
