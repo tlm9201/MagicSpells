@@ -169,6 +169,7 @@ public class VariableManager {
 		addMetaVariableType("saturated_regen_rate", new SaturatedRegenRateVariable());
 		addMetaVariableType("unsaturated_regen_rate", new UnsaturatedRegenRateVariable());
 		addMetaVariableType("attack_cooldown", new AttackCooldownVariable());
+		addMetaVariableType("current_tick", new CurrentTickVariable());
 
 		// meta variable attribute types
 		for (Attribute attribute : Registry.ATTRIBUTE) {
