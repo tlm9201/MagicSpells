@@ -118,6 +118,7 @@ public class VariableManager {
 		addMetaVariableType("location_z", new CoordZVariable());
 		addMetaVariableType("location_pitch", new CoordPitchVariable());
 		addMetaVariableType("location_yaw", new CoordYawVariable());
+		addMetaVariableType("body_yaw", new BodyYawVariable());
 		addMetaVariableType("saturation", new SaturationVariable());
 		addMetaVariableType("experience_level", new ExperienceLevelVariable());
 		addMetaVariableType("experience_points", new ExperienceVariable());
