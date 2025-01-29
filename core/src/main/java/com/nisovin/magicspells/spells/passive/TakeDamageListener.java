@@ -41,7 +41,9 @@ public class TakeDamageListener extends PassiveListener {
 
 	@Override
 	public void initialize(@NotNull String var) {
+		MagicSpells.getDeprecationManager().addDeprecation(passiveSpell, DEPRECATION_NOTICE);
 		if (var.isEmpty()) return;
+
 		for (String s : var.split(MagicItemDataParser.DATA_REGEX)) {
 			s = s.trim();
 
@@ -63,8 +65,6 @@ public class TakeDamageListener extends PassiveListener {
 
 			items.add(itemData);
 		}
-
-		MagicSpells.getDeprecationManager().addDeprecation(passiveSpell, DEPRECATION_NOTICE);
 	}
 
 	@OverridePriority
