@@ -120,7 +120,7 @@ str-wrong-world: You cannot cast that spell here.
 str-console-name: Admin
 str-xp-auto-learned: You have learned the %s spell!
 allow-anticheat-integrations: false
-buff-check-interval: 100
+buff-check-interval: 1
 ops-ignore-reagents: true
 ops-ignore-cooldowns: true
 ops-ignore-cast-times: true
