@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -38,8 +41,8 @@ import com.nisovin.magicspells.spelleffects.trackers.AsyncEffectTracker;
 public abstract class BuffSpell extends TargetedSpell implements TargetedEntitySpell {
 
 	protected Map<UUID, Integer> useCounter;
-	protected Map<UUID, Long> durationEndTime;
 	protected Map<UUID, LivingEntity> lastCaster;
+	protected Object2LongMap<UUID> durationEndTime;
 
 	protected float duration;
 
@@ -55,6 +58,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	protected boolean cancelOnDeath;
 	protected boolean cancelOnLogout;
 	protected boolean cancelOnTeleport;
+	protected boolean realTimeDuration;
 	protected boolean cancelOnSpellCast;
 	protected boolean cancelOnTakeDamage;
 	protected boolean cancelOnGiveDamage;
@@ -92,6 +96,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		cancelOnDeath = getConfigBoolean("cancel-on-death", false);
 		cancelOnLogout = getConfigBoolean("cancel-on-logout", false);
 		cancelOnTeleport = getConfigBoolean("cancel-on-teleport", false);
+		realTimeDuration = getConfigBoolean("real-time-duration", false);
 		cancelOnSpellCast = getConfigBoolean("cancel-on-spell-cast", false);
 		cancelOnTakeDamage = getConfigBoolean("cancel-on-take-damage", false);
 		cancelOnGiveDamage = getConfigBoolean("cancel-on-give-damage", false);
@@ -117,7 +122,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		registerEvents(new EntityDeathListener());
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) useCounter = new HashMap<>();
-		if (duration > 0) durationEndTime = new HashMap<>();
+		if (duration > 0) durationEndTime = new Object2LongOpenHashMap<>();
 		lastCaster = new HashMap<>();
 	}
 
@@ -218,13 +223,20 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 
 			setDuration(data.target(), duration);
 
-			MagicSpells instance = MagicSpells.getInstance();
-			Bukkit.getAsyncScheduler().runDelayed(
-				instance,
-				task -> Bukkit.getScheduler().runTask(instance, () -> turnOff(data.target())),
-				Math.round(duration * TimeUtil.MILLISECONDS_PER_SECOND),
-				TimeUnit.MILLISECONDS
-			);
+			if (!realTimeDuration) {
+				MagicSpells.scheduleDelayedTask(
+					() -> turnOff(data.target()),
+					Math.round(duration * TimeUtil.TICKS_PER_SECOND)
+				);
+			} else {
+				MagicSpells instance = MagicSpells.getInstance();
+				Bukkit.getAsyncScheduler().runDelayed(
+					instance,
+					task -> Bukkit.getScheduler().runTask(instance, () -> turnOff(data.target())),
+					Math.round(duration * TimeUtil.MILLISECONDS_PER_SECOND),
+					TimeUnit.MILLISECONDS
+				);
+			}
 		}
 
 		playSpellEffectsBuff(data.target(), entity -> isActiveAndNotExpired((LivingEntity) entity), data);
@@ -234,14 +246,22 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	public void setDuration(LivingEntity livingEntity, float duration) {
-		long endTime = System.currentTimeMillis() + Math.round(duration * TimeUtil.MILLISECONDS_PER_SECOND);
-		durationEndTime.put(livingEntity.getUniqueId(), endTime);
+		long adjustedTime = Math.round(duration * (realTimeDuration ? TimeUtil.MILLISECONDS_PER_SECOND : TimeUtil.TICKS_PER_SECOND));
+		long startTime = (realTimeDuration ? System.currentTimeMillis() : Bukkit.getCurrentTick());
+
+		durationEndTime.put(livingEntity.getUniqueId(), startTime + adjustedTime);
 	}
 
 	public float getDuration(LivingEntity livingEntity) {
 		if (durationEndTime == null) return 0;
-		if (!durationEndTime.containsKey(livingEntity.getUniqueId())) return 0;
-		return (durationEndTime.get(livingEntity.getUniqueId()) - System.currentTimeMillis()) / 1000F;
+
+		long endTime = durationEndTime.getLong(livingEntity.getUniqueId());
+		if (endTime == 0) return 0;
+
+		long currentTime = realTimeDuration ? System.currentTimeMillis() : Bukkit.getCurrentTick();
+		long scale = realTimeDuration ? TimeUtil.MILLISECONDS_PER_SECOND : TimeUtil.TICKS_PER_SECOND;
+
+		return (float) (endTime - currentTime) / scale;
 	}
 
 	public float getDuration() {
@@ -259,11 +279,13 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 * @return true if the spell has expired, false otherwise
 	 */
 	public boolean isExpired(LivingEntity entity) {
-		if (duration <= 0 || durationEndTime == null) return false;
-		if (entity == null) return false;
-		Long endTime = durationEndTime.get(entity.getUniqueId());
-		if (endTime == null) return false;
-		return endTime <= System.currentTimeMillis();
+		if (entity == null || duration <= 0 || durationEndTime == null) return false;
+
+		long endTime = durationEndTime.getLong(entity.getUniqueId());
+		if (endTime == 0) return false;
+
+		long currentTime = realTimeDuration ? System.currentTimeMillis() : Bukkit.getCurrentTick();
+		return endTime <= currentTime;
 	}
 
 	public boolean isActiveAndNotExpired(LivingEntity entity) {
@@ -320,7 +342,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		if (!isActive(entity)) return;
 
 		if (useCounter != null) useCounter.remove(entity.getUniqueId());
-		if (durationEndTime != null) durationEndTime.remove(entity.getUniqueId());
+		if (durationEndTime != null) durationEndTime.removeLong(entity.getUniqueId());
 
 		BuffManager manager = MagicSpells.getBuffManager();
 		if (manager != null && removeFromMap) manager.endBuff(entity, this);
