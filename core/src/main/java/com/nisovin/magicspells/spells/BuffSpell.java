@@ -33,6 +33,7 @@ import com.nisovin.magicspells.util.*;
 import com.nisovin.magicspells.Subspell;
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.events.SpellCastEvent;
+import com.nisovin.magicspells.util.config.ConfigData;
 import com.nisovin.magicspells.util.managers.BuffManager;
 import com.nisovin.magicspells.spelleffects.EffectPosition;
 import com.nisovin.magicspells.spelleffects.trackers.EffectTracker;
@@ -44,7 +45,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	protected Map<UUID, LivingEntity> lastCaster;
 	protected Object2LongMap<UUID> durationEndTime;
 
-	protected float duration;
+	protected ConfigData<Float> duration;
 
 	protected int numUses;
 	protected int useCostInterval;
@@ -82,7 +83,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	public BuffSpell(MagicConfig config, String spellName) {
 		super(config, spellName);
 
-		duration = getConfigFloat("duration", 0);
+		duration = getConfigDataFloat("duration", 0);
 
 		numUses = getConfigInt("num-uses", 0);
 		useCostInterval = getConfigInt("use-cost-interval", 0);
@@ -122,7 +123,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		registerEvents(new EntityDeathListener());
 
 		if (numUses > 0 || (reagents != null && useCostInterval > 0)) useCounter = new HashMap<>();
-		if (duration > 0) durationEndTime = new Object2LongOpenHashMap<>();
+		if (!duration.isConstant() || duration.get() > 0) durationEndTime = new Object2LongOpenHashMap<>();
 		lastCaster = new HashMap<>();
 	}
 
@@ -206,7 +207,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	public void setAsEverlasting() {
-		duration = 0;
+		duration = data -> 0f;
 		numUses = 0;
 		useCostInterval = 0;
 	}
@@ -217,8 +218,8 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 * @param data the spell data of the buff
 	 */
 	private void startSpellDuration(SpellData data) {
+		float duration = this.duration.get(data);
 		if (duration > 0 && durationEndTime != null) {
-			float duration = this.duration;
 			if (powerAffectsDuration) duration *= data.power();
 
 			setDuration(data.target(), duration);
@@ -264,7 +265,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		return (float) (endTime - currentTime) / scale;
 	}
 
-	public float getDuration() {
+	public ConfigData<Float> getDuration() {
 		return duration;
 	}
 
@@ -279,7 +280,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	 * @return true if the spell has expired, false otherwise
 	 */
 	public boolean isExpired(LivingEntity entity) {
-		if (entity == null || duration <= 0 || durationEndTime == null) return false;
+		if (entity == null || durationEndTime == null) return false;
 
 		long endTime = durationEndTime.getLong(entity.getUniqueId());
 		if (endTime == 0) return false;
@@ -289,8 +290,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 	}
 
 	public boolean isActiveAndNotExpired(LivingEntity entity) {
-		if (duration > 0 && isExpired(entity)) return false;
-		return isActive(entity);
+		return !isExpired(entity) && isActive(entity);
 	}
 
 	/**
