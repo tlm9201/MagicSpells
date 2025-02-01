@@ -218,13 +218,16 @@ public abstract class Spell implements Comparable<Spell>, Listener {
 			currentClass = currentClass.getSuperclass();
 		} while (Spell.class.isAssignableFrom(currentClass));
 
+		ConfigurationSection mainConfig = config.getMainConfig();
 		for (Class<?> clazz : classes.reversed()) {
 			ConfigurationSection defaults = config.getDefaults(clazz);
 			if (defaults == null) continue;
 
 			for (String key : defaults.getKeys(true)) {
 				if (defaults.isConfigurationSection(key)) continue;
-				config.getMainConfig().addDefault(internalKey + key, defaults.get(key));
+
+				String path = internalKey + key;
+				if (!mainConfig.isSet(path)) mainConfig.set(path, defaults.get(key));
 			}
 		}
 
