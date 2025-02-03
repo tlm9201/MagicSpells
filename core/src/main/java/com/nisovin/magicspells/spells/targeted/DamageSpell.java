@@ -58,7 +58,8 @@ public class DamageSpell extends TargetedSpell implements TargetedEntitySpell, T
 		damage = event.getFinalDamage();
 
 		DamageSource.Builder builder = DamageSource.builder(damageType);
-		if (data.hasCaster() && creditCaster.get(data)) builder.withDirectEntity(data.caster());
+		if (data.hasCaster() && creditCaster.get(data))
+			builder.withCausingEntity(data.caster()).withDirectEntity(data.caster());
 
 		data.target().damage(damage, builder.build());
 

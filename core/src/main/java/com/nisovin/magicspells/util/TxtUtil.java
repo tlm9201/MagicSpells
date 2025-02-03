@@ -2,7 +2,9 @@ package com.nisovin.magicspells.util;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.Collections;
+import java.math.RoundingMode;
 
 import com.nisovin.magicspells.Spell;
 import com.nisovin.magicspells.MagicSpells;
@@ -13,14 +15,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 
 public class TxtUtil {
-	
+
 	public static String getStringNumber(double number, int places) {
-		if (places < 0) return number + "";
-		if (places == 0) return (int) Math.round(number) + "";
-		int x = (int) Math.pow(10, places);
-		return ((double) Math.round(number * x) / x) + "";
+		if (places < 0 || !Double.isFinite(number)) return Double.toString(number);
+		return new BigDecimal(number).setScale(places, RoundingMode.HALF_UP).toString();
 	}
-	
+
 	public static String getStringNumber(String textNumber, int places) {
 		String ret;
 		try {
