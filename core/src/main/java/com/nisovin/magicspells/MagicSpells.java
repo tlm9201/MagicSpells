@@ -422,7 +422,7 @@ public class MagicSpells extends JavaPlugin {
 		zoneManager = new NoMagicZoneManager();
 		cleanserManager = new CleanserManager();
 		customGoalsManager = new CustomGoalsManager();
-		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 100));
+		buffManager = new BuffManager(config.getInt(path + "buff-check-interval", 1));
 		expBarManager = new ExperienceBarManager();
 		bossBarManager = new BossBarManager();
 		if (CompatBasics.pluginEnabled("Vault")) moneyHandler = new MoneyHandler();
