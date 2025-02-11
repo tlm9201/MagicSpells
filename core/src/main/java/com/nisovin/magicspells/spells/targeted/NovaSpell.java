@@ -174,7 +174,7 @@ public class NovaSpell extends TargetedSpell implements TargetedLocationSpell, T
 			nearby = new HashSet<>();
 
 			this.data = data.noTarget();
-			task = MagicSpells.scheduleRepeatingTask(this, 0, expandInterval.get(data), center);
+			task = MagicSpells.scheduleRepeatingTask(this, 1, expandInterval.get(data), center);
 		}
 
 		protected boolean step() {
