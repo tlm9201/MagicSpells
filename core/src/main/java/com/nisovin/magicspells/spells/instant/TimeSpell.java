@@ -1,5 +1,7 @@
 package com.nisovin.magicspells.spells.instant;
 
+import com.nisovin.magicspells.MagicSpells;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -36,7 +38,7 @@ public class TimeSpell extends InstantSpell implements TargetedLocationSpell {
 	}
 
 	private void setTime(World world, SpellData data) {
-		world.setTime(timeToSet.get(data));
+		Bukkit.getGlobalRegionScheduler().run(MagicSpells.getInstance(), (task) -> world.setTime(timeToSet.get(data)));
 		for (Player p : world.getPlayers()) sendMessage(strAnnounce, p, data);
 		playSpellEffects(data);
 	}

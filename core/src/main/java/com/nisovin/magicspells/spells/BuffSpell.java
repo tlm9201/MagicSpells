@@ -97,7 +97,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 		cancelOnDeath = getConfigBoolean("cancel-on-death", false);
 		cancelOnLogout = getConfigBoolean("cancel-on-logout", false);
 		cancelOnTeleport = getConfigBoolean("cancel-on-teleport", false);
-		realTimeDuration = getConfigBoolean("real-time-duration", false);
+		realTimeDuration = getConfigBoolean("real-time-duration", true);
 		cancelOnSpellCast = getConfigBoolean("cancel-on-spell-cast", false);
 		cancelOnTakeDamage = getConfigBoolean("cancel-on-take-damage", false);
 		cancelOnGiveDamage = getConfigBoolean("cancel-on-give-damage", false);

@@ -110,7 +110,6 @@ public class ProjectileTracker implements Runnable, Tracker {
 	public void initialize() {
 		zoneManager = MagicSpells.getNoMagicZoneManager();
 		startTime = System.currentTimeMillis();
-		task = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval, projectile);
 
 		startLocation.add(0, relativeOffset.getY(), 0);
 		Util.applyRelativeOffset(startLocation, relativeOffset.setY(0));
@@ -152,6 +151,7 @@ public class ProjectileTracker implements Runnable, Tracker {
 		}
 
 		ProjectileSpell.getProjectileTrackers().add(this);
+		task = MagicSpells.scheduleRepeatingTask(this, 0, tickInterval, projectile);
 	}
 
 	@Override

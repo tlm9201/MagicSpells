@@ -1968,7 +1968,7 @@ public class MagicSpells extends JavaPlugin {
 			} catch (Exception e) {
 				handleException(e);
 			}
-		}, delay, interval);
+		}, delay <= 0 ? 1 : delay, interval);
 	}
 
 	public static ScheduledTask scheduleRepeatingTask(final Runnable task, long delay, long interval, Entity ent) {
@@ -1978,7 +1978,7 @@ public class MagicSpells extends JavaPlugin {
 			} catch (Exception e) {
 				handleException(e);
 			}
-		}, null, delay, interval);
+		}, null, delay <= 0 ? 1 : delay, interval);
 	}
 
 	public static void cancelTask(ScheduledTask task) {
