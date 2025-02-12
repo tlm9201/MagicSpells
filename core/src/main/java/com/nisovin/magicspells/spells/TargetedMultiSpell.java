@@ -1,9 +1,12 @@
 package com.nisovin.magicspells.spells;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntCollection;
 
@@ -126,7 +129,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 		boolean stopOnFail = this.stopOnFail.get(data);
 		boolean stopOnSuccess = this.stopOnSuccess.get(data);
 
-		DelayedSpells delayedSpells = new DelayedSpells(new IntArrayList(), data, passTargeting, stopOnFail, stopOnSuccess);
+		DelayedSpells delayedSpells = new DelayedSpells(new HashSet<>(), data, passTargeting, stopOnFail, stopOnSuccess);
 		int totalDelay = 0;
 
 		boolean casted = false;
@@ -166,7 +169,7 @@ public final class TargetedMultiSpell extends TargetedSpell implements TargetedE
 
 	private record SpellAction(Subspell subspell) implements Action {}
 
-	private record DelayedSpells(IntCollection tasks, SpellData data, boolean passTargeting, boolean stopOnFail, boolean stopOnSuccess) {
+	private record DelayedSpells(Collection<ScheduledTask> tasks, SpellData data, boolean passTargeting, boolean stopOnFail, boolean stopOnSuccess) {
 
 		private void cancel() {
 			tasks.forEach(MagicSpells::cancelTask);
