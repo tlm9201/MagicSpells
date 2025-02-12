@@ -1982,6 +1982,8 @@ public class MagicSpells extends JavaPlugin {
 	}
 
 	public static void cancelTask(ScheduledTask task) {
+		if (task == null)
+			return;
 		task.cancel();
 	}
 

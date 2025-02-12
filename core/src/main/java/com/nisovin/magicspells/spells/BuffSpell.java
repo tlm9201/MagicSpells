@@ -238,7 +238,7 @@ public abstract class BuffSpell extends TargetedSpell implements TargetedEntityS
 					instance,
 					task -> {
 						if (isExpired(data.target()))
-							Bukkit.getScheduler().runTask(instance, () -> turnOff(data.target()));
+							MagicSpells.scheduleDelayedTask(() -> turnOff(data.target()),1L);
 					},
 					Math.round(duration * TimeUtil.MILLISECONDS_PER_SECOND),
 					TimeUnit.MILLISECONDS
