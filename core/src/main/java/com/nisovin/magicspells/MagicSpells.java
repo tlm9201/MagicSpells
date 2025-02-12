@@ -1958,7 +1958,7 @@ public class MagicSpells extends JavaPlugin {
 			} catch (Exception e) {
 				handleException(e);
 			}
-		}, delay, interval);
+		}, delay <= 0 ? 1 : delay, interval);
 	}
 
 	public static ScheduledTask scheduleRepeatingTask(final Runnable task, long delay, long interval) {
