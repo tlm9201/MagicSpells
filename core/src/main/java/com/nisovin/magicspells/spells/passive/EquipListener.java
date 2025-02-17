@@ -1,15 +1,18 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EquipmentSlot;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent.EquipmentChange;
 
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
@@ -43,21 +46,35 @@ public class EquipListener extends PassiveListener {
 
 	@OverridePriority
 	@EventHandler
-	public void onEquip(PlayerArmorChangeEvent event) {
-		Player caster = event.getPlayer();
+	public void onEquip(EntityEquipmentChangedEvent event) {
+		LivingEntity caster = event.getEntity();
 		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
-			ItemStack newItem = event.getNewItem();
-			if (newItem.isEmpty()) return;
+			boolean check = false;
 
-			MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(newItem);
-			if (newData == null) return;
+			for (Map.Entry<EquipmentSlot, EquipmentChange> entry : event.getEquipmentChanges().entrySet()) {
+				EquipmentSlot slot = entry.getKey();
+				if (!slot.isArmor()) continue;
 
-			ItemStack oldItem = event.getOldItem();
-			MagicItemData oldData = MagicItems.getMagicItemDataFromItemStack(oldItem);
+				EquipmentChange change = entry.getValue();
 
-			if (!contains(oldData, newData)) return;
+				ItemStack newItem = change.newItem();
+				if (newItem.isEmpty()) return;
+
+				MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(newItem);
+				if (newData == null) return;
+
+				ItemStack oldItem = change.oldItem();
+				MagicItemData oldData = MagicItems.getMagicItemDataFromItemStack(oldItem);
+
+				if (contains(oldData, newData)) {
+					check = true;
+					break;
+				}
+			}
+
+			if (!check) return;
 		}
 
 		passiveSpell.activate(caster);
