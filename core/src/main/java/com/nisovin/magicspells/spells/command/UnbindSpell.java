@@ -70,7 +70,6 @@ public class UnbindSpell extends CommandSpell {
 			}
 
 			spellbook.save();
-			spellbook.reload();
 			sendMessage(strUnbindAll, caster, data);
 			playSpellEffects(EffectPosition.CASTER, caster, data);
 

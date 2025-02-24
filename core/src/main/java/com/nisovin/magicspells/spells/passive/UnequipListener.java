@@ -1,15 +1,18 @@
 package com.nisovin.magicspells.spells.passive;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.EquipmentSlot;
 
-import org.jetbrains.annotations.NotNull;
-
-import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent.EquipmentChange;
 
 import com.nisovin.magicspells.util.Name;
 import com.nisovin.magicspells.MagicSpells;
@@ -27,6 +30,7 @@ public class UnequipListener extends PassiveListener {
 	@Override
 	public void initialize(@NotNull String var) {
 		if (var.isEmpty()) return;
+
 		for (String s : var.split(MagicItemDataParser.DATA_REGEX)) {
 			s = s.trim();
 
@@ -42,21 +46,35 @@ public class UnequipListener extends PassiveListener {
 
 	@OverridePriority
 	@EventHandler
-	public void onUnequip(PlayerArmorChangeEvent event) {
-		Player caster = event.getPlayer();
+	public void onUnequip(EntityEquipmentChangedEvent event) {
+		LivingEntity caster = event.getEntity();
 		if (!canTrigger(caster)) return;
 
 		if (!items.isEmpty()) {
-			ItemStack oldItem = event.getOldItem();
-			if (oldItem.isEmpty()) return;
+			boolean check = false;
 
-			MagicItemData oldData = MagicItems.getMagicItemDataFromItemStack(oldItem);
-			if (oldData == null) return;
+			for (Map.Entry<EquipmentSlot, EquipmentChange> entry : event.getEquipmentChanges().entrySet()) {
+				EquipmentSlot slot = entry.getKey();
+				if (!slot.isArmor()) continue;
 
-			ItemStack newItem = event.getNewItem();
-			MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(newItem);
+				EquipmentChange change = entry.getValue();
 
-			if (!contains(oldData, newData)) return;
+				ItemStack oldItem = change.oldItem();
+				if (oldItem.isEmpty()) return;
+
+				MagicItemData oldData = MagicItems.getMagicItemDataFromItemStack(oldItem);
+				if (oldData == null) return;
+
+				ItemStack newItem = change.newItem();
+				MagicItemData newData = MagicItems.getMagicItemDataFromItemStack(newItem);
+
+				if (contains(oldData, newData)) {
+					check = true;
+					break;
+				}
+			}
+
+			if (!check) return;
 		}
 
 		passiveSpell.activate(caster);

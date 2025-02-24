@@ -1,6 +1,6 @@
 dependencies {
     implementation project(":core")
-    implementation(group: "com.github.MilkBowl", name: "VaultAPI", version: "master-SNAPSHOT") { transitive = false }
+    implementation(group: "net.milkbowl.vault", name: "VaultAPI", version: "1.7") { transitive = false }
 }
 
 jar {
